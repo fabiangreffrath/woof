@@ -86,6 +86,8 @@ static boolean mapinfo_finale;
 // ID24 EndFinale extensions
 //
 
+end_finale_t *endfinale;
+
 // TODO: needs to support custom tranmap & translation
 static void ParseEndFinale_CastFrame(json_t *js_frame, cast_frame_t **frames, int *framecount, const char *lump)
 {
@@ -183,7 +185,7 @@ end_finale_t *F_ParseEndFinale(const char lump[9])
     }
 
     // Now, actually parse it
-    end_finale_t *out = Z_Calloc(1, sizeof(end_finale_t), PU_STATIC, NULL);
+    end_finale_t *out = Z_Calloc(1, sizeof(end_finale_t), PU_LEVEL, NULL);
     out->type = JS_GetIntegerValue(data, "type");
     out->donextmap = JS_GetBooleanValue(data, "donextmap");
     out->musicloops = JS_GetBooleanValue(data, "musicloops");
@@ -277,6 +279,11 @@ static boolean MapInfo_StartFinale(void)
         S_ChangeMusInfoMusic(lumpnum, true);
     }
 
+    if (W_CheckNumForName(gamemapinfo->endfinale) >= 0)
+    {
+        endfinale = F_ParseEndFinale(gamemapinfo->endfinale);
+    }
+
     mapinfo_finale = true;
 
     return lumpnum >= 0;
@@ -329,7 +336,6 @@ static boolean MapInfo_Ticker()
         {
             if (gamemapinfo->flags & MapInfo_EndGameCustomFinale)
             {
-                end_finale_t *endfinale = gamemapinfo->endfinale;
                 if (endfinale->type == END_CAST)
                 {
                     F_StartCast();
@@ -722,8 +728,6 @@ static void EndFinaleCast_CalleeDead(void)
 
 static void EndFinaleCast_SetupCall(void)
 {
-    end_finale_t *endfinale = gamemapinfo->endfinale;
-
     S_ChangeMusInfoMusic(W_GetNumForName(endfinale->music), endfinale->musicloops);
     W_CacheLumpName(endfinale->background, PU_LEVEL);
     ef_callee_count = endfinale->cast_animscount;
@@ -749,7 +753,6 @@ static void EndFinaleCast_SetupCall(void)
 static boolean EndFinaleCast_Ticker(void)
 {
     boolean loop_finished = false;
-    end_finale_t *endfinale = gamemapinfo->endfinale;
 
     if (--ef_current_duration <= 0)
     {
@@ -806,7 +809,7 @@ static void F_CastPrint(const char *text);
 // TODO: needs to support custom tranmap & translation
 void EndFinaleCast_Drawer(void)
 {
-  V_DrawPatchFullScreen(W_CacheLumpName(gamemapinfo->endfinale->background, PU_LEVEL));
+  V_DrawPatchFullScreen(W_CacheLumpName(endfinale->background, PU_LEVEL));
   F_CastPrint(ef_current_callee->name);
   patch_t* frame = (patch_t*)W_CacheSpriteName(ef_current_frame->lump, PU_LEVEL);
   if (ef_current_frame->flipped)

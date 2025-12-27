@@ -388,9 +388,7 @@ static void ParseStandardProperty(scanner_t *s, mapentry_t *mape)
     else if (!strcasecmp(prop, "endfinale"))
     {
         mape->flags |= MapInfo_EndGameCustomFinale;
-        char buffer[9];
-        ParseLumpName(s, buffer);
-        mape->endfinale = F_ParseEndFinale(buffer);
+        ParseLumpName(s, mape->endfinale);
     }
     else if (!strcasecmp(prop, "endgame"))
     {
