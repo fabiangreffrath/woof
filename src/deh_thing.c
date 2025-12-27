@@ -368,6 +368,9 @@ DEH_END_MAPPING
 // * "Projectile pass height"
 //
 
+#define KNOWN_UNSUPPORTED_PROP(str) \
+  (!strcasecmp(str, ))
+
 static void *DEH_ThingStart(deh_context_t *context, char *line)
 {
     int thing_number = -1;

@@ -67,11 +67,11 @@ struct deh_context_s
 
 static deh_context_t *DEH_NewContext(void)
 {
-    deh_context_t *context = Z_Malloc(sizeof(*context), PU_STATIC, NULL);
+    deh_context_t *context = malloc(sizeof(*context));
 
     // Initial read buffer size of 128 bytes
     context->readbuffer_size = 128;
-    context->readbuffer = Z_Malloc(context->readbuffer_size, PU_STATIC, NULL);
+    context->readbuffer = malloc(context->readbuffer_size);
     context->linenum = 0;
     context->last_was_newline = true;
 
@@ -132,8 +132,8 @@ void DEH_CloseFile(deh_context_t *context)
     }
 
     free(context->filename);
-    Z_Free(context->readbuffer);
-    Z_Free(context);
+    free(context->readbuffer);
+    free(context);
 }
 
 int DEH_GetCharFile(deh_context_t *context)
@@ -214,11 +214,11 @@ int DEH_GetChar(deh_context_t *context)
 static void IncreaseReadBuffer(deh_context_t *context)
 {
     int newbuffer_size = context->readbuffer_size * 2;
-    char *newbuffer = Z_Malloc(newbuffer_size, PU_STATIC, NULL);
+    char *newbuffer = malloc(newbuffer_size);
 
     memcpy(newbuffer, context->readbuffer, context->readbuffer_size);
 
-    Z_Free(context->readbuffer);
+    free(context->readbuffer);
 
     context->readbuffer = newbuffer;
     context->readbuffer_size = newbuffer_size;
