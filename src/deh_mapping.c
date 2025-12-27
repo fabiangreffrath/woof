@@ -42,7 +42,7 @@ static deh_mapping_entry_t *GetMappingEntryByName(deh_context_t *context, deh_ma
     }
 
     // Not found.
-    DEH_Warning(context, "Field named '%s' not found", name);
+    DEH_Debug(context, "Field named '%s' not found", name);
     return NULL;
 }
 

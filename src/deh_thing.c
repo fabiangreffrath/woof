@@ -356,6 +356,10 @@ DEH_END_MAPPING
 // * "Name", "Name1", "Name2", "Name3",
 // * "Plural", "Plural1", "Plural2", "Plura3"
 //
+// From Eternity:
+// * Bits2
+// * Bits3
+//
 // From ZDoom:
 // * "Tag"
 // * "No Ice Death"
@@ -368,8 +372,24 @@ DEH_END_MAPPING
 // * "Projectile pass height"
 //
 
-#define KNOWN_UNSUPPORTED_PROP(str) \
-  (!strcasecmp(str, ))
+//
+// For some clarification, you shouldn't be running any R/EE/ZD WADs in this
+// port in the first place ;) some of these properties are also commonly
+// included for some port-specific effects. Everything else is fair game.
+//
+#define SILENTLY_IGNORE_MOBJINFO_PROP(str)                                    \
+    (!strcasecmp(str, "Name")       || !strcasecmp(str, "Plural")          || \
+     !strcasecmp(str, "Name1")      || !strcasecmp(str, "Plural1")         || \
+     !strcasecmp(str, "Name2")      || !strcasecmp(str, "Plural2")         || \
+     !strcasecmp(str, "Name3")      || !strcasecmp(str, "Plural3")         || \
+     !strcasecmp(str, "Retro Bits") || !strcasecmp(str, "Pickup Width")    || \
+     !strcasecmp(str, "Fullbright") || !strcasecmp(str, "Shadow Offset")   || \
+     !strcasecmp(str, "Bits2")      || !strcasecmp(str, "Bits3")           || \
+     !strcasecmp(str, "Tag")        || !strcasecmp(str, "No Ice Death")    || \
+     !strcasecmp(str, "Alpha")      || !strcasecmp(str, "Render Style")    || \
+     !strcasecmp(str, "Scale")      || !strcasecmp(str, "Translucency")    || \
+     !strcasecmp(str, "Decal")      || !strcasecmp(str, "Physical height") || \
+     !strcasecmp(str, "Projectile pass height"))
 
 static void *DEH_ThingStart(deh_context_t *context, char *line)
 {
@@ -487,6 +507,10 @@ static void DEH_ThingParseLine(deh_context_t *context, char *line, void *tag)
     else if (!strcasecmp(variable_name, "Blood Color"))
     {
         deh_set_blood_color |= true;
+    }
+    else if (SILENTLY_IGNORE_MOBJINFO_PROP(variable_name))
+    {
+        return;
     }
 
     // Set the field value

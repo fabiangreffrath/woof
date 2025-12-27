@@ -70,6 +70,9 @@ DEH_END_MAPPING
 // * "Min ammo"
 //
 
+#define SILENTLY_IGNORE_WEAPON_PROP(str) \
+    (!strcasecmp(str, "Decal") || !strcasecmp(str, "Ammo use") || !strcasecmp(str, "Min ammo"))
+
 static void *DEH_WeaponStart(deh_context_t *context, char *line)
 {
     int weapon_number = -1;
@@ -114,6 +117,10 @@ static void DEH_WeaponParseLine(deh_context_t *context, char *line, void *tag)
     else if (!strcasecmp(variable_name, "Ammo per shot"))
     {
         weapon->intflags |= WIF_ENABLEAPS;
+    }
+    else if (SILENTLY_IGNORE_WEAPON_PROP(variable_name))
+    {
+        return;
     }
 
     // most values are integers

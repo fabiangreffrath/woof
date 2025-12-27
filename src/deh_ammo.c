@@ -101,7 +101,7 @@ static void DEH_AmmoParseLine(deh_context_t *context, char *line, void *tag)
     }
     else
     {
-        DEH_Warning(context, "Field named '%s' not found", variable_name);
+        DEH_Debug(context, "Field named '%s' not found", variable_name);
     }
 }
 

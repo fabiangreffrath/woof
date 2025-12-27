@@ -342,7 +342,10 @@ void DEH_PrintMessage(deh_context_t *context, verbosity_t verbosity, const char 
     M_vsnprintf(buffer, sizeof(buffer), msg, args);
     va_end(args);
 
-    I_Printf(verbosity, "%s:%i: %s", context->filename, context->linenum, buffer);
+    const char *location = (context->type == DEH_INPUT_FILE)
+                          ? context->filename
+                          : lumpinfo[context->lumpnum].wad_file;
+    I_Printf(verbosity, "%s:%i: %s", location, context->linenum, buffer);
 }
 
 boolean DEH_HadError(deh_context_t *context)

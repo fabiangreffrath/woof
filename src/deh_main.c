@@ -376,7 +376,6 @@ int DEH_LoadFile(const char *filename)
         DEH_Init();
     }
 
-    I_Printf(VB_DEBUG, "DEH_LoadFile: Loading %s", filename);
     deh_context_t *context = DEH_OpenFile(filename);
     if (context == NULL)
     {
@@ -426,7 +425,6 @@ void DEH_LoadLump(int lumpnum)
         DEH_Init();
     }
 
-    I_Printf(VB_DEBUG, "DEH_LoadLump: Loading lumpnum %d from %s", lumpnum, lumpinfo[lumpnum].wad_file);
     deh_context_t *context = DEH_OpenLump(lumpnum);
     if (context == NULL)
     {
