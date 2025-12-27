@@ -40,60 +40,6 @@ void F_Drawer (void);
 
 void F_StartFinale (void);
 
-
-//
-// ID24 EndFinale extensions
-//
-
-// Custom EndFinale type
-typedef enum end_type_e
-{
-  END_ART,    // Plain graphic, e.g CREDIT, VICTORY2, ENDPIC
-  END_SCROLL, // Custom "bunny" scroller
-  END_CAST,   // Custom cast call
-} end_type_t;
-
-// Custom cast call, per-callee frame
-typedef struct cast_frame_s
-{
-  char        lump[9];
-  boolean     flipped;
-  int         duration;
-  int         sound;
-} cast_frame_t;
-
-// Custom cast call, callee
-typedef struct cast_entry_s
-{
-  const char   *name;             // BEX [STRINGS] mnemonic
-  int           alertsound;
-  cast_frame_t *aliveframes;
-  cast_frame_t *deathframes;
-  int           aliveframescount; // Book-keeping
-  int           deathframescount; // Book-keeping
-} cast_anim_t;
-
-
-// ID24 EndFinale
-typedef struct end_finale_s
-{
-  end_type_t   type;
-  char         music[9];      // e.g. `D_EVIL` or `D_BUNNY` or `D_VICTOR`
-  char         background[9]; // e.g. `BOSSBACK` or `PFUB1` or `ENDPIC`
-  boolean      musicloops;
-  boolean      donextmap;
-  char         bunny_stitchimage[9];
-  int          bunny_overlay;
-  int          bunny_overlaycount;
-  int          bunny_overlaysound;
-  int          bunny_overlayx;
-  int          bunny_overlayy;
-  int          cast_animscount;
-  cast_anim_t *cast_anims;
-} end_finale_t;
-
-end_finale_t *F_ParseEndFinale(const char lump[9]);
-
 #endif
 
 //----------------------------------------------------------------------------

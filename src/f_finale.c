@@ -30,8 +30,6 @@
 #include "g_umapinfo.h"
 #include "i_printf.h"
 #include "info.h"
-#include "m_array.h"
-#include "m_json.h"
 #include "m_misc.h" // [FG] M_StringDuplicate()
 #include "m_swap.h"
 #include "r_defs.h"
@@ -86,17 +84,73 @@ static boolean mapinfo_finale;
 // ID24 EndFinale extensions
 //
 
-end_finale_t *endfinale;
+#define M_ARRAY_MALLOC(size) Z_Malloc(size, PU_LEVEL, NULL)
+#define M_ARRAY_REALLOC(ptr, size) Z_Realloc(ptr, size, PU_LEVEL, NULL)
+#define M_ARRAY_FREE(ptr) Z_Free(ptr)
+#include "m_array.h"
+
+#include "m_json.h"
+
+// Custom EndFinale type
+typedef enum end_type_e
+{
+    END_ART,    // Plain graphic, e.g CREDIT, VICTORY2, ENDPIC
+    END_SCROLL, // Custom "bunny" scroller
+    END_CAST,   // Custom cast call
+} end_type_t;
+
+// Custom cast call, per-callee frame
+typedef struct cast_frame_s
+{
+    char        lump[9];
+    boolean     flipped;
+    int         duration;
+    int         sound;
+} cast_frame_t;
+
+// Custom cast call, callee
+typedef struct cast_entry_s
+{
+    const char   *name;             // BEX [STRINGS] mnemonic
+    int           alertsound;
+    cast_frame_t *aliveframes;
+    cast_frame_t *deathframes;
+    int           aliveframescount; // Book-keeping
+    int           deathframescount; // Book-keeping
+} cast_anim_t;
+
+
+// ID24 EndFinale
+typedef struct end_finale_s
+{
+    end_type_t   type;
+    char         music[9];      // e.g. `D_EVIL` or `D_BUNNY` or `D_VICTOR`
+    char         background[9]; // e.g. `BOSSBACK` or `PFUB1` or `ENDPIC`
+    boolean      musicloops;
+    boolean      donextmap;
+    char         bunny_stitchimage[9];
+    int          bunny_overlay;
+    int          bunny_overlaycount;
+    int          bunny_overlaysound;
+    int          bunny_overlayx;
+    int          bunny_overlayy;
+    int          cast_animscount;
+    cast_anim_t *cast_anims;
+} end_finale_t;
+
+static end_finale_t *endfinale;
 
 // TODO: needs to support custom tranmap & translation
-static void ParseEndFinale_CastFrame(json_t *js_frame, cast_frame_t **frames, int *framecount, const char *lump)
+static void ParseEndFinale_CastFrame(json_t *js_frame, cast_frame_t **frames,
+                                     int *framecount, const char *lump)
 {
     cast_frame_t frame = {0};
     const char *frame_lump = JS_GetStringValue(js_frame, "lump");
 
     if (frame_lump == NULL)
     {
-        I_Printf(VB_WARNING, "EndFinale: invalid cast anim lump field on lump '%s'", lump);
+        I_Printf(VB_WARNING,
+                 "EndFinale: invalid cast anim lump field on lump '%s'", lump);
     }
     else
     {
@@ -111,7 +165,8 @@ static void ParseEndFinale_CastFrame(json_t *js_frame, cast_frame_t **frames, in
     (*framecount)++;
 }
 
-static cast_anim_t ParseEndFinale_CastAnims(json_t *js_castanim_entry, const char *lump)
+static cast_anim_t ParseEndFinale_CastAnims(json_t *js_castanim_entry,
+                                            const char *lump)
 {
     cast_anim_t out = {0};
     out.name = D_GetStringForMnemonic(JS_GetStringValue(js_castanim_entry, "name"));
@@ -121,33 +176,38 @@ static cast_anim_t ParseEndFinale_CastAnims(json_t *js_castanim_entry, const cha
     json_t *js_alive_frame = NULL;
     JS_ArrayForEach(js_alive_frame, js_alive_frame_list)
     {
-        ParseEndFinale_CastFrame(js_alive_frame, &out.aliveframes, &out.aliveframescount, lump);
+        ParseEndFinale_CastFrame(js_alive_frame, &out.aliveframes,
+                                 &out.aliveframescount, lump);
     }
 
     json_t *js_death_frame = NULL;
     json_t *js_death_frame_list = JS_GetObject(js_castanim_entry, "deathframes");
     JS_ArrayForEach(js_death_frame, js_death_frame_list)
     {
-        ParseEndFinale_CastFrame(js_death_frame, &out.deathframes, &out.deathframescount, lump);
+        ParseEndFinale_CastFrame(js_death_frame, &out.deathframes,
+                                 &out.deathframescount, lump);
     }
 
     return out;
 }
 
-static void ParseEndFinale_CastRollCall(json_t *js_castrollcall, end_finale_t *out, const char *lump)
+static void ParseEndFinale_CastRollCall(json_t *js_castrollcall,
+                                        end_finale_t *out, const char *lump)
 {
     json_t *js_castanim_list = JS_GetObject(js_castrollcall, "castanims");
 
     json_t *js_castanim_entry = NULL;
     JS_ArrayForEach(js_castanim_entry, js_castanim_list)
     {
-        cast_anim_t castanim_entry = ParseEndFinale_CastAnims(js_castanim_entry, lump);
+        cast_anim_t castanim_entry =
+            ParseEndFinale_CastAnims(js_castanim_entry, lump);
         out->cast_animscount++;
         array_push(out->cast_anims, castanim_entry);
     }
 }
 
-static void ParseEndFinale_Bunny(json_t *js_bunny, end_finale_t *out, const char *lump)
+static void ParseEndFinale_Bunny(json_t *js_bunny, end_finale_t *out,
+                                 const char *lump)
 {
     out->bunny_overlay = JS_GetIntegerValue(js_bunny, "overlay");
     out->bunny_overlaycount = JS_GetIntegerValue(js_bunny, "overlaycount");
@@ -157,7 +217,9 @@ static void ParseEndFinale_Bunny(json_t *js_bunny, end_finale_t *out, const char
     const char *bunny_lump = JS_GetStringValue(js_bunny, "stitchimage");
     if (bunny_lump == NULL || (W_CheckNumForName(bunny_lump) < 0))
     {
-        I_Printf(VB_WARNING, "EndFinale: invalid bunny stitchimage field on lump '%s'", lump);
+        I_Printf(VB_WARNING,
+                 "EndFinale: invalid bunny stitchimage field on lump '%s'",
+                 lump);
     }
     else
     {
@@ -165,7 +227,7 @@ static void ParseEndFinale_Bunny(json_t *js_bunny, end_finale_t *out, const char
     }
 }
 
-end_finale_t *F_ParseEndFinale(const char lump[9])
+static end_finale_t *F_ParseEndFinale(const char *lump)
 {
     // Does the JSON lump even exist?
     json_t *json = JS_Open(lump, "finale", (version_t){1, 0, 0});
@@ -194,7 +256,9 @@ end_finale_t *F_ParseEndFinale(const char lump[9])
     const char *background = JS_GetStringValue(data, "background");
     if (music == NULL || background == NULL)
     {
-        I_Printf(VB_WARNING, "EndFinale: invalid music or background fields on lump '%s'", lump);
+        I_Printf(VB_WARNING,
+                 "EndFinale: invalid music or background fields on lump '%s'",
+                 lump);
         Z_Free(out);
         JS_Close(lump);
         return NULL;
@@ -217,7 +281,10 @@ end_finale_t *F_ParseEndFinale(const char lump[9])
             break;
 
         default:
-            I_Printf(VB_WARNING, "EndFinale: unknown entry of type '%d' on lump %s, skipping", out->type, lump);
+            I_Printf(
+                VB_WARNING,
+                "EndFinale: unknown entry of type '%d' on lump %s, skipping",
+                out->type, lump);
             Z_Free(out);
             JS_Close(lump);
             return NULL;
@@ -300,33 +367,30 @@ static boolean MapInfo_Ticker()
 
     WI_checkForAccelerate();
 
-    if (!next_level)
+    // advance animation
+    finalecount++;
+
+    if (finalestage == FINALE_STAGE_CAST)
     {
-        // advance animation
-        finalecount++;
-
-        if (finalestage == FINALE_STAGE_CAST)
+        if (F_CastTicker())
         {
-            if (F_CastTicker())
-            {
-                gameaction = ga_worlddone;
-            }
+            gameaction = ga_worlddone;
         }
-        else if (finalestage == FINALE_STAGE_TEXT)
+    }
+    else if (finalestage == FINALE_STAGE_TEXT)
+    {
+        int textcount = 0;
+        if (finaletext)
         {
-            int textcount = 0;
-            if (finaletext)
-            {
-                float speed = demo_compatibility ? TEXTSPEED : Get_TextSpeed();
-                textcount = strlen(finaletext) * speed
-                            + (midstage ? NEWTEXTWAIT : TEXTWAIT);
-            }
+            float speed = demo_compatibility ? TEXTSPEED : Get_TextSpeed();
+            textcount = strlen(finaletext) * speed
+                        + (midstage ? NEWTEXTWAIT : TEXTWAIT);
+        }
 
-            if (!textcount || finalecount > textcount
-                || (midstage && acceleratestage))
-            {
-                next_level = true;
-            }
+        if (!textcount || finalecount > textcount
+            || (midstage && acceleratestage))
+        {
+            next_level = true;
         }
     }
 
@@ -345,7 +409,8 @@ static boolean MapInfo_Ticker()
                     finalecount = 0;
                     finalestage = FINALE_STAGE_ART;
                     wipegamestate = -1; // force a wipe
-                    S_ChangeMusInfoMusic(W_CheckNumForName(endfinale->music), endfinale->musicloops);
+                    S_ChangeMusInfoMusic(W_GetNumForName(endfinale->music), 
+                                         endfinale->musicloops);
                     if (endfinale->type == END_ART)
                     {
                         mapinfo_finale = false;
@@ -791,7 +856,8 @@ static boolean EndFinaleCast_Ticker(void)
 
 static boolean EndFinaleCast_Responder(event_t *ev)
 {
-    if (!(ev->type == ev_keydown || ev->type == ev_mouseb_down || ev->type == ev_joyb_down))
+    if (!(ev->type == ev_keydown || ev->type == ev_mouseb_down
+          || ev->type == ev_joyb_down))
     {
         return false;
     }
@@ -809,17 +875,17 @@ static void F_CastPrint(const char *text);
 // TODO: needs to support custom tranmap & translation
 void EndFinaleCast_Drawer(void)
 {
-  V_DrawPatchFullScreen(W_CacheLumpName(endfinale->background, PU_LEVEL));
-  F_CastPrint(ef_current_callee->name);
-  patch_t* frame = (patch_t*)W_CacheSpriteName(ef_current_frame->lump, PU_LEVEL);
-  if (ef_current_frame->flipped)
-  {
-    V_DrawPatchFlipped(SCREENWIDTH / 2, 170, frame);
-  }
-  else
-  {
-    V_DrawPatch(SCREENWIDTH / 2, 170, frame);
-  }
+    V_DrawPatchFullScreen(W_CacheLumpName(endfinale->background, PU_LEVEL));
+    F_CastPrint(ef_current_callee->name);
+    patch_t *frame = W_CacheSpriteName(ef_current_frame->lump, PU_LEVEL);
+    if (ef_current_frame->flipped)
+    {
+        V_DrawPatchFlipped(SCREENWIDTH / 2, 170, frame);
+    }
+    else
+    {
+        V_DrawPatch(SCREENWIDTH / 2, 170, frame);
+    }
 }
 
 //
