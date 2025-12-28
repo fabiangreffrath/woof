@@ -1215,7 +1215,7 @@ static void UpdateStatusBar(player_t *player)
         barindex = array_size(sbardef->statusbars) - 1;
     }
 
-    if (automapactive && automapoverlay == AM_OVERLAY_OFF)
+    if (automap_on)
     {
         barindex = 0;
     }
@@ -1836,7 +1836,7 @@ static void DrawBackground(const char *name)
 
             if (screenblocks == 10
                 || (!statusbar->fullscreenrender && screenblocks > 10)
-                || (automapactive && automapoverlay == AM_OVERLAY_OFF))
+                || automap_on)
             {
                 patch_t *patch = V_CachePatchName("brdr_b", PU_CACHE);
                 crop_t crop = {.width = SHORT(patch->width), .height = st_height};
@@ -1876,9 +1876,7 @@ static void DrawStatusBar(void)
         st_height = 0;
     }
 
-    if (st_height
-        && (screenblocks <= 10
-            || (automapactive && automapoverlay == AM_OVERLAY_OFF)))
+    if (st_height && (screenblocks <= 10 || automap_on))
     {
         DrawBackground(statusbar->fillflat);
     }
@@ -1886,9 +1884,16 @@ static void DrawStatusBar(void)
     sbarelem_t *child;
     array_foreach(child, statusbar->children)
     {
-        DrawElem(
-            0, child->type == sbe_widget ? 0 : SCREENHEIGHT - statusbar->height,
-            NULL, NULL, false, child, player);
+        int y1;
+        if (child->type == sbe_widget || child->type == sbe_carousel)
+        {
+            y1 = 0;
+        }
+        else
+        {
+            y1 = SCREENHEIGHT - statusbar->height;
+        }
+        DrawElem(0, y1, NULL, NULL, false, child, player);
     }
 
     DrawCenteredMessage();
@@ -2085,6 +2090,7 @@ void ST_Init(void)
         if (!sb->fullscreenrender)
         {
             st_height_screenblocks10 = CLAMP(sb->height, 0, SCREENHEIGHT) & ~1;
+            st_height = st_height_screenblocks10;
         }
     }
 
