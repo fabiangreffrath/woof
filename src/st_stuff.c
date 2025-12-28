@@ -1324,18 +1324,7 @@ static void DrawPatch(int x, int y, crop_t crop, int maxheight,
 
     byte *outr = colrngs[cr];
 
-    if (outr && tl)
-    {
-        V_DrawPatchTRTL(x, y, xoffset, yoffset, crop, patch, outr, tl);
-    }
-    else if (tl)
-    {
-        V_DrawPatchTL(x, y, xoffset, yoffset, crop, patch, tl);
-    }
-    else
-    {
-        V_DrawPatchTR(x, y, xoffset, yoffset, crop, patch, outr);
-    }
+    V_DrawPatchStatusBarDef(x, y, xoffset, yoffset, tl, outr, patch, crop);
 }
 
 static void DrawGlyphNumber(int x, int y, sbarelem_t *elem, patch_t *glyph)
@@ -1367,7 +1356,7 @@ static void DrawGlyphNumber(int x, int y, sbarelem_t *elem, patch_t *glyph)
 
     if (glyph)
     {
-        DrawPatch(x + number->xoffset, y, (crop_t){0}, font->maxheight,
+        DrawPatch(x + number->xoffset, y, zero_crop, font->maxheight,
                   elem->alignment, glyph,
                   elem->crboom == CR_NONE ? elem->cr : elem->crboom,
                   elem->tranmap);
@@ -1417,7 +1406,7 @@ static void DrawGlyphLine(int x, int y, sbarelem_t *elem, widgetline_t *line,
 
     if (glyph)
     {
-        DrawPatch(x + line->xoffset, y, (crop_t){0}, font->maxheight,
+        DrawPatch(x + line->xoffset, y, zero_crop, font->maxheight,
                   elem->alignment, glyph, elem->cr, elem->tranmap);
     }
 
@@ -1574,7 +1563,7 @@ static void DrawElem(int x, int y, int y0, sbarelem_t *elem, player_t *player)
                 sbe_animation_t *animation = elem->subtype.animation;
                 patch_t *patch =
                     animation->frames[animation->frame_index].patch;
-                DrawPatch(x, y, (crop_t){0}, 0, elem->alignment, patch,
+                DrawPatch(x, y, zero_crop, 0, elem->alignment, patch,
                           elem->cr, elem->tranmap);
             }
             break;
@@ -1624,8 +1613,7 @@ static void DrawSolidBackground(void)
 
     patch_t *sbar = V_CachePatchName(W_CheckWidescreenPatch("STBAR"), PU_CACHE);
     // [FG] temporarily draw status bar to background buffer
-    crop_t crop = {.width = SHORT(sbar->width), .height = st_height};
-    V_DrawPatchGeneral(-video.deltaw, 0, 0, 0, crop, sbar, false);
+    V_DrawPatchBackground(-video.deltaw, sbar);
 
     byte *pal = W_CacheLumpName("PLAYPAL", PU_CACHE);
 
@@ -1699,11 +1687,7 @@ static void DrawBackground(const char *name)
                 patch_t *patch = V_CachePatchName("brdr_b", PU_CACHE);
                 for (int x = 0; x < video.unscaledw; x += 8)
                 {
-                    crop_t crop = {.width = SHORT(patch->width),
-                                   .height = st_height};
-                    V_DrawPatchGeneral(x - video.deltaw, 0,
-                        SHORT(patch->leftoffset), SHORT(patch->topoffset),
-                        crop, patch, false);
+                    V_DrawPatchBackground(x - video.deltaw, patch);
                 }
             }
         }

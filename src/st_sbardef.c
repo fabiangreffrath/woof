@@ -100,7 +100,7 @@ static crop_t ParseCrop(json_t *json)
         return crop;
     }
 
-    return (crop_t){0};
+    return zero_crop;
 }
 
 static boolean ParseSbarElem(json_t *json, sbarelem_t *out);
