@@ -530,6 +530,9 @@ static inline void DrawPatchInternal(int x, int y, int xoffset, int yoffset,
         w = SHORT(patch->width);
     }
 
+    // Adjust for arbitrary resolution
+    x += video.deltaw;
+
     // calculate edges of the shape
     if (flipped)
     {
@@ -647,53 +650,47 @@ static inline void DrawPatchInternal(int x, int y, int xoffset, int yoffset,
 // Original drawer from vanilla doom
 inline void V_DrawPatch(int x, int y, patch_t *patch)
 {
-    x += video.deltaw;
     DrawPatchInternal(x, y, SHORT(patch->leftoffset), SHORT(patch->topoffset), NULL, NULL, NULL, zero_crop, patch, false);
 }
 
 // 160px X centers the sprite in the middle
 inline void V_DrawPatchVanillaCastCall(patch_t *patch, boolean flip)
 {
-    int x = 160 + video.deltaw;
-    DrawPatchInternal(x, 170, SHORT(patch->leftoffset), SHORT(patch->topoffset), NULL, NULL, NULL, zero_crop, patch, flip);
+    DrawPatchInternal(160, 170, SHORT(patch->leftoffset), SHORT(patch->topoffset), NULL, NULL, NULL, zero_crop, patch, flip);
 }
 
 // while 170px Y puts it just above the callee's name
 inline void V_DrawPatchCustomCastCall(patch_t *patch, const byte *tranmap, const byte *xlat, boolean flip)
 {
-    int x = 160 + video.deltaw;
-    DrawPatchInternal(x, 170, SHORT(patch->leftoffset), SHORT(patch->topoffset), tranmap, xlat, NULL, zero_crop, patch, flip);
+    DrawPatchInternal(160, 170, SHORT(patch->leftoffset), SHORT(patch->topoffset), tranmap, xlat, NULL, zero_crop, patch, flip);
 }
 
 // To not clutter up the stbar drawer
 inline void V_DrawPatchBackground(int x, patch_t *patch)
 {
     crop_t crop = {.width = SHORT(patch->width), .height = st_height};
-    x += video.deltaw;
     DrawPatchInternal(x, 0, SHORT(patch->leftoffset), SHORT(patch->topoffset), NULL, NULL, NULL, crop, patch, false);
 }
 
 // Uses almost everything
 inline void V_DrawPatchStatusBarDef(int x, int y, int xoffset, int yoffset, const byte *tranmap, byte *xlat, patch_t *patch, crop_t crop)
 {
-    x += video.deltaw;
     DrawPatchInternal(x, y, xoffset, yoffset, tranmap, xlat, NULL, crop, patch, false);
 }
 
 // Plain translations are pretty common
 inline void V_DrawPatchTranslated(int x, int y, patch_t *patch, byte* xlat)
 {
-    x += video.deltaw;
     DrawPatchInternal(x, y, SHORT(patch->leftoffset), SHORT(patch->topoffset), NULL, xlat, NULL, zero_crop, patch, false);
 }
 
 // Used to apply a mouse hover 'highlight' on translated menu entries
 inline void V_DrawPatchTranslatedTwice(int x, int y, patch_t *patch, byte* xlat, byte* xlat2)
 {
-    x += video.deltaw;
     DrawPatchInternal(x, y, SHORT(patch->leftoffset), SHORT(patch->topoffset), NULL, xlat, xlat2, zero_crop, patch, false);
 }
 
+// Use negative deltaw to counter-act DrawPatchInternal's adjustment
 inline void V_DrawPatchFullScreen(patch_t *patch)
 {
     const int x = DIV_ROUND_CLOSEST(video.unscaledw - SHORT(patch->width), 2);
@@ -701,7 +698,7 @@ inline void V_DrawPatchFullScreen(patch_t *patch)
     // [crispy] fill pillarboxes in widescreen mode always clear screen, fixes
     // eternall.wad's partly transparent CREDIT in non-widescreen
     V_FillRect(0, 0, video.unscaledw, SCREENHEIGHT, v_darkest_color);
-    DrawPatchInternal(x, 0, 0, 0, NULL, NULL, NULL, zero_crop, patch, false);
+    DrawPatchInternal(x - video.deltaw, 0, 0, 0, NULL, NULL, NULL, zero_crop, patch, false);
 }
 
 void V_ShadeScreen(void)
