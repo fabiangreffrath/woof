@@ -1769,11 +1769,11 @@ static void DrawListOfElem(int x1, int y1, sbarelem_t *elem, player_t *player)
             x2 = y2 = 0;
             DrawElem(x1, y1, &x2, &y2, false, child, player);
 
-            if (list->horizontal)
+            if (list->horizontal && x2)
             {
                 x1 = x2 + list->spacing;
             }
-            else
+            else if (y2)
             {
                 y1 = y2 + list->spacing;
             }
@@ -1786,13 +1786,17 @@ static void DrawListOfElem(int x1, int y1, sbarelem_t *elem, player_t *player)
             x2 = y2 = 0;
             DrawElem(x1, y1, &x2, &y2, true, child, player);
 
-            if (list->horizontal)
+            if (list->horizontal && x2)
             {
                 x1 -= (x2 - x1);
             }
-            else
+            else if (y2)
             {
                 y1 -= (y2 - y1);
+            }
+            else
+            {
+                continue;
             }
 
             DrawElem(x1, y1, NULL, NULL, false, child, player);
