@@ -102,7 +102,11 @@ typedef enum end_type_e
 // Custom cast call, per-callee frame
 typedef struct cast_frame_s
 {
-    char        lump[9];
+    char        frame_lump[9];
+    char        tran_lump[9];
+    char        xlat_lump[9];
+    const byte *tranmap;
+    const byte *xlat;
     boolean     flipped;
     int         duration;
     int         sound;
@@ -140,28 +144,30 @@ typedef struct end_finale_s
 
 static end_finale_t *endfinale;
 
-// TODO: needs to support custom tranmap & translation
 static void ParseEndFinale_CastFrame(json_t *js_frame, cast_frame_t **frames,
                                      int *framecount, const char *lump)
 {
-    cast_frame_t frame = {0};
+    cast_frame_t cast_frame = {0};
     const char *frame_lump = JS_GetStringValue(js_frame, "lump");
+    const char *tran_lump = JS_GetStringValue(js_frame, "tranmap");
+    const char *xlat_lump = JS_GetStringValue(js_frame, "translation");
 
-    if (frame_lump == NULL)
+    if (frame_lump == NULL || frame_lump[0] == '\0')
     {
-        I_Printf(VB_WARNING,
-                 "EndFinale: invalid cast anim lump field on lump '%s'", lump);
+        I_Error("EndFinale: invalid cast anim lump field on lump '%s'", lump);
     }
     else
     {
-        M_CopyLumpName(frame.lump, frame_lump);
+        M_CopyLumpName(cast_frame.frame_lump, frame_lump);
     }
 
-    frame.flipped = JS_GetBooleanValue(js_frame, "flipped");
-    frame.duration = MAX(1, JS_GetNumberValue(js_frame, "duration") * TICRATE);
-    frame.sound = JS_GetIntegerValue(js_frame, "sound");
+    M_CopyLumpName(cast_frame.tran_lump, (tran_lump ? tran_lump : "\0"));
+    M_CopyLumpName(cast_frame.xlat_lump, (xlat_lump ? xlat_lump : "\0"));
+    cast_frame.flipped = JS_GetBooleanValue(js_frame, "flipped");
+    cast_frame.duration = MAX(1, JS_GetNumberValue(js_frame, "duration") * TICRATE);
+    cast_frame.sound = JS_GetIntegerValue(js_frame, "sound");
 
-    array_push(*frames, frame);
+    array_push(*frames, cast_frame);
     (*framecount)++;
 }
 
@@ -800,15 +806,26 @@ static void EndFinaleCast_SetupCall(void)
     cast_anim_t *callee;
     array_foreach(callee, endfinale->cast_anims)
     {
-        cast_frame_t *aliveframe;
-        array_foreach(aliveframe, callee->aliveframes)
+        cast_frame_t *frame;
+        array_foreach(frame, callee->aliveframes)
         {
-            W_CacheSpriteName(aliveframe->lump, PU_LEVEL);
+            W_CacheSpriteName(frame->frame_lump, PU_LEVEL);
+            frame->tranmap = (W_CheckNumForName(frame->tran_lump) >= 0)
+                           ? W_CacheLumpName(frame->tran_lump, PU_LEVEL)
+                           : NULL;
+            frame->xlat = (W_CheckNumForName(frame->xlat_lump) >= 0)
+                        ? W_CacheLumpName(frame->xlat_lump, PU_LEVEL)
+                        : NULL;
         }
-        cast_frame_t *deathframe;
-        array_foreach(deathframe, callee->deathframes)
+        array_foreach(frame, callee->deathframes)
         {
-            W_CacheSpriteName(deathframe->lump, PU_LEVEL);
+            W_CacheSpriteName(frame->frame_lump, PU_LEVEL);
+            frame->tranmap = (W_CheckNumForName(frame->tran_lump) >= 0)
+                           ? W_CacheLumpName(frame->tran_lump, PU_LEVEL)
+                           : NULL;
+            frame->xlat = (W_CheckNumForName(frame->xlat_lump) >= 0)
+                        ? W_CacheLumpName(frame->xlat_lump, PU_LEVEL)
+                        : NULL;
         }
     }
 
@@ -872,20 +889,15 @@ static boolean EndFinaleCast_Responder(event_t *ev)
 
 static void F_CastPrint(const char *text);
 
-// TODO: needs to support custom tranmap & translation
 void EndFinaleCast_Drawer(void)
 {
     V_DrawPatchFullScreen(W_CacheLumpName(endfinale->background, PU_LEVEL));
     F_CastPrint(ef_current_callee->name);
-    patch_t *frame = W_CacheSpriteName(ef_current_frame->lump, PU_LEVEL);
-    if (ef_current_frame->flipped)
-    {
-        V_DrawPatchFlipped(SCREENWIDTH / 2, 170, frame);
-    }
-    else
-    {
-        V_DrawPatch(SCREENWIDTH / 2, 170, frame);
-    }
+    patch_t *frame = W_CacheSpriteName(ef_current_frame->frame_lump, PU_LEVEL);
+    const byte *tranmap = ef_current_frame->tranmap;
+    const byte *xlat = ef_current_frame->xlat;
+    boolean flip = ef_current_frame->flipped;
+    V_DrawPatchCastCall(frame, tranmap, xlat, flip);
 }
 
 //
@@ -1176,10 +1188,7 @@ static void F_CastDrawer(void)
   flip = (boolean)sprframe->flip[0];
                         
   patch = V_CachePatchNum (lump+firstspritelump, PU_CACHE);
-  if (flip)
-    V_DrawPatchFlipped (160, 170, patch);
-  else
-    V_DrawPatch (160, 170, patch);
+  V_DrawPatchCastCall(patch, NULL, NULL, flip);
 }
 
 //
