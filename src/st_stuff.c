@@ -649,6 +649,37 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
                 result &= (StatsPct(player->secretcount, totalsecret) >= cond->param);
                 break;
 
+            case sbc_powerless:
+                if (cond->param >= 0 && cond->param < NUMPOWERS)
+                {
+                    result &=
+                        (player->powers[cond->param] < cond->param2 * TICRATE);
+                }
+                break;
+            case sbc_powergreaterequal:
+                if (cond->param >= 0 && cond->param < NUMPOWERS)
+                {
+                    result &=
+                        (player->powers[cond->param] >= cond->param2 * TICRATE);
+                }
+                break;
+            case sbc_powerlesspct:
+                if (cond->param >= 0 && cond->param < NUMPOWERS)
+                {
+                    result &= (player->powers[cond->param] * 100
+                                   / P_GetPowerDuration(cond->param)
+                               < cond->param2);
+                }
+                break;
+            case sbc_powergreaterequalpct:
+                if (cond->param >= 0 && cond->param < NUMPOWERS)
+                {
+                    result &= (player->powers[cond->param] * 100
+                                   / P_GetPowerDuration(cond->param)
+                               >= cond->param2);
+                }
+                break;
+
             case sbc_none:
             default:
                 result = false;
@@ -743,6 +774,13 @@ static int ResolveNumber(sbe_number_t *number, player_t *player)
             break;
         case sbn_totalsecrets:
             result = totalsecret;
+            break;
+
+        case sbn_power:
+            if (param >= 0 && param < NUMPOWERS)
+            {
+                result = player->powers[param] / TICRATE;
+            }
             break;
 
         case sbn_none:

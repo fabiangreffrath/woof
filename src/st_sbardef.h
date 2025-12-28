@@ -89,6 +89,10 @@ typedef enum
     sbc_itemsgreaterequalpct,
     sbc_secretslesspct,
     sbc_secretsgreaterequalpct,
+    sbc_powerless,
+    sbc_powergreaterequal,
+    sbc_powerlesspct,
+    sbc_powergreaterequalpct,
 
     sbc_max,
 } sbarconditiontype_t;
@@ -131,6 +135,7 @@ typedef enum
     sbn_totalkills,
     sbn_totalitems,
     sbn_totalsecrets,
+    sbn_power,
 
     sbn_max,
 } sbarnumbertype_t;
