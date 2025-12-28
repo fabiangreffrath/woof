@@ -25,7 +25,6 @@
 
 #include "doomtype.h"
 #include "m_fixed.h"
-#include "m_swap.h"
 #include "r_defs.h"
 
 //
@@ -154,46 +153,23 @@ void V_RestoreBuffer(void);
 void V_CopyRect(int srcx, int srcy, pixel_t *source, int width, int height,
                 int destx, int desty);
 
-// killough 11/98: Consolidated V_DrawPatch and V_DrawPatchFlipped
-
 typedef struct
 {
     int left;
     int top;
     boolean center;
     int width;
-    int height;    
+    int height;
 } crop_t;
+extern crop_t zero_crop;
 
-void V_DrawPatchGeneral(int x, int y, int xoffset, int yoffset, crop_t rect,
-                        patch_t *patch, boolean flipped);
-
-inline static void V_DrawPatch(int x, int y, patch_t *patch)
-{
-    V_DrawPatchGeneral(x, y, SHORT(patch->leftoffset), SHORT(patch->topoffset),
-                       (crop_t){0}, patch, false);
-}
-
-inline static void V_DrawPatchFlipped(int x, int y, patch_t *patch)
-{
-    V_DrawPatchGeneral(x, y, SHORT(patch->leftoffset), SHORT(patch->topoffset),
-                       (crop_t){0}, patch, true);
-}
-
-void V_DrawPatchTranslated(int x, int y, patch_t *patch, byte *outr);
-
-void V_DrawPatchTR(int x, int y, int xoffset, int yoffset, crop_t rect,
-                   patch_t *patch, byte *outr);
-
-void V_DrawPatchTRTR(int x, int y, int xoffset, int yoffset, crop_t rect,
-                     patch_t *patch, byte *outr1, byte *outr2);
-
-void V_DrawPatchTL(int x, int y, int xoffset, int yoffset, crop_t rect,
-                   patch_t *patch, const byte *tl);
-
-void V_DrawPatchTRTL(int x, int y, int xoffset, int yoffset, crop_t rect,
-                     patch_t *patch, byte *outr, const byte *tl);
-
+// On-screen patch drawing functions for specific purposes
+void V_DrawPatch(int x, int y, patch_t *patch);
+void V_DrawPatchCastCall(patch_t *patch, const byte *tranmap, const byte *xlat, boolean flip);
+void V_DrawPatchCropped(int x, int y, patch_t *patch, crop_t crop);
+void V_DrawPatchGeneral(int x, int y, int xoffset, int yoffset, const byte *tranmap, byte *xlat, patch_t *patch, crop_t crop);
+void V_DrawPatchTranslated(int x, int y, patch_t *patch, byte* xlat);
+void V_DrawPatchTranslatedTwice(int x, int y, patch_t *patch, byte* xlat, byte* xlat2);
 void V_DrawPatchFullScreen(patch_t *patch);
 
 // Draw a linear block of pixels into the view buffer.

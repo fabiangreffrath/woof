@@ -1390,18 +1390,7 @@ static void DrawPatch(int x1, int y1, int *x2, int *y2, boolean dry,
 
     byte *outr = colrngs[cr];
 
-    if (outr && tl)
-    {
-        V_DrawPatchTRTL(x1, y1, xoffset, yoffset, crop, patch, outr, tl);
-    }
-    else if (tl)
-    {
-        V_DrawPatchTL(x1, y1, xoffset, yoffset, crop, patch, tl);
-    }
-    else
-    {
-        V_DrawPatchTR(x1, y1, xoffset, yoffset, crop, patch, outr);
-    }
+    V_DrawPatchGeneral(x1, y1, xoffset, yoffset, tl, outr, patch, crop);
 }
 
 static void DrawGlyphNumber(int x1, int y1, int *x2, int *y2, boolean dry,
@@ -1765,7 +1754,7 @@ static void DrawSolidBackground(void)
     patch_t *sbar = V_CachePatchName(W_CheckWidescreenPatch("STBAR"), PU_CACHE);
     // [FG] temporarily draw status bar to background buffer
     crop_t crop = {.width = SHORT(sbar->width), .height = st_height};
-    V_DrawPatchGeneral(-video.deltaw, 0, 0, 0, crop, sbar, false);
+    V_DrawPatchCropped(-video.deltaw, 0, sbar, crop);
 
     byte *pal = W_CacheLumpName("PLAYPAL", PU_CACHE);
 
@@ -1850,13 +1839,10 @@ static void DrawBackground(const char *name)
                 || (automapactive && automapoverlay == AM_OVERLAY_OFF))
             {
                 patch_t *patch = V_CachePatchName("brdr_b", PU_CACHE);
+                crop_t crop = {.width = SHORT(patch->width), .height = st_height};
                 for (int x = 0; x < video.unscaledw; x += 8)
                 {
-                    crop_t crop = {.width = SHORT(patch->width),
-                                   .height = st_height};
-                    V_DrawPatchGeneral(x - video.deltaw, 0,
-                        SHORT(patch->leftoffset), SHORT(patch->topoffset),
-                        crop, patch, false);
+                    V_DrawPatchCropped(x - video.deltaw, 0, patch, crop);
                 }
             }
         }

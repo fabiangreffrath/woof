@@ -24,7 +24,6 @@
 #include "m_misc.h"
 #include "m_swap.h"
 #include "r_defs.h"
-#include "r_draw.h"
 #include "st_sbardef.h"
 #include "v_patch.h"
 #include "v_video.h"
@@ -185,20 +184,7 @@ static void DrawIcon(int x, int y, sbarelem_t *elem, weapon_icon_t icon)
     int xoffset = SHORT(patch->leftoffset);
     int yoffset = SHORT(patch->topoffset);
 
-    if (cr && elem->tranmap)
-    {
-        V_DrawPatchTRTL(x, y, xoffset, yoffset, (crop_t){0}, patch, cr,
-                        elem->tranmap);
-    }
-    else if (elem->tranmap)
-    {
-        V_DrawPatchTL(x, y, xoffset, yoffset, (crop_t){0}, patch,
-                      elem->tranmap);
-    }
-    else
-    {
-        V_DrawPatchTR(x, y, xoffset, yoffset, (crop_t){0}, patch, cr);
-    }
+    V_DrawPatchGeneral(x, y, xoffset, yoffset, elem->tranmap, cr, patch, zero_crop);
 }
 
 static int CalcOffset(void)

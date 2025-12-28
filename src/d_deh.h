@@ -459,6 +459,17 @@ extern char *s_CC_CYBER; // = CC_CYBER;
 //#define CC_HERO       "OUR HERO"
 extern char *s_CC_HERO; // = CC_HERO;
 
+//
+// ID24 - EndFinale extensions
+//
+
+extern char *s_ID24_CC_GHOUL;        // = ID24_CC_GHOUL
+extern char *s_ID24_CC_BANSHEE;      // = ID24_CC_BANSHEE
+extern char *s_ID24_CC_SHOCKTROOPER; // = ID24_CC_SHOCKTROOPER
+extern char *s_ID24_CC_MINDWEAVER;   // = ID24_CC_MINDWEAVER
+extern char *s_ID24_CC_VASSAGO;      // = ID24_CC_VASSAGO
+extern char *s_ID24_CC_TYRANT;       // = ID24_CC_TYRANT
+
 // Ty 03/30/98 - new substitutions for background textures during int screens
 // char*        bgflatE1 = "FLOOR4_8";
 extern char *bgflatE1;
@@ -544,6 +555,8 @@ extern char *s_OB_MPROCKET;
 extern char *s_OB_MPPLASMARIFLE;
 extern char *s_OB_MPBFG_BOOM;
 extern char *s_OB_MPTELEFRAG;
+
+extern const char *D_GetStringForMnemonic(const char*);
 
 #endif
 
