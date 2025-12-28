@@ -256,6 +256,11 @@ static sbarwidgettype_t GetWidgetType(const char *name)
     return sbw_none;
 }
 
+static int StatsPct(int count, int total)
+{
+    return total ? (count * 100 / total) : 100;
+}
+
 static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
 {
     boolean result = true;
@@ -603,6 +608,47 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
                 }
                 break;
 
+            case sbc_killsless:
+                result &= (player->killcount - player->maxkilldiscount < cond->param);
+                break;
+            case sbc_killsgreaterequal:
+                result &= (player->killcount - player->maxkilldiscount >= cond->param);
+                break;
+            case sbc_itemsless:
+                result &= (player->itemcount < cond->param);
+                break;
+            case sbc_itemsgreaterequal:
+                result &= (player->itemcount >= cond->param);
+                break;
+            case sbc_secretsless:
+                result &= (player->secretcount < cond->param);
+                break;
+            case sbc_secretsgreaterequal:
+                result &= (player->secretcount >= cond->param);
+                break;
+            case sbc_killslesspct:
+                result &= (StatsPct(player->killcount - player->maxkilldiscount,
+                                    max_kill_requirement)
+                           < cond->param);
+                break;
+            case sbc_killsgreaterequalpct:
+                result &= (StatsPct(player->killcount - player->maxkilldiscount,
+                                    max_kill_requirement)
+                           >= cond->param);
+                break;
+            case sbc_itemslesspct:
+                result &= (StatsPct(player->itemcount, totalitems) < cond->param);
+                break;
+            case sbc_itemsgreaterequalpct:
+                result &= (StatsPct(player->itemcount, totalitems) >= cond->param);
+                break;
+            case sbc_secretslesspct:
+                result &= (StatsPct(player->secretcount, totalsecret) < cond->param);
+                break;
+            case sbc_secretsgreaterequalpct:
+                result &= (StatsPct(player->secretcount, totalsecret) >= cond->param);
+                break;
+
             case sbc_none:
             default:
                 result = false;
@@ -678,6 +724,25 @@ static int ResolveNumber(sbe_number_t *number, player_t *player)
             break;
         case sbn_secrets:
             result = player->secretcount;
+            break;
+        case sbn_killspct:
+            result = StatsPct(player->killcount - player->maxkilldiscount,
+                              max_kill_requirement);
+            break;
+        case sbn_itemspct:
+            result = StatsPct(player->itemcount, totalitems);
+            break;
+        case sbn_secretspct:
+            result = StatsPct(player->secretcount, totalsecret);
+            break;
+        case sbn_totalkills:
+            result = max_kill_requirement;
+            break;
+        case sbn_totalitems:
+            result = totalitems;
+            break;
+        case sbn_totalsecrets:
+            result = totalsecret;
             break;
 
         case sbn_none:

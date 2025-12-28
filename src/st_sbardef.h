@@ -77,6 +77,18 @@ typedef enum
     sbc_levelless,
     sbc_patchempty,
     sbc_patchnotempty,
+    sbc_killsless,
+    sbc_killsgreaterequal,
+    sbc_itemsless,
+    sbc_itemsgreaterequal,
+    sbc_secretsless,
+    sbc_secretsgreaterequal,
+    sbc_killslesspct,
+    sbc_killsgreaterequalpct,
+    sbc_itemslesspct,
+    sbc_itemsgreaterequalpct,
+    sbc_secretslesspct,
+    sbc_secretsgreaterequalpct,
 
     sbc_max,
 } sbarconditiontype_t;
@@ -113,6 +125,12 @@ typedef enum
     sbn_kills,
     sbn_items,
     sbn_secrets,
+    sbn_killspct,
+    sbn_itemspct,
+    sbn_secretspct,
+    sbn_totalkills,
+    sbn_totalitems,
+    sbn_totalsecrets,
 
     sbn_max,
 } sbarnumbertype_t;
