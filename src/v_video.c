@@ -659,7 +659,7 @@ inline void V_DrawPatchVanillaCastCall(patch_t *patch, boolean flip)
 }
 
 // while 170px Y puts it just above the callee's name
-inline void V_DrawPatchCustomCastCall(patch_t *patch, byte *tranmap, byte *xlat, boolean flip)
+inline void V_DrawPatchCustomCastCall(patch_t *patch, const byte *tranmap, const byte *xlat, boolean flip)
 {
     int x = 160 + video.deltaw;
     DrawPatchInternal(x, 170, SHORT(patch->leftoffset), SHORT(patch->topoffset), tranmap, xlat, NULL, zero_crop, patch, flip);
@@ -674,7 +674,7 @@ inline void V_DrawPatchBackground(int x, patch_t *patch)
 }
 
 // Uses almost everything
-inline void V_DrawPatchStatusBarDef(int x, int y, int xoffset, int yoffset, byte *tranmap, byte *xlat, patch_t *patch, crop_t crop)
+inline void V_DrawPatchStatusBarDef(int x, int y, int xoffset, int yoffset, const byte *tranmap, byte *xlat, patch_t *patch, crop_t crop)
 {
     x += video.deltaw;
     DrawPatchInternal(x, y, xoffset, yoffset, tranmap, xlat, NULL, crop, patch, false);

@@ -166,9 +166,9 @@ extern crop_t zero_crop;
 // On-screen patch drawing functions for specific purposes
 void V_DrawPatch(int x, int y, patch_t *patch);
 void V_DrawPatchVanillaCastCall(patch_t *patch, boolean flip);
-void V_DrawPatchCustomCastCall(patch_t *patch, byte *tranmap, byte *xlat, boolean flip);
+void V_DrawPatchCustomCastCall(patch_t *patch, const byte *tranmap, const byte *xlat, boolean flip);
 void V_DrawPatchBackground(int x, patch_t *patch);
-void V_DrawPatchStatusBarDef(int x, int y, int xoffset, int yoffset, byte *tranmap, byte *xlat, patch_t *patch, crop_t crop);
+void V_DrawPatchStatusBarDef(int x, int y, int xoffset, int yoffset, const byte *tranmap, byte *xlat, patch_t *patch, crop_t crop);
 void V_DrawPatchTranslated(int x, int y, patch_t *patch, byte* xlat);
 void V_DrawPatchTranslatedTwice(int x, int y, patch_t *patch, byte* xlat, byte* xlat2);
 void V_DrawPatchFullScreen(patch_t *patch);

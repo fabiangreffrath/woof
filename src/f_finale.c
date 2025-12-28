@@ -893,10 +893,10 @@ void EndFinaleCast_Drawer(void)
 {
     V_DrawPatchFullScreen(W_CacheLumpName(endfinale->background, PU_LEVEL));
     F_CastPrint(ef_current_callee->name);
-    const patch_t *frame = W_CacheSpriteName(ef_current_frame->frame_lump, PU_LEVEL);
+    patch_t *frame = W_CacheSpriteName(ef_current_frame->frame_lump, PU_LEVEL);
     const byte *tranmap = ef_current_frame->tranmap;
     const byte *xlat = ef_current_frame->xlat;
-    const boolean flip = ef_current_frame->flipped;
+    boolean flip = ef_current_frame->flipped;
     V_DrawPatchCustomCastCall(frame, tranmap, xlat, flip);
 }
 
