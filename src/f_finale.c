@@ -897,7 +897,7 @@ void EndFinaleCast_Drawer(void)
     const byte *tranmap = ef_current_frame->tranmap;
     const byte *xlat = ef_current_frame->xlat;
     boolean flip = ef_current_frame->flipped;
-    V_DrawPatchCustomCastCall(frame, tranmap, xlat, flip);
+    V_DrawPatchCastCall(frame, tranmap, xlat, flip);
 }
 
 //
@@ -1187,7 +1187,7 @@ static void F_CastDrawer(void)
   flip = (boolean)sprframe->flip[0];
                         
   patch = V_CachePatchNum (lump+firstspritelump, PU_CACHE);
-  V_DrawPatchVanillaCastCall(patch, flip);
+  V_DrawPatchCastCall(patch, NULL, NULL, flip);
 }
 
 //

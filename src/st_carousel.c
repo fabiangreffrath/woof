@@ -184,7 +184,7 @@ static void DrawIcon(int x, int y, sbarelem_t *elem, weapon_icon_t icon)
     int xoffset = SHORT(patch->leftoffset);
     int yoffset = SHORT(patch->topoffset);
 
-    V_DrawPatchStatusBarDef(x, y, xoffset, yoffset, elem->tranmap, cr, patch, zero_crop);
+    V_DrawPatchGeneral(x, y, xoffset, yoffset, elem->tranmap, cr, patch, zero_crop);
 }
 
 static int CalcOffset(void)

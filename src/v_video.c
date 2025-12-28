@@ -41,7 +41,6 @@
 #include "r_tranmap.h"
 #include "s_sound.h"
 #include "sounds.h"
-#include "st_stuff.h"
 #include "v_patch.h"
 #include "v_trans.h"
 #include "v_video.h"
@@ -654,26 +653,20 @@ void V_DrawPatch(int x, int y, patch_t *patch)
 }
 
 // 160px X centers the sprite in the middle
-void V_DrawPatchVanillaCastCall(patch_t *patch, boolean flip)
-{
-    DrawPatchInternal(160, 170, SHORT(patch->leftoffset), SHORT(patch->topoffset), NULL, NULL, NULL, zero_crop, patch, flip);
-}
-
 // while 170px Y puts it just above the callee's name
-void V_DrawPatchCustomCastCall(patch_t *patch, const byte *tranmap, const byte *xlat, boolean flip)
+void V_DrawPatchCastCall(patch_t *patch, const byte *tranmap, const byte *xlat, boolean flip)
 {
     DrawPatchInternal(160, 170, SHORT(patch->leftoffset), SHORT(patch->topoffset), tranmap, xlat, NULL, zero_crop, patch, flip);
 }
 
 // To not clutter up the stbar drawer
-void V_DrawPatchBackground(int x, patch_t *patch)
+void V_DrawPatchCropped(int x, int y, patch_t *patch, crop_t crop)
 {
-    crop_t crop = {.width = SHORT(patch->width), .height = st_height};
     DrawPatchInternal(x, 0, SHORT(patch->leftoffset), SHORT(patch->topoffset), NULL, NULL, NULL, crop, patch, false);
 }
 
 // Uses almost everything
-void V_DrawPatchStatusBarDef(int x, int y, int xoffset, int yoffset, const byte *tranmap, byte *xlat, patch_t *patch, crop_t crop)
+void V_DrawPatchGeneral(int x, int y, int xoffset, int yoffset, const byte *tranmap, byte *xlat, patch_t *patch, crop_t crop)
 {
     DrawPatchInternal(x, y, xoffset, yoffset, tranmap, xlat, NULL, crop, patch, false);
 }
