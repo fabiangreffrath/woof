@@ -63,7 +63,7 @@
 #include "w_wad.h"
 #include "z_zone.h"
 
-int st_height = 32;
+int st_height = 0, st_height_screenblocks10 = 0;
 
 //
 // STATUS BAR DATA
@@ -1815,6 +1815,18 @@ static void DrawBackground(const char *name)
 {
     if (st_refresh_background)
     {
+        static int old_st_height;
+
+        if (old_st_height < st_height)
+        {
+            old_st_height = st_height;
+            if (st_backing_screen)
+            {
+                Z_Free(st_backing_screen);
+            }
+            ST_InitRes();
+        }
+
         V_UseBuffer(st_backing_screen);
 
         if (st_solidbackground && st_height > 3)
@@ -1833,7 +1845,8 @@ static void DrawBackground(const char *name)
 
             V_TileBlock64(ST_Y, video.unscaledw, st_height, flat);
 
-            if ((!statusbar->fullscreenrender && screenblocks >= 10)
+            if (screenblocks == 10
+                || (!statusbar->fullscreenrender && screenblocks > 10)
                 || (automapactive && automapoverlay == AM_OVERLAY_OFF))
             {
                 patch_t *patch = V_CachePatchName("brdr_b", PU_CACHE);
@@ -1868,15 +1881,20 @@ static void DrawStatusBar(void)
 {
     player_t *player = &players[displayplayer];
 
-    if (!statusbar->fullscreenrender
-        || (automapactive && automapoverlay == AM_OVERLAY_OFF))
+    if (!statusbar->fullscreenrender)
     {
         st_height = CLAMP(statusbar->height, 0, SCREENHEIGHT) & ~1;
+    }
+    else
+    {
+        st_height = 0;
+    }
 
-        if (st_height)
-        {
-            DrawBackground(statusbar->fillflat);
-        }
+    if (st_height
+        && (screenblocks <= 10
+            || (automapactive && automapoverlay == AM_OVERLAY_OFF)))
+    {
+        DrawBackground(statusbar->fillflat);
     }
 
     sbarelem_t *child;
@@ -2080,7 +2098,7 @@ void ST_Init(void)
         statusbar_t *sb = &sbardef->statusbars[0];
         if (!sb->fullscreenrender)
         {
-            st_height = CLAMP(sb->height, 0, SCREENHEIGHT) & ~1;
+            st_height_screenblocks10 = CLAMP(sb->height, 0, SCREENHEIGHT) & ~1;
         }
     }
 
@@ -2095,6 +2113,10 @@ void ST_Init(void)
 
 void ST_InitRes(void)
 {
+    if (!st_height)
+    {
+        return;
+    }
     // killough 11/98: allocate enough for hires
     st_backing_screen =
         Z_Malloc(video.width * V_ScaleY(st_height) * sizeof(*st_backing_screen),
