@@ -648,50 +648,50 @@ static inline void DrawPatchInternal(int x, int y, int xoffset, int yoffset,
 }
 
 // Original drawer from vanilla doom
-inline void V_DrawPatch(int x, int y, patch_t *patch)
+void V_DrawPatch(int x, int y, patch_t *patch)
 {
     DrawPatchInternal(x, y, SHORT(patch->leftoffset), SHORT(patch->topoffset), NULL, NULL, NULL, zero_crop, patch, false);
 }
 
 // 160px X centers the sprite in the middle
-inline void V_DrawPatchVanillaCastCall(patch_t *patch, boolean flip)
+void V_DrawPatchVanillaCastCall(patch_t *patch, boolean flip)
 {
     DrawPatchInternal(160, 170, SHORT(patch->leftoffset), SHORT(patch->topoffset), NULL, NULL, NULL, zero_crop, patch, flip);
 }
 
 // while 170px Y puts it just above the callee's name
-inline void V_DrawPatchCustomCastCall(patch_t *patch, const byte *tranmap, const byte *xlat, boolean flip)
+void V_DrawPatchCustomCastCall(patch_t *patch, const byte *tranmap, const byte *xlat, boolean flip)
 {
     DrawPatchInternal(160, 170, SHORT(patch->leftoffset), SHORT(patch->topoffset), tranmap, xlat, NULL, zero_crop, patch, flip);
 }
 
 // To not clutter up the stbar drawer
-inline void V_DrawPatchBackground(int x, patch_t *patch)
+void V_DrawPatchBackground(int x, patch_t *patch)
 {
     crop_t crop = {.width = SHORT(patch->width), .height = st_height};
     DrawPatchInternal(x, 0, SHORT(patch->leftoffset), SHORT(patch->topoffset), NULL, NULL, NULL, crop, patch, false);
 }
 
 // Uses almost everything
-inline void V_DrawPatchStatusBarDef(int x, int y, int xoffset, int yoffset, const byte *tranmap, byte *xlat, patch_t *patch, crop_t crop)
+void V_DrawPatchStatusBarDef(int x, int y, int xoffset, int yoffset, const byte *tranmap, byte *xlat, patch_t *patch, crop_t crop)
 {
     DrawPatchInternal(x, y, xoffset, yoffset, tranmap, xlat, NULL, crop, patch, false);
 }
 
 // Plain translations are pretty common
-inline void V_DrawPatchTranslated(int x, int y, patch_t *patch, byte* xlat)
+void V_DrawPatchTranslated(int x, int y, patch_t *patch, byte* xlat)
 {
     DrawPatchInternal(x, y, SHORT(patch->leftoffset), SHORT(patch->topoffset), NULL, xlat, NULL, zero_crop, patch, false);
 }
 
 // Used to apply a mouse hover 'highlight' on translated menu entries
-inline void V_DrawPatchTranslatedTwice(int x, int y, patch_t *patch, byte* xlat, byte* xlat2)
+void V_DrawPatchTranslatedTwice(int x, int y, patch_t *patch, byte* xlat, byte* xlat2)
 {
     DrawPatchInternal(x, y, SHORT(patch->leftoffset), SHORT(patch->topoffset), NULL, xlat, xlat2, zero_crop, patch, false);
 }
 
 // Use negative deltaw to counter-act DrawPatchInternal's adjustment
-inline void V_DrawPatchFullScreen(patch_t *patch)
+void V_DrawPatchFullScreen(patch_t *patch)
 {
     const int x = DIV_ROUND_CLOSEST(video.unscaledw - SHORT(patch->width), 2);
 
