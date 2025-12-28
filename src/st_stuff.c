@@ -650,33 +650,33 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
                 break;
 
             case sbc_powerless:
-                if (cond->param >= 0 && cond->param < NUMPOWERS)
+                if (cond->param2 >= 0 && cond->param2 < NUMPOWERS)
                 {
                     result &=
-                        (player->powers[cond->param] < cond->param2 * TICRATE);
+                        (player->powers[cond->param2] < cond->param * TICRATE);
                 }
                 break;
             case sbc_powergreaterequal:
-                if (cond->param >= 0 && cond->param < NUMPOWERS)
+                if (cond->param2 >= 0 && cond->param2 < NUMPOWERS)
                 {
                     result &=
-                        (player->powers[cond->param] >= cond->param2 * TICRATE);
+                        (player->powers[cond->param2] >= cond->param * TICRATE);
                 }
                 break;
             case sbc_powerlesspct:
-                if (cond->param >= 0 && cond->param < NUMPOWERS)
+                if (cond->param2 >= 0 && cond->param2 < NUMPOWERS)
                 {
-                    result &= (player->powers[cond->param] * 100
-                                   / P_GetPowerDuration(cond->param)
-                               < cond->param2);
+                    result &= (player->powers[cond->param2] * 100
+                                   / P_GetPowerDuration(cond->param2)
+                               < cond->param);
                 }
                 break;
             case sbc_powergreaterequalpct:
-                if (cond->param >= 0 && cond->param < NUMPOWERS)
+                if (cond->param2 >= 0 && cond->param2 < NUMPOWERS)
                 {
-                    result &= (player->powers[cond->param] * 100
-                                   / P_GetPowerDuration(cond->param)
-                               >= cond->param2);
+                    result &= (player->powers[cond->param2] * 100
+                                   / P_GetPowerDuration(cond->param2)
+                               >= cond->param);
                 }
                 break;
 
