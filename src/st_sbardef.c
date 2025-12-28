@@ -571,7 +571,7 @@ static boolean ParseStatusBar(json_t *json, statusbar_t *out)
 
 sbardef_t *ST_ParseSbarDef(void)
 {
-    json_t *json = JS_Open("SBARDEF", "statusbar", (version_t){1, 1, 1});
+    json_t *json = JS_Open("SBARDEF", "statusbar", (version_t){1, 2, 0});
     if (json == NULL)
     {
         return NULL;
@@ -587,7 +587,7 @@ sbardef_t *ST_ParseSbarDef(void)
 
     if (v.major == 1 && v.minor == 1 && v.revision == 0)
     {
-        I_Error("SBARDEF v1.1.0 is not supported. Update your HUD mod.");
+        I_Error("SBARDEF v1.1.0 is not supported.");
     }
 
     json_t *data = JS_GetObject(json, "data");
