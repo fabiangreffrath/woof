@@ -1152,7 +1152,8 @@ static void F_CastDrawer(void)
 {
   if (gamemapinfo->flags & MapInfo_EndGameCustomFinale)
   {
-    return EndFinaleCast_Drawer();
+      EndFinaleCast_Drawer();
+      return;
   }
 
   spritedef_t*        sprdef;
