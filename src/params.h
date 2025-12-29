@@ -51,6 +51,7 @@ static const char *params[] = {
 "-nooptions",
 "-reject_pad_with_ff",
 "-tranmap",
+"-analysis",
 "-levelstat",
 "-longtics",
 "-shorttics",
@@ -131,6 +132,7 @@ Dehacked and WAD merging: \n\
   -deh <files>  Load the given dehacked/bex patch(es).\n\
 \n\
 Demo options: \n\
+  -analysis         Write demo analysis upon exit to analysis.txt\n\
   -levelstat        Write level statistics upon exit to levelstat.txt\n\
   -playdemo <demo>  Play back the demo named demo.lmp.\n\
   -record <demo>    Record a demo named demo.lmp.\n\

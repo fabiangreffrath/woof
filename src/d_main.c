@@ -42,6 +42,7 @@
 #include "dstrings.h"
 #include "f_finale.h"
 #include "f_wipe.h"
+#include "g_analysis.h"
 #include "g_compatibility.h"
 #include "g_game.h"
 #include "i_endoom.h"
@@ -1795,8 +1796,8 @@ void D_DoomMain(void)
 
   I_AtSignal(G_CheckDemoRecordingStatus);
 
-  I_AtExitPrio(G_CheckDemoRecordingStatus,
-               true, "G_CheckDemoRecordingStatus", exit_priority_first);
+  I_AtExitPrio(G_DemoAnalysis,
+               true, "G_DemoAnalysis", exit_priority_first);
   I_AtExitPrio(M_SaveDefaults,
                false, "M_SaveDefaults", exit_priority_last);
   I_AtExitPrio(I_QuitVideo,
@@ -2630,6 +2631,18 @@ void D_DoomMain(void)
       // [FG] no demo playback
       playback_warp = -1;
       playback_skiptics = 0;
+  }
+
+  //!
+  // @category demo
+  // @help
+  //
+  // Write demo analysis upon exit to analysis.txt
+  //
+
+  if (M_CheckParm("-analysis"))
+  {
+    analysis.enabled = true;
   }
 
   if (fastdemo)

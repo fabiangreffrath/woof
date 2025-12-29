@@ -22,6 +22,7 @@
 #include "d_items.h"
 #include "d_player.h"
 #include "doomstat.h"
+#include "g_analysis.h"
 #include "g_nextweapon.h"
 #include "i_printf.h"
 #include "i_video.h" // uncapped
@@ -439,6 +440,16 @@ void P_SubtractAmmo(struct player_s *player, int vanilla_amount)
 // P_FireWeapon.
 //
 
+static inline void WatchWeaponFire(weapontype_t weapon)
+{
+    if (weapon == wp_fist || weapon == wp_pistol || weapon == wp_chainsaw)
+    {
+        return;
+    }
+
+    analysis.tyson = false;
+}
+
 int lastshottic; // killough 3/22/98
 
 static void P_FireWeapon(player_t *player)
@@ -447,6 +458,8 @@ static void P_FireWeapon(player_t *player)
 
   if (!P_CheckAmmo(player))
     return;
+
+  WatchWeaponFire(player->readyweapon);
 
   P_SetMobjState(player->mo, S_PLAY_ATK1);
   newstate = weaponinfo[player->readyweapon].atkstate;

@@ -23,6 +23,7 @@ set(WOOF_SOURCES
     dstrings.c             dstrings.h
     f_finale.c             f_finale.h
     f_wipe.c               f_wipe.h
+    g_analysis.c           g_analysis.h
     g_compatibility.c      g_compatibility.h
     g_game.c               g_game.h
     g_input.c              g_input.h
