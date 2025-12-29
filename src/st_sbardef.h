@@ -314,6 +314,8 @@ struct sbarelem_s
     sbarcondition_t *conditions;
     sbarelem_t *children;
 
+    boolean enabled;
+
     const byte *tranmap;
     crange_idx_e cr;
     crange_idx_e crboom;

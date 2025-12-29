@@ -1259,7 +1259,8 @@ static void UpdateString(sbarelem_t *elem)
 
 static void UpdateElem(sbarelem_t *elem, player_t *player)
 {
-    if (!CheckConditions(elem->conditions, player))
+    elem->enabled = CheckConditions(elem->conditions, player);
+    if (!elem->enabled)
     {
         return;
     }
@@ -1700,7 +1701,7 @@ static void DrawListOfElem(int x1, int y1, sbarelem_t *elem, player_t *player);
 static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
                      sbarelem_t *elem, player_t *player)
 {
-    if (!CheckConditions(elem->conditions, player))
+    if (!elem->enabled)
     {
         return;
     }
