@@ -577,9 +577,8 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
                 break;
 
             case sbc_widescreenequal:
-                result &=
-                    ((cond->param == 1 && video.unscaledw > SCREENWIDTH)
-                     || (cond->param == 0 && video.unscaledw == SCREENWIDTH));
+                result &= ((cond->param == 1 && st_wide_shift)
+                           || (cond->param == 0 && !st_wide_shift));
                 break;
 
             case sbc_episodeequal:
