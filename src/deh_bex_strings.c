@@ -422,9 +422,9 @@ const char *DEH_StringForMnemonic(const char *mnemonic)
 
     for (int i = 0; i < bex_mnemonic_table_size; i++)
     {
-        if (!strcasecmp(bex_mnemonic_table[i].macro, mnemonic))
+        if (!strcasecmp(bex_mnemonic_table[i].mnemonic, mnemonic))
         {
-            return DEH_String(bex_mnemonic_table[i].string);
+            return DEH_String(bex_mnemonic_table[i].original_string);
         }
     }
 
@@ -557,9 +557,9 @@ static void DEH_BEXStringsParseLine(deh_context_t *context, char *line, void *ta
     boolean matched = false;
     for (int i = 0; i < arrlen(bex_mnemonic_table); i++)
     {
-        if (!strcasecmp(bex_mnemonic_table[i].macro, variable_name))
+        if (!strcasecmp(bex_mnemonic_table[i].mnemonic, variable_name))
         {
-            DEH_AddStringReplacement(bex_mnemonic_table[i].string, value);
+            DEH_AddStringReplacement(bex_mnemonic_table[i].original_string, value);
             matched = true;
         }
     }

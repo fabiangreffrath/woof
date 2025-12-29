@@ -29,12 +29,13 @@ const char *DEH_StringForMnemonic(const char *s);
 void DEH_AddStringReplacement(const char *from_text, const char *to_text);
 boolean DEH_HasStringReplacement(const char *s);
 
+// BEX mnemonics stuff
 typedef struct bex_string_s bex_string_t;
 
 extern const struct bex_string_s
 {
-    const char *macro;
-    char *string;
+    const char *mnemonic;
+    const char *original_string;
 } bex_mnemonic_table[];
 
 extern const char * const mapnames[];
@@ -42,7 +43,7 @@ extern const char * const mapnames2[];
 extern const char * const mapnamesp[];
 extern const char * const mapnamest[];
 extern const char * const strings_players[];
-extern const char * const strings_quit_messages[]; // killough 1/18/98 const added
+extern const char * const strings_quit_messages[];
 
 // killough 1/18/98:
 // replace hardcoded limit with extern var (silly hack, I know)

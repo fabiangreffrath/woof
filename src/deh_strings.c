@@ -24,7 +24,6 @@
 
 #include "deh_strings.h"
 #include "doomtype.h"
-#include "z_zone.h"
 
 typedef struct
 {
@@ -36,21 +35,16 @@ static deh_substitution_t **hash_table = NULL;
 static int hash_table_entries;
 static int hash_table_length = -1;
 
-// This is the algorithm used by glib
-static unsigned int strhash(const char *s)
+// 64bit variant FNV-1a hash
+static uint64_t hash_str(const char *s)
 {
-    const char *p = s;
-    unsigned int h = *p;
-
-    if (h)
+    uint64_t hash = 0xcbf29ce484222325;
+    for (; *s; ++s)
     {
-        for (p += 1; *p; p++)
-        {
-            h = (h << 5) - h + *p;
-        }
+        hash ^= (uint8_t)*s;
+        hash *= 0x100000001b3;
     }
-
-    return h;
+    return hash;
 }
 
 static deh_substitution_t *SubstitutionForString(const char *s)
@@ -61,7 +55,8 @@ static deh_substitution_t *SubstitutionForString(const char *s)
         return NULL;
     }
 
-    int entry = strhash(s) % hash_table_length;
+    // We only use power-of-2 sizes, yeah? Use a bit mask
+    int entry = hash_str(s) & (hash_table_length - 1);
 
     while (hash_table[entry] != NULL)
     {
@@ -97,7 +92,7 @@ const char *DEH_String(const char *s)
 // [crispy] returns true if a string has been substituted
 boolean DEH_HasStringReplacement(const char *s)
 {
-    return DEH_String(s) != s;
+    return SubstitutionForString(s) != NULL;
 }
 
 static void InitHashTable(void)
@@ -105,8 +100,7 @@ static void InitHashTable(void)
     // init hash table
     hash_table_entries = 0;
     hash_table_length = 16;
-    hash_table = Z_Malloc(sizeof(deh_substitution_t *) * hash_table_length, PU_STATIC, NULL);
-    memset(hash_table, 0, sizeof(deh_substitution_t *) * hash_table_length);
+    hash_table = calloc(sizeof(deh_substitution_t *), hash_table_length);
 }
 
 static void DEH_AddToHashtable(deh_substitution_t *sub);
@@ -119,8 +113,7 @@ static void IncreaseHashtable(void)
 
     // double the size
     hash_table_length *= 2;
-    hash_table = Z_Malloc(sizeof(deh_substitution_t *) * hash_table_length, PU_STATIC, NULL);
-    memset(hash_table, 0, sizeof(deh_substitution_t *) * hash_table_length);
+    hash_table = calloc(sizeof(deh_substitution_t *), hash_table_length);
 
     // go through the old table and insert all the old entries
     for (int i = 0; i < old_table_length; ++i)
@@ -132,7 +125,7 @@ static void IncreaseHashtable(void)
     }
 
     // free the old table
-    Z_Free(old_table);
+    free(old_table);
 }
 
 static void DEH_AddToHashtable(deh_substitution_t *sub)
@@ -144,7 +137,8 @@ static void DEH_AddToHashtable(deh_substitution_t *sub)
     }
 
     // find where to insert it
-    int entry = strhash(sub->from_text) % hash_table_length;
+    // ... by bit-masking the power-of-2
+    int entry = hash_str(sub->from_text) & (hash_table_length - 1);
 
     while (hash_table[entry] != NULL)
     {
@@ -165,29 +159,28 @@ void DEH_AddStringReplacement(const char *from_text, const char *to_text)
 
     // Check to see if there is an existing substitution already in place.
     deh_substitution_t *sub = SubstitutionForString(from_text);
-    size_t len;
 
     if (sub != NULL)
     {
-        Z_Free(sub->to_text);
+        free(sub->to_text);
 
-        len = strlen(to_text) + 1;
-        sub->to_text = Z_Malloc(len, PU_STATIC, NULL);
+        size_t len = strlen(to_text) + 1;
+        sub->to_text = malloc(len);
         memcpy(sub->to_text, to_text, len);
     }
     else
     {
         // We need to allocate a new substitution.
-        sub = Z_Malloc(sizeof(*sub), PU_STATIC, 0);
+        sub = malloc(sizeof(deh_substitution_t));
 
         // We need to create our own duplicates of the provided strings.
-        len = strlen(from_text) + 1;
-        sub->from_text = Z_Malloc(len, PU_STATIC, NULL);
-        memcpy(sub->from_text, from_text, len);
+        size_t from_len = strlen(from_text) + 1;
+        sub->from_text = malloc(from_len);
+        memcpy(sub->from_text, from_text, from_len);
 
-        len = strlen(to_text) + 1;
-        sub->to_text = Z_Malloc(len, PU_STATIC, NULL);
-        memcpy(sub->to_text, to_text, len);
+        size_t to_len = strlen(to_text) + 1;
+        sub->to_text = malloc(to_len);
+        memcpy(sub->to_text, to_text, to_len);
 
         DEH_AddToHashtable(sub);
     }

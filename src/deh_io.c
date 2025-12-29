@@ -128,7 +128,7 @@ void DEH_CloseFile(deh_context_t *context)
     }
     else if (context->type == DEH_INPUT_LUMP)
     {
-        Z_ChangeTag(lumpcache[context->lumpnum], PU_CACHE); // W_ReleaseLumpNum
+        free(lumpcache[context->lumpnum]);
     }
 
     free(context->filename);
