@@ -24,8 +24,6 @@
 #include <stdint.h> // int64_t
 #include <stdlib.h> // abs()
 
-#include "config.h"
-
 //
 // Fixed point, 32bit as 16.16.
 //
@@ -36,10 +34,64 @@ typedef int fixed_t;
 #define FRACUNIT (1 << FRACBITS)
 #define FRACMASK (FRACUNIT - 1)
 
-#define IntToFixed(x) ((x) << FRACBITS)
-#define FixedToInt(x) ((x) >> FRACBITS)
-#define DoubleToFixed(x) (fixed_t)((x) * FRACUNIT)
-#define FixedToDouble(x) ((x) / (double)FRACUNIT)
+#if defined(__has_builtin)
+  #define WOOF_HAS_BUILTIN(x) __has_builtin(x)
+#else
+  #define WOOF_HAS_BUILTIN(x) 0
+#endif
+
+static inline uint16_t rotl16(uint16_t v, int8_t n)
+{
+#if WOOF_HAS_BUILTIN(__builtin_rotateleft16)
+    return  __builtin_rotateleft16(v, n);
+#elif defined(_MSC_VER)
+    return _rotl16(v, n);
+#else
+    return (v << n) | (v >> (16 - n));
+#endif
+}
+
+static inline uint32_t rotl32(uint32_t v, int8_t n)
+{
+#if WOOF_HAS_BUILTIN(__builtin_rotateleft32)
+    return  __builtin_rotateleft32(v, n);
+#elif defined(_MSC_VER)
+    return _rotl(v, n);
+#else
+    return (v << n) | (v >> (32 - n));
+#endif
+}
+
+static inline uint64_t rotl64(uint64_t v, int8_t n)
+{
+#if WOOF_HAS_BUILTIN(__builtin_rotateleft64)
+    return  __builtin_rotateleft64(v, n);
+#elif defined(_MSC_VER)
+    return _rotl64(v, n);
+#else
+    return (v << n) | (v >> (64 - n));
+#endif
+}
+
+inline static fixed_t IntToFixed(int32_t x)
+{
+    return (fixed_t)rotl32((uint32_t)x, FRACBITS);
+}
+
+inline static int32_t FixedToInt(fixed_t x)
+{
+    return x >> FRACBITS;
+}
+
+inline static fixed_t DoubleToFixed(double x)
+{
+    return (fixed_t)(x * FRACUNIT);
+}
+
+inline static double FixedToDouble(fixed_t x)
+{
+    return (double)x / FRACUNIT;
+}
 
 //
 // Fixed Point Multiplication
@@ -59,11 +111,14 @@ inline static int64_t FixedMul64(int64_t a, int64_t b)
 // Fixed Point Division
 //
 
-#if defined(HAVE__DIV64)
-  #define div64_32(a, b) _div64((a), (b), NULL)
+inline static int32_t div64_32(int64_t a, int32_t b)
+{
+#if defined(_MSC_VER)
+    return _div64(a, b, NULL);
 #else
-  #define div64_32(a, b) (fixed_t)((a) / (b))
+    return (int32_t)(a / b);
 #endif
+}
 
 inline static fixed_t FixedDiv(fixed_t a, fixed_t b)
 {
@@ -74,7 +129,7 @@ inline static fixed_t FixedDiv(fixed_t a, fixed_t b)
     }
     else
     {
-        return div64_32((int64_t)a << FRACBITS, b);
+        return div64_32((int64_t)rotl64((uint64_t)a, FRACBITS), b);
     }
 }
 

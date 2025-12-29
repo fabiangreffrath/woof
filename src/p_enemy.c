@@ -1297,7 +1297,8 @@ void A_FaceTarget(mobj_t *actor)
 
 void A_PosAttack(mobj_t *actor)
 {
-  int angle, damage, slope, t;
+  int damage, slope, t;
+  angle_t angle;
 
   if (!actor->target)
     return;
@@ -1308,7 +1309,7 @@ void A_PosAttack(mobj_t *actor)
 
   // killough 5/5/98: remove dependence on order of evaluation:
   t = P_Random(pr_posattack);
-  angle += (t - P_Random(pr_posattack))<<20;
+  angle += rotl32(t - P_Random(pr_posattack), 20);
   damage = (P_Random(pr_posattack)%5 + 1)*3;
   P_LineAttack(actor, angle, MISSILERANGE, slope, damage);
 }

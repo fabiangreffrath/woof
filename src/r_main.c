@@ -532,7 +532,7 @@ static void R_SetupFreelook(void)
 
   for (i = 0; i < viewheight; i++)
   {
-    dy = abs(((i - centery) << FRACBITS) + FRACUNIT / 2);
+    dy = abs(IntToFixed(i - centery) + FRACUNIT / 2);
     yslope[i] = FixedDiv(projection, dy);
   }
 }

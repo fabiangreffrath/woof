@@ -872,9 +872,9 @@ void R_InitSpriteLumps(void)
       M_ProgressBarMove(i); // killough
 
       patch = V_CachePatchNum(firstspritelump+i, PU_CACHE);
-      spritewidth[i] = SHORT(patch->width)<<FRACBITS;
-      spriteoffset[i] = SHORT(patch->leftoffset)<<FRACBITS;
-      spritetopoffset[i] = SHORT(patch->topoffset)<<FRACBITS;
+      spritewidth[i] = IntToFixed(SHORT(patch->width));
+      spriteoffset[i] = IntToFixed(SHORT(patch->leftoffset));
+      spritetopoffset[i] = IntToFixed(SHORT(patch->topoffset));
     }
 
   M_ProgressBarEnd();
