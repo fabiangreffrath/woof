@@ -6,8 +6,7 @@ include(CheckLinkerFlag)
 # Add compiler option if compiler supports it.
 function(_checked_add_compile_option FLAG)
     # Turn flag into suitable internal cache variable.
-    string(REGEX REPLACE "-(.*)" "CFLAG_\\1" FLAG_FOUND ${FLAG})
-    string(REPLACE "=" "_" FLAG_FOUND "${FLAG_FOUND}")
+    string(REGEX REPLACE "[^A-Za-z0-9_]" "_" FLAG_FOUND "CFLAG${FLAG}")
 
     check_c_compiler_flag(${FLAG} ${FLAG_FOUND})
     if(${FLAG_FOUND})
@@ -17,8 +16,7 @@ endfunction()
 
 function(_checked_add_link_option FLAG)
     # Turn flag into suitable internal cache variable.
-    string(REGEX REPLACE "-(.*)" "LDFLAG_\\1" FLAG_FOUND ${FLAG})
-    string(REGEX REPLACE "[,=-]+" "_" FLAG_FOUND "${FLAG_FOUND}")
+    string(REGEX REPLACE "[^A-Za-z0-9_]" "_" FLAG_FOUND "LDFLAG${FLAG}")
 
     check_linker_flag(C ${FLAG} ${FLAG_FOUND})
     if(${FLAG_FOUND})
@@ -95,6 +93,7 @@ if(ENABLE_UBSAN)
     # Also needs to be a link flag for test to pass.
     set(CMAKE_REQUIRED_FLAGS "-Werror -fsanitize=undefined")
     _checked_add_compile_option(-fsanitize=undefined)
+    _checked_add_compile_option(-fno-sanitize=shift)
     unset(CMAKE_REQUIRED_FLAGS)
     _checked_add_link_option(-fsanitize=undefined)
 endif()
