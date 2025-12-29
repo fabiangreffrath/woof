@@ -736,7 +736,7 @@ void A_Saw(player_t *player, pspdef_t *psp)
   // killough 5/5/98: remove dependence on order of evaluation:
   int t = P_Random(pr_saw);
 
-  angle += (int32_t)rotl32(t - P_Random(pr_saw), 18);
+  angle += rotl32(t - P_Random(pr_saw), 18);
 
   // Use meleerange + 1 so that the puff doesn't skip the flash
   range = (mbf21 ? player->mo->info->meleerange : MELEERANGE) + 1;
@@ -941,7 +941,7 @@ void P_GunShot(mobj_t *mo, boolean accurate)
   if (!accurate)
     {  // killough 5/5/98: remove dependence on order of evaluation:
       int t = P_Random(pr_misfire);
-      angle += (int32_t)rotl32(t - P_Random(pr_misfire), 18);
+      angle += rotl32(t - P_Random(pr_misfire), 18);
     }
 
   P_LineAttack(mo, angle, MISSILERANGE, bulletslope, damage);

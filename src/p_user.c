@@ -31,6 +31,7 @@
 #include "g_nextweapon.h"
 #include "info.h"
 #include "m_cheat.h"
+#include "m_fixed.h"
 #include "p_map.h"
 #include "p_mobj.h"
 #include "p_pspr.h"
@@ -199,9 +200,9 @@ void P_MovePlayer (player_t* player)
   ticcmd_t *cmd = &player->cmd;
   mobj_t *mo = player->mo;
 
-  mo->angle += IntToFixed(cmd->angleturn);
+  mo->angle += rotl32(cmd->angleturn, FRACBITS);
   onground = mo->z <= mo->floorz;
-  player->ticangle += IntToFixed(cmd->ticangleturn);
+  player->ticangle += rotl32(cmd->ticangleturn, FRACBITS);
 
   // killough 10/98:
   //
