@@ -29,38 +29,56 @@ boolean bex_notext = false;
 
 static void *DEH_TextStart(deh_context_t *context, char *line)
 {
-    int fromlen, tolen;
+    int from_len, to_len;
 
-    if (sscanf(line, "Text %i %i", &fromlen, &tolen) != 2)
+    if (sscanf(line, "Text %i %i", &from_len, &to_len) != 2)
     {
         DEH_Warning(context, "Parse error on section start");
         return NULL;
     }
 
-    if (!bex_notext)
+    // Skip text section
+    if (bex_notext)
     {
-        char *from_text = malloc(fromlen + 1);
-        char *to_text = malloc(tolen + 1);
-
-        // read in the "from" text
-        for (int i = 0; i < fromlen; ++i)
+        for (int i = 0; i < from_len; i++)
         {
-            from_text[i] = DEH_GetChar(context);
+            DEH_GetChar(context);
         }
-        from_text[fromlen] = '\0';
-
-        // read in the "to" text
-        for (int i = 0; i < tolen; ++i)
+        for (int i = 0; i < to_len; i++)
         {
-            to_text[i] = DEH_GetChar(context);
+            DEH_GetChar(context);
         }
-        to_text[tolen] = '\0';
-
-        DEH_AddStringReplacement(from_text, to_text);
-
-        free(from_text);
-        free(to_text);
+        return NULL;
     }
+
+    char *from_text = malloc(from_len + 1);
+    char *to_text = malloc(to_len + 1);
+
+    // read in the "from" text
+    for (int i = 0; i < from_len; ++i)
+    {
+        from_text[i] = DEH_GetChar(context);
+    }
+    from_text[from_len] = '\0';
+
+    // read in the "to" text
+    for (int i = 0; i < to_len; ++i)
+    {
+        to_text[i] = DEH_GetChar(context);
+    }
+    to_text[to_len] = '\0';
+
+    // [Woof!]
+    // For our purposes, we only care about replacing sprites (4 char)
+    // and music (up to 6 char), as was supported on the original Boom
+    // parser
+    if (from_len <= 6 && to_len <= 6)
+    {
+        DEH_AddStringReplacement(from_text, to_text);
+    }
+
+    free(from_text);
+    free(to_text);
 
     return NULL;
 }
