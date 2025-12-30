@@ -309,7 +309,7 @@ void ST_UpdateChatMessage(void)
                                          || chat_dest[p] == HU_BROADCAST))
                     {
                         M_snprintf(message_string, sizeof(message_string),
-                            "%s%s", DEH_String(strings_players[p]), lines[p].string);
+                            "%s%s", DEH_StringColorized(strings_players[p]), lines[p].string);
 
                         S_StartSoundPitch(0,
                                           gamemode == commercial ? sfx_radio
@@ -1021,40 +1021,44 @@ boolean ST_DemoProgressBar(boolean force)
     return true;
 }
 
-static void ColorizeString(char **color_str, const char *haystack, const char *needle, crange_idx_e cr)
+static void ColorizeString(const char *haystack, const char *needle, crange_idx_e cr)
 {
+    // Not going to make a whole hash table just for a handful of strings :p
+    static int index = 0;
     char replacement[18];
     M_snprintf(replacement, sizeof(replacement), "%s%s%s", crdefs[cr].str, needle, ORIG_S);
-    *color_str = M_StringReplaceWord(DEH_String(haystack), needle, replacement);
+    char * colorized = M_StringReplaceWord(DEH_String(haystack), needle, replacement);
+    DEH_AddStringColorizedReplacement(index, haystack, colorized);
+    free(colorized);
+    index++;
 }
 
 void ST_InitWidgets(void)
 {
     // [Woof!] colorize keycard and skull key messages
-    ColorizeString(&c_GOTBLUECARD, GOTBLUECARD, "blue",   CR_BLUE2);
-    ColorizeString(&c_GOTBLUESKUL, GOTBLUESKUL, "blue",   CR_BLUE2);
-    ColorizeString(&c_GOTREDCARD,  GOTREDCARD,  "red",    CR_RED);
-    ColorizeString(&c_GOTREDSKULL, GOTREDSKULL, "red",    CR_RED);
-    ColorizeString(&c_GOTYELWCARD, GOTYELWCARD, "yellow", CR_GOLD);
-    ColorizeString(&c_GOTYELWSKUL, GOTYELWSKUL, "yellow", CR_GOLD);
-    ColorizeString(&c_PD_BLUEC,    PD_BLUEC,    "blue",   CR_BLUE2);
-    ColorizeString(&c_PD_BLUEK,    PD_BLUEK,    "blue",   CR_BLUE2);
-    ColorizeString(&c_PD_BLUEO,    PD_BLUEO,    "blue",   CR_BLUE2);
-    ColorizeString(&c_PD_BLUES,    PD_BLUES,    "blue",   CR_BLUE2);
-    ColorizeString(&c_PD_REDC,     PD_REDC,     "red",    CR_RED);
-    ColorizeString(&c_PD_REDK,     PD_REDK,     "red",    CR_RED);
-    ColorizeString(&c_PD_REDO,     PD_REDO,     "red",    CR_RED);
-    ColorizeString(&c_PD_REDS,     PD_REDS,     "red",    CR_RED);
-    ColorizeString(&c_PD_YELLOWC,  PD_YELLOWC,  "yellow", CR_GOLD);
-    ColorizeString(&c_PD_YELLOWK,  PD_YELLOWK,  "yellow", CR_GOLD);
-    ColorizeString(&c_PD_YELLOWO,  PD_YELLOWO,  "yellow", CR_GOLD);
-    ColorizeString(&c_PD_YELLOWS,  PD_YELLOWS,  "yellow", CR_GOLD);
+    ColorizeString(GOTBLUECARD, "blue",   CR_BLUE2);
+    ColorizeString(GOTBLUESKUL, "blue",   CR_BLUE2);
+    ColorizeString(GOTREDCARD,  "red",    CR_RED);
+    ColorizeString(GOTREDSKULL, "red",    CR_RED);
+    ColorizeString(GOTYELWCARD, "yellow", CR_GOLD);
+    ColorizeString(GOTYELWSKUL, "yellow", CR_GOLD);
+    ColorizeString(PD_BLUEC,    "blue",   CR_BLUE2);
+    ColorizeString(PD_BLUEK,    "blue",   CR_BLUE2);
+    ColorizeString(PD_BLUEO,    "blue",   CR_BLUE2);
+    ColorizeString(PD_BLUES,    "blue",   CR_BLUE2);
+    ColorizeString(PD_REDC,     "red",    CR_RED);
+    ColorizeString(PD_REDK,     "red",    CR_RED);
+    ColorizeString(PD_REDO,     "red",    CR_RED);
+    ColorizeString(PD_REDS,     "red",    CR_RED);
+    ColorizeString(PD_YELLOWC,  "yellow", CR_GOLD);
+    ColorizeString(PD_YELLOWK,  "yellow", CR_GOLD);
+    ColorizeString(PD_YELLOWO,  "yellow", CR_GOLD);
+    ColorizeString(PD_YELLOWS,  "yellow", CR_GOLD);
 
-    // [Woof!] colorize multi-player messages
-    ColorizeString(&c_HUSTR_PLRGREEN,  HUSTR_PLRGREEN,  "Green:",  CR_GREEN);
-    ColorizeString(&c_HUSTR_PLRINDIGO, HUSTR_PLRINDIGO, "Indigo:", CR_GRAY);
-    ColorizeString(&c_HUSTR_PLRBROWN,  HUSTR_PLRBROWN,  "Brown:",  CR_BROWN);
-    ColorizeString(&c_HUSTR_PLRRED,    HUSTR_PLRRED,    "Red:",    CR_RED);
+    ColorizeString(HUSTR_PLRGREEN,  "Green:",  CR_GREEN);
+    ColorizeString(HUSTR_PLRINDIGO, "Indigo:", CR_GRAY);
+    ColorizeString(HUSTR_PLRBROWN,  "Brown:",  CR_BROWN);
+    ColorizeString(HUSTR_PLRRED,    "Red:",    CR_RED);
 
     if (gamemission == pack_chex || gamemission == pack_chex3v)
     {

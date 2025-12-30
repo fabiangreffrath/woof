@@ -21,9 +21,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <string.h>
+#include <strings.h>
 
 #include "deh_strings.h"
 #include "doomtype.h"
+#include "m_array.h"
+#include "m_misc.h"
 
 typedef struct
 {
@@ -34,6 +37,10 @@ typedef struct
 static deh_substitution_t **hash_table = NULL;
 static int hash_table_entries;
 static int hash_table_length = -1;
+
+// [Woof!] Colorized messages
+static deh_substitution_t *color_strings = NULL;
+static int color_count = 0;
 
 // 64bit variant FNV-1a hash
 static uint64_t hash_str(const char *s)
@@ -184,4 +191,28 @@ void DEH_AddStringReplacement(const char *from_text, const char *to_text)
 
         DEH_AddToHashtable(sub);
     }
+}
+
+PRINTF_ARG_ATTR(1) const char *DEH_StringColorized(const char *s)
+{
+    if (message_colorized)
+    {
+        for (int i = 0; i < color_count; i++)
+        {
+            if (!strcasecmp(s, color_strings[i].from_text))
+            {
+                return color_strings[i].to_text;
+            }
+        }
+    }
+    return DEH_String(s);
+}
+
+void DEH_AddStringColorizedReplacement(int index, const char *from_text, const char *color_text)
+{
+    deh_substitution_t sub = {0};
+    sub.from_text = M_StringDuplicate(from_text);
+    sub.to_text = M_StringDuplicate(color_text);
+    array_push(color_strings, sub);
+    color_count = index++;
 }

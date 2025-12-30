@@ -2365,7 +2365,7 @@ void M_Init(void)
         if (!DEH_HasStringReplacement(string))
         {
             replace = M_StringReplace(string, "dos", platform);
-            DEH_AddStringReplacement(strings_quit_messages[3], replace);
+            DEH_AddStringReplacement(string, replace);
             free(replace);
         }
 
@@ -2374,7 +2374,7 @@ void M_Init(void)
         if (!DEH_HasStringReplacement(string))
         {
             replace = M_StringReplace(string, "dos", platform);
-            DEH_AddStringReplacement(strings_quit_messages[4], replace);
+            DEH_AddStringReplacement(string, replace);
             free(replace);
         }
 
@@ -2382,21 +2382,23 @@ void M_Init(void)
         string = strings_quit_messages[9];
         if (!DEH_HasStringReplacement(string))
         {
+            char *replace2 = NULL;
             replace = M_StringReplace(string, "dos", platform);
 #if defined(_WIN32)
-            string = M_StringReplace(replace, "prompt", "desktop");
+            replace2 = M_StringReplace(replace, "prompt", "desktop");
 #else
-            string = isatty(STDOUT_FILENO)
+            replace2 = isatty(STDOUT_FILENO)
                     ? M_StringReplace(replace, "prompt", "shell")
                     : M_StringReplace(replace, "prompt", "desktop");
 #endif
-            DEH_AddStringReplacement(strings_quit_messages[9], string);
+            DEH_AddStringReplacement(string, replace2);
+            free(replace2);
             free(replace);
         }
 
         for (int i = 0; i < num_quit_mnemonics; i++)
         {
-            replace = M_StringDuplicate(strings_quit_messages[i]);
+            replace = M_StringDuplicate(DEH_String(strings_quit_messages[i]));
             if (strchr(replace, '\n') == NULL)
             {
                 AddLineBreaks(replace);

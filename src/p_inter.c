@@ -374,7 +374,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
         // leave cards for everyone
     case SPR_BKEY:
       if (!player->cards[it_bluecard])
-        pickupmsg(player, "%s", color_GOTBLUECARD);
+        pickupmsg(player, DEH_StringColorized(GOTBLUECARD));
       P_GiveCard (player, it_bluecard);
       if (!netgame)
         break;
@@ -382,7 +382,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
 
     case SPR_YKEY:
       if (!player->cards[it_yellowcard])
-        pickupmsg(player, "%s", color_GOTYELWCARD);
+        pickupmsg(player, DEH_StringColorized(GOTYELWCARD));
       P_GiveCard (player, it_yellowcard);
       if (!netgame)
         break;
@@ -390,7 +390,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
 
     case SPR_RKEY:
       if (!player->cards[it_redcard])
-        pickupmsg(player, "%s", color_GOTREDCARD);
+        pickupmsg(player, DEH_StringColorized(GOTREDCARD));
       P_GiveCard (player, it_redcard);
       if (!netgame)
         break;
@@ -398,7 +398,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
 
     case SPR_BSKU:
       if (!player->cards[it_blueskull])
-        pickupmsg(player, "%s", color_GOTBLUESKUL);
+        pickupmsg(player, DEH_StringColorized(GOTBLUESKUL));
       P_GiveCard (player, it_blueskull);
       if (!netgame)
         break;
@@ -406,7 +406,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
 
     case SPR_YSKU:
       if (!player->cards[it_yellowskull])
-        pickupmsg(player, "%s", color_GOTYELWSKUL);
+        pickupmsg(player, DEH_StringColorized(GOTYELWSKUL));
       P_GiveCard (player, it_yellowskull);
       if (!netgame)
         break;
@@ -414,7 +414,7 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
 
     case SPR_RSKU:
       if (!player->cards[it_redskull])
-        pickupmsg(player, "%s", color_GOTREDSKULL);
+        pickupmsg(player, DEH_StringColorized(GOTREDSKULL));
       P_GiveCard (player, it_redskull);
       if (!netgame)
         break;
