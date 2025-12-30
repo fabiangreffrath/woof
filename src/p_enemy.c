@@ -1309,7 +1309,7 @@ void A_PosAttack(mobj_t *actor)
 
   // killough 5/5/98: remove dependence on order of evaluation:
   t = P_Random(pr_posattack);
-  angle += rotl32(t - P_Random(pr_posattack), 20);
+  angle += shiftleft32(t - P_Random(pr_posattack), 20);
   damage = (P_Random(pr_posattack)%5 + 1)*3;
   P_LineAttack(actor, angle, MISSILERANGE, slope, damage);
 }
@@ -1327,7 +1327,7 @@ void A_SPosAttack(mobj_t* actor)
   for (i=0; i<3; i++)
     {  // killough 5/5/98: remove dependence on order of evaluation:
       int t = P_Random(pr_sposattack);
-      int angle = bangle + ((t - P_Random(pr_sposattack))<<20);
+      int angle = bangle + shiftleft32(t - P_Random(pr_sposattack), 20);
       int damage = ((P_Random(pr_sposattack)%5)+1)*3;
       P_LineAttack(actor, angle, MISSILERANGE, slope, damage);
     }
@@ -1346,7 +1346,7 @@ void A_CPosAttack(mobj_t *actor)
 
   // killough 5/5/98: remove dependence on order of evaluation:
   t = P_Random(pr_cposattack);
-  angle = bangle + ((t - P_Random(pr_cposattack))<<20);
+  angle = bangle + shiftleft32(t - P_Random(pr_cposattack), 20);
   damage = ((P_Random(pr_cposattack)%5)+1)*3;
   P_LineAttack(actor, angle, MISSILERANGE, slope, damage);
 }

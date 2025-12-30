@@ -200,9 +200,9 @@ void P_MovePlayer (player_t* player)
   ticcmd_t *cmd = &player->cmd;
   mobj_t *mo = player->mo;
 
-  mo->angle += rotl32(cmd->angleturn, FRACBITS);
+  mo->angle += IntToFixed(cmd->angleturn);
   onground = mo->z <= mo->floorz;
-  player->ticangle += rotl32(cmd->ticangleturn, FRACBITS);
+  player->ticangle += IntToFixed(cmd->ticangleturn);
 
   // killough 10/98:
   //

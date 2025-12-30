@@ -34,48 +34,19 @@ typedef int fixed_t;
 #define FRACUNIT (1 << FRACBITS)
 #define FRACMASK (FRACUNIT - 1)
 
-#if defined(__has_builtin)
-  #define WOOF_HAS_BUILTIN(x) __has_builtin(x)
-#else
-  #define WOOF_HAS_BUILTIN(x) 0
-#endif
-
-static inline uint16_t rotl16(uint16_t v, int8_t n)
+inline static int32_t shiftleft32(int32_t x, int shift)
 {
-#if WOOF_HAS_BUILTIN(__builtin_rotateleft16)
-    return  __builtin_rotateleft16(v, n);
-#elif defined(_MSC_VER)
-    return _rotl16(v, n);
-#else
-    return (v << n) | (v >> (16 - n));
-#endif
+    return (int32_t)((uint32_t)x << shift);
 }
 
-static inline uint32_t rotl32(uint32_t v, int8_t n)
+inline static int64_t shiftleft64(int64_t x, int shift)
 {
-#if WOOF_HAS_BUILTIN(__builtin_rotateleft32)
-    return  __builtin_rotateleft32(v, n);
-#elif defined(_MSC_VER)
-    return _rotl(v, n);
-#else
-    return (v << n) | (v >> (32 - n));
-#endif
-}
-
-static inline uint64_t rotl64(uint64_t v, int8_t n)
-{
-#if WOOF_HAS_BUILTIN(__builtin_rotateleft64)
-    return  __builtin_rotateleft64(v, n);
-#elif defined(_MSC_VER)
-    return _rotl64(v, n);
-#else
-    return (v << n) | (v >> (64 - n));
-#endif
+    return (int64_t)((uint64_t)x << shift);
 }
 
 inline static fixed_t IntToFixed(int32_t x)
 {
-    return (fixed_t)rotl32((uint32_t)x, FRACBITS);
+    return shiftleft32(x, FRACBITS);
 }
 
 inline static int32_t FixedToInt(fixed_t x)
@@ -129,7 +100,7 @@ inline static fixed_t FixedDiv(fixed_t a, fixed_t b)
     }
     else
     {
-        return div64_32((int64_t)rotl64((uint64_t)a, FRACBITS), b);
+        return div64_32(shiftleft64(a, FRACBITS), b);
     }
 }
 
