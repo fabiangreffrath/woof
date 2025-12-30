@@ -205,11 +205,12 @@ PRINTF_ARG_ATTR(1) const char *DEH_StringColorized(const char *s)
     return DEH_String(s);
 }
 
-void DEH_AddStringColorizedReplacement(int index, const char *from_text, const char *color_text)
+void DEH_AddStringColorizedReplacement(const char *from_text, const char *color_text)
 {
     deh_substitution_t sub = {0};
     sub.from_text = M_StringDuplicate(from_text);
     sub.to_text = M_StringDuplicate(color_text);
+    // Not going to make a whole hash table just for a handful of strings :p
     array_push(color_strings, sub);
-    color_count = index++;
+    color_count += 1;
 }

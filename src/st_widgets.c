@@ -1023,14 +1023,11 @@ boolean ST_DemoProgressBar(boolean force)
 
 static void ColorizeString(const char *haystack, const char *needle, crange_idx_e cr)
 {
-    // Not going to make a whole hash table just for a handful of strings :p
-    static int index = 0;
     char replacement[18];
     M_snprintf(replacement, sizeof(replacement), "%s%s%s", crdefs[cr].str, needle, ORIG_S);
     char * colorized = M_StringReplaceWord(DEH_String(haystack), needle, replacement);
-    DEH_AddStringColorizedReplacement(index, haystack, colorized);
+    DEH_AddStringColorizedReplacement(haystack, colorized);
     free(colorized);
-    index++;
 }
 
 void ST_InitWidgets(void)
