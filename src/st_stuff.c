@@ -1659,8 +1659,9 @@ static void DrawNumber(int x1, int y1, int *x2, int *y2, boolean dry,
     number->xoffset = base_xoffset;
 }
 
-static void DrawLine(int x1, int y1, int *x2, int *y2, boolean dry,
-                     stringline_t *line, sbarelem_t *elem, hudfont_t *font)
+static void DrawStringLine(int x1, int y1, int *x2, int *y2, boolean dry,
+                           stringline_t *line, sbarelem_t *elem,
+                           hudfont_t *font)
 {
     int base_xoffset = line->xoffset;
 
@@ -1711,7 +1712,7 @@ static void DrawWidget(int x1, int y1, int *x2, int *y2, boolean dry,
     stringline_t *line;
     array_foreach(line, widget->lines)
     {
-        DrawLine(x1, y1, x2, y2, dry, line, elem, font);
+        DrawStringLine(x1, y1, x2, y2, dry, line, elem, font);
         if (elem->alignment & sbe_v_bottom)
         {
             y1 -= font->maxheight;
@@ -1806,8 +1807,8 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
         case sbe_string:
             {
                 sbe_string_t *string = elem->subtype.string;
-                DrawLine(x1, y1, x2, y2, dry, &string->line, elem,
-                         string->font);
+                DrawStringLine(x1, y1, x2, y2, dry, &string->line, elem,
+                               string->font);
             }
             break;
 
@@ -1826,8 +1827,27 @@ static void DrawListOfElem(int x1, int y1, sbarelem_t *elem, player_t *player)
 {
     sbe_list_t *list = elem->subtype.list;
 
+    if (elem->alignment & sbe_v_top && elem->alignment & sbe_h_left)
+    {
+        array_foreach_type(child, elem->children, sbarelem_t)
+        {
+            int x2 = 0, y2 = 0;
+            DrawElem(x1, y2, &x2, &y2, false, child, player);
+
+            if (list->horizontal && x2)
+            {
+                x1 = x2 + list->spacing;
+            }
+            else if (y2)
+            {
+                y1 = y2 + list->spacing;
+            }
+        }
+        return;
+    }
+
     int listwidth = 0, listheight = 0;
-    int maxitemheight = 0, maxwidth = 0;
+    int maxitemheight = 0, maxitemwidth = 0;
 
     array_foreach_type(child, elem->children, sbarelem_t)
     {
@@ -1842,18 +1862,12 @@ static void DrawListOfElem(int x1, int y1, sbarelem_t *elem, player_t *player)
         {
             listheight += height;
         }
-        maxwidth = MAX(maxwidth, width);
+        maxitemwidth = MAX(maxitemwidth, width);
         maxitemheight = MAX(maxitemheight, height);
     }
 
-    if (list->horizontal)
-    {
-        x1 = AdjustX(x1, listwidth, elem->alignment);
-    }
-    else
-    {
-        y1 = AdjustY(y1, listheight, elem->alignment);
-    }
+    x1 = AdjustX(x1, listwidth, elem->alignment);
+    y1 = AdjustY(y1, listheight, elem->alignment);
 
     if (list->horizontal && elem->alignment & sbe_v_middle)
     {
@@ -1861,25 +1875,25 @@ static void DrawListOfElem(int x1, int y1, sbarelem_t *elem, player_t *player)
     }
     else if (elem->alignment & sbe_h_middle)
     {
-        x1 -= (maxwidth / 2);
+        x1 -= (maxitemwidth / 2);
     }
 
     array_foreach_type(child, elem->children, sbarelem_t)
     {
         int width = 0, height = 0;
-        int x1adj = x1, y2adj = y1;
         DrawElem(0, 0, &width, &height, true, child, player);
 
+        int x1adj = x1, y1adj = y1;
         if (list->horizontal && elem->alignment & sbe_v_bottom)
         {
-            y2adj = AdjustY(y1, height, elem->alignment);
+            y1adj = AdjustY(y1, height, elem->alignment);
         }
         else if (!list->horizontal && elem->alignment & sbe_h_right)
         {
             x1adj = AdjustX(x1, width, elem->alignment);
         }
 
-        DrawElem(x1adj, y2adj, NULL, NULL, false, child, player);
+        DrawElem(x1adj, y1adj, NULL, NULL, false, child, player);
 
         if (list->horizontal && width)
         {
