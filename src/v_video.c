@@ -447,7 +447,7 @@ static void DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
          column = (column_t *)((byte *)column + column->length + 4))
     {
         // calculate unclipped screen coordinates for post
-        int columntop = ytop + column->topdelta;
+        int columntop = ytop + column->topdelta; 
 
         if (columntop >= 0)
         {
@@ -463,21 +463,22 @@ static void DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
         else
         {
             patchcol->frac = (-columntop) << FRACBITS;
-            patchcol->y1 = patchcol->topoffset;
+            patchcol->y1 = 0;
         }
 
-        if (columntop + column->length - 1 < 0)
+        int columnbottom = columntop + column->length - 1;
+        if (patchcol->height)
+        {
+            columnbottom = MIN(columnbottom, ytop + patchcol->height - 1);
+        }
+
+        if (columnbottom < 0)
         {
             continue;
         }
-        if (columntop + column->length - 1 < SCREENHEIGHT)
+        if (columnbottom < SCREENHEIGHT)
         {
-            int y2 = columntop + column->length - 1;
-            if (patchcol->height)
-            {
-                y2 = MIN(y2, ytop + patchcol->height - 1);
-            }
-            patchcol->y2 = y2lookup[y2];
+            patchcol->y2 = y2lookup[columnbottom];
         }
         else
         {
@@ -486,8 +487,11 @@ static void DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
 
         // SoM: The failsafes should be completely redundant now...
         // haleyjd 05/13/08: fix clipping; y2lookup not clamped properly
-        if ((column->length > 0 && patchcol->y2 < patchcol->y1)
-            || patchcol->y2 >= video.height)
+        if (column->length > 0 && patchcol->y2 < patchcol->y1)
+        {
+            patchcol->y2 = patchcol->y1;
+        }
+        if (patchcol->y2 >= video.height)
         {
             patchcol->y2 = video.height - 1;
         }
