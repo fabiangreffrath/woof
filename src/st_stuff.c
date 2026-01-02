@@ -1827,25 +1827,6 @@ static void DrawListOfElem(int x1, int y1, sbarelem_t *elem, player_t *player)
 {
     sbe_list_t *list = elem->subtype.list;
 
-    if (elem->alignment & sbe_v_top && elem->alignment & sbe_h_left)
-    {
-        array_foreach_type(child, elem->children, sbarelem_t)
-        {
-            int x2 = 0, y2 = 0;
-            DrawElem(x1, y2, &x2, &y2, false, child, player);
-
-            if (list->horizontal && x2)
-            {
-                x1 = x2 + list->spacing;
-            }
-            else if (y2)
-            {
-                y1 = y2 + list->spacing;
-            }
-        }
-        return;
-    }
-
     int listwidth = 0, listheight = 0;
     int maxitemheight = 0, maxitemwidth = 0;
 
