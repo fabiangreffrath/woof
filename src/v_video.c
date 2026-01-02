@@ -489,7 +489,7 @@ static void DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
         // haleyjd 05/13/08: fix clipping; y2lookup not clamped properly
         if (column->length > 0 && patchcol->y2 < patchcol->y1)
         {
-            patchcol->y2 = patchcol->y1;
+            continue;
         }
         if (patchcol->y2 >= video.height)
         {
