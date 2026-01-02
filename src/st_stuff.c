@@ -1990,16 +1990,8 @@ static void DrawStatusBar(void)
     sbarelem_t *child;
     array_foreach(child, statusbar->children)
     {
-        int y1;
-        if (child->type == sbe_widget || child->type == sbe_carousel)
-        {
-            y1 = 0;
-        }
-        else
-        {
-            y1 = SCREENHEIGHT - statusbar->height;
-        }
-        DrawElem(0, y1, NULL, NULL, false, child, player);
+        DrawElem(0, SCREENHEIGHT - statusbar->height, NULL, NULL, false, child,
+                 player);
     }
 
     DrawCenteredMessage();

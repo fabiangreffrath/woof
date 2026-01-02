@@ -675,6 +675,10 @@ sbardef_t *ST_ParseSbarDef(void)
             sbarelem_t elem = {0};
             if (ParseSbarElem(js_widget, &elem))
             {
+                if (!statusbar->fullscreenrender)
+                {
+                    elem.y_pos -= SCREENHEIGHT - statusbar->height;
+                }
                 array_push(statusbar->children, elem);
             }
         }
