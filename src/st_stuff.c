@@ -1419,6 +1419,41 @@ static void ResetStatusBar(void)
     ST_ResetTitle();
 }
 
+static int AdjustX(int x, int width, sbaralignment_t alignment)
+{
+    if (alignment & sbe_h_middle)
+    {
+        x = x - width / 2;
+    }
+    else if (alignment & sbe_h_right)
+    {
+        x -= width;
+    }
+
+    if (alignment & sbe_wide_left)
+    {
+        x -= st_wide_shift;
+    }
+    else if (alignment & sbe_wide_right)
+    {
+        x += st_wide_shift;
+    }
+    return x;
+}
+
+static int AdjustY(int y, int height, sbaralignment_t alignment)
+{
+    if (alignment & sbe_v_middle)
+    {
+        y = y - height / 2;
+    }
+    else if (alignment & sbe_v_bottom)
+    {
+        y -= height;
+    }
+    return y;
+}
+
 static void DrawPatch(int x1, int y1, int *x2, int *y2, boolean dry,
                       crop_t crop, int maxheight, sbaralignment_t alignment,
                       patch_t *patch, crange_idx_e cr, const byte *tl)
@@ -1798,54 +1833,68 @@ static void DrawListOfElem(int x1, int y1, sbarelem_t *elem, player_t *player)
 {
     sbe_list_t *list = elem->subtype.list;
 
-    if (!list->reverse)
-    {
-        array_foreach_type(child, elem->children, sbarelem_t)
-        {
-            int x2 = 0, y2 = 0;
-            DrawElem(x1, y1, &x2, &y2, false, child, player);
+    int listwidth = 0, listheight = 0;
+    int maxitemheight = 0, maxwidth = 0;
 
-            if (list->horizontal && x2)
-            {
-                x1 = x2 + list->spacing;
-            }
-            else if (y2)
-            {
-                y1 = y2 + list->spacing;
-            }
+    array_foreach_type(child, elem->children, sbarelem_t)
+    {
+        int width = 0, height = 0;
+        DrawElem(0, 0, &width, &height, true, child, player);
+
+        if (list->horizontal && width)
+        {
+            listwidth += width;
         }
+        else if (height)
+        {
+            listheight += height;
+        }
+        maxwidth = MAX(maxwidth, width);
+        maxitemheight = MAX(maxitemheight, height);
+    }
+
+    if (list->horizontal)
+    {
+        x1 = AdjustX(x1, listwidth, elem->alignment);
     }
     else
     {
-        array_foreach_type(child, elem->children, sbarelem_t)
+        y1 = AdjustY(y1, listheight, elem->alignment);
+    }
+
+    if (list->horizontal && elem->alignment & sbe_v_middle)
+    {
+        y1 -= (maxitemheight / 2);    
+    }
+    else if (elem->alignment & sbe_h_middle)
+    {
+        x1 -= (maxwidth / 2);
+    }
+
+    array_foreach_type(child, elem->children, sbarelem_t)
+    {
+        int width = 0, height = 0;
+        int x1adj = x1, y2adj = y1;
+        DrawElem(0, 0, &width, &height, true, child, player);
+
+        if (list->horizontal && elem->alignment & sbe_v_bottom)
         {
-            int x2 = 0, y2 = 0;
-            // Dry run to calculate bottom right coordinate (x2, y2) of sbarelem_t tree
-            DrawElem(x1, y1, &x2, &y2, true, child, player);
+            y2adj = AdjustY(y1, height, elem->alignment);
+        }
+        else if (!list->horizontal && elem->alignment & sbe_h_right)
+        {
+            x1adj = AdjustX(x1, width, elem->alignment);
+        }
 
-            if (list->horizontal && x2)
-            {
-                x1 -= (x2 - x1);
-            }
-            else if (y2)
-            {
-                y1 -= (y2 - y1);
-            }
-            else
-            {
-                continue;
-            }
+        DrawElem(x1adj, y2adj, NULL, NULL, false, child, player);
 
-            DrawElem(x1, y1, NULL, NULL, false, child, player);
-
-            if (list->horizontal)
-            {
-                x1 -= list->spacing;
-            }
-            else
-            {
-                y1 -= list->spacing;
-            }
+        if (list->horizontal && width)
+        {
+            x1 = x1 + width + list->spacing;
+        }
+        else if (height)
+        {
+            y1 = y1 + height+ list->spacing;
         }
     }
 }
@@ -1988,10 +2037,10 @@ static void DrawStatusBar(void)
     }
 
     sbarelem_t *child;
+    int y1 = statusbar->fullscreenrender ? 0 : SCREENHEIGHT - statusbar->height;
     array_foreach(child, statusbar->children)
     {
-        DrawElem(0, SCREENHEIGHT - statusbar->height, NULL, NULL, false, child,
-                 player);
+        DrawElem(0, y1, NULL, NULL, false, child, player);
     }
 
     DrawCenteredMessage();

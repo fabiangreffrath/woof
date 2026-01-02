@@ -293,7 +293,6 @@ typedef struct sbe_widget_s
 typedef struct
 {
     boolean horizontal;
-    boolean reverse;
     int spacing;
 } sbe_list_t;
 

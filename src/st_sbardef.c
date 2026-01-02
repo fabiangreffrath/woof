@@ -165,7 +165,6 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
             {
                 sbe_list_t *list = calloc(1, sizeof(*list));
                 list->horizontal = JS_GetBooleanValue(json, "horizontal");
-                list->reverse = JS_GetBooleanValue(json, "reverse");
                 list->spacing = JS_GetIntegerValue(json, "spacing");
                 out->subtype.list = list;
             }
