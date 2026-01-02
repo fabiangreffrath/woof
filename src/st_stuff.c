@@ -1463,53 +1463,46 @@ static void DrawPatch(int x1, int y1, int *x2, int *y2, boolean dry,
         return;
     }
 
-    int width = SHORT(patch->width);
-    int height = maxheight ? maxheight : SHORT(patch->height);
+    int width = crop.height ? crop.height : SHORT(patch->width);
+    int height;
+    if  (maxheight)
+    {
+        height = maxheight;
+    }
+    else if (crop.height)
+    {
+        height = crop.height;
+    }
+    else
+    {
+        height = SHORT(patch->height);
+    }
 
-    int xoffset = 0;
-    if (!(alignment & sbe_ignore_yoffset))
+    int xoffset = 0, yoffset = 0;
+    if (!memcmp(&crop, &zero_crop, sizeof(crop_t)))
     {
-        xoffset = SHORT(patch->leftoffset);
+        if (!(alignment & sbe_ignore_xoffset))
+        {
+            xoffset = SHORT(patch->leftoffset);
+        }
+        if (!(alignment & sbe_ignore_yoffset))
+        {
+            yoffset = SHORT(patch->topoffset);
+        }
     }
-    int yoffset = 0;
-    if (!(alignment & sbe_ignore_yoffset))
-    {
-        yoffset = SHORT(patch->topoffset);
-    }
+
+    x1 = AdjustX(x1, width, alignment);
 
     if (alignment & sbe_h_middle)
     {
-        x1 = x1 - width / 2 + xoffset;
-        if (crop.center)
-        {
-            x1 += width / 2 + crop.left;
-        }
+        x1 += xoffset;
     }
-    else if (alignment & sbe_h_right)
-    {
-        x1 -= width;
-    }
+
+    y1 = AdjustY(y1, width, alignment);
 
     if (alignment & sbe_v_middle)
     {
-        y1 = y1 - height / 2 + yoffset;
-        if (crop.center)
-        {
-            y1 += height / 2 + crop.left;
-        }
-    }
-    else if (alignment & sbe_v_bottom)
-    {
-        y1 -= height;
-    }
-
-    if (alignment & sbe_wide_left)
-    {
-        x1 -= st_wide_shift;
-    }
-    if (alignment & sbe_wide_right)
-    {
-        x1 += st_wide_shift;
+        y1 += yoffset;
     }
 
     if (x2)
