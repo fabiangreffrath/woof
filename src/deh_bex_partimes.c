@@ -39,7 +39,7 @@ int bex_cpars[] =
     30,  90,  120, 120, 90,  150, 120, 120, 270, 90, 210,
     150, 150, 150, 210, 150, 420, 150, 210, 150,
     240, 150, 180, 150, 150, 300, 330, 420, 300, 180, 120, 30,
-    30,  30
+    30,  30, 30, // MAP 33, 34
 };
 
 static void *DEH_BEXPartimesStart(deh_context_t *context, char *line)
@@ -74,7 +74,7 @@ static void DEH_BEXPartimesParseLine(deh_context_t *context, char *line, void *t
     }
     else if (sscanf(line, "par %32d %32d", &map, &partime) == 2)
     {
-        // maps 33 & 34
+        // Added maps 33 & 34
         if (map >= 1 && map <= 34)
         {
             bex_cpars[map - 1] = partime;
