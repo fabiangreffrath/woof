@@ -376,7 +376,7 @@ static char *M_StringReplaceEx(const char *haystack, const char *needle,
 
     for (;;)
     {
-        p = strstr(p, needle);
+        p = M_strcasestr(p, needle);
         if (p == NULL)
         {
             break;
@@ -407,7 +407,7 @@ static char *M_StringReplaceEx(const char *haystack, const char *needle,
 
     while (*p != '\0')
     {
-        if (!strncmp(p, needle, needle_len) &&
+        if (!strncasecmp(p, needle, needle_len) &&
             (!whole_word ||
             ((p == haystack || is_boundary(p[-1])) &&
             is_boundary(p[needle_len]))))
@@ -576,6 +576,28 @@ int M_snprintf(char *buf, size_t buf_len, const char *s, ...)
     result = M_vsnprintf(buf, buf_len, s, args);
     va_end(args);
     return result;
+}
+
+// Source - https://stackoverflow.com/questions/27303062/strstr-function-like-that-ignores-upper-or-lower-case
+// Posted by chux, modified by community. See post 'Timeline' for change history
+// Retrieved 2026-01-03, License - CC BY-SA 3.0
+char *M_strcasestr(const char *haystack, const char *needle)
+{
+    do
+    {
+        const char *h = haystack;
+        const char *n = needle;
+        while (tolower((unsigned char)*h) == tolower((unsigned char)*n) && *n)
+        {
+            h++;
+            n++;
+        }
+        if (*n == 0)
+        {
+            return (char *)haystack;
+        }
+    } while (*haystack++);
+    return NULL;
 }
 
 // Copies characters until either 8 characters are copied or a null terminator
