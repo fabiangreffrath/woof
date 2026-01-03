@@ -804,6 +804,84 @@
 #define OB_MPBFG_BOOM      "%o was splintered by %k's BFG."
 #define OB_MPTELEFRAG      "%o was telefragged by %k."
 
+// [Woof!]
+// GameDescription banners, as seen in Chocolate-Doom
+// These come both/either from gamesrc-ver-recreation and linuxdoom-1.10
+
+typedef enum
+{
+  banner_indetermined,
+  banner_shareware,
+  banner_1_666_system,
+  banner_1_9_system,
+  banner_1_9_registered,
+  banner_1_9_special,
+  banner_ultimate,
+} Banner_t;
+
+#define BANNER_INDETERMINED \
+  "                     "\
+  "Public DOOM - v%i.%i"\
+  "                           "
+
+#define BANNER_SHAREWARE \
+  "                            " \
+  "DOOM Shareware Startup v%i.%i" \
+  "                           "
+
+#define BANNER_1_666_SYSTEM \
+  "                          "\
+  "DOOM System Startup v%i.%i66"\
+  "                          "
+
+#define BANNER_1_9_SYSTEM \
+  "                          "\
+  "DOOM System Startup v%i.%i"\
+  "                          "
+
+#define BANNER_1_9_REGISTERED \
+  "                            " \
+  "DOOM Registered Startup v%i.%i" \
+  "                           "
+
+#define BANNER_1_9_SPECIAL \
+  "                   " \
+  "DOOM System Startup v%i.%i Special Edition" \
+  "                          "
+
+#define BANNER_ULTIMATE \
+  "                         "\
+  "The Ultimate DOOM Startup v%i.%i"\
+  "                        "
+
+typedef enum
+{
+  cbanner_1_666,
+  cbanner_1_9,
+  cbanner_tnt,
+  cbanner_plutonia,
+} CBanner_t;
+
+#define CBANNER_1_666 \
+  "                         " \
+  "DOOM 2: Hell on Earth v%i.%i66" \
+  "                          "
+
+#define CBANNER_1_9 \
+  "                         " \
+  "DOOM 2: Hell on Earth v%i.%i" \
+  "                           "
+
+#define CBANNER_TNT \
+  "                     "\
+  "DOOM 2: TNT - Evilution v%i.%i"\
+  "                           "
+
+#define CBANNER_PLUTONIA \
+  "                   "\
+  "DOOM 2: Plutonia Experiment v%i.%i"\
+  "                           "
+
 #endif
 
 //----------------------------------------------------------------------------

@@ -53,5 +53,6 @@ extern const int num_quit_mnemonics;
 extern boolean message_colorized;
 const char *DEH_StringColorized(const char *s) PRINTF_ARG_ATTR(1);
 void DEH_AddStringColorizedReplacement(const char *from_text, const char *color_text);
+void DEH_SetBannerGameDescription(void);
 
 #endif /* #ifndef DEH_STR_H */

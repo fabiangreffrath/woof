@@ -31,6 +31,7 @@
 #include "deh_io.h"
 #include "deh_main.h"
 #include "deh_misc.h"
+#include "deh_strings.h"
 #include "deh_thing.h"
 #include "doomtype.h"
 #include "i_glob.h"
@@ -488,6 +489,8 @@ void DEH_PostProcess(void)
         I_Error("Mismatch between bfgcells and bfg ammo per shot "
                 "modifications! Check your dehacked.");
     }
+
+    DEH_SetBannerGameDescription();
 
     if (post_process)
     {
