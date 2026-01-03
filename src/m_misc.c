@@ -376,7 +376,7 @@ static char *M_StringReplaceEx(const char *haystack, const char *needle,
 
     for (;;)
     {
-        p = strcasestr(p, needle);
+        p = strstr(tolower(*p), tolower(*needle));
         if (p == NULL)
         {
             break;
