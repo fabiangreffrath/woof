@@ -68,14 +68,7 @@ static void *DEH_TextStart(deh_context_t *context, char *line)
     }
     to_text[to_len] = '\0';
 
-    // [Woof!]
-    // For our purposes, we only care about replacing sprites (4 char)
-    // and music (up to 6 char), as was supported on the original Boom
-    // parser
-    if (from_len <= 6 && to_len <= 6)
-    {
-        DEH_AddStringReplacement(from_text, to_text);
-    }
+    DEH_AddStringReplacement(from_text, to_text);
 
     free(from_text);
     free(to_text);
