@@ -430,6 +430,7 @@ const char *DEH_StringForMnemonic(const char *mnemonic)
 
     I_Error("BEX mnemonic '%s' not found! Check your lumps.", mnemonic);
 }
+
 const char * const mapnames[] =
 {
     HUSTR_E1M1, HUSTR_E1M2, HUSTR_E1M3, HUSTR_E1M4, HUSTR_E1M5,
