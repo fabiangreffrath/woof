@@ -77,6 +77,7 @@ static void DEH_CheatParseLine(deh_context_t *context, char *line, void *tag)
         if (i >= MAX_CHEAT_LEN - c->arg)
         {
             DEH_Error(context, "Cheat sequence too long!");
+            free(placeholder);
             return;
         }
     }
