@@ -949,7 +949,7 @@ static void F_StartCast(void)
   castorder[14].name = DEH_String(CC_SPIDER), castorder[14].type = MT_SPIDER;
   castorder[15].name = DEH_String(CC_CYBER),  castorder[15].type = MT_CYBORG;
   castorder[16].name = DEH_String(CC_HERO),   castorder[16].type = MT_PLAYER;
-  castorder[17].name = NULL,        castorder[17].type = 0;
+  castorder[17].name = NULL,                  castorder[17].type = 0;
 
   castnum = 0;
   caststate = &states[mobjinfo[castorder[castnum].type].seestate];
