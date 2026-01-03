@@ -21,6 +21,7 @@
 #include <stdlib.h>
 
 #include "d_player.h"
+#include "deh_misc.h"
 #include "doomdata.h"
 #include "doomdef.h"
 #include "doomstat.h"

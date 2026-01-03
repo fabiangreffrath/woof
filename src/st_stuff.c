@@ -28,6 +28,7 @@
 #include "d_event.h"
 #include "d_items.h"
 #include "d_player.h"
+#include "deh_misc.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
@@ -458,18 +459,18 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
                 break;
 
             case sbc_healthgreaterequalpct:
-                if (maxhealth)
+                if (deh_max_health)
                 {
                     result &=
-                        ((player->health * 100 / maxhealth) >= cond->param);
+                        ((player->health * 100 / deh_max_health) >= cond->param);
                 }
                 break;
 
             case sbc_healthlesspct:
-                if (maxhealth)
+                if (deh_max_health)
                 {
                     result &=
-                        ((player->health * 100 / maxhealth) < cond->param);
+                        ((player->health * 100 / deh_max_health) < cond->param);
                 }
                 break;
 
@@ -482,18 +483,18 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
                 break;
 
             case sbc_armorgreaterequalpct:
-                if (max_armor)
+                if (deh_max_armor)
                 {
-                    result &= ((player->armorpoints * 100 / max_armor)
+                    result &= ((player->armorpoints * 100 / deh_max_armor)
                                >= cond->param);
                 }
                 break;
 
             case sbc_armorlesspct:
-                if (max_armor)
+                if (deh_max_armor)
                 {
                     result &=
-                        ((player->armorpoints * 100 / max_armor) < cond->param);
+                        ((player->armorpoints * 100 / deh_max_armor) < cond->param);
                 }
                 break;
 

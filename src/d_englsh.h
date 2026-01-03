@@ -31,6 +31,11 @@
 //
 #define D_DEVSTR    "Development mode ON.\n"
 #define D_CDROM     "CD-ROM Version: default.cfg from c:\\doomdata\n"
+#define STARTUP1    "STARTUP1"
+#define STARTUP2    "STARTUP2"
+#define STARTUP3    "STARTUP3"
+#define STARTUP4    "STARTUP4"
+#define STARTUP5    "STARTUP5"
 
 //
 //  M_Menu.C
@@ -52,6 +57,7 @@
 #define QUITMSG12   "look, bud. you leave now\nand you forfeit your body count!"
 #define QUITMSG13   "just leave. when you come\nback, i'll be waiting with a bat."
 #define QUITMSG14   "you're lucky i don't smack\nyou for thinking about leaving."
+#define QUITMSGD    "THIS IS NO MESSAGE!\nPage intentionally left blank."
 #define LOADNET     "you can't do load while in a net game!\n\n"PRESSKEY
 #define QLOADNET    "you can't quickload during a netgame!\n\n"PRESSKEY
 #define QSAVESPOT   "you haven't picked a quicksave slot yet!\n\n"PRESSKEY
@@ -397,6 +403,19 @@
 //
 //  F_Finale.C
 //
+
+#define BGFLATE1   "FLOOR4_8"
+#define BGFLATE2   "SFLR6_1"
+#define BGFLATE3   "MFLR8_4"
+#define BGFLATE4   "MFLR8_3"
+#define BGFLAT06   "SLIME16"
+#define BGFLAT11   "RROCK14"
+#define BGFLAT20   "RROCK07"
+#define BGFLAT30   "RROCK17"
+#define BGFLAT15   "RROCK13"
+#define BGFLAT31   "RROCK19"
+#define BGCASTCALL "BOSSBACK"
+
 #define E1TEXT \
   "Once you beat the big badasses and\n"\
   "clean out the moon base you're supposed\n"\
@@ -784,6 +803,84 @@
 #define OB_MPPLASMARIFLE   "%o was melted by %k's plasma gun."
 #define OB_MPBFG_BOOM      "%o was splintered by %k's BFG."
 #define OB_MPTELEFRAG      "%o was telefragged by %k."
+
+// [Woof!]
+// GameDescription banners, as seen in Chocolate-Doom
+// These come both/either from gamesrc-ver-recreation and linuxdoom-1.10
+
+typedef enum
+{
+  banner_indetermined,
+  banner_shareware,
+  banner_1_666_system,
+  banner_1_9_system,
+  banner_1_9_registered,
+  banner_1_9_special,
+  banner_ultimate,
+} Banner_t;
+
+#define BANNER_INDETERMINED \
+  "                     "\
+  "Public DOOM - v%i.%i"\
+  "                           "
+
+#define BANNER_SHAREWARE \
+  "                            " \
+  "DOOM Shareware Startup v%i.%i" \
+  "                           "
+
+#define BANNER_1_666_SYSTEM \
+  "                          "\
+  "DOOM System Startup v%i.%i66"\
+  "                          "
+
+#define BANNER_1_9_SYSTEM \
+  "                          "\
+  "DOOM System Startup v%i.%i"\
+  "                          "
+
+#define BANNER_1_9_REGISTERED \
+  "                            " \
+  "DOOM Registered Startup v%i.%i" \
+  "                           "
+
+#define BANNER_1_9_SPECIAL \
+  "                   " \
+  "DOOM System Startup v%i.%i Special Edition" \
+  "                          "
+
+#define BANNER_ULTIMATE \
+  "                         "\
+  "The Ultimate DOOM Startup v%i.%i"\
+  "                        "
+
+typedef enum
+{
+  cbanner_1_666,
+  cbanner_1_9,
+  cbanner_tnt,
+  cbanner_plutonia,
+} CBanner_t;
+
+#define CBANNER_1_666 \
+  "                         " \
+  "DOOM 2: Hell on Earth v%i.%i66" \
+  "                          "
+
+#define CBANNER_1_9 \
+  "                         " \
+  "DOOM 2: Hell on Earth v%i.%i" \
+  "                           "
+
+#define CBANNER_TNT \
+  "                     "\
+  "DOOM 2: TNT - Evilution v%i.%i"\
+  "                           "
+
+#define CBANNER_PLUTONIA \
+  "                   "\
+  "DOOM 2: Plutonia Experiment v%i.%i"\
+  "                           "
 
 #endif
 

@@ -21,6 +21,8 @@
 
 #include <string.h>
 
+#include "deh_bex_sounds.h"
+#include "deh_strings.h"
 #include "doomstat.h"
 #include "doomtype.h"
 #include "i_oalcommon.h"
@@ -113,7 +115,7 @@ static int GetLumpNum(sfxinfo_t *sfx)
     if (sfx->lumpnum == -1)
     {
         char namebuf[9];
-        M_snprintf(namebuf, sizeof(namebuf), "dp%s", sfx->name);
+        M_snprintf(namebuf, sizeof(namebuf), "dp%s", DEH_String(sfx->name));
         sfx->lumpnum = W_CheckNumForName(namebuf);
     }
 
