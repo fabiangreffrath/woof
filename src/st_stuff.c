@@ -778,7 +778,7 @@ static int ResolveNumber(sbe_number_t *number, player_t *player)
         case sbn_power:
             if (param >= 0 && param < NUMPOWERS)
             {
-                result = player->powers[param] / TICRATE;
+                result = (param == pw_strength) ? 0 : player->powers[param] / TICRATE;
             }
             break;
 
@@ -1878,11 +1878,11 @@ static void DrawListOfElem(int x1, int y1, sbarelem_t *elem, player_t *player)
 
         if (list->horizontal && width)
         {
-            x1 = x1 + width + list->spacing;
+            x1 += (width + list->spacing);
         }
         else if (height)
         {
-            y1 = y1 + height+ list->spacing;
+            y1 += (height + list->spacing);
         }
     }
 }
