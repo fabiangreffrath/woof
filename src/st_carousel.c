@@ -22,10 +22,10 @@
 #include "i_timer.h"
 #include "m_array.h"
 #include "m_misc.h"
+#include "m_swap.h"
 #include "r_defs.h"
-#include "r_draw.h"
 #include "st_sbardef.h"
-#include "v_fmt.h"
+#include "v_patch.h"
 #include "v_video.h"
 
 static const char *names[] = {
@@ -181,18 +181,10 @@ static void DrawIcon(int x, int y, sbarelem_t *elem, weapon_icon_t icon)
 
     byte *cr = icon.state == wpi_disabled ? cr_dark : NULL;
 
-    if (cr && elem->tranmap)
-    {
-        V_DrawPatchTRTL(x, y, (crop_t){0}, patch, cr, elem->tranmap);
-    }
-    else if (elem->tranmap)
-    {
-        V_DrawPatchTL(x, y, (crop_t){0}, patch, elem->tranmap);
-    }
-    else
-    {
-        V_DrawPatchTR(x, y, (crop_t){0}, patch, cr);
-    }
+    int xoffset = SHORT(patch->leftoffset);
+    int yoffset = SHORT(patch->topoffset);
+
+    V_DrawPatchGeneral(x, y, xoffset, yoffset, elem->tranmap, cr, patch, zero_crop);
 }
 
 static int CalcOffset(void)
@@ -211,22 +203,6 @@ static int CalcOffset(void)
     }
 
     return 0;
-}
-
-void ST_EraseCarousel(int y)
-{
-    static boolean erase;
-
-    if (duration > 0)
-    {
-        R_VideoErase(0, y - 16, video.unscaledw, 32);
-        erase = true;
-    }
-    else if (erase)
-    {
-        R_VideoErase(0, y - 16, video.unscaledw, 32);
-        erase = false;
-    }
 }
 
 void ST_DrawCarousel(int x, int y, sbarelem_t *elem)

@@ -18,11 +18,11 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "deh_thing.h"
 #include "hu_command.h"
 #include "mn_internal.h"
 
 #include "am_map.h"
-#include "d_deh.h"
 #include "d_main.h"
 #include "doomdef.h"
 #include "doomstat.h"
@@ -62,7 +62,7 @@
 #include "st_stuff.h"
 #include "sounds.h"
 #include "st_widgets.h"
-#include "v_fmt.h"
+#include "v_patch.h"
 #include "v_video.h"
 #include "w_wad.h"
 #include "ws_stuff.h"
@@ -1999,8 +1999,7 @@ static setup_menu_t stat_settings4[] = {
     {"Show Pickup Messages", S_ONOFF, H_X, M_SPC, {"show_pickup_messages"}},
     {"Show Obituaries",      S_ONOFF, H_X, M_SPC, {"show_obituary_messages"}},
     {"Center Messages",      S_ONOFF, H_X, M_SPC, {"message_centered"}},
-    {"Colorize Messages",    S_ONOFF, H_X, M_SPC, {"message_colorized"},
-     .action = ST_ResetMessageColors},
+    {"Colorize Messages",    S_ONOFF, H_X, M_SPC, {"message_colorized"}},
     MI_END
 };
 
@@ -3897,15 +3896,17 @@ void MN_DrawStringCR(int cx, int cy, byte *cr1, byte *cr2, const char *ch)
             break;
         }
 
+        patch_t *patch = hu_font[c];
+
         // V_DrawpatchTranslated() will draw the string in the
         // desired color, colrngs[color]
         if (cr && cr2)
         {
-            V_DrawPatchTRTR(cx, cy, (crop_t){0}, hu_font[c], cr, cr2);
+            V_DrawPatchTranslatedTwice(cx, cy, patch, cr, cr2);
         }
         else
         {
-            V_DrawPatchTranslated(cx, cy, hu_font[c], cr);
+            V_DrawPatchTranslated(cx, cy, patch, cr);
         }
 
         // The screen is cramped, so trim one unit from each

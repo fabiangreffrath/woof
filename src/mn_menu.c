@@ -28,16 +28,14 @@
 #include <string.h>
 
 #include "config.h"
-#include "d_deh.h"
 #include "d_event.h"
 #include "d_main.h"
+#include "deh_strings.h"
 #include "doomdef.h"
 #include "doomkeys.h"
 #include "doomstat.h"
 #include "doomtype.h"
-#include "dstrings.h"
 #include "g_game.h"
-#include "g_rewind.h"
 #include "g_umapinfo.h"
 #include "i_exit.h"
 #include "i_input.h"
@@ -50,10 +48,9 @@
 #include "m_misc.h"
 #include "m_swap.h"
 #include "mn_font.h"
-#include "mn_menu.h"
 #include "mn_internal.h"
+#include "mn_menu.h"
 #include "mn_snapshot.h"
-#include "p_keyframe.h"
 #include "p_saveg.h"
 #include "r_defs.h"
 #include "r_draw.h"
@@ -63,7 +60,7 @@
 #include "st_sbardef.h"
 #include "st_stuff.h"
 #include "st_widgets.h"
-#include "v_fmt.h"
+#include "v_patch.h"
 #include "v_video.h"
 #include "w_wad.h"
 #include "wi_stuff.h"
@@ -86,7 +83,7 @@ static int quickSaveSlot; // -1 = no quicksave slot picked!
 
 static int messageToPrint; // 1 = message to be printed
 
-static char *messageString; // ...and here is the message string!
+static const char *messageString; // ...and here is the message string!
 
 static int messageLastMenuActive;
 
@@ -245,7 +242,7 @@ static void M_DrawSetup(void); // phares 3/21/98
 static void M_DrawSaveLoadBorder(int x, int y, byte *cr);
 static void M_DrawThermo(int x, int y, int thermWidth, int thermDot, byte *cr);
 static void WriteText(int x, int y, const char *string);
-static void M_StartMessage(char *string, void (*routine)(int), boolean input);
+static void M_StartMessage(const char *string, void (*routine)(int), boolean input);
 
 // phares 3/30/98
 // prototypes added to support Setup Menus and Extended HELP screens
@@ -592,7 +589,7 @@ static void M_Episode(int choice)
     {
         if ((gamemode == shareware) && choice)
         {
-            M_StartMessage(s_SWSTRING, NULL, false); // Ty 03/27/98 - externalized
+            M_StartMessage(DEH_String(SWSTRING), NULL, false);
             SetNextMenu(&ReadDef1);
             return;
         }
@@ -665,7 +662,7 @@ static void M_NewGame(int choice)
 {
     if (netgame && !demoplayback)
     {
-        M_StartMessage(s_NEWGAME, NULL, false); // Ty 03/27/98 - externalized
+        M_StartMessage(DEH_String(NEWGAME), NULL, false);
         return;
     }
 
@@ -715,8 +712,8 @@ static void M_VerifyNightmare(int ch)
 void M_ChooseSkill(int choice)
 {
     if (choice == nightmare)
-    { // Ty 03/27/98 - externalized
-        M_StartMessage(s_NIGHTMARE, M_VerifyNightmare, true);
+    {
+        M_StartMessage(DEH_String(NIGHTMARE), M_VerifyNightmare, true);
         return;
     }
 
@@ -1083,7 +1080,6 @@ static void M_VerifyForcedLoadAutoSave(int ch)
     {
         G_ForcedLoadAutoSave();
     }
-    free(messageString);
     MN_ClearMenus();
 }
 
@@ -1093,7 +1089,6 @@ static void M_VerifyForcedLoadGame(int ch)
     {
         G_ForcedLoadGame();
     }
-    free(messageString); // free the message strdup()'ed below
     MN_ClearMenus();
 }
 
@@ -1117,7 +1112,7 @@ static void M_LoadGame(int choice)
 
     if (netgame && !demoplayback) // killough 5/26/98: add !demoplayback
     {
-        M_StartMessage(s_LOADNET, NULL, false); // Ty 03/27/98 - externalized
+        M_StartMessage(DEH_String(LOADNET), NULL, false); // Ty 03/27/98 - externalized
         return;
     }
 
@@ -1194,11 +1189,11 @@ static void EmptySaveString(char *name, boolean is_autosave)
 {
     if (is_autosave)
     {
-        M_snprintf(name, SAVESTRINGSIZE, "%s (Auto)", s_EMPTYSTRING);
+        M_snprintf(name, SAVESTRINGSIZE, "%s (Auto)", DEH_String(EMPTYSTRING));
     }
     else
     {
-        M_snprintf(name, SAVESTRINGSIZE, "%s", s_EMPTYSTRING);
+        M_snprintf(name, SAVESTRINGSIZE, "%s", DEH_String(EMPTYSTRING));
     }
 }
 
@@ -1215,7 +1210,6 @@ static void M_ReadSaveString(char *name, int menu_slot, int save_slot,
     {
         if (!is_autosave)
         {
-            // Ty 03/27/98 - externalized:
             name = G_MBFSaveGameName(save_slot);
             fp = M_fopen(name, "rb");
             free(name);
@@ -1451,7 +1445,7 @@ static void M_SaveSelect(int choice)
     saveSlot = choice;
     strcpy(saveOldString, savegamestrings[choice]);
     // [FG] override savegame name if it already starts with a map identifier
-    if (!strcmp(savegamestrings[choice], s_EMPTYSTRING) // Ty 03/27/98 - externalized
+    if (!strcmp(savegamestrings[choice], DEH_String(EMPTYSTRING))
         || MN_StartsWithMapIdentifier(savegamestrings[choice]))
     {
         savegamestrings[choice][0] = 0;
@@ -1475,7 +1469,7 @@ static void M_SaveGame(int choice)
     // killough 10/6/98: allow savegames during single-player demo playback
     if (!usergame && (!demoplayback || netgame))
     {
-        M_StartMessage(s_SAVEDEAD, NULL, false); // Ty 03/27/98 - externalized
+        M_StartMessage(DEH_String(SAVEDEAD), NULL, false);
         return;
     }
 
@@ -1525,18 +1519,10 @@ static void M_QuitDOOM(int choice)
 {
     static char endstring[160];
 
-    // We pick index 0 which is language sensitive,
-    // or one at random, between 1 and maximum number.
-    // Ty 03/27/98 - externalized DOSY as a string s_DOSY that's in the sprintf
-    if (language != english)
-    {
-        sprintf(endstring, "%s\n\n%s", s_DOSY, *endmsg[0]);
-    }
-    else // killough 1/18/98: fix endgame message calculation:
-    {
-        sprintf(endstring, "%s\n\n%s",
-                *endmsg[gametic % (NUM_QUITMESSAGES - 1) + 1], s_DOSY);
-    }
+    // killough 1/18/98: fix endgame message calculation:
+    M_snprintf(endstring, sizeof(endstring), "%s\n\n%s",
+                DEH_String(strings_quit_messages[gametic % num_quit_mnemonics]),
+                DEH_String(DOSY));
 
     if (quit_prompt)
     {
@@ -1739,7 +1725,7 @@ static void M_QuickLoad(void)
     if (netgame && !demoplayback) // killough 5/26/98: add !demoplayback
     {
         M_StartSound(sfx_swtchn);
-        M_StartMessage(s_QLOADNET, NULL, false); // Ty 03/27/98 - externalized
+        M_StartMessage(DEH_String(QLOADNET), NULL, false);
         return;
     }
 
@@ -1795,11 +1781,10 @@ static void M_EndGame(int choice)
 {
     if (netgame)
     {
-        M_StartMessage(s_NETEND, NULL, false); // Ty 03/27/98 - externalized
+        M_StartMessage(DEH_String(NETEND), NULL, false);
         return;
     }
-    M_StartMessage(s_ENDGAME, M_EndGameResponse,
-                   true); // Ty 03/27/98 - externalized
+    M_StartMessage(DEH_String(ENDGAME), M_EndGameResponse, true);
 }
 
 /////////////////////////////
@@ -1813,11 +1798,11 @@ static void M_ChangeMessages(int choice)
 
     if (!show_messages)
     {
-        displaymsg("%s", s_MSGOFF); // Ty 03/27/98 - externalized
+        displaymsg(DEH_String(MSGOFF));
     }
     else
     {
-        displaymsg("%s", s_MSGON); // Ty 03/27/98 - externalized
+        displaymsg(DEH_String(MSGON));
     }
 }
 
@@ -2372,43 +2357,54 @@ void M_Init(void)
     // [crispy] remove DOS reference from the game quit confirmation dialogs
     {
         const char *platform = I_GetPlatform();
-        char *string;
+        const char *string;
         char *replace;
 
-        string = *endmsg[3];
-        replace = M_StringReplace(string, "dos", platform);
-        *endmsg[3] = replace;
+        // [crispy] "i wouldn't leave if i were you.\ndos is much worse."
+        string = strings_quit_messages[3];
+        if (!DEH_HasStringReplacement(string))
+        {
+            replace = M_StringReplace(string, "dos", platform);
+            DEH_AddStringReplacement(string, replace);
+            free(replace);
+        }
 
-        string = *endmsg[4];
-        replace = M_StringReplace(string, "dos", platform);
-        *endmsg[4] = replace;
+        // [crispy] "you're trying to say you like dos\nbetter than me, right?"
+        string = strings_quit_messages[4];
+        if (!DEH_HasStringReplacement(string))
+        {
+            replace = M_StringReplace(string, "dos", platform);
+            DEH_AddStringReplacement(string, replace);
+            free(replace);
+        }
 
-        string = *endmsg[9];
-        replace = M_StringReplace(string, "dos", platform);
-
+        // [crispy] "don't go now, there's a \ndimensional shambler waiting\nat the dos prompt!"
+        string = strings_quit_messages[9];
+        if (!DEH_HasStringReplacement(string))
+        {
+            char *replace2 = NULL;
+            replace = M_StringReplace(string, "dos", platform);
 #if defined(_WIN32)
-        string = M_StringReplace(replace, "prompt", "desktop");
+            replace2 = M_StringReplace(replace, "prompt", "desktop");
 #else
-        if (isatty(STDOUT_FILENO))
-        {
-            string = M_StringReplace(replace, "prompt", "shell");
-        }
-        else
-        {
-            string = M_StringReplace(replace, "prompt", "desktop");
-        }
+            replace2 = isatty(STDOUT_FILENO)
+                    ? M_StringReplace(replace, "prompt", "shell")
+                    : M_StringReplace(replace, "prompt", "desktop");
 #endif
-        free(replace);
-        *endmsg[9] = string;
-    }
+            DEH_AddStringReplacement(string, replace2);
+            free(replace2);
+            free(replace);
+        }
 
-    for (int i = 0; i < NUM_QUITMESSAGES; i++)
-    {
-        char *const msg = *endmsg[i];
-
-        if (strchr(msg, '\n') == NULL)
+        for (int i = 0; i < num_quit_mnemonics; i++)
         {
-            AddLineBreaks(*endmsg[i]);
+            replace = M_StringDuplicate(DEH_String(strings_quit_messages[i]));
+            if (strchr(replace, '\n') == NULL)
+            {
+                AddLineBreaks(replace);
+            }
+            DEH_AddStringReplacement(strings_quit_messages[i], replace);
+            free(replace);
         }
     }
 }
@@ -3642,7 +3638,7 @@ void M_Drawer(void)
 // Message Routines
 //
 
-static void M_StartMessage(char *string, void (*routine)(int), boolean input)
+static void M_StartMessage(const char *string, void (*routine)(int), boolean input)
 {
     messageLastMenuActive = menuactive;
     messageToPrint = 1;

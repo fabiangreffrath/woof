@@ -187,7 +187,10 @@ typedef enum
     //  using an internal color lookup table for re-indexing.
     // If 0x4 0x8 or 0xc,
     //  use a translation table for player colormaps
-    MF_TRANSLATION      = 0xc000000,
+    MF_TRANSLATION1     = 0x04000000,
+    MF_TRANSLATION2     = 0x08000000,
+    MF_TRANSLATION      = (MF_TRANSLATION1|MF_TRANSLATION2),
+
     // Hmm ???.
     MF_TRANSSHIFT       = 26,
 
