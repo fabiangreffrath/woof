@@ -113,7 +113,6 @@ void DEH_SetBannerGameDescription(void)
                 memmove(fp, fp + 1, strlen(fp));
             }
         }
-        I_Printf(VB_DEBUG, "Got banner: '%s'", deh_gamename);
         // Cut off trailing and leading spaces to get the basic name
         gamedescription = CleanString(deh_gamename);
     }
