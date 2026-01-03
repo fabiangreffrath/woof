@@ -97,9 +97,9 @@ void DEH_SetBannerGameDescription(void)
         char *deh_gamename = M_StringDuplicate(DEH_String(banner));
         char *fp = deh_gamename;
 
-        // Expand "%i" in deh_gamename to include the Doom version
-        // number We cannot use sprintf() here, because deh_gamename
-        // isn't a string literal
+        // Expand "%i" in deh_gamename to include the Doom version number.
+        // We cannot use sprintf() here, because deh_gamename isn't a string
+        // literal.
         fp = strstr(fp, "%i");
         if (fp)
         {
