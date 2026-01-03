@@ -447,7 +447,7 @@ static void DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
          column = (column_t *)((byte *)column + column->length + 4))
     {
         // calculate unclipped screen coordinates for post
-        int columntop = ytop + column->topdelta; 
+        int columntop = ytop + column->topdelta;
 
         if (columntop >= 0)
         {

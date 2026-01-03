@@ -1724,10 +1724,10 @@ static void DrawWidget(int x1, int y1, int *x2, int *y2, boolean dry,
     }
 }
 
-static void DrawListOfElem(int x1, int y1, sbarelem_t *elem, player_t *player);
+static void DrawListOfElem(int x1, int y1, sbarelem_t *elem);
 
 static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
-                     sbarelem_t *elem, player_t *player)
+                     sbarelem_t *elem)
 {
     if (!elem->enabled)
     {
@@ -1740,7 +1740,7 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
     switch (elem->type)
     {
         case sbe_list:
-            DrawListOfElem(x1, y1, elem, player);
+            DrawListOfElem(x1, y1, elem);
             return;
 
         case sbe_graphic:
@@ -1819,11 +1819,11 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
     sbarelem_t *child;
     array_foreach(child, elem->children)
     {
-        DrawElem(x1, y1, x2, y2, dry, child, player);
+        DrawElem(x1, y1, x2, y2, dry, child);
     }
 }
 
-static void DrawListOfElem(int x1, int y1, sbarelem_t *elem, player_t *player)
+static void DrawListOfElem(int x1, int y1, sbarelem_t *elem)
 {
     sbe_list_t *list = elem->subtype.list;
 
@@ -1833,7 +1833,7 @@ static void DrawListOfElem(int x1, int y1, sbarelem_t *elem, player_t *player)
     array_foreach_type(child, elem->children, sbarelem_t)
     {
         int width = 0, height = 0;
-        DrawElem(0, 0, &width, &height, true, child, player);
+        DrawElem(0, 0, &width, &height, true, child);
 
         if (list->horizontal && width)
         {
@@ -1862,7 +1862,7 @@ static void DrawListOfElem(int x1, int y1, sbarelem_t *elem, player_t *player)
     array_foreach_type(child, elem->children, sbarelem_t)
     {
         int width = 0, height = 0;
-        DrawElem(0, 0, &width, &height, true, child, player);
+        DrawElem(0, 0, &width, &height, true, child);
 
         int x1adj = x1, y1adj = y1;
         if (list->horizontal && elem->alignment & sbe_v_bottom)
@@ -1874,7 +1874,7 @@ static void DrawListOfElem(int x1, int y1, sbarelem_t *elem, player_t *player)
             x1adj = AdjustX(x1, width, elem->alignment);
         }
 
-        DrawElem(x1adj, y1adj, NULL, NULL, false, child, player);
+        DrawElem(x1adj, y1adj, NULL, NULL, false, child);
 
         if (list->horizontal && width)
         {
@@ -2028,7 +2028,7 @@ static void DrawStatusBar(void)
     int y1 = statusbar->fullscreenrender ? 0 : SCREENHEIGHT - statusbar->height;
     array_foreach(child, statusbar->children)
     {
-        DrawElem(0, y1, NULL, NULL, false, child, player);
+        DrawElem(0, y1, NULL, NULL, false, child);
     }
 
     DrawCenteredMessage();
