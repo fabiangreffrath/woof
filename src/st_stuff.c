@@ -1463,9 +1463,9 @@ static void DrawPatch(int x1, int y1, int *x2, int *y2, boolean dry,
         return;
     }
 
-    int width = crop.height ? crop.height : SHORT(patch->width);
+    int width = crop.width ? crop.width : SHORT(patch->width);
     int height;
-    if  (maxheight)
+    if (maxheight)
     {
         height = maxheight;
     }
@@ -1498,7 +1498,7 @@ static void DrawPatch(int x1, int y1, int *x2, int *y2, boolean dry,
         x1 += xoffset;
     }
 
-    y1 = AdjustY(y1, width, alignment);
+    y1 = AdjustY(y1, height, alignment);
 
     if (alignment & sbe_v_middle)
     {
