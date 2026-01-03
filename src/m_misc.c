@@ -376,7 +376,7 @@ static char *M_StringReplaceEx(const char *haystack, const char *needle,
 
     for (;;)
     {
-        p = strstr(p, needle);
+        p = strcasestr(p, needle);
         if (p == NULL)
         {
             break;
@@ -407,7 +407,7 @@ static char *M_StringReplaceEx(const char *haystack, const char *needle,
 
     while (*p != '\0')
     {
-        if (!strncmp(p, needle, needle_len) &&
+        if (!strncasecmp(p, needle, needle_len) &&
             (!whole_word ||
             ((p == haystack || is_boundary(p[-1])) &&
             is_boundary(p[needle_len]))))
