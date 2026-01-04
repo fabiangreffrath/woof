@@ -232,16 +232,18 @@ typedef enum
 // killough 9/15/98: Same, but internal flags, not intended for .deh
 // (some degree of opaqueness is good, to avoid compatibility woes)
 
-enum {
-  MIF_FALLING = 1,      // Object is falling
-  MIF_ARMED = 2,        // Object is armed (for MF_TOUCHY objects)
-  MIF_LINEDONE = 4,     // Object has activated W1 or S1 linedef via DEH frame
+typedef enum
+{
+  MIF_FALLING         = 0x00000001, // Object is falling
+  MIF_ARMED           = 0x00000002, // Object is armed (for MF_TOUCHY objects)
+  MIF_LINEDONE        = 0x00000004, // Object has activated W1 or S1 linedef via DEH frame
   // mbf21
-  MIF_SCROLLING = 8,    // Object is affected by scroller / pusher / puller
+  MIF_SCROLLING       = 0x00000008, // Object is affected by scroller / pusher / puller
   // cosmetic
-  MIF_FLIP = 16,
-  MIF_SPAWNED_BY_ICON = 32,
-};
+  MIF_FLIP            = 0x00000010,
+  MIF_SPAWNED_BY_ICON = 0x00000020,
+  MIF_RESURRECTED     = 0x00000040,
+} mobjflag_int_t;
 
 // Map Object definition.
 //
@@ -309,10 +311,10 @@ typedef struct mobj_s
     
     int                 tics;   // state tic counter
     state_t*            state;
-    int                 flags;
-    int                 flags2; // mbf21
-    int                 flags_extra; // Woof!
-    int                 intflags;  // killough 9/15/98: internal flags
+    mobjflag_t          flags;
+    mobjflag2_t         flags2; // mbf21
+    mobjflag_extra_t    flags_extra; // Woof!
+    mobjflag_int_t      intflags;  // killough 9/15/98: internal flags
     int                 health;
 
     // Action specials
