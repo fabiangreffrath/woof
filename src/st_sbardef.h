@@ -314,6 +314,8 @@ struct sbarelem_s
     sbarelem_t *children;
 
     boolean enabled;
+    int width;
+    int height;
 
     const byte *tranmap;
     crange_idx_e cr;

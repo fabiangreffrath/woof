@@ -1256,6 +1256,8 @@ static void UpdateString(sbarelem_t *elem)
     }
 }
 
+static void UpdateListOfElem(sbarelem_t *elem, player_t *player);
+
 static void UpdateElem(sbarelem_t *elem, player_t *player)
 {
     elem->enabled = CheckConditions(elem->conditions, player);
@@ -1266,6 +1268,10 @@ static void UpdateElem(sbarelem_t *elem, player_t *player)
 
     switch (elem->type)
     {
+        case sbe_list:
+            UpdateListOfElem(elem, player);
+            return;
+
         case sbe_face:
             UpdateFace(elem->subtype.face, player);
             break;
@@ -1820,6 +1826,19 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
     }
 }
 
+static void UpdateListOfElem(sbarelem_t *elem, player_t *player)
+{
+    array_foreach_type(child, elem->children, sbarelem_t)
+    {
+        UpdateElem(child, player);
+
+        int width = 0, height = 0;
+        DrawElem(0, 0, &width, &height, true, child); // Dry run
+        child->width = width;
+        child->height = height;
+    }
+}
+
 static void DrawListOfElem(int x1, int y1, sbarelem_t *elem)
 {
     sbe_list_t *list = elem->subtype.list;
@@ -1829,8 +1848,8 @@ static void DrawListOfElem(int x1, int y1, sbarelem_t *elem)
 
     array_foreach_type(child, elem->children, sbarelem_t)
     {
-        int width = 0, height = 0;
-        DrawElem(0, 0, &width, &height, true, child);
+        int width = child->width;
+        int height = child->height;
 
         if (list->horizontal && width)
         {
@@ -1858,10 +1877,11 @@ static void DrawListOfElem(int x1, int y1, sbarelem_t *elem)
 
     array_foreach_type(child, elem->children, sbarelem_t)
     {
-        int width = 0, height = 0;
-        DrawElem(0, 0, &width, &height, true, child);
+        int width = child->width;
+        int height = child->height;
+        int x1adj = x1;
+        int y1adj = y1;
 
-        int x1adj = x1, y1adj = y1;
         if (list->horizontal && elem->alignment & sbe_v_bottom)
         {
             y1adj = AdjustY(y1, height, elem->alignment);
@@ -2005,8 +2025,6 @@ static void DrawCenteredMessage(void)
 
 static void DrawStatusBar(void)
 {
-    player_t *player = &players[displayplayer];
-
     if (!statusbar->fullscreenrender)
     {
         st_height = CLAMP(statusbar->height, 0, SCREENHEIGHT) & ~1;
