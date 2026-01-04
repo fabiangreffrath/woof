@@ -32,6 +32,8 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
+#include "g_game.h"
+#include "g_umapinfo.h"
 #include "hu_command.h"
 #include "hu_obituary.h"
 #include "i_video.h"
@@ -62,7 +64,7 @@
 #include "w_wad.h"
 #include "z_zone.h"
 
-int st_height = 32;
+int st_height = 0, st_height_screenblocks10 = 0;
 
 //
 // STATUS BAR DATA
@@ -253,6 +255,11 @@ static sbarwidgettype_t GetWidgetType(const char *name)
         }
     }
     return sbw_none;
+}
+
+static int StatsPct(int count, int total)
+{
+    return total ? (count * 100 / total) : 100;
 }
 
 static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
@@ -571,9 +578,8 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
                 break;
 
             case sbc_widescreenequal:
-                result &=
-                    ((cond->param == 1 && video.unscaledw > SCREENWIDTH)
-                     || (cond->param == 0 && video.unscaledw == SCREENWIDTH));
+                result &= ((cond->param == 1 && st_wide_shift)
+                           || (cond->param == 0 && !st_wide_shift));
                 break;
 
             case sbc_episodeequal:
@@ -599,6 +605,78 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
                 if (cond->param_string)
                 {
                     result &= (!V_PatchIsEmpty(W_GetNumForName(cond->param_string)));
+                }
+                break;
+
+            case sbc_killsless:
+                result &= (player->killcount - player->maxkilldiscount < cond->param);
+                break;
+            case sbc_killsgreaterequal:
+                result &= (player->killcount - player->maxkilldiscount >= cond->param);
+                break;
+            case sbc_itemsless:
+                result &= (player->itemcount < cond->param);
+                break;
+            case sbc_itemsgreaterequal:
+                result &= (player->itemcount >= cond->param);
+                break;
+            case sbc_secretsless:
+                result &= (player->secretcount < cond->param);
+                break;
+            case sbc_secretsgreaterequal:
+                result &= (player->secretcount >= cond->param);
+                break;
+            case sbc_killslesspct:
+                result &= (StatsPct(player->killcount - player->maxkilldiscount,
+                                    max_kill_requirement)
+                           < cond->param);
+                break;
+            case sbc_killsgreaterequalpct:
+                result &= (StatsPct(player->killcount - player->maxkilldiscount,
+                                    max_kill_requirement)
+                           >= cond->param);
+                break;
+            case sbc_itemslesspct:
+                result &= (StatsPct(player->itemcount, totalitems) < cond->param);
+                break;
+            case sbc_itemsgreaterequalpct:
+                result &= (StatsPct(player->itemcount, totalitems) >= cond->param);
+                break;
+            case sbc_secretslesspct:
+                result &= (StatsPct(player->secretcount, totalsecret) < cond->param);
+                break;
+            case sbc_secretsgreaterequalpct:
+                result &= (StatsPct(player->secretcount, totalsecret) >= cond->param);
+                break;
+
+            case sbc_powerless:
+                if (cond->param2 >= 0 && cond->param2 < NUMPOWERS)
+                {
+                    result &=
+                        (player->powers[cond->param2] < cond->param * TICRATE);
+                }
+                break;
+            case sbc_powergreaterequal:
+                if (cond->param2 >= 0 && cond->param2 < NUMPOWERS)
+                {
+                    result &=
+                        (player->powers[cond->param2] >= cond->param * TICRATE);
+                }
+                break;
+            case sbc_powerlesspct:
+                if (cond->param2 >= 0 && cond->param2 < NUMPOWERS)
+                {
+                    result &= (player->powers[cond->param2] * 100
+                                   / P_GetPowerDuration(cond->param2)
+                               < cond->param);
+                }
+                break;
+            case sbc_powergreaterequalpct:
+                if (cond->param2 >= 0 && cond->param2 < NUMPOWERS)
+                {
+                    result &= (player->powers[cond->param2] * 100
+                                   / P_GetPowerDuration(cond->param2)
+                               >= cond->param);
                 }
                 break;
 
@@ -666,6 +744,42 @@ static int ResolveNumber(sbe_number_t *number, player_t *player)
             if (param >= 0 && param < NUMWEAPONS)
             {
                 result = player->maxammo[weaponinfo[param].ammo];
+            }
+            break;
+
+        case sbn_kills:
+            result = player->killcount - player->maxkilldiscount;
+            break;
+        case sbn_items:
+            result = player->itemcount;
+            break;
+        case sbn_secrets:
+            result = player->secretcount;
+            break;
+        case sbn_killspct:
+            result = StatsPct(player->killcount - player->maxkilldiscount,
+                              max_kill_requirement);
+            break;
+        case sbn_itemspct:
+            result = StatsPct(player->itemcount, totalitems);
+            break;
+        case sbn_secretspct:
+            result = StatsPct(player->secretcount, totalsecret);
+            break;
+        case sbn_totalkills:
+            result = max_kill_requirement;
+            break;
+        case sbn_totalitems:
+            result = totalitems;
+            break;
+        case sbn_totalsecrets:
+            result = totalsecret;
+            break;
+
+        case sbn_power:
+            if (param >= 0 && param < NUMPOWERS)
+            {
+                result = (param == pw_strength) ? 0 : player->powers[param] / TICRATE;
             }
             break;
 
@@ -952,7 +1066,7 @@ static void UpdateLines(sbarelem_t *elem)
     sbe_widget_t *widget = elem->subtype.widget;
     hudfont_t *font = widget->font;
 
-    widgetline_t *line;
+    stringline_t *line;
     array_foreach(line, widget->lines)
     {
         int totalwidth = 0;
@@ -1117,15 +1231,48 @@ static void UpdateBoomColors(sbarelem_t *elem, player_t *player)
     elem->crboom = cr;
 }
 
+static void UpdateString(sbarelem_t *elem)
+{
+    sbe_string_t *string = elem->subtype.string;
+
+    switch (string->type)
+    {
+        case sbstr_maptitle:
+            string->line.string = G_GetLevelTitle();
+            break;
+        case sbstr_label:
+            if (gamemapinfo && gamemapinfo->label)
+            {
+                string->line.string = gamemapinfo->label;
+            }
+            break;
+        case sbstr_author:
+            if (gamemapinfo && gamemapinfo->author)
+            {
+                string->line.string = gamemapinfo->author;
+            }
+            break;
+        default:
+            break;
+    }
+}
+
+static void UpdateListOfElem(sbarelem_t *elem, player_t *player);
+
 static void UpdateElem(sbarelem_t *elem, player_t *player)
 {
-    if (!CheckConditions(elem->conditions, player))
+    elem->enabled = CheckConditions(elem->conditions, player);
+    if (!elem->enabled)
     {
         return;
     }
 
     switch (elem->type)
     {
+        case sbe_list:
+            UpdateListOfElem(elem, player);
+            return;
+
         case sbe_face:
             UpdateFace(elem->subtype.face, player);
             break;
@@ -1152,6 +1299,10 @@ static void UpdateElem(sbarelem_t *elem, player_t *player)
             }
             break;
 
+        case sbe_string:
+            UpdateString(elem);
+            break;
+
         default:
             break;
     }
@@ -1174,7 +1325,7 @@ static void UpdateStatusBar(player_t *player)
         barindex = array_size(sbardef->statusbars) - 1;
     }
 
-    if (automapactive && automapoverlay == AM_OVERLAY_OFF)
+    if (automap_on)
     {
         barindex = 0;
     }
@@ -1237,6 +1388,16 @@ static void ResetElem(sbarelem_t *elem, player_t *player)
             elem->subtype.widget->duration_left = 0;
             break;
 
+        case sbe_string:
+            {
+                sbe_string_t *string = elem->subtype.string;
+                if (!string->line.string)
+                {
+                    string->line.string = "";
+                }
+            }
+            break;
+
         default:
             break;
     }
@@ -1265,70 +1426,110 @@ static void ResetStatusBar(void)
     ST_ResetTitle();
 }
 
-static void DrawPatch(int x, int y, crop_t crop, int maxheight,
-                      sbaralignment_t alignment, patch_t *patch,
-                      crange_idx_e cr, const byte *tl)
+static int AdjustX(int x, int width, sbaralignment_t alignment)
 {
-    if (!patch)
-    {
-        return;
-    }
-
-    int width = SHORT(patch->width);
-    int height = maxheight ? maxheight : SHORT(patch->height);
-
-    int xoffset = 0;
-    if (!(alignment & sbe_ignore_yoffset))
-    {
-        xoffset = SHORT(patch->leftoffset);
-    }
-    int yoffset = 0;
-    if (!(alignment & sbe_ignore_yoffset))
-    {
-        yoffset = SHORT(patch->topoffset);
-    }
-
     if (alignment & sbe_h_middle)
     {
-        x = x - width / 2 + xoffset;
-        if (crop.center)
-        {
-            x += width / 2 + crop.left;
-        }
+        x = x - width / 2;
     }
     else if (alignment & sbe_h_right)
     {
         x -= width;
     }
 
+    if (alignment & sbe_wide_left)
+    {
+        x -= st_wide_shift;
+    }
+    else if (alignment & sbe_wide_right)
+    {
+        x += st_wide_shift;
+    }
+    return x;
+}
+
+static int AdjustY(int y, int height, sbaralignment_t alignment)
+{
     if (alignment & sbe_v_middle)
     {
-        y = y - height / 2 + yoffset;
-        if (crop.center)
-        {
-            y += height / 2 + crop.left;
-        }
+        y = y - height / 2;
     }
     else if (alignment & sbe_v_bottom)
     {
         y -= height;
     }
+    return y;
+}
 
-    if (alignment & sbe_wide_left)
+static void DrawPatch(int x1, int y1, int *x2, int *y2, boolean dry,
+                      crop_t crop, int maxheight, sbaralignment_t alignment,
+                      patch_t *patch, crange_idx_e cr, const byte *tl)
+{
+    if (!patch)
     {
-        x -= st_wide_shift;
+        return;
     }
-    if (alignment & sbe_wide_right)
+
+    int width = crop.width ? crop.width : SHORT(patch->width);
+    int height;
+    if (maxheight)
     {
-        x += st_wide_shift;
+        height = maxheight;
+    }
+    else if (crop.height)
+    {
+        height = crop.height;
+    }
+    else
+    {
+        height = SHORT(patch->height);
+    }
+
+    int xoffset = 0, yoffset = 0;
+    if (!(alignment & sbe_ignore_xoffset))
+    {
+        xoffset = SHORT(patch->leftoffset);
+    }
+    if (!(alignment & sbe_ignore_yoffset))
+    {
+        yoffset = SHORT(patch->topoffset);
+    }
+
+    x1 = AdjustX(x1, width, alignment);
+
+    if (alignment & sbe_h_middle)
+    {
+        x1 += xoffset;
+    }
+
+    y1 = AdjustY(y1, height, alignment);
+
+    if (alignment & sbe_v_middle)
+    {
+        y1 += yoffset;
+    }
+
+    if (x2)
+    {
+        *x2 = MAX(*x2, x1 + width);
+    }
+    if (y2)
+    {
+        *y2 = MAX(*y2, y1 + height);
+    }
+
+    if (dry)
+    {
+        return;
     }
 
     byte *outr = colrngs[cr];
 
-    V_DrawPatchGeneral(x, y, xoffset, yoffset, tl, outr, patch, crop);
+    V_DrawPatchGeneral(x1, y1, xoffset, yoffset, tl, outr, patch, crop);
 }
 
-static void DrawGlyphNumber(int x, int y, sbarelem_t *elem, patch_t *glyph)
+static void DrawGlyphNumber(int x1, int y1, int *x2, int *y2, boolean dry,
+                            sbarelem_t *elem, patch_t *glyph)
 {
     sbe_number_t *number = elem->subtype.number;
     numberfont_t *font = number->font;
@@ -1357,8 +1558,8 @@ static void DrawGlyphNumber(int x, int y, sbarelem_t *elem, patch_t *glyph)
 
     if (glyph)
     {
-        DrawPatch(x + number->xoffset, y, zero_crop, font->maxheight,
-                  elem->alignment, glyph,
+        DrawPatch(x1 + number->xoffset, y1, x2, y2, dry, zero_crop,
+                  font->maxheight, elem->alignment, glyph,
                   elem->crboom == CR_NONE ? elem->cr : elem->crboom,
                   elem->tranmap);
     }
@@ -1377,12 +1578,10 @@ static void DrawGlyphNumber(int x, int y, sbarelem_t *elem, patch_t *glyph)
     }
 }
 
-static void DrawGlyphLine(int x, int y, sbarelem_t *elem, widgetline_t *line,
+static void DrawGlyphLine(int x1, int y1, int *x2, int *y2, boolean dry,
+                          sbarelem_t *elem, hudfont_t *font, stringline_t *line,
                           patch_t *glyph)
 {
-    sbe_widget_t *widget = elem->subtype.widget;
-    hudfont_t *font = widget->font;
-
     int width, widthdiff;
 
     if (font->type == sbf_proportional)
@@ -1407,8 +1606,9 @@ static void DrawGlyphLine(int x, int y, sbarelem_t *elem, widgetline_t *line,
 
     if (glyph)
     {
-        DrawPatch(x + line->xoffset, y, zero_crop, font->maxheight,
-                  elem->alignment, glyph, elem->cr, elem->tranmap);
+        DrawPatch(x1 + line->xoffset, y1, x2, y2, dry, zero_crop,
+                  font->maxheight, elem->alignment, glyph, elem->cr,
+                  elem->tranmap);
     }
 
     if (elem->alignment & sbe_h_middle)
@@ -1425,7 +1625,8 @@ static void DrawGlyphLine(int x, int y, sbarelem_t *elem, widgetline_t *line,
     }
 }
 
-static void DrawNumber(int x, int y, sbarelem_t *elem)
+static void DrawNumber(int x1, int y1, int *x2, int *y2, boolean dry,
+                       sbarelem_t *elem)
 {
     sbe_number_t *number = elem->subtype.number;
 
@@ -1435,7 +1636,7 @@ static void DrawNumber(int x, int y, sbarelem_t *elem)
 
     if (value < 0 && font->minus != NULL)
     {
-        DrawGlyphNumber(x, y, elem, font->minus);
+        DrawGlyphNumber(x1, y1, x2, y2, dry, elem, font->minus);
         value = -value;
     }
 
@@ -1444,7 +1645,7 @@ static void DrawNumber(int x, int y, sbarelem_t *elem)
     {
         int glyphbase = (int)pow(10.0, --glyphindex);
         int workingnum = value / glyphbase;
-        DrawGlyphNumber(x, y, elem, font->numbers[workingnum]);
+        DrawGlyphNumber(x1, y1, x2, y2, dry, elem, font->numbers[workingnum]);
         value -= (workingnum * glyphbase);
     }
 
@@ -1455,88 +1656,101 @@ static void DrawNumber(int x, int y, sbarelem_t *elem)
         {
             elem->crboom = CR_GRAY;
         }
-        DrawGlyphNumber(x, y, elem, font->percent);
+        DrawGlyphNumber(x1, y1, x2, y2, dry, elem, font->percent);
         elem->crboom = oldcr;
     }
 
     number->xoffset = base_xoffset;
 }
 
-static void DrawLines(int x, int y, sbarelem_t *elem)
+static void DrawStringLine(int x1, int y1, int *x2, int *y2, boolean dry,
+                           stringline_t *line, sbarelem_t *elem,
+                           hudfont_t *font)
 {
-    sbe_widget_t *widget = elem->subtype.widget;
+    int base_xoffset = line->xoffset;
 
     int cr = elem->cr;
 
-    widgetline_t *line;
-    array_foreach(line, widget->lines)
+    const char *str = line->string;
+    while (*str)
     {
-        int base_xoffset = line->xoffset;
-        hudfont_t *font = widget->font;
+        int ch = *str++;
 
-        const char *str = line->string;
-        while (*str)
+        if (ch == '\x1b' && *str)
         {
-            int ch = *str++;
-
-            if (ch == '\x1b' && *str)
+            ch = *str++;
+            if (ch >= '0' && ch <= '0' + CR_NONE)
             {
-                ch = *str++;
-                if (ch >= '0' && ch <= '0' + CR_NONE)
-                {
-                    elem->cr = ch - '0';
-                }
-                else if (ch == '0' + CR_ORIG)
-                {
-                    elem->cr = cr;
-                }
-                continue;
+                elem->cr = ch - '0';
             }
-
-            ch = M_ToUpper(ch) - HU_FONTSTART;
-
-            patch_t *glyph;
-            if (ch < 0 || ch >= HU_FONTSIZE)
+            else if (ch == '0' + CR_ORIG)
             {
-                glyph = NULL;
+                elem->cr = cr;
             }
-            else
-            {
-                glyph = font->characters[ch];
-            }
-            DrawGlyphLine(x, y, elem, line, glyph);
+            continue;
         }
 
-        if (elem->alignment & sbe_v_bottom)
+        ch = M_ToUpper(ch) - HU_FONTSTART;
+
+        patch_t *glyph;
+        if (ch < 0 || ch >= HU_FONTSIZE)
         {
-            y -= font->maxheight;
+            glyph = NULL;
         }
         else
         {
-            y += font->maxheight;
+            glyph = font->characters[ch];
         }
+        DrawGlyphLine(x1, y1, x2, y2, dry, elem, font, line, glyph);
+    }
 
-        line->xoffset = base_xoffset;
+    line->xoffset = base_xoffset;
+}
+
+static void DrawWidget(int x1, int y1, int *x2, int *y2, boolean dry,
+                       sbarelem_t *elem)
+{
+    sbe_widget_t *widget = elem->subtype.widget;
+    hudfont_t *font = widget->font;
+
+    stringline_t *line;
+    array_foreach(line, widget->lines)
+    {
+        DrawStringLine(x1, y1, x2, y2, dry, line, elem, font);
+        if (elem->alignment & sbe_v_bottom)
+        {
+            y1 -= font->maxheight;
+        }
+        else
+        {
+            y1 += font->maxheight;
+        }
     }
 }
 
-static void DrawElem(int x, int y, int y0, sbarelem_t *elem, player_t *player)
+static void DrawListOfElem(int x1, int y1, sbarelem_t *elem);
+
+static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
+                     sbarelem_t *elem)
 {
-    if (!CheckConditions(elem->conditions, player))
+    if (!elem->enabled)
     {
         return;
     }
 
-    x += elem->x_pos;
-    y += elem->y_pos;
-    y0 += elem->y_pos;
+    x1 += elem->x_pos;
+    y1 += elem->y_pos;
 
     switch (elem->type)
     {
+        case sbe_list:
+            DrawListOfElem(x1, y1, elem);
+            return;
+
         case sbe_graphic:
             {
                 sbe_graphic_t *graphic = elem->subtype.graphic;
-                DrawPatch(x, y, graphic->crop, 0, elem->alignment,
+                DrawPatch(x1, y1, x2, y2, dry, graphic->crop, 0, elem->alignment,
                           graphic->patch, elem->cr, elem->tranmap);
             }
             break;
@@ -1544,16 +1758,16 @@ static void DrawElem(int x, int y, int y0, sbarelem_t *elem, player_t *player)
         case sbe_facebackground:
             {
                 sbe_facebackground_t *facebackground = elem->subtype.facebackground;
-                DrawPatch(x, y, facebackground->crop, 0, elem->alignment,
-                          facebackpatches[displayplayer], elem->cr,
-                          elem->tranmap);
+                DrawPatch(x1, y1, x2, y2, dry, facebackground->crop, 0,
+                          elem->alignment, facebackpatches[displayplayer],
+                          elem->cr, elem->tranmap);
             }
             break;
 
         case sbe_face:
             {
                 sbe_face_t *face = elem->subtype.face;
-                DrawPatch(x, y, face->crop, 0, elem->alignment,
+                DrawPatch(x1, y1, x2, y2, dry, face->crop, 0, elem->alignment,
                           facepatches[face->faceindex], elem->cr,
                           elem->tranmap);
             }
@@ -1564,33 +1778,41 @@ static void DrawElem(int x, int y, int y0, sbarelem_t *elem, player_t *player)
                 sbe_animation_t *animation = elem->subtype.animation;
                 patch_t *patch =
                     animation->frames[animation->frame_index].patch;
-                DrawPatch(x, y, zero_crop, 0, elem->alignment, patch,
-                          elem->cr, elem->tranmap);
+                DrawPatch(x1, y1, x2, y2, dry, zero_crop, 0, elem->alignment,
+                          patch, elem->cr, elem->tranmap);
             }
             break;
 
         case sbe_number:
         case sbe_percent:
-            DrawNumber(x, y, elem);
+            DrawNumber(x1, y1, x2, y2, dry, elem);
             break;
 
         case sbe_widget:
             if (elem == st_cmd_elem)
             {
-                st_cmd_x = x;
-                st_cmd_y = y0;
+                st_cmd_x = x1;
+                st_cmd_y = y1;
             }
             if (message_centered && elem == st_msg_elem)
             {
                 break;
             }
-            DrawLines(x, y0, elem);
+            DrawWidget(x1, y1, x2, y2, dry, elem);
             break;
 
         case sbe_carousel:
             if (weapon_carousel)
             {
-                ST_DrawCarousel(x, y0, elem);
+                ST_DrawCarousel(x1, y1, elem);
+            }
+            break;
+
+        case sbe_string:
+            {
+                sbe_string_t *string = elem->subtype.string;
+                DrawStringLine(x1, y1, x2, y2, dry, &string->line, elem,
+                               string->font);
             }
             break;
 
@@ -1601,7 +1823,85 @@ static void DrawElem(int x, int y, int y0, sbarelem_t *elem, player_t *player)
     sbarelem_t *child;
     array_foreach(child, elem->children)
     {
-        DrawElem(x, y, y0, child, player);
+        DrawElem(x1, y1, x2, y2, dry, child);
+    }
+}
+
+static void UpdateListOfElem(sbarelem_t *elem, player_t *player)
+{
+    array_foreach_type(child, elem->children, sbarelem_t)
+    {
+        UpdateElem(child, player);
+
+        int width = 0, height = 0;
+        DrawElem(0, 0, &width, &height, true, child); // Dry run
+        child->width = width;
+        child->height = height;
+    }
+}
+
+static void DrawListOfElem(int x1, int y1, sbarelem_t *elem)
+{
+    sbe_list_t *list = elem->subtype.list;
+
+    int listwidth = 0, listheight = 0;
+    int maxitemheight = 0, maxitemwidth = 0;
+
+    array_foreach_type(child, elem->children, sbarelem_t)
+    {
+        int width = child->width;
+        int height = child->height;
+
+        if (list->horizontal && width)
+        {
+            listwidth += width;
+        }
+        else if (height)
+        {
+            listheight += height;
+        }
+        maxitemwidth = MAX(maxitemwidth, width);
+        maxitemheight = MAX(maxitemheight, height);
+    }
+
+    x1 = AdjustX(x1, listwidth, elem->alignment);
+    y1 = AdjustY(y1, listheight, elem->alignment);
+
+    if (list->horizontal && elem->alignment & sbe_v_middle)
+    {
+        y1 -= (maxitemheight / 2);    
+    }
+    else if (elem->alignment & sbe_h_middle)
+    {
+        x1 -= (maxitemwidth / 2);
+    }
+
+    array_foreach_type(child, elem->children, sbarelem_t)
+    {
+        int width = child->width;
+        int height = child->height;
+        int x1adj = x1;
+        int y1adj = y1;
+
+        if (list->horizontal && elem->alignment & sbe_v_bottom)
+        {
+            y1adj = AdjustY(y1, height, elem->alignment);
+        }
+        else if (!list->horizontal && elem->alignment & sbe_h_right)
+        {
+            x1adj = AdjustX(x1, width, elem->alignment);
+        }
+
+        DrawElem(x1adj, y1adj, NULL, NULL, false, child);
+
+        if (list->horizontal && width)
+        {
+            x1 += (width + list->spacing);
+        }
+        else if (height)
+        {
+            y1 += (height + list->spacing);
+        }
     }
 }
 
@@ -1665,6 +1965,18 @@ static void DrawBackground(const char *name)
 {
     if (st_refresh_background)
     {
+        static int old_st_height;
+
+        if (old_st_height < st_height)
+        {
+            old_st_height = st_height;
+            if (st_backing_screen)
+            {
+                Z_Free(st_backing_screen);
+            }
+            ST_InitRes();
+        }
+
         V_UseBuffer(st_backing_screen);
 
         if (st_solidbackground && st_height > 3)
@@ -1683,8 +1995,9 @@ static void DrawBackground(const char *name)
 
             V_TileBlock64(ST_Y, video.unscaledw, st_height, flat);
 
-            if ((!statusbar->fullscreenrender && screenblocks >= 10)
-                || (automapactive && automapoverlay == AM_OVERLAY_OFF))
+            if (screenblocks == 10
+                || (!statusbar->fullscreenrender && screenblocks > 10)
+                || automap_on)
             {
                 patch_t *patch = V_CachePatchName("brdr_b", PU_CACHE);
                 crop_t crop = {.width = SHORT(patch->width), .height = st_height};
@@ -1707,29 +2020,31 @@ static void DrawCenteredMessage(void)
 {
     if (message_centered && st_msg_elem)
     {
-        DrawLines(SCREENWIDTH / 2, 0, st_msg_elem);
+        DrawWidget(SCREENWIDTH / 2, 0, NULL, NULL, false, st_msg_elem);
     }
 }
 
 static void DrawStatusBar(void)
 {
-    player_t *player = &players[displayplayer];
-
-    if (!statusbar->fullscreenrender
-        || (automapactive && automapoverlay == AM_OVERLAY_OFF))
+    if (!statusbar->fullscreenrender)
     {
         st_height = CLAMP(statusbar->height, 0, SCREENHEIGHT) & ~1;
+    }
+    else
+    {
+        st_height = 0;
+    }
 
-        if (st_height)
-        {
-            DrawBackground(statusbar->fillflat);
-        }
+    if (st_height && (screenblocks <= 10 || automap_on))
+    {
+        DrawBackground(statusbar->fillflat);
     }
 
     sbarelem_t *child;
+    int y1 = statusbar->fullscreenrender ? 0 : SCREENHEIGHT - statusbar->height;
     array_foreach(child, statusbar->children)
     {
-        DrawElem(0, SCREENHEIGHT - statusbar->height, 0, child, player);
+        DrawElem(0, y1, NULL, NULL, false, child);
     }
 
     DrawCenteredMessage();
@@ -1925,7 +2240,8 @@ void ST_Init(void)
         statusbar_t *sb = &sbardef->statusbars[0];
         if (!sb->fullscreenrender)
         {
-            st_height = CLAMP(sb->height, 0, SCREENHEIGHT) & ~1;
+            st_height_screenblocks10 = CLAMP(sb->height, 0, SCREENHEIGHT) & ~1;
+            st_height = st_height_screenblocks10;
         }
     }
 
@@ -1940,6 +2256,10 @@ void ST_Init(void)
 
 void ST_InitRes(void)
 {
+    if (!st_height)
+    {
+        return;
+    }
     // killough 11/98: allocate enough for hires
     st_backing_screen =
         Z_Malloc(video.width * V_ScaleY(st_height) * sizeof(*st_backing_screen),
@@ -1998,12 +2318,12 @@ void WI_DrawWidgets(void)
         sbarelem_t time = *st_time_elem;
         time.alignment = sbe_wide_left;
         // leveltime is already added to totalleveltimes before WI_Start()
-        DrawLines(0, 0, &time);
+        DrawWidget(0, 0, NULL, NULL, false, &time);
     }
 
     if (st_cmd_elem && STRICTMODE(hud_command_history))
     {
-        DrawLines(st_cmd_x, st_cmd_y, st_cmd_elem);
+        DrawWidget(st_cmd_x, st_cmd_y, NULL, NULL, false, st_cmd_elem);
     }
 }
 

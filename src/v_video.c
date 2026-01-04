@@ -457,21 +457,22 @@ static void DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
         else
         {
             patchcol->frac = (-columntop) << FRACBITS;
-            patchcol->y1 = patchcol->topoffset;
+            patchcol->y1 = 0;
         }
 
-        if (columntop + column->length - 1 < 0)
+        int columnbottom = columntop + column->length - 1;
+        if (patchcol->height)
+        {
+            columnbottom = MIN(columnbottom, ytop + patchcol->height - 1);
+        }
+
+        if (columnbottom < 0)
         {
             continue;
         }
-        if (columntop + column->length - 1 < SCREENHEIGHT)
+        if (columnbottom < SCREENHEIGHT)
         {
-            int y2 = columntop + column->length - 1;
-            if (patchcol->height)
-            {
-                y2 = MIN(y2, ytop + patchcol->height - 1);
-            }
-            patchcol->y2 = y2lookup[y2];
+            patchcol->y2 = y2lookup[columnbottom];
         }
         else
         {
@@ -480,8 +481,11 @@ static void DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
 
         // SoM: The failsafes should be completely redundant now...
         // haleyjd 05/13/08: fix clipping; y2lookup not clamped properly
-        if ((column->length > 0 && patchcol->y2 < patchcol->y1)
-            || patchcol->y2 >= video.height)
+        if (column->length > 0 && patchcol->y2 < patchcol->y1)
+        {
+            continue;
+        }
+        if (patchcol->y2 >= video.height)
         {
             patchcol->y2 = video.height - 1;
         }
@@ -653,10 +657,10 @@ void V_DrawPatchCastCall(patch_t *patch, const byte *tranmap, const byte *xlat, 
     DrawPatchInternal(160, 170, SHORT(patch->leftoffset), SHORT(patch->topoffset), tranmap, xlat, NULL, zero_crop, patch, flip);
 }
 
-// To not clutter up the stbar drawer
+// Ignore patch offsets
 void V_DrawPatchCropped(int x, int y, patch_t *patch, crop_t crop)
 {
-    DrawPatchInternal(x, 0, SHORT(patch->leftoffset), SHORT(patch->topoffset), NULL, NULL, NULL, crop, patch, false);
+    DrawPatchInternal(x, y, 0, 0, NULL, NULL, NULL, crop, patch, false);
 }
 
 // Uses almost everything
