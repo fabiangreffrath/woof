@@ -1436,7 +1436,11 @@ static int AdjustX(int x, int width, sbaralignment_t alignment)
     {
         x -= width;
     }
+    return x;
+}
 
+static int WideShiftX(int x, sbaralignment_t alignment)
+{
     if (alignment & sbe_wide_left)
     {
         x -= st_wide_shift;
@@ -1496,14 +1500,13 @@ static void DrawPatch(int x1, int y1, int *x2, int *y2, boolean dry,
     }
 
     x1 = AdjustX(x1, width, alignment);
-
     if (alignment & sbe_h_middle)
     {
         x1 += xoffset;
     }
+    x1 = WideShiftX(x1, alignment);
 
     y1 = AdjustY(y1, height, alignment);
-
     if (alignment & sbe_v_middle)
     {
         y1 += yoffset;
@@ -1865,6 +1868,7 @@ static void DrawListOfElem(int x1, int y1, sbarelem_t *elem)
     }
 
     x1 = AdjustX(x1, listwidth, elem->alignment);
+    x1 = WideShiftX(x1, elem->alignment);
     y1 = AdjustY(y1, listheight, elem->alignment);
 
     if (list->horizontal && elem->alignment & sbe_v_middle)
