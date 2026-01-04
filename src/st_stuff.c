@@ -1503,6 +1503,10 @@ static void DrawPatch(int x1, int y1, int *x2, int *y2, boolean dry,
     if (alignment & sbe_h_middle)
     {
         x1 += xoffset;
+        if (crop.center)
+        {
+            x1 += width / 2 + crop.left;
+        }
     }
     x1 = WideShiftX(x1, alignment);
 
