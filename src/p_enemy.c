@@ -1760,6 +1760,7 @@ static boolean P_HealCorpse(mobj_t* actor, int radius, statenum_t healstate, sfx
 		  // friendliness is transferred from AV to raised corpse
 		  corpsehit->flags = 
 		    (info->flags & ~MF_FRIEND) | (actor->flags & MF_FRIEND);
+		  corpsehit->intflags |= MIF_RESURRECTED;
 
 		  WatchResurrection(corpsehit, actor);
 
@@ -2715,6 +2716,7 @@ void A_SpawnFly(mobj_t *mo)
 
   // killough 7/18/98: brain friendliness is transferred
   newmobj->flags = (newmobj->flags & ~MF_FRIEND) | (mo->flags & MF_FRIEND);
+  newmobj->intflags |= MIF_RESURRECTED;
 
   WatchIconSpawn(newmobj);
 
