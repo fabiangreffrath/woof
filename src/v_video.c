@@ -663,7 +663,7 @@ void V_DrawPatchCastCall(patch_t *patch, const byte *tranmap, const byte *xlat, 
     DrawPatchInternal(160, 170, SHORT(patch->leftoffset), SHORT(patch->topoffset), tranmap, xlat, NULL, zero_crop, patch, flip);
 }
 
-// To not clutter up the stbar drawer
+// Ignore patch offsets
 void V_DrawPatchCropped(int x, int y, patch_t *patch, crop_t crop)
 {
     DrawPatchInternal(x, y, 0, 0, NULL, NULL, NULL, crop, patch, false);

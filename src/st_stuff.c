@@ -1479,16 +1479,13 @@ static void DrawPatch(int x1, int y1, int *x2, int *y2, boolean dry,
     }
 
     int xoffset = 0, yoffset = 0;
-    if (!memcmp(&crop, &zero_crop, sizeof(crop_t)))
+    if (!(alignment & sbe_ignore_xoffset))
     {
-        if (!(alignment & sbe_ignore_xoffset))
-        {
-            xoffset = SHORT(patch->leftoffset);
-        }
-        if (!(alignment & sbe_ignore_yoffset))
-        {
-            yoffset = SHORT(patch->topoffset);
-        }
+        xoffset = SHORT(patch->leftoffset);
+    }
+    if (!(alignment & sbe_ignore_yoffset))
+    {
+        yoffset = SHORT(patch->topoffset);
     }
 
     x1 = AdjustX(x1, width, alignment);
