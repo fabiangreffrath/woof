@@ -1735,7 +1735,8 @@ static void DrawWidget(int x1, int y1, int *x2, int *y2, boolean dry,
     }
 }
 
-static void DrawListOfElem(int x1, int y1, sbarelem_t *elem);
+static void DrawListOfElem(int x1, int y1, int *x2, int *y2, boolean dry,
+                           sbarelem_t *elem);
 
 static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
                      sbarelem_t *elem)
@@ -1751,7 +1752,7 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
     switch (elem->type)
     {
         case sbe_list:
-            DrawListOfElem(x1, y1, elem);
+            DrawListOfElem(x1, y1, x2, y2, dry, elem);
             return;
 
         case sbe_graphic:
@@ -1847,68 +1848,66 @@ static void UpdateListOfElem(sbarelem_t *elem, player_t *player)
     }
 }
 
-static void DrawListOfElem(int x1, int y1, sbarelem_t *elem)
+static void DrawListOfElem(int x1, int y1, int *x2, int *y2, boolean dry,
+                           sbarelem_t *elem)
 {
     sbe_list_t *list = elem->subtype.list;
 
     int listwidth = 0, listheight = 0;
-    int maxitemheight = 0, maxitemwidth = 0;
 
     array_foreach_type(child, elem->children, sbarelem_t)
     {
-        int width = child->width;
-        int height = child->height;
+        if (dry)
+        {
+            int width = 0, height = 0;
+            DrawElem(0, 0, &width, &height, true, child);
+            child->width = width;
+            child->height = height;
+        }
 
-        if (list->horizontal && width)
+        if (list->horizontal && child->width)
         {
-            listwidth += width;
+            listwidth += (child->width + list->spacing);
         }
-        else if (height)
+        else if (child->height)
         {
-            listheight += height;
+            listheight += (child->height + list->spacing);
         }
-        maxitemwidth = MAX(maxitemwidth, width);
-        maxitemheight = MAX(maxitemheight, height);
     }
 
-    x1 = AdjustX(x1, listwidth, elem->alignment);
+    if (list->horizontal)
+    {
+        x1 = AdjustX(x1, listwidth, elem->alignment);
+    }
+    else
+    {
+        y1 = AdjustY(y1, listheight, elem->alignment);
+    }
+
     x1 = WideShiftX(x1, elem->alignment);
-    y1 = AdjustY(y1, listheight, elem->alignment);
-
-    if (list->horizontal && elem->alignment & sbe_v_middle)
-    {
-        y1 -= (maxitemheight / 2);    
-    }
-    else if (elem->alignment & sbe_h_middle)
-    {
-        x1 -= (maxitemwidth / 2);
-    }
 
     array_foreach_type(child, elem->children, sbarelem_t)
     {
-        int width = child->width;
-        int height = child->height;
-        int x1adj = x1;
-        int y1adj = y1;
+        int x1adj = x1, y1adj = y1;
 
-        if (list->horizontal && elem->alignment & sbe_v_bottom)
+        if (list->horizontal)
         {
-            y1adj = AdjustY(y1, height, elem->alignment);
+            y1adj = AdjustY(y1, child->height, elem->alignment);
         }
-        else if (!list->horizontal && elem->alignment & sbe_h_right)
+        else
         {
-            x1adj = AdjustX(x1, width, elem->alignment);
+            x1adj = AdjustX(x1, child->width, elem->alignment);
         }
 
-        DrawElem(x1adj, y1adj, NULL, NULL, false, child);
+        DrawElem(x1adj, y1adj, x2, y2, dry, child);
 
-        if (list->horizontal && width)
+        if (list->horizontal && child->width)
         {
-            x1 += (width + list->spacing);
+            x1 += (child->width + list->spacing);
         }
-        else if (height)
+        else if (child->height)
         {
-            y1 += (height + list->spacing);
+            y1 += (child->height + list->spacing);
         }
     }
 }
