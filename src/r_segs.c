@@ -840,7 +840,7 @@ void R_StoreWallRange(const int start, const int stop)
   if (segtextured)
     {
       // [FG] fix long wall wobble
-      rw_offset = (fixed_t)(((dx * dx1 + dy * dy1) / len) << 1);
+      rw_offset = (fixed_t)(((dx * dx1 + dy * dy1) / len) * 2);
       rw_offset += sidedef->interptextureoffset + curline->offset;
 
       rw_centerangle = ANG90 + viewangle - rw_normalangle;

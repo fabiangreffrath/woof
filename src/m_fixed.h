@@ -24,8 +24,6 @@
 #include <stdint.h> // int64_t
 #include <stdlib.h> // abs()
 
-#include "config.h"
-
 //
 // Fixed point, 32bit as 16.16.
 //
@@ -36,10 +34,35 @@ typedef int fixed_t;
 #define FRACUNIT (1 << FRACBITS)
 #define FRACMASK (FRACUNIT - 1)
 
-#define IntToFixed(x) ((x) << FRACBITS)
-#define FixedToInt(x) ((x) >> FRACBITS)
-#define DoubleToFixed(x) (fixed_t)((x) * FRACUNIT)
-#define FixedToDouble(x) ((x) / (double)FRACUNIT)
+inline static int32_t shiftleft32(int32_t x, int shift)
+{
+    return (int32_t)((uint32_t)x << shift);
+}
+
+inline static int64_t shiftleft64(int64_t x, int shift)
+{
+    return (int64_t)((uint64_t)x << shift);
+}
+
+inline static fixed_t IntToFixed(int32_t x)
+{
+    return shiftleft32(x, FRACBITS);
+}
+
+inline static int32_t FixedToInt(fixed_t x)
+{
+    return x >> FRACBITS;
+}
+
+inline static fixed_t DoubleToFixed(double x)
+{
+    return (fixed_t)(x * FRACUNIT);
+}
+
+inline static double FixedToDouble(fixed_t x)
+{
+    return (double)x / FRACUNIT;
+}
 
 //
 // Fixed Point Multiplication
@@ -59,11 +82,14 @@ inline static int64_t FixedMul64(int64_t a, int64_t b)
 // Fixed Point Division
 //
 
-#if defined(HAVE__DIV64)
-  #define div64_32(a, b) _div64((a), (b), NULL)
+inline static int32_t div64_32(int64_t a, int32_t b)
+{
+#if defined(_MSC_VER)
+    return _div64(a, b, NULL);
 #else
-  #define div64_32(a, b) (fixed_t)((a) / (b))
+    return (int32_t)(a / b);
 #endif
+}
 
 inline static fixed_t FixedDiv(fixed_t a, fixed_t b)
 {
@@ -74,7 +100,7 @@ inline static fixed_t FixedDiv(fixed_t a, fixed_t b)
     }
     else
     {
-        return div64_32((int64_t)a << FRACBITS, b);
+        return div64_32(shiftleft64(a, FRACBITS), b);
     }
 }
 
