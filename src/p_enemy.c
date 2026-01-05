@@ -1760,7 +1760,8 @@ static boolean P_HealCorpse(mobj_t* actor, int radius, statenum_t healstate, sfx
 		  // friendliness is transferred from AV to raised corpse
 		  corpsehit->flags = 
 		    (info->flags & ~MF_FRIEND) | (actor->flags & MF_FRIEND);
-		  corpsehit->intflags |= MIF_RESURRECTED;
+		  // Arch-vile resurrected monsters should count towards kill count
+		  //corpsehit->intflags |= MIF_RESURRECTED;
 
 		  WatchResurrection(corpsehit, actor);
 
