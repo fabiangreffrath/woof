@@ -40,6 +40,7 @@
 #include "i_exit.h"
 #include "i_input.h"
 #include "i_printf.h"
+#include "i_primitives.h"
 #include "i_system.h"
 #include "i_timer.h"
 #include "i_video.h"
@@ -117,7 +118,7 @@ static SDL_Texture *texture;
 static SDL_Rect rect = {0};
 static SDL_FRect frect = {0.0f};
 
-static int window_width, window_height;
+int window_width, window_height;
 static int default_window_width, default_window_height;
 static int window_position_x, window_position_y;
 static boolean window_focused = true;
@@ -153,6 +154,11 @@ void *I_GetSDLWindow(void)
 void *I_GetSDLRenderer(void)
 {
     return renderer;
+}
+
+void *I_GetSDLPalette(void)
+{
+    return palette;
 }
 
 static int GetDisplayIndexFromID(SDL_DisplayID display_id)
@@ -665,6 +671,11 @@ void I_StartFrame(void)
     ;
 }
 
+static void UpdateAutomapRenderer(void)
+{
+       
+}
+
 static void UpdateRender(void)
 {
     // When using SDL_LockTexture, the pixels made available for editing may not
@@ -687,6 +698,9 @@ static void UpdateRender(void)
 
     SDL_RenderClear(renderer);
     SDL_RenderTexture(renderer, texture, &frect, NULL);
+    SDL_SetRenderLogicalPresentation(renderer, 0, 0,
+                                     SDL_LOGICAL_PRESENTATION_DISABLED);
+    I_EndLineBatch(); 
 }
 
 static uint64_t frametime_start, frametime_withoutpresent;
@@ -871,6 +885,8 @@ void I_FinishUpdate(void)
     }
 
     SDL_RenderPresent(renderer);
+
+    I_BeginLineBatch();
 
     I_RestoreDiskBackground();
 
@@ -1552,6 +1568,8 @@ static void I_InitGraphicsMode(void)
     // [FG] create renderer
     renderer = SDL_CreateRenderer(screen, NULL);
 
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+
     if (renderer == NULL)
     {
         I_Error("Error creating renderer for screen window: %s",
@@ -1566,6 +1584,8 @@ static void I_InitGraphicsMode(void)
     palette = SDL_CreatePalette(256);
 
     I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
+
+    I_InitPrimitives();
 
     // Blank out the full screen area in case there is any junk in
     // the borders that won't otherwise be overwritten.

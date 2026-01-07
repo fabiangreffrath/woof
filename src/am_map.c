@@ -27,6 +27,7 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
+#include "i_primitives.h"
 #include "i_video.h"
 #include "m_config.h"
 #include "m_input.h"
@@ -225,6 +226,9 @@ static boolean automapfirststart = true;
 
 overlay_t automapoverlay = AM_OVERLAY_OFF;
 
+static boolean map_accelerated = true;
+static int map_line_thickness = 2;
+
 // location of window on screen
 static int  f_x;
 static int  f_y;
@@ -288,6 +292,7 @@ static boolean stopped = true;
 // Forward declare for AM_LevelInit
 static void AM_drawFline_Vanilla(fline_t* fl, int color);
 static void AM_drawFline_Smooth(fline_t* fl, int color);
+static void AM_drawFline_Accelerated(fline_t* fl, int color);
 void (*AM_drawFline)(fline_t*, int) = AM_drawFline_Vanilla;
 
 // [crispy/Woof!] automap rotate mode and square aspect ratio need these early on
@@ -610,7 +615,18 @@ static void AM_clearLastMark(void)
 
 static void AM_EnableSmoothLines(void)
 {
-  AM_drawFline = map_smooth_lines ? AM_drawFline_Smooth : AM_drawFline_Vanilla;
+    if (map_accelerated)
+    {
+        AM_drawFline = AM_drawFline_Accelerated;
+    }
+    else if (map_smooth_lines)
+    {
+        AM_drawFline = AM_drawFline_Smooth;
+    }
+    else
+    {
+        AM_drawFline = AM_drawFline_Vanilla;
+    }
 }
 
 static void AM_initScreenSize(void)
@@ -619,6 +635,13 @@ static void AM_initScreenSize(void)
   // to allow runtime setting of width/height
   //
   // killough 11/98: ... finally add hires support :)
+
+  if (map_accelerated)
+  {
+    f_w = window_width;
+    f_h = window_height;
+    return;
+  }
 
   f_w = video.width;
   if (automapoverlay && scaledviewheight == SCREENHEIGHT)
@@ -1089,7 +1112,7 @@ void AM_Ticker (void)
 //
 static void AM_clearFB(int color)
 {
-  memset(I_VideoBuffer, color, f_h * f_w);
+  memset(I_VideoBuffer, color, video.height * video.width);
 }
 
 //
@@ -1439,6 +1462,11 @@ static void AM_drawFline_Smooth(fline_t *fl, int color)
 
    // draw last pixel
    PUTDOT(fl->b.x, fl->b.y, color);
+}
+
+static void AM_drawFline_Accelerated(fline_t* fl, int color)
+{
+    I_DrawLine(fl->a.x, fl->a.y, fl->b.x, fl->b.y, color, map_line_thickness);
 }
 
 //
@@ -2275,51 +2303,73 @@ static void AM_drawCrosshair(int color)
 //
 // Passed nothing, returns nothing
 //
-void AM_Drawer (void)
+void AM_Drawer(void)
 {
-  if (!automapactive) return;
-
-  // move AM_doFollowPlayer and AM_changeWindowLoc from AM_Ticker for
-  // interpolation
-
-  if (followplayer)
-  {
-    AM_doFollowPlayer();
-  }
-
-  // Change X and Y location.
-  if (m_paninc.x || m_paninc.y)
-  {
-    AM_changeWindowLoc();
-  }
-
-  // [crispy/Woof!] required for AM_transformPoint()
-  if (automaprotate || ADJUST_ASPECT_RATIO)
-  {
-    mapcenter.x = m_x + m_w / 2;
-    mapcenter.y = m_y + m_h / 2;
-    // [crispy] keep the map static if not following the player
-    if (automaprotate && followplayer)
+    if (!automapactive)
     {
-      mapangle = ANG90 - plr->mo->angle;
+        return;
     }
-  }
 
-  if (automapoverlay == AM_OVERLAY_OFF)
-    AM_clearFB(cur_mapcolor_back);       //jff 1/5/98 background default color
-  // [Alaux] Dark automap overlay
-  else if (automapoverlay == AM_OVERLAY_DARK && !MN_MenuIsShaded())
-    V_ShadeScreen();
+    int old_automapsquareaspect = automapsquareaspect;
+    if (map_accelerated)
+    {
+        automapsquareaspect = false;
+    }
 
-  if (automap_grid)                  // killough 2/28/98: change var name
-    AM_drawGrid(cur_mapcolor_grid);      //jff 1/7/98 grid default color
-  AM_drawWalls();
-  AM_drawPlayers();
-  if (ddt_cheating==2)
-    AM_drawThings(cur_mapcolor_sprt, 0); //jff 1/5/98 default double IDDT sprite
-  AM_drawCrosshair(cur_mapcolor_hair);   //jff 1/7/98 default crosshair color
+    if (automapoverlay == AM_OVERLAY_OFF)
+    {
+        AM_clearFB(cur_mapcolor_back); // jff 1/5/98 background default color
+    }
+    // [Alaux] Dark automap overlay
+    else if (automapoverlay == AM_OVERLAY_DARK && !MN_MenuIsShaded())
+    {
+        V_ShadeScreen();
+    }
 
-  AM_drawMarks();
+    // move AM_doFollowPlayer and AM_changeWindowLoc from AM_Ticker for
+    // interpolation
+
+    if (followplayer)
+    {
+        AM_doFollowPlayer();
+    }
+
+    // Change X and Y location.
+    if (m_paninc.x || m_paninc.y)
+    {
+        AM_changeWindowLoc();
+    }
+
+    // [crispy/Woof!] required for AM_transformPoint()
+    if (automaprotate || ADJUST_ASPECT_RATIO)
+    {
+        mapcenter.x = m_x + m_w / 2;
+        mapcenter.y = m_y + m_h / 2;
+        // [crispy] keep the map static if not following the player
+        if (automaprotate && followplayer)
+        {
+            mapangle = ANG90 - plr->mo->angle;
+        }
+    }
+
+    if (automap_grid) // killough 2/28/98: change var name
+    {
+        AM_drawGrid(cur_mapcolor_grid); // jff 1/7/98 grid default color
+    }
+    AM_drawWalls();
+    AM_drawPlayers();
+    if (ddt_cheating == 2)
+    {
+        AM_drawThings(cur_mapcolor_sprt, 0); // jff 1/5/98 default double IDDT sprite
+    }
+    AM_drawCrosshair(cur_mapcolor_hair); // jff 1/7/98 default crosshair color
+
+    AM_drawMarks();
+
+    if (map_accelerated)
+    {
+        automapsquareaspect = old_automapsquareaspect;
+    }
 }
 
 typedef enum {
@@ -2453,6 +2503,8 @@ void AM_BindAutomapVariables(void)
             "Color key-locked doors on the automap (1 = Static; 2 = Flashing)");
   M_BindBool("map_smooth_lines", &map_smooth_lines, NULL, true, ss_none,
              wad_no, "Smooth automap lines");
+  BIND_BOOL(map_accelerated, true, "Accelerated automap drawing");
+  BIND_NUM(map_line_thickness, 2, 1, 4, "Automap line thickness (1-4 pixels)");
 
   M_BindNum("mapcolor_preset", &mapcolor_preset, NULL, AM_PRESET_BOOM,
             AM_PRESET_VANILLA, AM_PRESET_ZDOOM, ss_auto, wad_no,

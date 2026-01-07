@@ -71,14 +71,20 @@ extern boolean toggle_fullscreen;
 extern boolean toggle_exclusive_fullscreen;
 extern boolean correct_aspect_ratio;
 extern boolean screenvisible;
+extern int window_width, window_height;
 
 extern int gamma2;
 byte I_GetNearestColor(byte *palette, int r, int g, int b);
+
+void I_BeginLineBatch(void);
+void I_EndLineBatch(void);
+void I_DrawLine(int x1, int y1, int x2, int y2, int color, int thickness);
 
 boolean I_WritePNGfile(char *filename); // [FG] screenshots in PNG format
 
 void *I_GetSDLWindow(void);
 void *I_GetSDLRenderer(void);
+void *I_GetSDLPalette(void);
 
 void I_InitWindowIcon(void);
 

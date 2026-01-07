@@ -70,6 +70,7 @@ set(WOOF_SOURCES
                            i_oalstream.h
     i_oplmusic.c
     i_printf.c             i_printf.h
+    i_primitives.c         i_primitives.h
     i_region.c             i_region.h
     i_richpresence.c       i_richpresence.h
     i_rumble.c             i_rumble.h
