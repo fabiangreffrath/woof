@@ -18,7 +18,6 @@
 //-----------------------------------------------------------------------------
 
 #include <limits.h>
-#include <math.h>
 #include <string.h>
 
 #include "am_map.h"
@@ -1341,11 +1340,11 @@ static void AM_drawFline_Vanilla(fline_t *fl, int color)
             return;
         }
 
-        double line_length = sqrt((double)adx * adx + (double)ady * ady);
+        int line_length = abs(adx) + abs(ady);
 
         if (ax > ay && adx)
         {
-            int64_t num = 2LL * map_line_thickness * line_length;
+            int num = 2 * map_line_thickness * line_length;
             int perp_thickness = (int)((num + adx) / (2 * adx));
             int start = -(perp_thickness - 1) / 2;
             d = ay - ax / 2;
@@ -1375,7 +1374,7 @@ static void AM_drawFline_Vanilla(fline_t *fl, int color)
         }
         else if (ady)
         {
-            int64_t num = 2LL * map_line_thickness * line_length;
+            int num = 2 * map_line_thickness * line_length;
             int perp_thickness = (int)((num + ady) / (2 * ady));
             int start = -(perp_thickness - 1) / 2;
             d = ax - ay / 2;
@@ -1539,7 +1538,7 @@ static void AM_drawFline_Smooth(fline_t *fl, int color)
     }
 
     // Thick line drawing
-    double line_length = sqrt((double)dx * dx + (double)dy * dy);
+    int line_length = abs(dx) + abs(dy);
 
     // draw first pixel
     if (fl->a.x >= 0 && fl->a.x < f_w && fl->a.y >= 0 && fl->a.y < f_h)
@@ -1555,9 +1554,9 @@ static void AM_drawFline_Smooth(fline_t *fl, int color)
         // line is y-axis major.
         uint16_t erroracc = 0;
         uint16_t erroradj = (uint16_t)(((uint32_t)dx << 16) / (uint32_t)dy);
-        int64_t num = (int64_t)(map_line_thickness - 1) * line_length;
-        int64_t den = 2 * dy;
-        int half_thickness = (int)((num + den / 2) / den);
+        int num = (map_line_thickness - 1) * line_length;
+        int den = 2 * dy;
+        int half_thickness = ((num + den / 2) / den);
 
         while (--dy)
         {
@@ -1599,9 +1598,9 @@ static void AM_drawFline_Smooth(fline_t *fl, int color)
         // line is x-axis major.
         uint16_t erroracc = 0;
         uint16_t erroradj = (uint16_t)(((uint32_t)dy << 16) / (uint32_t)dx);
-        int64_t num = (int64_t)(map_line_thickness - 1) * line_length;
-        int64_t den = 2 * dx;
-        int half_thickness = (int)((num + den / 2) / den);
+        int num = (map_line_thickness - 1) * line_length;
+        int den = 2 * dx;
+        int half_thickness = ((num + den / 2) / den);
 
         while (--dx)
         {
@@ -2658,7 +2657,7 @@ void AM_BindAutomapVariables(void)
             "Color key-locked doors on the automap (1 = Static; 2 = Flashing)");
   M_BindBool("map_smooth_lines", &map_smooth_lines, NULL, true, ss_none,
              wad_no, "Smooth automap lines");
-  M_BindNum("map_line_thickness", &map_line_thickness, NULL, 1, 1, 8,
+  M_BindNum("map_line_thickness", &map_line_thickness, NULL, 1, 1, 6,
             ss_auto, wad_no, "Automap line thickness (1-8 pixels)");
 
   M_BindNum("mapcolor_preset", &mapcolor_preset, NULL, AM_PRESET_BOOM,
