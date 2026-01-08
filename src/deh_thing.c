@@ -37,6 +37,7 @@
 #include "p_map.h"
 #include "p_mobj.h"
 #include "sounds.h"
+#include "z_zone.h"
 
 boolean deh_set_blood_color = false;
 
@@ -371,9 +372,9 @@ DEH_BEGIN_MAPPING(thing_mapping, mobjinfo_t)
     DEH_UNSUPPORTED_MAPPING("Gib Health")                 // p.f Retro
     DEH_UNSUPPORTED_MAPPING("Blood Thing")                // i.b Eternity
     DEH_UNSUPPORTED_MAPPING("Crush State")                // i.b Eternity
-    DEH_MAPPING_STRING("Obituary", obituary)              // p.f ZDoom
-    DEH_MAPPING_STRING("Melee obituary", obituary_melee)  // p.f ZDoom
-    DEH_MAPPING_STRING("Self obituary", obituary_self)    // p.f ZDoom
+    DEH_MAPPING("Obituary", obituary)                     // p.f ZDoom
+    DEH_MAPPING("Melee obituary", obituary_melee)         // p.f ZDoom
+    DEH_MAPPING("Self obituary", obituary_self)           // p.f ZDoom
     // eternity
     DEH_MAPPING("Blood Color", bloodcolor)
     // woof
@@ -529,17 +530,35 @@ static void DEH_ThingParseLine(deh_context_t *context, char *line, void *tag)
             ivalue = PG_GROUPLESS;
         }
     }
-    else if (!strcasecmp(variable_name, "Obituray")
-            || !strcasecmp(variable_name, "Melee Obituray")
-            || !strcasecmp(variable_name, "Self Obituray"))
+    else if (!strcasecmp(variable_name, "Obituray"))
     {
         if (strlen(value) >= 1)
         {
-            DEH_SetStringMapping(context, &thing_mapping, mobj, variable_name, value);
+            mobj->obituary = Z_StrDup(value, PU_STATIC);
         }
-        else
+        return;
+    }
+    else if (!strcasecmp(variable_name, "Melee Obituray"))
+    {
+        if (strlen(value) >= 1)
         {
-            DEH_Warning(context, "%s is empty!", variable_name);
+            mobj->obituary_melee = Z_StrDup(value, PU_STATIC);
+        }
+        return;
+    }
+    else if (!strcasecmp(variable_name, "Self Obituray"))
+    {
+        if (strlen(value) >= 1)
+        {
+            mobj->obituary_self = Z_StrDup(value, PU_STATIC);
+        }
+        return;
+    }
+    else if (!strcasecmp(variable_name, "Pickup message"))
+    {
+        if (strlen(value) >= 1)
+        {
+            mobj->pickup_mnemonic = Z_StrDup(value, PU_STATIC);
         }
         return;
     }

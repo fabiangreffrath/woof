@@ -723,14 +723,15 @@ static inline const boolean TouchThingID24(const mobjinfo_t *const info,
                                            int *const sound)
 {
     // TODO: weapons and ammo
+    boolean handle = false;
 
-    boolean handle = (info->pickup_item_type == item_noitem || info->pickup_item_type == item_messageonly);
 
 		const char* mnemonic = info->pickup_mnemonic;
     switch (info->pickup_item_type)
     {
         case item_noitem:
         case item_messageonly:
+            handle |= true;
             break;
 
         case item_bluecard:
@@ -844,11 +845,11 @@ static inline const boolean TouchThingID24(const mobjinfo_t *const info,
 
     if (handle)
     {
-        pickupmsg(player, "testing %d", info->pickup_item_type); // WIP
+        pickupmsg(player, "%s", DEH_StringForMnemonic(mnemonic));
         *sound = info->pickup_sound;
     }
 
-    return false;
+    return handle;
 }
 
 static inline const boolean info_has_custom_pickup(mobjinfo_t *info)

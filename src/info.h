@@ -1534,7 +1534,7 @@ typedef struct
     itemtype_t pickup_item_type;
     int pickup_sound;
     int pickup_bonus;
-    char *pickup_mnemonic;
+    const char *pickup_mnemonic;
 
     // MBF2y
     const char *obituary, *obituary_melee, *obituary_self;
