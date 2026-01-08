@@ -19,6 +19,7 @@
 
 #include <limits.h>
 #include <string.h>
+#include <math.h>
 
 #include "am_map.h"
 #include "d_event.h"
@@ -1412,6 +1413,11 @@ static void AM_drawFline_Vanilla(fline_t *fl, int color)
 //
 inline static void PutWuDot(int x, int y, int color, int weight)
 {
+    if (x < 0 || x >= f_w || y < 0 || y >= f_h)
+    {
+        return;
+    }
+
     pixel_t *dest = I_VideoBuffer + y * video.width + x;
     unsigned int *fg2rgb = Col2RGB8[weight];
     unsigned int *bg2rgb = Col2RGB8[64 - weight];
@@ -1432,247 +1438,181 @@ inline static void PutWuDot(int x, int y, int color, int weight)
 #define wu_fixedshift 10
 
 //
-// AM_drawFlineWu
+// AM_drawFline_Smooth
 //
-// haleyjd 06/12/09: Wu line drawing for the automap, with trigonometric
-// brightness correction by SoM. I call this the Wu-McGranahan line drawing
-// algorithm.
+// A simple extension to Xiaolin Wu's line drawing algorithm to draw thick lines
 //
+
+// Helper function to swap two float values
+inline static void swap_float(float *a, float *b)
+{
+    float temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+inline static void PutDotCheck(int x, int y, int color)
+{
+    if (x >= 0 && x < f_w && y >= 0 && y < f_h)
+    {
+        PutDot(x, y, color);
+    }
+}
+
+// Main function to draw a thick anti-aliased line
 static void AM_drawFline_Smooth(fline_t *fl, int color)
 {
-    int xdir = 1;
+    float x1 = fl->a.x;
+    float y1 = fl->a.y;
+    float x2 = fl->b.x;
+    float y2 = fl->b.y;
+    float thickness = map_line_thickness;
 
-    // swap end points if necessary
-    if (fl->a.y > fl->b.y)
+    // Check if steep (|dy| > |dx|)
+    boolean steep = fabsf(y2 - y1) > fabsf(x2 - x1);
+
+    // Swap x and y if steep
+    if (steep)
     {
-        fpoint_t tmp = fl->a;
-
-        fl->a = fl->b;
-        fl->b = tmp;
+        swap_float(&x1, &y1);
+        swap_float(&x2, &y2);
     }
 
-    // determine change in x, y and direction of travel
-    int dx = fl->b.x - fl->a.x;
-    int dy = fl->b.y - fl->a.y;
-
-    if (dx < 0)
+    // Ensure x0 <= x1
+    if (x1 > x2)
     {
-        dx = -dx;
-        xdir = -xdir;
+        swap_float(&x1, &x2);
+        swap_float(&y1, &y2);
     }
 
-    // detect special cases -- horizontal, vertical, and 45 degrees;
-    // revert to Bresenham
-    if (dx == 0 || dy == 0 || dx == dy)
+    float dx = x2 - x1;
+    float dy = y2 - y1;
+    float gradient = (dx == 0.0f) ? 1.0f : dy / dx;
+
+    // Adjust thickness for the line's slope
+    thickness = thickness * sqrtf(1.0f + gradient * gradient);
+
+    // Handle first endpoint
+    int xend = (int)roundf(x1);
+    float yend = y1 - (thickness - 1.0f) * 0.5f + gradient * (xend - x1);
+    float xgap = 1.0f - (x1 + 0.5f - (float)xend);
+    int xpxl1 = xend;
+    int ypxl1 = (int)floorf(yend);
+    float fpart = yend - floorf(yend);
+    float rfpart = 1.0f - fpart;
+    int w = (int)thickness;
+
+    // Draw first endpoint
+    if (steep)
     {
-        AM_drawFline_Vanilla(fl, color);
-        return;
+        int sx = ypxl1;
+        int sy = xpxl1;
+        PutWuDot(sx, sy, color, rfpart * xgap * 64);
+        for (int i = 1; i < w; ++i)
+        {
+            sx = ypxl1 + i;
+            PutDotCheck(sx, sy, color);
+        }
+        sx = ypxl1 + (int)thickness;
+        PutWuDot(sx, sy, color, fpart * xgap * 64);
+    }
+    else
+    {
+        int sx = xpxl1;
+        int sy = ypxl1;
+        PutWuDot(sx, sy, color, rfpart * xgap * 64);
+        for (int i = 1; i < w; ++i)
+        {
+            sy = ypxl1 + i;
+            PutDotCheck(sx, sy, color);
+        }
+        sy = ypxl1 + w;
+        PutWuDot(sx, sy, color, fpart * xgap * 64);
     }
 
-    if (map_line_thickness <= 1)
+    float intery = yend + gradient; // First y-intersection for main loop
+
+    // Handle second endpoint
+    xend = (int)roundf(x2);
+    yend = y2 - (thickness - 1.0f) * 0.5f + gradient * (xend - x2);
+    xgap = 1.0f - (x2 + 0.5f - (float)xend);
+    int xpxl2 = xend;
+    int ypxl2 = (int)floorf(yend);
+    fpart = yend - floorf(yend);
+    rfpart = 1.0f - fpart;
+    w = (int)thickness;
+
+    // Draw second endpoint
+    if (steep)
     {
-        // draw first pixel
-        PutDot(fl->a.x, fl->a.y, color);
-
-        int x = fl->a.x;
-        int y = fl->a.y;
-
-        if (dy > dx)
+        int sx = ypxl2;
+        int sy = xpxl2;
+        PutWuDot(sx, sy, color, rfpart * xgap * 64);
+        for (int i = 1; i < w; ++i)
         {
-            // line is y-axis major.
-            uint16_t erroracc = 0;
-            uint16_t erroradj = (uint16_t)(((uint32_t)dx << 16) / (uint32_t)dy);
-
-            while (--dy)
-            {
-                uint16_t erroracctmp = erroracc;
-
-                erroracc += erroradj;
-
-                // if error has overflown, advance x coordinate
-                if (erroracc <= erroracctmp)
-                {
-                    x += xdir;
-                }
-
-                y += 1; // advance y
-
-                // the trick is in the trig!
-                PutWuDot(x, y, color,
-                         finecosine[erroracc >> wu_fineshift] >> wu_fixedshift);
-                PutWuDot(x + xdir, y, color,
-                         finesine[erroracc >> wu_fineshift] >> wu_fixedshift);
-            }
+            sx = ypxl2 + i;
+            PutDotCheck(sx, sy, color);
         }
-        else
+        sx = ypxl2 + w;
+        PutWuDot(sx, sy, color, fpart * xgap * 64);
+    }
+    else
+    {
+        int sx = xpxl2;
+        int sy = ypxl2;
+        PutWuDot(sx, sy, color, rfpart * xgap * 64);
+        for (int i = 1; i < w; ++i)
         {
-            // line is x-axis major.
-            uint16_t erroracc = 0,
-                     erroradj = (uint16_t)(((uint32_t)dy << 16) / (uint32_t)dx);
-
-            while (--dx)
-            {
-                uint16_t erroracctmp = erroracc;
-
-                erroracc += erroradj;
-
-                // if error has overflown, advance y coordinate
-                if (erroracc <= erroracctmp)
-                {
-                    y += 1;
-                }
-
-                x += xdir; // advance x
-
-                // the trick is in the trig!
-                PutWuDot(x, y, color,
-                         finecosine[erroracc >> wu_fineshift] >> wu_fixedshift);
-                PutWuDot(x, y + 1, color,
-                         finesine[erroracc >> wu_fineshift] >> wu_fixedshift);
-            }
+            sy = ypxl2 + i;
+            PutDotCheck(sx, sy, color);
         }
-
-        // draw last pixel
-        PutDot(fl->b.x, fl->b.y, color);
-        return;
+        sy = ypxl2 + w;
+        PutWuDot(sx, sy, color, fpart * xgap * 64);
     }
 
-    // Thick line drawing
-    int line_length = abs(dx) + abs(dy);
-
-    int x = fl->a.x;
-    int y = fl->a.y;
-
-    if (dy > dx)
+    // Main loop
+    if (steep)
     {
-        // line is y-axis major.
-        uint16_t erroracc = 0;
-        uint16_t erroradj = (uint16_t)(((uint32_t)dx << 16) / (uint32_t)dy);
-        int num = (map_line_thickness - 1) * line_length;
-        int den = 2 * dy;
-        int half_thickness = ((num + den / 2) / den);
-
-        // Draw start cap
-        for (int i = -half_thickness; i <= half_thickness; ++i)
+        for (int x = xpxl1 + 1; x < xpxl2; ++x)
         {
-            int px = x + i * xdir;
-            if (px >= 0 && px < f_w && y >= 0 && y < f_h)
+            fpart = intery - floorf(intery);
+            rfpart = 1.0f - fpart;
+            int y = (int)floorf(intery);
+            int sx = y;
+            int sy = x;
+
+            PutWuDot(sx, sy, color, rfpart * 64);
+            for (int i = 1; i < w; ++i)
             {
-                PutDot(px, y, color);
+                sx = y + i;
+                PutDotCheck(sx, sy, color);
             }
-        }
+            sx = y + w;
+            PutWuDot(sx, sy, color, fpart * 64);
 
-        while (--dy)
-        {
-            uint16_t erroracctmp = erroracc;
-            erroracc += erroradj;
-
-            if (erroracc <= erroracctmp)
-            {
-                x += xdir;
-            }
-
-            y += 1;
-
-            for (int i = -half_thickness + 1; i < half_thickness; ++i)
-            {
-                int px = x + i * xdir;
-                if (px >= 0 && px < f_w && y >= 0 && y < f_h)
-                {
-                    PutDot(px, y, color);
-                }
-            }
-
-            int weight = finecosine[erroracc >> wu_fineshift] >> wu_fixedshift;
-            int edge1 = x - half_thickness * xdir;
-            int edge2 = x + half_thickness * xdir;
-
-            if (edge1 >= 0 && edge1 < f_w && y >= 0 && y < f_h)
-            {
-                PutWuDot(edge1, y, color, weight);
-            }
-            if (edge2 >= 0 && edge2 < f_w && y >= 0 && y < f_h)
-            {
-                PutWuDot(edge2, y, color, 64 - weight);
-            }
-        }
-
-        // Draw end cap
-        x = fl->b.x;
-        y = fl->b.y;
-        for (int i = -half_thickness; i <= half_thickness; ++i)
-        {
-            int px = x + i * xdir;
-            if (px >= 0 && px < f_w && y >= 0 && y < f_h)
-            {
-                PutDot(px, y, color);
-            }
+            intery += gradient;
         }
     }
     else
     {
-        // line is x-axis major.
-        uint16_t erroracc = 0;
-        uint16_t erroradj = (uint16_t)(((uint32_t)dy << 16) / (uint32_t)dx);
-        int num = (map_line_thickness - 1) * line_length;
-        int den = 2 * dx;
-        int half_thickness = ((num + den / 2) / den);
-
-        // Draw start cap
-        for (int i = -half_thickness; i <= half_thickness; ++i)
+        for (int x = xpxl1 + 1; x < xpxl2; ++x)
         {
-            int py = y + i;
-            if (x >= 0 && x < f_w && py >= 0 && py < f_h)
+            fpart = intery - floorf(intery);
+            rfpart = 1.0f - fpart;
+            int y = (int)floorf(intery);
+            int sx = x;
+            int sy = y;
+
+            PutWuDot(sx, sy, color, rfpart * 64);
+            for (int i = 1; i < w; ++i)
             {
-                PutDot(x, py, color);
+                sy = y + i;
+                PutDotCheck(sx, sy, color);
             }
-        }
+            sy = y + w;
+            PutWuDot(sx, sy, color, fpart * 64);
 
-        while (--dx)
-        {
-            uint16_t erroracctmp = erroracc;
-            erroracc += erroradj;
-
-            if (erroracc <= erroracctmp)
-            {
-                y += 1;
-            }
-
-            x += xdir;
-
-            for (int i = -half_thickness + 1; i < half_thickness; ++i)
-            {
-                int py = y + i;
-                if (x >= 0 && x < f_w && py >= 0 && py < f_h)
-                {
-                    PutDot(x, py, color);
-                }
-            }
-
-            int weight = finecosine[erroracc >> wu_fineshift] >> wu_fixedshift;
-            int edge1 = y - half_thickness;
-            int edge2 = y + half_thickness;
-
-            if (x >= 0 && x < f_w && edge1 >= 0 && edge1 < f_h)
-            {
-                PutWuDot(x, edge1, color, weight);
-            }
-            if (x >= 0 && x < f_w && edge2 >= 0 && edge2 < f_h)
-            {
-                PutWuDot(x, edge2, color, 64 - weight);
-            }
-        }
-
-        // Draw end cap
-        x = fl->b.x;
-        y = fl->b.y;
-        for (int i = -half_thickness; i <= half_thickness; ++i)
-        {
-            int py = y + i;
-            if (x >= 0 && x < f_w && py >= 0 && py < f_h)
-            {
-                PutDot(x, py, color);
-            }
+            intery += gradient;
         }
     }
 }
