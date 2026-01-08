@@ -420,29 +420,19 @@ const bex_string_t original_bex_mnemonic_table[] =
 // ID24Hacked mnemonics
 //
 
-static int bex_mnemonic_table_size = 0;
-
 bex_string_t *bex_mnemonic_table = NULL;
 
 void DEH_InitMnemonic(void)
 {
-    const int original_table_size = arrlen(original_bex_mnemonic_table);
-
-    for (int i = 0; i < original_table_size; i++)
+    for (int i = 0; i < arrlen(original_bex_mnemonic_table); i++)
     {
         array_push(bex_mnemonic_table, original_bex_mnemonic_table[i]);
     }
-
 }
 
 const char *DEH_StringForMnemonic(const char *mnemonic)
 {
-    if (!mnemonic)
-    {
-        I_Error("NULL passed as BEX mnemonic.");
-    }
-
-    for (int i = 0; i < bex_mnemonic_table_size; i++)
+    for (int i = 0; i < array_size(bex_mnemonic_table); i++)
     {
         if (!strcasecmp(bex_mnemonic_table[i].mnemonic, mnemonic))
         {
@@ -508,7 +498,7 @@ static void DEH_BEXStringsParseLine(deh_context_t *context, char *line, void *ta
     }
 
     boolean matched = false;
-    for (int i = 0; i < bex_mnemonic_table_size; i++)
+    for (int i = 0; i < array_size(bex_mnemonic_table); i++)
     {
         if (!strcasecmp(bex_mnemonic_table[i].mnemonic, variable_name))
         {
@@ -530,7 +520,6 @@ static void DEH_BEXStringsParseLine(deh_context_t *context, char *line, void *ta
             .original_string = Z_StrDup(value, PU_STATIC)};
 
         array_push(bex_mnemonic_table, bex_str);
-        bex_mnemonic_table_size = array_size(bex_mnemonic_table);
     }
 }
 
