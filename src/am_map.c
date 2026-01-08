@@ -1540,8 +1540,8 @@ static void AM_drawFline_Smooth(fline_t *fl, int color)
    }
 
    // draw first pixel
-   x = px = fl->a.x;
-   y = py = fl->a.y;
+   x = fl->a.x;
+   y = fl->a.y;
    DrawThickWuPixel(x, y, x, y, color, 64);
 
    if(dy > dx)
