@@ -1,5 +1,6 @@
 
 #include <SDL3/SDL.h>
+#include <math.h>
 
 #include "i_video.h"
 #include "m_array.h"

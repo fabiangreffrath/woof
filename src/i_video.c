@@ -671,11 +671,6 @@ void I_StartFrame(void)
     ;
 }
 
-static void UpdateAutomapRenderer(void)
-{
-       
-}
-
 static void UpdateRender(void)
 {
     // When using SDL_LockTexture, the pixels made available for editing may not

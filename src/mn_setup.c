@@ -2087,6 +2087,8 @@ static setup_menu_t auto_settings1[] = {
     {"Rotate Automap",  S_ONOFF,  H_X, M_SPC, {"automaprotate"}},
     {"Overlay Automap", S_CHOICE, H_X, M_SPC, {"automapoverlay"},
      .strings_id = str_overlay},
+    {"Line Thickness", S_THERMO | S_THRM_SIZE4, H_X, M_THRM_SPC,
+     {"map_line_thickness"}},
 
     MI_GAP,
 
