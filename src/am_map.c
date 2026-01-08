@@ -89,6 +89,8 @@ enum {
 static int map_keyed_door; // keyed doors are colored or flashing
 
 static boolean map_smooth_lines;
+static int map_line_thickness = 1;
+
 
 // [Woof!] FRACTOMAPBITS: overflow-safe coordinate system.
 // Written by Andrey Budko (entryway), adapted from prboom-plus/src/am_map.*
@@ -1241,6 +1243,40 @@ static boolean AM_clipMline
 // Passed the frame coordinates of line, and the color to be drawn
 // Returns nothing
 //
+
+inline static void PutDot(int x, int y, int color)
+{
+    I_VideoBuffer[y * video.width + x] = color;
+}
+
+inline static void DrawThickPixel(int x, int y, int color)
+{
+    if (map_line_thickness == 1)
+    {
+        PutDot(x, y, color);
+        return;
+    }
+
+    int half = map_line_thickness / 2;
+    int size = map_line_thickness;
+
+    int offset_x = x - half;
+    int offset_y = y - half;
+
+    for (int j = 0; j < size; ++j)
+    {
+        for (int i = 0; i < size; ++i)
+        {
+            const int px = offset_x + i;
+            const int py = offset_y + j;
+            if (px >= 0 && px < f_w && py >= 0 && py < f_h)
+            {
+                PutDot(px, py, color);
+            }
+        }
+    }
+}
+
 static void AM_drawFline_Vanilla(fline_t* fl, int color)
 {
   register int x;
@@ -1267,8 +1303,6 @@ static void AM_drawFline_Vanilla(fline_t* fl, int color)
   }
 #endif
 
-#define PUTDOT(xx,yy,cc) I_VideoBuffer[(yy)*video.width+(xx)]=(cc)
-
   dx = fl->b.x - fl->a.x;
   ax = 2 * (dx<0 ? -dx : dx);
   sx = dx<0 ? -1 : 1;
@@ -1285,7 +1319,7 @@ static void AM_drawFline_Vanilla(fline_t* fl, int color)
     d = ay - ax/2;
     while (1)
     {
-      PUTDOT(x,y,color);
+      DrawThickPixel(x, y, color);
       if (x == fl->b.x) return;
       if (d>=0)
       {
@@ -1301,7 +1335,7 @@ static void AM_drawFline_Vanilla(fline_t* fl, int color)
     d = ax - ay/2;
     while (1)
     {
-      PUTDOT(x, y, color);
+      DrawThickPixel(x, y, color);
       if (y == fl->b.y) return;
       if (d >= 0)
       {
@@ -1319,19 +1353,48 @@ static void AM_drawFline_Vanilla(fline_t* fl, int color)
 //
 // haleyjd 06/13/09: Pixel plotter for Wu line drawing.
 //
-static void AM_putWuDot(int x, int y, int color, int weight)
-{
-   pixel_t *dest = &I_VideoBuffer[y * video.width + x];
-   unsigned int *fg2rgb = Col2RGB8[weight];
-   unsigned int *bg2rgb = Col2RGB8[64 - weight];
-   unsigned int fg, bg;
 
-   fg = fg2rgb[color];
-   bg = bg2rgb[*dest];
-   fg = (fg + bg) | 0x1f07c1f;
-   *dest = RGB32k[0][0][fg & (fg >> 15)];
+inline static void PutWuDot(int x, int y, int color, int weight)
+{
+    pixel_t *dest = &I_VideoBuffer[y * video.width + x];
+    unsigned int *fg2rgb = Col2RGB8[weight];
+    unsigned int *bg2rgb = Col2RGB8[64 - weight];
+    unsigned int fg, bg;
+
+    fg = fg2rgb[color];
+    bg = bg2rgb[*dest];
+    fg = (fg + bg) | 0x1f07c1f;
+    *dest = RGB32k[0][0][fg & (fg >> 15)];
 }
 
+inline static void DrawThickWuPixel(int x, int y, int color, int weight)
+{
+    if (map_line_thickness == 1)
+    {
+        PutWuDot(x, y, color, weight);
+        return;
+    }
+
+    int half = map_line_thickness / 2;
+    int size = map_line_thickness;
+
+    int offset_x = x - half;
+    int offset_y = y - half;
+
+    for (int j = 0; j < size; ++j)
+    {
+        for (int i = 0; i < size; ++i)
+        {
+            const int px = offset_x + i;
+            const int py = offset_y + j;
+
+            if (px >= 0 && px < f_w && py >= 0 && py < f_h)
+            {
+                PutWuDot(px, py, color, weight);
+            }
+        }
+    }
+}
 
 // Given 65536, we need 2048; 65536 / 2048 == 32 == 2^5
 // Why 2048? ANG90 == 0x40000000 which >> 19 == 0x800 == 2048.
@@ -1381,7 +1444,7 @@ static void AM_drawFline_Smooth(fline_t *fl, int color)
    }
 
    // draw first pixel
-   PUTDOT(fl->a.x, fl->a.y, color);
+   DrawThickPixel(fl->a.x, fl->a.y, color);
 
    x = fl->a.x;
    y = fl->a.y;
@@ -1405,9 +1468,9 @@ static void AM_drawFline_Smooth(fline_t *fl, int color)
          y += 1; // advance y
 
          // the trick is in the trig!
-         AM_putWuDot(x, y, color,
+         DrawThickWuPixel(x, y, color,
                      finecosine[erroracc >> wu_fineshift] >> wu_fixedshift);
-         AM_putWuDot(x + xdir, y, color,
+         DrawThickWuPixel(x + xdir, y, color,
                      finesine[erroracc >> wu_fineshift] >> wu_fixedshift);
       }
    }
@@ -1430,15 +1493,15 @@ static void AM_drawFline_Smooth(fline_t *fl, int color)
          x += xdir; // advance x
 
          // the trick is in the trig!
-         AM_putWuDot(x, y, color,
+         DrawThickWuPixel(x, y, color,
                      finecosine[erroracc >> wu_fineshift] >> wu_fixedshift);
-         AM_putWuDot(x, y + 1, color,
+         DrawThickWuPixel(x, y + 1, color,
                      finesine[erroracc >> wu_fineshift] >> wu_fixedshift);
       }
    }
 
    // draw last pixel
-   PUTDOT(fl->b.x, fl->b.y, color);
+   DrawThickPixel(fl->b.x, fl->b.y, color);
 }
 
 //
@@ -2264,7 +2327,7 @@ static void AM_drawCrosshair(int color)
   // [crispy] do not draw the useless dot on the player arrow
   if (!followplayer)
   {
-    PUTDOT((f_w + 1) / 2, (f_h + 1) / 2, color); // single point for now
+    DrawThickPixel((f_w + 1) / 2, (f_h + 1) / 2, color); // single point for now
   }
 }
 
@@ -2453,6 +2516,8 @@ void AM_BindAutomapVariables(void)
             "Color key-locked doors on the automap (1 = Static; 2 = Flashing)");
   M_BindBool("map_smooth_lines", &map_smooth_lines, NULL, true, ss_none,
              wad_no, "Smooth automap lines");
+  M_BindNum("map_line_thickness", &map_line_thickness, NULL, 1, 1, 4,
+            ss_auto, wad_no, "Automap line thickness (1-4 pixels)");
 
   M_BindNum("mapcolor_preset", &mapcolor_preset, NULL, AM_PRESET_BOOM,
             AM_PRESET_VANILLA, AM_PRESET_ZDOOM, ss_auto, wad_no,
