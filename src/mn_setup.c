@@ -362,6 +362,7 @@ enum
     str_hudcolor,
     str_secretmessage,
     str_overlay,
+    str_automap_thickness,
     str_automap_preset,
     str_automap_keyed_door,
     str_fuzzmode,
@@ -2075,6 +2076,9 @@ void MN_DrawStatusHUD(void)
 
 static const char *overlay_strings[] = {"Off", "On", "Dark"};
 
+static const char *automap_thickness_strings[] = {
+    "Auto", "1", "2", "3", "4", "5", "6"};
+
 static const char *automap_preset_strings[] = {"Vanilla", "Crispy", "Boom", "ZDoom"};
 
 static const char *automap_keyed_door_strings[] = {"Off", "On", "Flashing"};
@@ -2088,7 +2092,8 @@ static setup_menu_t auto_settings1[] = {
     {"Overlay Automap", S_CHOICE, H_X, M_SPC, {"automapoverlay"},
      .strings_id = str_overlay},
     {"Line Thickness", S_THERMO | S_THRM_SIZE4, H_X, M_THRM_SPC,
-     {"map_line_thickness"}},
+     {"map_line_thickness"}, .strings_id = str_automap_thickness,
+     .action = AM_ResetThickness},
 
     MI_GAP,
 
@@ -5005,6 +5010,7 @@ static const char **selectstrings[] = {
     [str_hudcolor] = hudcolor_strings,
     [str_secretmessage] = secretmessage_strings,
     [str_overlay] = overlay_strings,
+    [str_automap_thickness] = automap_thickness_strings,
     [str_automap_preset] = automap_preset_strings,
     [str_automap_keyed_door] = automap_keyed_door_strings,
     [str_fuzzmode] = fuzzmode_strings,

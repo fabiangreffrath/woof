@@ -60,6 +60,7 @@ void AM_ResetScreenSize(void);
 
 void AM_ColorPreset(void);
 void AM_ApplyColors(boolean force);
+void AM_ResetThickness(void);
 
 void AM_BindAutomapVariables(void);
 

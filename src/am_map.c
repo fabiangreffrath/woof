@@ -90,7 +90,8 @@ enum {
 static int map_keyed_door; // keyed doors are colored or flashing
 
 static boolean map_smooth_lines;
-static int map_line_thickness = 1;
+static int map_line_thickness;
+static int thickness;
 
 // [Woof!] FRACTOMAPBITS: overflow-safe coordinate system.
 // Written by Andrey Budko (entryway), adapted from prboom-plus/src/am_map.*
@@ -646,6 +647,8 @@ void AM_ResetScreenSize(void)
   }
 
   AM_activateNewScale();
+
+  AM_ResetThickness();
 }
 
 //
@@ -666,6 +669,8 @@ static void AM_LevelInit(void)
   AM_initScreenSize();
 
   AM_EnableSmoothLines();
+
+  AM_ResetThickness();
 
   AM_findMinMaxBoundaries();
 
@@ -1273,7 +1278,7 @@ static void AM_drawFline_Vanilla(fline_t *fl, int color)
 
     int d;
 
-    if (map_line_thickness <= 1)
+    if (thickness <= 1)
     {
         if (ax > ay)
         {
@@ -1321,14 +1326,14 @@ static void AM_drawFline_Vanilla(fline_t *fl, int color)
 
         if (adx == 0 && ady == 0)
         {
-            int start = -(map_line_thickness - 1) / 2;
+            int start = -(thickness - 1) / 2;
             int px, py;
-            for (int i = 0; i < map_line_thickness; ++i)
+            for (int i = 0; i < thickness; ++i)
             {
                 py = y + start + i;
                 if (py >= 0 && py < f_h)
                 {
-                    for (int j = 0; j < map_line_thickness; ++j)
+                    for (int j = 0; j < thickness; ++j)
                     {
                         px = x + start + j;
                         if (px >= 0 && px < f_w)
@@ -1345,7 +1350,7 @@ static void AM_drawFline_Vanilla(fline_t *fl, int color)
 
         if (ax > ay && adx)
         {
-            int num = 2 * map_line_thickness * line_length;
+            int num = 2 * thickness * line_length;
             int perp_thickness = (int)((num + adx) / (2 * adx));
             int start = -(perp_thickness - 1) / 2;
             d = ay - ax / 2;
@@ -1375,7 +1380,7 @@ static void AM_drawFline_Vanilla(fline_t *fl, int color)
         }
         else if (ady)
         {
-            int num = 2 * map_line_thickness * line_length;
+            int num = 2 * thickness * line_length;
             int perp_thickness = (int)((num + ady) / (2 * ady));
             int start = -(perp_thickness - 1) / 2;
             d = ax - ay / 2;
@@ -1429,14 +1434,6 @@ inline static void PutWuDot(int x, int y, int color, int weight)
     *dest = RGB32k[0][0][fg & (fg >> 15)];
 }
 
-// Given 65536, we need 2048; 65536 / 2048 == 32 == 2^5
-// Why 2048? ANG90 == 0x40000000 which >> 19 == 0x800 == 2048.
-// The trigonometric correction is based on an angle from 0 to 90.
-#define wu_fineshift 5
-
-// Given 64 levels in the Col2RGB8 table, 65536 / 64 == 1024 == 2^10
-#define wu_fixedshift 10
-
 //
 // AM_drawFline_Smooth
 //
@@ -1466,7 +1463,7 @@ static void AM_drawFline_Smooth(fline_t *fl, int color)
     float y1 = fl->a.y;
     float x2 = fl->b.x;
     float y2 = fl->b.y;
-    float thickness = map_line_thickness;
+    float width = thickness;
 
     // Check if steep (|dy| > |dx|)
     boolean steep = fabsf(y2 - y1) > fabsf(x2 - x1);
@@ -1489,18 +1486,18 @@ static void AM_drawFline_Smooth(fline_t *fl, int color)
     float dy = y2 - y1;
     float gradient = (dx == 0.0f) ? 1.0f : dy / dx;
 
-    // Adjust thickness for the line's slope
-    thickness = thickness * sqrtf(1.0f + gradient * gradient);
+    // Adjust width for the line's slope
+    width = width * sqrtf(1.0f + gradient * gradient);
 
     // Handle first endpoint
     int xend = (int)roundf(x1);
-    float yend = y1 - (thickness - 1.0f) * 0.5f + gradient * (xend - x1);
+    float yend = y1 - (width - 1.0f) * 0.5f + gradient * (xend - x1);
     float xgap = 1.0f - (x1 + 0.5f - (float)xend);
     int xpxl1 = xend;
     int ypxl1 = (int)floorf(yend);
     float fpart = yend - floorf(yend);
     float rfpart = 1.0f - fpart;
-    int w = (int)thickness;
+    int w = (int)width;
 
     // Draw first endpoint
     if (steep)
@@ -1513,7 +1510,7 @@ static void AM_drawFline_Smooth(fline_t *fl, int color)
             sx = ypxl1 + i;
             PutDotCheck(sx, sy, color);
         }
-        sx = ypxl1 + (int)thickness;
+        sx = ypxl1 + (int)width;
         PutWuDot(sx, sy, color, fpart * xgap * 64);
     }
     else
@@ -1534,13 +1531,13 @@ static void AM_drawFline_Smooth(fline_t *fl, int color)
 
     // Handle second endpoint
     xend = (int)roundf(x2);
-    yend = y2 - (thickness - 1.0f) * 0.5f + gradient * (xend - x2);
+    yend = y2 - (width - 1.0f) * 0.5f + gradient * (xend - x2);
     xgap = 1.0f - (x2 + 0.5f - (float)xend);
     int xpxl2 = xend;
     int ypxl2 = (int)floorf(yend);
     fpart = yend - floorf(yend);
     rfpart = 1.0f - fpart;
-    w = (int)thickness;
+    w = (int)width;
 
     // Draw second endpoint
     if (steep)
@@ -2609,6 +2606,12 @@ void AM_ColorPreset(void)
     ST_ResetTitle();
 }
 
+void AM_ResetThickness(void)
+{
+    thickness = (map_line_thickness == 0) ? video.height / SCREENHEIGHT
+                                          : map_line_thickness;
+}
+
 void AM_BindAutomapVariables(void)
 {
   M_BindBool("followplayer", &followplayer, NULL, true, ss_auto, wad_no,
@@ -2629,8 +2632,8 @@ void AM_BindAutomapVariables(void)
             "Color key-locked doors on the automap (1 = Static; 2 = Flashing)");
   M_BindBool("map_smooth_lines", &map_smooth_lines, NULL, true, ss_none,
              wad_no, "Smooth automap lines");
-  M_BindNum("map_line_thickness", &map_line_thickness, NULL, 1, 1, 6,
-            ss_auto, wad_no, "Automap line thickness (1-8 pixels)");
+  M_BindNum("map_line_thickness", &map_line_thickness, NULL, 0, 0, 6,
+            ss_auto, wad_no, "Automap line thickness (0 = Auto, 1-6 = Thickness)");
 
   M_BindNum("mapcolor_preset", &mapcolor_preset, NULL, AM_PRESET_BOOM,
             AM_PRESET_VANILLA, AM_PRESET_ZDOOM, ss_auto, wad_no,
