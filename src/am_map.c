@@ -1249,7 +1249,47 @@ inline static void PutDot(int x, int y, int color)
     I_VideoBuffer[y * video.width + x] = color;
 }
 
-inline static void DrawThickPixel(int x, int y, int color)
+inline static void DrawFillRect(int x, int y, int w, int h, int color)
+{
+    if (x >= f_w || y >= f_h)
+    {
+        return;
+    }
+
+    if (x < 0)
+    {
+        w += x;
+        x = 0;
+    }
+    if (y < 0)
+    {
+        h += y;
+        y = 0;
+    }
+
+    if (x + w > f_w)
+    {
+        w = f_w - x;
+    }
+    if (y + h > f_h)
+    {
+        h = f_h - y;
+    }
+
+    if (w <= 0 || h <= 0)
+    {
+        return;
+    }
+
+    pixel_t *dest = I_VideoBuffer + y * video.width + x;
+    while (h--)
+    {
+        memset(dest, color, w);
+        dest += video.width;
+    }
+}
+
+inline static void DrawThickPixel(int x, int y, int px, int py, int color)
 {
     if (map_line_thickness == 1)
     {
@@ -1257,24 +1297,28 @@ inline static void DrawThickPixel(int x, int y, int color)
         return;
     }
 
-    int half = map_line_thickness / 2;
-    int size = map_line_thickness;
+    const int size = map_line_thickness;
+    const int half = size / 2;
 
-    int offset_x = x - half;
-    int offset_y = y - half;
+    int x1 = x - half;
+    int y1 = y - half;
+    int x2 = px - half;
+    int y2 = py - half;
 
-    for (int j = 0; j < size; ++j)
+    if (x1 > x2)
     {
-        for (int i = 0; i < size; ++i)
-        {
-            const int px = offset_x + i;
-            const int py = offset_y + j;
-            if (px >= 0 && px < f_w && py >= 0 && py < f_h)
-            {
-                PutDot(px, py, color);
-            }
-        }
+        int tmp = x1;
+        x1 = x2;
+        x2 = tmp;
     }
+    if (y1 > y2)
+    {
+        int tmp = y1;
+        y1 = y2;
+        y2 = tmp;
+    }
+
+    DrawFillRect(x1, y1, x2 - x1 + size, y2 - y1 + size, color);
 }
 
 static void AM_drawFline_Vanilla(fline_t* fl, int color)
@@ -1288,6 +1332,8 @@ static void AM_drawFline_Vanilla(fline_t* fl, int color)
   register int ax;
   register int ay;
   register int d;
+  int px;
+  int py;
 
 #ifdef RANGECHECK         // killough 2/22/98    
   // For debugging only
@@ -1314,13 +1360,15 @@ static void AM_drawFline_Vanilla(fline_t* fl, int color)
   x = fl->a.x;
   y = fl->a.y;
 
+  DrawThickPixel(x, y, x, y, color);
+
   if (ax > ay)
   {
     d = ay - ax/2;
-    while (1)
+    while (x != fl->b.x)
     {
-      DrawThickPixel(x, y, color);
-      if (x == fl->b.x) return;
+      px = x;
+      py = y;
       if (d>=0)
       {
         y += sy;
@@ -1328,15 +1376,16 @@ static void AM_drawFline_Vanilla(fline_t* fl, int color)
       }
       x += sx;
       d += ay;
+      DrawThickPixel(x, y, px, py, color);
     }
   }
   else
   {
     d = ax - ay/2;
-    while (1)
+    while (y != fl->b.y)
     {
-      DrawThickPixel(x, y, color);
-      if (y == fl->b.y) return;
+      px = x;
+      py = y;
       if (d >= 0)
       {
         x += sx;
@@ -1344,6 +1393,7 @@ static void AM_drawFline_Vanilla(fline_t* fl, int color)
       }
       y += sy;
       d += ax;
+      DrawThickPixel(x, y, px, py, color);
     }
   }
 }
@@ -1356,7 +1406,7 @@ static void AM_drawFline_Vanilla(fline_t* fl, int color)
 
 inline static void PutWuDot(int x, int y, int color, int weight)
 {
-    pixel_t *dest = &I_VideoBuffer[y * video.width + x];
+    pixel_t *dest = I_VideoBuffer + y * video.width + x;
     unsigned int *fg2rgb = Col2RGB8[weight];
     unsigned int *bg2rgb = Col2RGB8[64 - weight];
     unsigned int fg, bg;
@@ -1367,7 +1417,50 @@ inline static void PutWuDot(int x, int y, int color, int weight)
     *dest = RGB32k[0][0][fg & (fg >> 15)];
 }
 
-inline static void DrawThickWuPixel(int x, int y, int color, int weight)
+inline static void DrawFillWuRect(int x, int y, int w, int h, int color,
+                                  int weight)
+{
+    if (x >= f_w || y >= f_h)
+    {
+        return;
+    }
+
+    if (x < 0)
+    {
+        w += x;
+        x = 0;
+    }
+    if (y < 0)
+    {
+        h += y;
+        y = 0;
+    }
+
+    if (x + w > f_w)
+    {
+        w = f_w - x;
+    }
+    if (y + h > f_h)
+    {
+        h = f_h - y;
+    }
+
+    if (w <= 0 || h <= 0)
+    {
+        return;
+    }
+
+    for (int j = 0; j < h; ++j)
+    {
+        for (int i = 0; i < w; ++i)
+        {
+            PutWuDot(x + i, y + j, color, weight);
+        }
+    }
+}
+
+inline static void DrawThickWuPixel(int x, int y, int px, int py, int color,
+                                    int weight)
 {
     if (map_line_thickness == 1)
     {
@@ -1375,25 +1468,28 @@ inline static void DrawThickWuPixel(int x, int y, int color, int weight)
         return;
     }
 
-    int half = map_line_thickness / 2;
-    int size = map_line_thickness;
+    const int size = map_line_thickness;
+    const int half = size / 2;
 
-    int offset_x = x - half;
-    int offset_y = y - half;
+    int x1 = x - half;
+    int y1 = y - half;
+    int x2 = px - half;
+    int y2 = py - half;
 
-    for (int j = 0; j < size; ++j)
+    if (x1 > x2)
     {
-        for (int i = 0; i < size; ++i)
-        {
-            const int px = offset_x + i;
-            const int py = offset_y + j;
-
-            if (px >= 0 && px < f_w && py >= 0 && py < f_h)
-            {
-                PutWuDot(px, py, color, weight);
-            }
-        }
+        int tmp = x1;
+        x1 = x2;
+        x2 = tmp;
     }
+    if (y1 > y2)
+    {
+        int tmp = y1;
+        y1 = y2;
+        y2 = tmp;
+    }
+
+    DrawFillWuRect(x1, y1, x2 - x1 + size, y2 - y1 + size, color, weight);
 }
 
 // Given 65536, we need 2048; 65536 / 2048 == 32 == 2^5
@@ -1414,7 +1510,7 @@ inline static void DrawThickWuPixel(int x, int y, int color, int weight)
 static void AM_drawFline_Smooth(fline_t *fl, int color)
 {
    int dx, dy, xdir = 1;
-   int x, y;
+   int x, y, px, py;
 
    // swap end points if necessary
    if(fl->a.y > fl->b.y)
@@ -1444,10 +1540,9 @@ static void AM_drawFline_Smooth(fline_t *fl, int color)
    }
 
    // draw first pixel
-   DrawThickPixel(fl->a.x, fl->a.y, color);
-
-   x = fl->a.x;
-   y = fl->a.y;
+   x = px = fl->a.x;
+   y = py = fl->a.y;
+   DrawThickWuPixel(x, y, x, y, color, 64);
 
    if(dy > dx)
    {
@@ -1460,6 +1555,7 @@ static void AM_drawFline_Smooth(fline_t *fl, int color)
          uint16_t erroracctmp = erroracc;
 
          erroracc += erroradj;
+         px = x; py = y;
 
          // if error has overflown, advance x coordinate
          if(erroracc <= erroracctmp)
@@ -1468,9 +1564,9 @@ static void AM_drawFline_Smooth(fline_t *fl, int color)
          y += 1; // advance y
 
          // the trick is in the trig!
-         DrawThickWuPixel(x, y, color,
+         DrawThickWuPixel(x, y, px, py, color,
                      finecosine[erroracc >> wu_fineshift] >> wu_fixedshift);
-         DrawThickWuPixel(x + xdir, y, color,
+         DrawThickWuPixel(x + xdir, y, px + xdir, py, color,
                      finesine[erroracc >> wu_fineshift] >> wu_fixedshift);
       }
    }
@@ -1485,6 +1581,7 @@ static void AM_drawFline_Smooth(fline_t *fl, int color)
          uint16_t erroracctmp = erroracc;
 
          erroracc += erroradj;
+         px = x; py = y;
 
          // if error has overflown, advance y coordinate
          if(erroracc <= erroracctmp)
@@ -1493,15 +1590,15 @@ static void AM_drawFline_Smooth(fline_t *fl, int color)
          x += xdir; // advance x
 
          // the trick is in the trig!
-         DrawThickWuPixel(x, y, color,
+         DrawThickWuPixel(x, y, px, py, color,
                      finecosine[erroracc >> wu_fineshift] >> wu_fixedshift);
-         DrawThickWuPixel(x, y + 1, color,
+         DrawThickWuPixel(x, y + 1, px, py + 1, color,
                      finesine[erroracc >> wu_fineshift] >> wu_fixedshift);
       }
    }
 
    // draw last pixel
-   DrawThickPixel(fl->b.x, fl->b.y, color);
+   DrawThickWuPixel(fl->b.x, fl->b.y, fl->b.x, fl->b.y, color, 64);
 }
 
 //
@@ -2327,7 +2424,9 @@ static void AM_drawCrosshair(int color)
   // [crispy] do not draw the useless dot on the player arrow
   if (!followplayer)
   {
-    DrawThickPixel((f_w + 1) / 2, (f_h + 1) / 2, color); // single point for now
+    int x = (f_w + 1) / 2;
+    int y = (f_h + 1) / 2;
+    DrawThickPixel(x, y, x, y, color); // single point for now
   }
 }
 
