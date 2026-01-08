@@ -1540,12 +1540,6 @@ static void AM_drawFline_Smooth(fline_t *fl, int color)
     // Thick line drawing
     int line_length = abs(dx) + abs(dy);
 
-    // draw first pixel
-    if (fl->a.x >= 0 && fl->a.x < f_w && fl->a.y >= 0 && fl->a.y < f_h)
-    {
-        PutDot(fl->a.x, fl->a.y, color);
-    }
-
     int x = fl->a.x;
     int y = fl->a.y;
 
@@ -1557,6 +1551,16 @@ static void AM_drawFline_Smooth(fline_t *fl, int color)
         int num = (map_line_thickness - 1) * line_length;
         int den = 2 * dy;
         int half_thickness = ((num + den / 2) / den);
+
+        // Draw start cap
+        for (int i = -half_thickness; i <= half_thickness; ++i)
+        {
+            int px = x + i * xdir;
+            if (px >= 0 && px < f_w && y >= 0 && y < f_h)
+            {
+                PutDot(px, y, color);
+            }
+        }
 
         while (--dy)
         {
@@ -1592,6 +1596,18 @@ static void AM_drawFline_Smooth(fline_t *fl, int color)
                 PutWuDot(edge2, y, color, 64 - weight);
             }
         }
+
+        // Draw end cap
+        x = fl->b.x;
+        y = fl->b.y;
+        for (int i = -half_thickness; i <= half_thickness; ++i)
+        {
+            int px = x + i * xdir;
+            if (px >= 0 && px < f_w && y >= 0 && y < f_h)
+            {
+                PutDot(px, y, color);
+            }
+        }
     }
     else
     {
@@ -1601,6 +1617,16 @@ static void AM_drawFline_Smooth(fline_t *fl, int color)
         int num = (map_line_thickness - 1) * line_length;
         int den = 2 * dx;
         int half_thickness = ((num + den / 2) / den);
+
+        // Draw start cap
+        for (int i = -half_thickness; i <= half_thickness; ++i)
+        {
+            int py = y + i;
+            if (x >= 0 && x < f_w && py >= 0 && py < f_h)
+            {
+                PutDot(x, py, color);
+            }
+        }
 
         while (--dx)
         {
@@ -1636,12 +1662,18 @@ static void AM_drawFline_Smooth(fline_t *fl, int color)
                 PutWuDot(x, edge2, color, 64 - weight);
             }
         }
-    }
 
-    // draw last pixel
-    if (fl->b.x >= 0 && fl->b.x < f_w && fl->b.y >= 0 && fl->b.y < f_h)
-    {
-        PutDot(fl->b.x, fl->b.y, color);
+        // Draw end cap
+        x = fl->b.x;
+        y = fl->b.y;
+        for (int i = -half_thickness; i <= half_thickness; ++i)
+        {
+            int py = y + i;
+            if (x >= 0 && x < f_w && py >= 0 && py < f_h)
+            {
+                PutDot(x, py, color);
+            }
+        }
     }
 }
 
