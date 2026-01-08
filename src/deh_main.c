@@ -26,6 +26,7 @@
 #include "deh_bex_music.h"
 #include "deh_bex_sounds.h"
 #include "deh_bex_sprites.h"
+#include "deh_bex_strings.h"
 #include "deh_defs.h"
 #include "deh_frame.h"
 #include "deh_io.h"
@@ -512,7 +513,9 @@ void DEH_InitTables(void)
     DEH_InitSprites();
     DEH_InitSFX();
     DEH_InitMusic();
+
     DEH_InitMobjInfo();
+    DEH_InitMnemonic();
 }
 
 void DEH_FreeTables(void)

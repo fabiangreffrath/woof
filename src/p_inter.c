@@ -20,6 +20,7 @@
 #include "p_inter.h"
 
 #include "am_map.h"
+#include "deh_bex_strings.h"
 #include "deh_strings.h"
 #include "d_items.h"
 #include "d_player.h"
