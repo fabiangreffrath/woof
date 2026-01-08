@@ -18,6 +18,7 @@
 //-----------------------------------------------------------------------------
 
 #include <limits.h>
+#include <math.h>
 #include <string.h>
 
 #include "am_map.h"
@@ -89,6 +90,7 @@ enum {
 static int map_keyed_door; // keyed doors are colored or flashing
 
 static boolean map_smooth_lines;
+static int map_line_thickness = 1;
 
 // [Woof!] FRACTOMAPBITS: overflow-safe coordinate system.
 // Written by Andrey Budko (entryway), adapted from prboom-plus/src/am_map.*
@@ -1241,77 +1243,167 @@ static boolean AM_clipMline
 // Passed the frame coordinates of line, and the color to be drawn
 // Returns nothing
 //
-static void AM_drawFline_Vanilla(fline_t* fl, int color)
-{
-  register int x;
-  register int y;
-  register int dx;
-  register int dy;
-  register int sx;
-  register int sy;
-  register int ax;
-  register int ay;
-  register int d;
 
-#ifdef RANGECHECK         // killough 2/22/98    
-  // For debugging only
-  if
-  (
-       fl->a.x < 0 || fl->a.x >= f_w
-    || fl->a.y < 0 || fl->a.y >= f_h
-    || fl->b.x < 0 || fl->b.x >= f_w
-    || fl->b.y < 0 || fl->b.y >= f_h
-  )
-  {
-    return;
-  }
+inline static void PutDot(int x, int y, int color)
+{
+    I_VideoBuffer[y * video.width + x] = color;
+}
+
+static void AM_drawFline_Vanilla(fline_t *fl, int color)
+{
+#ifdef RANGECHECK // killough 2/22/98
+    // For debugging only
+    if (fl->a.x < 0 || fl->a.x >= f_w || fl->a.y < 0 || fl->a.y >= f_h
+        || fl->b.x < 0 || fl->b.x >= f_w || fl->b.y < 0 || fl->b.y >= f_h)
+    {
+        return;
+    }
 #endif
 
-#define PUTDOT(xx,yy,cc) I_VideoBuffer[(yy)*video.width+(xx)]=(cc)
+    int dx = fl->b.x - fl->a.x;
+    int ax = 2 * (dx < 0 ? -dx : dx);
+    int sx = dx < 0 ? -1 : 1;
 
-  dx = fl->b.x - fl->a.x;
-  ax = 2 * (dx<0 ? -dx : dx);
-  sx = dx<0 ? -1 : 1;
+    int dy = fl->b.y - fl->a.y;
+    int ay = 2 * (dy < 0 ? -dy : dy);
+    int sy = dy < 0 ? -1 : 1;
 
-  dy = fl->b.y - fl->a.y;
-  ay = 2 * (dy<0 ? -dy : dy);
-  sy = dy<0 ? -1 : 1;
+    int x = fl->a.x;
+    int y = fl->a.y;
 
-  x = fl->a.x;
-  y = fl->a.y;
+    int d;
 
-  if (ax > ay)
-  {
-    d = ay - ax/2;
-    while (1)
+    if (map_line_thickness <= 1)
     {
-      PUTDOT(x,y,color);
-      if (x == fl->b.x) return;
-      if (d>=0)
-      {
-        y += sy;
-        d -= ax;
-      }
-      x += sx;
-      d += ay;
+        if (ax > ay)
+        {
+            d = ay - ax / 2;
+            while (1)
+            {
+                PutDot(x, y, color);
+                if (x == fl->b.x)
+                {
+                    return;
+                }
+                if (d >= 0)
+                {
+                    y += sy;
+                    d -= ax;
+                }
+                x += sx;
+                d += ay;
+            }
+        }
+        else
+        {
+            d = ax - ay / 2;
+            while (1)
+            {
+                PutDot(x, y, color);
+                if (y == fl->b.y)
+                {
+                    return;
+                }
+                if (d >= 0)
+                {
+                    x += sx;
+                    d -= ay;
+                }
+                y += sy;
+                d += ax;
+            }
+        }
     }
-  }
-  else
-  {
-    d = ax - ay/2;
-    while (1)
+    else
     {
-      PUTDOT(x, y, color);
-      if (y == fl->b.y) return;
-      if (d >= 0)
-      {
-        x += sx;
-        d -= ay;
-      }
-      y += sy;
-      d += ax;
+        int adx = ax / 2;
+        int ady = ay / 2;
+
+        if (adx == 0 && ady == 0)
+        {
+            int start = -(map_line_thickness - 1) / 2;
+            int px, py;
+            for (int i = 0; i < map_line_thickness; ++i)
+            {
+                py = y + start + i;
+                if (py >= 0 && py < f_h)
+                {
+                    for (int j = 0; j < map_line_thickness; ++j)
+                    {
+                        px = x + start + j;
+                        if (px >= 0 && px < f_w)
+                        {
+                            PutDot(px, py, color);
+                        }
+                    }
+                }
+            }
+            return;
+        }
+
+        double line_length = sqrt((double)adx * adx + (double)ady * ady);
+
+        if (ax > ay)
+        {
+            int64_t num = 2LL * map_line_thickness * line_length;
+            int perp_thickness = (int)((num + adx) / (2 * adx));
+            int start = -(perp_thickness - 1) / 2;
+            d = ay - ax / 2;
+            while (1)
+            {
+                for (int i = 0; i < perp_thickness; ++i)
+                {
+                    if (y + start + i >= 0 && y + start + i < f_h)
+                    {
+                        PutDot(x, y + start + i, color);
+                    }
+                }
+
+                if (x == fl->b.x)
+                {
+                    return;
+                }
+
+                if (d >= 0)
+                {
+                    y += sy;
+                    d -= ax;
+                }
+                x += sx;
+                d += ay;
+            }
+        }
+        else
+        {
+            int64_t num = 2LL * map_line_thickness * line_length;
+            int perp_thickness = (int)((num + ady) / (2 * ady));
+            int start = -(perp_thickness - 1) / 2;
+            d = ax - ay / 2;
+            while (1)
+            {
+                for (int i = 0; i < perp_thickness; ++i)
+                {
+                    if (x + start + i >= 0 && x + start + i < f_w)
+                    {
+                        PutDot(x + start + i, y, color);
+                    }
+                }
+
+                if (y == fl->b.y)
+                {
+                    return;
+                }
+
+                if (d >= 0)
+                {
+                    x += sx;
+                    d -= ay;
+                }
+                y += sy;
+                d += ax;
+            }
+        }
     }
-  }
 }
 
 //
@@ -1319,19 +1411,18 @@ static void AM_drawFline_Vanilla(fline_t* fl, int color)
 //
 // haleyjd 06/13/09: Pixel plotter for Wu line drawing.
 //
-static void AM_putWuDot(int x, int y, int color, int weight)
+inline static void PutWuDot(int x, int y, int color, int weight)
 {
-   pixel_t *dest = &I_VideoBuffer[y * video.width + x];
-   unsigned int *fg2rgb = Col2RGB8[weight];
-   unsigned int *bg2rgb = Col2RGB8[64 - weight];
-   unsigned int fg, bg;
+    pixel_t *dest = I_VideoBuffer + y * video.width + x;
+    unsigned int *fg2rgb = Col2RGB8[weight];
+    unsigned int *bg2rgb = Col2RGB8[64 - weight];
+    unsigned int fg, bg;
 
-   fg = fg2rgb[color];
-   bg = bg2rgb[*dest];
-   fg = (fg + bg) | 0x1f07c1f;
-   *dest = RGB32k[0][0][fg & (fg >> 15)];
+    fg = fg2rgb[color];
+    bg = bg2rgb[*dest];
+    fg = (fg + bg) | 0x1f07c1f;
+    *dest = RGB32k[0][0][fg & (fg >> 15)];
 }
-
 
 // Given 65536, we need 2048; 65536 / 2048 == 32 == 2^5
 // Why 2048? ANG90 == 0x40000000 which >> 19 == 0x800 == 2048.
@@ -1350,95 +1441,209 @@ static void AM_putWuDot(int x, int y, int color, int weight)
 //
 static void AM_drawFline_Smooth(fline_t *fl, int color)
 {
-   int dx, dy, xdir = 1;
-   int x, y;
+    int xdir = 1;
 
-   // swap end points if necessary
-   if(fl->a.y > fl->b.y)
-   {
-      fpoint_t tmp = fl->a;
+    // swap end points if necessary
+    if (fl->a.y > fl->b.y)
+    {
+        fpoint_t tmp = fl->a;
 
-      fl->a = fl->b;
-      fl->b = tmp;
-   }
+        fl->a = fl->b;
+        fl->b = tmp;
+    }
 
-   // determine change in x, y and direction of travel
-   dx = fl->b.x - fl->a.x;
-   dy = fl->b.y - fl->a.y;
+    // determine change in x, y and direction of travel
+    int dx = fl->b.x - fl->a.x;
+    int dy = fl->b.y - fl->a.y;
 
-   if(dx < 0)
-   {
-      dx   = -dx;
-      xdir = -xdir;
-   }
+    if (dx < 0)
+    {
+        dx = -dx;
+        xdir = -xdir;
+    }
 
-   // detect special cases -- horizontal, vertical, and 45 degrees;
-   // revert to Bresenham
-   if(dx == 0 || dy == 0 || dx == dy)
-   {
-      AM_drawFline_Vanilla(fl, color);
-      return;
-   }
+    // detect special cases -- horizontal, vertical, and 45 degrees;
+    // revert to Bresenham
+    if (dx == 0 || dy == 0 || dx == dy)
+    {
+        AM_drawFline_Vanilla(fl, color);
+        return;
+    }
 
-   // draw first pixel
-   PUTDOT(fl->a.x, fl->a.y, color);
+    if (map_line_thickness <= 1)
+    {
+        // draw first pixel
+        PutDot(fl->a.x, fl->a.y, color);
 
-   x = fl->a.x;
-   y = fl->a.y;
+        int x = fl->a.x;
+        int y = fl->a.y;
 
-   if(dy > dx)
-   {
-      // line is y-axis major.
-      uint16_t erroracc = 0,
-         erroradj = (uint16_t)(((uint32_t)dx << 16) / (uint32_t)dy);
+        if (dy > dx)
+        {
+            // line is y-axis major.
+            uint16_t erroracc = 0;
+            uint16_t erroradj = (uint16_t)(((uint32_t)dx << 16) / (uint32_t)dy);
 
-      while(--dy)
-      {
-         uint16_t erroracctmp = erroracc;
+            while (--dy)
+            {
+                uint16_t erroracctmp = erroracc;
 
-         erroracc += erroradj;
+                erroracc += erroradj;
 
-         // if error has overflown, advance x coordinate
-         if(erroracc <= erroracctmp)
-            x += xdir;
+                // if error has overflown, advance x coordinate
+                if (erroracc <= erroracctmp)
+                {
+                    x += xdir;
+                }
 
-         y += 1; // advance y
+                y += 1; // advance y
 
-         // the trick is in the trig!
-         AM_putWuDot(x, y, color,
-                     finecosine[erroracc >> wu_fineshift] >> wu_fixedshift);
-         AM_putWuDot(x + xdir, y, color,
-                     finesine[erroracc >> wu_fineshift] >> wu_fixedshift);
-      }
-   }
-   else
-   {
-      // line is x-axis major.
-      uint16_t erroracc = 0,
-         erroradj = (uint16_t)(((uint32_t)dy << 16) / (uint32_t)dx);
+                // the trick is in the trig!
+                PutWuDot(x, y, color,
+                         finecosine[erroracc >> wu_fineshift] >> wu_fixedshift);
+                PutWuDot(x + xdir, y, color,
+                         finesine[erroracc >> wu_fineshift] >> wu_fixedshift);
+            }
+        }
+        else
+        {
+            // line is x-axis major.
+            uint16_t erroracc = 0,
+                     erroradj = (uint16_t)(((uint32_t)dy << 16) / (uint32_t)dx);
 
-      while(--dx)
-      {
-         uint16_t erroracctmp = erroracc;
+            while (--dx)
+            {
+                uint16_t erroracctmp = erroracc;
 
-         erroracc += erroradj;
+                erroracc += erroradj;
 
-         // if error has overflown, advance y coordinate
-         if(erroracc <= erroracctmp)
+                // if error has overflown, advance y coordinate
+                if (erroracc <= erroracctmp)
+                {
+                    y += 1;
+                }
+
+                x += xdir; // advance x
+
+                // the trick is in the trig!
+                PutWuDot(x, y, color,
+                         finecosine[erroracc >> wu_fineshift] >> wu_fixedshift);
+                PutWuDot(x, y + 1, color,
+                         finesine[erroracc >> wu_fineshift] >> wu_fixedshift);
+            }
+        }
+
+        // draw last pixel
+        PutDot(fl->b.x, fl->b.y, color);
+        return;
+    }
+
+    // Thick line drawing
+    double line_length = sqrt((double)dx * dx + (double)dy * dy);
+
+    // draw first pixel
+    if (fl->a.x >= 0 && fl->a.x < f_w && fl->a.y >= 0 && fl->a.y < f_h)
+    {
+        PutDot(fl->a.x, fl->a.y, color);
+    }
+
+    int x = fl->a.x;
+    int y = fl->a.y;
+
+    if (dy > dx)
+    {
+        // line is y-axis major.
+        uint16_t erroracc = 0;
+        uint16_t erroradj = (uint16_t)(((uint32_t)dx << 16) / (uint32_t)dy);
+        int64_t num = (int64_t)(map_line_thickness - 1) * line_length;
+        int64_t den = 2 * dy;
+        int half_thickness = (int)((num + den / 2) / den);
+
+        while (--dy)
+        {
+            uint16_t erroracctmp = erroracc;
+            erroracc += erroradj;
+
+            if (erroracc <= erroracctmp)
+            {
+                x += xdir;
+            }
+
             y += 1;
 
-         x += xdir; // advance x
+            for (int i = -half_thickness + 1; i < half_thickness; ++i)
+            {
+                int px = x + i * xdir;
+                if (px >= 0 && px < f_w && y >= 0 && y < f_h)
+                {
+                    PutDot(px, y, color);
+                }
+            }
 
-         // the trick is in the trig!
-         AM_putWuDot(x, y, color,
-                     finecosine[erroracc >> wu_fineshift] >> wu_fixedshift);
-         AM_putWuDot(x, y + 1, color,
-                     finesine[erroracc >> wu_fineshift] >> wu_fixedshift);
-      }
-   }
+            int weight = finecosine[erroracc >> wu_fineshift] >> wu_fixedshift;
+            int edge1 = x - half_thickness * xdir;
+            int edge2 = x + half_thickness * xdir;
 
-   // draw last pixel
-   PUTDOT(fl->b.x, fl->b.y, color);
+            if (edge1 >= 0 && edge1 < f_w && y >= 0 && y < f_h)
+            {
+                PutWuDot(edge1, y, color, weight);
+            }
+            if (edge2 >= 0 && edge2 < f_w && y >= 0 && y < f_h)
+            {
+                PutWuDot(edge2, y, color, 64 - weight);
+            }
+        }
+    }
+    else
+    {
+        // line is x-axis major.
+        uint16_t erroracc = 0;
+        uint16_t erroradj = (uint16_t)(((uint32_t)dy << 16) / (uint32_t)dx);
+        int64_t num = (int64_t)(map_line_thickness - 1) * line_length;
+        int64_t den = 2 * dx;
+        int half_thickness = (int)((num + den / 2) / den);
+
+        while (--dx)
+        {
+            uint16_t erroracctmp = erroracc;
+            erroracc += erroradj;
+
+            if (erroracc <= erroracctmp)
+            {
+                y += 1;
+            }
+
+            x += xdir;
+
+            for (int i = -half_thickness + 1; i < half_thickness; ++i)
+            {
+                int py = y + i;
+                if (x >= 0 && x < f_w && py >= 0 && py < f_h)
+                {
+                    PutDot(x, py, color);
+                }
+            }
+
+            int weight = finecosine[erroracc >> wu_fineshift] >> wu_fixedshift;
+            int edge1 = y - half_thickness;
+            int edge2 = y + half_thickness;
+
+            if (x >= 0 && x < f_w && edge1 >= 0 && edge1 < f_h)
+            {
+                PutWuDot(x, edge1, color, weight);
+            }
+            if (x >= 0 && x < f_w && edge2 >= 0 && edge2 < f_h)
+            {
+                PutWuDot(x, edge2, color, 64 - weight);
+            }
+        }
+    }
+
+    // draw last pixel
+    if (fl->b.x >= 0 && fl->b.x < f_w && fl->b.y >= 0 && fl->b.y < f_h)
+    {
+        PutDot(fl->b.x, fl->b.y, color);
+    }
 }
 
 //
@@ -2264,7 +2469,7 @@ static void AM_drawCrosshair(int color)
   // [crispy] do not draw the useless dot on the player arrow
   if (!followplayer)
   {
-    PUTDOT((f_w + 1) / 2, (f_h + 1) / 2, color); // single point for now
+    PutDot((f_w + 1) / 2, (f_h + 1) / 2, color); // single point for now
   }
 }
 
@@ -2453,6 +2658,8 @@ void AM_BindAutomapVariables(void)
             "Color key-locked doors on the automap (1 = Static; 2 = Flashing)");
   M_BindBool("map_smooth_lines", &map_smooth_lines, NULL, true, ss_none,
              wad_no, "Smooth automap lines");
+  M_BindNum("map_line_thickness", &map_line_thickness, NULL, 1, 1, 8,
+            ss_auto, wad_no, "Automap line thickness (1-8 pixels)");
 
   M_BindNum("mapcolor_preset", &mapcolor_preset, NULL, AM_PRESET_BOOM,
             AM_PRESET_VANILLA, AM_PRESET_ZDOOM, ss_auto, wad_no,
