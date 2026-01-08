@@ -1343,7 +1343,7 @@ static void AM_drawFline_Vanilla(fline_t *fl, int color)
 
         double line_length = sqrt((double)adx * adx + (double)ady * ady);
 
-        if (ax > ay)
+        if (ax > ay && adx)
         {
             int64_t num = 2LL * map_line_thickness * line_length;
             int perp_thickness = (int)((num + adx) / (2 * adx));
@@ -1373,7 +1373,7 @@ static void AM_drawFline_Vanilla(fline_t *fl, int color)
                 d += ay;
             }
         }
-        else
+        else if (ady)
         {
             int64_t num = 2LL * map_line_thickness * line_length;
             int perp_thickness = (int)((num + ady) / (2 * ady));
