@@ -1331,12 +1331,12 @@ static void AM_drawFline_Vanilla(fline_t *fl, int color)
             for (int i = 0; i < thickness; ++i)
             {
                 py = y + start + i;
-                if (py >= 0 && py < f_h)
+                if (py >= f_y && py < f_h)
                 {
                     for (int j = 0; j < thickness; ++j)
                     {
                         px = x + start + j;
-                        if (px >= 0 && px < f_w)
+                        if (px >= f_x && px < f_w)
                         {
                             PutDot(px, py, color);
                         }
@@ -1353,14 +1353,16 @@ static void AM_drawFline_Vanilla(fline_t *fl, int color)
             int num = 2 * thickness * line_length;
             int perp_thickness = (int)((num + adx) / (2 * adx));
             int start = -(perp_thickness - 1) / 2;
+            int py;
             d = ay - ax / 2;
             while (1)
             {
                 for (int i = 0; i < perp_thickness; ++i)
                 {
-                    if (y + start + i >= 0 && y + start + i < f_h)
+                    py = y + start + i;
+                    if (py >= f_y && py < f_h)
                     {
-                        PutDot(x, y + start + i, color);
+                        PutDot(x, py, color);
                     }
                 }
 
@@ -1383,14 +1385,16 @@ static void AM_drawFline_Vanilla(fline_t *fl, int color)
             int num = 2 * thickness * line_length;
             int perp_thickness = (int)((num + ady) / (2 * ady));
             int start = -(perp_thickness - 1) / 2;
+            int px;
             d = ax - ay / 2;
             while (1)
             {
                 for (int i = 0; i < perp_thickness; ++i)
                 {
-                    if (x + start + i >= 0 && x + start + i < f_w)
+                    px = x + start + i;
+                    if (px >= f_x && px < f_w)
                     {
-                        PutDot(x + start + i, y, color);
+                        PutDot(px, y, color);
                     }
                 }
 
@@ -1418,11 +1422,6 @@ static void AM_drawFline_Vanilla(fline_t *fl, int color)
 //
 inline static void PutWuDot(int x, int y, int color, int weight)
 {
-    if (x < 0 || x >= f_w || y < 0 || y >= f_h)
-    {
-        return;
-    }
-
     pixel_t *dest = I_VideoBuffer + y * video.width + x;
     unsigned int *fg2rgb = Col2RGB8[weight];
     unsigned int *bg2rgb = Col2RGB8[64 - weight];
@@ -1446,14 +1445,6 @@ inline static void swap_float(float *a, float *b)
     float temp = *a;
     *a = *b;
     *b = temp;
-}
-
-inline static void PutDotCheck(int x, int y, int color)
-{
-    if (x >= 0 && x < f_w && y >= 0 && y < f_h)
-    {
-        PutDot(x, y, color);
-    }
 }
 
 // Main function to draw a thick anti-aliased line
@@ -1497,34 +1488,52 @@ static void AM_drawFline_Smooth(fline_t *fl, int color)
     int ypxl1 = (int)floorf(yend);
     float fpart = yend - floorf(yend);
     float rfpart = 1.0f - fpart;
-    int w = (int)width;
+    int width_int = (int)width;
 
     // Draw first endpoint
     if (steep)
     {
         int sx = ypxl1;
         int sy = xpxl1;
-        PutWuDot(sx, sy, color, rfpart * xgap * 64);
-        for (int i = 1; i < w; ++i)
+        if (sx >= f_x && sx < f_w && sy >= f_y && sy < f_h)
         {
-            sx = ypxl1 + i;
-            PutDotCheck(sx, sy, color);
+            PutWuDot(sx, sy, color, rfpart * xgap * 64);
+            for (int i = 1; i < width_int; ++i)
+            {
+                sx = ypxl1 + i;
+                if (sx >= f_x && sx < f_w)
+                {
+                    PutDot(sx, sy, color);
+                }
+            }
+            sx = ypxl1 + (int)width;
+            if (sx >= f_x && sx < f_w)
+            {
+                PutWuDot(sx, sy, color, fpart * xgap * 64);
+            }
         }
-        sx = ypxl1 + (int)width;
-        PutWuDot(sx, sy, color, fpart * xgap * 64);
     }
     else
     {
         int sx = xpxl1;
         int sy = ypxl1;
-        PutWuDot(sx, sy, color, rfpart * xgap * 64);
-        for (int i = 1; i < w; ++i)
+        if (sx >= f_x && sx < f_w && sy >= f_y && sy < f_h)
         {
-            sy = ypxl1 + i;
-            PutDotCheck(sx, sy, color);
+            PutWuDot(sx, sy, color, rfpart * xgap * 64);
+            for (int i = 1; i < width_int; ++i)
+            {
+                sy = ypxl1 + i;
+                if (sy >= f_y && sy < f_h)
+                {
+                    PutDot(sx, sy, color);
+                }
+            }
+            sy = ypxl1 + width_int;
+            if (sy >= f_y && sy < f_h)
+            {
+                PutWuDot(sx, sy, color, fpart * xgap * 64);
+            }
         }
-        sy = ypxl1 + w;
-        PutWuDot(sx, sy, color, fpart * xgap * 64);
     }
 
     float intery = yend + gradient; // First y-intersection for main loop
@@ -1537,34 +1546,52 @@ static void AM_drawFline_Smooth(fline_t *fl, int color)
     int ypxl2 = (int)floorf(yend);
     fpart = yend - floorf(yend);
     rfpart = 1.0f - fpart;
-    w = (int)width;
+    width_int = (int)width;
 
     // Draw second endpoint
     if (steep)
     {
         int sx = ypxl2;
         int sy = xpxl2;
-        PutWuDot(sx, sy, color, rfpart * xgap * 64);
-        for (int i = 1; i < w; ++i)
+        if (sx >= f_x && sx < f_w && sy >= f_y && sy < f_h)
         {
-            sx = ypxl2 + i;
-            PutDotCheck(sx, sy, color);
+            PutWuDot(sx, sy, color, rfpart * xgap * 64);
+            for (int i = 1; i < width_int; ++i)
+            {
+                sx = ypxl2 + i;
+                if (sx >= f_x && sx < f_w)
+                {
+                    PutDot(sx, sy, color);
+                }
+            }
+            sx = ypxl2 + width_int;
+            if (sx >= f_x && sx < f_w)
+            {
+                PutWuDot(sx, sy, color, fpart * xgap * 64);
+            }
         }
-        sx = ypxl2 + w;
-        PutWuDot(sx, sy, color, fpart * xgap * 64);
     }
     else
     {
         int sx = xpxl2;
         int sy = ypxl2;
-        PutWuDot(sx, sy, color, rfpart * xgap * 64);
-        for (int i = 1; i < w; ++i)
+        if (sx >= f_x && sx < f_w && sy >= f_y && sy < f_h)
         {
-            sy = ypxl2 + i;
-            PutDotCheck(sx, sy, color);
+            PutWuDot(sx, sy, color, rfpart * xgap * 64);
+            for (int i = 1; i < width_int; ++i)
+            {
+                sy = ypxl2 + i;
+                if (sy >= f_y && sy < f_h)
+                {
+                    PutDot(sx, sy, color);
+                }
+            }
+            sy = ypxl2 + width_int;
+            if (sy >= f_y && sy < f_h)
+            {
+                PutWuDot(sx, sy, color, fpart * xgap * 64);
+            }
         }
-        sy = ypxl2 + w;
-        PutWuDot(sx, sy, color, fpart * xgap * 64);
     }
 
     // Main loop
@@ -1578,14 +1605,23 @@ static void AM_drawFline_Smooth(fline_t *fl, int color)
             int sx = y;
             int sy = x;
 
-            PutWuDot(sx, sy, color, rfpart * 64);
-            for (int i = 1; i < w; ++i)
+            if (sx >= f_x && sx < f_w && sy >= f_y && sy < f_h)
             {
-                sx = y + i;
-                PutDotCheck(sx, sy, color);
+                PutWuDot(sx, sy, color, rfpart * 64);
+                for (int i = 1; i < width_int; ++i)
+                {
+                    sx = y + i;
+                    if (sx >= f_x && sx < f_w)
+                    {
+                        PutDot(sx, sy, color);
+                    }
+                }
+                sx = y + width_int;
+                if (sx >= f_x && sx < f_w)
+                {
+                    PutWuDot(sx, sy, color, fpart * 64);
+                }
             }
-            sx = y + w;
-            PutWuDot(sx, sy, color, fpart * 64);
 
             intery += gradient;
         }
@@ -1600,14 +1636,23 @@ static void AM_drawFline_Smooth(fline_t *fl, int color)
             int sx = x;
             int sy = y;
 
-            PutWuDot(sx, sy, color, rfpart * 64);
-            for (int i = 1; i < w; ++i)
+            if (sx >= f_x && sx < f_w && sy >= f_y && sy < f_h)
             {
-                sy = y + i;
-                PutDotCheck(sx, sy, color);
+                PutWuDot(sx, sy, color, rfpart * 64);
+                for (int i = 1; i < width_int; ++i)
+                {
+                    sy = y + i;
+                    if (sy >= f_y && sy < f_h)
+                    {
+                        PutDot(sx, sy, color);
+                    }
+                }
+                sy = y + width_int;
+                if (sy >= f_y && sy < f_h)
+                {
+                    PutWuDot(sx, sy, color, fpart * 64);
+                }
             }
-            sy = y + w;
-            PutWuDot(sx, sy, color, fpart * 64);
 
             intery += gradient;
         }
