@@ -28,8 +28,10 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
+#include "i_system.h"
 #include "i_video.h"
 #include "m_config.h"
+#include "m_fixed.h"
 #include "m_input.h"
 #include "mn_menu.h"
 #include "m_misc.h"
@@ -149,16 +151,12 @@ typedef struct
     fpoint_t a, b;
 } fline_t;
 
-typedef struct
-{
-    mpoint_t a, b;
-} mline_t;
-
 //
 // The vector graphics for the automap.
 //  A line drawing of the player pointing right,
 //   starting from the middle.
 //
+#if 0
 #define R ((8*MAPPLAYERRADIUS)/7)
 static mline_t player_arrow[] =
 {
@@ -218,6 +216,9 @@ static mline_t thintriangle_guy[] =
 };
 #undef R
 #define NUMTHINTRIANGLEGUYLINES (sizeof(thintriangle_guy)/sizeof(mline_t))
+#endif
+
+static amconf_t *amconf;
 
 int ddt_cheating = 0;         // killough 2/7/98: make global, rename to ddt_*
 
@@ -723,6 +724,15 @@ void AM_Stop (void)
 void AM_Start()
 {
   static int lastlevel = -1, lastepisode = -1;
+
+  if (!amconf)
+  {
+      amconf = AM_ParseConf();
+      if (!amconf)
+      {
+          I_Error("Error parsing AMCONF");
+      }
+  }
 
   if (!stopped)
     AM_Stop();
@@ -1416,7 +1426,7 @@ static void AM_drawFline_Vanilla(fline_t *fl, int color)
 }
 
 //
-// AM_putWuDot
+// PutWuDot
 //
 // haleyjd 06/13/09: Pixel plotter for Wu line drawing.
 //
@@ -1466,7 +1476,7 @@ static void AM_drawFline_Smooth(fline_t *fl, int color)
         swap_float(&x2, &y2);
     }
 
-    // Ensure x0 <= x1
+    // Ensure x1 <= x2
     if (x1 > x2)
     {
         swap_float(&x1, &x2);
@@ -1479,6 +1489,7 @@ static void AM_drawFline_Smooth(fline_t *fl, int color)
 
     // Adjust width for the line's slope
     width = width * sqrtf(1.0f + gradient * gradient);
+    int width_int = (int)width;
 
     // Handle first endpoint
     int xend = (int)roundf(x1);
@@ -1488,7 +1499,6 @@ static void AM_drawFline_Smooth(fline_t *fl, int color)
     int ypxl1 = (int)floorf(yend);
     float fpart = yend - floorf(yend);
     float rfpart = 1.0f - fpart;
-    int width_int = (int)width;
 
     // Draw first endpoint
     if (steep)
@@ -1546,7 +1556,6 @@ static void AM_drawFline_Smooth(fline_t *fl, int color)
     int ypxl2 = (int)floorf(yend);
     fpart = yend - floorf(yend);
     rfpart = 1.0f - fpart;
-    width_int = (int)width;
 
     // Draw second endpoint
     if (steep)
@@ -2226,8 +2235,8 @@ static void AM_drawPlayers(void)
     if (ddt_cheating)
       AM_drawLineCharacter
       (
-        cheat_player_arrow,
-        NUMCHEATPLYRLINES,
+        amconf->player_cheat,
+        array_size(amconf->player_cheat),
         0,
         smoothangle,
         cur_mapcolor_sngl,      //jff color
@@ -2237,8 +2246,8 @@ static void AM_drawPlayers(void)
     else
       AM_drawLineCharacter
       (
-        player_arrow,
-        NUMPLYRLINES,
+        amconf->player,
+        array_size(amconf->player),
         0,
         smoothangle,
         cur_mapcolor_sngl,      //jff color
@@ -2290,8 +2299,8 @@ static void AM_drawPlayers(void)
 
     AM_drawLineCharacter
     (
-      player_arrow,
-      NUMPLYRLINES,
+      amconf->player,
+      array_size(amconf->player),
       0,
       smoothangle,
       color,
@@ -2352,8 +2361,8 @@ static void AM_drawThings
           case 38: case 13: //jff  red key
             AM_drawLineCharacter
             (
-              cross_mark,
-              NUMCROSSMARKLINES,
+              amconf->key,
+              array_size(amconf->key),
               16<<MAPBITS,
               t->angle,
               cur_mapcolor_rkey!=-1? cur_mapcolor_rkey : cur_mapcolor_sprt,
@@ -2365,8 +2374,8 @@ static void AM_drawThings
           case 39: case 6: //jff yellow key
             AM_drawLineCharacter
             (
-              cross_mark,
-              NUMCROSSMARKLINES,
+              amconf->key,
+              array_size(amconf->key),
               16<<MAPBITS,
               t->angle,
               cur_mapcolor_ykey!=-1? cur_mapcolor_ykey : cur_mapcolor_sprt,
@@ -2378,8 +2387,8 @@ static void AM_drawThings
           case 40: case 5: //jff blue key
             AM_drawLineCharacter
             (
-              cross_mark,
-              NUMCROSSMARKLINES,
+              amconf->key,
+              array_size(amconf->key),
               16<<MAPBITS,
               t->angle,
               cur_mapcolor_bkey!=-1? cur_mapcolor_bkey : cur_mapcolor_sprt,
@@ -2397,8 +2406,8 @@ static void AM_drawThings
       //jff previously entire code
       AM_drawLineCharacter
       (
-        thintriangle_guy,
-        NUMTHINTRIANGLEGUYLINES,
+        amconf->thing,
+        array_size(amconf->thing),
         t->radius >> FRACTOMAPBITS, // [crispy] triangle size represents actual thing size
         t->angle,
         // killough 8/8/98: mark friends specially

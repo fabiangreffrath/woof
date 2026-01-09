@@ -66,8 +66,23 @@ void AM_BindAutomapVariables(void);
 
 typedef struct
 {
- int64_t x,y;
+   int64_t x, y;
 } mpoint_t;
+
+typedef struct
+{
+    mpoint_t a, b;
+} mline_t;
+
+typedef struct
+{
+    mline_t *player;
+    mline_t *player_cheat;
+    mline_t *thing;
+    mline_t *key;
+} amconf_t;
+
+amconf_t *AM_ParseConf(void);
 
 extern mpoint_t *markpoints;
 extern int markpointnum, markpointnum_max;

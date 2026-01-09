@@ -1,7 +1,8 @@
 set(BASE_SOURCES
     all-all/animated.lmp
+    all-all/amconf.json
     all-all/chexdeh.lmp
-    all-all/compdb.lmp
+    all-all/compdb.json
     all-all/crblack.lmp
     all-all/crblue.lmp
     all-all/crblue2.lmp
@@ -79,8 +80,8 @@ set(BASE_SOURCES
     all-all/m_butt1.png
     all-all/m_butt2.png
     all-all/m_vbox.png
-    all-all/sbardef.lmp
-    all-all/sbhuddef.lmp
+    all-all/sbardef.json
+    all-all/sbhuddef.json
     all-all/skytran.lmp
 
     all-all/smbfgg0.png
