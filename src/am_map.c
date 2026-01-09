@@ -2653,8 +2653,14 @@ void AM_ColorPreset(void)
 
 void AM_ResetThickness(void)
 {
-    thickness = (map_line_thickness == 0) ? video.height / SCREENHEIGHT
-                                          : map_line_thickness;
+    if (!map_line_thickness)
+    {
+        thickness = MAX(1, video.height / SCREENHEIGHT - 1);
+    }
+    else
+    {
+        thickness = map_line_thickness;
+    }
 }
 
 void AM_BindAutomapVariables(void)
