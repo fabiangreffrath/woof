@@ -280,7 +280,6 @@ boolean P_GivePower(player_t *player, int power)
 // P_TouchSpecialThing
 //
 
-// Ty 03/22/98 - externalized strings
 static inline const boolean TouchThingVanilla(const int sprite,
                                               player_t *const player,
                                               const boolean dropped,
@@ -1094,13 +1093,16 @@ void P_DamageMobjBy(mobj_t *target,mobj_t *inflictor, mobj_t *source, int damage
   if (target->flags & MF_SKULLFLY)
     target->momx = target->momy = target->momz = 0;
 
-  if (source == target)
+  if (target == source || target == inflictor)
   {
-    damage = FixedMul(source->info->self_damage, damage);
-  }
-  else if (inflictor == target)
-  {
-    damage = FixedMul(inflictor->info->self_damage, damage);
+    if (source != NULL)
+    {
+      damage = FixedMul(damage, source->info->self_damage);
+    }
+    if (inflictor != NULL)
+    {
+      damage = FixedMul(damage, inflictor->info->self_damage);
+    }
   }
 
   player = target->player;
