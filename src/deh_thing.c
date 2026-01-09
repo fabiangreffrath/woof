@@ -533,7 +533,7 @@ static void DEH_ThingParseLine(deh_context_t *context, char *line, void *tag)
             ivalue = PG_GROUPLESS;
         }
     }
-    else if (!strcasecmp(variable_name, "Obituray"))
+    else if (!strcasecmp(variable_name, "Obituary"))
     {
         if (strlen(value) >= 1)
         {
@@ -541,7 +541,7 @@ static void DEH_ThingParseLine(deh_context_t *context, char *line, void *tag)
         }
         return;
     }
-    else if (!strcasecmp(variable_name, "Melee Obituray"))
+    else if (!strcasecmp(variable_name, "Melee Obituary"))
     {
         if (strlen(value) >= 1)
         {
@@ -549,7 +549,7 @@ static void DEH_ThingParseLine(deh_context_t *context, char *line, void *tag)
         }
         return;
     }
-    else if (!strcasecmp(variable_name, "Self Obituray"))
+    else if (!strcasecmp(variable_name, "Self Obituary"))
     {
         if (strlen(value) >= 1)
         {
