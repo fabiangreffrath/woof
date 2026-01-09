@@ -70,8 +70,6 @@ void R_InitColormaps(void);   // killough 8/9/98
 
 void R_InvulMode(void);
 
-boolean R_IsPatchLump (const int lump);
-
 extern int numflats;
 
 typedef enum

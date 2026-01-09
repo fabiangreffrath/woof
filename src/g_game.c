@@ -17,7 +17,6 @@
 //-----------------------------------------------------------------------------
 
 #include <errno.h>
-#include <math.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -28,12 +27,15 @@
 
 #include "am_map.h"
 #include "config.h"
-#include "d_deh.h" // Ty 3/27/98 deh declarations
 #include "d_event.h"
 #include "d_iwad.h"
 #include "d_main.h"
 #include "d_player.h"
 #include "d_ticcmd.h"
+#include "deh_bex_partimes.h"
+#include "deh_main.h"
+#include "deh_strings.h"
+#include "deh_misc.h"
 #include "doomdata.h"
 #include "doomdef.h"
 #include "doomkeys.h"
@@ -1752,7 +1754,7 @@ static void G_WriteLevelStat(void)
 // G_DoCompleted
 //
 
-boolean um_pars = false;
+boolean umapinfo_partimes = false;
 
 static void G_DoCompleted(void)
 {
@@ -1786,7 +1788,7 @@ static void G_DoCompleted(void)
 
   wminfo.lastmapinfo = gamemapinfo;
   wminfo.nextmapinfo = NULL;
-  um_pars = false;
+  umapinfo_partimes = false;
   if (gamemapinfo)
   {
     const char *next = NULL;
@@ -1828,7 +1830,7 @@ static void G_DoCompleted(void)
       wminfo.didsecret = players[consoleplayer].didsecret;
       wminfo.partime = gamemapinfo->partime * TICRATE;
       if (wminfo.partime > 0)
-        um_pars = true;
+        umapinfo_partimes = true;
       goto frommapinfo;	// skip past the default setup.
     }
   }
@@ -1903,12 +1905,12 @@ static void G_DoCompleted(void)
     {
       int cpars32;
 
-      memcpy(&cpars32, s_GAMMALVL0, sizeof(int));
+      memcpy(&cpars32, DEH_String(GAMMALVL0), sizeof(int));
       wminfo.partime = TICRATE*LONG(cpars32);
     }
     else if (gamemap >= 1 && gamemap <= 34)
     {
-      wminfo.partime = TICRATE*cpars[gamemap-1];
+      wminfo.partime = TICRATE * bex_cpars[gamemap - 1];
     }
   }
   else
@@ -1916,11 +1918,11 @@ static void G_DoCompleted(void)
     // Doom Episode 4 doesn't have a par time, so this overflows into the cpars[] array.
     if (demo_compatibility && gameepisode == 4 && gamemap >= 1 && gamemap <= 9)
     {
-      wminfo.partime = TICRATE*cpars[gamemap];
+      wminfo.partime = TICRATE * bex_cpars[gamemap - 1];
     }
-    else if (gameepisode >= 1 && gameepisode <= 3 && gamemap >= 1 && gamemap <= 9)
+    else if (gameepisode >= 1 && gameepisode <= 6 && gamemap >= 1 && gamemap <= 9)
     {
-      wminfo.partime = TICRATE*pars[gameepisode][gamemap];
+      wminfo.partime = TICRATE * bex_pars[gameepisode - 1][gamemap - 1];
     }
   }
 
@@ -2592,7 +2594,7 @@ static void DoSaveGame(char *name)
   }
   else
   {
-      displaymsg("%s", s_GGSAVED); // Ty 03/27/98 - externalized
+      displaymsg("%s", DEH_String(GGSAVED));
   }
 
   Z_Free(savebuffer);  // killough
@@ -3107,7 +3109,7 @@ void G_Ticker(void)
 		  cmd->forwardmove > TURBOTHRESHOLD &&
 		  !(gametic&31) && ((gametic>>5)&3) == i )
 		{
-		  displaymsg("%s is turbo!", *player_names[i]); // killough 9/29/98
+		  displaymsg("%s is turbo!", DEH_StringColorized(strings_players[i])); // killough 9/29/98
 		}
 
 	      if (netgame && !netdemo && !(gametic%ticdup) )
@@ -3236,12 +3238,12 @@ void G_PlayerReborn(int player)
 
   p->usedown = p->attackdown = true;  // don't do anything immediately
   p->playerstate = PST_LIVE;
-  p->health = initial_health;  // Ty 03/12/98 - use dehacked values
+  p->health = deh_initial_health;  // Ty 03/12/98 - use dehacked values
   p->lastweapon = wp_fist;
   p->nextweapon = p->readyweapon = p->pendingweapon = wp_pistol;
   p->weaponowned[wp_fist] = true;
   p->weaponowned[wp_pistol] = true;
-  p->ammo[am_clip] = initial_bullets; // Ty 03/12/98 - use dehacked values
+  p->ammo[am_clip] = deh_initial_bullets; // Ty 03/12/98 - use dehacked values
 
   for (i=0 ; i<NUMAMMO ; i++)
     p->maxammo[i] = maxammo[i];
@@ -3462,22 +3464,6 @@ void G_ScreenShot(void)
 {
   gameaction = ga_screenshot;
 }
-
-// DOOM Par Times
-int pars[4][10] = {
-  {0},
-  {0,30,75,120,90,165,180,180,30,165},
-  {0,90,90,90,120,90,360,240,30,170},
-  {0,90,45,90,150,90,90,165,30,135}
-};
-
-// DOOM II Par Times
-int cpars[34] = {
-  30,90,120,120,90,150,120,120,270,90,  //  1-10
-  210,150,150,150,210,150,420,150,210,150,  // 11-20
-  240,150,180,150,150,300,330,420,300,180,  // 21-30
-  120,30,30,30          // 31-34
-};
 
 //
 // G_WorldDone
@@ -4722,6 +4708,7 @@ static size_t WriteCmdLineLump(MEMFILE *stream)
     free(tmp);
   }
 
+  char **dehfiles = DEH_GetFileNames();
   if (dehfiles)
   {
     mem_fputs(" -deh", stream);
@@ -4933,6 +4920,20 @@ static boolean IsVanillaMap(int e, int m)
     }
 }
 
+static inline const char * GetVanillaMapname()
+{
+    return (gamemode != commercial) ? mapnames[(gameepisode - 1) * 9 + gamemap - 1] :
+          (gamemission == pack_tnt) ? mapnamest[gamemap - 1] :
+         (gamemission == pack_plut) ? mapnamesp[gamemap - 1] :
+                                      mapnames2[gamemap - 1];
+}
+
+static inline const char * GetVanillaMapnameOverflow()
+{
+    return (gamemission == doom2) ? mapnamesp[gamemap - 33] :
+       (gamemission == pack_plut) ? mapnamest[gamemap - 33] : "";
+}
+
 const char *G_GetLevelTitle(void)
 {
     const char *result = "";
@@ -4960,20 +4961,14 @@ const char *G_GetLevelTitle(void)
     {
         if (IsVanillaMap(gameepisode, gamemap))
         {
-            result = (gamemode != commercial)
-                         ? *mapnames[(gameepisode - 1) * 9 + gamemap - 1]
-                     : (gamemission == pack_tnt)  ? *mapnamest[gamemap - 1]
-                     : (gamemission == pack_plut) ? *mapnamesp[gamemap - 1]
-                                                  : *mapnames2[gamemap - 1];
+            result = DEH_String(GetVanillaMapname());
         }
         // WADs like pl2.wad have a MAP33, and rely on the layout in the
         // Vanilla executable, where it is possible to overflow the end of one
         // array into the next.
         else if (gamemode == commercial && gamemap >= 33 && gamemap <= 35)
         {
-            result = (gamemission == doom2)       ? *mapnamesp[gamemap - 33]
-                     : (gamemission == pack_plut) ? *mapnamest[gamemap - 33]
-                                                  : "";
+            result = DEH_String(GetVanillaMapnameOverflow());
         }
         else
         {

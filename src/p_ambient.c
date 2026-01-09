@@ -17,7 +17,8 @@
 
 #include <math.h>
 
-#include "dsdhacked.h"
+#include "deh_bex_sounds.h"
+#include "deh_thing.h"
 #include "g_game.h"
 #include "i_sound.h"
 #include "info.h"
@@ -293,6 +294,6 @@ void P_InitAmbientSoundMobjInfo(void)
         .obituary_melee = NULL,
     };
 
-    zmt_ambientsound = dsdh_GetNewMobjInfoIndex();
+    zmt_ambientsound = DEH_MobjInfoGetNewIndex();
     mobjinfo[zmt_ambientsound] = amb_mobjinfo;
 }
