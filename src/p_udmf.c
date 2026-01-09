@@ -1422,5 +1422,6 @@ void UDMF_LoadMap(int lumpnum, nodeformat_t *nodeformat, int *gen_blockmap,
 
     *gen_blockmap = UDMF_LoadBlockMap(blockmap_num);
     P_LoadNodes_ZDoom(znodes_num, *nodeformat);
+    P_GroupLines();
     *pad_reject = UDMF_LoadReject(reject_num);
 }

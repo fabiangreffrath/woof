@@ -67,7 +67,7 @@ static void *DEH_BEXIncludeStart(deh_context_t *context, char *line)
     {
         // second, try loading the file in the directory of the current file
         char *dir = M_DirName(deh_file);
-        try_path = M_StringJoin(dir, DIR_SEPARATOR_S, inc_file, NULL);
+        try_path = M_StringJoin(dir, DIR_SEPARATOR_S, inc_file);
         free(dir);
     }
 

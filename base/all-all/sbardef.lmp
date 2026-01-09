@@ -768,7 +768,7 @@
           {
             "component": {
               "x": 2,
-              "y": 160,
+              "y": -8,
               "alignment": 64,
               "tranmap": null,
               "translation": null,
@@ -786,7 +786,7 @@
           {
             "component": {
               "x": 2,
-              "y": 152,
+              "y": -16,
               "alignment": 64,
               "tranmap": null,
               "translation": null,
@@ -808,7 +808,7 @@
           {
             "component": {
               "x": 2,
-              "y": 160,
+              "y": -8,
               "alignment": 64,
               "tranmap": null,
               "translation": null,
@@ -830,7 +830,7 @@
           {
             "component": {
               "x": 2,
-              "y": 8,
+              "y": -160,
               "alignment": 64,
               "tranmap": null,
               "translation": null,
@@ -849,7 +849,7 @@
           {
             "component": {
               "x": 2,
-              "y": 40,
+              "y": -128,
               "alignment": 64,
               "tranmap": null,
               "translation": null,
@@ -867,7 +867,7 @@
           {
             "component": {
               "x": 318,
-              "y": 8,
+              "y": -160,
               "alignment": 130,
               "tranmap": null,
               "translation": null,
@@ -885,7 +885,7 @@
           {
             "component": {
               "x": 256,
-              "y": 8,
+              "y": -160,
               "alignment": 128,
               "tranmap": null,
               "translation": null,
@@ -904,7 +904,7 @@
           {
             "component": {
               "x": 318,
-              "y": 0,
+              "y": -168,
               "alignment": 130,
               "tranmap": null,
               "translation": null,
@@ -917,7 +917,7 @@
           {
             "component": {
               "x": 2,
-              "y": 8,
+              "y": -160,
               "alignment": 0,
               "tranmap": null,
               "translation": null,
@@ -930,7 +930,7 @@
           {
             "component": {
               "x": 318,
-              "y": 167,
+              "y": -1,
               "alignment": 138,
               "tranmap": null,
               "translation": null,
@@ -943,7 +943,7 @@
           {
             "component": {
               "x": 160,
-              "y": 167,
+              "y": -1,
               "alignment": 9,
               "tranmap": null,
               "translation": null,
@@ -956,7 +956,7 @@
           {
             "component": {
               "x": 0,
-              "y": 0,
+              "y": -168,
               "alignment": 64,
               "tranmap": null,
               "translation": null,
@@ -970,7 +970,7 @@
           {
             "component": {
               "x": 160,
-              "y": 52,
+              "y": -116,
               "alignment": 1,
               "tranmap": null,
               "translation": null,
@@ -984,7 +984,7 @@
           {
             "component": {
               "x": 0,
-              "y": 8,
+              "y": -160,
               "alignment": 64,
               "tranmap": null,
               "translation": "CRGOLD",
@@ -997,7 +997,7 @@
           {
             "component": {
               "x": 0,
-              "y": 160,
+              "y": -8,
               "alignment": 64,
               "tranmap": null,
               "translation": "CRGOLD",
@@ -1015,7 +1015,7 @@
           {
             "carousel": {
               "x": 0,
-              "y": 18,
+              "y": -150,
               "alignment": 0,
               "tranmap": null,
               "translation": null,

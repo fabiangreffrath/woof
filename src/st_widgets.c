@@ -72,14 +72,14 @@ void ST_ClearLines(sbe_widget_t *widget)
 
 void ST_AddLine(sbe_widget_t *widget, const char *string)
 {
-    widgetline_t line = { .string = string };
+    stringline_t line = { .string = string };
     array_push(widget->lines, line);
 }
 
 static void SetLine(sbe_widget_t *widget, const char *string)
 {
     array_clear(widget->lines);
-    widgetline_t line = { .string = string };
+    stringline_t line = { .string = string };
     array_push(widget->lines, line);
 }
 

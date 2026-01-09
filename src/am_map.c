@@ -800,6 +800,7 @@ boolean AM_Responder
     {
       AM_Start ();
       viewactive = false;
+      st_refresh_background = true;
       rc = true;
     }
   }
@@ -857,6 +858,7 @@ boolean AM_Responder
       {
         bigstate = 0;
         viewactive = true;
+        st_refresh_background = true;
         AM_Stop ();
       }
       else
@@ -916,6 +918,7 @@ boolean AM_Responder
 
       AM_initScreenSize();
       AM_activateNewScale();
+      st_refresh_background = true;
     }
     else if (M_InputActivated(input_map_rotate))
     {
