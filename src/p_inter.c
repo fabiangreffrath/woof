@@ -726,7 +726,7 @@ static inline const boolean TouchThingID24(const mobjinfo_t *const info,
     boolean handle = false;
 
 
-		const char* mnemonic = info->pickup_mnemonic;
+    const char* mnemonic = info->pickup_mnemonic;
     switch (info->pickup_item_type)
     {
         case item_noitem:
