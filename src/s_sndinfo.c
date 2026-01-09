@@ -17,9 +17,9 @@
 
 #include <math.h>
 
-#include "doomtype.h"
+#include "deh_bex_sounds.h"
 #include "doomdef.h"
-#include "dsdhacked.h"
+#include "doomtype.h"
 #include "i_printf.h"
 #include "i_sound.h"
 #include "m_array.h"
@@ -281,7 +281,7 @@ static boolean ResolveAmbientSounds(sound_def_t *sound_defs,
 
                 if (!strcasecmp(sound_name, def->sound_name))
                 {
-                    amb->sfx_id = dsdh_GetNewSFXIndex();
+                    amb->sfx_id = DEH_SoundsGetNewIndex();
                     sfxinfo_t *sfx = &S_sfx[amb->sfx_id];
                     sfx->name = M_StringDuplicate(def->lump_name);
                     sfx->lumpnum = def->lumpnum;

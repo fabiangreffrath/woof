@@ -1269,12 +1269,6 @@ static boolean UDMF_LoadBlockMap(int blockmap_num)
     long count;
     boolean ret = true;
 
-    //!
-    // @category mod
-    //
-    // Forces a (re-)building of the BLOCKMAP lumps for loaded maps.
-    //
-
     // [FG] always rebuild too short blockmaps
     if (M_CheckParm("-blockmap")
         || (count = W_LumpLengthWithName(blockmap_num, "BLOCKMAP") / 2)
@@ -1428,5 +1422,6 @@ void UDMF_LoadMap(int lumpnum, nodeformat_t *nodeformat, int *gen_blockmap,
 
     *gen_blockmap = UDMF_LoadBlockMap(blockmap_num);
     P_LoadNodes_ZDoom(znodes_num, *nodeformat);
+    P_GroupLines();
     *pad_reject = UDMF_LoadReject(reject_num);
 }

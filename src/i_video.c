@@ -54,7 +54,7 @@
 #include "r_plane.h"
 #include "r_voxel.h"
 #include "st_stuff.h"
-#include "v_fmt.h"
+#include "v_patch.h"
 #include "v_video.h"
 #include "w_wad.h"
 #include "z_zone.h"

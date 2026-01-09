@@ -135,12 +135,6 @@ extern boolean haswolflevels;  //jff 4/18/98 wolf levels present
 
 extern int  bodyquesize, default_bodyquesize; // killough 2/8/98, 10/98
 
-// killough 5/2/98: moved from d_deh.c:
-// Par times (new item with BOOM) - from g_game.c
-extern int pars[][10];  // hardcoded array size
-extern int cpars[];     // hardcoded array size
-extern boolean um_pars;
-
 extern boolean secretexit;
 
 extern byte *demo_p;

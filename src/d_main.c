@@ -20,7 +20,10 @@
 //
 //-----------------------------------------------------------------------------
 
+#if defined(_WIN32)
 #include <ctype.h>
+#endif
+
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,7 +31,6 @@
 
 #include "am_map.h"
 #include "config.h"
-#include "d_deh.h"  // Ty 04/08/98 - Externalizations
 #include "d_demoloop.h"
 #include "d_event.h"
 #include "d_iwad.h"
@@ -36,10 +38,12 @@
 #include "d_main.h"
 #include "d_player.h"
 #include "d_ticcmd.h"
+#include "deh_main.h"
+#include "deh_strings.h"
+#include "deh_thing.h"
 #include "doomdef.h"
 #include "doomstat.h"
-#include "dsdhacked.h"
-#include "dstrings.h"
+#include "doomtype.h"
 #include "f_finale.h"
 #include "f_wipe.h"
 #include "g_compatibility.h"
@@ -57,7 +61,6 @@
 #include "m_argv.h"
 #include "m_array.h"
 #include "m_config.h"
-#include "m_fixed.h"
 #include "m_input.h"
 #include "m_io.h"
 #include "mn_menu.h"
@@ -65,10 +68,7 @@
 #include "m_swap.h"
 #include "net_client.h"
 #include "net_dedicated.h"
-#include "p_ambient.h"
-#include "p_inter.h" // maxhealthbonus
-#include "p_map.h"   // MELEERANGE
-#include "p_mobj.h"
+#include "deh_misc.h" // deh_max_health_bonus
 #include "p_setup.h"
 #include "r_bmaps.h"
 #include "r_defs.h"
@@ -76,61 +76,19 @@
 #include "r_main.h"
 #include "r_state.h"
 #include "r_voxel.h"
+#include "s_sndinfo.h"
 #include "s_sound.h"
-#include "sounds.h"
 #include "s_trakinfo.h"
 #include "st_stuff.h"
 #include "st_widgets.h"
 #include "statdump.h"
 #include "g_umapinfo.h"
-#include "v_fmt.h"
+#include "v_patch.h"
 #include "v_video.h"
 #include "w_wad.h"
 #include "wi_stuff.h"
 #include "ws_stuff.h"
 #include "z_zone.h"
-
-// DEHacked support - Ty 03/09/97
-// killough 10/98:
-// Add lump number as third argument, for use when filename==NULL
-void ProcessDehFile(const char *filename, char *outfilename, int lump);
-
-// mbf21
-void PostProcessDeh(void);
-
-// killough 10/98: support -dehout filename
-static char *D_dehout(void)
-{
-  static char *s;      // cache results over multiple calls
-  if (!s)
-    {
-      //!
-      // @category mod
-      // @arg <filename>
-      //
-      // Enables verbose dehacked parser logging.
-      //
-
-      int p = M_CheckParm("-dehout");
-      if (!p)
-
-        //!
-        // @category mod
-        // @arg <filename>
-        //
-        // Alias to -dehout.
-        //
-
-        p = M_CheckParm("-bexout");
-      s = p && ++p < myargc ? myargv[p] : "";
-    }
-  return s;
-}
-
-static void ProcessDehLump(int lumpnum)
-{
-  ProcessDehFile(NULL, D_dehout(), lumpnum);
-}
 
 boolean devparm;        // started game with -devparm
 
@@ -174,6 +132,7 @@ boolean advancedemo;
 char    *basedefault = NULL;   // default file
 char    *basesavegame = NULL;  // killough 2/16/98: savegame directory
 char    *screenshotdir = NULL; // [FG] screenshot directory
+char    *savegamename = NULL;
 
 int organize_savefiles;
 
@@ -807,7 +766,7 @@ static boolean FileContainsMaps(const char *filename)
 
 const char *gamedescription = NULL;
 
-void IdentifyVersion(void)
+static void IdentifyVersion(void)
 {
     // get config file from same directory as executable
     // killough 10/98
@@ -1262,74 +1221,6 @@ static void M_AddLooseFiles(void)
     myargv = newargv;
 }
 
-// killough 10/98: moved code to separate function
-
-static void D_ProcessDehCommandLine(void)
-{
-  // ty 03/09/98 do dehacked stuff
-  // Note: do this before any other since it is expected by
-  // the deh patch author that this is actually part of the EXE itself
-  // Using -deh in BOOM, others use -dehacked.
-  // Ty 03/18/98 also allow .bex extension.  .bex overrides if both exist.
-  // killough 11/98: also allow -bex
-
-  //!
-  // @arg <files>
-  // @category mod
-  // @help
-  //
-  // Load the given dehacked/bex patch(es).
-  //
-
-  int p = M_CheckParm ("-deh");
-
-  //!
-  // @arg <files>
-  // @category mod
-  //
-  // Alias to -deh.
-  //
-
-  if (p || (p = M_CheckParm("-bex")))
-    {
-      // the parms after p are deh/bex file names,
-      // until end of parms or another - preceded parm
-      // Ty 04/11/98 - Allow multiple -deh files in a row
-      // killough 11/98: allow multiple -deh parameters
-
-      boolean deh = true;
-      while (++p < myargc)
-        if (*myargv[p] == '-')
-          deh = !strcasecmp(myargv[p],"-deh") || !strcasecmp(myargv[p],"-bex");
-        else
-          if (deh)
-            {
-              char *probe;
-              char *file = AddDefaultExtension(myargv[p], ".bex");
-              probe = D_TryFindWADByName(file);
-              free(file);
-              if (M_access(probe, F_OK))  // nope
-                {
-                  free(probe);
-                  file = AddDefaultExtension(myargv[p], ".deh");
-                  probe = D_TryFindWADByName(file);
-                  free(file);
-                  if (M_access(probe, F_OK))  // still nope
-                  {
-                    free(probe);
-                    I_Error("Cannot find .deh or .bex file named %s",
-                            myargv[p]);
-                  }
-                }
-              // during the beta we have debug output to dehout.txt
-              // (apparently, this was never removed after Boom beta-killough)
-              ProcessDehFile(probe, D_dehout(), 0);  // killough 10/98
-              free(probe);
-            }
-    }
-  // ty 03/09/98 end of do dehacked stuff
-}
-
 // Load all WAD files from the given directory.
 
 static void AutoLoadWADs(const char *path)
@@ -1505,113 +1396,17 @@ static void AutoloadPWadDir(void (*AutoLoadFunc)(const char *path))
     }
 }
 
-// Load all dehacked patches from the given directory.
-
-static void AutoLoadPatches(const char *path)
-{
-    const char *filename;
-    glob_t *glob;
-
-    glob = I_StartMultiGlob(path, GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
-                            "*.deh", "*.bex");
-    for (;;)
-    {
-        filename = I_NextGlob(glob);
-        if (filename == NULL)
-        {
-            break;
-        }
-        ProcessDehFile(filename, D_dehout(), 0);
-    }
-
-    I_EndGlob(glob);
-}
-
-// mbf21: don't want to reorganize info.c structure for a few tweaks...
-
-static void D_InitTables(void)
-{
-  int i;
-  for (i = 0; i < num_mobj_types; ++i)
-  {
-    mobjinfo[i].flags2           = 0;
-    mobjinfo[i].infighting_group = IG_DEFAULT;
-    mobjinfo[i].projectile_group = PG_DEFAULT;
-    mobjinfo[i].splash_group     = SG_DEFAULT;
-    mobjinfo[i].ripsound         = sfx_None;
-    mobjinfo[i].altspeed         = NO_ALTSPEED;
-    mobjinfo[i].meleerange       = MELEERANGE;
-    // [Woof!]
-    mobjinfo[i].bloodcolor       = 0; // Normal
-    // DEHEXTRA
-    mobjinfo[i].droppeditem      = MT_NULL;
-  }
-
-  mobjinfo[MT_VILE].flags2    = MF2_SHORTMRANGE | MF2_DMGIGNORED | MF2_NOTHRESHOLD;
-  mobjinfo[MT_CYBORG].flags2  = MF2_NORADIUSDMG | MF2_HIGHERMPROB | MF2_RANGEHALF |
-                                MF2_FULLVOLSOUNDS | MF2_E2M8BOSS | MF2_E4M6BOSS;
-  mobjinfo[MT_SPIDER].flags2  = MF2_NORADIUSDMG | MF2_RANGEHALF | MF2_FULLVOLSOUNDS |
-                                MF2_E3M8BOSS | MF2_E4M8BOSS;
-  mobjinfo[MT_SKULL].flags2   = MF2_RANGEHALF;
-  mobjinfo[MT_FATSO].flags2   = MF2_MAP07BOSS1;
-  mobjinfo[MT_BABY].flags2    = MF2_MAP07BOSS2;
-  mobjinfo[MT_BRUISER].flags2 = MF2_E1M8BOSS;
-  mobjinfo[MT_UNDEAD].flags2  = MF2_LONGMELEE | MF2_RANGEHALF;
-
-  mobjinfo[MT_BRUISER].projectile_group = PG_BARON;
-  mobjinfo[MT_KNIGHT].projectile_group = PG_BARON;
-
-  mobjinfo[MT_BRUISERSHOT].altspeed = 20 * FRACUNIT;
-  mobjinfo[MT_HEADSHOT].altspeed = 20 * FRACUNIT;
-  mobjinfo[MT_TROOPSHOT].altspeed = 20 * FRACUNIT;
-
-  // DEHEXTRA
-  mobjinfo[MT_WOLFSS].droppeditem = MT_CLIP;
-  mobjinfo[MT_POSSESSED].droppeditem = MT_CLIP;
-  mobjinfo[MT_SHOTGUY].droppeditem = MT_SHOTGUN;
-  mobjinfo[MT_CHAINGUY].droppeditem = MT_CHAINGUN;
-
-  // [crispy] randomly mirrored death animations
-  for (i = MT_PLAYER; i <= MT_KEEN; ++i)
-  {
-    switch (i)
-    {
-      case MT_FIRE:
-      case MT_TRACER:
-      case MT_SMOKE:
-      case MT_FATSHOT:
-      case MT_BRUISERSHOT:
-      case MT_CYBORG:
-        continue;
-    }
-    mobjinfo[i].flags_extra |= MFX_MIRROREDCORPSE;
-  }
-
-  mobjinfo[MT_PUFF].flags_extra |= MFX_MIRROREDCORPSE;
-  mobjinfo[MT_BLOOD].flags_extra |= MFX_MIRROREDCORPSE;
-
-  for (i = MT_MISC61; i <= MT_MISC69; ++i)
-     mobjinfo[i].flags_extra |= MFX_MIRROREDCORPSE;
-
-  mobjinfo[MT_DOGS].flags_extra |= MFX_MIRROREDCORPSE;
-
-  for (i = S_SARG_RUN1; i <= S_SARG_PAIN2; ++i)
-    states[i].flags |= STATEF_SKILL5FAST;
-
-  P_InitAmbientSoundMobjInfo();
-}
-
 void D_SetMaxHealth(void)
 {
   if (demo_compatibility)
   {
-    maxhealth = 100;
-    maxhealthbonus = deh_set_maxhealth ? deh_maxhealth : 200;
+    deh_max_health = 100;
+    deh_max_health_bonus = deh_set_maxhealth ? deh_max_health : 200;
   }
   else
   {
-    maxhealth = deh_set_maxhealth ? deh_maxhealth : 100;
-    maxhealthbonus = maxhealth * 2;
+    deh_max_health = deh_set_maxhealth ? deh_max_health : 100;
+    deh_max_health_bonus = deh_max_health * 2;
   }
 }
 
@@ -1880,37 +1675,9 @@ void D_DoomMain(void)
   // [FG] emulate a specific version of Doom
   InitGameVersion();
 
-  dsdh_InitTables();
-
-  D_InitTables();
+  DEH_InitTables();
 
   modifiedgame = false;
-
-  // killough 7/19/98: beta emulation option
-
-  //!
-  // @category game
-  //
-  // Press beta emulation mode (complevel mbf only).
-  //
-
-  beta_emulation = !!M_CheckParm("-beta");
-
-  if (beta_emulation)
-    { // killough 10/98: beta lost soul has different behavior frames
-      mobjinfo[MT_SKULL].spawnstate   = S_BSKUL_STND;
-      mobjinfo[MT_SKULL].seestate     = S_BSKUL_RUN1;
-      mobjinfo[MT_SKULL].painstate    = S_BSKUL_PAIN1;
-      mobjinfo[MT_SKULL].missilestate = S_BSKUL_ATK1;
-      mobjinfo[MT_SKULL].deathstate   = S_BSKUL_DIE1;
-      mobjinfo[MT_SKULL].damage       = 1;
-    }
-#ifdef MBF_STRICT
-  // This code causes MT_SCEPTRE and MT_BIBLE to not spawn on the map,
-  // which causes desync in Eviternity.wad demos.
-  else
-    mobjinfo[MT_SCEPTRE].doomednum = mobjinfo[MT_BIBLE].doomednum = -1;
-#endif
 
   // jff 1/24/98 set both working and command line value of play parms
 
@@ -2014,7 +1781,7 @@ void D_DoomMain(void)
     deathmatch = 3;
 
   if (devparm)
-    I_Printf(VB_INFO, "%s", D_DEVSTR);
+    I_Printf(VB_INFO, DEH_String(D_DEVSTR));
 
   //!
   // @category game
@@ -2311,7 +2078,7 @@ void D_DoomMain(void)
   // Always process chex.deh first
   if (gamemission == pack_chex)
   {
-    ProcessDehLump(W_GetNumForName("chexdeh"));
+    DEH_LoadLumpByName("CHEXDEH");
   }
 
   // Check for wolf levels
@@ -2327,26 +2094,26 @@ void D_DoomMain(void)
 
   if (!M_ParmExists("-nodeh"))
   {
-    W_ProcessInWads("DEHACKED", ProcessDehLump, PROCESS_IWAD);
+    W_ProcessInWads("DEHACKED", DEH_LoadLump, PROCESS_IWAD);
   }
 
   // process .deh files specified on the command line with -deh or -bex.
-  D_ProcessDehCommandLine();
+  DEH_ParseCommandLine();
 
   // process deh in wads and .deh files from autoload directory
   // before deh in wads from -file parameter
-  AutoloadIWadDir(AutoLoadPatches);
+  AutoloadIWadDir(DEH_AutoLoadPatches);
 
   // killough 10/98: now process all deh in wads
   if (!M_ParmExists("-nodeh"))
   {
-    W_ProcessInWads("DEHACKED", ProcessDehLump, PROCESS_PWAD);
+    W_ProcessInWads("DEHACKED", DEH_LoadLump, PROCESS_PWAD);
   }
 
   // process .deh files from PWADs autoload directories
-  AutoloadPWadDir(AutoLoadPatches);
+  AutoloadPWadDir(DEH_AutoLoadPatches);
 
-  PostProcessDeh();
+  DEH_PostProcess();
 
   W_ProcessInWads("BRGHTMPS", R_ParseBrightmaps, PROCESS_PWAD);
 
@@ -2398,11 +2165,11 @@ void D_DoomMain(void)
 
   // Ty 04/08/98 - Add 5 lines of misc. data, only if nonblank
   // The expectation is that these will be set in a .bex file
-  if (*startup1) I_Printf(VB_INFO, "%s", startup1);
-  if (*startup2) I_Printf(VB_INFO, "%s", startup2);
-  if (*startup3) I_Printf(VB_INFO, "%s", startup3);
-  if (*startup4) I_Printf(VB_INFO, "%s", startup4);
-  if (*startup5) I_Printf(VB_INFO, "%s", startup5);
+  if (DEH_HasStringReplacement(STARTUP1)) I_Printf(VB_INFO, DEH_String(STARTUP1));
+  if (DEH_HasStringReplacement(STARTUP2)) I_Printf(VB_INFO, DEH_String(STARTUP2));
+  if (DEH_HasStringReplacement(STARTUP3)) I_Printf(VB_INFO, DEH_String(STARTUP3));
+  if (DEH_HasStringReplacement(STARTUP4)) I_Printf(VB_INFO, DEH_String(STARTUP4));
+  if (DEH_HasStringReplacement(STARTUP5)) I_Printf(VB_INFO, DEH_String(STARTUP5));
   // End new startup strings
 
   //!

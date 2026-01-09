@@ -21,6 +21,7 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
+#include "f_finale.h"
 #include "m_array.h"
 #include "m_misc.h"
 #include "m_scanner.h"
@@ -383,6 +384,11 @@ static void ParseStandardProperty(scanner_t *s, mapentry_t *mape)
             mape->flags &= ~MapInfo_EndGameBunny;
             mape->flags |= MapInfo_EndGameClear;
         }
+    }
+    else if (!strcasecmp(prop, "endfinale"))
+    {
+        mape->flags |= MapInfo_EndGameCustomFinale;
+        ParseLumpName(s, mape->endfinale);
     }
     else if (!strcasecmp(prop, "endgame"))
     {

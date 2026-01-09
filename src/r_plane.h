@@ -34,7 +34,7 @@ extern int maxopenings;
 extern int *openings, *lastopening; // [FG] 32-bit integer math
 
 extern int *floorclip, *ceilingclip; // [FG] 32-bit integer math
-extern fixed_t *yslope, *distscale;
+extern fixed_t *yslope;
 
 void R_InitPlanes(void);
 void R_ClearPlanes(void);
