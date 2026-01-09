@@ -76,7 +76,7 @@ static void D_ParseOutroWipe(json_t *json, demoloop_entry_t *entry)
 {
     entry->outro_wipe = JS_GetIntegerValue(json, "outrowipe");
 
-    if (entry->outro_wipe < wipe_None || entry->outro_wipe > wipe_DemoLoopMax)
+    if (entry->outro_wipe < wipe_None || entry->outro_wipe >= wipe_NUMWIPES)
     {
         I_Printf(VB_WARNING, "DEMOLOOP: invalid outrowipe, using screen melt");
         entry->outro_wipe = wipe_Melt;

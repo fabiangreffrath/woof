@@ -32,7 +32,6 @@ typedef enum wipefx_e
   wipe_Fizzle,    // random pixels disapear
 
   wipe_NUMWIPES,
-  wipe_DemoLoopMax = wipe_Crossfade,
 } wipefx_t;
 
 int wipe_ScreenWipe (int x, int y, int width, int height, int ticks);
