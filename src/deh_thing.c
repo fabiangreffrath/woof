@@ -78,6 +78,7 @@ void DEH_InitMobjInfo(void)
         mobjinfo[i].pickup_sound       = sfx_None;
         mobjinfo[i].pickup_bonus       = 6;
         mobjinfo[i].pickup_mnemonic    = NULL;
+        mobjinfo[i].self_damage        = IntToFixed(1);
         // Eternity
         mobjinfo[i].bloodcolor = 0;
     }
@@ -223,6 +224,7 @@ void DEH_MobjInfoEnsureCapacity(int limit)
         mobjinfo[i].pickup_sound       = sfx_None;
         mobjinfo[i].pickup_bonus       = 6;
         mobjinfo[i].pickup_mnemonic    = NULL;
+        mobjinfo[i].self_damage        = IntToFixed(1);
     }
 }
 
@@ -359,6 +361,7 @@ DEH_BEGIN_MAPPING(thing_mapping, mobjinfo_t)
     DEH_MAPPING("Pickup sound", pickup_sound)
     DEH_MAPPING("Pickup message", pickup_mnemonic)
     DEH_UNSUPPORTED_MAPPING("Translation")
+    DEH_MAPPING("Self damage factor", self_damage)
     // mbf2y
     DEH_UNSUPPORTED_MAPPING("MBF2y Bits")
     DEH_UNSUPPORTED_MAPPING("Melee threshold")            // p.f crispy

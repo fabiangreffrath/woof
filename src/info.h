@@ -26,6 +26,7 @@
 #include "d_think.h"
 #include "doomdef.h"
 #include "doomtype.h"
+#include "m_fixed.h"
 
 #define MAXSTATEARGS 8
 
@@ -1535,6 +1536,7 @@ typedef struct
     int pickup_sound;
     int pickup_bonus;
     const char *pickup_mnemonic;
+    fixed_t self_damage;
 
     // MBF2y
     const char *obituary, *obituary_melee, *obituary_self;

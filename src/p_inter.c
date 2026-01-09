@@ -1094,6 +1094,15 @@ void P_DamageMobjBy(mobj_t *target,mobj_t *inflictor, mobj_t *source, int damage
   if (target->flags & MF_SKULLFLY)
     target->momx = target->momy = target->momz = 0;
 
+  if (source == target)
+  {
+    damage = FixedMul(source->info->self_damage, damage);
+  }
+  else if (inflictor == target)
+  {
+    damage = FixedMul(inflictor->info->self_damage, damage);
+  }
+
   player = target->player;
   if (player && (gameskill == sk_baby || halfplayerdamage))
     damage >>= 1;   // take half damage in trainer mode
