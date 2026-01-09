@@ -20,6 +20,7 @@
 #include "p_inter.h"
 
 #include "am_map.h"
+#include "d_englsh.h"
 #include "deh_bex_strings.h"
 #include "deh_strings.h"
 #include "d_items.h"
@@ -280,13 +281,14 @@ boolean P_GivePower(player_t *player, int power)
 // P_TouchSpecialThing
 //
 
-static inline const boolean TouchThingVanilla(const int sprite,
+static inline const boolean TouchThingVanilla(const mobj_t *const special,
                                               player_t *const player,
                                               const boolean dropped,
                                               int *const sound)
 {
+    const char *message = NULL;
     // Identify by sprite.
-    switch (sprite)
+    switch (special->sprite)
     {
         // armor
         case SPR_ARM1:
@@ -294,7 +296,7 @@ static inline const boolean TouchThingVanilla(const int sprite,
             {
                 return false;
             }
-            pickupmsg(player, DEH_String(GOTARMOR));
+            message = GOTARMOR;
             break;
 
         case SPR_ARM2:
@@ -302,7 +304,7 @@ static inline const boolean TouchThingVanilla(const int sprite,
             {
                 return false;
             }
-            pickupmsg(player, DEH_String(GOTMEGA));
+            message = GOTMEGA;
             break;
 
         // bonus items
@@ -310,14 +312,14 @@ static inline const boolean TouchThingVanilla(const int sprite,
             // killough 7/11/98: beta version items did not have any effect
             if (beta_emulation)
             {
-                pickupmsg(player, "You pick up a demonic dagger.");
+                message = BETA_BONUS1;
                 break;
             }
 
             player->health++; // can go over 100%
             player->health = MIN(player->health, deh_max_health_bonus);
             player->mo->health = player->health;
-            pickupmsg(player, DEH_String(GOTHTHBONUS));
+            message = GOTHTHBONUS;
             break;
 
         case SPR_BON2:
@@ -325,7 +327,7 @@ static inline const boolean TouchThingVanilla(const int sprite,
             // killough 7/11/98: beta version items did not have any effect
             if (beta_emulation)
             {
-                pickupmsg(player, "You pick up a skullchest.");
+                message = BETA_BONUS2;
                 break;
             }
 
@@ -335,24 +337,24 @@ static inline const boolean TouchThingVanilla(const int sprite,
             {
                 player->armortype = deh_green_armor_class;
             }
-            pickupmsg(player, DEH_String(GOTARMBONUS));
+            message = GOTARMBONUS;
             break;
 
         case SPR_BON3:
             // killough 7/11/98: evil sceptre from beta version
-            pickupmsg(player, DEH_String(BETA_BONUS3));
+            message = BETA_BONUS3;
             break;
 
         case SPR_BON4:
             // killough 7/11/98: unholy bible from beta version
-            pickupmsg(player, DEH_String(BETA_BONUS4));
+            message = BETA_BONUS4;
             break;
 
         case SPR_SOUL:
             player->health += deh_soulsphere_health;
             player->health = MIN(player->health, deh_max_soulsphere);
             player->mo->health = player->health;
-            pickupmsg(player, DEH_String(GOTSUPER));
+            message = GOTSUPER;
             *sound = sfx_getpow;
             break;
 
@@ -364,7 +366,7 @@ static inline const boolean TouchThingVanilla(const int sprite,
             player->health = deh_megasphere_health;
             player->mo->health = player->health;
             P_GiveArmor(player, deh_blue_armor_class);
-            pickupmsg(player, DEH_String(GOTMSPHERE));
+            message = GOTMSPHERE;
             *sound = sfx_getpow;
             break;
 
@@ -373,7 +375,7 @@ static inline const boolean TouchThingVanilla(const int sprite,
         case SPR_BKEY:
             if (!player->cards[it_bluecard])
             {
-                pickupmsg(player, DEH_String(GOTBLUECARD));
+                message = GOTBLUECARD;
             }
             P_GiveCard(player, it_bluecard);
             if (!netgame)
@@ -385,7 +387,7 @@ static inline const boolean TouchThingVanilla(const int sprite,
         case SPR_YKEY:
             if (!player->cards[it_yellowcard])
             {
-                pickupmsg(player, DEH_String(GOTYELWCARD));
+                message = GOTYELWCARD;
             }
             P_GiveCard(player, it_yellowcard);
             if (!netgame)
@@ -397,7 +399,7 @@ static inline const boolean TouchThingVanilla(const int sprite,
         case SPR_RKEY:
             if (!player->cards[it_redcard])
             {
-                pickupmsg(player, DEH_String(GOTREDCARD));
+                message = GOTREDCARD;
             }
             P_GiveCard(player, it_redcard);
             if (!netgame)
@@ -409,7 +411,7 @@ static inline const boolean TouchThingVanilla(const int sprite,
         case SPR_BSKU:
             if (!player->cards[it_blueskull])
             {
-                pickupmsg(player, DEH_String(GOTBLUESKUL));
+                message = GOTBLUESKUL;
             }
             P_GiveCard(player, it_blueskull);
             if (!netgame)
@@ -421,7 +423,7 @@ static inline const boolean TouchThingVanilla(const int sprite,
         case SPR_YSKU:
             if (!player->cards[it_yellowskull])
             {
-                pickupmsg(player, DEH_String(GOTYELWSKUL));
+                message = GOTYELWSKUL;
             }
             P_GiveCard(player, it_yellowskull);
             if (!netgame)
@@ -433,7 +435,7 @@ static inline const boolean TouchThingVanilla(const int sprite,
         case SPR_RSKU:
             if (!player->cards[it_redskull])
             {
-                pickupmsg(player, DEH_String(GOTREDSKULL));
+                message = GOTREDSKULL;
             }
             P_GiveCard(player, it_redskull);
             if (!netgame)
@@ -448,7 +450,7 @@ static inline const boolean TouchThingVanilla(const int sprite,
             {
                 return false;
             }
-            pickupmsg(player, DEH_String(GOTSTIM));
+            message = GOTSTIM;
             break;
 
         case SPR_MEDI:
@@ -460,11 +462,11 @@ static inline const boolean TouchThingVanilla(const int sprite,
             // [FG] show "Picked up a Medikit that you really need" message as intended
             if (player->health < 50)
             {
-                pickupmsg(player, DEH_String(GOTMEDINEED));
+                message = GOTMEDINEED;
             }
             else
             {
-                pickupmsg(player, DEH_String(GOTMEDIKIT));
+                message = GOTMEDIKIT;
             }
             break;
 
@@ -474,7 +476,7 @@ static inline const boolean TouchThingVanilla(const int sprite,
             {
                 return false;
             }
-            pickupmsg(player, DEH_String(GOTINVUL));
+            message = GOTINVUL;
             *sound = sfx_getpow;
             break;
 
@@ -483,7 +485,7 @@ static inline const boolean TouchThingVanilla(const int sprite,
             {
                 return false;
             }
-            pickupmsg(player, DEH_String(GOTBERSERK));
+            message = GOTBERSERK;
             if (player->readyweapon != wp_fist)
             {
                 // killough 10/98: don't switch as much in -beta
@@ -500,7 +502,7 @@ static inline const boolean TouchThingVanilla(const int sprite,
             {
                 return false;
             }
-            pickupmsg(player, DEH_String(GOTINVIS));
+            message = GOTINVIS;
             *sound = sfx_getpow;
             break;
 
@@ -516,7 +518,7 @@ static inline const boolean TouchThingVanilla(const int sprite,
                 player->powers[pw_ironfeet] = -1;
             }
 
-            pickupmsg(player, DEH_String(GOTSUIT));
+            message = GOTSUIT;
             *sound = sfx_getpow;
             break;
 
@@ -525,7 +527,7 @@ static inline const boolean TouchThingVanilla(const int sprite,
             {
                 return false;
             }
-            pickupmsg(player, DEH_String(GOTMAP));
+            message = GOTMAP;
             *sound = sfx_getpow;
             break;
 
@@ -543,7 +545,7 @@ static inline const boolean TouchThingVanilla(const int sprite,
             }
 
             *sound = sfx_getpow;
-            pickupmsg(player, DEH_String(GOTVISOR));
+            message = GOTVISOR;
             break;
 
         // ammo
@@ -562,7 +564,7 @@ static inline const boolean TouchThingVanilla(const int sprite,
                     return false;
                 }
             }
-            pickupmsg(player, DEH_String(GOTCLIP));
+            message = GOTCLIP;
             break;
 
         case SPR_AMMO:
@@ -570,7 +572,7 @@ static inline const boolean TouchThingVanilla(const int sprite,
             {
                 return false;
             }
-            pickupmsg(player, DEH_String(GOTCLIPBOX));
+            message = GOTCLIPBOX;
             break;
 
         case SPR_ROCK:
@@ -578,7 +580,7 @@ static inline const boolean TouchThingVanilla(const int sprite,
             {
                 return false;
             }
-            pickupmsg(player, DEH_String(GOTROCKET));
+            message = GOTROCKET;
             break;
 
         case SPR_BROK:
@@ -586,7 +588,7 @@ static inline const boolean TouchThingVanilla(const int sprite,
             {
                 return false;
             }
-            pickupmsg(player, DEH_String(GOTROCKBOX));
+            message = GOTROCKBOX;
             break;
 
         case SPR_CELL:
@@ -594,7 +596,7 @@ static inline const boolean TouchThingVanilla(const int sprite,
             {
                 return false;
             }
-            pickupmsg(player, DEH_String(GOTCELL));
+            message = GOTCELL;
             break;
 
         case SPR_CELP:
@@ -602,7 +604,7 @@ static inline const boolean TouchThingVanilla(const int sprite,
             {
                 return false;
             }
-            pickupmsg(player, DEH_String(GOTCELLBOX));
+            message = GOTCELLBOX;
             break;
 
         case SPR_SHEL:
@@ -610,7 +612,7 @@ static inline const boolean TouchThingVanilla(const int sprite,
             {
                 return false;
             }
-            pickupmsg(player, DEH_String(GOTSHELLS));
+            message = GOTSHELLS;
             break;
 
         case SPR_SBOX:
@@ -618,7 +620,7 @@ static inline const boolean TouchThingVanilla(const int sprite,
             {
                 return false;
             }
-            pickupmsg(player, DEH_String(GOTSHELLBOX));
+            message = GOTSHELLBOX;
             break;
 
         case SPR_BPAK:
@@ -634,7 +636,7 @@ static inline const boolean TouchThingVanilla(const int sprite,
             {
                 P_GiveAmmo(player, i, 1);
             }
-            pickupmsg(player, DEH_String(GOTBACKPACK));
+            message = GOTBACKPACK;
             break;
 
         // weapons
@@ -646,11 +648,11 @@ static inline const boolean TouchThingVanilla(const int sprite,
             // killough 8/9/98: beta BFG
             if (STRICTMODE(classic_bfg) || beta_emulation)
             {
-                pickupmsg(player, "You got the BFG2704!  Oh, yes.");
+                message = BETA_BFG;
             }
             else
             {
-                pickupmsg(player, DEH_String(GOTBFG9000));
+                message = GOTBFG9000;
             }
             *sound = sfx_wpnup;
             break;
@@ -660,7 +662,7 @@ static inline const boolean TouchThingVanilla(const int sprite,
             {
                 return false;
             }
-            pickupmsg(player, DEH_String(GOTCHAINGUN));
+            message = GOTCHAINGUN;
             *sound = sfx_wpnup;
             break;
 
@@ -669,7 +671,7 @@ static inline const boolean TouchThingVanilla(const int sprite,
             {
                 return false;
             }
-            pickupmsg(player, DEH_String(GOTCHAINSAW));
+            message = GOTCHAINSAW;
             *sound = sfx_wpnup;
             break;
 
@@ -678,7 +680,7 @@ static inline const boolean TouchThingVanilla(const int sprite,
             {
                 return false;
             }
-            pickupmsg(player, DEH_String(GOTLAUNCHER));
+            message = GOTLAUNCHER;
             *sound = sfx_wpnup;
             break;
 
@@ -687,7 +689,7 @@ static inline const boolean TouchThingVanilla(const int sprite,
             {
                 return false;
             }
-            pickupmsg(player, DEH_String(GOTPLASMA));
+            message = GOTPLASMA;
             *sound = sfx_wpnup;
             break;
 
@@ -696,7 +698,7 @@ static inline const boolean TouchThingVanilla(const int sprite,
             {
                 return false;
             }
-            pickupmsg(player, DEH_String(GOTSHOTGUN));
+            message = GOTSHOTGUN;
             *sound = sfx_wpnup;
             break;
 
@@ -705,7 +707,7 @@ static inline const boolean TouchThingVanilla(const int sprite,
             {
                 return false;
             }
-            pickupmsg(player, DEH_String(GOTSHOTGUN2));
+            message = GOTSHOTGUN2;
             *sound = sfx_wpnup;
             break;
 
@@ -714,10 +716,20 @@ static inline const boolean TouchThingVanilla(const int sprite,
             // I_Error("Unknown gettable thing");
             return false;
     }
+
+    if (special->info->pickup_mnemonic)
+    {
+        pickupmsg(player, "%s", DEH_StringForMnemonic(special->info->pickup_mnemonic));
+    }
+    else
+    {
+        pickupmsg(player, "%s", DEH_String(message));
+    }
+
     return true;
 }
 
-static inline const boolean TouchThingID24(const mobjinfo_t *const info,
+static inline const boolean TouchThingID24(const mobj_t *const special,
                                            player_t *const player,
                                            const boolean dropped,
                                            int *const sound)
@@ -725,9 +737,9 @@ static inline const boolean TouchThingID24(const mobjinfo_t *const info,
     // TODO: weapons and ammo
     boolean handle = false;
 
+    const char* mnemonic = special->info->pickup_mnemonic;
 
-    const char* mnemonic = info->pickup_mnemonic;
-    switch (info->pickup_item_type)
+    switch (special->info->pickup_item_type)
     {
         case item_noitem:
         case item_messageonly:
@@ -845,8 +857,11 @@ static inline const boolean TouchThingID24(const mobjinfo_t *const info,
 
     if (handle)
     {
-        pickupmsg(player, "%s", DEH_StringForMnemonic(mnemonic));
-        *sound = info->pickup_sound;
+        *sound = special->info->pickup_sound;
+        if (mnemonic)
+        {
+            pickupmsg(player, "%s", DEH_StringForMnemonic(mnemonic));
+        }
     }
 
     return handle;
@@ -857,8 +872,7 @@ static inline const boolean info_has_custom_pickup(mobjinfo_t *info)
     return (info->pickup_ammo_type      != NO_INDEX
             || info->pickup_weapon_type != NO_INDEX
             || info->pickup_item_type   != NO_INDEX
-            || info->pickup_sound       != sfx_None
-            || info->pickup_mnemonic    != NULL);
+            || info->pickup_sound       != sfx_None);
 }
 
 static inline const boolean should_be_removed(mobjflag3_t flags3)
@@ -891,11 +905,11 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
 
     if (demo_version >= DV_ID24 && info_has_custom_pickup(special->info))
     {
-        handled = TouchThingID24(special->info, player, dropped, &sound);
+        handled = TouchThingID24(special, player, dropped, &sound);
     }
     else
     {
-        handled = TouchThingVanilla(special->sprite, player, dropped, &sound);
+        handled = TouchThingVanilla(special, player, dropped, &sound);
     }
 
     if (!handled)
