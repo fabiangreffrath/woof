@@ -701,11 +701,11 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 	{
 		// diminished light
 		const int index = R_GetLightIndex(xscale);
-    int lightnum = comp[comp_thingsectorlight]
-                 ? lightlevel_override
-                 : thing->subsector->sector->lightlevel;
+		int lightnum = comp[comp_thingsectorlight]
+									? lightlevel_override
+									: thing->subsector->sector->lightlevel;
 
-    lightnum >>= LIGHTSEGSHIFT;
+		lightnum >>= LIGHTSEGSHIFT;
 		lightnum = CLAMP(lightnum, 0, LIGHTLEVELS - 1);
 		int* spritelightoffsets = &scalelightoffset[MAXLIGHTSCALE * lightnum];
 

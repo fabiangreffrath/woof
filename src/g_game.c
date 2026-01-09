@@ -5123,7 +5123,7 @@ void G_BindCompVariables(void)
   BIND_COMP(comp_friendlyspawn, 1, "Things spawned by A_Spawn inherit friendliness of spawner");
   BIND_COMP(comp_voodooscroller, 0, "Voodoo dolls on slow scrollers move too slowly");
   BIND_COMP(comp_reservedlineflag, 1, "ML_RESERVED clears extended flags");
-  BIND_COMP(comp_thingsectorlight, 0, "MObjs are lit according to the average of transferred light levels");
+  BIND_COMP(comp_thingsectorlight, 0, "Sprites are lit according to the average of transferred light levels");
 
 #define BIND_EMU(id, v, help) \
   M_BindBool(#id, &overflow[(id)].enabled, NULL, (v), ss_none, wad_no, help)
