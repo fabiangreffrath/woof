@@ -35,9 +35,9 @@ static mline_t *ParseLines(json_t *json)
     return lines;
 }
 
-amconf_t *AM_ParseConf(void)
+amdef_t *AM_ParseConf(void)
 {
-    json_t *json = JS_Open("AMCONF", "automap", (version_t){1, 0, 0});
+    json_t *json = JS_Open("AMAPDEF", "automap", (version_t){1, 0, 0});
     if (!json)
     {
         return NULL;
@@ -46,12 +46,12 @@ amconf_t *AM_ParseConf(void)
     json_t *data = JS_GetObject(json, "data");
     if (JS_IsNull(data) || !JS_IsObject(data))
     {
-        I_Printf(VB_ERROR, "AMCONF: no data");
-        JS_Close("AMCONF");
+        I_Printf(VB_ERROR, "AMAPDEF: no data");
+        JS_Close("AMAPDEF");
         return NULL;
     }
 
-    amconf_t *out = calloc(1, sizeof(*out));
+    amdef_t *out = calloc(1, sizeof(*out));
 
     json_t *player = JS_GetObject(data, "player");
     if (JS_IsObject(player))
@@ -74,6 +74,6 @@ amconf_t *AM_ParseConf(void)
         out->key = ParseLines(key);
     }
 
-    JS_Close("AMCONF");
+    JS_Close("AMAPDEF");
     return out;
 }

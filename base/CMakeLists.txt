@@ -1,6 +1,6 @@
 set(BASE_SOURCES
     all-all/animated.lmp
-    all-all/amconf.json
+    all-all/amapdef.json
     all-all/chexdeh.lmp
     all-all/compdb.json
     all-all/crblack.lmp

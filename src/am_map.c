@@ -218,7 +218,7 @@ static mline_t thintriangle_guy[] =
 #define NUMTHINTRIANGLEGUYLINES (sizeof(thintriangle_guy)/sizeof(mline_t))
 #endif
 
-static amconf_t *amconf;
+static amdef_t *amdef;
 
 int ddt_cheating = 0;         // killough 2/7/98: make global, rename to ddt_*
 
@@ -725,12 +725,12 @@ void AM_Start()
 {
   static int lastlevel = -1, lastepisode = -1;
 
-  if (!amconf)
+  if (!amdef)
   {
-      amconf = AM_ParseConf();
-      if (!amconf)
+      amdef = AM_ParseConf();
+      if (!amdef)
       {
-          I_Error("Error parsing AMCONF");
+          I_Error("Error parsing AMAPDEF");
       }
   }
 
@@ -2235,8 +2235,8 @@ static void AM_drawPlayers(void)
     if (ddt_cheating)
       AM_drawLineCharacter
       (
-        amconf->player_cheat,
-        array_size(amconf->player_cheat),
+        amdef->player_cheat,
+        array_size(amdef->player_cheat),
         0,
         smoothangle,
         cur_mapcolor_sngl,      //jff color
@@ -2246,8 +2246,8 @@ static void AM_drawPlayers(void)
     else
       AM_drawLineCharacter
       (
-        amconf->player,
-        array_size(amconf->player),
+        amdef->player,
+        array_size(amdef->player),
         0,
         smoothangle,
         cur_mapcolor_sngl,      //jff color
@@ -2299,8 +2299,8 @@ static void AM_drawPlayers(void)
 
     AM_drawLineCharacter
     (
-      amconf->player,
-      array_size(amconf->player),
+      amdef->player,
+      array_size(amdef->player),
       0,
       smoothangle,
       color,
@@ -2361,8 +2361,8 @@ static void AM_drawThings
           case 38: case 13: //jff  red key
             AM_drawLineCharacter
             (
-              amconf->key,
-              array_size(amconf->key),
+              amdef->key,
+              array_size(amdef->key),
               16<<MAPBITS,
               t->angle,
               cur_mapcolor_rkey!=-1? cur_mapcolor_rkey : cur_mapcolor_sprt,
@@ -2374,8 +2374,8 @@ static void AM_drawThings
           case 39: case 6: //jff yellow key
             AM_drawLineCharacter
             (
-              amconf->key,
-              array_size(amconf->key),
+              amdef->key,
+              array_size(amdef->key),
               16<<MAPBITS,
               t->angle,
               cur_mapcolor_ykey!=-1? cur_mapcolor_ykey : cur_mapcolor_sprt,
@@ -2387,8 +2387,8 @@ static void AM_drawThings
           case 40: case 5: //jff blue key
             AM_drawLineCharacter
             (
-              amconf->key,
-              array_size(amconf->key),
+              amdef->key,
+              array_size(amdef->key),
               16<<MAPBITS,
               t->angle,
               cur_mapcolor_bkey!=-1? cur_mapcolor_bkey : cur_mapcolor_sprt,
@@ -2406,8 +2406,8 @@ static void AM_drawThings
       //jff previously entire code
       AM_drawLineCharacter
       (
-        amconf->thing,
-        array_size(amconf->thing),
+        amdef->thing,
+        array_size(amdef->thing),
         t->radius >> FRACTOMAPBITS, // [crispy] triangle size represents actual thing size
         t->angle,
         // killough 8/8/98: mark friends specially

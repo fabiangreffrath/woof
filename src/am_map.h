@@ -80,9 +80,9 @@ typedef struct
     mline_t *player_cheat;
     mline_t *thing;
     mline_t *key;
-} amconf_t;
+} amdef_t;
 
-amconf_t *AM_ParseConf(void);
+amdef_t *AM_ParseConf(void);
 
 extern mpoint_t *markpoints;
 extern int markpointnum, markpointnum_max;
