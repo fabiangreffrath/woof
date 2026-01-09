@@ -364,20 +364,20 @@ DEH_BEGIN_MAPPING(thing_mapping, mobjinfo_t)
     DEH_MAPPING("Self damage factor", self_damage)
     // mbf2y
     DEH_UNSUPPORTED_MAPPING("MBF2y Bits")
-    DEH_UNSUPPORTED_MAPPING("Melee threshold")            // p.f crispy
-    DEH_UNSUPPORTED_MAPPING("Max target range")           // p.f crispy
-    DEH_UNSUPPORTED_MAPPING("Min missile chance")         // p.f crispy
-    DEH_UNSUPPORTED_MAPPING("Missile chance multiplier")  // p.f crispy
-    DEH_UNSUPPORTED_MAPPING("Projectile collision group") // i.b mbf21
-    DEH_UNSUPPORTED_MAPPING("Pickup health amount")       // i.b id24
-    DEH_UNSUPPORTED_MAPPING("Pickup armor amount")        // i.b id24
-    DEH_UNSUPPORTED_MAPPING("Pickup powerup duration")    // i.b id24
-    DEH_UNSUPPORTED_MAPPING("Gib Health")                 // p.f Retro
-    DEH_UNSUPPORTED_MAPPING("Blood Thing")                // i.b Eternity
-    DEH_UNSUPPORTED_MAPPING("Crush State")                // i.b Eternity
-    DEH_MAPPING("Obituary", obituary)                     // p.f ZDoom
-    DEH_MAPPING("Melee obituary", obituary_melee)         // p.f ZDoom
-    DEH_MAPPING("Self obituary", obituary_self)           // p.f ZDoom
+    DEH_UNSUPPORTED_MAPPING("Melee threshold")
+    DEH_UNSUPPORTED_MAPPING("Max target range")
+    DEH_UNSUPPORTED_MAPPING("Min missile chance")
+    DEH_UNSUPPORTED_MAPPING("Missile chance multiplier")
+    DEH_UNSUPPORTED_MAPPING("Projectile collision group")
+    DEH_UNSUPPORTED_MAPPING("Pickup health amount")
+    DEH_UNSUPPORTED_MAPPING("Pickup armor amount")
+    DEH_UNSUPPORTED_MAPPING("Pickup powerup duration")
+    DEH_UNSUPPORTED_MAPPING("Gib Health")
+    DEH_UNSUPPORTED_MAPPING("Blood Thing")
+    DEH_UNSUPPORTED_MAPPING("Crush State")
+    DEH_MAPPING("Obituary", obituary)
+    DEH_MAPPING("Melee obituary", obituary_melee)
+    DEH_MAPPING("Self obituary", obituary_self)
     // eternity
     DEH_MAPPING("Blood Color", bloodcolor)
     // woof
