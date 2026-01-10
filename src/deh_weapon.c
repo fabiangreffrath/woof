@@ -47,7 +47,7 @@ DEH_BEGIN_MAPPING(weapon_mapping, weaponinfo_t)
     DEH_MAPPING("MBF21 Bits", flags)
     DEH_MAPPING("Ammo per shot", ammopershot)
     // id24
-    DEH_UNSUPPORTED_MAPPING("Slot")
+    DEH_MAPPING("Slot", slot)
     DEH_UNSUPPORTED_MAPPING("Slot Priority")
     DEH_UNSUPPORTED_MAPPING("Switch Priority")
     DEH_UNSUPPORTED_MAPPING("Initial Owned")
