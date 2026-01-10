@@ -35,7 +35,7 @@ static mline_t *ParseLines(json_t *json)
     return lines;
 }
 
-amdef_t *AM_ParseConf(void)
+amdef_t *AM_ParseAmDef(void)
 {
     json_t *json = JS_Open("AMAPDEF", "automap", (version_t){1, 0, 0});
     if (!json)

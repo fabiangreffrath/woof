@@ -727,7 +727,7 @@ void AM_Start()
 
   if (!amdef)
   {
-      amdef = AM_ParseConf();
+      amdef = AM_ParseAmDef();
       if (!amdef)
       {
           I_Error("Error parsing AMAPDEF");

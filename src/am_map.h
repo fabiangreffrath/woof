@@ -82,7 +82,7 @@ typedef struct
     mline_t *key;
 } amdef_t;
 
-amdef_t *AM_ParseConf(void);
+amdef_t *AM_ParseAmDef(void);
 
 extern mpoint_t *markpoints;
 extern int markpointnum, markpointnum_max;
