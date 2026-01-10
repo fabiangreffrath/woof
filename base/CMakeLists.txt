@@ -1,7 +1,8 @@
 set(BASE_SOURCES
     all-all/animated.lmp
+    all-all/amapdef.json
     all-all/chexdeh.lmp
-    all-all/compdb.lmp
+    all-all/compdb.json
     all-all/crblack.lmp
     all-all/crblue.lmp
     all-all/crblue2.lmp
@@ -79,8 +80,8 @@ set(BASE_SOURCES
     all-all/m_butt1.png
     all-all/m_butt2.png
     all-all/m_vbox.png
-    all-all/sbardef.lmp
-    all-all/sbhuddef.lmp
+    all-all/sbardef.json
+    all-all/sbhuddef.json
     all-all/skytran.lmp
 
     all-all/smbfgg0.png
@@ -215,13 +216,13 @@ set(BASE_SOURCES
     e1m4b.wad/dehacked.lmp
     e1m8b.wad/dehacked.lmp
 
-    extras.wad/sbardef.lmp
+    extras.wad/sbardef.json
 
     hacx.wad/brghtmps.lmp
     hacx.wad/dehacked.deh
 
     id1.wad/dehacked.lmp
-    id1.wad/sbardef.lmp
+    id1.wad/sbardef.json
 
     rekkr-all/dehacked.lmp
 
