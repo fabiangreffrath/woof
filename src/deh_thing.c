@@ -444,7 +444,7 @@ static void DEH_ThingParseLine(deh_context_t *context, char *line, void *tag)
 
         if ((ivalue & (MF_NOBLOCKMAP | MF_MISSILE)) == MF_MISSILE)
         {
-            DEH_Warning(context, "Thing %ld has MF_MISSILE without MF_NOBLOCKMAP", (long)(mobj - mobjinfo) + 1);
+            DEH_Debug(context, "Thing %ld has MF_MISSILE without MF_NOBLOCKMAP", (long)(mobj - mobjinfo) + 1);
         }
     }
     else if (!strcasecmp(variable_name, "MBF21 Bits"))
