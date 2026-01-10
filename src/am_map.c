@@ -614,7 +614,9 @@ static void AM_clearLastMark(void)
 
 static void AM_EnableSmoothLines(void)
 {
-  AM_drawFline = map_smooth_lines ? AM_drawFline_Smooth : AM_drawFline_Vanilla;
+    AM_drawFline = (map_smooth_lines && video.height / SCREENHEIGHT >= 2)
+                       ? AM_drawFline_Smooth
+                       : AM_drawFline_Vanilla;
 }
 
 static void AM_initScreenSize(void)
@@ -2664,12 +2666,15 @@ void AM_ResetThickness(void)
 {
     if (!map_line_thickness)
     {
-        thickness = MAX(1, video.height / SCREENHEIGHT - 1);
+        thickness =
+            map_smooth_lines ? MAX(1, video.height / SCREENHEIGHT - 1) : 1;
     }
     else
     {
         thickness = map_line_thickness;
     }
+
+    AM_EnableSmoothLines();
 }
 
 void AM_BindAutomapVariables(void)
