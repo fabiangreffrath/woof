@@ -414,7 +414,7 @@ static boolean MapInfo_Ticker()
                 {
                     finalecount = 0;
                     finalestage = FINALE_STAGE_ART;
-                    wipegamestate = -1; // force a wipe
+                    F_SetWipe(wipe_Melt); // force a wipe
                     S_ChangeMusInfoMusic(W_GetNumForName(endfinale->music), 
                                          endfinale->musicloops);
                     if (endfinale->type == END_ART)
@@ -934,7 +934,7 @@ boolean         castattacking;
 //
 static void F_StartCast(void)
 {
-  wipegamestate = -1; // force a screen wipe
+  F_SetWipe(wipe_Melt); // force a screen wipe
   finalestage = FINALE_STAGE_CAST;
 
   if (gamemapinfo->flags & MapInfo_EndGameCustomFinale)
@@ -963,7 +963,6 @@ static void F_StartCast(void)
   castorder[16].name = DEH_String(CC_HERO),   castorder[16].type = MT_PLAYER;
   castorder[17].name = NULL,                  castorder[17].type = 0;
 
-  F_SetWipe(wipe_Melt); // force a screen wipe
   castnum = 0;
   caststate = &states[mobjinfo[castorder[castnum].type].seestate];
   casttics = caststate->tics;
