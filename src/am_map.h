@@ -60,13 +60,29 @@ void AM_ResetScreenSize(void);
 
 void AM_ColorPreset(void);
 void AM_ApplyColors(boolean force);
+void AM_ResetThickness(void);
 
 void AM_BindAutomapVariables(void);
 
 typedef struct
 {
- int64_t x,y;
+   int64_t x, y;
 } mpoint_t;
+
+typedef struct
+{
+    mpoint_t a, b;
+} mline_t;
+
+typedef struct
+{
+    mline_t *player;
+    mline_t *player_cheat;
+    mline_t *thing;
+    mline_t *key;
+} amdef_t;
+
+amdef_t *AM_ParseAmDef(void);
 
 extern mpoint_t *markpoints;
 extern int markpointnum, markpointnum_max;

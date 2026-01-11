@@ -53,7 +53,7 @@ jobs:
               -DCMAKE_IGNORE_PATH="C:/Strawberry/perl/bin;C:/Strawberry/c/lib"
 
           - name: macOS uni
-            os: macos-latest
+            os: macos-26
             toolchain: $VCPKG_INSTALLATION_ROOT
             triplet: arm64-osx
             triplet-x64: x64-osx
