@@ -98,7 +98,7 @@ static short CarryAngleTic_Full(double angle)
 static short CarryAngle_Full(double angle)
 {
     const short fullres = CarryAngleTic_Full(angle);
-    localview.angle = fullres << FRACBITS;
+    localview.angle = IntToFixed(fullres);
     return fullres;
 }
 
@@ -149,7 +149,7 @@ void G_UpdateAngleFunctions(void)
 short G_CarryPitch(double pitch)
 {
     const short result = CarryError(pitch, &prevcarry.pitch, &carry.pitch);
-    localview.pitch = result << FRACBITS;
+    localview.pitch = IntToFixed(result);
     return result;
 }
 

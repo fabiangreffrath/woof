@@ -161,8 +161,8 @@ void P_LoadVertexes (int lump)
   // internal representation as fixed.
   for (i=0; i<numvertexes; i++)
     {
-      vertexes[i].x = SHORT(((mapvertex_t *) data)[i].x)<<FRACBITS;
-      vertexes[i].y = SHORT(((mapvertex_t *) data)[i].y)<<FRACBITS;
+      vertexes[i].x = IntToFixed(SHORT(((mapvertex_t *) data)[i].x));
+      vertexes[i].y = IntToFixed(SHORT(((mapvertex_t *) data)[i].y));
 
       // [FG] vertex coordinates used for rendering
       vertexes[i].r_x = vertexes[i].x;
@@ -225,8 +225,8 @@ void P_LoadSegs (int lump)
       li->v1 = &vertexes[(unsigned short)SHORT(ml->v1)];
       li->v2 = &vertexes[(unsigned short)SHORT(ml->v2)];
 
-      li->angle = (SHORT(ml->angle))<<16;
-      li->offset = (SHORT(ml->offset))<<16;
+      li->angle = IntToFixed(SHORT(ml->angle));
+      li->offset = IntToFixed(SHORT(ml->offset));
       linedef = (unsigned short)SHORT(ml->linedef); // [FG] extended nodes
       ldef = &lines[linedef];
       li->linedef = ldef;
@@ -323,8 +323,8 @@ void P_LoadSectors (int lump)
       sector_t *ss = sectors + i;
       const mapsector_t *ms = (mapsector_t *) data + i;
 
-      ss->floorheight = SHORT(ms->floorheight)<<FRACBITS;
-      ss->ceilingheight = SHORT(ms->ceilingheight)<<FRACBITS;
+      ss->floorheight = IntToFixed(SHORT(ms->floorheight));
+      ss->ceilingheight = IntToFixed(SHORT(ms->ceilingheight));
       ss->floorpic = R_FlatNumForName(ms->floorpic);
       ss->ceilingpic = R_FlatNumForName(ms->ceilingpic);
       ss->lightlevel = SHORT(ms->lightlevel);
@@ -392,10 +392,10 @@ void P_LoadNodes (int lump)
       mapnode_t *mn = (mapnode_t *) data + i;
       int j;
 
-      no->x = SHORT(mn->x)<<FRACBITS;
-      no->y = SHORT(mn->y)<<FRACBITS;
-      no->dx = SHORT(mn->dx)<<FRACBITS;
-      no->dy = SHORT(mn->dy)<<FRACBITS;
+      no->x = IntToFixed(SHORT(mn->x));
+      no->y = IntToFixed(SHORT(mn->y));
+      no->dx = IntToFixed(SHORT(mn->dx));
+      no->dy = IntToFixed(SHORT(mn->dy));
 
       for (j=0 ; j<2 ; j++)
         {
@@ -417,7 +417,7 @@ void P_LoadNodes (int lump)
           }
 
           for (k=0 ; k<4 ; k++)
-            no->bbox[j][k] = SHORT(mn->bbox[j][k])<<FRACBITS;
+            no->bbox[j][k] = IntToFixed(SHORT(mn->bbox[j][k]));
         }
     }
 
@@ -1361,8 +1361,8 @@ boolean P_LoadBlockMap (int lump)
 
       Z_Free(wadblockmaplump);
 
-      bmaporgx = blockmaplump[0]<<FRACBITS;
-      bmaporgy = blockmaplump[1]<<FRACBITS;
+      bmaporgx = IntToFixed(blockmaplump[0]);
+      bmaporgy = IntToFixed(blockmaplump[1]);
       bmapwidth = blockmaplump[2];
       bmapheight = blockmaplump[3];
 

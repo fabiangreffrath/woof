@@ -95,17 +95,6 @@ check_symbol_exists(strncasecmp "strings.h" HAVE_DECL_STRNCASECMP)
 check_symbol_exists(getpwuid "unistd.h;sys/types.h;pwd.h" HAVE_GETPWUID)
 check_c_source_compiles(
     "
-    #include <immintrin.h>
-    int main(void)
-    {
-        int tmp = _div64(4, 2, NULL);
-        return 0;
-    }
-    "
-    HAVE__DIV64
-)
-check_c_source_compiles(
-    "
     typedef float vec __attribute__((ext_vector_type(4)));
     int main(void)
     {
