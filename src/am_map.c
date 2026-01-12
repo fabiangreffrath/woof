@@ -91,7 +91,7 @@ enum {
 
 static int map_keyed_door; // keyed doors are colored or flashing
 
-static boolean map_smooth_lines;
+boolean map_smooth_lines;
 static int map_line_thickness;
 static int thickness;
 
@@ -614,7 +614,14 @@ static void AM_clearLastMark(void)
 
 static void AM_EnableSmoothLines(void)
 {
-  AM_drawFline = map_smooth_lines ? AM_drawFline_Smooth : AM_drawFline_Vanilla;
+    if (map_smooth_lines && video.height >= SCREENHEIGHT * 2)
+    {
+        AM_drawFline = AM_drawFline_Smooth;
+    }
+    else
+    {
+        AM_drawFline = AM_drawFline_Vanilla;
+    }
 }
 
 static void AM_initScreenSize(void)
@@ -1288,139 +1295,42 @@ static void AM_drawFline_Vanilla(fline_t *fl, int color)
 
     int d;
 
-    if (thickness <= 1)
+    if (ax > ay)
     {
-        if (ax > ay)
+        d = ay - ax / 2;
+        while (1)
         {
-            d = ay - ax / 2;
-            while (1)
+            PutDot(x, y, color);
+            if (x == fl->b.x)
             {
-                PutDot(x, y, color);
-                if (x == fl->b.x)
-                {
-                    return;
-                }
-                if (d >= 0)
-                {
-                    y += sy;
-                    d -= ax;
-                }
-                x += sx;
-                d += ay;
+                return;
             }
-        }
-        else
-        {
-            d = ax - ay / 2;
-            while (1)
+            if (d >= 0)
             {
-                PutDot(x, y, color);
-                if (y == fl->b.y)
-                {
-                    return;
-                }
-                if (d >= 0)
-                {
-                    x += sx;
-                    d -= ay;
-                }
                 y += sy;
-                d += ax;
+                d -= ax;
             }
+            x += sx;
+            d += ay;
         }
     }
     else
     {
-        int adx = ax / 2;
-        int ady = ay / 2;
-
-        if (adx == 0 && ady == 0)
+        d = ax - ay / 2;
+        while (1)
         {
-            int start = -(thickness - 1) / 2;
-            int px, py;
-            for (int i = 0; i < thickness; ++i)
+            PutDot(x, y, color);
+            if (y == fl->b.y)
             {
-                py = y + start + i;
-                if (py >= f_y && py < f_h)
-                {
-                    for (int j = 0; j < thickness; ++j)
-                    {
-                        px = x + start + j;
-                        if (px >= f_x && px < f_w)
-                        {
-                            PutDot(px, py, color);
-                        }
-                    }
-                }
+                return;
             }
-            return;
-        }
-
-        int line_length = abs(adx) + abs(ady);
-
-        if (ax > ay && adx)
-        {
-            int num = 2 * thickness * line_length;
-            int perp_thickness = (int)((num + adx) / (2 * adx));
-            int start = -(perp_thickness - 1) / 2;
-            int py;
-            d = ay - ax / 2;
-            while (1)
+            if (d >= 0)
             {
-                for (int i = 0; i < perp_thickness; ++i)
-                {
-                    py = y + start + i;
-                    if (py >= f_y && py < f_h)
-                    {
-                        PutDot(x, py, color);
-                    }
-                }
-
-                if (x == fl->b.x)
-                {
-                    return;
-                }
-
-                if (d >= 0)
-                {
-                    y += sy;
-                    d -= ax;
-                }
                 x += sx;
-                d += ay;
+                d -= ay;
             }
-        }
-        else if (ady)
-        {
-            int num = 2 * thickness * line_length;
-            int perp_thickness = (int)((num + ady) / (2 * ady));
-            int start = -(perp_thickness - 1) / 2;
-            int px;
-            d = ax - ay / 2;
-            while (1)
-            {
-                for (int i = 0; i < perp_thickness; ++i)
-                {
-                    px = x + start + i;
-                    if (px >= f_x && px < f_w)
-                    {
-                        PutDot(px, y, color);
-                    }
-                }
-
-                if (y == fl->b.y)
-                {
-                    return;
-                }
-
-                if (d >= 0)
-                {
-                    x += sx;
-                    d -= ay;
-                }
-                y += sy;
-                d += ax;
-            }
+            y += sy;
+            d += ax;
         }
     }
 }
@@ -2670,6 +2580,7 @@ void AM_ResetThickness(void)
     {
         thickness = map_line_thickness;
     }
+    AM_EnableSmoothLines();
 }
 
 void AM_BindAutomapVariables(void)

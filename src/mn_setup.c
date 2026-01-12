@@ -5129,6 +5129,7 @@ void MN_SetupResetMenu(void)
                 "brightmaps");
     DisableItem(!trakinfo_found, gen_settings2, "extra_music");
     DisableItem(M_ParmExists("-save"), gen_settings6, "organize_savefiles");
+    DisableItem(!map_smooth_lines, auto_settings1, "map_line_thickness");
     UpdateInterceptsEmuItem();
     UpdateStatsFormatItem();
     UpdateCrosshairItems();
