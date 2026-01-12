@@ -90,6 +90,8 @@ extern boolean followplayer;
 extern boolean automap_grid;
 extern int ddt_cheating;
 
+extern boolean map_smooth_lines;
+
 // end changes -- killough 2/22/98
 
 #endif
