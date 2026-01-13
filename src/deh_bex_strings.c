@@ -492,7 +492,7 @@ const char * const strings_quit_messages[] =
 };
 
 // killough 1/18/98: remove hardcoded limit and replace with var (silly hack):
-const int num_quit_mnemonics = arrlen(strings_quit_messages) - 1;
+const int num_quit_mnemonics = arrlen(strings_quit_messages);
 
 // [FG] Obituaries
 static boolean HandleExtendedObituary(char *mnemonic, char *string)
