@@ -2097,12 +2097,12 @@ void D_DoomMain(void)
     W_ProcessInWads("DEHACKED", DEH_LoadLump, PROCESS_IWAD);
   }
 
-  // process .deh files specified on the command line with -deh or -bex.
-  DEH_ParseCommandLine();
-
   // process deh in wads and .deh files from autoload directory
   // before deh in wads from -file parameter
   AutoloadIWadDir(DEH_AutoLoadPatches);
+
+  // process .deh files specified on the command line with -deh
+  DEH_ParseCommandLine();
 
   // killough 10/98: now process all deh in wads
   if (!M_ParmExists("-nodeh"))
