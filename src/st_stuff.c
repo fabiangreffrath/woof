@@ -1837,6 +1837,10 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
 
 static void UpdateListOfElem(sbarelem_t *elem, player_t *player)
 {
+    sbe_list_t *list = elem->subtype.list;
+
+    int listwidth = 0, listheight = 0;
+
     array_foreach_type(child, elem->children, sbarelem_t)
     {
         UpdateElem(child, player);
@@ -1845,7 +1849,19 @@ static void UpdateListOfElem(sbarelem_t *elem, player_t *player)
         DrawElem(0, 0, &width, &height, true, child); // Dry run
         child->width = width;
         child->height = height;
+
+        if (list->horizontal && width)
+        {
+            listwidth += (width + list->spacing);
+        }
+        else if (height)
+        {
+            listheight += (height + list->spacing);
+        }
     }
+
+    elem->width = listwidth;
+    elem->height = listheight;
 }
 
 static void DrawListOfElem(int x1, int y1, int *x2, int *y2, boolean dry,
@@ -1853,35 +1869,13 @@ static void DrawListOfElem(int x1, int y1, int *x2, int *y2, boolean dry,
 {
     sbe_list_t *list = elem->subtype.list;
 
-    int listwidth = 0, listheight = 0;
-
-    array_foreach_type(child, elem->children, sbarelem_t)
-    {
-        if (dry)
-        {
-            int width = 0, height = 0;
-            DrawElem(0, 0, &width, &height, true, child);
-            child->width = width;
-            child->height = height;
-        }
-
-        if (list->horizontal && child->width)
-        {
-            listwidth += (child->width + list->spacing);
-        }
-        else if (child->height)
-        {
-            listheight += (child->height + list->spacing);
-        }
-    }
-
     if (list->horizontal)
     {
-        x1 = AdjustX(x1, listwidth, elem->alignment);
+        x1 = AdjustX(x1, elem->width, elem->alignment);
     }
     else
     {
-        y1 = AdjustY(y1, listheight, elem->alignment);
+        y1 = AdjustY(y1, elem->height, elem->alignment);
     }
 
     x1 = WideShiftX(x1, elem->alignment);
