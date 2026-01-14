@@ -73,6 +73,7 @@ else()
     _checked_add_link_option(-fcf-protection)
     # We only want -Wall on GCC compilers, since /Wall on MSVC is noisy.
     _checked_add_compile_option(-Wall)
+    _checked_add_compile_option(-Qunused-arguments)
 endif()
 
 if(ENABLE_WERROR)
