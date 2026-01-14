@@ -114,6 +114,7 @@ check_c_source_compiles(
     }
     "
     HAVE_EXT_VECTOR_TYPE
+    FAIL_REGEX "[Ww]arning"
 )
 
 set(CMAKE_FIND_FRAMEWORK NEVER)
