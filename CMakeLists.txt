@@ -19,7 +19,6 @@ option(ENABLE_WERROR "Treat warnings as errors" OFF)
 option(ENABLE_ASAN "Enable ASan" OFF)
 option(ENABLE_UBSAN "Enable UBSan" OFF)
 option(ENABLE_TSAN "Enable TSan" OFF)
-option(ENABLE_HARDENING "Enable hardening flags" OFF)
 option(ENABLE_LTO "Enable link time optimization" OFF)
 option(ENABLE_FONTGEN "Generate textscreen font" OFF)
 
