@@ -7,7 +7,7 @@ include(CheckLinkerFlag)
 function(_checked_add_compile_option FLAG)
     # Turn flag into suitable internal cache variable.
     string(REGEX REPLACE "-(.*)" "CFLAG_\\1" FLAG_FOUND ${FLAG})
-    string(REPLACE "=" "_" FLAG_FOUND "${FLAG_FOUND}")
+    string(REGEX REPLACE "[,=-]+" "_" FLAG_FOUND "${FLAG_FOUND}")
 
     check_c_compiler_flag(${FLAG} ${FLAG_FOUND})
     if(${FLAG_FOUND})
@@ -76,6 +76,7 @@ else()
     _checked_add_compile_option(-Werror=int-conversion)
     _checked_add_compile_option(-Wnull-dereference)
     _checked_add_compile_option(-Wrestrict)
+    _checked_add_compile_option(-Qunused-arguments)
 endif()
 
 if(ENABLE_WERROR)
