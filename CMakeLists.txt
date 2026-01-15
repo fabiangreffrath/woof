@@ -106,10 +106,14 @@ check_c_source_compiles(
 )
 check_c_source_compiles(
     "
-    typedef float vec __attribute__((ext_vector_type(4)));
+    typedef float quat __attribute__((ext_vector_type(4)));
     int main(void)
     {
-        vec a = (vec){0, 1, 2, 3};
+        quat a;
+        a.x = 0;
+        a.y = 1;
+        a.z = 2;
+        a.w = 3;
         return 0;
     }
     "
