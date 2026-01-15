@@ -109,13 +109,15 @@ check_c_source_compiles(
     typedef float quat __attribute__((ext_vector_type(4)));
     int main(void)
     {
-        quat a = (quat){0, 1, 2, 3};
-        (void)a;
+        quat a;
+        a.x = 0;
+        a.y = 1;
+        a.z = 2;
+        a.w = 3;
         return 0;
     }
     "
     HAVE_EXT_VECTOR_TYPE
-    FAIL_REGEX "[Ww]arning"
 )
 
 set(CMAKE_FIND_FRAMEWORK NEVER)
