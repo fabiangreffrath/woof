@@ -2075,45 +2075,58 @@ void D_DoomMain(void)
 
   W_InitMultipleFiles();
 
-  // Always process chex.deh first
+  // Check for wolf levels
+  haswolflevels = (W_CheckNumForName("map31") >= 0);
+
+  //
+  // Start DeHackEd Loading
+  //
+  // Load order:
+  //  1. Built-in lumps for emulating specific executables, i.e. Chex Quest EXE
+  //  2. IWAD DEHACKED lumps
+  //  3. IWAD autoload .deh files
+  //  4. PWADs DEHACKED lumps
+  //  5. PWADs autoload .deh files
+  //  6. CLI parameter files
+  //  7. Finalize with post-processing, i.e. code pointer validation
+  //
+  // Notes:
+  //  * The above load order matches DSDA-Doom. Both Original MBF and
+  //    Chocolate Doom load the CLI parameter files between IWAD and PWADs.
+  //  * Avoid loading .deh files from autoload directories with the
+  //    "-noautoload" parameter, the "-nodeh" parameter is only to avoid
+  //    loading DEHACKED lumps.
+  //
+
   if (gamemission == pack_chex)
   {
     DEH_LoadLumpByName("CHEXDEH");
   }
-
-  // Check for wolf levels
-  haswolflevels = (W_CheckNumForName("map31") >= 0);
-
-  // process deh in IWAD
 
   //!
   // @category mod
   //
   // Avoid loading DEHACKED lumps embedded into WAD files.
   //
-
   if (!M_ParmExists("-nodeh"))
   {
     W_ProcessInWads("DEHACKED", DEH_LoadLump, PROCESS_IWAD);
   }
-
-  // process .deh files specified on the command line with -deh or -bex.
-  DEH_ParseCommandLine();
-
-  // process deh in wads and .deh files from autoload directory
-  // before deh in wads from -file parameter
   AutoloadIWadDir(DEH_AutoLoadPatches);
 
-  // killough 10/98: now process all deh in wads
   if (!M_ParmExists("-nodeh"))
   {
     W_ProcessInWads("DEHACKED", DEH_LoadLump, PROCESS_PWAD);
   }
-
-  // process .deh files from PWADs autoload directories
   AutoloadPWadDir(DEH_AutoLoadPatches);
 
+  DEH_ParseCommandLine();
+
   DEH_PostProcess();
+
+  //
+  // End DeHackEd Loading
+  //
 
   W_ProcessInWads("BRGHTMPS", R_ParseBrightmaps, PROCESS_PWAD);
 
