@@ -2090,6 +2090,15 @@ void D_DoomMain(void)
   //  6. CLI parameter files
   //  7. Finalize with post-processing, i.e code pointer validation
   //
+  // Notes:
+  //  As of the writing of this comment, the above order matches the order seen
+  //  in DSDA-Doom. In the both the original MBF and Chocolate-Doom, the CLI
+  //  files would be pre-loaded before PWADs, right after IWAD.
+  //
+  //  Control for _not_ loading the autoload directories' .deh files is only
+  //  provided via the CLI param "-noautoload" instead. As "-nodeh" is meant
+  //  for DEHACKED _lumps_.
+  //
 
   if (gamemission == pack_chex)
   {
