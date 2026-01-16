@@ -536,7 +536,7 @@ const char *D_DoomExeName(void)
   return PROJECT_SHORTNAME;
 }
 
-// Calculate the path to the directory for autoloaded WADs/s.
+// Calculate the path to the directory for autoloaded WADs/DEHs.
 // Creates the directory as necessary.
 
 static constructed_dir_t basedirs[] = {
@@ -608,7 +608,7 @@ static void PrepareAutoloadPaths(void)
     //!
     // @category mod
     //
-    // Disable auto-loading of .wad and . files.
+    // Disable auto-loading of .wad and .deh files.
     //
 
     if (M_CheckParm("-noautoload"))
@@ -974,14 +974,14 @@ void FindResponseFile (void)
 }
 
 // [FG] compose a proper command line from loose file paths passed as arguments
-// to allow for loading WADs and ACKED patches by drag-and-drop
+// to allow for loading WADs and DEHACKED patches by drag-and-drop
 
 enum
 {
     FILETYPE_UNKNOWN = 0x0,
     FILETYPE_IWAD =    0x2,
     FILETYPE_PWAD =    0x4,
-    FILETYPE_ =     0x8,
+    FILETYPE_DEH =     0x8,
     FILETYPE_DEMO =    0x10,
 };
 
@@ -1098,10 +1098,10 @@ static int GuessFileType(const char *name)
             ret = FILETYPE_PWAD;
         }
     }
-    else if (M_StringEndsWith(lower, ".") ||
+    else if (M_StringEndsWith(lower, ".deh") ||
              M_StringEndsWith(lower, ".bex"))
     {
-        ret = FILETYPE_;
+        ret = FILETYPE_DEH;
     }
 
     free(lower);
@@ -1137,7 +1137,7 @@ static void M_AddLooseFiles(void)
     }
 
     // allocate space for up to four additional regular parameters
-    // (-iwad, -merge, -, -playdemo)
+    // (-iwad, -merge, -deh, -playdemo)
 
     arguments = malloc((myargc + 4) * sizeof(*arguments));
     memset(arguments, 0, (myargc + 4) * sizeof(*arguments));
@@ -2082,20 +2082,22 @@ void D_DoomMain(void)
   // Start DeHackEd Loading
   //
   // Load order:
-  //  1. Built-in lumps for emulating specific executables, i.e. Chex Quest EXE
+  //  1. Built-in lumps for emulating specific executables, i.e Chex Quest EXE
   //  2. IWAD DEHACKED lumps
   //  3. IWAD autoload .deh files
-  //  4. PWADs DEHACKED lumps
-  //  5. PWADs autoload .deh files
+  //  4. PWAD DEHACKED lumps
+  //  5. PWAD autoload .deh files
   //  6. CLI parameter files
-  //  7. Finalize with post-processing, i.e. code pointer validation
+  //  7. Finalize with post-processing, i.e code pointer validation
   //
   // Notes:
-  //  * The above load order matches DSDA-Doom. Both Original MBF and
-  //    Chocolate Doom load the CLI parameter files between IWAD and PWADs.
-  //  * Avoid loading .deh files from autoload directories with the
-  //    "-noautoload" parameter, the "-nodeh" parameter is only to avoid
-  //    loading DEHACKED lumps.
+  //  As of the writing of this comment, the above order matches the order seen
+  //  in DSDA-Doom. In the both the original MBF and Chocolate-Doom, the CLI
+  //  files would be pre-loaded before PWADs, right after IWAD.
+  //
+  //  Control for _not_ loading the autoload directories' .deh files is only
+  //  provided via the CLI param "-noautoload" instead. As "-nodeh" is meant
+  //  for DEHACKED _lumps_.
   //
 
   if (gamemission == pack_chex)
