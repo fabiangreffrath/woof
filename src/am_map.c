@@ -233,6 +233,7 @@ typedef struct
     int y;
     int width;
     int height;
+    fixed_t scale;
     boolean active;
 } minimap_t;
 
@@ -758,7 +759,7 @@ static void SwapScale(void)
             ResetSwapScale();    
         }
         min_scale_mtof = max_scale_mtof = scale_mtof
-            = FixedDiv(f_w << FRACBITS, 1024 << MAPBITS);
+            = FixedDiv(f_w << FRACBITS, minimap.scale << MAPBITS);
         scale_ftom = FixedDiv(FRACUNIT, scale_mtof); 
     }
     else
@@ -2543,10 +2544,10 @@ void AM_Drawer(void)
     AM_drawMarks();
 }
 
-void AM_MiniDrawer(int x, int y, int width, int height)
+void AM_MiniDrawer(int x, int y, int width, int height, fixed_t scale)
 {
     minimap_t mm = {.active = true, .x = x, .y = y, .width = width,
-                    .height = height};
+                    .height = height, .scale = scale};
 
     if (memcmp(&mm, &minimap, sizeof(minimap_t)))
     {

@@ -16,6 +16,7 @@
 
 #include "doomdef.h"
 #include "doomtype.h"
+#include "doomstat.h"
 #include "r_defs.h"
 #include "v_video.h"
 
@@ -305,6 +306,12 @@ typedef struct
     const char *data;
 } sbe_string_t;
 
+typedef struct
+{
+    fixed_t scale;
+    overlay_t overlay;
+} sbe_minimap_t;
+
 struct sbarelem_s
 {
     sbarelementtype_t type;
@@ -334,6 +341,7 @@ struct sbarelem_s
         sbe_widget_t *widget;
         sbe_list_t *list;
         sbe_string_t *string;
+        sbe_minimap_t *minimap;
     } subtype;
 };
 

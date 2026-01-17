@@ -1763,9 +1763,15 @@ static void DrawMiniMap(int x1, int y1, int *x2, int *y2, boolean dry,
         return;
     }
 
+    sbe_minimap_t *mm = elem->subtype.minimap;
+
     x1 += video.deltaw;
 
-    if (!MN_MenuIsShaded())
+    if (mm->overlay == AM_OVERLAY_OFF)
+    {
+        V_FillRect(x1, y1, elem->width, elem->height, v_darkest_color);
+    }
+    else if (mm->overlay == AM_OVERLAY_DARK && !MN_MenuIsShaded())
     {
         V_ShadeRect(x1, y1, elem->width, elem->height);
     }
@@ -1773,7 +1779,7 @@ static void DrawMiniMap(int x1, int y1, int *x2, int *y2, boolean dry,
     vrect_t rect = {.x = x1, .y = y1, .w = elem->width, .h = elem->height};
     V_ScaleRect(&rect);
 
-    AM_MiniDrawer(rect.sx, rect.sy, rect.sw, rect.sh);
+    AM_MiniDrawer(rect.sx, rect.sy, rect.sw, rect.sh, mm->scale);
 }
 
 static void DrawListOfElem(int x1, int y1, int *x2, int *y2, boolean dry,

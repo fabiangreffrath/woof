@@ -58,7 +58,7 @@ void AM_ApplyColors(boolean force);
 void AM_ResetThickness(void);
 
 void AM_MiniStart();
-void AM_MiniDrawer(int x, int y, int width, int height);
+void AM_MiniDrawer(int x, int y, int width, int height, fixed_t scale);
 
 void AM_BindAutomapVariables(void);
 

@@ -16,8 +16,10 @@
 #include <stdlib.h>
 
 #include "doomdef.h"
+#include "doomstat.h"
 #include "doomtype.h"
 #include "i_printf.h"
+#include "i_system.h"
 #include "m_array.h"
 #include "m_json.h"
 #include "m_misc.h"
@@ -84,6 +86,13 @@ const char *sbw_names[] =
 };
 
 int sbw_names_len = arrlen(sbw_names);
+
+const char *sbe_overlay_names[] =
+{
+    [AM_OVERLAY_OFF] = "black",
+    [AM_OVERLAY_DARK] = "dark",
+    [AM_OVERLAY_ON] = "off"
+};
 
 static crop_t ParseCrop(json_t *json)
 {
@@ -351,8 +360,27 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
             break;
 
         case sbe_minimap:
-            out->width = JS_GetIntegerValue(json, "width");
-            out->height = JS_GetIntegerValue(json, "height");
+            {
+                sbe_minimap_t *mm = calloc(1, sizeof(*mm));
+                out->width = JS_GetIntegerValue(json, "width");
+                out->height = JS_GetIntegerValue(json, "height");
+                double scale = JS_GetNumberValue(json, "scale");
+                mm->scale = scale ? scale * 1024 : 1024;
+                mm->overlay = AM_OVERLAY_DARK;
+                const char *s = JS_GetStringValue(json, "overlay");
+                if (s)
+                {
+                    for (overlay_t i = 0; i < arrlen(sbe_overlay_names); ++i)
+                    {
+                        if (!strcasecmp(sbe_overlay_names[i], s))
+                        {
+                            mm->overlay = i;
+                            break;
+                        }
+                    }
+                }
+                out->subtype.minimap = mm;
+            }
             break;
 
 
