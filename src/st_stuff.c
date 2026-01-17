@@ -41,6 +41,7 @@
 #include "m_array.h"
 #include "m_cheat.h"
 #include "m_config.h"
+#include "m_input.h"
 #include "m_misc.h"
 #include "m_random.h"
 #include "m_swap.h"
@@ -2119,7 +2120,12 @@ void ST_Erase(void)
 //  intercept cheats.
 boolean ST_Responder(event_t *ev)
 {
-    if (ST_MessagesResponder(ev))
+    if (M_InputActivated(input_map_mini))
+    {
+        minimap = !minimap;
+        return true;
+    }
+    else if (ST_MessagesResponder(ev))
     {
         return true;
     }

@@ -1511,6 +1511,7 @@ static setup_menu_t keys_settings5[] = {
     {"Follow",          S_INPUT, KB_X, M_SPC, {0}, m_map, input_map_follow},
     {"Overlay",         S_INPUT, KB_X, M_SPC, {0}, m_map, input_map_overlay},
     {"Rotate",          S_INPUT, KB_X, M_SPC, {0}, m_map, input_map_rotate},
+    {"Minimap",         S_INPUT, KB_X, M_SPC, {0}, m_map, input_map_mini},
     MI_GAP,
     {"Zoom In",         S_INPUT, KB_X, M_SPC, {0}, m_map, input_map_zoomin},
     {"Zoom Out",        S_INPUT, KB_X, M_SPC, {0}, m_map, input_map_zoomout},
