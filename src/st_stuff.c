@@ -2036,7 +2036,8 @@ static void DrawStatusBar(void)
         st_height = 0;
     }
 
-    if (st_height && (screenblocks <= 10 || automap_on))
+    if (video.unscaledw != SCREENWIDTH && st_height
+        && (screenblocks <= 10 || automap_on))
     {
         DrawBackground(statusbar->fillflat);
     }
