@@ -1269,10 +1269,7 @@ static void ResetResolution(int height)
     R_SetFuzzColumnMode();
     setsizeneeded = true; // run R_ExecuteSetViewSize
 
-    if (automapactive)
-    {
-        AM_ResetScreenSize();
-    }
+    AM_ResetScreenSize();
 
     I_Printf(VB_DEBUG, "ResetResolution: %dx%d (%s)", video.width, video.height,
              widescreen_strings[widescreen]);

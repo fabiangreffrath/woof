@@ -1022,6 +1022,19 @@
               "conditions": null,
               "children": null
             }
+          },
+          {
+            "minimap": {
+              "x": 318,
+              "y": -2,
+              "alignment": 138,
+              "tranmap": null,
+              "translation": null,
+              "conditions": null,
+              "children": null,
+              "width": 50,
+              "height": 50
+            }
           }
         ]
       },
@@ -1787,6 +1800,19 @@
                     "translation": null,
                     "conditions": null,
                     "children": null
+                  }
+                },
+                {
+                  "minimap": {
+                    "x": 318,
+                    "y": 166,
+                    "alignment": 138,
+                    "tranmap": null,
+                    "translation": null,
+                    "conditions": null,
+                    "children": null,
+                    "width": 50,
+                    "height": 50
                   }
                 }
               ]
@@ -2741,6 +2767,19 @@
               "conditions": null,
               "children": null
             }
+          },
+          {
+            "minimap": {
+              "x": 318,
+              "y": 166,
+              "alignment": 138,
+              "tranmap": null,
+              "translation": null,
+              "conditions": null,
+              "children": null,
+              "width": 50,
+              "height": 50
+            }
           }
         ]
       },
@@ -3005,6 +3044,19 @@
               "translation": null,
               "conditions": null,
               "children": null
+            }
+          },
+          {
+            "minimap": {
+              "x": 318,
+              "y": 198,
+              "alignment": 138,
+              "tranmap": null,
+              "translation": null,
+              "conditions": null,
+              "children": null,
+              "width": 50,
+              "height": 50
             }
           }
         ]

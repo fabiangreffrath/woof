@@ -350,6 +350,12 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
             }
             break;
 
+        case sbe_minimap:
+            out->width = JS_GetIntegerValue(json, "width");
+            out->height = JS_GetIntegerValue(json, "height");
+            break;
+
+
         default:
             break;
     }
@@ -368,7 +374,8 @@ static const char *sbe_names[] =
     [sbe_widget] = "component",
     [sbe_carousel] = "carousel",
     [sbe_list] = "list",
-    [sbe_string] = "string"
+    [sbe_string] = "string",
+    [sbe_minimap] = "minimap"
 };
 
 static boolean ParseSbarElem(json_t *json, sbarelem_t *out)

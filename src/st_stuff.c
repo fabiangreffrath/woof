@@ -44,6 +44,7 @@
 #include "m_misc.h"
 #include "m_random.h"
 #include "m_swap.h"
+#include "mn_menu.h"
 #include "p_inter.h"
 #include "p_mobj.h"
 #include "p_user.h"
@@ -130,6 +131,8 @@ static int armor_green;   // armor amount above is blue, below is green
 static boolean hud_armor_type; // color of armor depends on type
 
 static boolean weapon_carousel;
+
+static boolean minimap;
 
 static sbardef_t *sbardef;
 
@@ -1398,6 +1401,10 @@ static void ResetElem(sbarelem_t *elem, player_t *player)
             }
             break;
 
+        case sbe_minimap:
+            AM_MiniStart();
+            break;
+
         default:
             break;
     }
@@ -1735,6 +1742,40 @@ static void DrawWidget(int x1, int y1, int *x2, int *y2, boolean dry,
     }
 }
 
+static void DrawMiniMap(int x1, int y1, int *x2, int *y2, boolean dry,
+                        sbarelem_t *elem)
+{
+    x1 = AdjustX(x1, elem->width, elem->alignment);
+    x1 = WideShiftX(x1, elem->alignment);
+    y1 = AdjustY(y1, elem->height, elem->alignment);
+
+    if (x2)
+    {
+        *x2 = MAX(*x2, x1 + elem->width);
+    }
+    if (y2)
+    {
+        *y2 = MAX(*y2, y1 + elem->height);
+    }
+
+    if (automapactive || dry)
+    {
+        return;
+    }
+
+    x1 += video.deltaw;
+
+    if (!MN_MenuIsShaded())
+    {
+        V_ShadeRect(x1, y1, elem->width, elem->height);
+    }
+
+    vrect_t rect = {.x = x1, .y = y1, .w = elem->width, .h = elem->height};
+    V_ScaleRect(&rect);
+
+    AM_MiniDrawer(rect.sx, rect.sy, rect.sw, rect.sh);
+}
+
 static void DrawListOfElem(int x1, int y1, int *x2, int *y2, boolean dry,
                            sbarelem_t *elem);
 
@@ -1821,6 +1862,13 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
                 sbe_string_t *string = elem->subtype.string;
                 DrawStringLine(x1, y1, x2, y2, dry, &string->line, elem,
                                string->font);
+            }
+            break;
+
+        case sbe_minimap:
+            if (minimap)
+            {
+                DrawMiniMap(x1, y1, x2, y2, dry, elem);
             }
             break;
 
@@ -2373,6 +2421,8 @@ void ST_BindSTSVariables(void)
 
   M_BindBool("weapon_carousel", &weapon_carousel, NULL,
              true, ss_weap, wad_no, "Show weapon carousel");
+
+  M_BindBool("minimap", &minimap, NULL, false, ss_auto, wad_no, "Show minimap");
 }
 
 //----------------------------------------------------------------------------

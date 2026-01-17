@@ -156,6 +156,7 @@ typedef enum
     sbe_carousel,
     sbe_list,
     sbe_string,
+    sbe_minimap,
 
     sbe_max,
 } sbarelementtype_t;

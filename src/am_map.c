@@ -227,6 +227,17 @@ boolean automap_grid = false;
 boolean automapactive = false;
 static boolean automapfirststart = true;
 
+typedef struct
+{
+    int x;
+    int y;
+    int width;
+    int height;
+    boolean active;
+} minimap_t;
+
+static minimap_t minimap;
+
 overlay_t automapoverlay = AM_OVERLAY_OFF;
 
 // location of window on screen
@@ -626,11 +637,26 @@ static void AM_initScreenSize(void)
   //
   // killough 11/98: ... finally add hires support :)
 
-  f_w = video.width;
-  if (automapoverlay && scaledviewheight == SCREENHEIGHT)
-    f_h = video.height;
+  if (minimap.active)
+  {
+      f_x = minimap.x;
+      f_y = minimap.y;
+      f_w = minimap.width;
+      f_h = minimap.height;
+  }
   else
-    f_h = V_ScaleY(SCREENHEIGHT - st_height);
+  {
+      f_x = f_y = 0;
+      f_w = video.width;
+      if (automapoverlay && scaledviewheight == SCREENHEIGHT)
+      {
+          f_h = video.height;
+      }
+      else
+      {
+          f_h = V_ScaleY(SCREENHEIGHT - st_height);
+      }
+  }
 }
 
 void AM_ResetScreenSize(void)
@@ -666,8 +692,6 @@ void AM_ResetScreenSize(void)
 static void AM_LevelInit(void)
 {
   automapfirststart = true;
-
-  f_x = f_y = 0;
 
   AM_initScreenSize();
 
@@ -710,6 +734,45 @@ void AM_Stop (void)
   stopped = true;
 }
 
+static fixed_t full_min_scale_mtof;
+static fixed_t full_max_scale_mtof;
+static fixed_t full_scale_mtof;
+static fixed_t full_scale_ftom;
+
+static void ResetSwapScale(void)
+{
+    full_min_scale_mtof = min_scale_mtof;
+    full_max_scale_mtof = max_scale_mtof;
+    full_scale_mtof = scale_mtof;
+    full_scale_ftom = scale_ftom;
+}
+
+static void SwapScale(void)
+{
+    static boolean last_full_automap;
+
+    if (minimap.active)
+    {
+        if (last_full_automap)
+        {
+            ResetSwapScale();    
+        }
+        min_scale_mtof = max_scale_mtof = scale_mtof
+            = FixedDiv(f_w << FRACBITS, 1024 << MAPBITS);
+        scale_ftom = FixedDiv(FRACUNIT, scale_mtof); 
+    }
+    else
+    {
+        min_scale_mtof = full_min_scale_mtof;
+        max_scale_mtof = full_max_scale_mtof;
+        scale_mtof = full_scale_mtof;
+        scale_ftom = full_scale_ftom;
+    }
+
+    AM_activateNewScale();
+    last_full_automap = automapactive;
+}
+
 //
 // AM_Start()
 // 
@@ -722,32 +785,43 @@ void AM_Stop (void)
 //
 void AM_Start()
 {
-  static int lastlevel = -1, lastepisode = -1;
+    static int lastlevel = -1, lastepisode = -1;
 
-  if (!amdef)
-  {
-      amdef = AM_ParseAmDef();
-      if (!amdef)
-      {
-          I_Error("Error parsing AMAPDEF");
-      }
-  }
+    if (!amdef)
+    {
+        amdef = AM_ParseAmDef();
+        if (!amdef)
+        {
+            I_Error("Error parsing AMAPDEF");
+        }
+    }
 
-  if (!stopped)
-    AM_Stop();
-  stopped = false;
-  if (lastlevel != gamemap || lastepisode != gameepisode)
-  {
-    AM_LevelInit();
-    lastlevel = gamemap;
-    lastepisode = gameepisode;
-  }
-  else
-  {
-    AM_ResetScreenSize();
-  }
-  AM_initVariables();
-  AM_loadPics();
+    if (!stopped)
+    {
+        AM_Stop();
+    }
+    stopped = false;
+
+    if (lastlevel != gamemap || lastepisode != gameepisode)
+    {
+        AM_LevelInit();
+        lastlevel = gamemap;
+        lastepisode = gameepisode;
+    }
+    else
+    {
+        AM_ResetScreenSize();
+    }
+    AM_initVariables();
+    AM_loadPics();
+}
+
+void AM_MiniStart(void)
+{
+    memset(&minimap, 0, sizeof(minimap_t));
+    AM_Start();
+    ResetSwapScale();
+    automapactive = false;
 }
 
 //
@@ -814,7 +888,9 @@ boolean AM_Responder
   {
     if (M_InputActivated(input_map) && !WS_Override())
     {
+      minimap.active = false;
       AM_Start ();
+      SwapScale();
       viewactive = false;
       st_refresh_background = true;
       rc = true;
@@ -1086,7 +1162,7 @@ void AM_Coordinates(const mobj_t *mo, fixed_t *x, fixed_t *y, fixed_t *z)
 //
 void AM_Ticker (void)
 {
-  if (!automapactive)
+  if (!automapactive && !minimap.active)
     return;
 
   // Change the zoom if necessary.
@@ -1145,9 +1221,9 @@ static boolean AM_clipMline
 #define DOOUTCODE(oc, mx, my) \
   (oc) = 0; \
   if ((my) < 0) (oc) |= TOP; \
-  else if ((my) >= f_h) (oc) |= BOTTOM; \
+  else if ((my) >= f_y + f_h) (oc) |= BOTTOM; \
   if ((mx) < 0) (oc) |= LEFT; \
-  else if ((mx) >= f_w) (oc) |= RIGHT;
+  else if ((mx) >= f_x + f_w) (oc) |= RIGHT;
 
     
   // do trivial rejects and outcodes
@@ -1205,28 +1281,28 @@ static boolean AM_clipMline
       dx = fl->b.x - fl->a.x;
       // [Woof!] 'int64_t' math to avoid overflows on long lines.
       tmp.x = fl->a.x + (fixed_t)(((int64_t)dx*(fl->a.y-f_y))/dy);
-      tmp.y = 0;
+      tmp.y = f_y;
     }
     else if (outside & BOTTOM)
     {
       dy = fl->a.y - fl->b.y;
       dx = fl->b.x - fl->a.x;
       tmp.x = fl->a.x + (fixed_t)(((int64_t)dx*(fl->a.y-(f_y+f_h)))/dy);
-      tmp.y = f_h-1;
+      tmp.y = f_y + f_h - 1;
     }
     else if (outside & RIGHT)
     {
       dy = fl->b.y - fl->a.y;
       dx = fl->b.x - fl->a.x;
       tmp.y = fl->a.y + (fixed_t)(((int64_t)dy*(f_x+f_w-1 - fl->a.x))/dx);
-      tmp.x = f_w-1;
+      tmp.x = f_x + f_w - 1;
     }
     else if (outside & LEFT)
     {
       dy = fl->b.y - fl->a.y;
       dx = fl->b.x - fl->a.x;
       tmp.y = fl->a.y + (fixed_t)(((int64_t)dy*(f_x-fl->a.x))/dx);
-      tmp.x = 0;
+      tmp.x = f_x;
     }
 
     if (outside == outcode1)
@@ -1267,8 +1343,10 @@ static void AM_drawFline_Vanilla(fline_t *fl, int color)
 {
 #ifdef RANGECHECK // killough 2/22/98
     // For debugging only
-    if (fl->a.x < 0 || fl->a.x >= f_w || fl->a.y < 0 || fl->a.y >= f_h
-        || fl->b.x < 0 || fl->b.x >= f_w || fl->b.y < 0 || fl->b.y >= f_h)
+    if (fl->a.x < f_x || fl->a.x >= f_x + f_w
+        || fl->a.y < f_y || fl->a.y >= f_y + f_h
+        || fl->b.x < f_x || fl->b.x >= f_x + f_w
+        || fl->b.y < f_y || fl->b.y >= f_y + f_h)
     {
         return;
     }
@@ -1407,19 +1485,19 @@ static void AM_drawFline_Smooth(fline_t *fl, int color)
     {
         int sx = ypxl1;
         int sy = xpxl1;
-        if (sx >= f_x && sx < f_w && sy >= f_y && sy < f_h)
+        if (sx >= f_x && sx < f_x + f_w && sy >= f_y && sy < f_y + f_h)
         {
             PutWuDot(sx, sy, color, rfpart * xgap * 64);
             for (int i = 1; i < width_int; ++i)
             {
                 sx = ypxl1 + i;
-                if (sx >= f_x && sx < f_w)
+                if (sx >= f_x && sx < f_x + f_w)
                 {
                     PutDot(sx, sy, color);
                 }
             }
             sx = ypxl1 + (int)width;
-            if (sx >= f_x && sx < f_w)
+            if (sx >= f_x && sx < f_x + f_w)
             {
                 PutWuDot(sx, sy, color, fpart * xgap * 64);
             }
@@ -1429,19 +1507,19 @@ static void AM_drawFline_Smooth(fline_t *fl, int color)
     {
         int sx = xpxl1;
         int sy = ypxl1;
-        if (sx >= f_x && sx < f_w && sy >= f_y && sy < f_h)
+        if (sx >= f_x && sx < f_x + f_w && sy >= f_y && sy < f_y + f_h)
         {
             PutWuDot(sx, sy, color, rfpart * xgap * 64);
             for (int i = 1; i < width_int; ++i)
             {
                 sy = ypxl1 + i;
-                if (sy >= f_y && sy < f_h)
+                if (sy >= f_y && sy < f_y + f_h)
                 {
                     PutDot(sx, sy, color);
                 }
             }
             sy = ypxl1 + width_int;
-            if (sy >= f_y && sy < f_h)
+            if (sy >= f_y && sy < f_y + f_h)
             {
                 PutWuDot(sx, sy, color, fpart * xgap * 64);
             }
@@ -1464,19 +1542,19 @@ static void AM_drawFline_Smooth(fline_t *fl, int color)
     {
         int sx = ypxl2;
         int sy = xpxl2;
-        if (sx >= f_x && sx < f_w && sy >= f_y && sy < f_h)
+        if (sx >= f_x && sx < f_x + f_w && sy >= f_y && sy < f_y + f_h)
         {
             PutWuDot(sx, sy, color, rfpart * xgap * 64);
             for (int i = 1; i < width_int; ++i)
             {
                 sx = ypxl2 + i;
-                if (sx >= f_x && sx < f_w)
+                if (sx >= f_x && sx < f_x + f_w)
                 {
                     PutDot(sx, sy, color);
                 }
             }
             sx = ypxl2 + width_int;
-            if (sx >= f_x && sx < f_w)
+            if (sx >= f_x && sx < f_x + f_w)
             {
                 PutWuDot(sx, sy, color, fpart * xgap * 64);
             }
@@ -1486,19 +1564,19 @@ static void AM_drawFline_Smooth(fline_t *fl, int color)
     {
         int sx = xpxl2;
         int sy = ypxl2;
-        if (sx >= f_x && sx < f_w && sy >= f_y && sy < f_h)
+        if (sx >= f_x && sx < f_x + f_w && sy >= f_y && sy < f_y + f_h)
         {
             PutWuDot(sx, sy, color, rfpart * xgap * 64);
             for (int i = 1; i < width_int; ++i)
             {
                 sy = ypxl2 + i;
-                if (sy >= f_y && sy < f_h)
+                if (sy >= f_y && sy < f_y + f_h)
                 {
                     PutDot(sx, sy, color);
                 }
             }
             sy = ypxl2 + width_int;
-            if (sy >= f_y && sy < f_h)
+            if (sy >= f_y && sy < f_y + f_h)
             {
                 PutWuDot(sx, sy, color, fpart * xgap * 64);
             }
@@ -1516,19 +1594,19 @@ static void AM_drawFline_Smooth(fline_t *fl, int color)
             int sx = y;
             int sy = x;
 
-            if (sx >= f_x && sx < f_w && sy >= f_y && sy < f_h)
+            if (sx >= f_x && sx < f_x + f_w && sy >= f_y && sy < f_y + f_h)
             {
                 PutWuDot(sx, sy, color, rfpart * 64);
                 for (int i = 1; i < width_int; ++i)
                 {
                     sx = y + i;
-                    if (sx >= f_x && sx < f_w)
+                    if (sx >= f_x && sx < f_x + f_w)
                     {
                         PutDot(sx, sy, color);
                     }
                 }
                 sx = y + width_int;
-                if (sx >= f_x && sx < f_w)
+                if (sx >= f_x && sx < f_x + f_w)
                 {
                     PutWuDot(sx, sy, color, fpart * 64);
                 }
@@ -1547,19 +1625,19 @@ static void AM_drawFline_Smooth(fline_t *fl, int color)
             int sx = x;
             int sy = y;
 
-            if (sx >= f_x && sx < f_w && sy >= f_y && sy < f_h)
+            if (sx >= f_x && sx < f_x + f_w && sy >= f_y && sy < f_y + f_h)
             {
                 PutWuDot(sx, sy, color, rfpart * 64);
                 for (int i = 1; i < width_int; ++i)
                 {
                     sy = y + i;
-                    if (sy >= f_y && sy < f_h)
+                    if (sy >= f_y && sy < f_y + f_h)
                     {
                         PutDot(sx, sy, color);
                     }
                 }
                 sy = y + width_int;
-                if (sy >= f_y && sy < f_h)
+                if (sy >= f_y && sy < f_y + f_h)
                 {
                     PutWuDot(sx, sy, color, fpart * 64);
                 }
@@ -2404,51 +2482,80 @@ static void AM_drawCrosshair(int color)
 //
 // Passed nothing, returns nothing
 //
-void AM_Drawer (void)
+void AM_Drawer(void)
 {
-  if (!automapactive) return;
-
-  // move AM_doFollowPlayer and AM_changeWindowLoc from AM_Ticker for
-  // interpolation
-
-  if (followplayer)
-  {
-    AM_doFollowPlayer();
-  }
-
-  // Change X and Y location.
-  if (m_paninc.x || m_paninc.y)
-  {
-    AM_changeWindowLoc();
-  }
-
-  // [crispy/Woof!] required for AM_transformPoint()
-  if (automaprotate || ADJUST_ASPECT_RATIO)
-  {
-    mapcenter.x = m_x + m_w / 2;
-    mapcenter.y = m_y + m_h / 2;
-    // [crispy] keep the map static if not following the player
-    if (automaprotate && followplayer)
+    if (!automapactive && !minimap.active)
     {
-      mapangle = ANG90 - plr->mo->angle;
+        return;
     }
-  }
 
-  if (automapoverlay == AM_OVERLAY_OFF)
-    AM_clearFB(cur_mapcolor_back);       //jff 1/5/98 background default color
-  // [Alaux] Dark automap overlay
-  else if (automapoverlay == AM_OVERLAY_DARK && !MN_MenuIsShaded())
-    V_ShadeScreen();
+    // move AM_doFollowPlayer and AM_changeWindowLoc from AM_Ticker for
+    // interpolation
 
-  if (automap_grid)                  // killough 2/28/98: change var name
-    AM_drawGrid(cur_mapcolor_grid);      //jff 1/7/98 grid default color
-  AM_drawWalls();
-  AM_drawPlayers();
-  if (ddt_cheating==2)
-    AM_drawThings(cur_mapcolor_sprt, 0); //jff 1/5/98 default double IDDT sprite
-  AM_drawCrosshair(cur_mapcolor_hair);   //jff 1/7/98 default crosshair color
+    if (followplayer)
+    {
+        AM_doFollowPlayer();
+    }
 
-  AM_drawMarks();
+    // Change X and Y location.
+    if (m_paninc.x || m_paninc.y)
+    {
+        AM_changeWindowLoc();
+    }
+
+    // [crispy/Woof!] required for AM_transformPoint()
+    if (automaprotate || ADJUST_ASPECT_RATIO)
+    {
+        mapcenter.x = m_x + m_w / 2;
+        mapcenter.y = m_y + m_h / 2;
+        // [crispy] keep the map static if not following the player
+        if (automaprotate && followplayer)
+        {
+            mapangle = ANG90 - plr->mo->angle;
+        }
+    }
+
+    if (!minimap.active)
+    {
+        if (automapoverlay == AM_OVERLAY_OFF)
+        {
+            AM_clearFB(cur_mapcolor_back); // jff 1/5/98 background default
+                                           // color
+        }
+        // [Alaux] Dark automap overlay
+        else if (automapoverlay == AM_OVERLAY_DARK && !MN_MenuIsShaded())
+        {
+            V_ShadeScreen();
+        }
+    }
+
+    if (automap_grid) // killough 2/28/98: change var name
+    {
+        AM_drawGrid(cur_mapcolor_grid); // jff 1/7/98 grid default color
+    }
+    AM_drawWalls();
+    AM_drawPlayers();
+    if (ddt_cheating == 2)
+    {
+        AM_drawThings(cur_mapcolor_sprt, 0); // jff 1/5/98 default double IDDT sprite
+    }
+    AM_drawCrosshair(cur_mapcolor_hair); // jff 1/7/98 default crosshair color
+    AM_drawMarks();
+}
+
+void AM_MiniDrawer(int x, int y, int width, int height)
+{
+    minimap_t mm = {.active = true, .x = x, .y = y, .width = width,
+                    .height = height};
+
+    if (memcmp(&mm, &minimap, sizeof(minimap_t)))
+    {
+        minimap = mm;
+        SwapScale();
+        AM_ResetScreenSize();
+    }
+
+    AM_Drawer();
 }
 
 typedef enum {

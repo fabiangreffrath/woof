@@ -57,6 +57,9 @@ void AM_ColorPreset(void);
 void AM_ApplyColors(boolean force);
 void AM_ResetThickness(void);
 
+void AM_MiniStart();
+void AM_MiniDrawer(int x, int y, int width, int height);
+
 void AM_BindAutomapVariables(void);
 
 typedef struct

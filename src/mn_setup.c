@@ -2094,6 +2094,7 @@ static setup_menu_t auto_settings1[] = {
 
     MI_GAP,
 
+    {"Show Minimap", S_ONOFF, H_X, M_SPC, {"minimap"}},
     {"Line Thickness", S_THERMO | S_THRM_SIZE4, H_X, M_THRM_SPC,
      {"map_line_thickness"}, .strings_id = str_automap_thickness,
      .action = AM_ResetThickness},
