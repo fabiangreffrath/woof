@@ -2485,11 +2485,6 @@ static void AM_drawCrosshair(int color)
 //
 void AM_Drawer(void)
 {
-    if (!automapactive && !minimap.active)
-    {
-        return;
-    }
-
     // move AM_doFollowPlayer and AM_changeWindowLoc from AM_Ticker for
     // interpolation
 
