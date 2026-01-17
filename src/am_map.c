@@ -524,8 +524,6 @@ static void AM_changeWindowLoc(void)
 //
 void AM_initVariables(void)
 {
-  static event_t st_notify = {.type = ev_keyup, .data1.i = AM_MSGENTERED};
-
   automapactive = true;
 
   m_paninc.x = m_paninc.y = 0;
@@ -552,9 +550,6 @@ void AM_initVariables(void)
   old_m_y = m_y;
   old_m_w = m_w;
   old_m_h = m_h;
-
-  // inform the status bar of the change
-  ST_Responder(&st_notify);
 }
 
 //
@@ -708,13 +703,10 @@ static void AM_LevelInit(void)
 //
 void AM_Stop (void)
 {
-  static event_t st_notify = {.type = 0, .data1.i = ev_keyup, .data2.i = AM_MSGEXITED};
-
   memset(buttons_state, 0, sizeof(buttons_state));
 
   AM_unloadPics();
   automapactive = false;
-  ST_Responder(&st_notify);
   stopped = true;
 }
 

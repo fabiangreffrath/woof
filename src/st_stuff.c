@@ -2065,12 +2065,7 @@ void ST_Erase(void)
 //  intercept cheats.
 boolean ST_Responder(event_t *ev)
 {
-    // Filter automap on/off.
-    if (ev->type == ev_keyup && (ev->data1.i & 0xffff0000) == AM_MSGHEADER)
-    {
-        return false;
-    }
-    else if (ST_MessagesResponder(ev))
+    if (ST_MessagesResponder(ev))
     {
         return true;
     }
