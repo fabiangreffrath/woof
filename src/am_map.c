@@ -633,31 +633,31 @@ static void AM_EnableSmoothLines(void)
 
 static void AM_initScreenSize(void)
 {
-  // killough 2/7/98: get rid of finit_ vars
-  // to allow runtime setting of width/height
-  //
-  // killough 11/98: ... finally add hires support :)
+    // killough 2/7/98: get rid of finit_ vars
+    // to allow runtime setting of width/height
+    //
+    // killough 11/98: ... finally add hires support :)
 
-  if (minimap.active)
-  {
-      f_x = minimap.x;
-      f_y = minimap.y;
-      f_w = minimap.width;
-      f_h = minimap.height;
-  }
-  else
-  {
-      f_x = f_y = 0;
-      f_w = video.width;
-      if (automapoverlay && scaledviewheight == SCREENHEIGHT)
-      {
-          f_h = video.height;
-      }
-      else
-      {
-          f_h = V_ScaleY(SCREENHEIGHT - st_height);
-      }
-  }
+    if (minimap.active)
+    {
+        f_x = minimap.x;
+        f_y = minimap.y;
+        f_w = minimap.width;
+        f_h = minimap.height;
+    }
+    else
+    {
+        f_x = f_y = 0;
+        f_w = video.width;
+        if (automapoverlay && scaledviewheight == SCREENHEIGHT)
+        {
+            f_h = video.height;
+        }
+        else
+        {
+            f_h = V_ScaleY(SCREENHEIGHT - st_height);
+        }
+    }
 }
 
 void AM_ResetScreenSize(void)
@@ -2433,8 +2433,8 @@ static void AM_drawMarks(void)
 	int j = i;
 
 	// [crispy] center marks around player
-	pt.x = markpoints[i].x;
-	pt.y = markpoints[i].y;
+	pt.x = f_x + markpoints[i].x;
+	pt.y = f_y + markpoints[i].y;
 	AM_transformPoint(&pt);
 	fx = CXMTOF(pt.x);
 	fy = CYMTOF(pt.y);
@@ -2446,12 +2446,12 @@ static void AM_drawMarks(void)
 	    if (d == 1)           // killough 2/22/98: less spacing for '1'
 	      fx += (video.xscale >> FRACBITS);
 
-	    if (fx >= f_x && fx < f_w - w && fy >= f_y && fy < f_h - h)
+	    if (fx >= f_x && fx < f_x + f_w - w && fy >= f_y && fy < f_y + f_h - h)
 	      V_DrawPatch(((fx << FRACBITS) / video.xscale) - video.deltaw,
                            (fy << FRACBITS) / video.yscale,
                           marknums[d]);
 
-	    fx -= w - (video.yscale >> FRACBITS); // killough 2/22/98: 1 space backwards
+	    fx -= w - (video.xscale >> FRACBITS); // killough 2/22/98: 1 space backwards
 
 	    j /= 10;
 	  }
