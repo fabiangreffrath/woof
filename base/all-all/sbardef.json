@@ -1032,7 +1032,7 @@
               "translation": null,
               "conditions": null,
               "children": null,
-              "width": 50,
+              "width": 60,
               "height": 50
             }
           }
@@ -1811,7 +1811,7 @@
                     "translation": null,
                     "conditions": null,
                     "children": null,
-                    "width": 50,
+                    "width": 60,
                     "height": 50
                   }
                 }
@@ -2777,7 +2777,7 @@
               "translation": null,
               "conditions": null,
               "children": null,
-              "width": 50,
+              "width": 60,
               "height": 50
             }
           }
@@ -3055,7 +3055,7 @@
               "translation": null,
               "conditions": null,
               "children": null,
-              "width": 50,
+              "width": 60,
               "height": 50
             }
           }
