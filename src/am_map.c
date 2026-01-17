@@ -806,6 +806,7 @@ void AM_Start()
     if (lastlevel != gamemap || lastepisode != gameepisode)
     {
         AM_LevelInit();
+        ResetSwapScale();
         lastlevel = gamemap;
         lastepisode = gameepisode;
     }
@@ -821,7 +822,6 @@ void AM_MiniStart(void)
 {
     memset(&minimap, 0, sizeof(minimap_t));
     AM_Start();
-    ResetSwapScale();
     automapactive = false;
 }
 
