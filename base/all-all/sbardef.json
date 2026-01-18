@@ -1142,7 +1142,8 @@
               "conditions": [],
               "children": [],
               "width": 72,
-              "height": 60
+              "height": 60,
+              "background": 1
             }
           },
           {
@@ -2023,7 +2024,8 @@
                     "conditions": [],
                     "children": [],
                     "width": 72,
-                    "height": 60
+                    "height": 60,
+                    "background": 1
                   }
                 },
                 {
@@ -3109,7 +3111,8 @@
               "conditions": [],
               "children": [],
               "width": 72,
-              "height": 60
+              "height": 60,
+              "background": 1
             }
           },
           {
@@ -3423,7 +3426,8 @@
               "conditions": [],
               "children": [],
               "width": 72,
-              "height": 60
+              "height": 60,
+              "background": 1
             }
           },
           {
