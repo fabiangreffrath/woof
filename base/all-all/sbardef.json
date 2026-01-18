@@ -1051,30 +1051,25 @@
             }
           },
           {
-            "carousel": {
+            "component": {
               "x": 0,
-              "y": -150,
-              "alignment": 0,
+              "y": 0,
+              "alignment": 72,
               "tranmap": null,
-              "translation": null,
+              "translation": "CRGOLD",
               "translucency": false,
-              "conditions": [],
-              "children": []
-            }
-          },
-          {
-            "minimap": {
-              "x": 2,
-              "y": -159,
-              "alignment": 64,
-              "tranmap": null,
-              "translation": null,
-              "translucency": false,
-              "conditions": [],
+              "conditions": [
+                {
+                  "condition": 19,
+                  "param": 3,
+                  "param2": 0
+                }
+              ],
               "children": [],
-              "width": 72,
-              "height": 60,
-              "overlay": 2
+              "type": "level_title",
+              "font": "Console",
+              "vertical": false,
+              "duration": 4.0
             }
           },
           {
@@ -1130,32 +1125,36 @@
                     "vertical": false,
                     "duration": 4.0
                   }
-                },
-                {
-                  "component": {
-                    "x": 0,
-                    "y": 0,
-                    "alignment": 0,
-                    "tranmap": null,
-                    "translation": "CRGOLD",
-                    "translucency": false,
-                    "conditions": [
-                      {
-                        "condition": 19,
-                        "param": 3,
-                        "param2": 0
-                      }
-                    ],
-                    "children": [],
-                    "type": "level_title",
-                    "font": "Console",
-                    "vertical": false,
-                    "duration": 4.0
-                  }
                 }
               ],
               "horizontal": false,
               "spacing": 0
+            }
+          },
+          {
+            "minimap": {
+              "x": 2,
+              "y": -159,
+              "alignment": 64,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "width": 72,
+              "height": 60
+            }
+          },
+          {
+            "carousel": {
+              "x": 0,
+              "y": -150,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": []
             }
           }
         ]
@@ -1935,7 +1934,7 @@
                 {
                   "component": {
                     "x": 0,
-                    "y": 155,
+                    "y": 154,
                     "alignment": 64,
                     "tranmap": null,
                     "translation": "CRGOLD",
@@ -1952,33 +1951,6 @@
                     "font": "Console",
                     "vertical": false,
                     "duration": 4.0
-                  }
-                },
-                {
-                  "minimap": {
-                    "x": 2,
-                    "y": 9,
-                    "alignment": 64,
-                    "tranmap": null,
-                    "translation": null,
-                    "translucency": false,
-                    "conditions": [],
-                    "children": [],
-                    "width": 72,
-                    "height": 60,
-                    "overlay": 2
-                  }
-                },
-                {
-                  "carousel": {
-                    "x": 0,
-                    "y": 18,
-                    "alignment": 0,
-                    "tranmap": null,
-                    "translation": null,
-                    "translucency": false,
-                    "conditions": [],
-                    "children": []
                   }
                 },
                 {
@@ -2034,32 +2006,36 @@
                           "vertical": false,
                           "duration": 4.0
                         }
-                      },
-                      {
-                        "component": {
-                          "x": 0,
-                          "y": 0,
-                          "alignment": 0,
-                          "tranmap": null,
-                          "translation": "CRGOLD",
-                          "translucency": false,
-                          "conditions": [
-                            {
-                              "condition": 19,
-                              "param": 3,
-                              "param2": 0
-                            }
-                          ],
-                          "children": [],
-                          "type": "level_title",
-                          "font": "Console",
-                          "vertical": false,
-                          "duration": 4.0
-                        }
                       }
                     ],
                     "horizontal": false,
                     "spacing": 0
+                  }
+                },
+                {
+                  "minimap": {
+                    "x": 2,
+                    "y": 9,
+                    "alignment": 64,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
+                    "width": 72,
+                    "height": 60
+                  }
+                },
+                {
+                  "carousel": {
+                    "x": 0,
+                    "y": 18,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": []
                   }
                 }
               ]
@@ -3064,33 +3040,6 @@
             }
           },
           {
-            "carousel": {
-              "x": 0,
-              "y": 18,
-              "alignment": 0,
-              "tranmap": null,
-              "translation": null,
-              "translucency": false,
-              "conditions": [],
-              "children": []
-            }
-          },
-          {
-            "minimap": {
-              "x": 2,
-              "y": 9,
-              "alignment": 64,
-              "tranmap": null,
-              "translation": null,
-              "translucency": false,
-              "conditions": [],
-              "children": [],
-              "width": 72,
-              "height": 60,
-              "overlay": 2
-            }
-          },
-          {
             "list": {
               "x": 2,
               "y": 168,
@@ -3143,32 +3092,36 @@
                     "vertical": false,
                     "duration": 4.0
                   }
-                },
-                {
-                  "component": {
-                    "x": 0,
-                    "y": 0,
-                    "alignment": 0,
-                    "tranmap": null,
-                    "translation": "CRGOLD",
-                    "translucency": false,
-                    "conditions": [
-                      {
-                        "condition": 19,
-                        "param": 3,
-                        "param2": 0
-                      }
-                    ],
-                    "children": [],
-                    "type": "level_title",
-                    "font": "Console",
-                    "vertical": false,
-                    "duration": 4.0
-                  }
                 }
               ],
               "horizontal": false,
               "spacing": 0
+            }
+          },
+          {
+            "minimap": {
+              "x": 2,
+              "y": 9,
+              "alignment": 64,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "width": 72,
+              "height": 60
+            }
+          },
+          {
+            "carousel": {
+              "x": 0,
+              "y": 18,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": []
             }
           }
         ]
@@ -3401,33 +3354,6 @@
             }
           },
           {
-            "carousel": {
-              "x": 0,
-              "y": 18,
-              "alignment": 0,
-              "tranmap": null,
-              "translation": null,
-              "translucency": false,
-              "conditions": [],
-              "children": []
-            }
-          },
-          {
-            "minimap": {
-              "x": 2,
-              "y": 9,
-              "alignment": 64,
-              "tranmap": null,
-              "translation": null,
-              "translucency": false,
-              "conditions": [],
-              "children": [],
-              "width": 72,
-              "height": 60,
-              "overlay": 2
-            }
-          },
-          {
             "list": {
               "x": 2,
               "y": 200,
@@ -3480,32 +3406,36 @@
                     "vertical": false,
                     "duration": 4.0
                   }
-                },
-                {
-                  "component": {
-                    "x": 0,
-                    "y": 0,
-                    "alignment": 0,
-                    "tranmap": null,
-                    "translation": "CRGOLD",
-                    "translucency": false,
-                    "conditions": [
-                      {
-                        "condition": 19,
-                        "param": 3,
-                        "param2": 0
-                      }
-                    ],
-                    "children": [],
-                    "type": "level_title",
-                    "font": "Console",
-                    "vertical": false,
-                    "duration": 4.0
-                  }
                 }
               ],
               "horizontal": false,
               "spacing": 0
+            }
+          },
+          {
+            "minimap": {
+              "x": 2,
+              "y": 9,
+              "alignment": 64,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "width": 72,
+              "height": 60
+            }
+          },
+          {
+            "carousel": {
+              "x": 0,
+              "y": 18,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": []
             }
           }
         ]
