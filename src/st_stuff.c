@@ -1750,6 +1750,11 @@ static void DrawWidget(int x1, int y1, int *x2, int *y2, boolean dry,
 static void DrawMiniMap(int x1, int y1, int *x2, int *y2, boolean dry,
                         sbarelem_t *elem)
 {
+    if (automapactive)
+    {
+        return;
+    }
+
     sbe_minimap_t *mm = elem->subtype.minimap;
 
     int width = mm->width;

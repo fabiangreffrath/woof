@@ -364,7 +364,6 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
             }
             break;
 
-
         default:
             break;
     }
