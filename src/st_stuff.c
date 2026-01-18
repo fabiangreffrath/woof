@@ -1307,6 +1307,10 @@ static void UpdateElem(sbarelem_t *elem, player_t *player)
             UpdateString(elem);
             break;
 
+        case sbe_minimap:
+            elem->enabled = (minimap && !automapactive);
+            break;
+
         default:
             break;
     }
@@ -1746,38 +1750,41 @@ static void DrawWidget(int x1, int y1, int *x2, int *y2, boolean dry,
 static void DrawMiniMap(int x1, int y1, int *x2, int *y2, boolean dry,
                         sbarelem_t *elem)
 {
-    x1 = AdjustX(x1, elem->width, elem->alignment);
+    sbe_minimap_t *mm = elem->subtype.minimap;
+
+    int width = mm->width;
+    int height = mm->height;
+
+    x1 = AdjustX(x1, width, elem->alignment);
     x1 = WideShiftX(x1, elem->alignment);
-    y1 = AdjustY(y1, elem->height, elem->alignment);
+    y1 = AdjustY(y1, height, elem->alignment);
 
     if (x2)
     {
-        *x2 = MAX(*x2, x1 + elem->width);
+        *x2 = MAX(*x2, x1 + width);
     }
     if (y2)
     {
-        *y2 = MAX(*y2, y1 + elem->height);
+        *y2 = MAX(*y2, y1 + height);
     }
 
-    if (automapactive || dry)
+    if (dry)
     {
         return;
     }
-
-    sbe_minimap_t *mm = elem->subtype.minimap;
 
     x1 += video.deltaw;
 
     if (mm->overlay == AM_OVERLAY_OFF)
     {
-        V_FillRect(x1, y1, elem->width, elem->height, v_darkest_color);
+        V_FillRect(x1, y1, width, height, v_darkest_color);
     }
     else if (mm->overlay == AM_OVERLAY_DARK && !MN_MenuIsShaded())
     {
-        V_ShadeRect(x1, y1, elem->width, elem->height);
+        V_ShadeRect(x1, y1, width, height);
     }
 
-    vrect_t rect = {.x = x1, .y = y1, .w = elem->width, .h = elem->height};
+    vrect_t rect = {.x = x1, .y = y1, .w = width, .h = height};
     V_ScaleRect(&rect);
 
     AM_MiniDrawer(rect.sx, rect.sy, rect.sw, rect.sh, mm->scale);
@@ -1873,10 +1880,7 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
             break;
 
         case sbe_minimap:
-            if (minimap)
-            {
-                DrawMiniMap(x1, y1, x2, y2, dry, elem);
-            }
+            DrawMiniMap(x1, y1, x2, y2, dry, elem);
             break;
 
         default:
@@ -1901,7 +1905,12 @@ static void UpdateListOfElem(sbarelem_t *elem, player_t *player)
         UpdateElem(child, player);
 
         int width = 0, height = 0;
-        DrawElem(0, 0, &width, &height, true, child); // Dry run
+        if (child->enabled)
+        {
+            DrawElem(0, 0, &width, &height, true, child); // Dry run
+            width -= child->x_pos;
+            height -= child->y_pos;
+        }
         child->width = width;
         child->height = height;
 

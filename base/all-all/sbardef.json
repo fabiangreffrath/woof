@@ -1,7 +1,6 @@
 {
   "type": "statusbar",
-  "version": "1.1.1",
-  "metadata": null,
+  "version": "1.2.0",
   "data": {
     "numberfonts": [
       {
@@ -43,11 +42,12 @@
               "x": 160,
               "y": 0,
               "alignment": 1,
-              "patch": "STBAR",
               "tranmap": null,
               "translation": null,
-              "conditions": null,
-              "children": null
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "patch": "STBAR"
             }
           },
           {
@@ -57,13 +57,15 @@
               "alignment": 0,
               "tranmap": null,
               "translation": null,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 15,
-                  "param": 0
+                  "param": 0,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": []
             }
           },
           {
@@ -73,8 +75,9 @@
               "alignment": 0,
               "tranmap": null,
               "translation": null,
-              "conditions": null,
-              "children": null
+              "translucency": false,
+              "conditions": [],
+              "children": []
             }
           },
           {
@@ -82,19 +85,21 @@
               "x": 44,
               "y": 3,
               "alignment": 2,
-              "font": "BigRed",
               "tranmap": null,
               "translation": null,
-              "type": 4,
-              "param": 0,
-              "maxlength": 3,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 4,
-                  "param": 0
+                  "param": 0,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "font": "BigRed",
+              "type": 4,
+              "param": 0,
+              "maxlength": 3
             }
           },
           {
@@ -102,14 +107,15 @@
               "x": 104,
               "y": 3,
               "alignment": 2,
-              "font": "BigRed",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "BigRed",
               "type": 0,
               "param": 0,
-              "maxlength": 3,
-              "conditions": null,
-              "children": null
+              "maxlength": 3
             }
           },
           {
@@ -117,14 +123,15 @@
               "x": 235,
               "y": 3,
               "alignment": 2,
-              "font": "BigRed",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "BigRed",
               "type": 1,
               "param": 0,
-              "maxlength": 3,
-              "conditions": null,
-              "children": null
+              "maxlength": 3
             }
           },
           {
@@ -132,19 +139,21 @@
               "x": 138,
               "y": 3,
               "alignment": 2,
-              "font": "BigRed",
               "tranmap": null,
               "translation": null,
-              "type": 2,
-              "param": 0,
-              "maxlength": 2,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 14,
-                  "param": 2
+                  "param": 2,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "font": "BigRed",
+              "type": 2,
+              "param": 0,
+              "maxlength": 2
             }
           },
           {
@@ -152,13 +161,14 @@
               "x": 104,
               "y": 0,
               "alignment": 0,
-              "patch": "STARMS",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 15,
-                  "param": 2
+                  "param": 2,
+                  "param2": 0
                 }
               ],
               "children": [
@@ -167,16 +177,18 @@
                     "x": 7,
                     "y": 4,
                     "alignment": 0,
-                    "patch": "STGNUM2",
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 7,
-                        "param": 2
+                        "param": 2,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": [],
+                    "patch": "STGNUM2"
                   }
                 },
                 {
@@ -184,16 +196,18 @@
                     "x": 7,
                     "y": 4,
                     "alignment": 0,
-                    "patch": "STYSNUM2",
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 6,
-                        "param": 2
+                        "param": 2,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": [],
+                    "patch": "STYSNUM2"
                   }
                 },
                 {
@@ -201,16 +215,18 @@
                     "x": 19,
                     "y": 4,
                     "alignment": 0,
-                    "patch": "STGNUM3",
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 7,
-                        "param": 3
+                        "param": 3,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": [],
+                    "patch": "STGNUM3"
                   }
                 },
                 {
@@ -218,16 +234,18 @@
                     "x": 19,
                     "y": 4,
                     "alignment": 0,
-                    "patch": "STYSNUM3",
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 6,
-                        "param": 3
+                        "param": 3,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": [],
+                    "patch": "STYSNUM3"
                   }
                 },
                 {
@@ -235,16 +253,18 @@
                     "x": 31,
                     "y": 4,
                     "alignment": 0,
-                    "patch": "STGNUM4",
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 7,
-                        "param": 4
+                        "param": 4,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": [],
+                    "patch": "STGNUM4"
                   }
                 },
                 {
@@ -252,16 +272,18 @@
                     "x": 31,
                     "y": 4,
                     "alignment": 0,
-                    "patch": "STYSNUM4",
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 6,
-                        "param": 4
+                        "param": 4,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": [],
+                    "patch": "STYSNUM4"
                   }
                 },
                 {
@@ -269,16 +291,18 @@
                     "x": 7,
                     "y": 14,
                     "alignment": 0,
-                    "patch": "STGNUM5",
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 7,
-                        "param": 5
+                        "param": 5,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": [],
+                    "patch": "STGNUM5"
                   }
                 },
                 {
@@ -286,16 +310,18 @@
                     "x": 7,
                     "y": 14,
                     "alignment": 0,
-                    "patch": "STYSNUM5",
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 6,
-                        "param": 5
+                        "param": 5,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": [],
+                    "patch": "STYSNUM5"
                   }
                 },
                 {
@@ -303,16 +329,18 @@
                     "x": 19,
                     "y": 14,
                     "alignment": 0,
-                    "patch": "STGNUM6",
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 7,
-                        "param": 6
+                        "param": 6,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": [],
+                    "patch": "STGNUM6"
                   }
                 },
                 {
@@ -320,16 +348,18 @@
                     "x": 19,
                     "y": 14,
                     "alignment": 0,
-                    "patch": "STYSNUM6",
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 6,
-                        "param": 6
+                        "param": 6,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": [],
+                    "patch": "STYSNUM6"
                   }
                 },
                 {
@@ -337,16 +367,18 @@
                     "x": 31,
                     "y": 14,
                     "alignment": 0,
-                    "patch": "STGNUM7",
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 7,
-                        "param": 7
+                        "param": 7,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": [],
+                    "patch": "STGNUM7"
                   }
                 },
                 {
@@ -354,19 +386,22 @@
                     "x": 31,
                     "y": 14,
                     "alignment": 0,
-                    "patch": "STYSNUM7",
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 6,
-                        "param": 7
+                        "param": 7,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": [],
+                    "patch": "STYSNUM7"
                   }
                 }
-              ]
+              ],
+              "patch": "STARMS"
             }
           },
           {
@@ -374,14 +409,15 @@
               "x": 288,
               "y": 5,
               "alignment": 2,
-              "font": "SmallYellow",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "SmallYellow",
               "type": 3,
               "param": 0,
-              "maxlength": 3,
-              "conditions": null,
-              "children": null
+              "maxlength": 3
             }
           },
           {
@@ -389,14 +425,15 @@
               "x": 314,
               "y": 5,
               "alignment": 2,
-              "font": "SmallYellow",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "SmallYellow",
               "type": 5,
               "param": 0,
-              "maxlength": 3,
-              "conditions": null,
-              "children": null
+              "maxlength": 3
             }
           },
           {
@@ -404,14 +441,15 @@
               "x": 288,
               "y": 11,
               "alignment": 2,
-              "font": "SmallYellow",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "SmallYellow",
               "type": 3,
               "param": 1,
-              "maxlength": 3,
-              "conditions": null,
-              "children": null
+              "maxlength": 3
             }
           },
           {
@@ -419,14 +457,15 @@
               "x": 314,
               "y": 11,
               "alignment": 2,
-              "font": "SmallYellow",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "SmallYellow",
               "type": 5,
               "param": 1,
-              "maxlength": 3,
-              "conditions": null,
-              "children": null
+              "maxlength": 3
             }
           },
           {
@@ -434,14 +473,15 @@
               "x": 288,
               "y": 17,
               "alignment": 2,
-              "font": "SmallYellow",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "SmallYellow",
               "type": 3,
               "param": 3,
-              "maxlength": 3,
-              "conditions": null,
-              "children": null
+              "maxlength": 3
             }
           },
           {
@@ -449,14 +489,15 @@
               "x": 314,
               "y": 17,
               "alignment": 2,
-              "font": "SmallYellow",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "SmallYellow",
               "type": 5,
               "param": 3,
-              "maxlength": 3,
-              "conditions": null,
-              "children": null
+              "maxlength": 3
             }
           },
           {
@@ -464,14 +505,15 @@
               "x": 288,
               "y": 23,
               "alignment": 2,
-              "font": "SmallYellow",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "SmallYellow",
               "type": 3,
               "param": 2,
-              "maxlength": 3,
-              "conditions": null,
-              "children": null
+              "maxlength": 3
             }
           },
           {
@@ -479,14 +521,15 @@
               "x": 314,
               "y": 23,
               "alignment": 2,
-              "font": "SmallYellow",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "SmallYellow",
               "type": 5,
               "param": 2,
-              "maxlength": 3,
-              "conditions": null,
-              "children": null
+              "maxlength": 3
             }
           },
           {
@@ -494,20 +537,23 @@
               "x": 239,
               "y": 3,
               "alignment": 0,
-              "patch": "STKEYS0",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 10,
-                  "param": 1
+                  "param": 1,
+                  "param2": 0
                 },
                 {
                   "condition": 11,
-                  "param": 4
+                  "param": 4,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "patch": "STKEYS0"
             }
           },
           {
@@ -515,20 +561,23 @@
               "x": 239,
               "y": 3,
               "alignment": 0,
-              "patch": "STKEYS3",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 11,
-                  "param": 1
+                  "param": 1,
+                  "param2": 0
                 },
                 {
                   "condition": 10,
-                  "param": 4
+                  "param": 4,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "patch": "STKEYS3"
             }
           },
           {
@@ -536,24 +585,28 @@
               "x": 239,
               "y": 3,
               "alignment": 0,
-              "patch": "STKEYS3",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 10,
-                  "param": 1
+                  "param": 1,
+                  "param2": 0
                 },
                 {
                   "condition": 10,
-                  "param": 4
+                  "param": 4,
+                  "param2": 0
                 },
                 {
                   "condition": 13,
-                  "param": 1
+                  "param": 1,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "patch": "STKEYS3"
             }
           },
           {
@@ -561,24 +614,28 @@
               "x": 239,
               "y": 3,
               "alignment": 0,
-              "patch": "STKEYS6",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 10,
-                  "param": 1
+                  "param": 1,
+                  "param2": 0
                 },
                 {
                   "condition": 10,
-                  "param": 4
+                  "param": 4,
+                  "param2": 0
                 },
                 {
                   "condition": 12,
-                  "param": 1
+                  "param": 1,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "patch": "STKEYS6"
             }
           },
           {
@@ -586,20 +643,23 @@
               "x": 239,
               "y": 13,
               "alignment": 0,
-              "patch": "STKEYS1",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 10,
-                  "param": 2
+                  "param": 2,
+                  "param2": 0
                 },
                 {
                   "condition": 11,
-                  "param": 5
+                  "param": 5,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "patch": "STKEYS1"
             }
           },
           {
@@ -607,20 +667,23 @@
               "x": 239,
               "y": 13,
               "alignment": 0,
-              "patch": "STKEYS4",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 11,
-                  "param": 2
+                  "param": 2,
+                  "param2": 0
                 },
                 {
                   "condition": 10,
-                  "param": 5
+                  "param": 5,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "patch": "STKEYS4"
             }
           },
           {
@@ -628,24 +691,28 @@
               "x": 239,
               "y": 13,
               "alignment": 0,
-              "patch": "STKEYS4",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 10,
-                  "param": 2
+                  "param": 2,
+                  "param2": 0
                 },
                 {
                   "condition": 10,
-                  "param": 5
+                  "param": 5,
+                  "param2": 0
                 },
                 {
                   "condition": 13,
-                  "param": 1
+                  "param": 1,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "patch": "STKEYS4"
             }
           },
           {
@@ -653,24 +720,28 @@
               "x": 239,
               "y": 13,
               "alignment": 0,
-              "patch": "STKEYS7",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 10,
-                  "param": 2
+                  "param": 2,
+                  "param2": 0
                 },
                 {
                   "condition": 10,
-                  "param": 5
+                  "param": 5,
+                  "param2": 0
                 },
                 {
                   "condition": 12,
-                  "param": 1
+                  "param": 1,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "patch": "STKEYS7"
             }
           },
           {
@@ -678,20 +749,23 @@
               "x": 239,
               "y": 23,
               "alignment": 0,
-              "patch": "STKEYS2",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 10,
-                  "param": 3
+                  "param": 3,
+                  "param2": 0
                 },
                 {
                   "condition": 11,
-                  "param": 6
+                  "param": 6,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "patch": "STKEYS2"
             }
           },
           {
@@ -699,20 +773,23 @@
               "x": 239,
               "y": 23,
               "alignment": 0,
-              "patch": "STKEYS5",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 11,
-                  "param": 3
+                  "param": 3,
+                  "param2": 0
                 },
                 {
                   "condition": 10,
-                  "param": 6
+                  "param": 6,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "patch": "STKEYS5"
             }
           },
           {
@@ -720,24 +797,28 @@
               "x": 239,
               "y": 23,
               "alignment": 0,
-              "patch": "STKEYS5",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 10,
-                  "param": 3
+                  "param": 3,
+                  "param2": 0
                 },
                 {
                   "condition": 10,
-                  "param": 6
+                  "param": 6,
+                  "param2": 0
                 },
                 {
                   "condition": 13,
-                  "param": 1
+                  "param": 1,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "patch": "STKEYS5"
             }
           },
           {
@@ -745,86 +826,28 @@
               "x": 239,
               "y": 23,
               "alignment": 0,
-              "patch": "STKEYS8",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 10,
-                  "param": 3
+                  "param": 3,
+                  "param2": 0
                 },
                 {
                   "condition": 10,
-                  "param": 6
+                  "param": 6,
+                  "param2": 0
                 },
                 {
                   "condition": 12,
-                  "param": 1
+                  "param": 1,
+                  "param2": 0
                 }
               ],
-              "children": null
-            }
-          },
-          {
-            "component": {
-              "x": 2,
-              "y": -8,
-              "alignment": 64,
-              "tranmap": null,
-              "translation": null,
-              "type": "stat_totals",
-              "font": "Digits",
-              "conditions": [
-                {
-                  "condition": 19,
-                  "param": 4
-                }
-              ],
-              "children": null
-            }
-          },
-          {
-            "component": {
-              "x": 2,
-              "y": -16,
-              "alignment": 64,
-              "tranmap": null,
-              "translation": null,
-              "type": "time",
-              "font": "Digits",
-              "conditions": [
-                {
-                  "condition": 19,
-                  "param": 4
-                },
-                {
-                  "condition": 20,
-                  "param_string": "stat_totals"
-                }
-              ],
-              "children": null
-            }
-          },
-          {
-            "component": {
-              "x": 2,
-              "y": -8,
-              "alignment": 64,
-              "tranmap": null,
-              "translation": null,
-              "type": "time",
-              "font": "Digits",
-              "conditions": [
-                {
-                  "condition": 19,
-                  "param": 4
-                },
-                {
-                  "condition": 21,
-                  "param_string": "stat_totals"
-                }
-              ],
-              "children": null
+              "children": [],
+              "patch": "STKEYS8"
             }
           },
           {
@@ -834,16 +857,19 @@
               "alignment": 64,
               "tranmap": null,
               "translation": null,
-              "type": "stat_totals",
-              "font": "Digits",
-              "vertical": true,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 19,
-                  "param": 3
+                  "param": 3,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "type": "stat_totals",
+              "font": "Digits",
+              "vertical": true,
+              "duration": 4.0
             }
           },
           {
@@ -853,15 +879,19 @@
               "alignment": 64,
               "tranmap": null,
               "translation": null,
-              "type": "time",
-              "font": "Digits",
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 19,
-                  "param": 3
+                  "param": 3,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "type": "time",
+              "font": "Digits",
+              "vertical": false,
+              "duration": 4.0
             }
           },
           {
@@ -871,15 +901,19 @@
               "alignment": 130,
               "tranmap": null,
               "translation": null,
-              "type": "coordinates",
-              "font": "Digits",
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 19,
-                  "param": 4
+                  "param": 4,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "type": "coordinates",
+              "font": "Digits",
+              "vertical": false,
+              "duration": 4.0
             }
           },
           {
@@ -889,16 +923,19 @@
               "alignment": 128,
               "tranmap": null,
               "translation": null,
-              "type": "coordinates",
-              "font": "Digits",
-              "vertical": true,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 19,
-                  "param": 3
+                  "param": 3,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "type": "coordinates",
+              "font": "Digits",
+              "vertical": true,
+              "duration": 4.0
             }
           },
           {
@@ -908,10 +945,13 @@
               "alignment": 130,
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
               "type": "fps_counter",
               "font": "Digits",
-              "conditions": null,
-              "children": null
+              "vertical": false,
+              "duration": 4.0
             }
           },
           {
@@ -921,10 +961,13 @@
               "alignment": 0,
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
               "type": "render_stats",
               "font": "Digits",
-              "conditions": null,
-              "children": null
+              "vertical": false,
+              "duration": 4.0
             }
           },
           {
@@ -934,10 +977,13 @@
               "alignment": 138,
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
               "type": "command_history",
               "font": "Digits",
-              "conditions": null,
-              "children": null
+              "vertical": false,
+              "duration": 4.0
             }
           },
           {
@@ -947,10 +993,13 @@
               "alignment": 9,
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
               "type": "speedometer",
               "font": "Digits",
-              "conditions": null,
-              "children": null
+              "vertical": false,
+              "duration": 4.0
             }
           },
           {
@@ -960,11 +1009,13 @@
               "alignment": 64,
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
               "type": "message",
               "font": "Console",
-              "duration": 4,
-              "conditions": null,
-              "children": null
+              "vertical": false,
+              "duration": 4.0
             }
           },
           {
@@ -974,11 +1025,13 @@
               "alignment": 1,
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
               "type": "announce_level_title",
               "font": "Console",
-              "duration": 2.5,
-              "conditions": null,
-              "children": null
+              "vertical": false,
+              "duration": 2.5
             }
           },
           {
@@ -988,28 +1041,13 @@
               "alignment": 64,
               "tranmap": null,
               "translation": "CRGOLD",
+              "translucency": false,
+              "conditions": [],
+              "children": [],
               "type": "chat",
               "font": "Console",
-              "conditions": null,
-              "children": null
-            }
-          },
-          {
-            "component": {
-              "x": 0,
-              "y": -8,
-              "alignment": 64,
-              "tranmap": null,
-              "translation": "CRGOLD",
-              "type": "level_title",
-              "font": "Console",
-              "conditions": [
-                {
-                  "condition": 19,
-                  "param": 3
-                }
-              ],
-              "children": null
+              "vertical": false,
+              "duration": 4.0
             }
           },
           {
@@ -1019,21 +1057,105 @@
               "alignment": 0,
               "tranmap": null,
               "translation": null,
-              "conditions": null,
-              "children": null
+              "translucency": false,
+              "conditions": [],
+              "children": []
             }
           },
           {
             "minimap": {
-              "x": 318,
-              "y": -2,
-              "alignment": 138,
+              "x": 2,
+              "y": -159,
+              "alignment": 64,
               "tranmap": null,
               "translation": null,
-              "conditions": null,
-              "children": null,
-              "width": 60,
-              "height": 50
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "width": 72,
+              "height": 60,
+              "overlay": 2
+            }
+          },
+          {
+            "list": {
+              "x": 2,
+              "y": 0,
+              "alignment": 72,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [
+                {
+                  "component": {
+                    "x": 0,
+                    "y": 0,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 19,
+                        "param": 4,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "type": "time",
+                    "font": "Digits",
+                    "vertical": false,
+                    "duration": 4.0
+                  }
+                },
+                {
+                  "component": {
+                    "x": 0,
+                    "y": 0,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 19,
+                        "param": 4,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "type": "stat_totals",
+                    "font": "Digits",
+                    "vertical": false,
+                    "duration": 4.0
+                  }
+                },
+                {
+                  "component": {
+                    "x": 0,
+                    "y": 0,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": "CRGOLD",
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 19,
+                        "param": 3,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "type": "level_title",
+                    "font": "Console",
+                    "vertical": false,
+                    "duration": 4.0
+                  }
+                }
+              ],
+              "horizontal": false,
+              "spacing": 0
             }
           }
         ]
@@ -1050,10 +1172,12 @@
               "alignment": 0,
               "tranmap": null,
               "translation": null,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 18,
-                  "param": 0
+                  "param": 0,
+                  "param2": 0
                 }
               ],
               "children": [
@@ -1064,13 +1188,15 @@
                     "alignment": 64,
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 15,
-                        "param": 0
+                        "param": 0,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": []
                   }
                 },
                 {
@@ -1080,8 +1206,9 @@
                     "alignment": 64,
                     "tranmap": null,
                     "translation": null,
-                    "conditions": null,
-                    "children": null
+                    "translucency": false,
+                    "conditions": [],
+                    "children": []
                   }
                 },
                 {
@@ -1089,14 +1216,15 @@
                     "x": 53,
                     "y": 175,
                     "alignment": 64,
-                    "font": "BigRed",
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
+                    "font": "BigRed",
                     "type": 0,
                     "param": 0,
-                    "maxlength": 3,
-                    "conditions": null,
-                    "children": null
+                    "maxlength": 3
                   }
                 },
                 {
@@ -1104,16 +1232,18 @@
                     "x": 292,
                     "y": 189,
                     "alignment": 128,
-                    "patch": "CLIPA0",
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 5,
-                        "param": 0
+                        "param": 0,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": [],
+                    "patch": "CLIPA0"
                   }
                 },
                 {
@@ -1121,16 +1251,18 @@
                     "x": 295,
                     "y": 186,
                     "alignment": 128,
-                    "patch": "SHELA0",
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 5,
-                        "param": 1
+                        "param": 1,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": [],
+                    "patch": "SHELA0"
                   }
                 },
                 {
@@ -1138,16 +1270,18 @@
                     "x": 297,
                     "y": 192,
                     "alignment": 128,
-                    "patch": "CELLA0",
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 5,
-                        "param": 2
+                        "param": 2,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": [],
+                    "patch": "CELLA0"
                   }
                 },
                 {
@@ -1155,16 +1289,18 @@
                     "x": 295,
                     "y": 195,
                     "alignment": 128,
-                    "patch": "ROCKA0",
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 5,
-                        "param": 3
+                        "param": 3,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": [],
+                    "patch": "ROCKA0"
                   }
                 },
                 {
@@ -1172,19 +1308,21 @@
                     "x": 285,
                     "y": 175,
                     "alignment": 130,
-                    "font": "BigRed",
                     "tranmap": null,
                     "translation": null,
-                    "type": 4,
-                    "param": 0,
-                    "maxlength": 3,
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 4,
-                        "param": 0
+                        "param": 0,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": [],
+                    "font": "BigRed",
+                    "type": 4,
+                    "param": 0,
+                    "maxlength": 3
                   }
                 },
                 {
@@ -1192,16 +1330,18 @@
                     "x": 125,
                     "y": 192,
                     "alignment": 64,
-                    "patch": "ARM1A0",
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 11,
-                        "param": 15
+                        "param": 15,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": [],
+                    "patch": "ARM1A0"
                   }
                 },
                 {
@@ -1209,16 +1349,18 @@
                     "x": 125,
                     "y": 192,
                     "alignment": 64,
-                    "patch": "ARM2A0",
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 10,
-                        "param": 15
+                        "param": 15,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": [],
+                    "patch": "ARM2A0"
                   }
                 },
                 {
@@ -1226,14 +1368,15 @@
                     "x": 145,
                     "y": 175,
                     "alignment": 64,
-                    "font": "BigRed",
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
+                    "font": "BigRed",
                     "type": 1,
                     "param": 0,
-                    "maxlength": 3,
-                    "conditions": null,
-                    "children": null
+                    "maxlength": 3
                   }
                 },
                 {
@@ -1241,19 +1384,21 @@
                     "x": 300,
                     "y": 5,
                     "alignment": 130,
-                    "font": "BigRed",
                     "tranmap": null,
                     "translation": null,
-                    "type": 2,
-                    "param": 0,
-                    "maxlength": 2,
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 14,
-                        "param": 2
+                        "param": 2,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": [],
+                    "font": "BigRed",
+                    "type": 2,
+                    "param": 0,
+                    "maxlength": 2
                   }
                 },
                 {
@@ -1263,27 +1408,31 @@
                     "alignment": 0,
                     "tranmap": null,
                     "translation": null,
-                    "conditions": null,
+                    "translucency": false,
+                    "conditions": [],
                     "children": [
                       {
                         "graphic": {
                           "x": 0,
                           "y": 0,
                           "alignment": 128,
-                          "patch": "STKEYS0",
                           "tranmap": null,
                           "translation": null,
+                          "translucency": false,
                           "conditions": [
                             {
                               "condition": 10,
-                              "param": 1
+                              "param": 1,
+                              "param2": 0
                             },
                             {
                               "condition": 11,
-                              "param": 4
+                              "param": 4,
+                              "param2": 0
                             }
                           ],
-                          "children": null
+                          "children": [],
+                          "patch": "STKEYS0"
                         }
                       },
                       {
@@ -1291,20 +1440,23 @@
                           "x": 0,
                           "y": 0,
                           "alignment": 128,
-                          "patch": "STKEYS3",
                           "tranmap": null,
                           "translation": null,
+                          "translucency": false,
                           "conditions": [
                             {
                               "condition": 11,
-                              "param": 1
+                              "param": 1,
+                              "param2": 0
                             },
                             {
                               "condition": 10,
-                              "param": 4
+                              "param": 4,
+                              "param2": 0
                             }
                           ],
-                          "children": null
+                          "children": [],
+                          "patch": "STKEYS3"
                         }
                       },
                       {
@@ -1312,24 +1464,28 @@
                           "x": 0,
                           "y": 0,
                           "alignment": 128,
-                          "patch": "STKEYS3",
                           "tranmap": null,
                           "translation": null,
+                          "translucency": false,
                           "conditions": [
                             {
                               "condition": 10,
-                              "param": 1
+                              "param": 1,
+                              "param2": 0
                             },
                             {
                               "condition": 10,
-                              "param": 4
+                              "param": 4,
+                              "param2": 0
                             },
                             {
                               "condition": 13,
-                              "param": 1
+                              "param": 1,
+                              "param2": 0
                             }
                           ],
-                          "children": null
+                          "children": [],
+                          "patch": "STKEYS3"
                         }
                       },
                       {
@@ -1337,24 +1493,28 @@
                           "x": 0,
                           "y": 0,
                           "alignment": 128,
-                          "patch": "STKEYS6",
                           "tranmap": null,
                           "translation": null,
+                          "translucency": false,
                           "conditions": [
                             {
                               "condition": 10,
-                              "param": 1
+                              "param": 1,
+                              "param2": 0
                             },
                             {
                               "condition": 10,
-                              "param": 4
+                              "param": 4,
+                              "param2": 0
                             },
                             {
                               "condition": 12,
-                              "param": 1
+                              "param": 1,
+                              "param2": 0
                             }
                           ],
-                          "children": null
+                          "children": [],
+                          "patch": "STKEYS6"
                         }
                       },
                       {
@@ -1362,20 +1522,23 @@
                           "x": 0,
                           "y": 10,
                           "alignment": 128,
-                          "patch": "STKEYS1",
                           "tranmap": null,
                           "translation": null,
+                          "translucency": false,
                           "conditions": [
                             {
                               "condition": 10,
-                              "param": 2
+                              "param": 2,
+                              "param2": 0
                             },
                             {
                               "condition": 11,
-                              "param": 5
+                              "param": 5,
+                              "param2": 0
                             }
                           ],
-                          "children": null
+                          "children": [],
+                          "patch": "STKEYS1"
                         }
                       },
                       {
@@ -1383,20 +1546,23 @@
                           "x": 0,
                           "y": 10,
                           "alignment": 128,
-                          "patch": "STKEYS4",
                           "tranmap": null,
                           "translation": null,
+                          "translucency": false,
                           "conditions": [
                             {
                               "condition": 11,
-                              "param": 2
+                              "param": 2,
+                              "param2": 0
                             },
                             {
                               "condition": 10,
-                              "param": 5
+                              "param": 5,
+                              "param2": 0
                             }
                           ],
-                          "children": null
+                          "children": [],
+                          "patch": "STKEYS4"
                         }
                       },
                       {
@@ -1404,24 +1570,28 @@
                           "x": 0,
                           "y": 10,
                           "alignment": 128,
-                          "patch": "STKEYS4",
                           "tranmap": null,
                           "translation": null,
+                          "translucency": false,
                           "conditions": [
                             {
                               "condition": 10,
-                              "param": 2
+                              "param": 2,
+                              "param2": 0
                             },
                             {
                               "condition": 10,
-                              "param": 5
+                              "param": 5,
+                              "param2": 0
                             },
                             {
                               "condition": 13,
-                              "param": 1
+                              "param": 1,
+                              "param2": 0
                             }
                           ],
-                          "children": null
+                          "children": [],
+                          "patch": "STKEYS4"
                         }
                       },
                       {
@@ -1429,24 +1599,28 @@
                           "x": 0,
                           "y": 10,
                           "alignment": 128,
-                          "patch": "STKEYS7",
                           "tranmap": null,
                           "translation": null,
+                          "translucency": false,
                           "conditions": [
                             {
                               "condition": 10,
-                              "param": 2
+                              "param": 2,
+                              "param2": 0
                             },
                             {
                               "condition": 10,
-                              "param": 5
+                              "param": 5,
+                              "param2": 0
                             },
                             {
                               "condition": 12,
-                              "param": 1
+                              "param": 1,
+                              "param2": 0
                             }
                           ],
-                          "children": null
+                          "children": [],
+                          "patch": "STKEYS7"
                         }
                       },
                       {
@@ -1454,20 +1628,23 @@
                           "x": 0,
                           "y": 20,
                           "alignment": 128,
-                          "patch": "STKEYS2",
                           "tranmap": null,
                           "translation": null,
+                          "translucency": false,
                           "conditions": [
                             {
                               "condition": 10,
-                              "param": 3
+                              "param": 3,
+                              "param2": 0
                             },
                             {
                               "condition": 11,
-                              "param": 6
+                              "param": 6,
+                              "param2": 0
                             }
                           ],
-                          "children": null
+                          "children": [],
+                          "patch": "STKEYS2"
                         }
                       },
                       {
@@ -1475,20 +1652,23 @@
                           "x": 0,
                           "y": 20,
                           "alignment": 128,
-                          "patch": "STKEYS5",
                           "tranmap": null,
                           "translation": null,
+                          "translucency": false,
                           "conditions": [
                             {
                               "condition": 11,
-                              "param": 3
+                              "param": 3,
+                              "param2": 0
                             },
                             {
                               "condition": 10,
-                              "param": 6
+                              "param": 6,
+                              "param2": 0
                             }
                           ],
-                          "children": null
+                          "children": [],
+                          "patch": "STKEYS5"
                         }
                       },
                       {
@@ -1496,24 +1676,28 @@
                           "x": 0,
                           "y": 20,
                           "alignment": 128,
-                          "patch": "STKEYS5",
                           "tranmap": null,
                           "translation": null,
+                          "translucency": false,
                           "conditions": [
                             {
                               "condition": 10,
-                              "param": 3
+                              "param": 3,
+                              "param2": 0
                             },
                             {
                               "condition": 10,
-                              "param": 6
+                              "param": 6,
+                              "param2": 0
                             },
                             {
                               "condition": 13,
-                              "param": 1
+                              "param": 1,
+                              "param2": 0
                             }
                           ],
-                          "children": null
+                          "children": [],
+                          "patch": "STKEYS5"
                         }
                       },
                       {
@@ -1521,89 +1705,31 @@
                           "x": 0,
                           "y": 20,
                           "alignment": 128,
-                          "patch": "STKEYS8",
                           "tranmap": null,
                           "translation": null,
+                          "translucency": false,
                           "conditions": [
                             {
                               "condition": 10,
-                              "param": 3
+                              "param": 3,
+                              "param2": 0
                             },
                             {
                               "condition": 10,
-                              "param": 6
+                              "param": 6,
+                              "param2": 0
                             },
                             {
                               "condition": 12,
-                              "param": 1
+                              "param": 1,
+                              "param2": 0
                             }
                           ],
-                          "children": null
+                          "children": [],
+                          "patch": "STKEYS8"
                         }
                       }
                     ]
-                  }
-                },
-                {
-                  "component": {
-                    "x": 2,
-                    "y": 155,
-                    "alignment": 64,
-                    "tranmap": null,
-                    "translation": null,
-                    "type": "stat_totals",
-                    "font": "Digits",
-                    "conditions": [
-                      {
-                        "condition": 19,
-                        "param": 4
-                      }
-                    ],
-                    "children": null
-                  }
-                },
-                {
-                  "component": {
-                    "x": 2,
-                    "y": 147,
-                    "alignment": 64,
-                    "tranmap": null,
-                    "translation": null,
-                    "type": "time",
-                    "font": "Digits",
-                    "conditions": [
-                      {
-                        "condition": 19,
-                        "param": 4
-                      },
-                      {
-                        "condition": 20,
-                        "param_string": "stat_totals"
-                      }
-                    ],
-                    "children": null
-                  }
-                },
-                {
-                  "component": {
-                    "x": 2,
-                    "y": 155,
-                    "alignment": 64,
-                    "tranmap": null,
-                    "translation": null,
-                    "type": "time",
-                    "font": "Digits",
-                    "conditions": [
-                      {
-                        "condition": 19,
-                        "param": 4
-                      },
-                      {
-                        "condition": 21,
-                        "param_string": "stat_totals"
-                      }
-                    ],
-                    "children": null
                   }
                 },
                 {
@@ -1613,16 +1739,19 @@
                     "alignment": 64,
                     "tranmap": null,
                     "translation": null,
-                    "type": "stat_totals",
-                    "font": "Digits",
-                    "vertical": true,
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 19,
-                        "param": 3
+                        "param": 3,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": [],
+                    "type": "stat_totals",
+                    "font": "Digits",
+                    "vertical": true,
+                    "duration": 4.0
                   }
                 },
                 {
@@ -1632,15 +1761,19 @@
                     "alignment": 64,
                     "tranmap": null,
                     "translation": null,
-                    "type": "time",
-                    "font": "Digits",
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 19,
-                        "param": 3
+                        "param": 3,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": [],
+                    "type": "time",
+                    "font": "Digits",
+                    "vertical": false,
+                    "duration": 4.0
                   }
                 },
                 {
@@ -1650,15 +1783,19 @@
                     "alignment": 130,
                     "tranmap": null,
                     "translation": null,
-                    "type": "coordinates",
-                    "font": "Digits",
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 19,
-                        "param": 4
+                        "param": 4,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": [],
+                    "type": "coordinates",
+                    "font": "Digits",
+                    "vertical": false,
+                    "duration": 4.0
                   }
                 },
                 {
@@ -1668,16 +1805,19 @@
                     "alignment": 128,
                     "tranmap": null,
                     "translation": null,
-                    "type": "coordinates",
-                    "font": "Digits",
-                    "vertical": true,
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 19,
-                        "param": 3
+                        "param": 3,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": [],
+                    "type": "coordinates",
+                    "font": "Digits",
+                    "vertical": true,
+                    "duration": 4.0
                   }
                 },
                 {
@@ -1687,10 +1827,13 @@
                     "alignment": 130,
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
                     "type": "fps_counter",
                     "font": "Digits",
-                    "conditions": null,
-                    "children": null
+                    "vertical": false,
+                    "duration": 4.0
                   }
                 },
                 {
@@ -1700,10 +1843,13 @@
                     "alignment": 0,
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
                     "type": "render_stats",
                     "font": "Digits",
-                    "conditions": null,
-                    "children": null
+                    "vertical": false,
+                    "duration": 4.0
                   }
                 },
                 {
@@ -1713,10 +1859,13 @@
                     "alignment": 138,
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
                     "type": "command_history",
                     "font": "Digits",
-                    "conditions": null,
-                    "children": null
+                    "vertical": false,
+                    "duration": 4.0
                   }
                 },
                 {
@@ -1726,10 +1875,13 @@
                     "alignment": 9,
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
                     "type": "speedometer",
                     "font": "Digits",
-                    "conditions": null,
-                    "children": null
+                    "vertical": false,
+                    "duration": 4.0
                   }
                 },
                 {
@@ -1739,11 +1891,13 @@
                     "alignment": 64,
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
                     "type": "message",
                     "font": "Console",
-                    "duration": 4,
-                    "conditions": null,
-                    "children": null
+                    "vertical": false,
+                    "duration": 4.0
                   }
                 },
                 {
@@ -1753,11 +1907,13 @@
                     "alignment": 1,
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
                     "type": "announce_level_title",
                     "font": "Console",
-                    "duration": 2.5,
-                    "conditions": null,
-                    "children": null
+                    "vertical": false,
+                    "duration": 2.5
                   }
                 },
                 {
@@ -1767,10 +1923,13 @@
                     "alignment": 64,
                     "tranmap": null,
                     "translation": "CRGOLD",
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
                     "type": "chat",
                     "font": "Console",
-                    "conditions": null,
-                    "children": null
+                    "vertical": false,
+                    "duration": 4.0
                   }
                 },
                 {
@@ -1780,15 +1939,34 @@
                     "alignment": 64,
                     "tranmap": null,
                     "translation": "CRGOLD",
-                    "type": "level_title",
-                    "font": "Console",
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 19,
-                        "param": 2
+                        "param": 2,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": [],
+                    "type": "level_title",
+                    "font": "Console",
+                    "vertical": false,
+                    "duration": 4.0
+                  }
+                },
+                {
+                  "minimap": {
+                    "x": 2,
+                    "y": 9,
+                    "alignment": 64,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
+                    "width": 72,
+                    "height": 60,
+                    "overlay": 2
                   }
                 },
                 {
@@ -1798,21 +1976,90 @@
                     "alignment": 0,
                     "tranmap": null,
                     "translation": null,
-                    "conditions": null,
-                    "children": null
+                    "translucency": false,
+                    "conditions": [],
+                    "children": []
                   }
                 },
                 {
-                  "minimap": {
-                    "x": 318,
-                    "y": 166,
-                    "alignment": 138,
+                  "list": {
+                    "x": 2,
+                    "y": 161,
+                    "alignment": 72,
                     "tranmap": null,
                     "translation": null,
-                    "conditions": null,
-                    "children": null,
-                    "width": 60,
-                    "height": 50
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [
+                      {
+                        "component": {
+                          "x": 0,
+                          "y": 0,
+                          "alignment": 0,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 19,
+                              "param": 4,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "type": "time",
+                          "font": "Digits",
+                          "vertical": false,
+                          "duration": 4.0
+                        }
+                      },
+                      {
+                        "component": {
+                          "x": 0,
+                          "y": 0,
+                          "alignment": 0,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 19,
+                              "param": 4,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "type": "stat_totals",
+                          "font": "Digits",
+                          "vertical": false,
+                          "duration": 4.0
+                        }
+                      },
+                      {
+                        "component": {
+                          "x": 0,
+                          "y": 0,
+                          "alignment": 0,
+                          "tranmap": null,
+                          "translation": "CRGOLD",
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 19,
+                              "param": 3,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "type": "level_title",
+                          "font": "Console",
+                          "vertical": false,
+                          "duration": 4.0
+                        }
+                      }
+                    ],
+                    "horizontal": false,
+                    "spacing": 0
                   }
                 }
               ]
@@ -1830,19 +2077,21 @@
               "x": 44,
               "y": 171,
               "alignment": 66,
-              "font": "BigRed",
               "tranmap": null,
               "translation": null,
-              "type": 4,
-              "param": 0,
-              "maxlength": 3,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 4,
-                  "param": 0
+                  "param": 0,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "font": "BigRed",
+              "type": 4,
+              "param": 0,
+              "maxlength": 3
             }
           },
           {
@@ -1850,14 +2099,15 @@
               "x": 104,
               "y": 171,
               "alignment": 66,
-              "font": "BigRed",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "BigRed",
               "type": 0,
               "param": 0,
-              "maxlength": 3,
-              "conditions": null,
-              "children": null
+              "maxlength": 3
             }
           },
           {
@@ -1865,14 +2115,15 @@
               "x": 235,
               "y": 171,
               "alignment": 130,
-              "font": "BigRed",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "BigRed",
               "type": 1,
               "param": 0,
-              "maxlength": 3,
-              "conditions": null,
-              "children": null
+              "maxlength": 3
             }
           },
           {
@@ -1880,19 +2131,21 @@
               "x": 138,
               "y": 171,
               "alignment": 66,
-              "font": "BigRed",
               "tranmap": null,
               "translation": null,
-              "type": 2,
-              "param": 0,
-              "maxlength": 2,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 14,
-                  "param": 2
+                  "param": 2,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "font": "BigRed",
+              "type": 2,
+              "param": 0,
+              "maxlength": 2
             }
           },
           {
@@ -1900,10 +2153,14 @@
               "x": 104,
               "y": 168,
               "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 15,
-                  "param": 2
+                  "param": 2,
+                  "param2": 0
                 }
               ],
               "children": [
@@ -1912,16 +2169,18 @@
                     "x": 7,
                     "y": 4,
                     "alignment": 64,
-                    "patch": "STGNUM2",
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 7,
-                        "param": 2
+                        "param": 2,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": [],
+                    "patch": "STGNUM2"
                   }
                 },
                 {
@@ -1929,16 +2188,18 @@
                     "x": 7,
                     "y": 4,
                     "alignment": 64,
-                    "patch": "STYSNUM2",
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 6,
-                        "param": 2
+                        "param": 2,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": [],
+                    "patch": "STYSNUM2"
                   }
                 },
                 {
@@ -1946,16 +2207,18 @@
                     "x": 19,
                     "y": 4,
                     "alignment": 64,
-                    "patch": "STGNUM3",
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 7,
-                        "param": 3
+                        "param": 3,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": [],
+                    "patch": "STGNUM3"
                   }
                 },
                 {
@@ -1963,16 +2226,18 @@
                     "x": 19,
                     "y": 4,
                     "alignment": 64,
-                    "patch": "STYSNUM3",
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 6,
-                        "param": 3
+                        "param": 3,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": [],
+                    "patch": "STYSNUM3"
                   }
                 },
                 {
@@ -1980,16 +2245,18 @@
                     "x": 31,
                     "y": 4,
                     "alignment": 64,
-                    "patch": "STGNUM4",
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 7,
-                        "param": 4
+                        "param": 4,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": [],
+                    "patch": "STGNUM4"
                   }
                 },
                 {
@@ -1997,16 +2264,18 @@
                     "x": 31,
                     "y": 4,
                     "alignment": 64,
-                    "patch": "STYSNUM4",
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 6,
-                        "param": 4
+                        "param": 4,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": [],
+                    "patch": "STYSNUM4"
                   }
                 },
                 {
@@ -2014,16 +2283,18 @@
                     "x": 7,
                     "y": 14,
                     "alignment": 64,
-                    "patch": "STGNUM5",
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 7,
-                        "param": 5
+                        "param": 5,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": [],
+                    "patch": "STGNUM5"
                   }
                 },
                 {
@@ -2031,16 +2302,18 @@
                     "x": 7,
                     "y": 14,
                     "alignment": 64,
-                    "patch": "STYSNUM5",
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 6,
-                        "param": 5
+                        "param": 5,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": [],
+                    "patch": "STYSNUM5"
                   }
                 },
                 {
@@ -2048,16 +2321,18 @@
                     "x": 19,
                     "y": 14,
                     "alignment": 64,
-                    "patch": "STGNUM6",
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 7,
-                        "param": 6
+                        "param": 6,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": [],
+                    "patch": "STGNUM6"
                   }
                 },
                 {
@@ -2065,16 +2340,18 @@
                     "x": 19,
                     "y": 14,
                     "alignment": 64,
-                    "patch": "STYSNUM6",
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 6,
-                        "param": 6
+                        "param": 6,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": [],
+                    "patch": "STYSNUM6"
                   }
                 },
                 {
@@ -2082,16 +2359,18 @@
                     "x": 31,
                     "y": 14,
                     "alignment": 64,
-                    "patch": "STGNUM7",
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 7,
-                        "param": 7
+                        "param": 7,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": [],
+                    "patch": "STGNUM7"
                   }
                 },
                 {
@@ -2099,16 +2378,18 @@
                     "x": 31,
                     "y": 14,
                     "alignment": 64,
-                    "patch": "STYSNUM7",
                     "tranmap": null,
                     "translation": null,
+                    "translucency": false,
                     "conditions": [
                       {
                         "condition": 6,
-                        "param": 7
+                        "param": 7,
+                        "param2": 0
                       }
                     ],
-                    "children": null
+                    "children": [],
+                    "patch": "STYSNUM7"
                   }
                 }
               ]
@@ -2119,14 +2400,15 @@
               "x": 288,
               "y": 173,
               "alignment": 130,
-              "font": "SmallYellow",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "SmallYellow",
               "type": 3,
               "param": 0,
-              "maxlength": 3,
-              "conditions": null,
-              "children": null
+              "maxlength": 3
             }
           },
           {
@@ -2134,14 +2416,15 @@
               "x": 314,
               "y": 173,
               "alignment": 130,
-              "font": "SmallYellow",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "SmallYellow",
               "type": 5,
               "param": 0,
-              "maxlength": 3,
-              "conditions": null,
-              "children": null
+              "maxlength": 3
             }
           },
           {
@@ -2149,14 +2432,15 @@
               "x": 288,
               "y": 179,
               "alignment": 130,
-              "font": "SmallYellow",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "SmallYellow",
               "type": 3,
               "param": 1,
-              "maxlength": 3,
-              "conditions": null,
-              "children": null
+              "maxlength": 3
             }
           },
           {
@@ -2164,14 +2448,15 @@
               "x": 314,
               "y": 179,
               "alignment": 130,
-              "font": "SmallYellow",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "SmallYellow",
               "type": 5,
               "param": 1,
-              "maxlength": 3,
-              "conditions": null,
-              "children": null
+              "maxlength": 3
             }
           },
           {
@@ -2179,14 +2464,15 @@
               "x": 288,
               "y": 185,
               "alignment": 130,
-              "font": "SmallYellow",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "SmallYellow",
               "type": 3,
               "param": 3,
-              "maxlength": 3,
-              "conditions": null,
-              "children": null
+              "maxlength": 3
             }
           },
           {
@@ -2194,14 +2480,15 @@
               "x": 314,
               "y": 185,
               "alignment": 130,
-              "font": "SmallYellow",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "SmallYellow",
               "type": 5,
               "param": 3,
-              "maxlength": 3,
-              "conditions": null,
-              "children": null
+              "maxlength": 3
             }
           },
           {
@@ -2209,14 +2496,15 @@
               "x": 288,
               "y": 191,
               "alignment": 130,
-              "font": "SmallYellow",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "SmallYellow",
               "type": 3,
               "param": 2,
-              "maxlength": 3,
-              "conditions": null,
-              "children": null
+              "maxlength": 3
             }
           },
           {
@@ -2224,14 +2512,15 @@
               "x": 314,
               "y": 191,
               "alignment": 130,
-              "font": "SmallYellow",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "SmallYellow",
               "type": 5,
               "param": 2,
-              "maxlength": 3,
-              "conditions": null,
-              "children": null
+              "maxlength": 3
             }
           },
           {
@@ -2239,20 +2528,23 @@
               "x": 239,
               "y": 171,
               "alignment": 128,
-              "patch": "STKEYS0",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 10,
-                  "param": 1
+                  "param": 1,
+                  "param2": 0
                 },
                 {
                   "condition": 11,
-                  "param": 4
+                  "param": 4,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "patch": "STKEYS0"
             }
           },
           {
@@ -2260,20 +2552,23 @@
               "x": 239,
               "y": 171,
               "alignment": 128,
-              "patch": "STKEYS3",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 11,
-                  "param": 1
+                  "param": 1,
+                  "param2": 0
                 },
                 {
                   "condition": 10,
-                  "param": 4
+                  "param": 4,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "patch": "STKEYS3"
             }
           },
           {
@@ -2281,24 +2576,28 @@
               "x": 239,
               "y": 171,
               "alignment": 128,
-              "patch": "STKEYS3",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 10,
-                  "param": 1
+                  "param": 1,
+                  "param2": 0
                 },
                 {
                   "condition": 10,
-                  "param": 4
+                  "param": 4,
+                  "param2": 0
                 },
                 {
                   "condition": 13,
-                  "param": 1
+                  "param": 1,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "patch": "STKEYS3"
             }
           },
           {
@@ -2306,24 +2605,28 @@
               "x": 239,
               "y": 171,
               "alignment": 128,
-              "patch": "STKEYS6",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 10,
-                  "param": 1
+                  "param": 1,
+                  "param2": 0
                 },
                 {
                   "condition": 10,
-                  "param": 4
+                  "param": 4,
+                  "param2": 0
                 },
                 {
                   "condition": 12,
-                  "param": 1
+                  "param": 1,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "patch": "STKEYS6"
             }
           },
           {
@@ -2331,20 +2634,23 @@
               "x": 239,
               "y": 181,
               "alignment": 128,
-              "patch": "STKEYS1",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 10,
-                  "param": 2
+                  "param": 2,
+                  "param2": 0
                 },
                 {
                   "condition": 11,
-                  "param": 5
+                  "param": 5,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "patch": "STKEYS1"
             }
           },
           {
@@ -2352,20 +2658,23 @@
               "x": 239,
               "y": 181,
               "alignment": 128,
-              "patch": "STKEYS4",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 11,
-                  "param": 2
+                  "param": 2,
+                  "param2": 0
                 },
                 {
                   "condition": 10,
-                  "param": 5
+                  "param": 5,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "patch": "STKEYS4"
             }
           },
           {
@@ -2373,24 +2682,28 @@
               "x": 239,
               "y": 181,
               "alignment": 128,
-              "patch": "STKEYS4",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 10,
-                  "param": 2
+                  "param": 2,
+                  "param2": 0
                 },
                 {
                   "condition": 10,
-                  "param": 5
+                  "param": 5,
+                  "param2": 0
                 },
                 {
                   "condition": 13,
-                  "param": 1
+                  "param": 1,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "patch": "STKEYS4"
             }
           },
           {
@@ -2398,24 +2711,28 @@
               "x": 239,
               "y": 181,
               "alignment": 128,
-              "patch": "STKEYS7",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 10,
-                  "param": 2
+                  "param": 2,
+                  "param2": 0
                 },
                 {
                   "condition": 10,
-                  "param": 5
+                  "param": 5,
+                  "param2": 0
                 },
                 {
                   "condition": 12,
-                  "param": 1
+                  "param": 1,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "patch": "STKEYS7"
             }
           },
           {
@@ -2423,20 +2740,23 @@
               "x": 239,
               "y": 191,
               "alignment": 128,
-              "patch": "STKEYS2",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 10,
-                  "param": 3
+                  "param": 3,
+                  "param2": 0
                 },
                 {
                   "condition": 11,
-                  "param": 6
+                  "param": 6,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "patch": "STKEYS2"
             }
           },
           {
@@ -2444,20 +2764,23 @@
               "x": 239,
               "y": 191,
               "alignment": 128,
-              "patch": "STKEYS5",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 11,
-                  "param": 3
+                  "param": 3,
+                  "param2": 0
                 },
                 {
                   "condition": 10,
-                  "param": 6
+                  "param": 6,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "patch": "STKEYS5"
             }
           },
           {
@@ -2465,24 +2788,28 @@
               "x": 239,
               "y": 191,
               "alignment": 128,
-              "patch": "STKEYS5",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 10,
-                  "param": 3
+                  "param": 3,
+                  "param2": 0
                 },
                 {
                   "condition": 10,
-                  "param": 6
+                  "param": 6,
+                  "param2": 0
                 },
                 {
                   "condition": 13,
-                  "param": 1
+                  "param": 1,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "patch": "STKEYS5"
             }
           },
           {
@@ -2490,86 +2817,28 @@
               "x": 239,
               "y": 191,
               "alignment": 128,
-              "patch": "STKEYS8",
               "tranmap": null,
               "translation": null,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 10,
-                  "param": 3
+                  "param": 3,
+                  "param2": 0
                 },
                 {
                   "condition": 10,
-                  "param": 6
+                  "param": 6,
+                  "param2": 0
                 },
                 {
                   "condition": 12,
-                  "param": 1
+                  "param": 1,
+                  "param2": 0
                 }
               ],
-              "children": null
-            }
-          },
-          {
-            "component": {
-              "x": 2,
-              "y": 160,
-              "alignment": 64,
-              "tranmap": null,
-              "translation": null,
-              "type": "stat_totals",
-              "font": "Digits",
-              "conditions": [
-                {
-                  "condition": 19,
-                  "param": 4
-                }
-              ],
-              "children": null
-            }
-          },
-          {
-            "component": {
-              "x": 2,
-              "y": 152,
-              "alignment": 64,
-              "tranmap": null,
-              "translation": null,
-              "type": "time",
-              "font": "Digits",
-              "conditions": [
-                {
-                  "condition": 19,
-                  "param": 4
-                },
-                {
-                  "condition": 20,
-                  "param_string": "stat_totals"
-                }
-              ],
-              "children": null
-            }
-          },
-          {
-            "component": {
-              "x": 2,
-              "y": 160,
-              "alignment": 64,
-              "tranmap": null,
-              "translation": null,
-              "type": "time",
-              "font": "Digits",
-              "conditions": [
-                {
-                  "condition": 19,
-                  "param": 4
-                },
-                {
-                  "condition": 21,
-                  "param_string": "stat_totals"
-                }
-              ],
-              "children": null
+              "children": [],
+              "patch": "STKEYS8"
             }
           },
           {
@@ -2579,16 +2848,19 @@
               "alignment": 64,
               "tranmap": null,
               "translation": null,
-              "type": "stat_totals",
-              "font": "Digits",
-              "vertical": true,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 19,
-                  "param": 3
+                  "param": 3,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "type": "stat_totals",
+              "font": "Digits",
+              "vertical": true,
+              "duration": 4.0
             }
           },
           {
@@ -2598,15 +2870,19 @@
               "alignment": 64,
               "tranmap": null,
               "translation": null,
-              "type": "time",
-              "font": "Digits",
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 19,
-                  "param": 3
+                  "param": 3,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "type": "time",
+              "font": "Digits",
+              "vertical": false,
+              "duration": 4.0
             }
           },
           {
@@ -2616,15 +2892,19 @@
               "alignment": 130,
               "tranmap": null,
               "translation": null,
-              "type": "coordinates",
-              "font": "Digits",
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 19,
-                  "param": 4
+                  "param": 4,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "type": "coordinates",
+              "font": "Digits",
+              "vertical": false,
+              "duration": 4.0
             }
           },
           {
@@ -2634,16 +2914,19 @@
               "alignment": 128,
               "tranmap": null,
               "translation": null,
-              "type": "coordinates",
-              "font": "Digits",
-              "vertical": true,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 19,
-                  "param": 3
+                  "param": 3,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "type": "coordinates",
+              "font": "Digits",
+              "vertical": true,
+              "duration": 4.0
             }
           },
           {
@@ -2653,10 +2936,13 @@
               "alignment": 130,
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
               "type": "fps_counter",
               "font": "Digits",
-              "conditions": null,
-              "children": null
+              "vertical": false,
+              "duration": 4.0
             }
           },
           {
@@ -2666,10 +2952,13 @@
               "alignment": 0,
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
               "type": "render_stats",
               "font": "Digits",
-              "conditions": null,
-              "children": null
+              "vertical": false,
+              "duration": 4.0
             }
           },
           {
@@ -2679,10 +2968,13 @@
               "alignment": 138,
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
               "type": "command_history",
               "font": "Digits",
-              "conditions": null,
-              "children": null
+              "vertical": false,
+              "duration": 4.0
             }
           },
           {
@@ -2692,10 +2984,13 @@
               "alignment": 9,
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
               "type": "speedometer",
               "font": "Digits",
-              "conditions": null,
-              "children": null
+              "vertical": false,
+              "duration": 4.0
             }
           },
           {
@@ -2705,11 +3000,13 @@
               "alignment": 64,
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
               "type": "message",
               "font": "Console",
-              "duration": 4,
-              "conditions": null,
-              "children": null
+              "vertical": false,
+              "duration": 4.0
             }
           },
           {
@@ -2719,11 +3016,13 @@
               "alignment": 1,
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
               "type": "announce_level_title",
               "font": "Console",
-              "duration": 2.5,
-              "conditions": null,
-              "children": null
+              "vertical": false,
+              "duration": 2.5
             }
           },
           {
@@ -2733,10 +3032,13 @@
               "alignment": 64,
               "tranmap": null,
               "translation": "CRGOLD",
+              "translucency": false,
+              "conditions": [],
+              "children": [],
               "type": "chat",
               "font": "Console",
-              "conditions": null,
-              "children": null
+              "vertical": false,
+              "duration": 4.0
             }
           },
           {
@@ -2746,15 +3048,19 @@
               "alignment": 64,
               "tranmap": null,
               "translation": "CRGOLD",
-              "type": "level_title",
-              "font": "Console",
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 19,
-                  "param": 3
+                  "param": 3,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "type": "level_title",
+              "font": "Console",
+              "vertical": false,
+              "duration": 4.0
             }
           },
           {
@@ -2764,21 +3070,105 @@
               "alignment": 0,
               "tranmap": null,
               "translation": null,
-              "conditions": null,
-              "children": null
+              "translucency": false,
+              "conditions": [],
+              "children": []
             }
           },
           {
             "minimap": {
-              "x": 318,
-              "y": 166,
-              "alignment": 138,
+              "x": 2,
+              "y": 9,
+              "alignment": 64,
               "tranmap": null,
               "translation": null,
-              "conditions": null,
-              "children": null,
-              "width": 60,
-              "height": 50
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "width": 72,
+              "height": 60,
+              "overlay": 2
+            }
+          },
+          {
+            "list": {
+              "x": 2,
+              "y": 168,
+              "alignment": 72,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [
+                {
+                  "component": {
+                    "x": 0,
+                    "y": 0,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 19,
+                        "param": 4,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "type": "time",
+                    "font": "Digits",
+                    "vertical": false,
+                    "duration": 4.0
+                  }
+                },
+                {
+                  "component": {
+                    "x": 0,
+                    "y": 0,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 19,
+                        "param": 4,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "type": "stat_totals",
+                    "font": "Digits",
+                    "vertical": false,
+                    "duration": 4.0
+                  }
+                },
+                {
+                  "component": {
+                    "x": 0,
+                    "y": 0,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": "CRGOLD",
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 19,
+                        "param": 3,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "type": "level_title",
+                    "font": "Console",
+                    "vertical": false,
+                    "duration": 4.0
+                  }
+                }
+              ],
+              "horizontal": false,
+              "spacing": 0
             }
           }
         ]
@@ -2791,82 +3181,23 @@
           {
             "component": {
               "x": 2,
-              "y": 192,
-              "alignment": 64,
-              "tranmap": null,
-              "translation": null,
-              "type": "stat_totals",
-              "font": "Digits",
-              "conditions": [
-                {
-                  "condition": 19,
-                  "param": 4
-                }
-              ],
-              "children": null
-            }
-          },
-          {
-            "component": {
-              "x": 2,
-              "y": 184,
-              "alignment": 64,
-              "tranmap": null,
-              "translation": null,
-              "type": "time",
-              "font": "Digits",
-              "conditions": [
-                {
-                  "condition": 19,
-                  "param": 4
-                },
-                {
-                  "condition": 20,
-                  "param_string": "stat_totals"
-                }
-              ],
-              "children": null
-            }
-          },
-          {
-            "component": {
-              "x": 2,
-              "y": 192,
-              "alignment": 64,
-              "tranmap": null,
-              "translation": null,
-              "type": "time",
-              "font": "Digits",
-              "conditions": [
-                {
-                  "condition": 19,
-                  "param": 4
-                },
-                {
-                  "condition": 21,
-                  "param_string": "stat_totals"
-                }
-              ],
-              "children": null
-            }
-          },
-          {
-            "component": {
-              "x": 2,
               "y": 8,
               "alignment": 64,
               "tranmap": null,
               "translation": null,
-              "type": "stat_totals",
-              "font": "Digits",
-              "vertical": true,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 19,
-                  "param": 3
+                  "param": 3,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "type": "stat_totals",
+              "font": "Digits",
+              "vertical": true,
+              "duration": 4.0
             }
           },
           {
@@ -2876,15 +3207,19 @@
               "alignment": 64,
               "tranmap": null,
               "translation": null,
-              "type": "time",
-              "font": "Digits",
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 19,
-                  "param": 3
+                  "param": 3,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "type": "time",
+              "font": "Digits",
+              "vertical": false,
+              "duration": 4.0
             }
           },
           {
@@ -2894,15 +3229,19 @@
               "alignment": 130,
               "tranmap": null,
               "translation": null,
-              "type": "coordinates",
-              "font": "Digits",
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 19,
-                  "param": 4
+                  "param": 4,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "type": "coordinates",
+              "font": "Digits",
+              "vertical": false,
+              "duration": 4.0
             }
           },
           {
@@ -2912,16 +3251,19 @@
               "alignment": 128,
               "tranmap": null,
               "translation": null,
-              "type": "coordinates",
-              "font": "Digits",
-              "vertical": true,
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 19,
-                  "param": 3
+                  "param": 3,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "type": "coordinates",
+              "font": "Digits",
+              "vertical": true,
+              "duration": 4.0
             }
           },
           {
@@ -2931,10 +3273,13 @@
               "alignment": 130,
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
               "type": "fps_counter",
               "font": "Digits",
-              "conditions": null,
-              "children": null
+              "vertical": false,
+              "duration": 4.0
             }
           },
           {
@@ -2944,10 +3289,13 @@
               "alignment": 0,
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
               "type": "render_stats",
               "font": "Digits",
-              "conditions": null,
-              "children": null
+              "vertical": false,
+              "duration": 4.0
             }
           },
           {
@@ -2957,10 +3305,13 @@
               "alignment": 138,
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
               "type": "command_history",
               "font": "Digits",
-              "conditions": null,
-              "children": null
+              "vertical": false,
+              "duration": 4.0
             }
           },
           {
@@ -2970,10 +3321,13 @@
               "alignment": 9,
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
               "type": "speedometer",
               "font": "Digits",
-              "conditions": null,
-              "children": null
+              "vertical": false,
+              "duration": 4.0
             }
           },
           {
@@ -2983,11 +3337,13 @@
               "alignment": 64,
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
               "type": "message",
               "font": "Console",
-              "duration": 4,
-              "conditions": null,
-              "children": null
+              "vertical": false,
+              "duration": 4.0
             }
           },
           {
@@ -2997,11 +3353,13 @@
               "alignment": 1,
               "tranmap": null,
               "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
               "type": "announce_level_title",
               "font": "Console",
-              "duration": 2.5,
-              "conditions": null,
-              "children": null
+              "vertical": false,
+              "duration": 2.5
             }
           },
           {
@@ -3011,10 +3369,13 @@
               "alignment": 64,
               "tranmap": null,
               "translation": "CRGOLD",
+              "translucency": false,
+              "conditions": [],
+              "children": [],
               "type": "chat",
               "font": "Console",
-              "conditions": null,
-              "children": null
+              "vertical": false,
+              "duration": 4.0
             }
           },
           {
@@ -3024,15 +3385,19 @@
               "alignment": 64,
               "tranmap": null,
               "translation": "CRGOLD",
-              "type": "level_title",
-              "font": "Console",
+              "translucency": false,
               "conditions": [
                 {
                   "condition": 19,
-                  "param": 3
+                  "param": 3,
+                  "param2": 0
                 }
               ],
-              "children": null
+              "children": [],
+              "type": "level_title",
+              "font": "Console",
+              "vertical": false,
+              "duration": 4.0
             }
           },
           {
@@ -3042,21 +3407,105 @@
               "alignment": 0,
               "tranmap": null,
               "translation": null,
-              "conditions": null,
-              "children": null
+              "translucency": false,
+              "conditions": [],
+              "children": []
             }
           },
           {
             "minimap": {
-              "x": 318,
-              "y": 198,
-              "alignment": 138,
+              "x": 2,
+              "y": 9,
+              "alignment": 64,
               "tranmap": null,
               "translation": null,
-              "conditions": null,
-              "children": null,
-              "width": 60,
-              "height": 50
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "width": 72,
+              "height": 60,
+              "overlay": 2
+            }
+          },
+          {
+            "list": {
+              "x": 2,
+              "y": 200,
+              "alignment": 72,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [
+                {
+                  "component": {
+                    "x": 0,
+                    "y": 0,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 19,
+                        "param": 4,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "type": "time",
+                    "font": "Digits",
+                    "vertical": false,
+                    "duration": 4.0
+                  }
+                },
+                {
+                  "component": {
+                    "x": 0,
+                    "y": 0,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 19,
+                        "param": 4,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "type": "stat_totals",
+                    "font": "Digits",
+                    "vertical": false,
+                    "duration": 4.0
+                  }
+                },
+                {
+                  "component": {
+                    "x": 0,
+                    "y": 0,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": "CRGOLD",
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 19,
+                        "param": 3,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "type": "level_title",
+                    "font": "Console",
+                    "vertical": false,
+                    "duration": 4.0
+                  }
+                }
+              ],
+              "horizontal": false,
+              "spacing": 0
             }
           }
         ]

@@ -308,6 +308,8 @@ typedef struct
 
 typedef struct
 {
+    int width;
+    int height;
     fixed_t scale;
     overlay_t overlay;
 } sbe_minimap_t;
