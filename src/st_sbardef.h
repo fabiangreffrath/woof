@@ -306,12 +306,19 @@ typedef struct
     const char *data;
 } sbe_string_t;
 
+typedef enum
+{
+    sbmm_background_off,
+    sbmm_background_dark,
+    sbmm_background_black
+} sbmm_backgound_t;
+
 typedef struct
 {
     int width;
     int height;
     fixed_t scale;
-    overlay_t overlay;
+    sbmm_backgound_t background;
 } sbe_minimap_t;
 
 struct sbarelem_s

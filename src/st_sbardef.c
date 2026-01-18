@@ -359,7 +359,7 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
                 mm->height = JS_GetIntegerValue(json, "height");
                 double scale = JS_GetNumberValue(json, "scale");
                 mm->scale = scale ? scale * 1024 : 1024;
-                mm->overlay = JS_GetIntegerValue(json, "overlay");
+                mm->background = JS_GetIntegerValue(json, "background");
                 out->subtype.minimap = mm;
             }
             break;

@@ -1775,11 +1775,11 @@ static void DrawMiniMap(int x1, int y1, int *x2, int *y2, boolean dry,
 
     x1 += video.deltaw;
 
-    if (mm->overlay == AM_OVERLAY_OFF)
+    if (mm->background == sbmm_background_black)
     {
         V_FillRect(x1, y1, width, height, v_darkest_color);
     }
-    else if (mm->overlay == AM_OVERLAY_DARK && !MN_MenuIsShaded())
+    else if (mm->background == sbmm_background_dark && !MN_MenuIsShaded())
     {
         V_ShadeRect(x1, y1, width, height);
     }
