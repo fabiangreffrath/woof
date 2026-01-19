@@ -100,6 +100,8 @@ static boolean W_FILE_AddDir(w_handle_t handle, const char *path,
         numlumps++;
     }
 
+    I_EndGlob(glob);
+
     if (numlumps > startlump && end_marker)
     {
         W_AddMarker(end_marker);
