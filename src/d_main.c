@@ -1259,6 +1259,7 @@ static void LoadIWadBase(void)
         return;
     }
 
+    W_AddBaseDir("iwad-all");
     if (local_gamemission < pack_chex)
     {
         W_AddBaseDir("doom-all");
