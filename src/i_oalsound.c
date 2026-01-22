@@ -23,8 +23,8 @@
 
 #include <math.h>
 #include <stdlib.h>
-#include <string.h>
 
+#include "deh_bex_sounds.h"
 #include "i_oalcommon.h"
 #include "i_oalequalizer.h"
 #include "i_oalsound.h"
@@ -443,7 +443,7 @@ static void GetAttribs(ALCint **attribs)
 void I_OAL_BindSoundVariables(void)
 {
     BIND_BOOL_GENERAL(snd_hrtf, false,
-        "[OpenAL 3D] Headphones mode (0 = No; 1 = Yes)");
+        "[OpenAL 3D] Headphones mode");
     BIND_NUM_SFX(snd_resampler, 1, 0, UL,
         "Sound resampler (0 = Nearest; 1 = Linear; ...)");
     BIND_NUM(snd_absorption, 0, 0, 10,

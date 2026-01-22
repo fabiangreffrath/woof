@@ -23,7 +23,7 @@ jobs:
       matrix:
         config:
           - name: Linux GCC
-            os: ubuntu-22.04
+            os: ubuntu-24.04
             toolchain: $VCPKG_INSTALLATION_ROOT
             triplet: x64-linux-dynamic-release
             artifact-name: AppImage
@@ -62,7 +62,7 @@ jobs:
             extra-options: -DCMAKE_INSTALL_PREFIX=/usr
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install dependencies (Linux)
         if: runner.os == 'Linux'
@@ -73,8 +73,9 @@ jobs:
           libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxtst-dev \
           libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
           libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev \
-          libpipewire-0.3-dev libwayland-dev libdecor-0-dev liburing-dev
-          
+          libpipewire-0.3-dev libwayland-dev libdecor-0-dev liburing-dev \
+          libltdl-dev
+
       - name: Developer Command Prompt
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
@@ -83,7 +84,7 @@ jobs:
 
       - name: Restore vcpkg cache
         id: cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: ${{ github.workspace }}/vcpkg_cache
           key: vcpkg-${{ matrix.config.triplet }}
@@ -117,7 +118,7 @@ jobs:
         run: gh cache delete --repo ${{ github.repository }} ${{ steps.cache.outputs.cache-primary-key }}
 
       - name: Save cache
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: ${{ github.workspace }}/vcpkg_cache
           key: ${{ steps.cache.outputs.cache-primary-key }}
@@ -162,7 +163,7 @@ jobs:
           cpack
 
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.config.artifact-name }}
           path: ${{ matrix.config.artifact-path }}
@@ -180,3 +181,10 @@ jobs:
           bodyFile: CHANGELOG.md
           allowUpdates: true
           artifacts: ${{ matrix.config.artifact-path }}
+
+      - name: Release (zsync)
+        if: runner.os == 'Linux' && contains(github.ref, 'tags')
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          artifacts: build/*.zsync

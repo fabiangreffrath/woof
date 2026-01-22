@@ -75,6 +75,24 @@ typedef enum
     sbc_episodeequal,
     sbc_levelgreaterequal,
     sbc_levelless,
+    sbc_patchempty,
+    sbc_patchnotempty,
+    sbc_killsless,
+    sbc_killsgreaterequal,
+    sbc_itemsless,
+    sbc_itemsgreaterequal,
+    sbc_secretsless,
+    sbc_secretsgreaterequal,
+    sbc_killslesspct,
+    sbc_killsgreaterequalpct,
+    sbc_itemslesspct,
+    sbc_itemsgreaterequalpct,
+    sbc_secretslesspct,
+    sbc_secretsgreaterequalpct,
+    sbc_powerless,
+    sbc_powergreaterequal,
+    sbc_powerlesspct,
+    sbc_powergreaterequalpct,
 
     sbc_max,
 } sbarconditiontype_t;
@@ -84,6 +102,7 @@ typedef struct
     sbarconditiontype_t condition;
     int param;
     int param2;
+    const char *param_string;
 } sbarcondition_t;
 
 typedef enum
@@ -106,6 +125,18 @@ typedef enum
     sbn_weaponammo,
     sbn_weaponmaxammo,
 
+    // Woof!
+    sbn_kills,
+    sbn_items,
+    sbn_secrets,
+    sbn_killspct,
+    sbn_itemspct,
+    sbn_secretspct,
+    sbn_totalkills,
+    sbn_totalitems,
+    sbn_totalsecrets,
+    sbn_power,
+
     sbn_max,
 } sbarnumbertype_t;
 
@@ -123,12 +154,15 @@ typedef enum
     // Woof!
     sbe_widget,
     sbe_carousel,
+    sbe_list,
+    sbe_string,
 
     sbe_max,
 } sbarelementtype_t;
 
 typedef enum
 {
+    sbw_none = -1,
     sbw_monsec,
     sbw_time,
     sbw_coord,
@@ -145,6 +179,18 @@ typedef enum
 
 typedef enum
 {
+    sbstr_none = -1,
+    sbstr_data,
+    sbstr_maptitle,
+    sbstr_label,
+    sbstr_author
+} sbstringtype_t;
+
+extern const char *sbw_names[];
+extern int sbw_names_len;
+
+typedef enum
+{
     sbe_h_left = 0x00,
     sbe_h_middle = 0x01,
     sbe_h_right = 0x02,
@@ -157,9 +203,12 @@ typedef enum
 
     sbe_v_mask = 0x0C,
 
+    sbe_ignore_xoffset = 0x10,
+    sbe_ignore_yoffset = 0x20,
+
     // Woof!
-    sbe_wide_left = 0x10,
-    sbe_wide_right = 0x20,
+    sbe_wide_left = 0x40,
+    sbe_wide_right = 0x80,
 } sbaralignment_t;
 
 typedef struct
@@ -224,14 +273,14 @@ typedef struct
     const char *string;
     int totalwidth;
     int xoffset;
-} widgetline_t;
+} stringline_t;
 
 typedef struct sbe_widget_s
 {
     sbarwidgettype_t type;
     hudfont_t *default_font;
     hudfont_t *font;
-    widgetline_t *lines;
+    stringline_t *lines;
 
     int height;
 
@@ -241,6 +290,20 @@ typedef struct sbe_widget_s
     boolean vertical;
 } sbe_widget_t;
 
+typedef struct
+{
+    boolean horizontal;
+    int spacing;
+} sbe_list_t;
+
+typedef struct
+{
+    sbstringtype_t type;
+    stringline_t line;
+    hudfont_t *font;
+    const char *data;
+} sbe_string_t;
+
 struct sbarelem_s
 {
     sbarelementtype_t type;
@@ -249,6 +312,10 @@ struct sbarelem_s
     sbaralignment_t alignment;
     sbarcondition_t *conditions;
     sbarelem_t *children;
+
+    boolean enabled;
+    int width;
+    int height;
 
     const byte *tranmap;
     crange_idx_e cr;
@@ -264,6 +331,8 @@ struct sbarelem_s
 
         // Woof!
         sbe_widget_t *widget;
+        sbe_list_t *list;
+        sbe_string_t *string;
     } subtype;
 };
 

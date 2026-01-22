@@ -106,10 +106,14 @@ check_c_source_compiles(
 )
 check_c_source_compiles(
     "
-    typedef float vec __attribute__((ext_vector_type(4)));
+    typedef float quat __attribute__((ext_vector_type(4)));
     int main(void)
     {
-        vec a = (vec){0, 1, 2, 3};
+        quat a;
+        a.x = 0;
+        a.y = 1;
+        a.z = 2;
+        a.w = 3;
         return 0;
     }
     "
@@ -119,7 +123,7 @@ check_c_source_compiles(
 set(CMAKE_FIND_FRAMEWORK NEVER)
 
 # Library requirements.
-find_package(SDL3 3.3 REQUIRED)
+find_package(SDL3 3.4.0 REQUIRED)
 find_package(OpenAL REQUIRED)
 find_package(libebur128 REQUIRED)
 find_package(SndFile 1.0.29 REQUIRED)

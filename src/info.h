@@ -1256,12 +1256,12 @@ typedef enum
 typedef struct
 {
   spritenum_t sprite;       // sprite number to show
-  long        frame;        // which frame/subframe of the sprite is shown
-  long        tics;         // number of gametics this frame should last
+  int         frame;        // which frame/subframe of the sprite is shown
+  int         tics;         // number of gametics this frame should last
   actionf_t   action;       // code pointer to function for action if any
   statenum_t  nextstate;    // linked list pointer to next state or zero
-  long        misc1, misc2; // used for psprite positioning
-  long        args[MAXSTATEARGS]; // [XA] mbf21 args
+  int         misc1, misc2; // used for psprite positioning
+  int         args[MAXSTATEARGS]; // [XA] mbf21 args
   byte       *tranmap; // ID24
   int         flags;
 } state_t;
@@ -1511,7 +1511,10 @@ typedef struct
                       //  resurrection.  Zero means it won't come
                       //  back to life.
 
-    // mbf21
+    // DEHEXTRA
+    mobjtype_t droppeditem; // mobj to drop after death
+
+    // MBF21
     int flags2;
     int infighting_group;
     int projectile_group;
@@ -1520,13 +1523,12 @@ typedef struct
     int altspeed;
     int meleerange;
 
+    // MBF2y
+    const char *obituary, *obituary_melee, *obituary_self;
+
     // [Woof!]
     int flags_extra;  // Woof!-exclusive extension
     int bloodcolor;   // [FG] colored blood and gibs
-    // DEHEXTRA
-    mobjtype_t droppeditem; // mobj to drop after death
-    // [FG] Obituaries
-    char *obituary, *obituary_melee;
 } mobjinfo_t;
 
 #define NO_ALTSPEED -1

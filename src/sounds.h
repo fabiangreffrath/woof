@@ -210,10 +210,6 @@ typedef enum {
   mus_musinfo
 } musicenum_t;
 
-// DSDHacked
-extern musicinfo_t *S_music;
-extern int num_music;
-
 //
 // Identifiers for all sfx in game.
 //
@@ -550,10 +546,6 @@ typedef enum {
 
   NUMSFX
 } sfxenum_t;
-
-// DSDHacked
-extern sfxinfo_t* S_sfx;
-extern int num_sfx;
 
 #endif
 

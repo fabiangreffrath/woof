@@ -18,11 +18,11 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "deh_thing.h"
 #include "hu_command.h"
 #include "mn_internal.h"
 
 #include "am_map.h"
-#include "d_deh.h"
 #include "d_main.h"
 #include "doomdef.h"
 #include "doomstat.h"
@@ -62,7 +62,7 @@
 #include "st_stuff.h"
 #include "sounds.h"
 #include "st_widgets.h"
-#include "v_fmt.h"
+#include "v_patch.h"
 #include "v_video.h"
 #include "w_wad.h"
 #include "ws_stuff.h"
@@ -353,6 +353,7 @@ enum
     str_curve,
     str_center_weapon,
     str_screensize,
+    str_hud_anchoring,
     str_show_widgets,
     str_show_adv_widgets,
     str_stats_format,
@@ -361,6 +362,7 @@ enum
     str_hudcolor,
     str_secretmessage,
     str_overlay,
+    str_automap_thickness,
     str_automap_preset,
     str_automap_keyed_door,
     str_fuzzmode,
@@ -391,6 +393,7 @@ enum
     str_widescreen,
     str_bobbing_pct,
     str_screen_melt,
+    str_palette_changes,
     str_invul_mode,
     str_skill,
     str_freelook
@@ -1876,6 +1879,10 @@ static void RefreshSolidBackground(void)
     st_refresh_background = true;
 }
 
+static const char *hud_anchoring_strings[] = {
+    "Wide", "4:3", "16:9", "21:9"
+};
+
 #define H_X_THRM8 (M_X_THRM8 - 14)
 #define H_X       (M_X - 14)
 
@@ -1886,8 +1893,8 @@ static setup_menu_t stat_settings1[] = {
 
     MI_GAP,
 
-    {"Wide Shift", S_THERMO, H_X_THRM8, M_THRM_SPC, {"st_wide_shift"},
-     .append = "px"},
+    {"HUD Anchoring", S_CHOICE, H_X, M_SPC, {"hud_anchoring"},
+     .strings_id = str_hud_anchoring, .action = I_UpdateHudAnchoring},
 
     MI_GAP,
 
@@ -1903,15 +1910,9 @@ static setup_menu_t stat_settings1[] = {
     MI_END
 };
 
-void MN_UpdateWideShiftItem(boolean reset)
+void MN_UpdateHudAnchoringItem(void)
 {
-    DisableItem(!video.deltaw, stat_settings1, "st_wide_shift");
-    SetItemLimit(stat_settings1, "st_wide_shift", 0, video.deltaw);
-    if (reset || st_wide_shift == -1)
-    {
-        st_wide_shift = video.deltaw;
-    }
-    st_wide_shift = CLAMP(st_wide_shift, 0, video.deltaw);
+    DisableItem(!video.deltaw, stat_settings1, "hud_anchoring");
 }
 
 static void UpdateStatsFormatItem(void);
@@ -1999,8 +2000,7 @@ static setup_menu_t stat_settings4[] = {
     {"Show Pickup Messages", S_ONOFF, H_X, M_SPC, {"show_pickup_messages"}},
     {"Show Obituaries",      S_ONOFF, H_X, M_SPC, {"show_obituary_messages"}},
     {"Center Messages",      S_ONOFF, H_X, M_SPC, {"message_centered"}},
-    {"Colorize Messages",    S_ONOFF, H_X, M_SPC, {"message_colorized"},
-     .action = ST_ResetMessageColors},
+    {"Colorize Messages",    S_ONOFF, H_X, M_SPC, {"message_colorized"}},
     MI_END
 };
 
@@ -2076,6 +2076,9 @@ void MN_DrawStatusHUD(void)
 
 static const char *overlay_strings[] = {"Off", "On", "Dark"};
 
+static const char *automap_thickness_strings[] = {
+    "Auto", "1", "2", "3", "4", "5", "6"};
+
 static const char *automap_preset_strings[] = {"Vanilla", "Crispy", "Boom", "ZDoom"};
 
 static const char *automap_keyed_door_strings[] = {"Off", "On", "Flashing"};
@@ -2088,6 +2091,12 @@ static setup_menu_t auto_settings1[] = {
     {"Rotate Automap",  S_ONOFF,  H_X, M_SPC, {"automaprotate"}},
     {"Overlay Automap", S_CHOICE, H_X, M_SPC, {"automapoverlay"},
      .strings_id = str_overlay},
+
+    MI_GAP,
+
+    {"Line Thickness", S_THERMO | S_THRM_SIZE4, H_X, M_THRM_SPC,
+     {"map_line_thickness"}, .strings_id = str_automap_thickness,
+     .action = AM_ResetThickness},
 
     MI_GAP,
 
@@ -3361,6 +3370,8 @@ static const char *death_use_action_strings[] = {"default", "last save",
 
 static const char *screen_melt_strings[] = {"Off", "Melt", "Crossfade", "Fizzle"};
 
+static const char *palette_changes_strings[] = {"Off", "On", "Reduced"};
+
 static const char *invul_mode_strings[] = {"Vanilla", "MBF", "Gray"};
 
 static const char *endoom_strings[] = {"Off", "PWAD Only", "Always"};
@@ -3372,8 +3383,8 @@ static setup_menu_t gen_settings6[] = {
     {"Screen wipe effect", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC,
      {"screen_melt"}, .strings_id = str_screen_melt},
 
-    {"Pain/Pickup/Powerup flashes", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC,
-     {"palette_changes"}},
+    {"Pain/Pickup/Powerup flashes", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC,
+     {"palette_changes"}, .strings_id = str_palette_changes},
 
     {"Invulnerability effect", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC,
      {"invul_mode"}, .strings_id = str_invul_mode, .action = R_InvulMode},
@@ -3895,15 +3906,17 @@ void MN_DrawStringCR(int cx, int cy, byte *cr1, byte *cr2, const char *ch)
             break;
         }
 
+        patch_t *patch = hu_font[c];
+
         // V_DrawpatchTranslated() will draw the string in the
         // desired color, colrngs[color]
         if (cr && cr2)
         {
-            V_DrawPatchTRTR(cx, cy, (crop_t){0}, hu_font[c], cr, cr2);
+            V_DrawPatchTranslatedTwice(cx, cy, patch, cr, cr2);
         }
         else
         {
-            V_DrawPatchTranslated(cx, cy, hu_font[c], cr);
+            V_DrawPatchTranslated(cx, cy, patch, cr);
         }
 
         // The screen is cramped, so trim one unit from each
@@ -4991,6 +5004,7 @@ static const char **selectstrings[] = {
     [str_curve] = curve_strings,
     [str_center_weapon] = center_weapon_strings,
     [str_screensize] = NULL,
+    [str_hud_anchoring] = hud_anchoring_strings,
     [str_show_widgets] = show_widgets_strings,
     [str_show_adv_widgets] = show_adv_widgets_strings,
     [str_stats_format] = stats_format_strings,
@@ -4999,6 +5013,7 @@ static const char **selectstrings[] = {
     [str_hudcolor] = hudcolor_strings,
     [str_secretmessage] = secretmessage_strings,
     [str_overlay] = overlay_strings,
+    [str_automap_thickness] = automap_thickness_strings,
     [str_automap_preset] = automap_preset_strings,
     [str_automap_keyed_door] = automap_keyed_door_strings,
     [str_fuzzmode] = fuzzmode_strings,
@@ -5024,6 +5039,7 @@ static const char **selectstrings[] = {
     [str_widescreen] = widescreen_strings,
     [str_bobbing_pct] = bobbing_pct_strings,
     [str_screen_melt] = screen_melt_strings,
+    [str_palette_changes] = palette_changes_strings,
     [str_invul_mode] = invul_mode_strings,
     [str_skill] = skill_strings,
     [str_freelook] = free_look_strings,
@@ -5113,6 +5129,7 @@ void MN_SetupResetMenu(void)
                 "brightmaps");
     DisableItem(!trakinfo_found, gen_settings2, "extra_music");
     DisableItem(M_ParmExists("-save"), gen_settings6, "organize_savefiles");
+    DisableItem(!map_smooth_lines, auto_settings1, "map_line_thickness");
     UpdateInterceptsEmuItem();
     UpdateStatsFormatItem();
     UpdateCrosshairItems();

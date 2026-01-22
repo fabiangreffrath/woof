@@ -92,7 +92,6 @@ void R_InitBuffer(void);
 void R_InitTranslationTables(void);
 
 // Rendering function.
-void R_VideoErase(int x, int y, int w, int h);
 void R_FillBackScreen(void);
 void R_DrawBorder(int x, int y, int w, int h);
 

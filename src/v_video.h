@@ -25,8 +25,7 @@
 
 #include "doomtype.h"
 #include "m_fixed.h"
-
-struct patch_s;
+#include "r_defs.h"
 
 //
 // VIDEO
@@ -84,6 +83,15 @@ typedef enum
     CR_BRIGHT, // 15
     CR_LIMIT   // 16 //jff 2/27/98 added for range check
 } crange_idx_e;
+
+typedef struct
+{
+    const char *name;
+    const char *str;
+    byte **map1, **map2, **map_orig;
+} crdef_t;
+
+extern const crdef_t crdefs[];
 
 #define ORIG_S  "\x1b\x2f"
 #define BRICK_S "\x1b\x30"
@@ -154,38 +162,24 @@ void V_RestoreBuffer(void);
 void V_CopyRect(int srcx, int srcy, pixel_t *source, int width, int height,
                 int destx, int desty);
 
-// killough 11/98: Consolidated V_DrawPatch and V_DrawPatchFlipped
-
 typedef struct
 {
-    int topoffset;
-    int leftoffset;
-    int midoffset;
+    int left;
+    int top;
+    boolean center;
     int width;
-    int height;    
+    int height;
 } crop_t;
+extern crop_t zero_crop;
 
-void V_DrawPatchGeneral(int x, int y, crop_t rect, struct patch_s *patch,
-                        boolean flipped);
-
-#define V_DrawPatch(x, y, p) V_DrawPatchGeneral(x, y, (crop_t){0}, p, false)
-
-#define V_DrawPatchFlipped(x, y, p) V_DrawPatchGeneral(x, y, (crop_t){0}, p, true)
-
-void V_DrawPatchTranslated(int x, int y, struct patch_s *patch, byte *outr);
-
-void V_DrawPatchTR(int x, int y, crop_t rect, struct patch_s *patch, byte *outr);
-
-void V_DrawPatchTRTR(int x, int y, crop_t rect, struct patch_s *patch,
-                     byte *outr1, byte *outr2);
-
-void V_DrawPatchTL(int x, int y, crop_t rect, struct patch_s *patch,
-                   const byte *tl);
-
-void V_DrawPatchTRTL(int x, int y, crop_t rect, struct patch_s *patch,
-                     byte *outr, const byte *tl);
-
-void V_DrawPatchFullScreen(struct patch_s *patch);
+// On-screen patch drawing functions for specific purposes
+void V_DrawPatch(int x, int y, patch_t *patch);
+void V_DrawPatchCastCall(patch_t *patch, const byte *tranmap, const byte *xlat, boolean flip);
+void V_DrawPatchCropped(int x, int y, patch_t *patch, crop_t crop);
+void V_DrawPatchGeneral(int x, int y, int xoffset, int yoffset, const byte *tranmap, byte *xlat, patch_t *patch, crop_t crop);
+void V_DrawPatchTranslated(int x, int y, patch_t *patch, byte* xlat);
+void V_DrawPatchTranslatedTwice(int x, int y, patch_t *patch, byte* xlat, byte* xlat2);
+void V_DrawPatchFullScreen(patch_t *patch);
 
 // Draw a linear block of pixels into the view buffer.
 

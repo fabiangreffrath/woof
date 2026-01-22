@@ -220,7 +220,7 @@ static void Unescape(char *str)
         {
             *str++ = c;
         }
-        else
+        else if (*p)
         {
             switch (*p)
             {
@@ -241,6 +241,10 @@ static void Unescape(char *str)
                     break;
             }
             p++;
+        }
+        else
+        {
+            /* Trailing backslash */
         }
     }
     *str = 0;

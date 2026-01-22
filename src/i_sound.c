@@ -22,6 +22,8 @@
 
 #include "i_sound.h"
 
+#include "deh_bex_sounds.h"
+#include "deh_strings.h"
 #include "doomstat.h"
 #include "doomtype.h"
 #include "i_exit.h"
@@ -29,6 +31,7 @@
 #include "i_printf.h"
 #include "i_rumble.h"
 #include "m_array.h"
+#include "m_misc.h"
 #include "mn_menu.h"
 #include "p_mobj.h"
 #include "s_sound.h"
@@ -260,13 +263,8 @@ int I_GetSfxLumpNum(sfxinfo_t *sfx)
 {
     if (sfx->lumpnum == -1)
     {
-        char namebuf[16];
-
-        memset(namebuf, 0, sizeof(namebuf));
-
-        strcpy(namebuf, "DS");
-        strcpy(namebuf + 2, sfx->name);
-
+        char namebuf[9] = {0};
+        M_snprintf(namebuf, sizeof(namebuf), "ds%s", DEH_String(sfx->name));
         sfx->lumpnum = W_CheckNumForName(namebuf);
     }
 
@@ -797,16 +795,14 @@ void I_BindSoundVariables(void)
         "Play SNDINFO ambient sounds");
     BIND_BOOL_SFX(pitched_sounds, false,
         "Variable pitch for sound effects");
-    BIND_BOOL_SFX(full_sounds, false, "Play sounds in full length (prevents cutoffs)");
+    BIND_BOOL_SFX(full_sounds, false, "Play sounds in full length (prevent cutoffs)");
     BIND_NUM_SFX(snd_channels, MAX_CHANNELS, 1, MAX_CHANNELS,
         "Number of sound channels");
     BIND_BOOL_SFX(snd_limiter, false, "Use sound output limiter");
     BIND_NUM(snd_channels_per_sfx, 5, 0, MAX_CHANNELS,
-        "[Limiter] Max number of channels allowed to simultaneously play the "
-        "same sound (0 = Off)");
+        "[Limiter] Max number of channels to play the same sound (0 = Off)");
     BIND_NUM(snd_volume_per_sfx, 5 * 100, 0, MAX_CHANNELS * 100,
-        "[Limiter] Max volume allowed for a sound that is played "
-        "simultaneously by multiple channels [percent] (0 = Off)");
+        "[Limiter] Max volume for sounds played by multiple channels [percent] (0 = Off)");
     BIND_NUM_GENERAL(snd_module, SND_MODULE_MBF, 0, NUM_SND_MODULES - 1,
         "Sound module (0 = Standard; 1 = OpenAL 3D; 2 = PC Speaker Sound)");
     for (int i = 0; i < arrlen(sound_modules); ++i)

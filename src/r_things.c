@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include "d_player.h"
+#include "deh_strings.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "hu_crosshair.h" // [Alaux] Lock crosshair on target
@@ -42,7 +43,7 @@
 #include "r_tranmap.h"
 #include "r_voxel.h"
 #include "tables.h"
-#include "v_fmt.h"
+#include "v_patch.h"
 #include "v_video.h"
 #include "w_wad.h"
 #include "z_zone.h"
@@ -227,7 +228,7 @@ void R_InitSpriteDefs(char **namelist)
 
   for (i=0 ; i<num_sprites ; i++)
     {
-      const char *spritename = namelist[i];
+      const char *spritename = namelist[i] ? DEH_String(namelist[i]) : namelist[i];
       int j;
 
       if (!spritename)

@@ -38,26 +38,6 @@ void P_DamageMobjBy(struct mobj_s *target, struct mobj_s *inflictor,
                     struct mobj_s *source, int damage, method_t method);
 #define P_DamageMobj(a, b, c, d) P_DamageMobjBy(a, b, c, d, MOD_None)
 
-// killough 5/2/98: moved from d_deh.c, g_game.c, m_misc.c, others:
-
-extern int god_health;   // Ty 03/09/98 - deh support, see also p_inter.c
-extern int idfa_armor;
-extern int idfa_armor_class;
-extern int idkfa_armor;
-extern int idkfa_armor_class;  // Ty - end
-// Ty 03/13/98 - externalized initial settings for respawned player
-extern int initial_health;
-extern int initial_bullets;
-extern int maxhealth;
-extern int maxhealthbonus;
-extern int max_armor;
-extern int green_armor_class;
-extern int blue_armor_class;
-extern int max_soul;
-extern int soul_health;
-extern int mega_health;
-extern int bfgcells;
-extern int deh_species_infighting;
 extern int maxammo[], clipammo[];
 
 #endif

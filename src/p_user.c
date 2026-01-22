@@ -559,7 +559,7 @@ void P_PlayerThink (player_t* player)
   // invulernability, and the light amp visor used the last colormap.
   // But white flashes occurred when invulnerability wore off.
 
-  if (STRICTMODE(!palette_changes))
+  if (STRICTMODE(palette_changes == PAL_CHANGE_OFF))
   {
     if (player->powers[pw_invulnerability] || player->powers[pw_infrared])
       player->fixedcolormap = 1;
@@ -634,6 +634,15 @@ boolean P_EvaluateItemOwned(itemtype_t item, player_t *player)
     }
 
     return false;
+}
+
+int P_GetPowerDuration(powertype_t power)
+{
+    static const int tics[NUMPOWERS] = {
+        INVULNTICS, 1 /* strength */, INVISTICS,
+        IRONTICS, 1 /* allmap */, INFRATICS,
+    };
+    return tics[power];
 }
 
 //----------------------------------------------------------------------------
