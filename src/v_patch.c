@@ -713,6 +713,8 @@ patch_t *V_CachePatchNum(int lump, pu_tag tag)
         }
     }
 
+    Z_ChangeTag(buffer, PU_STATIC);
+
     if (!DecodePNG(&png))
     {
         goto error;
