@@ -1287,7 +1287,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
           {
           case WalkOnce:
             if (linefunc(line))
-              dirty_line(line)->special = 0;    // clear special if a walk once type
+              !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;    // clear special if a walk once type
             return;
           case WalkMany:
             linefunc(line);
@@ -1343,122 +1343,122 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
     case 2:
       // Open Door
       if (EV_DoDoor(line,doorOpen) || demo_compatibility)
-        dirty_line(line)->special = 0;
+        !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
     case 3:
       // Close Door
       if (EV_DoDoor(line,doorClose) || demo_compatibility)
-        dirty_line(line)->special = 0;
+        !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
     case 4:
       // Raise Door
       if (EV_DoDoor(line,doorNormal) || demo_compatibility)
-        dirty_line(line)->special = 0;
+        !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
     case 5:
       // Raise Floor
       if (EV_DoFloor(line,raiseFloor) || demo_compatibility)
-        dirty_line(line)->special = 0;
+        !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
     case 6:
       // Fast Ceiling Crush & Raise
       if (EV_DoCeiling(line,fastCrushAndRaise) || demo_compatibility)
-        dirty_line(line)->special = 0;
+        !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
     case 8:
       // Build Stairs
       if (EV_BuildStairs(line,build8) || demo_compatibility)
-        dirty_line(line)->special = 0;
+        !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
     case 10:
       // PlatDownWaitUp
       if (EV_DoPlat(line,downWaitUpStay,0) || demo_compatibility)
-        dirty_line(line)->special = 0;
+        !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
     case 12:
       // Light Turn On - brightest near
       if (EV_LightTurnOn(line,0) || demo_compatibility)
-        dirty_line(line)->special = 0;
+        !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
     case 13:
       // Light Turn On 255
       if (EV_LightTurnOn(line,255) || demo_compatibility)
-        dirty_line(line)->special = 0;
+        !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
     case 16:
       // Close Door 30
       if (EV_DoDoor(line,close30ThenOpen) || demo_compatibility)
-        dirty_line(line)->special = 0;
+        !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
     case 17:
       // Start Light Strobing
       if (EV_StartLightStrobing(line) || demo_compatibility)
-        dirty_line(line)->special = 0;
+        !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
     case 19:
       // Lower Floor
       if (EV_DoFloor(line,lowerFloor) || demo_compatibility)
-        dirty_line(line)->special = 0;
+        !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
     case 22:
       // Raise floor to nearest height and change texture
       if (EV_DoPlat(line,raiseToNearestAndChange,0) || demo_compatibility)
-        dirty_line(line)->special = 0;
+        !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
     case 25:
       // Ceiling Crush and Raise
       if (EV_DoCeiling(line,crushAndRaise) || demo_compatibility)
-        dirty_line(line)->special = 0;
+        !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
     case 30:
       // Raise floor to shortest texture height
       //  on either side of lines.
       if (EV_DoFloor(line,raiseToTexture) || demo_compatibility)
-        dirty_line(line)->special = 0;
+        !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
     case 35:
       // Lights Very Dark
       if (EV_LightTurnOn(line,35) || demo_compatibility)
-        dirty_line(line)->special = 0;
+        !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
     case 36:
       // Lower Floor (TURBO)
       if (EV_DoFloor(line,turboLower) || demo_compatibility)
-        dirty_line(line)->special = 0;
+        !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
     case 37:
       // LowerAndChange
       if (EV_DoFloor(line,lowerAndChange) || demo_compatibility)
-        dirty_line(line)->special = 0;
+        !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
     case 38:
       // Lower Floor To Lowest
       if (EV_DoFloor(line, lowerFloorToLowest) || demo_compatibility)
-        dirty_line(line)->special = 0;
+        !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
     case 39:
       // TELEPORT! //jff 02/09/98 fix using up with wrong side crossing
       if (EV_Teleport(line, side, thing) || demo_compatibility)
-        dirty_line(line)->special = 0;
+        !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
     case 40:
@@ -1467,17 +1467,17 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
         {
           EV_DoCeiling( line, raiseToHighest );
           EV_DoFloor( line, lowerFloorToLowest ); //jff 02/12/98 doesn't work
-          dirty_line(line)->special = 0;
+          !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
         }
       else
         if (EV_DoCeiling(line, raiseToHighest))
-          dirty_line(line)->special = 0;
+          !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
     case 44:
       // Ceiling Crush
       if (EV_DoCeiling(line, lowerAndCrush) || demo_compatibility)
-        dirty_line(line)->special = 0;
+        !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
     // W1 - Exit to the next map and reset inventory.
@@ -1498,79 +1498,79 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
     case 53:
       // Perpetual Platform Raise
       if (EV_DoPlat(line,perpetualRaise,0) || demo_compatibility)
-        dirty_line(line)->special = 0;
+        !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
     case 54:
       // Platform Stop
       if (EV_StopPlat(line) || demo_compatibility)
-        dirty_line(line)->special = 0;
+        !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
     case 56:
       // Raise Floor Crush
       if (EV_DoFloor(line,raiseFloorCrush) || demo_compatibility)
-        dirty_line(line)->special = 0;
+        !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
     case 57:
       // Ceiling Crush Stop
       if (EV_CeilingCrushStop(line) || demo_compatibility)
-        dirty_line(line)->special = 0;
+        !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
     case 58:
       // Raise Floor 24
       if (EV_DoFloor(line,raiseFloor24) || demo_compatibility)
-        dirty_line(line)->special = 0;
+        !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
     case 59:
       // Raise Floor 24 And Change
       if (EV_DoFloor(line,raiseFloor24AndChange) || demo_compatibility)
-        dirty_line(line)->special = 0;
+        !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
     case 100:
       // Build Stairs Turbo 16
       if (EV_BuildStairs(line,turbo16) || demo_compatibility)
-        dirty_line(line)->special = 0;
+        !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
     case 104:
       // Turn lights off in sector(tag)
       if (EV_TurnTagLightsOff(line) || demo_compatibility)
-        dirty_line(line)->special = 0;
+        !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
     case 108:
       // Blazing Door Raise (faster than TURBO!)
       if (EV_DoDoor(line,blazeRaise) || demo_compatibility)
-        dirty_line(line)->special = 0;
+        !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
     case 109:
       // Blazing Door Open (faster than TURBO!)
       if (EV_DoDoor (line,blazeOpen) || demo_compatibility)
-        dirty_line(line)->special = 0;
+        !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
     case 110:
       // Blazing Door Close (faster than TURBO!)
       if (EV_DoDoor (line,blazeClose) || demo_compatibility)
-        dirty_line(line)->special = 0;
+        !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
     case 119:
       // Raise floor to nearest surr. floor
       if (EV_DoFloor(line,raiseFloorToNearest) || demo_compatibility)
-        dirty_line(line)->special = 0;
+        !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
     case 121:
       // Blazing PlatDownWaitUpStay
       if (EV_DoPlat(line,blazeDWUS,0) || demo_compatibility)
-        dirty_line(line)->special = 0;
+        !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
     // W1 - Exit to the secret map and reset inventory.
@@ -1592,19 +1592,19 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
       // TELEPORT MonsterONLY
       if (!thing->player &&
           (EV_Teleport(line, side, thing) || demo_compatibility))
-        dirty_line(line)->special = 0;
+        !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
     case 130:
       // Raise Floor Turbo
       if (EV_DoFloor(line,raiseFloorTurbo) || demo_compatibility)
-        dirty_line(line)->special = 0;
+        !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
     case 141:
       // Silent Ceiling Crush & Raise
       if (EV_DoCeiling(line,silentCrushAndRaise) || demo_compatibility)
-        dirty_line(line)->special = 0;
+        !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       break;
 
       // Regular walk many retriggerable
@@ -1780,7 +1780,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
 
 
     case 2076:
-      dirty_line(line)->special = 0;
+      !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
       // fallthrough
 
     case 2077:
@@ -1814,55 +1814,55 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
             // Raise Floor 512
             // 142 W1  EV_DoFloor(raiseFloor512)
             if (EV_DoFloor(line,raiseFloor512))
-              dirty_line(line)->special = 0;
+              !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
             break;
 
           case 143:
             // Raise Floor 24 and change
             // 143 W1  EV_DoPlat(raiseAndChange,24)
             if (EV_DoPlat(line,raiseAndChange,24))
-              dirty_line(line)->special = 0;
+              !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
             break;
 
           case 144:
             // Raise Floor 32 and change
             // 144 W1  EV_DoPlat(raiseAndChange,32)
             if (EV_DoPlat(line,raiseAndChange,32))
-              dirty_line(line)->special = 0;
+              !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
             break;
 
           case 145:
             // Lower Ceiling to Floor
             // 145 W1  EV_DoCeiling(lowerToFloor)
             if (EV_DoCeiling( line, lowerToFloor ))
-              dirty_line(line)->special = 0;
+              !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
             break;
 
           case 146:
             // Lower Pillar, Raise Donut
             // 146 W1  EV_DoDonut()
             if (EV_DoDonut(line))
-              dirty_line(line)->special = 0;
+              !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
             break;
 
           case 199:
             // Lower ceiling to lowest surrounding ceiling
             // 199 W1 EV_DoCeiling(lowerToLowest)
             if (EV_DoCeiling(line,lowerToLowest))
-              dirty_line(line)->special = 0;
+              !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
             break;
 
           case 200:
             // Lower ceiling to highest surrounding floor
             // 200 W1 EV_DoCeiling(lowerToMaxFloor)
             if (EV_DoCeiling(line,lowerToMaxFloor))
-              dirty_line(line)->special = 0;
+              !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
             break;
 
           case 207:
             // killough 2/16/98: W1 silent teleporter (normal kind)
             if (EV_SilentTeleport(line, side, thing))
-              dirty_line(line)->special = 0;
+              !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
             break;
 
             //jff 3/16/98 renumber 215->153
@@ -1870,70 +1870,70 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
             // Texture/Type Change Only (Trig)
             // 153 W1 Change Texture/Type Only
             if (EV_DoChange(line,trigChangeOnly))
-              dirty_line(line)->special = 0;
+              !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
             break;
 
           case 239: //jff 3/15/98 create texture change no motion type
             // Texture/Type Change Only (Numeric)
             // 239 W1 Change Texture/Type Only
             if (EV_DoChange(line,numChangeOnly))
-              dirty_line(line)->special = 0;
+              !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
             break;
 
           case 219:
             // Lower floor to next lower neighbor
             // 219 W1 Lower Floor Next Lower Neighbor
             if (EV_DoFloor(line,lowerFloorToNearest))
-              dirty_line(line)->special = 0;
+              !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
             break;
 
           case 227:
             // Raise elevator next floor
             // 227 W1 Raise Elevator next floor
             if (EV_DoElevator(line,elevateUp))
-              dirty_line(line)->special = 0;
+              !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
             break;
 
           case 231:
             // Lower elevator next floor
             // 231 W1 Lower Elevator next floor
             if (EV_DoElevator(line,elevateDown))
-              dirty_line(line)->special = 0;
+              !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
             break;
 
           case 235:
             // Elevator to current floor
             // 235 W1 Elevator to current floor
             if (EV_DoElevator(line,elevateCurrent))
-              dirty_line(line)->special = 0;
+              !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
             break;
 
           case 243: //jff 3/6/98 make fit within DCK's 256 linedef types
             // killough 2/16/98: W1 silent teleporter (linedef-linedef kind)
             if (EV_SilentLineTeleport(line, side, thing, false))
-              dirty_line(line)->special = 0;
+              !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
             break;
 
           case 262: //jff 4/14/98 add silent line-line reversed
             if (EV_SilentLineTeleport(line, side, thing, true))
-              dirty_line(line)->special = 0;
+              !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
             break;
 
           case 264: //jff 4/14/98 add monster-only silent line-line reversed
             if (!thing->player &&
                 EV_SilentLineTeleport(line, side, thing, true))
-              dirty_line(line)->special = 0;
+              !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
             break;
 
           case 266: //jff 4/14/98 add monster-only silent line-line
             if (!thing->player &&
                 EV_SilentLineTeleport(line, side, thing, false))
-              dirty_line(line)->special = 0;
+              !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
             break;
 
           case 268: //jff 4/14/98 add monster-only silent
             if (!thing->player && EV_SilentTeleport(line, side, thing))
-              dirty_line(line)->special = 0;
+              !bossaction ? (dirty_line(line)->special = 0) : (line->special = 0) ;;
             break;
 
             //jff 1/29/98 end of added W1 linedef types
