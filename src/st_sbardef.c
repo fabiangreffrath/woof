@@ -16,8 +16,10 @@
 #include <stdlib.h>
 
 #include "doomdef.h"
+#include "doomstat.h"
 #include "doomtype.h"
 #include "i_printf.h"
+#include "i_system.h"
 #include "m_array.h"
 #include "m_json.h"
 #include "m_misc.h"
@@ -350,6 +352,18 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
             }
             break;
 
+        case sbe_minimap:
+            {
+                sbe_minimap_t *mm = calloc(1, sizeof(*mm));
+                mm->width = JS_GetIntegerValue(json, "width");
+                mm->height = JS_GetIntegerValue(json, "height");
+                double scale = JS_GetNumberValue(json, "scale");
+                mm->scale = scale ? scale * 1024 : 1024;
+                mm->background = JS_GetIntegerValue(json, "background");
+                out->subtype.minimap = mm;
+            }
+            break;
+
         default:
             break;
     }
@@ -368,7 +382,8 @@ static const char *sbe_names[] =
     [sbe_widget] = "component",
     [sbe_carousel] = "carousel",
     [sbe_list] = "list",
-    [sbe_string] = "string"
+    [sbe_string] = "string",
+    [sbe_minimap] = "minimap"
 };
 
 static boolean ParseSbarElem(json_t *json, sbarelem_t *out)
