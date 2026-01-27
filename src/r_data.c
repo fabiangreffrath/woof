@@ -213,13 +213,13 @@ static void R_GenerateComposite(int texnum)
 
   if (!block)
   {
-    block = Z_Malloc(texturecompositesize[texnum], PU_STATIC,
+    block = Z_Malloc(texturecompositesize[texnum], PU_LEVEL,
                      (void **) &texturecomposite[texnum]);
   }
   // [FG] memory block for opaque textures
   if (!block2)
   {
-    block2 = Z_Malloc(texture->width * texture->height, PU_STATIC,
+    block2 = Z_Malloc(texture->width * texture->height, PU_LEVEL,
                       (void **) &texturecomposite2[texnum]);
   }
   // [FG] initialize composite background to palette index 0 (usually black)
@@ -304,12 +304,6 @@ static void R_GenerateComposite(int texnum)
       }
   Z_Free(source);         // free temporary column
   Z_Free(marks);          // free transparency marks
-
-  // Now that the texture has been built in column cache,
-  // it is purgable from zone memory.
-
-  Z_ChangeTag(block, PU_CACHE);
-  Z_ChangeTag(block2, PU_CACHE);
 }
 
 //
