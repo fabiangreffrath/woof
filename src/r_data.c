@@ -199,8 +199,8 @@ static void R_DrawColumnInCache(const column_t *patch, byte *cache,
 
 static void R_GenerateComposite(int texnum)
 {
-  byte *block = Z_Malloc(texturecompositesize[texnum], PU_STATIC,
-                         (void **) &texturecomposite[texnum]);
+  byte *block = texturecomposite[texnum],
+       *block2 = texturecomposite2[texnum];
   texture_t *texture = textures[texnum];
   // Composite the columns together.
   texpatch_t *patch = texture->patches;
@@ -211,9 +211,17 @@ static void R_GenerateComposite(int texnum)
   // killough 4/9/98: marks to identify transparent regions in merged textures
   byte *marks = Z_Calloc(texture->width, texture->height, PU_STATIC, 0), *source;
 
+  if (!block)
+  {
+    block = Z_Malloc(texturecompositesize[texnum], PU_LEVEL,
+                     (void **) &texturecomposite[texnum]);
+  }
   // [FG] memory block for opaque textures
-  byte *block2 = Z_Malloc(texture->width * texture->height, PU_STATIC,
-                          (void **) &texturecomposite2[texnum]);
+  if (!block2)
+  {
+    block2 = Z_Malloc(texture->width * texture->height, PU_LEVEL,
+                      (void **) &texturecomposite2[texnum]);
+  }
   // [FG] initialize composite background to palette index 0 (usually black)
   memset(block, 0, texturecompositesize[texnum]);
 
@@ -296,12 +304,6 @@ static void R_GenerateComposite(int texnum)
       }
   Z_Free(source);         // free temporary column
   Z_Free(marks);          // free transparency marks
-
-  // Now that the texture has been built in column cache,
-  // it is purgable from zone memory.
-
-  Z_ChangeTag(block, PU_CACHE);
-  Z_ChangeTag(block2, PU_CACHE);
 }
 
 //
