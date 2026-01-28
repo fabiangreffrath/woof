@@ -1706,7 +1706,7 @@ void I_ResetScreen(void)
 
 void I_ShutdownGraphics(void)
 {
-    if (!fullscreen)
+    if (!fullscreen && (window_position_x || window_position_y))
     {
         SDL_GetWindowPosition(screen, &window_position_x, &window_position_y);
     }
