@@ -29,7 +29,10 @@
 #include "sounds.h"
 #include "w_wad.h"
 
-// DoomEd numbers 14001 to 14064 are supported.
+// DoomEd numbers 14001 to 14064 are supported in all map formats.
+// DoomEd number 14065 is supported in UDMF.
+
+// TO-DO: This value should be no longer needed.
 #define MAX_AMBIENT_DATA 64
 
 typedef struct sound_def_s
@@ -43,7 +46,7 @@ static ambient_data_t *ambient_data;
 
 const ambient_data_t *S_GetAmbientData(int index)
 {
-    if (!ambient_data || index < 1 || index > MAX_AMBIENT_DATA)
+    if (!ambient_data || index < 1)
     {
         return NULL;
     }
@@ -130,11 +133,8 @@ static void ParseAmbientSoundCommand(scanner_t *s, char ***sound_names,
     // Index
     SC_MustGetToken(s, TK_IntConst);
     const int index = SC_GetNumber(s);
-    if (index < 1 || index > MAX_AMBIENT_DATA)
-    {
-        SC_Error(s, "index not in range 1 to %d (found %d)", 
-                 MAX_AMBIENT_DATA, index);
-    }
+    // No longer necessary to create an error for going above 64 sounds.
+    // However, sounds past 64 will only be accessible with DoomEdNum 14065.
 
     // Array index
     const int array_index = index - 1;
@@ -260,6 +260,9 @@ static void ParseAmbientSoundCommand(scanner_t *s, char ***sound_names,
     (*sound_names)[array_index] = sound_name;
     (*ambient_data)[array_index] = amb;
 }
+
+// TO-DO: This needs to reallocate memory instead of being a static size.
+// UDMF supports an unlimited number of sound definitions for SNDINFO players.
 
 static boolean ResolveAmbientSounds(sound_def_t *sound_defs,
                                     char **sound_names,
