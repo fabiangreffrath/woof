@@ -1511,7 +1511,7 @@ static setup_menu_t keys_settings5[] = {
     {"Follow",          S_INPUT, KB_X, M_SPC, {0}, m_map, input_map_follow},
     {"Overlay",         S_INPUT, KB_X, M_SPC, {0}, m_map, input_map_overlay},
     {"Rotate",          S_INPUT, KB_X, M_SPC, {0}, m_map, input_map_rotate},
-    {"Minimap",         S_INPUT, KB_X, M_SPC, {0}, m_map, input_map_mini},
+    {"Minimap", S_INPUT | S_STRICT, KB_X, M_SPC, {0}, m_map, input_map_mini},
     MI_GAP,
     {"Zoom In",         S_INPUT, KB_X, M_SPC, {0}, m_map, input_map_zoomin},
     {"Zoom Out",        S_INPUT, KB_X, M_SPC, {0}, m_map, input_map_zoomout},
@@ -2095,7 +2095,7 @@ static setup_menu_t auto_settings1[] = {
 
     MI_GAP,
 
-    {"Show Minimap", S_ONOFF, H_X, M_SPC, {"minimap"}},
+    {"Show Minimap", S_ONOFF | S_STRICT, H_X, M_SPC, {"minimap"}},
     {"Line Thickness", S_THERMO | S_THRM_SIZE4, H_X, M_THRM_SPC,
      {"map_line_thickness"}, .strings_id = str_automap_thickness,
      .action = AM_ResetThickness},

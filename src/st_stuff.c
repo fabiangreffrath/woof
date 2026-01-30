@@ -1308,7 +1308,7 @@ static void UpdateElem(sbarelem_t *elem, player_t *player)
             break;
 
         case sbe_minimap:
-            elem->enabled = (minimap && !automapactive);
+            elem->enabled = (minimap && !automapactive && !strictmode);
             break;
 
         default:
