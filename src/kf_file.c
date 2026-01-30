@@ -23,7 +23,6 @@
 #include "m_arena.h"
 #include "m_array.h"
 #include "m_fixed.h"
-#include "m_hashmap.h"
 #include "m_random.h"
 #include "p_ambient.h"
 #include "p_dirty.h"
@@ -196,11 +195,6 @@ static uintptr_t *msecnode_pointers;
 static uintptr_t *ceilinglist_pointers;
 static uintptr_t *platlist_pointers;
 
-static hashmap_t *thinker_hashmap;
-static hashmap_t *msecnode_hashmap;
-static hashmap_t *ceilinglist_hashmap;
-static hashmap_t *platlist_hashmap;
-
 #define readp_index(ptr, base)                                 \
     do                                                         \
     {                                                          \
@@ -262,7 +256,7 @@ static void writep_thinker(const thinker_t *thinker)
     }
     else
     {
-        index = hashmap_get_index(thinker_hashmap, (uintptr_t)thinker);
+        index = M_ArenaTableIndex(thinkers_arena, (uintptr_t)thinker);
     }
     write32(index);
 }
@@ -300,7 +294,7 @@ static void writep_msecnode(const msecnode_t *node)
     }
     else
     {
-        index = hashmap_get_index(msecnode_hashmap, (uintptr_t)node);
+        index = M_ArenaTableIndex(msecnodes_arena, (uintptr_t)node);
     }
     write32(index);
 }
@@ -328,7 +322,7 @@ static void writep_activeceilings(const ceilinglist_t *cl)
     }
     else
     {
-        index = hashmap_get_index(ceilinglist_hashmap, (uintptr_t)cl);
+        index = M_ArenaTableIndex(activeceilings_arena, (uintptr_t)cl);
     }
     write32(index);
 }
@@ -356,7 +350,7 @@ static void writep_activeplats(const platlist_t *pl)
     }
     else
     {
-        index = hashmap_get_index(platlist_hashmap, (uintptr_t)pl);
+        index = M_ArenaTableIndex(activeplats_arena, (uintptr_t)pl);
     }
     write32(index);
 }
@@ -1454,10 +1448,9 @@ static thinker_class_t GetThinkerClass(actionf_p1 func)
 
 static void PrepareArchiveThinkers(void)
 {
-    thinker_hashmap = M_ArenaHashMap(thinkers_arena);
     uintptr_t *table = M_ArenaTable(thinkers_arena);
 
-    int count = array_size(table);
+    int count = M_ArenaTableSize(thinkers_arena);
 
     write32(count);
 
@@ -1482,7 +1475,7 @@ static void PrepareArchiveThinkers(void)
         thinker_pointers[i] = pointer;
     }
 
-    array_free(table);
+    free(table);
 }
 
 static void ArchiveThinkers(void)
@@ -1687,20 +1680,19 @@ static void UnArchiveThinkers(void)
 
 static void PrepareArchiveMSecNodes(void)
 {
-    msecnode_hashmap = M_ArenaHashMap(msecnodes_arena);
-    int count = hashmap_get_size(msecnode_hashmap);
+    int count = M_ArenaTableSize(msecnodes_arena);
     write32(count);
 }
 
 static void ArchiveMSecNodes(void)
 {
     uintptr_t *table = M_ArenaTable(msecnodes_arena);
-    int count = array_size(table);
+    int count = M_ArenaTableSize(msecnodes_arena);
     for (int i = 0; i < count; ++i)
     {
         write_msecnode_t((msecnode_t *)table[i]);
     }
-    array_free(table);
+    free(table);
 }
 
 static void PrepareUnArchiveMSecNodes(void)
@@ -1801,21 +1793,20 @@ static void UnArchiveBlocklinks(void)
 
 static void PrepareArchiveCeilingList(void)
 {
-    ceilinglist_hashmap = M_ArenaHashMap(activeceilings_arena);
-    int count = hashmap_get_size(ceilinglist_hashmap);
+    int count = M_ArenaTableSize(activeceilings_arena);
     write32(count);
 }
 
 static void ArchiveCeilingList(void)
 {
     uintptr_t *table = M_ArenaTable(activeceilings_arena);
-    int count = array_size(table);
+    int count = M_ArenaTableSize(activeceilings_arena);
     for (int i = 0; i < count; ++i)
     {
         ceilinglist_t *cl = (ceilinglist_t *)table[i];
         writep_thinker(&cl->ceiling->thinker);
     }
-    array_free(table);
+    free(table);
 }
 
 static void PrepareUnArchiveCeilingList(void)
@@ -1851,21 +1842,20 @@ static void UnArchiveCeilingList(void)
 
 static void PrepareArchivePlatList(void)
 {
-    platlist_hashmap = M_ArenaHashMap(activeplats_arena);
-    int count = hashmap_get_size(platlist_hashmap);
+    int count = M_ArenaTableSize(activeplats_arena);
     write32(count);
 }
 
 static void ArchivePlatList(void)
 {
     uintptr_t *table = M_ArenaTable(activeplats_arena);
-    int count = array_size(table);
+    int count = M_ArenaTableSize(activeplats_arena);
     for (int i = 0; i < count; ++i)
     {
         platlist_t *cl = (platlist_t *)table[i];
         writep_thinker(&cl->plat->thinker);
     }
-    array_free(table);
+    free(table);
 }
 
 static void PrepareUnArchivePlatList(void)
