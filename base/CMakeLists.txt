@@ -216,13 +216,10 @@ set(BASE_SOURCES
     e1m4b.wad/dehacked.lmp
     e1m8b.wad/dehacked.lmp
 
-    extras.wad/sbardef.json
-
     hacx.wad/brghtmps.lmp
     hacx.wad/dehacked.deh
 
     id1.wad/dehacked.lmp
-    id1.wad/sbardef.json
 
     rekkr-all/dehacked.lmp
 

@@ -2040,10 +2040,6 @@ static void DrawBackground(const char *name)
         if (old_st_height < st_height)
         {
             old_st_height = st_height;
-            if (st_backing_screen)
-            {
-                Z_Free(st_backing_screen);
-            }
             ST_InitRes();
         }
 
@@ -2330,10 +2326,15 @@ void ST_InitRes(void)
     {
         return;
     }
+
+    if (st_backing_screen)
+    {
+        Z_Free(st_backing_screen);
+    }
     // killough 11/98: allocate enough for hires
     st_backing_screen =
         Z_Malloc(video.width * V_ScaleY(st_height) * sizeof(*st_backing_screen),
-                 PU_RENDERER, 0);
+                 PU_STATIC, 0);
 }
 
 const char **ST_StatusbarList(void)
