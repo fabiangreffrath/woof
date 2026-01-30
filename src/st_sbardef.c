@@ -26,6 +26,7 @@
 #include "m_swap.h"
 #include "r_defs.h"
 #include "r_tranmap.h"
+#include "st_stuff.h"
 #include "v_patch.h"
 #include "v_video.h"
 #include "w_wad.h"
@@ -681,9 +682,8 @@ sbardef_t *ST_ParseSbarDef(void)
     statusbar_t *statusbar;
     array_foreach(statusbar, out->statusbars)
     {
-        json_t *js_widgets = JS_GetObject(data, "components");
+        json_t *js_widgets = JS_GetObject(data, "fullscreen_components");
         json_t *js_widget = NULL;
-
         JS_ArrayForEach(js_widget, js_widgets)
         {
             sbarelem_t elem = {0};
@@ -692,6 +692,20 @@ sbardef_t *ST_ParseSbarDef(void)
                 if (!statusbar->fullscreenrender)
                 {
                     elem.y_pos -= SCREENHEIGHT - statusbar->height;
+                }
+                array_push(statusbar->children, elem);
+            }
+        }
+
+        js_widgets = JS_GetObject(data, "components");
+        JS_ArrayForEach(js_widget, js_widgets)
+        {
+            sbarelem_t elem = {0};
+            if (ParseSbarElem(js_widget, &elem))
+            {
+                if (statusbar->fullscreenrender)
+                {
+                    elem.y_pos += SCREENHEIGHT;
                 }
                 array_push(statusbar->children, elem);
             }
