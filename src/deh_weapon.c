@@ -22,6 +22,7 @@
 
 #include "d_items.h"
 #include "deh_defs.h"
+#include "deh_frame.h"
 #include "deh_io.h"
 #include "deh_main.h"
 #include "deh_mapping.h"
@@ -38,11 +39,11 @@ const bex_bitflags_t mbf21_flags[] = {
 
 DEH_BEGIN_MAPPING(weapon_mapping, weaponinfo_t)
     DEH_MAPPING("Ammo type", ammo)
-    DEH_MAPPING("Deselect frame", upstate)
-    DEH_MAPPING("Select frame", downstate)
-    DEH_MAPPING("Bobbing frame", readystate)
-    DEH_MAPPING("Shooting frame", atkstate)
-    DEH_MAPPING("Firing frame", flashstate)
+    DEH_MAPPING_STATE("Deselect frame", upstate)
+    DEH_MAPPING_STATE("Select frame", downstate)
+    DEH_MAPPING_STATE("Bobbing frame", readystate)
+    DEH_MAPPING_STATE("Shooting frame", atkstate)
+    DEH_MAPPING_STATE("Firing frame", flashstate)
     // mbf21
     DEH_MAPPING("MBF21 Bits", flags)
     DEH_MAPPING("Ammo per shot", ammopershot)
@@ -73,33 +74,33 @@ DEH_END_MAPPING
 #define SILENTLY_IGNORE_WEAPON_PROP(str) \
     (!strcasecmp(str, "Decal") || !strcasecmp(str, "Ammo use") || !strcasecmp(str, "Min ammo"))
 
-static void *DEH_WeaponStart(deh_context_t *context, char *line)
+static int DEH_WeaponStart(deh_context_t *context, char *line)
 {
     int weapon_number = -1;
 
     if (sscanf(line, "Weapon %i", &weapon_number) != 1)
     {
         DEH_Warning(context, "Parse error on section start");
-        return NULL;
+        return -1;
     }
 
     if (weapon_number < 0 || weapon_number >= NUMWEAPONS)
     {
         DEH_Warning(context, "Invalid weapon number: %i", weapon_number);
-        return NULL;
+        return -1;
     }
 
-    return &weaponinfo[weapon_number];
+    return weapon_number;
 }
 
-static void DEH_WeaponParseLine(deh_context_t *context, char *line, void *tag)
+static void DEH_WeaponParseLine(deh_context_t *context, char *line, int tag)
 {
-    if (tag == NULL)
+    if (tag == -1)
     {
         return;
     }
 
-    weaponinfo_t *weapon = (weaponinfo_t *)tag;
+    weaponinfo_t *weapon = &weaponinfo[tag];
 
     // Pasre the assignment
     char *variable_name, *value;

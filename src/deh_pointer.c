@@ -40,7 +40,7 @@ static int CodePointerIndex(actionf_t *ptr)
     return -1;
 }
 
-static void *DEH_PointerStart(deh_context_t *context, char *line)
+static int DEH_PointerStart(deh_context_t *context, char *line)
 {
     // FIXME: can the third argument here be something other than "Frame"
     // or are we ok?
@@ -49,29 +49,29 @@ static void *DEH_PointerStart(deh_context_t *context, char *line)
     if (sscanf(line, "Pointer %*i (%*s %i)", &frame_number) != 1)
     {
         DEH_Warning(context, "Parse error on section start");
-        return NULL;
+        return -1;
     }
 
     if (frame_number < 0)
     {
         DEH_Warning(context, "Invalid frame number: %i", frame_number);
-        return NULL;
+        return -1;
     }
 
     // DSDhacked
-    DEH_StatesEnsureCapacity(frame_number);
+    frame_number = DEH_FrameTranslate(frame_number);
 
-    return &states[frame_number];
+    return frame_number;
 }
 
-static void DEH_PointerParseLine(deh_context_t *context, char *line, void *tag)
+static void DEH_PointerParseLine(deh_context_t *context, char *line, int tag)
 {
-    if (tag == NULL)
+    if (tag == -1)
     {
         return;
     }
 
-    state_t *state = (state_t *)tag;
+    int frame_number = tag;
 
     // Parse the assignment
     char *variable_name, *value;
@@ -92,9 +92,9 @@ static void DEH_PointerParseLine(deh_context_t *context, char *line, void *tag)
         }
 
         // DSDHacked
-        DEH_StatesEnsureCapacity(ivalue);
+        ivalue = DEH_FrameTranslate(ivalue);
 
-        state->action = deh_codepointer[ivalue];
+        states[frame_number].action = deh_codepointer[ivalue];
     }
     else
     {

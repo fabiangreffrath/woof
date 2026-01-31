@@ -21,16 +21,14 @@
 #define DEH_FRAME_H
 
 #include "doomtype.h"
-#include "info.h"
 
 extern byte *defined_codepointer_args;
 extern union actionf_u *deh_codepointer;
-extern statenum_t *seenstate_tab;
 
 extern void DEH_InitStates(void);
 extern void DEH_FreeStates(void);
 
-extern void DEH_StatesEnsureCapacity(int limit);
+extern int DEH_FrameTranslate(int frame_number);
 extern void DEH_ValidateStateArgs(void);
 
 #endif

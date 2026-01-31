@@ -21,7 +21,7 @@
 #include <string.h>
 
 #include "d_player.h"
-#include "deh_frame.h"
+#include "deh_main.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "g_game.h"

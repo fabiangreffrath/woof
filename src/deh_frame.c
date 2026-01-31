@@ -20,12 +20,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "d_think.h"
 #include "deh_defs.h"
 #include "deh_io.h"
 #include "deh_main.h"
 #include "deh_mapping.h"
 #include "info.h"
 #include "m_array.h"
+#include "m_hashmap.h"
+#include "m_misc.h"
 #include "w_wad.h"
 
 //
@@ -35,74 +38,67 @@
 state_t *states = NULL;
 int num_states;
 byte *defined_codepointer_args = NULL;
-statenum_t *seenstate_tab = NULL;
 actionf_t *deh_codepointer = NULL;
+
+static hashmap_t *translate;
 
 void DEH_InitStates(void)
 {
     states = original_states;
     num_states = NUMSTATES;
 
-    array_grow(seenstate_tab, num_states);
-    memset(seenstate_tab, 0, num_states * sizeof(*seenstate_tab));
-
-    array_grow(deh_codepointer, num_states);
+    array_resize(deh_codepointer, num_states);
     for (int i = 0; i < num_states; i++)
     {
         deh_codepointer[i] = states[i].action;
     }
 
-    array_grow(defined_codepointer_args, num_states);
-    memset(defined_codepointer_args, 0, num_states * sizeof(*defined_codepointer_args));
+    array_resize(defined_codepointer_args, num_states);
 }
 
 void DEH_FreeStates(void)
 {
-    array_free(defined_codepointer_args);
     array_free(deh_codepointer);
+    array_free(defined_codepointer_args);
+    if (translate)
+    {
+        hashmap_free(translate);
+    }
 }
 
-void DEH_StatesEnsureCapacity(int limit)
+int DEH_FrameTranslate(int frame_number)
 {
-    if (limit < num_states)
+    if (frame_number < NUMSTATES)
     {
-        return;
+        return frame_number;
     }
 
-    const int old_num_states = num_states;
-
-    static boolean first_allocation = true;
-    if (first_allocation)
+    if (!translate)
     {
+        translate = hashmap_init(2048);
+
         states = NULL;
-        array_grow(states, old_num_states + limit);
-        memcpy(states, original_states, old_num_states * sizeof(*states));
-        first_allocation = false;
+        array_resize(states, num_states);
+        memcpy(states, original_states, num_states * sizeof(state_t));
     }
-    else
+
+    int index;
+    if (hashmap_get(translate, frame_number, &index))
     {
-        array_grow(states, limit);
+        return index;
     }
 
-    num_states = array_capacity(states);
-    const int size_delta = num_states - old_num_states;
-    memset(states + old_num_states, 0, size_delta * sizeof(*states));
+    index = num_states;
+    hashmap_put(translate, frame_number, &index);
 
-    array_grow(deh_codepointer, size_delta);
-    memset(deh_codepointer + old_num_states, 0, size_delta * sizeof(*deh_codepointer));
+    state_t state = {.sprite = SPR_TNT1, .tics = -1, .nextstate = index};
+    array_push(states, state);
+    array_push(deh_codepointer, state.action);
+    array_push(defined_codepointer_args, 0);
 
-    array_grow(defined_codepointer_args, size_delta);
-    memset(defined_codepointer_args + old_num_states, 0, size_delta * sizeof(*defined_codepointer_args));
+    ++num_states;
 
-    array_grow(seenstate_tab, size_delta);
-    memset(seenstate_tab + old_num_states, 0, size_delta * sizeof(*seenstate_tab));
-
-    for (int i = old_num_states; i < num_states; ++i)
-    {
-        states[i].sprite = SPR_TNT1;
-        states[i].tics = -1;
-        states[i].nextstate = i;
-    }
+    return index;
 }
 
 //
@@ -139,36 +135,38 @@ DEH_BEGIN_MAPPING(state_mapping, state_t)
     DEH_UNSUPPORTED_MAPPING("Min brightness")
 DEH_END_MAPPING
 
-static void *DEH_FrameStart(deh_context_t *context, char *line)
+static int DEH_FrameStart(deh_context_t *context, char *line)
 {
     int frame_number = -1;
 
     if (sscanf(line, "Frame %i", &frame_number) != 1)
     {
         DEH_Warning(context, "Parse error on section start");
-        return NULL;
+        return -1;
     }
 
     if (frame_number < 0)
     {
         DEH_Warning(context, "Invalid frame number: %i", frame_number);
-        return NULL;
+        return -1;
     }
 
     // DSDHacked
-    DEH_StatesEnsureCapacity(frame_number);
+    frame_number = DEH_FrameTranslate(frame_number);
 
-    return &states[frame_number];
+    return frame_number;
 }
 
-static void DEH_FrameParseLine(deh_context_t *context, char *line, void *tag)
+static void DEH_FrameParseLine(deh_context_t *context, char *line, int tag)
 {
-    if (tag == NULL)
+    if (tag == -1)
     {
         return;
     }
 
-    state_t *state = (state_t *)tag;
+    int frame_number = tag;
+
+    state_t *state = &states[frame_number];
 
     // Parse the assignment
     char *variable_name, *value;
@@ -190,37 +188,23 @@ static void DEH_FrameParseLine(deh_context_t *context, char *line, void *tag)
         state->tranmap = W_CacheLumpName(value, PU_STATIC);
         return;
     }
-    else if (!strcasecmp(variable_name, "Args1"))
+    else if (!strcasecmp(variable_name, "Next frame"))
     {
-        defined_codepointer_args[state - states] |= (1u << 0);
+        ivalue = DEH_FrameTranslate(ivalue);
+        state = &states[frame_number];
     }
-    else if (!strcasecmp(variable_name, "Args2"))
+    else
     {
-        defined_codepointer_args[state - states] |= (1u << 1);
-    }
-    else if (!strcasecmp(variable_name, "Args3"))
-    {
-        defined_codepointer_args[state - states] |= (1u << 2);
-    }
-    else if (!strcasecmp(variable_name, "Args4"))
-    {
-        defined_codepointer_args[state - states] |= (1u << 3);
-    }
-    else if (!strcasecmp(variable_name, "Args5"))
-    {
-        defined_codepointer_args[state - states] |= (1u << 4);
-    }
-    else if (!strcasecmp(variable_name, "Args6"))
-    {
-        defined_codepointer_args[state - states] |= (1u << 5);
-    }
-    else if (!strcasecmp(variable_name, "Args7"))
-    {
-        defined_codepointer_args[state - states] |= (1u << 6);
-    }
-    else if (!strcasecmp(variable_name, "Args8"))
-    {
-        defined_codepointer_args[state - states] |= (1u << 7);
+        M_StringToLower(variable_name);
+        int num;
+        if (sscanf(variable_name, "args%i", &num) == 1)
+        {
+            if (num >= 1 && num <= 8)
+            {
+                --num;
+                defined_codepointer_args[frame_number] |= (1u << num);
+            }
+        }
     }
 
     // set the appropriate field

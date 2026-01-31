@@ -26,6 +26,7 @@
 #include "deh_main.h"
 #include "deh_mapping.h"
 #include "deh_thing.h"
+#include "deh_frame.h"
 #include "doomstat.h"
 #include "doomtype.h"
 #include "i_system.h"
@@ -279,19 +280,19 @@ static const bex_bitflags_t mobj_flags_woof[] = {
 
 DEH_BEGIN_MAPPING(thing_mapping, mobjinfo_t)
     DEH_MAPPING("ID #", doomednum)
-    DEH_MAPPING("Initial frame", spawnstate)
+    DEH_MAPPING_STATE("Initial frame", spawnstate)
     DEH_MAPPING("Hit points", spawnhealth)
-    DEH_MAPPING("First moving frame", seestate)
+    DEH_MAPPING_STATE("First moving frame", seestate)
     DEH_MAPPING("Alert sound", seesound)
     DEH_MAPPING("Reaction time", reactiontime)
     DEH_MAPPING("Attack sound", attacksound)
-    DEH_MAPPING("Injury frame", painstate)
+    DEH_MAPPING_STATE("Injury frame", painstate)
     DEH_MAPPING("Pain chance", painchance)
     DEH_MAPPING("Pain sound", painsound)
-    DEH_MAPPING("Close attack frame", meleestate)
-    DEH_MAPPING("Far attack frame", missilestate)
-    DEH_MAPPING("Death frame", deathstate)
-    DEH_MAPPING("Exploding frame", xdeathstate)
+    DEH_MAPPING_STATE("Close attack frame", meleestate)
+    DEH_MAPPING_STATE("Far attack frame", missilestate)
+    DEH_MAPPING_STATE("Death frame", deathstate)
+    DEH_MAPPING_STATE("Exploding frame", xdeathstate)
     DEH_MAPPING("Death sound", deathsound)
     DEH_MAPPING("Speed", speed)
     DEH_MAPPING("Width", radius)
@@ -300,7 +301,7 @@ DEH_BEGIN_MAPPING(thing_mapping, mobjinfo_t)
     DEH_MAPPING("Missile damage", damage)
     DEH_MAPPING("Action sound", activesound)
     DEH_MAPPING("Bits", flags)
-    DEH_MAPPING("Respawn frame", raisestate)
+    DEH_MAPPING_STATE("Respawn frame", raisestate)
     // dehextra
     DEH_MAPPING("Dropped item", droppeditem)
     // mbf21
@@ -391,14 +392,14 @@ DEH_END_MAPPING
      !strcasecmp(str, "Decal")      || !strcasecmp(str, "Physical height") || \
      !strcasecmp(str, "Projectile pass height"))
 
-static void *DEH_ThingStart(deh_context_t *context, char *line)
+static int DEH_ThingStart(deh_context_t *context, char *line)
 {
     int thing_number = -1;
 
     if (sscanf(line, "Thing %i", &thing_number) != 1)
     {
         DEH_Warning(context, "Parse error on section start");
-        return NULL;
+        return -1;
     }
 
     // dehacked files are indexed from 1
@@ -407,25 +408,23 @@ static void *DEH_ThingStart(deh_context_t *context, char *line)
     if (thing_number < 0)
     {
         DEH_Warning(context, "Invalid thing number: %i", thing_number);
-        return NULL;
+        return -1;
     }
 
     // DSDhacked
     DEH_MobjInfoEnsureCapacity(thing_number);
 
-    mobjinfo_t *mobj = &mobjinfo[thing_number];
-
-    return mobj;
+    return thing_number;
 }
 
-static void DEH_ThingParseLine(deh_context_t *context, char *line, void *tag)
+static void DEH_ThingParseLine(deh_context_t *context, char *line, int tag)
 {
-    if (tag == NULL)
+    if (tag == -1)
     {
         return;
     }
 
-    mobjinfo_t *mobj = (mobjinfo_t *)tag;
+    mobjinfo_t *mobj = &mobjinfo[tag];
 
     // Parse the assignment
     char *variable_name, *value;

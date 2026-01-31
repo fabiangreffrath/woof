@@ -37,6 +37,11 @@
                  sizeof(deh_mapping_base.fieldname),          \
                  false},
 
+#define DEH_MAPPING_STATE(deh_name, fieldname)                \
+             {deh_name, &deh_mapping_base.fieldname,          \
+                 sizeof(deh_mapping_base.fieldname),          \
+                 false, DEH_FrameTranslate},
+
 #define DEH_MAPPING_STRING(deh_name, fieldname)               \
              {deh_name, &deh_mapping_base.fieldname,          \
                  sizeof(deh_mapping_base.fieldname),          \
@@ -54,6 +59,8 @@
 typedef struct deh_mapping_s deh_mapping_t;
 typedef struct deh_mapping_entry_s deh_mapping_entry_t;
 
+typedef int (*deh_translate_t)(int);
+
 struct deh_mapping_entry_s
 {
     // field name
@@ -68,6 +75,8 @@ struct deh_mapping_entry_s
 
     // if true, this is a string value.
     boolean is_string;
+
+    deh_translate_t translate;
 };
 
 struct deh_mapping_s

@@ -140,7 +140,7 @@ int DEH_SpritesGetOriginalIndex(const char *key)
 // The actual parser
 //
 
-static void *DEH_BEXSpritesStart(deh_context_t *context, char *line)
+static int DEH_BEXSpritesStart(deh_context_t *context, char *line)
 {
     char s[10];
 
@@ -149,10 +149,10 @@ static void *DEH_BEXSpritesStart(deh_context_t *context, char *line)
         DEH_Warning(context, "Parse error on section start");
     }
 
-    return NULL;
+    return 0;
 }
 
-static void DEH_BEXSpritesParseLine(deh_context_t *context, char *line, void *tag)
+static void DEH_BEXSpritesParseLine(deh_context_t *context, char *line, int tag)
 {
     char *spritenum, *value;
 

@@ -40,12 +40,12 @@ cheat_sequence_t *FindCheatByName(char *name)
     return NULL;
 }
 
-static void *DEH_CheatStart(deh_context_t *context, char *line)
+static int DEH_CheatStart(deh_context_t *context, char *line)
 {
-    return NULL;
+    return 0;
 }
 
-static void DEH_CheatParseLine(deh_context_t *context, char *line, void *tag)
+static void DEH_CheatParseLine(deh_context_t *context, char *line, int tag)
 {
     char *variable_name, *value;
     if (!DEH_ParseAssignment(line, &variable_name, &value))

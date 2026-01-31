@@ -25,7 +25,7 @@
 #endif
 
 #ifndef M_HASHMAP_KEY_T
-  #define M_HASHMAP_KEY_T int
+  #define M_HASHMAP_KEY_T uint32_t
 #endif
 
 typedef struct
@@ -59,7 +59,7 @@ inline static uint64_t M_HashKey(M_HASHMAP_KEY_T key)
     return hash;
 }
 
-static hashmap_t *hashmap_init(int initial_capacity)
+inline static hashmap_t *hashmap_init(int initial_capacity)
 {
     hashmap_t *map = calloc(1, sizeof(hashmap_t));
 
@@ -75,13 +75,13 @@ static hashmap_t *hashmap_init(int initial_capacity)
     return map;
 }
 
-static void hashmap_free(hashmap_t *map)
+inline static void hashmap_free(hashmap_t *map)
 {
     free(map->entries);
     free(map);
 }
 
-static void M_HashMapResize(hashmap_t *map, int new_capacity)
+inline static void M_HashMapResize(hashmap_t *map, int new_capacity)
 {
     hashmap_entry_t *new_entries = calloc(new_capacity, sizeof(hashmap_entry_t));
 
@@ -104,8 +104,8 @@ static void M_HashMapResize(hashmap_t *map, int new_capacity)
     map->capacity = new_capacity;
 }
 
-static void hashmap_put(hashmap_t *map, M_HASHMAP_KEY_T key,
-                        M_HASHMAP_VALUE_T *value)
+inline static void hashmap_put(hashmap_t *map, M_HASHMAP_KEY_T key,
+                               M_HASHMAP_VALUE_T *value)
 {
     if (map->size > map->capacity / 2)
     {
@@ -178,7 +178,7 @@ inline static boolean hashmap_next(hashmap_iterator_t *iter,
     return false;
 }
 
-static hashmap_t *M_HashMapCopy(const hashmap_t *from)
+inline static hashmap_t *M_HashMapCopy(const hashmap_t *from)
 {
     hashmap_t *to = calloc(1, sizeof(hashmap_t));
     to->capacity = from->capacity;
