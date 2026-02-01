@@ -47,6 +47,11 @@
                  sizeof(deh_mapping_base.fieldname),          \
                  false, DEH_SoundsTranslate},
 
+#define DEH_MAPPING_SPRITE(deh_name, fieldname)               \
+             {deh_name, &deh_mapping_base.fieldname,          \
+                 sizeof(deh_mapping_base.fieldname),          \
+                 false, DEH_SpritesTranslate},
+
 #define DEH_MAPPING_STRING(deh_name, fieldname)               \
              {deh_name, &deh_mapping_base.fieldname,          \
                  sizeof(deh_mapping_base.fieldname),          \

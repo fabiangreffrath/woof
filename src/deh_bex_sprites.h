@@ -26,7 +26,6 @@
 extern void DEH_InitSprites(void);
 extern void DEH_FreeSprites(void);
 
-extern int DEH_SpritesGetIndex(const char *key);
-extern int DEH_SpritesGetOriginalIndex(const char *key);
+int DEH_SpritesTranslate(int sprite_number);
 
 #endif

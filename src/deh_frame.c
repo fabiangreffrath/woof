@@ -21,6 +21,7 @@
 #include <stdlib.h>
 
 #include "d_think.h"
+#include "deh_bex_sprites.h"
 #include "deh_defs.h"
 #include "deh_io.h"
 #include "deh_main.h"
@@ -111,7 +112,7 @@ const bex_bitflags_t frame_flags_mbf21[] =
 };
 
 DEH_BEGIN_MAPPING(state_mapping, state_t)
-    DEH_MAPPING("Sprite number", sprite)
+    DEH_MAPPING_SPRITE("Sprite number", sprite)
     DEH_MAPPING("Sprite subnumber", frame)
     DEH_MAPPING("Duration", tics)
     DEH_MAPPING("Next frame", nextstate)

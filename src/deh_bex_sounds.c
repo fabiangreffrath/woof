@@ -28,6 +28,7 @@
 #include "deh_main.h"
 #include "m_array.h"
 #include "m_hashmap.h"
+#include "m_misc.h"
 #include "sounds.h"
 
 //
@@ -37,7 +38,7 @@
 sfxinfo_t *S_sfx = NULL;
 int num_sfx;
 static int max_sfx_number;
-static char **deh_soundnames = NULL;
+static char **original_soundnames;
 
 static hashmap_t *translate;
 
@@ -47,23 +48,24 @@ void DEH_InitSFX(void)
     num_sfx = NUMSFX;
     max_sfx_number = NUMSFX - 1;
 
-    array_resize(deh_soundnames, num_sfx);
-    for (int i = 1; i < num_sfx; i++)
+    original_soundnames = calloc(NUMSFX, sizeof(*original_soundnames));
+    for (int i = 1; i < NUMSFX; ++i)
     {
-        deh_soundnames[i] = S_sfx[i].name ? strdup(S_sfx[i].name) : NULL;
+        original_soundnames[i] =
+            S_sfx[i].name ? M_StringDuplicate(S_sfx[i].name) : NULL;
     }
 }
 
 void DEH_FreeSFX(void)
 {
-    for (int i = 1; i < array_size(deh_soundnames); i++)
+    for (int i = 1; i < NUMSFX; i++)
     {
-        if (deh_soundnames[i])
+        if (original_soundnames[i])
         {
-            free(deh_soundnames[i]);
+            free(original_soundnames[i]);
         }
     }
-    array_free(deh_soundnames);
+    free(original_soundnames);
 }
 
 int DEH_SoundsTranslate(int sfx_number)
@@ -103,9 +105,10 @@ int DEH_SoundsTranslate(int sfx_number)
 
 static int SoundsGetIndex(const char *key)
 {
-    for (int i = 1; i < array_size(deh_soundnames); ++i)
+    for (int i = 1; i < NUMSFX; ++i)
     {
-        if (deh_soundnames[i] && !strncasecmp(deh_soundnames[i], key, 6))
+        if (original_soundnames[i]
+            && !strncasecmp(original_soundnames[i], key, 6))
         {
             return i;
         }
@@ -168,7 +171,7 @@ static void DEH_BEXSoundsParseLine(deh_context_t *context, char *line, int tag)
     const int match = SoundsGetIndex(sound_key);
     if (match >= 0)
     {
-        S_sfx[match].name = strdup(sound_name);
+        S_sfx[match].name = M_StringDuplicate(sound_name);
     }
 }
 
