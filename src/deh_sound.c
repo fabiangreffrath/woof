@@ -47,36 +47,36 @@ DEH_BEGIN_MAPPING(sound_mapping, sfxinfo_t)
     DEH_UNSUPPORTED_MAPPING("Neg. One 2")
 DEH_END_MAPPING
 
-static void *DEH_SoundStart(deh_context_t *context, char *line)
+static int DEH_SoundStart(deh_context_t *context, char *line)
 {
     int sound_number = -1;
 
     if (sscanf(line, "Sound %i", &sound_number) != 1)
     {
         DEH_Warning(context, "Parse error on section start");
-        return NULL;
+        return -1;
     }
 
     if (sound_number < 0)
     {
         DEH_Warning(context, "Invalid sound number: %i", sound_number);
-        return NULL;
+        return -1;
     }
 
     // DSDHacked
     DEH_SoundsEnsureCapacity(sound_number);
 
-    return &S_sfx[sound_number];
+    return sound_number;
 }
 
-static void DEH_SoundParseLine(deh_context_t *context, char *line, void *tag)
+static void DEH_SoundParseLine(deh_context_t *context, char *line, int tag)
 {
-    if (tag == NULL)
+    if (tag == -1)
     {
         return;
     }
 
-    sfxinfo_t *sfx = (sfxinfo_t *)tag;
+    sfxinfo_t *sfx = &S_sfx[tag];
 
     // Parse the assignment
     char *variable_name, *value;

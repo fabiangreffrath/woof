@@ -526,7 +526,7 @@ static boolean HandleExtendedObituary(char *mnemonic, char *string)
     return found;
 }
 
-static void *DEH_BEXStringsStart(deh_context_t *context, char *line)
+static int DEH_BEXStringsStart(deh_context_t *context, char *line)
 {
     char s[10];
 
@@ -535,10 +535,10 @@ static void *DEH_BEXStringsStart(deh_context_t *context, char *line)
         DEH_Warning(context, "Parse error on section start");
     }
 
-    return NULL;
+    return 0;
 }
 
-static void DEH_BEXStringsParseLine(deh_context_t *context, char *line, void *tag)
+static void DEH_BEXStringsParseLine(deh_context_t *context, char *line, int tag)
 {
     char *variable_name, *value;
 

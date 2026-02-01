@@ -24,10 +24,17 @@
 #include "deh_frame.h"
 #include "deh_io.h"
 #include "deh_main.h"
+#include "deh_mapping.h"
 #include "i_system.h"
 #include "info.h"
 #include "m_fixed.h"
 #include "p_action.h"
+
+typedef enum
+{
+    arg_0,
+    arg_misc1,
+} arg_type_t;
 
 typedef struct
 {
@@ -35,6 +42,8 @@ typedef struct
     const actionf_t pointer;
     const int argcount;           // [XA] number of mbf21 args this action uses, if any
     const int args[MAXSTATEARGS]; // default values for mbf21 args
+    deh_translate_t translate;
+    arg_type_t argtype;
 } bex_codepointer_t;
 
 const bex_codepointer_t bex_pointer_null = {"(NULL)", {NULL}};
@@ -124,7 +133,8 @@ static const bex_codepointer_t bex_pointer_table[] =
     {"Face",                {.p1 = A_Face}                   },
     {"Scratch",             {.p1 = A_Scratch}                },
     {"PlaySound",           {.p1 = A_PlaySound}              },
-    {"RandomJump",          {.p1 = A_RandomJump}             },
+    {"RandomJump",          {.p1 = A_RandomJump},
+     .translate = DEH_FrameTranslate, .argtype = arg_misc1 },
     {"LineEffect",          {.p1 = A_LineEffect}             },
     {"FireOldBFG",          {.p2 = A_FireOldBFG}             },
     {"BetaSkullAttack",     {.p1 = A_BetaSkullAttack}        },
@@ -136,16 +146,23 @@ static const bex_codepointer_t bex_pointer_table[] =
     {"MonsterMeleeAttack",  {.p1 = A_MonsterMeleeAttack},  4, { 3, 8, 0, 0 } },
     {"RadiusDamage",        {.p1 = A_RadiusDamage},        2 },
     {"NoiseAlert",          {.p1 = A_NoiseAlert},          0 },
-    {"HealChase",           {.p1 = A_HealChase},           2 },
+    {"HealChase",           {.p1 = A_HealChase},           2,
+     .translate = DEH_FrameTranslate, .argtype = arg_0 },
     {"SeekTracer",          {.p1 = A_SeekTracer},          2 },
     {"FindTracer",          {.p1 = A_FindTracer},          2, { 0, 10 } },
     {"ClearTracer",         {.p1 = A_ClearTracer},         0 },
-    {"JumpIfHealthBelow",   {.p1 = A_JumpIfHealthBelow},   2 },
-    {"JumpIfTargetInSight", {.p1 = A_JumpIfTargetInSight}, 2 },
-    {"JumpIfTargetCloser",  {.p1 = A_JumpIfTargetCloser},  2 },
-    {"JumpIfTracerInSight", {.p1 = A_JumpIfTracerInSight}, 2 },
-    {"JumpIfTracerCloser",  {.p1 = A_JumpIfTracerCloser},  2 },
-    {"JumpIfFlagsSet",      {.p1 = A_JumpIfFlagsSet},      3 },
+    {"JumpIfHealthBelow",   {.p1 = A_JumpIfHealthBelow},   2,
+     .translate = DEH_FrameTranslate, .argtype = arg_0 },
+    {"JumpIfTargetInSight", {.p1 = A_JumpIfTargetInSight}, 2,
+     .translate = DEH_FrameTranslate, .argtype = arg_0 },
+    {"JumpIfTargetCloser",  {.p1 = A_JumpIfTargetCloser},  2,
+     .translate = DEH_FrameTranslate, .argtype = arg_0 },
+    {"JumpIfTracerInSight", {.p1 = A_JumpIfTracerInSight}, 2,
+     .translate = DEH_FrameTranslate, .argtype = arg_0 },
+    {"JumpIfTracerCloser",  {.p1 = A_JumpIfTracerCloser},  2,
+     .translate = DEH_FrameTranslate, .argtype = arg_0 },
+    {"JumpIfFlagsSet",      {.p1 = A_JumpIfFlagsSet},      3,
+     .translate = DEH_FrameTranslate, .argtype = arg_0 },
     {"AddFlags",            {.p1 = A_AddFlags},            2 },
     {"RemoveFlags",         {.p1 = A_RemoveFlags},         2 },
     {"WeaponProjectile",    {.p2 = A_WeaponProjectile},    5 },
@@ -153,11 +170,15 @@ static const bex_codepointer_t bex_pointer_table[] =
     {"WeaponMeleeAttack",   {.p2 = A_WeaponMeleeAttack},   5, { 2, 10, 1 * FRACUNIT, 0, 0 } },
     {"WeaponSound",         {.p2 = A_WeaponSound},         2 },
     {"WeaponAlert",         {.p2 = A_WeaponAlert},         0 },
-    {"WeaponJump",          {.p2 = A_WeaponJump},          2 },
+    {"WeaponJump",          {.p2 = A_WeaponJump},          2,
+     .translate = DEH_FrameTranslate, .argtype = arg_0 },
     {"ConsumeAmmo",         {.p2 = A_ConsumeAmmo},         1 },
-    {"CheckAmmo",           {.p2 = A_CheckAmmo},           2 },
-    {"RefireTo",            {.p2 = A_RefireTo},            2 },
-    {"GunFlashTo",          {.p2 = A_GunFlashTo},          2 },
+    {"CheckAmmo",           {.p2 = A_CheckAmmo},           2,
+     .translate = DEH_FrameTranslate, .argtype = arg_0 },
+    {"RefireTo",            {.p2 = A_RefireTo},            2,
+     .translate = DEH_FrameTranslate, .argtype = arg_0 },
+    {"GunFlashTo",          {.p2 = A_GunFlashTo},          2,
+     .translate = DEH_FrameTranslate, .argtype = arg_0 },
     {"NULL",                {NULL}                           },
 };
 
@@ -185,8 +206,10 @@ void DEH_ValidateStateArgs(void)
         {
             if (states[i].args[k] != 0)
             {
-                I_Error("Action %s on state %d expects no more than %d nonzero args (%d found). Check your dehacked.",
-                        bex_pointer_match->mnemonic, i, bex_pointer_match->argcount, k + 1);
+                I_Error("Action %s on state %d expects no more than %d nonzero "
+                        "args (%d found). Check your dehacked.",
+                        bex_pointer_match->mnemonic, i,
+                        bex_pointer_match->argcount, k + 1);
             }
         }
 
@@ -196,6 +219,19 @@ void DEH_ValidateStateArgs(void)
             if (!(defined_codepointer_args[i] & (1 << k)))
             {
                 states[i].args[k] = bex_pointer_match->args[k];
+            }
+        }
+
+        if (bex_pointer_match->translate)
+        {
+            switch (bex_pointer_match->argtype)
+            {                
+                case arg_0:
+                    states[i].args[0] = bex_pointer_match->translate(states[i].args[0]);
+                    break;
+                case arg_misc1:
+                    states[i].misc1 = bex_pointer_match->translate(states[i].misc1);
+                    break;
             }
         }
     }
@@ -238,7 +274,7 @@ boolean DEH_CheckSafeState(statenum_t state)
     return true;
 }
 
-static void *DEH_BEXPointerStart(deh_context_t *context, char *line)
+static int DEH_BEXPointerStart(deh_context_t *context, char *line)
 {
     char s[10];
 
@@ -247,10 +283,10 @@ static void *DEH_BEXPointerStart(deh_context_t *context, char *line)
         DEH_Warning(context, "Parse error on section start");
     }
 
-    return NULL;
+    return 0;
 }
 
-static void DEH_BEXPointerParseLine(deh_context_t *context, char *line, void *tag)
+static void DEH_BEXPointerParseLine(deh_context_t *context, char *line, int tag)
 {
     // parse "FRAME nn = mnemonic", where
     // variable_name = "FRAME nn" and value = "mnemonic"
@@ -277,9 +313,9 @@ static void DEH_BEXPointerParseLine(deh_context_t *context, char *line, void *ta
     }
 
     // DSDHacked
-    DEH_StatesEnsureCapacity(frame_number);
+    frame_number = DEH_FrameTranslate(frame_number);
 
-    state_t *state = (state_t *)&states[frame_number];
+    state_t *state = &states[frame_number];
 
     for (int i = 0; i < arrlen(bex_pointer_table); i++)
     {

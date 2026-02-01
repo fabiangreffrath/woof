@@ -42,7 +42,7 @@ int bex_cpars[] =
     30,  30, 30, // MAP 33, 34
 };
 
-static void *DEH_BEXPartimesStart(deh_context_t *context, char *line)
+static int DEH_BEXPartimesStart(deh_context_t *context, char *line)
 {
     char s[7];
 
@@ -51,10 +51,10 @@ static void *DEH_BEXPartimesStart(deh_context_t *context, char *line)
         DEH_Warning(context, "Parse error on section start");
     }
 
-    return NULL;
+    return 0;
 }
 
-static void DEH_BEXPartimesParseLine(deh_context_t *context, char *line, void *tag)
+static void DEH_BEXPartimesParseLine(deh_context_t *context, char *line, int tag)
 {
     int episode, map, partime;
 

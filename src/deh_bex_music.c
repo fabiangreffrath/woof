@@ -109,7 +109,7 @@ int DEH_MusicGetOriginalIndex(const char *key)
 // The actual parser
 //
 
-static void *DEH_BEXMusicStart(deh_context_t *context, char *line)
+static int DEH_BEXMusicStart(deh_context_t *context, char *line)
 {
     char s[9];
 
@@ -118,10 +118,10 @@ static void *DEH_BEXMusicStart(deh_context_t *context, char *line)
         DEH_Warning(context, "Parse error on section start");
     }
 
-    return NULL;
+    return 0;
 }
 
-static void DEH_BEXMusicParseLine(deh_context_t *context, char *line, void *tag)
+static void DEH_BEXMusicParseLine(deh_context_t *context, char *line, int tag)
 {
     char *music_mnemonic, *value;
 

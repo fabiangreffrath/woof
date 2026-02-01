@@ -37,9 +37,13 @@
 #include "i_glob.h"
 #include "i_printf.h"
 #include "i_system.h"
+#include "info.h"
 #include "m_argv.h"
+#include "m_array.h"
 #include "m_misc.h"
 #include "w_wad.h"
+
+statenum_t *seenstate_tab = NULL;
 
 static const char *deh_signatures[] =
 {
@@ -272,7 +276,7 @@ static void DEH_ParseContext(deh_context_t *context)
 {
     deh_section_t *current_section = NULL;
     deh_section_t *prev_section = NULL; // [crispy] remember previous line parser
-    void *tag = NULL;
+    int tag = -1;
     char *line;
 
     // Read the header and check it matches the signature
@@ -504,6 +508,8 @@ void DEH_PostProcess(void)
     }
 
     DEH_FreeTables();
+
+    array_resize(seenstate_tab, num_states);
 }
 
 void DEH_InitTables(void)

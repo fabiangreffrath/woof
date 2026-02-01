@@ -121,14 +121,14 @@ void DEH_SetBannerGameDescription(void)
 // [crispy] support INCLUDE NOTEXT directive in BEX files
 boolean bex_notext = false;
 
-static void *DEH_TextStart(deh_context_t *context, char *line)
+static int DEH_TextStart(deh_context_t *context, char *line)
 {
     int from_len, to_len;
 
     if (sscanf(line, "Text %i %i", &from_len, &to_len) != 2)
     {
         DEH_Warning(context, "Parse error on section start");
-        return NULL;
+        return 0;
     }
 
     // Skip text section
@@ -142,7 +142,7 @@ static void *DEH_TextStart(deh_context_t *context, char *line)
         {
             DEH_GetChar(context);
         }
-        return NULL;
+        return 0;
     }
 
     char *from_text = malloc(from_len + 1);
@@ -167,10 +167,10 @@ static void *DEH_TextStart(deh_context_t *context, char *line)
     free(from_text);
     free(to_text);
 
-    return NULL;
+    return 0;
 }
 
-static void DEH_TextParseLine(deh_context_t *context, char *line, void *tag)
+static void DEH_TextParseLine(deh_context_t *context, char *line, int tag)
 {
     // not used
 }
