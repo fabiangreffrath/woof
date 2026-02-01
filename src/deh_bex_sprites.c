@@ -20,6 +20,7 @@
 
 #include <ctype.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "deh_defs.h"
@@ -156,7 +157,14 @@ static void DEH_BEXSpritesParseLine(deh_context_t *context, char *line, int tag)
     const int match = SpritesGetIndex(sprite_key);
     if (match >= 0)
     {
-        sprnames[match] = M_StringDuplicate(sprite_name);
+        if (!sprnames[match])
+        {
+            sprnames[match] = M_StringDuplicate(sprite_name);
+        }
+        else
+        {
+            M_StringCopy(sprnames[match], sprite_name, 4);
+        }
     }
 }
 
