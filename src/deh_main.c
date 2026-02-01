@@ -43,8 +43,6 @@
 #include "m_misc.h"
 #include "w_wad.h"
 
-statenum_t *seenstate_tab = NULL;
-
 static const char *deh_signatures[] =
 {
     "Patch File for DeHackEd v2.3",
@@ -508,8 +506,6 @@ void DEH_PostProcess(void)
     }
 
     DEH_FreeTables();
-
-    array_resize(seenstate_tab, num_states);
 }
 
 void DEH_InitTables(void)

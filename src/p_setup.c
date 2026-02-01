@@ -62,6 +62,8 @@
 #include "w_wad.h"
 #include "z_zone.h"
 
+statenum_t *seenstate_tab = NULL;
+
 // Detect map Format currently being set up.
 mapformat_t mapformat = MFMT_Invalid;
 
@@ -1942,6 +1944,8 @@ void P_Init (void)
   activeceilings_arena = M_ArenaInit(SIZE_MB(32), SIZE_MB(1));
   activeplats_arena = M_ArenaInit(SIZE_MB(32), SIZE_MB(1));
   #undef SIZE_MB
+
+  seenstate_tab = calloc(num_states, sizeof(*seenstate_tab));
 }
 
 //----------------------------------------------------------------------------
