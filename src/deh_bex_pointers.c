@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "deh_bex_sounds.h"
 #include "deh_frame.h"
 #include "deh_io.h"
 #include "deh_main.h"
@@ -33,10 +34,13 @@
 
 typedef enum
 {
-    arg_0,
-    arg_thing_0,
+    arg_1,
+    arg_1_thing,
+    arg_2,
+    arg_3,
+    arg_4,
     arg_misc1,
-    arg_thing_misc1
+    arg_misc1_thing
 } arg_type_t;
 
 typedef struct
@@ -47,6 +51,8 @@ typedef struct
     const int args[MAXSTATEARGS]; // default values for mbf21 args
     deh_translate_t translate;
     arg_type_t argtype;
+    deh_translate_t translate2;
+    arg_type_t argtype2;
 } bex_codepointer_t;
 
 const bex_codepointer_t bex_pointer_null = {"(NULL)", {NULL}};
@@ -132,7 +138,7 @@ static const bex_codepointer_t bex_pointer_table[] =
     {"Mushroom",            {.p1 = A_Mushroom}               },
     {"Die",                 {.p1 = A_Die}                    },
     {"Spawn",               {.p1 = A_Spawn},
-     .translate = DEH_ThingTranslate, .argtype = arg_thing_misc1 },
+     .translate = DEH_ThingTranslate, .argtype = arg_misc1_thing },
     {"Turn",                {.p1 = A_Turn}                   },
     {"Face",                {.p1 = A_Face}                   },
     {"Scratch",             {.p1 = A_Scratch}                },
@@ -145,47 +151,51 @@ static const bex_codepointer_t bex_pointer_table[] =
     {"Stop",                {.p1 = A_Stop}                   },
     // MBF21
     {"SpawnObject",         {.p1 = A_SpawnObject},         8,
-      .translate = DEH_ThingTranslate, .argtype = arg_thing_0 },
+     .translate = DEH_ThingTranslate, .argtype = arg_1_thing },
     {"MonsterProjectile",   {.p1 = A_MonsterProjectile},   5,
-      .translate = DEH_ThingTranslate, .argtype = arg_thing_0 },
+     .translate = DEH_ThingTranslate, .argtype = arg_1_thing },
     {"MonsterBulletAttack", {.p1 = A_MonsterBulletAttack}, 5, { 0, 0, 1, 3, 5 } },
-    {"MonsterMeleeAttack",  {.p1 = A_MonsterMeleeAttack},  4, { 3, 8, 0, 0 } },
+    {"MonsterMeleeAttack",  {.p1 = A_MonsterMeleeAttack},  4, { 3, 8, 0, 0 },
+     .translate = DEH_SoundsTranslate, .argtype = arg_3 },
     {"RadiusDamage",        {.p1 = A_RadiusDamage},        2 },
     {"NoiseAlert",          {.p1 = A_NoiseAlert},          0 },
     {"HealChase",           {.p1 = A_HealChase},           2,
-     .translate = DEH_FrameTranslate, .argtype = arg_0 },
+     .translate = DEH_FrameTranslate, .argtype = arg_1,
+     .translate2 = DEH_SoundsTranslate, .argtype2 = arg_2 },
     {"SeekTracer",          {.p1 = A_SeekTracer},          2 },
     {"FindTracer",          {.p1 = A_FindTracer},          2, { 0, 10 } },
     {"ClearTracer",         {.p1 = A_ClearTracer},         0 },
     {"JumpIfHealthBelow",   {.p1 = A_JumpIfHealthBelow},   2,
-     .translate = DEH_FrameTranslate, .argtype = arg_0 },
+     .translate = DEH_FrameTranslate, .argtype = arg_1 },
     {"JumpIfTargetInSight", {.p1 = A_JumpIfTargetInSight}, 2,
-     .translate = DEH_FrameTranslate, .argtype = arg_0 },
+     .translate = DEH_FrameTranslate, .argtype = arg_1 },
     {"JumpIfTargetCloser",  {.p1 = A_JumpIfTargetCloser},  2,
-     .translate = DEH_FrameTranslate, .argtype = arg_0 },
+     .translate = DEH_FrameTranslate, .argtype = arg_1 },
     {"JumpIfTracerInSight", {.p1 = A_JumpIfTracerInSight}, 2,
-     .translate = DEH_FrameTranslate, .argtype = arg_0 },
+     .translate = DEH_FrameTranslate, .argtype = arg_1 },
     {"JumpIfTracerCloser",  {.p1 = A_JumpIfTracerCloser},  2,
-     .translate = DEH_FrameTranslate, .argtype = arg_0 },
+     .translate = DEH_FrameTranslate, .argtype = arg_1 },
     {"JumpIfFlagsSet",      {.p1 = A_JumpIfFlagsSet},      3,
-     .translate = DEH_FrameTranslate, .argtype = arg_0 },
+     .translate = DEH_FrameTranslate, .argtype = arg_1 },
     {"AddFlags",            {.p1 = A_AddFlags},            2 },
     {"RemoveFlags",         {.p1 = A_RemoveFlags},         2 },
     {"WeaponProjectile",    {.p2 = A_WeaponProjectile},    5,
-     .translate = DEH_ThingTranslate, .argtype = arg_thing_0 },
+     .translate = DEH_ThingTranslate, .argtype = arg_1_thing },
     {"WeaponBulletAttack",  {.p2 = A_WeaponBulletAttack},  5, { 0, 0, 1, 5, 3 } },
-    {"WeaponMeleeAttack",   {.p2 = A_WeaponMeleeAttack},   5, { 2, 10, 1 * FRACUNIT, 0, 0 } },
-    {"WeaponSound",         {.p2 = A_WeaponSound},         2 },
+    {"WeaponMeleeAttack",   {.p2 = A_WeaponMeleeAttack},   5, { 2, 10, 1 * FRACUNIT, 0, 0 },
+     .translate = DEH_SoundsTranslate, .argtype = arg_4 },
+    {"WeaponSound",         {.p2 = A_WeaponSound},         2,
+     .translate = DEH_SoundsTranslate, .argtype = arg_1 },
     {"WeaponAlert",         {.p2 = A_WeaponAlert},         0 },
     {"WeaponJump",          {.p2 = A_WeaponJump},          2,
-     .translate = DEH_FrameTranslate, .argtype = arg_0 },
+     .translate = DEH_FrameTranslate, .argtype = arg_1 },
     {"ConsumeAmmo",         {.p2 = A_ConsumeAmmo},         1 },
     {"CheckAmmo",           {.p2 = A_CheckAmmo},           2,
-     .translate = DEH_FrameTranslate, .argtype = arg_0 },
+     .translate = DEH_FrameTranslate, .argtype = arg_1 },
     {"RefireTo",            {.p2 = A_RefireTo},            2,
-     .translate = DEH_FrameTranslate, .argtype = arg_0 },
+     .translate = DEH_FrameTranslate, .argtype = arg_1 },
     {"GunFlashTo",          {.p2 = A_GunFlashTo},          2,
-     .translate = DEH_FrameTranslate, .argtype = arg_0 },
+     .translate = DEH_FrameTranslate, .argtype = arg_1 },
     {"NULL",                {NULL}                           },
 };
 
@@ -235,19 +245,40 @@ void DEH_ValidateStateArgs(void)
         {
             switch (bex_pointer_match->argtype)
             {                
-                case arg_0:
+                case arg_1:
                     state->args[0] = bex_pointer_match->translate(state->args[0]);
                     break;
                 case arg_misc1:
                     state->misc1 = bex_pointer_match->translate(state->misc1);
                     break;
-                case arg_thing_0:
+                case arg_1_thing:
                     state->args[0] = bex_pointer_match->translate(state->args[0] - 1);
                     state->args[0]++;
                     break;
-                case arg_thing_misc1:
+                case arg_misc1_thing:
                     state->misc1 = bex_pointer_match->translate(state->misc1 - 1);
                     state->misc1++;
+                    break;
+                case arg_2:
+                    state->args[1] = bex_pointer_match->translate(state->args[1]);
+                    break;
+                case arg_3:
+                    state->args[2] = bex_pointer_match->translate(state->args[2]);
+                    break;
+                case arg_4:
+                    state->args[3] = bex_pointer_match->translate(state->args[3]);
+                    break;
+            }
+        }
+
+        if (bex_pointer_match->translate2)
+        {
+            switch (bex_pointer_match->argtype2)
+            {                
+                case arg_2:
+                    state->args[1] = bex_pointer_match->translate2(state->args[1]);
+                    break;
+                default:
                     break;
             }
         }

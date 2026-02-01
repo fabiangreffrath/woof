@@ -64,7 +64,7 @@ static int DEH_SoundStart(deh_context_t *context, char *line)
     }
 
     // DSDHacked
-    DEH_SoundsEnsureCapacity(sound_number);
+    sound_number = DEH_SoundsTranslate(sound_number);
 
     return sound_number;
 }

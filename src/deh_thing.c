@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "deh_bex_sounds.h"
 #include "deh_defs.h"
 #include "deh_io.h"
 #include "deh_frame.h"
@@ -283,23 +284,23 @@ DEH_BEGIN_MAPPING(thing_mapping, mobjinfo_t)
     DEH_MAPPING_STATE("Initial frame", spawnstate)
     DEH_MAPPING("Hit points", spawnhealth)
     DEH_MAPPING_STATE("First moving frame", seestate)
-    DEH_MAPPING("Alert sound", seesound)
+    DEH_MAPPING_SFX("Alert sound", seesound)
     DEH_MAPPING("Reaction time", reactiontime)
-    DEH_MAPPING("Attack sound", attacksound)
+    DEH_MAPPING_SFX("Attack sound", attacksound)
     DEH_MAPPING_STATE("Injury frame", painstate)
     DEH_MAPPING("Pain chance", painchance)
-    DEH_MAPPING("Pain sound", painsound)
+    DEH_MAPPING_SFX("Pain sound", painsound)
     DEH_MAPPING_STATE("Close attack frame", meleestate)
     DEH_MAPPING_STATE("Far attack frame", missilestate)
     DEH_MAPPING_STATE("Death frame", deathstate)
     DEH_MAPPING_STATE("Exploding frame", xdeathstate)
-    DEH_MAPPING("Death sound", deathsound)
+    DEH_MAPPING_SFX("Death sound", deathsound)
     DEH_MAPPING("Speed", speed)
     DEH_MAPPING("Width", radius)
     DEH_MAPPING("Height", height)
     DEH_MAPPING("Mass", mass)
     DEH_MAPPING("Missile damage", damage)
-    DEH_MAPPING("Action sound", activesound)
+    DEH_MAPPING_SFX("Action sound", activesound)
     DEH_MAPPING("Bits", flags)
     DEH_MAPPING_STATE("Respawn frame", raisestate)
     // dehextra
@@ -311,7 +312,7 @@ DEH_BEGIN_MAPPING(thing_mapping, mobjinfo_t)
     DEH_MAPPING("Splash group", splash_group)
     DEH_MAPPING("Fast speed", altspeed)
     DEH_MAPPING("Melee range", meleerange)
-    DEH_MAPPING("Rip sound", ripsound)
+    DEH_MAPPING_SFX("Rip sound", ripsound)
     // id24
     DEH_UNSUPPORTED_MAPPING("ID24 Bits")
     DEH_UNSUPPORTED_MAPPING("Min respawn tics")

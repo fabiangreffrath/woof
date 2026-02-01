@@ -28,9 +28,6 @@
 extern musicinfo_t *S_music;
 extern int num_music;
 
-extern void DEH_FreeSFX(void);
-extern void DEH_FreeMusic(void);
-
-extern int DEH_MusicGetIndex(const char *key, int length);
+extern void DEH_InitMusic(void);
 
 #endif

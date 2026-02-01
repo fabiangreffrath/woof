@@ -42,6 +42,11 @@
                  sizeof(deh_mapping_base.fieldname),          \
                  false, DEH_FrameTranslate},
 
+#define DEH_MAPPING_SFX(deh_name, fieldname)                  \
+             {deh_name, &deh_mapping_base.fieldname,          \
+                 sizeof(deh_mapping_base.fieldname),          \
+                 false, DEH_SoundsTranslate},
+
 #define DEH_MAPPING_STRING(deh_name, fieldname)               \
              {deh_name, &deh_mapping_base.fieldname,          \
                  sizeof(deh_mapping_base.fieldname),          \

@@ -30,11 +30,9 @@ extern sfxinfo_t* S_sfx;
 extern int num_sfx;
 
 extern void DEH_InitSFX(void);
-extern void DEH_InitMusic(void);
+extern void DEH_FreeSFX(void);
 
-extern void DEH_SoundsEnsureCapacity(int limit);
-extern int DEH_SoundsGetIndex(const char *key, size_t length);
-extern int DEH_SoundsGetOriginalIndex(const char *key);
+extern int DEH_SoundsTranslate(int sfx_number);
 extern int DEH_SoundsGetNewIndex(void);
 
 #endif

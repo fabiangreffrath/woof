@@ -525,5 +525,4 @@ void DEH_FreeTables(void)
     DEH_FreeStates();
     DEH_FreeSprites();
     DEH_FreeSFX();
-    DEH_FreeMusic();
 }

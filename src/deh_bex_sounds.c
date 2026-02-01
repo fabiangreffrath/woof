@@ -27,6 +27,7 @@
 #include "deh_io.h"
 #include "deh_main.h"
 #include "m_array.h"
+#include "m_hashmap.h"
 #include "sounds.h"
 
 //
@@ -35,29 +36,27 @@
 
 sfxinfo_t *S_sfx = NULL;
 int num_sfx;
-static int sfx_index;
+static int max_sfx_number;
 static char **deh_soundnames = NULL;
-static byte *sfx_state = NULL;
+
+static hashmap_t *translate;
 
 void DEH_InitSFX(void)
 {
     S_sfx = original_S_sfx;
     num_sfx = NUMSFX;
-    sfx_index = NUMSFX - 1;
+    max_sfx_number = NUMSFX - 1;
 
-    array_grow(deh_soundnames, num_sfx);
+    array_resize(deh_soundnames, num_sfx);
     for (int i = 1; i < num_sfx; i++)
     {
         deh_soundnames[i] = S_sfx[i].name ? strdup(S_sfx[i].name) : NULL;
     }
-
-    array_grow(sfx_state, num_sfx);
-    memset(sfx_state, 0, num_sfx * sizeof(*sfx_state));
 }
 
 void DEH_FreeSFX(void)
 {
-    for (int i = 1; i < array_capacity(deh_soundnames); i++)
+    for (int i = 1; i < array_size(deh_soundnames); i++)
     {
         if (deh_soundnames[i])
         {
@@ -65,73 +64,46 @@ void DEH_FreeSFX(void)
         }
     }
     array_free(deh_soundnames);
-    array_free(sfx_state);
 }
 
-void DEH_SoundsEnsureCapacity(int limit)
+int DEH_SoundsTranslate(int sfx_number)
 {
-    if (limit > sfx_index)
+    max_sfx_number = MAX(max_sfx_number, sfx_number);
+
+    if (sfx_number < NUMSFX)
     {
-        sfx_index = limit;
+        return sfx_number;
     }
 
-    if (limit < num_sfx)
+    if (!translate)
     {
-        return;
-    }
+        translate = hashmap_init(1024);
 
-    const int old_num_sfx = num_sfx;
-
-    static int first_allocation = true;
-    if (first_allocation)
-    {
         S_sfx = NULL;
-        array_grow(S_sfx, old_num_sfx + limit);
-        memcpy(S_sfx, original_S_sfx, old_num_sfx * sizeof(*S_sfx));
-        first_allocation = false;
-    }
-    else
-    {
-        array_grow(S_sfx, limit);
+        array_resize(S_sfx, num_sfx);
+        memcpy(S_sfx, original_S_sfx, num_sfx * sizeof(sfxinfo_t));
     }
 
-    num_sfx = array_capacity(S_sfx);
-    const int size_delta = num_sfx - old_num_sfx;
-    memset(S_sfx + old_num_sfx, 0, size_delta * sizeof(*S_sfx));
-
-    if (sfx_state)
+    int index;
+    if (hashmap_get(translate, sfx_number, &index))
     {
-        array_grow(sfx_state, size_delta);
-        memset(sfx_state + old_num_sfx, 0, size_delta * sizeof(*sfx_state));
+        return index;
     }
 
-    for (int i = old_num_sfx; i < num_sfx; ++i)
-    {
-        S_sfx[i].priority = 127;
-        S_sfx[i].lumpnum = -1;
-    }
+    index = num_sfx;
+    hashmap_put(translate, sfx_number, &index);
+
+    sfxinfo_t sfx = {.priority = 127, .lumpnum = -1};
+    array_push(S_sfx, sfx);
+
+    ++num_sfx;
+
+    return index;
 }
 
-int DEH_SoundsGetIndex(const char *key, size_t length)
+static int SoundsGetIndex(const char *key)
 {
-    for (int i = 1; i < num_sfx; ++i)
-    {
-        if (S_sfx[i].name
-            && strlen(S_sfx[i].name) == length
-            && !strncasecmp(S_sfx[i].name, key, length)
-            && !sfx_state[i])
-        {
-            sfx_state[i] = true; // sfx has been edited
-            return i;
-        }
-    }
-
-    return -1;
-}
-
-int DEH_SoundsGetOriginalIndex(const char *key)
-{
-    for (int i = 1; i < array_capacity(deh_soundnames); ++i)
+    for (int i = 1; i < array_size(deh_soundnames); ++i)
     {
         if (deh_soundnames[i] && !strncasecmp(deh_soundnames[i], key, 6))
         {
@@ -149,16 +121,15 @@ int DEH_SoundsGetOriginalIndex(const char *key)
     }
 
     int i = atoi(key);
-    DEH_SoundsEnsureCapacity(i);
+    i = DEH_SoundsTranslate(i);
 
     return i;
 }
 
 int DEH_SoundsGetNewIndex(void)
 {
-    sfx_index++;
-    DEH_SoundsEnsureCapacity(sfx_index);
-    return sfx_index;
+    ++max_sfx_number;
+    return DEH_SoundsTranslate(max_sfx_number);
 }
 
 //
@@ -179,25 +150,25 @@ static int DEH_BEXSoundsStart(deh_context_t *context, char *line)
 
 static void DEH_BEXSoundsParseLine(deh_context_t *context, char *line, int tag)
 {
-    char *soundnum, *value;
+    char *sound_key, *sound_name;
 
-    if (!DEH_ParseAssignment(line, &soundnum, &value))
+    if (!DEH_ParseAssignment(line, &sound_key, &sound_name))
     {
         DEH_Warning(context, "Failed to parse sound assignment");
         return;
     }
 
-    const int len = strlen(value);
+    const int len = strlen(sound_name);
     if (len < 1 || len > 6)
     {
         DEH_Warning(context, "Invalid sound string length");
         return;
     }
 
-    const int match = DEH_SoundsGetOriginalIndex(soundnum);
+    const int match = SoundsGetIndex(sound_key);
     if (match >= 0)
     {
-        S_sfx[match].name = strdup(value);
+        S_sfx[match].name = strdup(sound_name);
     }
 }
 
