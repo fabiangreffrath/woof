@@ -25,6 +25,7 @@
 #include "deh_io.h"
 #include "deh_main.h"
 #include "deh_mapping.h"
+#include "deh_thing.h"
 #include "i_system.h"
 #include "info.h"
 #include "m_fixed.h"
@@ -33,7 +34,9 @@
 typedef enum
 {
     arg_0,
+    arg_thing_0,
     arg_misc1,
+    arg_thing_misc1
 } arg_type_t;
 
 typedef struct
@@ -128,7 +131,8 @@ static const bex_codepointer_t bex_pointer_table[] =
     {"Detonate",            {.p1 = A_Detonate}               },
     {"Mushroom",            {.p1 = A_Mushroom}               },
     {"Die",                 {.p1 = A_Die}                    },
-    {"Spawn",               {.p1 = A_Spawn}                  },
+    {"Spawn",               {.p1 = A_Spawn},
+     .translate = DEH_ThingTranslate, .argtype = arg_thing_misc1 },
     {"Turn",                {.p1 = A_Turn}                   },
     {"Face",                {.p1 = A_Face}                   },
     {"Scratch",             {.p1 = A_Scratch}                },
@@ -140,8 +144,10 @@ static const bex_codepointer_t bex_pointer_table[] =
     {"BetaSkullAttack",     {.p1 = A_BetaSkullAttack}        },
     {"Stop",                {.p1 = A_Stop}                   },
     // MBF21
-    {"SpawnObject",         {.p1 = A_SpawnObject},         8 },
-    {"MonsterProjectile",   {.p1 = A_MonsterProjectile},   5 },
+    {"SpawnObject",         {.p1 = A_SpawnObject},         8,
+      .translate = DEH_ThingTranslate, .argtype = arg_thing_0 },
+    {"MonsterProjectile",   {.p1 = A_MonsterProjectile},   5,
+      .translate = DEH_ThingTranslate, .argtype = arg_thing_0 },
     {"MonsterBulletAttack", {.p1 = A_MonsterBulletAttack}, 5, { 0, 0, 1, 3, 5 } },
     {"MonsterMeleeAttack",  {.p1 = A_MonsterMeleeAttack},  4, { 3, 8, 0, 0 } },
     {"RadiusDamage",        {.p1 = A_RadiusDamage},        2 },
@@ -165,7 +171,8 @@ static const bex_codepointer_t bex_pointer_table[] =
      .translate = DEH_FrameTranslate, .argtype = arg_0 },
     {"AddFlags",            {.p1 = A_AddFlags},            2 },
     {"RemoveFlags",         {.p1 = A_RemoveFlags},         2 },
-    {"WeaponProjectile",    {.p2 = A_WeaponProjectile},    5 },
+    {"WeaponProjectile",    {.p2 = A_WeaponProjectile},    5,
+     .translate = DEH_ThingTranslate, .argtype = arg_thing_0 },
     {"WeaponBulletAttack",  {.p2 = A_WeaponBulletAttack},  5, { 0, 0, 1, 5, 3 } },
     {"WeaponMeleeAttack",   {.p2 = A_WeaponMeleeAttack},   5, { 2, 10, 1 * FRACUNIT, 0, 0 } },
     {"WeaponSound",         {.p2 = A_WeaponSound},         2 },
@@ -188,11 +195,13 @@ void DEH_ValidateStateArgs(void)
 
     for (int i = 0; i < num_states; i++)
     {
+        state_t *state = &states[i];
+
         bex_pointer_match = &bex_pointer_null;
 
         for (int j = 0; bex_pointer_table[j].pointer.v != NULL; ++j)
         {
-            if (states[i].action.v == bex_pointer_table[j].pointer.v)
+            if (state->action.v == bex_pointer_table[j].pointer.v)
             {
                 bex_pointer_match = &bex_pointer_table[j];
                 break;
@@ -204,7 +213,7 @@ void DEH_ValidateStateArgs(void)
         int k;
         for (k = MAXSTATEARGS - 1; k >= bex_pointer_match->argcount; k--)
         {
-            if (states[i].args[k] != 0)
+            if (state->args[k] != 0)
             {
                 I_Error("Action %s on state %d expects no more than %d nonzero "
                         "args (%d found). Check your dehacked.",
@@ -227,10 +236,18 @@ void DEH_ValidateStateArgs(void)
             switch (bex_pointer_match->argtype)
             {                
                 case arg_0:
-                    states[i].args[0] = bex_pointer_match->translate(states[i].args[0]);
+                    state->args[0] = bex_pointer_match->translate(state->args[0]);
                     break;
                 case arg_misc1:
-                    states[i].misc1 = bex_pointer_match->translate(states[i].misc1);
+                    state->misc1 = bex_pointer_match->translate(state->misc1);
+                    break;
+                case arg_thing_0:
+                    state->args[0] = bex_pointer_match->translate(state->args[0] - 1);
+                    state->args[0]++;
+                    break;
+                case arg_thing_misc1:
+                    state->misc1 = bex_pointer_match->translate(state->misc1 - 1);
+                    state->misc1++;
                     break;
             }
         }

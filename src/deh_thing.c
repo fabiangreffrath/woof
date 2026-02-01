@@ -23,10 +23,10 @@
 
 #include "deh_defs.h"
 #include "deh_io.h"
+#include "deh_frame.h"
 #include "deh_main.h"
 #include "deh_mapping.h"
 #include "deh_thing.h"
-#include "deh_frame.h"
 #include "doomstat.h"
 #include "doomtype.h"
 #include "i_system.h"
@@ -34,7 +34,7 @@
 #include "m_argv.h"
 #include "m_array.h"
 #include "m_fixed.h"
-#include "p_ambient.h"
+#include "m_hashmap.h"
 #include "p_map.h"
 #include "p_mobj.h"
 #include "sounds.h"
@@ -47,13 +47,16 @@ boolean deh_set_blood_color = false;
 
 mobjinfo_t *mobjinfo = NULL;
 int num_mobj_types;
-static int mobj_index;
+
+static int max_thing_number;
+
+static hashmap_t *translate;
 
 void DEH_InitMobjInfo(void)
 {
     mobjinfo = original_mobjinfo;
     num_mobj_types = NUMMOBJTYPES;
-    mobj_index = NUMMOBJTYPES - 1;
+    max_thing_number = NUMMOBJTYPES - 1;
 
     // don't want to reorganize info.c structure for a few tweaks...
     for (int i = 0; i < num_mobj_types; ++i)
@@ -126,9 +129,6 @@ void DEH_InitMobjInfo(void)
 
     mobjinfo[MT_DOGS].flags_extra |= MFX_MIRROREDCORPSE;
 
-    // SNDINFO
-    P_InitAmbientSoundMobjInfo();
-
     //!
     // @category game
     //
@@ -155,54 +155,54 @@ void DEH_InitMobjInfo(void)
     }
 }
 
-void DEH_MobjInfoEnsureCapacity(int limit)
+int DEH_ThingTranslate(int thing_number)
 {
-    if (limit > mobj_index)
+    max_thing_number = MAX(max_thing_number, thing_number);
+
+    if (thing_number < NUMMOBJTYPES)
     {
-        mobj_index = limit;
+        return thing_number;
     }
 
-    if (limit < num_mobj_types)
+    if (!translate)
     {
-        return;
-    }
+        translate = hashmap_init(256);
 
-    const int old_num_mobj_types = num_mobj_types;
-
-    static boolean first_allocation = true;
-    if (first_allocation)
-    {
         mobjinfo = NULL;
-        array_grow(mobjinfo, old_num_mobj_types + limit);
-        memcpy(mobjinfo, original_mobjinfo, old_num_mobj_types * sizeof(*mobjinfo));
-        first_allocation = false;
-    }
-    else
-    {
-        array_grow(mobjinfo, limit);
+        array_resize(mobjinfo, num_mobj_types);
+        memcpy(mobjinfo, original_mobjinfo, num_mobj_types * sizeof(mobjinfo_t));
     }
 
-    num_mobj_types = array_capacity(mobjinfo);
-    memset(mobjinfo + old_num_mobj_types, 0, (num_mobj_types - old_num_mobj_types) * sizeof(*mobjinfo));
-
-    for (int i = old_num_mobj_types; i < num_mobj_types; ++i)
+    int index;
+    if (hashmap_get(translate, thing_number, &index))
     {
+        return index;
+    }
+
+    index = num_mobj_types;
+    hashmap_put(translate, thing_number, &index);
+
+    mobjinfo_t mobj = {
         // DEHEXTRA
-        mobjinfo[i].droppeditem = MT_NULL;
+        .droppeditem = MT_NULL,
         // MBF21
-        mobjinfo[i].infighting_group = IG_DEFAULT;
-        mobjinfo[i].projectile_group = PG_DEFAULT;
-        mobjinfo[i].splash_group     = SG_DEFAULT;
-        mobjinfo[i].altspeed         = NO_ALTSPEED;
-        mobjinfo[i].meleerange       = MELEERANGE;
-    }
+        .infighting_group = IG_DEFAULT,
+        .projectile_group = PG_DEFAULT,
+        .splash_group     = SG_DEFAULT,
+        .altspeed         = NO_ALTSPEED,
+        .meleerange       = MELEERANGE
+    };
+
+    array_push(mobjinfo, mobj);
+    ++num_mobj_types;
+
+    return index;
 }
 
 int DEH_MobjInfoGetNewIndex(void)
 {
-    mobj_index++;
-    DEH_MobjInfoEnsureCapacity(mobj_index);
-    return mobj_index;
+    ++max_thing_number;
+    return DEH_ThingTranslate(max_thing_number);
 }
 
 //
@@ -412,7 +412,7 @@ static int DEH_ThingStart(deh_context_t *context, char *line)
     }
 
     // DSDhacked
-    DEH_MobjInfoEnsureCapacity(thing_number);
+    thing_number = DEH_ThingTranslate(thing_number);
 
     return thing_number;
 }
@@ -424,7 +424,9 @@ static void DEH_ThingParseLine(deh_context_t *context, char *line, int tag)
         return;
     }
 
-    mobjinfo_t *mobj = &mobjinfo[tag];
+    int thing_number = tag;
+
+    mobjinfo_t *mobj = &mobjinfo[thing_number];
 
     // Parse the assignment
     char *variable_name, *value;
@@ -461,6 +463,8 @@ static void DEH_ThingParseLine(deh_context_t *context, char *line, int tag)
             I_Error("Dropped item must be >= 0 (check your dehacked)");
         }
         ivalue += MT_NULL; // DeHackEd is off-by-one
+        ivalue = DEH_ThingTranslate(ivalue);
+        mobj = &mobjinfo[thing_number];
     }
     else if (!strcasecmp(variable_name, "Infighting group"))
     {
