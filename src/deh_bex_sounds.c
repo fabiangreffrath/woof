@@ -40,6 +40,7 @@ sfxinfo_t *S_sfx = NULL;
 int num_sfx;
 static int max_sfx_number;
 static char **deh_soundnames;
+static boolean *sfx_state;
 
 static hashmap_t *translate;
 
@@ -55,6 +56,8 @@ void DEH_InitSFX(void)
         deh_soundnames[i] =
             S_sfx[i].name ? M_StringDuplicate(S_sfx[i].name) : NULL;
     }
+
+    array_resize(sfx_state, num_sfx);
 }
 
 void DEH_FreeSFX(void)
@@ -67,6 +70,7 @@ void DEH_FreeSFX(void)
         }
     }
     free(deh_soundnames);
+    array_free(sfx_state);
 }
 
 int DEH_SoundsTranslate(int sfx_number)
@@ -98,6 +102,7 @@ int DEH_SoundsTranslate(int sfx_number)
 
     sfxinfo_t sfx = {.priority = 127, .lumpnum = -1};
     array_push(S_sfx, sfx);
+    array_push(sfx_state, false);
 
     ++num_sfx;
 
@@ -171,12 +176,12 @@ static void DEH_BEXSoundsParseLine(deh_context_t *context, char *line, int tag)
     const int match = SoundsGetIndex(sound_key);
     if (match >= 0)
     {
-        sfxinfo_t *sfx = &S_sfx[match]; 
-        if (!sfx->name)
+        if (sfx_state[match])
         {
-            sfx->name = calloc(7, sizeof(*sfx->name));
+            free(S_sfx[match].name);
         }
-        M_StringCopy(sfx->name, sound_name, 6);
+        S_sfx[match].name = M_StringDuplicate(sound_name);
+        sfx_state[match] = true;
     }
 }
 

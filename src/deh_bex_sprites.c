@@ -38,6 +38,7 @@
 char **sprnames = NULL;
 int num_sprites;
 static char **deh_spritenames = NULL;
+static boolean *sprnames_state;
 
 static hashmap_t *translate;
 
@@ -51,6 +52,8 @@ void DEH_InitSprites(void)
     {
         deh_spritenames[i] = M_StringDuplicate(sprnames[i]);
     }
+
+    array_resize(sprnames_state, num_sprites);
 }
 
 void DEH_FreeSprites(void)
@@ -63,6 +66,7 @@ void DEH_FreeSprites(void)
         }
     }
     free(deh_spritenames);
+    array_free(sprnames_state);
 }
 
 int DEH_SpritesTranslate(int sprite_number)
@@ -91,6 +95,8 @@ int DEH_SpritesTranslate(int sprite_number)
     hashmap_put(translate, sprite_number, &index);
 
     array_push(sprnames, NULL);
+    array_push(sprnames_state, false);
+
     ++num_sprites;
 
     return index;
@@ -157,14 +163,12 @@ static void DEH_BEXSpritesParseLine(deh_context_t *context, char *line, int tag)
     const int match = SpritesGetIndex(sprite_key);
     if (match >= 0)
     {
-        if (!sprnames[match])
+        if (sprnames_state[match])
         {
-            sprnames[match] = M_StringDuplicate(sprite_name);
+            free(sprnames[match]);
         }
-        else
-        {
-            M_StringCopy(sprnames[match], sprite_name, 4);
-        }
+        sprnames[match] = M_StringDuplicate(sprite_name);
+        sprnames_state[match] = true;
     }
 }
 
