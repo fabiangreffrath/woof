@@ -25,7 +25,6 @@
 #include "deh_defs.h"
 #include "deh_io.h"
 #include "deh_main.h"
-#include "doomdef.h"
 #include "info.h"
 #include "m_array.h"
 #include "m_hashmap.h"

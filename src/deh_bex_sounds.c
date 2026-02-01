@@ -82,8 +82,8 @@ int DEH_SoundsTranslate(int sfx_number)
         translate = hashmap_init(1024);
 
         S_sfx = NULL;
-        array_resize(S_sfx, num_sfx);
-        memcpy(S_sfx, original_S_sfx, num_sfx * sizeof(sfxinfo_t));
+        array_resize(S_sfx, NUMSFX);
+        memcpy(S_sfx, original_S_sfx, NUMSFX * sizeof(*S_sfx));
     }
 
     int index;

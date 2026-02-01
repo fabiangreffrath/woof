@@ -79,8 +79,8 @@ int DEH_FrameTranslate(int frame_number)
         translate = hashmap_init(2048);
 
         states = NULL;
-        array_resize(states, num_states);
-        memcpy(states, original_states, num_states * sizeof(state_t));
+        array_resize(states, NUMSTATES);
+        memcpy(states, original_states, NUMSTATES * sizeof(*states));
     }
 
     int index;

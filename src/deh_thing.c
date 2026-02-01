@@ -170,8 +170,8 @@ int DEH_ThingTranslate(int thing_number)
         translate = hashmap_init(256);
 
         mobjinfo = NULL;
-        array_resize(mobjinfo, num_mobj_types);
-        memcpy(mobjinfo, original_mobjinfo, num_mobj_types * sizeof(mobjinfo_t));
+        array_resize(mobjinfo, NUMMOBJTYPES);
+        memcpy(mobjinfo, original_mobjinfo, NUMMOBJTYPES * sizeof(*mobjinfo));
     }
 
     int index;
