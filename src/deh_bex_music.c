@@ -20,41 +20,23 @@
 
 #include <ctype.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
-#include "deh_bex_music.h"
 #include "deh_defs.h"
 #include "deh_io.h"
 #include "deh_main.h"
-#include "m_array.h"
+#include "doomtype.h"
 #include "m_misc.h"
 #include "sounds.h"
 
-//
-//   Music
-//
-
-musicinfo_t *S_music = NULL;
-int num_music;
-static char **deh_musicnames = NULL;
-
-void DEH_InitMusic(void)
-{
-    S_music = original_S_music;
-    num_music = NUMMUSIC;
-
-    array_resize(deh_musicnames, num_music);
-    for (int i = 1; i < num_music; i++)
-    {
-        deh_musicnames[i] = S_music[i].name ? strdup(S_music[i].name) : NULL;
-    }
-}
+static boolean modified[NUMMUSIC];
 
 static int MusicGetIndex(const char *key)
 {
-    for (int i = 1; i < array_size(deh_musicnames); ++i)
+    for (int i = 1; i < NUMMUSIC; ++i)
     {
-        if (deh_musicnames[i] && !strncasecmp(deh_musicnames[i], key, 6))
+        if (S_music[i].name && !strncasecmp(S_music[i].name, key, 6))
         {
             return i;
         }
@@ -71,7 +53,7 @@ static int MusicGetIndex(const char *key)
 
     int i = atoi(key);
     // no DSDHacked for music
-    if (i >= num_music)
+    if (i >= NUMMUSIC)
     {
         return -1;
     }
@@ -114,7 +96,12 @@ static void DEH_BEXMusicParseLine(deh_context_t *context, char *line, int tag)
     int index = MusicGetIndex(music_key);
     if (index >= 0)
     {
+        if (modified[index])
+        {
+            free(S_music[index].name);
+        }
         S_music[index].name = M_StringDuplicate(music_name);
+        modified[index] = true;
     }
     else
     {

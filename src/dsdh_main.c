@@ -1,8 +1,5 @@
 //
-// Copyright(C) 2005-2014 Simon Howard
-// Copyright(C) 2014 Fabian Greffrath
-// Copyright(C) 2021 Roman Fomin
-// Copyright(C) 2025 Guilherme Miranda
+// Copyright(C) 2026 Roman Fomin
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -13,21 +10,16 @@
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-//
-//
-// Parses [MUSIC] sections in BEX files
-//
 
-#ifndef DEH_BEX_MUSIC_H
-#define DEH_BEX_MUSIC_H
+extern void DSDH_StatesInit(void);
+extern void DSDH_MobjInfoInit(void);
+extern void DSDH_SoundsInit(void);
+extern void DSDH_SpritesInit(void);
 
-#include <stddef.h>
-#include "sounds.h"
-
-// DSDHacked
-extern musicinfo_t *S_music;
-extern int num_music;
-
-extern void DEH_InitMusic(void);
-
-#endif
+void DSDH_Init(void)
+{
+    DSDH_StatesInit();
+    DSDH_MobjInfoInit();
+    DSDH_SoundsInit();
+    DSDH_SpritesInit();
+}

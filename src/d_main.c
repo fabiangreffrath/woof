@@ -44,6 +44,7 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
+#include "dsdh_main.h"
 #include "f_finale.h"
 #include "f_wipe.h"
 #include "g_compatibility.h"
@@ -1652,7 +1653,7 @@ void D_DoomMain(void)
   // [FG] emulate a specific version of Doom
   InitGameVersion();
 
-  DEH_InitTables();
+  DSDH_Init();
 
   modifiedgame = false;
 

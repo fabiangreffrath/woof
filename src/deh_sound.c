@@ -20,7 +20,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "deh_bex_sounds.h"
 #include "deh_defs.h"
 #include "deh_io.h"
 #include "deh_main.h"
@@ -64,7 +63,7 @@ static int DEH_SoundStart(deh_context_t *context, char *line)
     }
 
     // DSDHacked
-    sound_number = DEH_SoundsTranslate(sound_number);
+    sound_number = DSDH_SoundTranslate(sound_number);
 
     return sound_number;
 }

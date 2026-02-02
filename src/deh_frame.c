@@ -20,86 +20,36 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "d_think.h"
-#include "deh_bex_sprites.h"
 #include "deh_defs.h"
 #include "deh_io.h"
 #include "deh_main.h"
 #include "deh_mapping.h"
 #include "info.h"
-#include "m_array.h"
-#include "m_hashmap.h"
 #include "m_misc.h"
 #include "w_wad.h"
 
-//
-// DSDHacked states
-//
+#define M_HASHMAP_VALUE_T byte
+#include "m_hashmap.h"
 
-state_t *states = NULL;
-int num_states;
-byte *defined_codepointer_args = NULL;
-actionf_t *deh_codepointer = NULL;
+static hashmap_t *defined_args;
 
-static hashmap_t *translate;
-
-void DEH_InitStates(void)
+static void SetDefinedCodepointerArgs(int frame_number, int arg)
 {
-    states = original_states;
-    num_states = NUMSTATES;
-
-    array_resize(deh_codepointer, num_states);
-    for (int i = 0; i < num_states; i++)
+    if (!defined_args)
     {
-        deh_codepointer[i] = states[i].action;
+        defined_args = hashmap_init(32);
     }
-
-    array_resize(defined_codepointer_args, num_states);
+    byte flags = 0;
+    hashmap_get(defined_args, frame_number, &flags);
+    flags |= (1u << arg);
+    hashmap_put(defined_args, frame_number, &flags);
 }
 
-void DEH_FreeStates(void)
+byte DEH_GetDefinedCodepointerArgs(int frame_number)
 {
-    array_free(deh_codepointer);
-    array_free(defined_codepointer_args);
-    if (translate)
-    {
-        hashmap_free(translate);
-    }
-}
-
-int DEH_FrameTranslate(int frame_number)
-{
-    if (frame_number < NUMSTATES)
-    {
-        return frame_number;
-    }
-
-    if (!translate)
-    {
-        translate = hashmap_init(2048);
-
-        states = NULL;
-        array_resize(states, NUMSTATES);
-        memcpy(states, original_states, NUMSTATES * sizeof(*states));
-    }
-
-    int index;
-    if (hashmap_get(translate, frame_number, &index))
-    {
-        return index;
-    }
-
-    index = num_states;
-    hashmap_put(translate, frame_number, &index);
-
-    state_t state = {.sprite = SPR_TNT1, .tics = -1, .nextstate = index};
-    array_push(states, state);
-    array_push(deh_codepointer, state.action);
-    array_push(defined_codepointer_args, 0);
-
-    ++num_states;
-
-    return index;
+    byte flags = 0;
+    hashmap_get(defined_args, frame_number, &flags);
+    return flags;
 }
 
 //
@@ -153,7 +103,7 @@ static int DEH_FrameStart(deh_context_t *context, char *line)
     }
 
     // DSDHacked
-    frame_number = DEH_FrameTranslate(frame_number);
+    frame_number = DSDH_StateTranslate(frame_number);
 
     return frame_number;
 }
@@ -191,7 +141,7 @@ static void DEH_FrameParseLine(deh_context_t *context, char *line, int tag)
     }
     else if (!strcasecmp(variable_name, "Next frame"))
     {
-        ivalue = DEH_FrameTranslate(ivalue);
+        ivalue = DSDH_StateTranslate(ivalue);
         state = &states[frame_number];
     }
     else
@@ -203,7 +153,7 @@ static void DEH_FrameParseLine(deh_context_t *context, char *line, int tag)
             if (num >= 1 && num <= 8)
             {
                 --num;
-                defined_codepointer_args[frame_number] |= (1u << num);
+                SetDefinedCodepointerArgs(frame_number, num);
             }
         }
     }

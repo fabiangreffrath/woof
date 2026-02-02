@@ -22,6 +22,7 @@
 #define DEH_MAPPING_H
 
 #include "deh_defs.h"
+#include "dsdh_main.h"
 #include "doomtype.h"
 #include "sha1.h"
 
@@ -40,17 +41,17 @@
 #define DEH_MAPPING_STATE(deh_name, fieldname)                \
              {deh_name, &deh_mapping_base.fieldname,          \
                  sizeof(deh_mapping_base.fieldname),          \
-                 false, DEH_FrameTranslate},
+                 false, DSDH_StateTranslate},
 
-#define DEH_MAPPING_SFX(deh_name, fieldname)                  \
+#define DEH_MAPPING_SOUND(deh_name, fieldname)                \
              {deh_name, &deh_mapping_base.fieldname,          \
                  sizeof(deh_mapping_base.fieldname),          \
-                 false, DEH_SoundsTranslate},
+                 false, DSDH_SoundTranslate},
 
 #define DEH_MAPPING_SPRITE(deh_name, fieldname)               \
              {deh_name, &deh_mapping_base.fieldname,          \
                  sizeof(deh_mapping_base.fieldname),          \
-                 false, DEH_SpritesTranslate},
+                 false, DSDH_SpriteTranslate},
 
 #define DEH_MAPPING_STRING(deh_name, fieldname)               \
              {deh_name, &deh_mapping_base.fieldname,          \

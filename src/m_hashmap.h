@@ -119,9 +119,12 @@ inline static void hashmap_put(hashmap_t *map, M_HASHMAP_KEY_T key,
         index = (index + 1) & (map->capacity - 1);
     }
 
-    map->size++;
+    if (map->entries[index].key == 0)
+    {
+        map->entries[index].key = key;
+        map->size++;
+    }
 
-    map->entries[index].key = key;
     if (value)
     {
         map->entries[index].value = *value;

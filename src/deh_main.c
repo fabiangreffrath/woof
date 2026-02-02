@@ -23,16 +23,11 @@
 
 #include "d_items.h"
 #include "d_iwad.h"
-#include "deh_bex_music.h"
-#include "deh_bex_sounds.h"
-#include "deh_bex_sprites.h"
 #include "deh_defs.h"
-#include "deh_frame.h"
 #include "deh_io.h"
 #include "deh_main.h"
 #include "deh_misc.h"
 #include "deh_strings.h"
-#include "deh_thing.h"
 #include "doomtype.h"
 #include "i_glob.h"
 #include "i_printf.h"
@@ -507,22 +502,4 @@ void DEH_PostProcess(void)
 
     // SNDINFO
     P_InitAmbientSoundMobjInfo();
-
-    DEH_FreeTables();
-}
-
-void DEH_InitTables(void)
-{
-    DEH_InitStates();
-    DEH_InitSprites();
-    DEH_InitSFX();
-    DEH_InitMusic();
-    DEH_InitMobjInfo();
-}
-
-void DEH_FreeTables(void)
-{
-    DEH_FreeStates();
-    DEH_FreeSprites();
-    DEH_FreeSFX();
 }

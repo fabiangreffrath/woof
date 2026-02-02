@@ -22,7 +22,6 @@
 
 #include "d_items.h"
 #include "deh_defs.h"
-#include "deh_frame.h"
 #include "deh_io.h"
 #include "deh_main.h"
 #include "deh_mapping.h"

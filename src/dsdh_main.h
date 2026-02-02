@@ -1,8 +1,5 @@
 //
-// Copyright(C) 2005-2014 Simon Howard
-// Copyright(C) 2014 Fabian Greffrath
-// Copyright(C) 2021 Roman Fomin
-// Copyright(C) 2025 Guilherme Miranda
+// Copyright(C) 2026 Roman Fomin
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -13,26 +10,20 @@
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-//
-//
-// Parses [SOUNDS] sections in BEX files
-//
 
-#ifndef DEH_BEX_SOUNDS_H
-#define DEH_BEX_SOUNDS_H
+#ifndef DSDH_MAIN_H
+#define DSDH_MAIN_H
 
-#include <stddef.h>
+void DSDH_Init(void);
 
-#include "sounds.h"
+int DSDH_StateTranslate(int frame_number);
 
-// DSDHacked
-extern sfxinfo_t* S_sfx;
-extern int num_sfx;
+int DSDH_ThingTranslate(int thing_number);
+int DSDH_MobjInfoGetNewIndex(void);
 
-extern void DEH_InitSFX(void);
-extern void DEH_FreeSFX(void);
+int DSDH_SoundTranslate(int sfx_number);
+int DSDH_SoundsGetNewIndex(void);
 
-extern int DEH_SoundsTranslate(int sfx_number);
-extern int DEH_SoundsGetNewIndex(void);
+int DSDH_SpriteTranslate(int sprite_number);
 
 #endif
