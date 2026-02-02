@@ -35,7 +35,6 @@
 #include "info.h"
 #include "m_argv.h"
 #include "m_misc.h"
-#include "p_ambient.h"
 #include "w_wad.h"
 
 static const char *deh_signatures[] =
@@ -499,7 +498,4 @@ void DEH_PostProcess(void)
     {
         states[S_DSGUNFLASH1].tics = 4;
     }
-
-    // SNDINFO
-    P_InitAmbientSoundMobjInfo();
 }

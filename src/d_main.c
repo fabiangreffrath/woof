@@ -70,6 +70,7 @@
 #include "net_client.h"
 #include "net_dedicated.h"
 #include "deh_misc.h" // deh_max_health_bonus
+#include "p_ambient.h"
 #include "p_setup.h"
 #include "r_bmaps.h"
 #include "r_defs.h"
@@ -2105,6 +2106,9 @@ void D_DoomMain(void)
   //
   // End DeHackEd Loading
   //
+
+  // SNDINFO
+  P_InitAmbientSoundMobjInfo();
 
   W_ProcessInWads("BRGHTMPS", R_ParseBrightmaps, PROCESS_PWAD);
 

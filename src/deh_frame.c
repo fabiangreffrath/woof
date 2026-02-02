@@ -37,7 +37,7 @@ static void SetDefinedCodepointerArgs(int frame_number, int arg)
 {
     if (!defined_args)
     {
-        defined_args = hashmap_init(32);
+        defined_args = hashmap_init(128);
     }
     byte flags = 0;
     hashmap_get(defined_args, frame_number, &flags);

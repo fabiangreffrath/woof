@@ -124,14 +124,14 @@ void DSDH_MobjInfoInit(void)
         mobjinfo[MT_SKULL].deathstate   = S_BSKUL_DIE1;
         mobjinfo[MT_SKULL].damage       = 1;
     }
+    // This code causes MT_SCEPTRE and MT_BIBLE to not spawn on the map,
+    // which causes desync in Eviternity.wad demos.
+#ifdef MBF_STRICT
     else
     {
-        // This code causes MT_SCEPTRE and MT_BIBLE to not spawn on the map,
-        // which causes desync in Eviternity.wad demos.
-#ifdef MBF_STRICT
         mobjinfo[MT_SCEPTRE].doomednum = mobjinfo[MT_BIBLE].doomednum = -1;
-#endif
     }
+#endif
 }
 
 int DSDH_ThingTranslate(int thing_number)
