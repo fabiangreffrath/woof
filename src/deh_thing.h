@@ -22,9 +22,4 @@
 
 extern int deh_set_blood_color;
 
-extern void DEH_InitMobjInfo(void);
-
-extern void DEH_MobjInfoEnsureCapacity(int limit);
-extern int DEH_MobjInfoGetNewIndex(void);
-
 #endif

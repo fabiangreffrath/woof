@@ -1537,11 +1537,11 @@ typedef struct
 extern mobjinfo_t original_mobjinfo[NUMMOBJTYPES];
 
 // DSDHacked
-extern state_t* states;
+extern state_t *states;
 extern int num_states;
-extern char** sprnames;
+extern char **sprnames;
 extern int num_sprites;
-extern mobjinfo_t* mobjinfo;
+extern mobjinfo_t *mobjinfo;
 extern int num_mobj_types;
 
 // ZDoom

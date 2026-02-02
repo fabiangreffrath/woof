@@ -165,12 +165,12 @@ static struct
     {"Powerup Color Minotaur",        NULL                   },
 };
 
-static void *DEH_MiscStart(deh_context_t *context, char *line)
+static int DEH_MiscStart(deh_context_t *context, char *line)
 {
-    return NULL;
+    return 0;
 }
 
-static void DEH_MiscParseLine(deh_context_t *context, char *line, void *tag)
+static void DEH_MiscParseLine(deh_context_t *context, char *line, int tag)
 {
     char *variable_name, *value;
     if (!DEH_ParseAssignment(line, &variable_name, &value))

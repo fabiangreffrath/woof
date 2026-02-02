@@ -22,7 +22,6 @@
 
 #include "i_sound.h"
 
-#include "deh_bex_sounds.h"
 #include "deh_strings.h"
 #include "doomstat.h"
 #include "doomtype.h"
