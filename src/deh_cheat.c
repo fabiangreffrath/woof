@@ -64,7 +64,7 @@ static void DEH_CheatParseLine(deh_context_t *context, char *line, int tag)
 
     int i = 0;
     unsigned char *unsvalue = (unsigned char *)value;
-    char *placeholder = malloc(sizeof(char) * strlen(value));
+    char *placeholder = malloc(sizeof(char) * strlen(value) + 1);
     while (unsvalue[i] != 0 && unsvalue[i] != 0xff)
     {
         if (deh_apply_cheats)
