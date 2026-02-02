@@ -1162,11 +1162,9 @@ void I_InitWindowIcon(void)
 
 static void SetWindowPosition(void)
 {
-    int x, y;
+    const int pos = (int)SDL_WINDOWPOS_CENTERED_DISPLAY(video_display_id);
 
-    x = y = (int)SDL_WINDOWPOS_CENTERED_DISPLAY(video_display_id);
-
-    SDL_SetWindowPosition(screen, x, y);
+    SDL_SetWindowPosition(screen, pos, pos);
     SDL_SyncWindow(screen);
 }
 
