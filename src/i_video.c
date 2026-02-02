@@ -1160,6 +1160,16 @@ void I_InitWindowIcon(void)
     SDL_DestroySurface(surface);
 }
 
+static void SetWindowPosition(void)
+{
+    int x, y;
+
+    x = y = (int)SDL_WINDOWPOS_CENTERED_DISPLAY(video_display_id);
+
+    SDL_SetWindowPosition(screen, x, y);
+    SDL_SyncWindow(screen);
+}
+
 static double CurrentAspectRatio(void)
 {
     int w, h;
@@ -1501,6 +1511,8 @@ static void I_InitGraphicsMode(void)
     {
         I_Error("Error creating window for video startup: %s", SDL_GetError());
     }
+
+    SetWindowPosition();
 
     I_InitWindowIcon();
 
