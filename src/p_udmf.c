@@ -201,8 +201,9 @@ inline static int UDMF_ScanInt(scanner_t *s)
 {
     int x = 0;
     SC_MustGetToken(s, '=');
+    boolean neg = SC_CheckToken(s, '-');
     SC_MustGetToken(s, TK_IntConst);
-    x = SC_GetNumber(s);
+    x = neg ? -SC_GetNumber(s) : SC_GetNumber(s);
     SC_MustGetToken(s, ';');
     return x;
 }
@@ -212,8 +213,9 @@ inline static double UDMF_ScanDouble(scanner_t *s)
 {
     double x = 0;
     SC_MustGetToken(s, '=');
+    boolean neg = SC_CheckToken(s, '-');
     SC_MustGetToken(s, TK_FloatConst);
-    x = SC_GetDecimal(s);
+    x = neg ? -SC_GetDecimal(s) : SC_GetDecimal(s);
     SC_MustGetToken(s, ';');
     return x;
 }
