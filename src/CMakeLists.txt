@@ -89,7 +89,7 @@ set(WOOF_SOURCES
     kf_memory.c
     m_arena.c              m_arena.h
     m_argv.c               m_argv.h
-                           m_array.h
+    m_array.c              m_array.h
     m_bbox.c               m_bbox.h
     m_cheat.c              m_cheat.h
     m_config.c             m_config.h

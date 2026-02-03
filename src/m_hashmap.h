@@ -24,8 +24,22 @@
   #define M_HASHMAP_VALUE_T int
 #endif
 
+#ifdef M_HASHMAP_KEY_STRING
+  #define M_HASHMAP_KEY_T const char *
+  #define M_HASHMAP_KEY_COPY(a, b) ((a) = strdup(b))
+  #define M_HASHMAP_KEY_EQUAL(a, b) (strcmp(a, b) == 0)
+#endif
+
 #ifndef M_HASHMAP_KEY_T
   #define M_HASHMAP_KEY_T uint32_t
+#endif
+
+#ifndef M_HASHMAP_KEY_COPY
+  #define M_HASHMAP_KEY_COPY(a, b) ((a) = (b))
+#endif
+
+#ifndef M_HASHMAP_KEY_EQUAL
+  #define M_HASHMAP_KEY_EQUAL(a, b) ((a) == (b))
 #endif
 
 typedef struct
@@ -48,16 +62,29 @@ typedef struct
 } hashmap_iterator_t;
 
 // FNV-1a hash
-inline static uint64_t M_HashKey(M_HASHMAP_KEY_T key)
-{
-    uint64_t hash = 0xcbf29ce484222325;
-    for (int i = 0; i < sizeof(key); ++i)
-    {
-        hash ^= (key >> (i * 8)) & 0xff;
-        hash *= 0x100000001b3;
-    }
-    return hash;
-}
+#ifdef M_HASHMAP_KEY_STRING
+  inline static uint64_t M_HashKey(const char *s)
+  {
+      uint64_t hash = 0xcbf29ce484222325;
+      for (; *s; ++s)
+      {
+          hash ^= (uint8_t)*s;
+          hash *= 0x100000001b3;
+      }
+      return hash;
+  }
+#else
+  inline static uint64_t M_HashKey(M_HASHMAP_KEY_T key)
+  {
+      uint64_t hash = 0xcbf29ce484222325;
+      for (int i = 0; i < sizeof(key); ++i)
+      {
+          hash ^= (key >> (i * 8)) & 0xff;
+          hash *= 0x100000001b3;
+      }
+      return hash;
+  }
+#endif
 
 inline static hashmap_t *hashmap_init(int initial_capacity)
 {
@@ -77,6 +104,16 @@ inline static hashmap_t *hashmap_init(int initial_capacity)
 
 inline static void hashmap_free(hashmap_t *map)
 {
+#ifdef M_HASHMAP_KEY_STRING
+    for (int i = 0; i < map->capacity; ++i)
+    {
+        hashmap_entry_t *entry = &map->entries[i];
+        if (entry->key)
+        {
+            free((void *)entry->key);
+        }
+    }
+#endif
     free(map->entries);
     free(map);
 }
@@ -114,14 +151,15 @@ inline static void hashmap_put(hashmap_t *map, M_HASHMAP_KEY_T key,
 
     int index = M_HashKey(key) & (map->capacity - 1);
     // Linear probing to find slot for key
-    while (map->entries[index].key != 0 && map->entries[index].key != key)
+    while (map->entries[index].key != 0 
+           && !M_HASHMAP_KEY_EQUAL(map->entries[index].key, key))
     {
         index = (index + 1) & (map->capacity - 1);
     }
 
     if (map->entries[index].key == 0)
     {
-        map->entries[index].key = key;
+        M_HASHMAP_KEY_COPY(map->entries[index].key, key);
         map->size++;
     }
 
@@ -131,13 +169,13 @@ inline static void hashmap_put(hashmap_t *map, M_HASHMAP_KEY_T key,
     }
 }
 
-inline static boolean hashmap_get(hashmap_t *map, M_HASHMAP_KEY_T key,
+inline static boolean hashmap_get(const hashmap_t *map, M_HASHMAP_KEY_T key,
                                   M_HASHMAP_VALUE_T *value)
 {
     int i = M_HashKey(key) & (map->capacity - 1);
     while (map->entries[i].key != 0)
     {
-        if (map->entries[i].key == key)
+        if (M_HASHMAP_KEY_EQUAL(map->entries[i].key, key))
         {
             if (value)
             {
