@@ -144,10 +144,10 @@ void *M_ArrayResize(void *v, size_t esize, int n);
 
 // If n > current size, new elements are zero-initialized.
 // If n < current size, array is truncated.
-#define array_resize(v, n) ((v) = M_ArrayResize(v, sizeof(*v), n))
+#define array_resize(v, n) ((v) = M_ArrayResize(v, sizeof(*(v)), n))
 
 void *M_ArrayCopy(void *dst, void *src, size_t esize);
 
-#define array_copy(dst, src) ((dst) = M_ArrayCopy(dst, src, sizeof(*src)))
+#define array_copy(dst, src) ((dst) = M_ArrayCopy(dst, src, sizeof(*(src))))
 
 #endif // M_ARRAY_H

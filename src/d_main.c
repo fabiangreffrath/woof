@@ -38,6 +38,7 @@
 #include "d_main.h"
 #include "d_player.h"
 #include "d_ticcmd.h"
+#include "decl_main.h"
 #include "deh_main.h"
 #include "deh_strings.h"
 #include "deh_thing.h"
@@ -2106,6 +2107,8 @@ void D_DoomMain(void)
   //
   // End DeHackEd Loading
   //
+
+  W_ProcessInWads("DECORATE", DECL_Parse, PROCESS_IWAD | PROCESS_PWAD);
 
   // SNDINFO
   P_InitAmbientSoundMobjInfo();
