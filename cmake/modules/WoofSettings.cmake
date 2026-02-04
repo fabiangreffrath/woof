@@ -69,6 +69,15 @@ else()
     _checked_add_compile_option(-Wall)
 endif()
 
+if(CMAKE_C_COMPILER_ID STREQUAL "Clang" OR CMAKE_C_COMPILER_ID STREQUAL "AppleClang")
+    # Force Wrapping: Use -fwrapv to guarantee that signed integer overflow
+    # wraps around, which is the standard behavior for two's
+    # complement representation for signed integers.
+    # Fixes desync in longdays.wad Pseudonaut UV Max demo.
+    # https://dsdarchive.com/wads/longdays
+    _checked_add_compile_option(-fwrapv)
+endif()
+
 if(ENABLE_WERROR)
     if(MSVC)
         _checked_add_compile_option(/WX)
