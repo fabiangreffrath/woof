@@ -787,8 +787,8 @@ void P_LoadSideDefs2(int lump)
       register mapsidedef_t *msd = (mapsidedef_t *) data + i;
       register side_t *sd = sides + i;
 
-      sd->textureoffset = SHORT(msd->textureoffset)<<FRACBITS;
-      sd->rowoffset = SHORT(msd->rowoffset)<<FRACBITS;
+      sd->textureoffset = IntToFixed(SHORT(msd->textureoffset));
+      sd->rowoffset = IntToFixed(SHORT(msd->rowoffset));
       sd->sector = &sectors[SHORT(msd->sector)];
       P_SidedefInit(sd);
 

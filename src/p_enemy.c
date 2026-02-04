@@ -1172,7 +1172,7 @@ void A_Chase(mobj_t *actor)
   else
     if (actor->movedir < 8)
       {
-	int delta = (actor->angle &= (7u<<29)) - (actor->movedir << 29);
+	int delta = (actor->angle &= (7u<<29)) - shiftleft32(actor->movedir, 29);
 	if (delta > 0)
 	  actor->angle -= ANG90/2;
 	else
