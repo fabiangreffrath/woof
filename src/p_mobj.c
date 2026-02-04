@@ -23,7 +23,6 @@
 #include "d_player.h"
 #include "doomdef.h"
 #include "doomstat.h"
-#include "dsdhacked.h"
 #include "g_game.h"
 #include "i_printf.h"
 #include "info.h"
@@ -35,6 +34,7 @@
 #include "p_maputl.h"
 #include "p_mobj.h"
 #include "p_pspr.h"
+#include "p_setup.h"
 #include "p_spec.h"
 #include "p_tick.h"
 #include "r_defs.h"
@@ -1246,7 +1246,7 @@ void P_SpawnMapThing (mapthing_t* mthing)
 
 	  // killough 10/98: force it to be a friend
 	  mthing->options |= MTF_FRIEND;
-	  i = MT_DOGS;
+	  i = helper_type >= 0 ? helper_type : MT_DOGS;
 	  goto spawnit;
 	}
 

@@ -18,11 +18,11 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "deh_thing.h"
 #include "hu_command.h"
 #include "mn_internal.h"
 
 #include "am_map.h"
-#include "d_deh.h"
 #include "d_main.h"
 #include "doomdef.h"
 #include "doomstat.h"
@@ -362,6 +362,7 @@ enum
     str_hudcolor,
     str_secretmessage,
     str_overlay,
+    str_automap_thickness,
     str_automap_preset,
     str_automap_keyed_door,
     str_fuzzmode,
@@ -1510,6 +1511,7 @@ static setup_menu_t keys_settings5[] = {
     {"Follow",          S_INPUT, KB_X, M_SPC, {0}, m_map, input_map_follow},
     {"Overlay",         S_INPUT, KB_X, M_SPC, {0}, m_map, input_map_overlay},
     {"Rotate",          S_INPUT, KB_X, M_SPC, {0}, m_map, input_map_rotate},
+    {"Minimap", S_INPUT | S_STRICT, KB_X, M_SPC, {0}, m_map, input_map_mini},
     MI_GAP,
     {"Zoom In",         S_INPUT, KB_X, M_SPC, {0}, m_map, input_map_zoomin},
     {"Zoom Out",        S_INPUT, KB_X, M_SPC, {0}, m_map, input_map_zoomout},
@@ -1999,8 +2001,7 @@ static setup_menu_t stat_settings4[] = {
     {"Show Pickup Messages", S_ONOFF, H_X, M_SPC, {"show_pickup_messages"}},
     {"Show Obituaries",      S_ONOFF, H_X, M_SPC, {"show_obituary_messages"}},
     {"Center Messages",      S_ONOFF, H_X, M_SPC, {"message_centered"}},
-    {"Colorize Messages",    S_ONOFF, H_X, M_SPC, {"message_colorized"},
-     .action = ST_ResetMessageColors},
+    {"Colorize Messages",    S_ONOFF, H_X, M_SPC, {"message_colorized"}},
     MI_END
 };
 
@@ -2076,6 +2077,9 @@ void MN_DrawStatusHUD(void)
 
 static const char *overlay_strings[] = {"Off", "On", "Dark"};
 
+static const char *automap_thickness_strings[] = {
+    "Auto", "1", "2", "3", "4", "5", "6"};
+
 static const char *automap_preset_strings[] = {"Vanilla", "Crispy", "Boom", "ZDoom"};
 
 static const char *automap_keyed_door_strings[] = {"Off", "On", "Flashing"};
@@ -2088,6 +2092,13 @@ static setup_menu_t auto_settings1[] = {
     {"Rotate Automap",  S_ONOFF,  H_X, M_SPC, {"automaprotate"}},
     {"Overlay Automap", S_CHOICE, H_X, M_SPC, {"automapoverlay"},
      .strings_id = str_overlay},
+
+    MI_GAP,
+
+    {"Show Minimap", S_ONOFF | S_STRICT, H_X, M_SPC, {"minimap"}},
+    {"Line Thickness", S_THERMO | S_THRM_SIZE4, H_X, M_THRM_SPC,
+     {"map_line_thickness"}, .strings_id = str_automap_thickness,
+     .action = AM_ResetThickness},
 
     MI_GAP,
 
@@ -5004,6 +5015,7 @@ static const char **selectstrings[] = {
     [str_hudcolor] = hudcolor_strings,
     [str_secretmessage] = secretmessage_strings,
     [str_overlay] = overlay_strings,
+    [str_automap_thickness] = automap_thickness_strings,
     [str_automap_preset] = automap_preset_strings,
     [str_automap_keyed_door] = automap_keyed_door_strings,
     [str_fuzzmode] = fuzzmode_strings,
@@ -5119,6 +5131,7 @@ void MN_SetupResetMenu(void)
                 "brightmaps");
     DisableItem(!trakinfo_found, gen_settings2, "extra_music");
     DisableItem(M_ParmExists("-save"), gen_settings6, "organize_savefiles");
+    DisableItem(!map_smooth_lines, auto_settings1, "map_line_thickness");
     UpdateInterceptsEmuItem();
     UpdateStatsFormatItem();
     UpdateCrosshairItems();

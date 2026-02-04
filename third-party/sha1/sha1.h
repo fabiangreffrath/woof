@@ -18,6 +18,7 @@
 #ifndef __SHA1_H__
 #define __SHA1_H__
 
+#include <stddef.h>
 #include <stdint.h>
 
 typedef struct sha1_context_s sha1_context_t;

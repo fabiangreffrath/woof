@@ -16,6 +16,7 @@
 
 #include "doomdef.h"
 #include "doomtype.h"
+#include "doomstat.h"
 #include "r_defs.h"
 #include "v_video.h"
 
@@ -77,6 +78,22 @@ typedef enum
     sbc_levelless,
     sbc_patchempty,
     sbc_patchnotempty,
+    sbc_killsless,
+    sbc_killsgreaterequal,
+    sbc_itemsless,
+    sbc_itemsgreaterequal,
+    sbc_secretsless,
+    sbc_secretsgreaterequal,
+    sbc_killslesspct,
+    sbc_killsgreaterequalpct,
+    sbc_itemslesspct,
+    sbc_itemsgreaterequalpct,
+    sbc_secretslesspct,
+    sbc_secretsgreaterequalpct,
+    sbc_powerless,
+    sbc_powergreaterequal,
+    sbc_powerlesspct,
+    sbc_powergreaterequalpct,
 
     sbc_max,
 } sbarconditiontype_t;
@@ -109,6 +126,18 @@ typedef enum
     sbn_weaponammo,
     sbn_weaponmaxammo,
 
+    // Woof!
+    sbn_kills,
+    sbn_items,
+    sbn_secrets,
+    sbn_killspct,
+    sbn_itemspct,
+    sbn_secretspct,
+    sbn_totalkills,
+    sbn_totalitems,
+    sbn_totalsecrets,
+    sbn_power,
+
     sbn_max,
 } sbarnumbertype_t;
 
@@ -126,6 +155,9 @@ typedef enum
     // Woof!
     sbe_widget,
     sbe_carousel,
+    sbe_list,
+    sbe_string,
+    sbe_minimap,
 
     sbe_max,
 } sbarelementtype_t;
@@ -146,6 +178,15 @@ typedef enum
     sbw_chat,
     sbw_title,
 } sbarwidgettype_t;
+
+typedef enum
+{
+    sbstr_none = -1,
+    sbstr_data,
+    sbstr_maptitle,
+    sbstr_label,
+    sbstr_author
+} sbstringtype_t;
 
 extern const char *sbw_names[];
 extern int sbw_names_len;
@@ -234,14 +275,14 @@ typedef struct
     const char *string;
     int totalwidth;
     int xoffset;
-} widgetline_t;
+} stringline_t;
 
 typedef struct sbe_widget_s
 {
     sbarwidgettype_t type;
     hudfont_t *default_font;
     hudfont_t *font;
-    widgetline_t *lines;
+    stringline_t *lines;
 
     int height;
 
@@ -251,6 +292,35 @@ typedef struct sbe_widget_s
     boolean vertical;
 } sbe_widget_t;
 
+typedef struct
+{
+    boolean horizontal;
+    int spacing;
+} sbe_list_t;
+
+typedef struct
+{
+    sbstringtype_t type;
+    stringline_t line;
+    hudfont_t *font;
+    const char *data;
+} sbe_string_t;
+
+typedef enum
+{
+    sbmm_background_off,
+    sbmm_background_dark,
+    sbmm_background_black
+} sbmm_backgound_t;
+
+typedef struct
+{
+    int width;
+    int height;
+    fixed_t scale;
+    sbmm_backgound_t background;
+} sbe_minimap_t;
+
 struct sbarelem_s
 {
     sbarelementtype_t type;
@@ -259,6 +329,10 @@ struct sbarelem_s
     sbaralignment_t alignment;
     sbarcondition_t *conditions;
     sbarelem_t *children;
+
+    boolean enabled;
+    int width;
+    int height;
 
     const byte *tranmap;
     crange_idx_e cr;
@@ -274,6 +348,9 @@ struct sbarelem_s
 
         // Woof!
         sbe_widget_t *widget;
+        sbe_list_t *list;
+        sbe_string_t *string;
+        sbe_minimap_t *minimap;
     } subtype;
 };
 

@@ -84,6 +84,15 @@ typedef enum
     CR_LIMIT   // 16 //jff 2/27/98 added for range check
 } crange_idx_e;
 
+typedef struct
+{
+    const char *name;
+    const char *str;
+    byte **map1, **map2, **map_orig;
+} crdef_t;
+
+extern const crdef_t crdefs[];
+
 #define ORIG_S  "\x1b\x2f"
 #define BRICK_S "\x1b\x30"
 #define TAN_S   "\x1b\x31"
@@ -191,6 +200,8 @@ void V_TileBlock64(int line, int width, int height, const byte *src);
 void V_DrawBackground(const char *patchname);
 
 void V_ShadeScreen(void);
+
+void V_ShadeRect(int x, int y, int width, int height);
 
 // [FG] colored blood and gibs
 

@@ -637,6 +637,15 @@ boolean P_EvaluateItemOwned(itemtype_t item, player_t *player)
     return false;
 }
 
+int P_GetPowerDuration(powertype_t power)
+{
+    static const int tics[NUMPOWERS] = {
+        INVULNTICS, 1 /* strength */, INVISTICS,
+        IRONTICS, 1 /* allmap */, INFRATICS,
+    };
+    return tics[power];
+}
+
 //----------------------------------------------------------------------------
 //
 // $Log: p_user.c,v $

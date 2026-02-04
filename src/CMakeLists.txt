@@ -2,11 +2,10 @@ include(WoofSettings)
 
 set(WOOF_SOURCES
     am_map.c               am_map.h
-    d_deh.c                d_deh.h
+    am_def.c
     d_demoloop.c           d_demoloop.h
                            d_englsh.h
                            d_event.h
-                           d_french.h
     d_items.c              d_items.h
     d_iwad.c               d_iwad.h
     d_loop.c               d_loop.h
@@ -19,8 +18,33 @@ set(WOOF_SOURCES
                            doomdef.h
     doomstat.c             doomstat.h
                            doomtype.h
-    dsdhacked.c            dsdhacked.h
-    dstrings.c             dstrings.h
+    deh_ammo.c
+    deh_bex_helper.c
+    deh_bex_includes.c
+    deh_bex_music.c
+    deh_bex_partimes.c     deh_bex_partimes.h
+    deh_bex_pointers.c
+    deh_bex_sounds.c
+    deh_bex_sprites.c
+    deh_bex_strings.c
+    deh_cheat.c
+    deh_defs.h
+    deh_frame.c
+    deh_io.c               deh_io.h
+    deh_main.c             deh_main.h
+    deh_mapping.c          deh_mapping.h
+    deh_misc.c             deh_misc.h
+    deh_pointer.c
+    deh_sound.c
+    deh_strings.c          deh_strings.h
+    deh_text.c
+    deh_thing.c
+    deh_weapon.c
+    dsdh_main.c            dsdh_main.h
+    dsdh_mobjinfo.c
+    dsdh_sounds.c
+    dsdh_sprites.c
+    dsdh_states.c
     f_finale.c             f_finale.h
     f_wipe.c               f_wipe.h
     g_compatibility.c      g_compatibility.h
@@ -65,11 +89,11 @@ set(WOOF_SOURCES
     kf_memory.c
     m_arena.c              m_arena.h
     m_argv.c               m_argv.h
-                           m_array.h
+    m_array.c              m_array.h
     m_bbox.c               m_bbox.h
     m_cheat.c              m_cheat.h
     m_config.c             m_config.h
-    m_hashmap.c            m_hashmap.h
+                           m_hashmap.h
                            m_fixed.h
     m_input.c              m_input.h
     m_io.c                 m_io.h

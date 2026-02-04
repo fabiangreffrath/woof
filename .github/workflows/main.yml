@@ -57,6 +57,7 @@ jobs:
         run: |
           brew install \
             ninja \
+            sdl3 \
             openal-soft \
             libebur128 \
             libsndfile \
@@ -69,13 +70,14 @@ jobs:
         uses: msys2/setup-msys2@v2
         with:
           msystem: ${{ matrix.config.msystem }}
-          update: false
+          update: true
           install: >-
             diffutils
             ${{ matrix.config.msys-env }}-python-pip
             ${{ matrix.config.msys-env }}-gcc
             ${{ matrix.config.msys-env }}-cmake
             ${{ matrix.config.msys-env }}-ninja
+            ${{ matrix.config.msys-env }}-sdl3
             ${{ matrix.config.msys-env }}-openal
             ${{ matrix.config.msys-env }}-libebur128
             ${{ matrix.config.msys-env }}-libsndfile
@@ -85,9 +87,9 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Build SDL3
+        if: runner.os == 'Linux'
         uses: libsdl-org/setup-sdl@main
         with:
-          shell: ${{ matrix.config.shell }}
           install-linux-dependencies: true
           version: 3-latest
 
