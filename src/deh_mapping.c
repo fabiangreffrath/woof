@@ -76,6 +76,11 @@ boolean DEH_SetMapping(deh_context_t *context, deh_mapping_t *mapping, void *str
         return false;
     }
 
+    if (entry->translate)
+    {
+        value = entry->translate(value);
+    }
+
     void *location = GetStructField(structptr, mapping, entry);
 
     // I_Printf(VB_DEBUG, "Setting %p::%s to %i (%i bytes)", structptr, name, value, entry->size);

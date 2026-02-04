@@ -21,9 +21,10 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "deh_frame.h"
 #include "deh_io.h"
 #include "deh_main.h"
+#include "deh_mapping.h"
+#include "doomtype.h"
 #include "i_system.h"
 #include "info.h"
 #include "m_fixed.h"
@@ -161,17 +162,102 @@ static const bex_codepointer_t bex_pointer_table[] =
     {"NULL",                {NULL}                           },
 };
 
+typedef enum
+{
+    arg_1,
+    arg_1_inc,
+    arg_2,
+    arg_3,
+    arg_4,
+    arg_misc1,
+    arg_misc1_inc
+} arg_type_t;
+
+typedef struct
+{
+    const actionf_t pointer;
+    arg_type_t argtype;
+} translate_args_t;
+
+static translate_args_t translate_states[] = {
+    { {.p1 = A_RandomJump },          arg_misc1 },
+    { {.p1 = A_HealChase },           arg_1 },
+    { {.p1 = A_JumpIfHealthBelow },   arg_1 },
+    { {.p1 = A_JumpIfTargetInSight }, arg_1 },
+    { {.p1 = A_JumpIfTargetCloser },  arg_1 },
+    { {.p1 = A_JumpIfTracerInSight }, arg_1 },
+    { {.p1 = A_JumpIfTracerCloser },  arg_1 },
+    { {.p1 = A_JumpIfFlagsSet },      arg_1 },
+    { {.p2 = A_WeaponJump },          arg_1 },
+    { {.p2 = A_CheckAmmo },           arg_1 },
+    { {.p2 = A_RefireTo },            arg_1 },
+    { {.p2 = A_GunFlashTo },          arg_1 },
+};
+
+static translate_args_t translate_things[] = {
+    { {.p1 = A_Spawn},              arg_misc1_inc },
+    { {.p1 = A_SpawnObject},        arg_1_inc },
+    { {.p1 = A_MonsterProjectile},  arg_1_inc },
+    { {.p2 = A_WeaponProjectile},   arg_1_inc },
+};
+
+static translate_args_t translate_sounds[] = {
+    { {.p1 = A_MonsterMeleeAttack}, arg_3 },
+    { {.p1 = A_HealChase},          arg_2 },
+    { {.p2 = A_WeaponMeleeAttack},  arg_4 },
+    { {.p2 = A_WeaponSound},        arg_1 },
+};
+
+static void TranslateArgs(state_t *state,
+                          translate_args_t *table, int size,
+                          deh_translate_t translate)
+{
+    for (int i = 0; i < size; ++i)
+    {
+        if (state->action.v == table[i].pointer.v)
+        {
+            switch (table[i].argtype)
+            {
+                case arg_1:
+                    state->args[0] = translate(state->args[0]);
+                    break;
+                case arg_1_inc:
+                    state->args[0] = translate(state->args[0] - 1) + 1;
+                    break;
+                case arg_2:
+                    state->args[1] = translate(state->args[1]);
+                    break;
+                case arg_3:
+                    state->args[2] = translate(state->args[2]);
+                    break;
+                case arg_4:
+                    state->args[3] = translate(state->args[3]);
+                    break;
+                case arg_misc1:
+                    state->misc1 = translate(state->misc1);
+                    break;
+                case arg_misc1_inc:
+                    state->misc1 = translate(state->misc1 - 1) + 1;
+                    break;
+            }
+            return;
+        }
+    }
+}
+
 void DEH_ValidateStateArgs(void)
 {
     const bex_codepointer_t *bex_pointer_match;
 
     for (int i = 0; i < num_states; i++)
     {
+        state_t *state = &states[i];
+
         bex_pointer_match = &bex_pointer_null;
 
         for (int j = 0; bex_pointer_table[j].pointer.v != NULL; ++j)
         {
-            if (states[i].action.v == bex_pointer_table[j].pointer.v)
+            if (state->action.v == bex_pointer_table[j].pointer.v)
             {
                 bex_pointer_match = &bex_pointer_table[j];
                 break;
@@ -183,21 +269,32 @@ void DEH_ValidateStateArgs(void)
         int k;
         for (k = MAXSTATEARGS - 1; k >= bex_pointer_match->argcount; k--)
         {
-            if (states[i].args[k] != 0)
+            if (state->args[k] != 0)
             {
-                I_Error("Action %s on state %d expects no more than %d nonzero args (%d found). Check your dehacked.",
-                        bex_pointer_match->mnemonic, i, bex_pointer_match->argcount, k + 1);
+                I_Error("Action %s on state %d expects no more than %d nonzero "
+                        "args (%d found). Check your dehacked.",
+                        bex_pointer_match->mnemonic, i,
+                        bex_pointer_match->argcount, k + 1);
             }
         }
+
+        byte defined_args = DEH_GetDefinedCodepointerArgs(i);
 
         // replace unset fields with default values
         for (; k >= 0; k--)
         {
-            if (!(defined_codepointer_args[i] & (1 << k)))
+            if (!(defined_args & (1 << k)))
             {
-                states[i].args[k] = bex_pointer_match->args[k];
+                state->args[k] = bex_pointer_match->args[k];
             }
         }
+
+        TranslateArgs(state, translate_states, arrlen(translate_states),
+                      DSDH_StateTranslate);
+        TranslateArgs(state, translate_things, arrlen(translate_things),
+                      DSDH_ThingTranslate);
+        TranslateArgs(state, translate_sounds, arrlen(translate_sounds),
+                      DSDH_SoundTranslate);
     }
 }
 
@@ -238,7 +335,7 @@ boolean DEH_CheckSafeState(statenum_t state)
     return true;
 }
 
-static void *DEH_BEXPointerStart(deh_context_t *context, char *line)
+static int DEH_BEXPointerStart(deh_context_t *context, char *line)
 {
     char s[10];
 
@@ -247,10 +344,10 @@ static void *DEH_BEXPointerStart(deh_context_t *context, char *line)
         DEH_Warning(context, "Parse error on section start");
     }
 
-    return NULL;
+    return 0;
 }
 
-static void DEH_BEXPointerParseLine(deh_context_t *context, char *line, void *tag)
+static void DEH_BEXPointerParseLine(deh_context_t *context, char *line, int tag)
 {
     // parse "FRAME nn = mnemonic", where
     // variable_name = "FRAME nn" and value = "mnemonic"
@@ -277,9 +374,9 @@ static void DEH_BEXPointerParseLine(deh_context_t *context, char *line, void *ta
     }
 
     // DSDHacked
-    DEH_StatesEnsureCapacity(frame_number);
+    frame_number = DSDH_StateTranslate(frame_number);
 
-    state_t *state = (state_t *)&states[frame_number];
+    state_t *state = &states[frame_number];
 
     for (int i = 0; i < arrlen(bex_pointer_table); i++)
     {

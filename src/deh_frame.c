@@ -25,84 +25,35 @@
 #include "deh_main.h"
 #include "deh_mapping.h"
 #include "info.h"
-#include "m_array.h"
+#include "m_misc.h"
 #include "w_wad.h"
 
-//
-// DSDHacked states
-//
+#define M_HASHMAP_VALUE_T byte
+#include "m_hashmap.h"
 
-state_t *states = NULL;
-int num_states;
-byte *defined_codepointer_args = NULL;
-statenum_t *seenstate_tab = NULL;
-actionf_t *deh_codepointer = NULL;
+static hashmap_t *defined_args;
 
-void DEH_InitStates(void)
+static void SetDefinedCodepointerArgs(int frame_number, int arg)
 {
-    states = original_states;
-    num_states = NUMSTATES;
-
-    array_grow(seenstate_tab, num_states);
-    memset(seenstate_tab, 0, num_states * sizeof(*seenstate_tab));
-
-    array_grow(deh_codepointer, num_states);
-    for (int i = 0; i < num_states; i++)
+    if (!defined_args)
     {
-        deh_codepointer[i] = states[i].action;
+        defined_args = hashmap_init(128);
     }
-
-    array_grow(defined_codepointer_args, num_states);
-    memset(defined_codepointer_args, 0, num_states * sizeof(*defined_codepointer_args));
+    byte flags = 0;
+    hashmap_get(defined_args, frame_number, &flags);
+    flags |= (1u << arg);
+    hashmap_put(defined_args, frame_number, &flags);
 }
 
-void DEH_FreeStates(void)
+byte DEH_GetDefinedCodepointerArgs(int frame_number)
 {
-    array_free(defined_codepointer_args);
-    array_free(deh_codepointer);
-}
-
-void DEH_StatesEnsureCapacity(int limit)
-{
-    if (limit < num_states)
+    if (!defined_args)
     {
-        return;
+        return 0;
     }
-
-    const int old_num_states = num_states;
-
-    static boolean first_allocation = true;
-    if (first_allocation)
-    {
-        states = NULL;
-        array_grow(states, old_num_states + limit);
-        memcpy(states, original_states, old_num_states * sizeof(*states));
-        first_allocation = false;
-    }
-    else
-    {
-        array_grow(states, limit);
-    }
-
-    num_states = array_capacity(states);
-    const int size_delta = num_states - old_num_states;
-    memset(states + old_num_states, 0, size_delta * sizeof(*states));
-
-    array_grow(deh_codepointer, size_delta);
-    memset(deh_codepointer + old_num_states, 0, size_delta * sizeof(*deh_codepointer));
-
-    array_grow(defined_codepointer_args, size_delta);
-    memset(defined_codepointer_args + old_num_states, 0, size_delta * sizeof(*defined_codepointer_args));
-
-    array_grow(seenstate_tab, size_delta);
-    memset(seenstate_tab + old_num_states, 0, size_delta * sizeof(*seenstate_tab));
-
-    for (int i = old_num_states; i < num_states; ++i)
-    {
-        states[i].sprite = SPR_TNT1;
-        states[i].tics = -1;
-        states[i].nextstate = i;
-    }
+    byte flags = 0;
+    hashmap_get(defined_args, frame_number, &flags);
+    return flags;
 }
 
 //
@@ -115,7 +66,7 @@ const bex_bitflags_t frame_flags_mbf21[] =
 };
 
 DEH_BEGIN_MAPPING(state_mapping, state_t)
-    DEH_MAPPING("Sprite number", sprite)
+    DEH_MAPPING_SPRITE("Sprite number", sprite)
     DEH_MAPPING("Sprite subnumber", frame)
     DEH_MAPPING("Duration", tics)
     DEH_MAPPING("Next frame", nextstate)
@@ -139,36 +90,38 @@ DEH_BEGIN_MAPPING(state_mapping, state_t)
     DEH_UNSUPPORTED_MAPPING("Min brightness")
 DEH_END_MAPPING
 
-static void *DEH_FrameStart(deh_context_t *context, char *line)
+static int DEH_FrameStart(deh_context_t *context, char *line)
 {
     int frame_number = -1;
 
     if (sscanf(line, "Frame %i", &frame_number) != 1)
     {
         DEH_Warning(context, "Parse error on section start");
-        return NULL;
+        return -1;
     }
 
     if (frame_number < 0)
     {
         DEH_Warning(context, "Invalid frame number: %i", frame_number);
-        return NULL;
+        return -1;
     }
 
     // DSDHacked
-    DEH_StatesEnsureCapacity(frame_number);
+    frame_number = DSDH_StateTranslate(frame_number);
 
-    return &states[frame_number];
+    return frame_number;
 }
 
-static void DEH_FrameParseLine(deh_context_t *context, char *line, void *tag)
+static void DEH_FrameParseLine(deh_context_t *context, char *line, int tag)
 {
-    if (tag == NULL)
+    if (tag == -1)
     {
         return;
     }
 
-    state_t *state = (state_t *)tag;
+    int frame_number = tag;
+
+    state_t *state = &states[frame_number];
 
     // Parse the assignment
     char *variable_name, *value;
@@ -190,37 +143,23 @@ static void DEH_FrameParseLine(deh_context_t *context, char *line, void *tag)
         state->tranmap = W_CacheLumpName(value, PU_STATIC);
         return;
     }
-    else if (!strcasecmp(variable_name, "Args1"))
+    else if (!strcasecmp(variable_name, "Next frame"))
     {
-        defined_codepointer_args[state - states] |= (1u << 0);
+        ivalue = DSDH_StateTranslate(ivalue);
+        state = &states[frame_number];
     }
-    else if (!strcasecmp(variable_name, "Args2"))
+    else
     {
-        defined_codepointer_args[state - states] |= (1u << 1);
-    }
-    else if (!strcasecmp(variable_name, "Args3"))
-    {
-        defined_codepointer_args[state - states] |= (1u << 2);
-    }
-    else if (!strcasecmp(variable_name, "Args4"))
-    {
-        defined_codepointer_args[state - states] |= (1u << 3);
-    }
-    else if (!strcasecmp(variable_name, "Args5"))
-    {
-        defined_codepointer_args[state - states] |= (1u << 4);
-    }
-    else if (!strcasecmp(variable_name, "Args6"))
-    {
-        defined_codepointer_args[state - states] |= (1u << 5);
-    }
-    else if (!strcasecmp(variable_name, "Args7"))
-    {
-        defined_codepointer_args[state - states] |= (1u << 6);
-    }
-    else if (!strcasecmp(variable_name, "Args8"))
-    {
-        defined_codepointer_args[state - states] |= (1u << 7);
+        M_StringToLower(variable_name);
+        int num;
+        if (sscanf(variable_name, "args%i", &num) == 1)
+        {
+            if (num >= 1 && num <= 8)
+            {
+                --num;
+                SetDefinedCodepointerArgs(frame_number, num);
+            }
+        }
     }
 
     // set the appropriate field

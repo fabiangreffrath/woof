@@ -49,10 +49,10 @@ struct bex_bitflags_s
 };
 
 // Extensions
-extern void DEH_InitTables(void);
-extern void DEH_FreeTables(void);
 extern int DEH_ParseBexBitFlags(int ivalue, char *value, const bex_bitflags_t flags[], int len);
 extern void DEH_PostProcess(void);
+extern byte DEH_GetDefinedCodepointerArgs(int frame_number);
+extern void DEH_ValidateStateArgs(void);
 extern boolean DEH_CheckSafeState(statenum_t state);
 
 #endif /* #ifndef DEH_MAIN_H */

@@ -122,7 +122,11 @@ typedef struct musicinfo_s
 extern sfxinfo_t    original_S_sfx[];
 
 // the complete set of music
-extern musicinfo_t  original_S_music[];
+extern musicinfo_t  S_music[];
+
+// DSDHacked
+extern sfxinfo_t *S_sfx;
+extern int num_sfx;
 
 //
 // Identifiers for all music in game.

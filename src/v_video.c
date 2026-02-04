@@ -692,28 +692,6 @@ void V_DrawPatchFullScreen(patch_t *patch)
     DrawPatchInternal(x - video.deltaw, 0, 0, 0, NULL, NULL, NULL, zero_crop, patch, false);
 }
 
-void V_ShadeScreen(void)
-{
-    const byte *darkcolormap = &colormaps[0][20 * 256];
-
-    pixel_t *row = dest_screen;
-    int height = video.height;
-
-    while (height--)
-    {
-        int width = video.width;
-        pixel_t *col = row;
-
-        while (width--)
-        {
-            *col = darkcolormap[*col];
-            ++col;
-        }
-
-        row += linesize;
-    }
-}
-
 void V_ScaleRect(vrect_t *rect)
 {
     rect->sx = x1lookup[rect->x];
@@ -791,6 +769,49 @@ void V_FillRect(int x, int y, int width, int height, byte color)
         memset(dest, color, dstrect.sw);
         dest += linesize;
     }
+}
+
+void V_ShadeRect(int x, int y, int width, int height)
+{
+    vrect_t dstrect;
+
+    dstrect.x = x;
+    dstrect.y = y;
+    dstrect.w = width;
+    dstrect.h = height;
+
+    ClipRect(&dstrect);
+
+    // clipped away completely?
+    if (dstrect.cw <= 0 || dstrect.ch <= 0)
+    {
+        return;
+    }
+
+    ScaleClippedRect(&dstrect);
+
+    pixel_t *row = V_ADDRESS(dest_screen, dstrect.sx, dstrect.sy);
+
+    const byte *darkcolormap = &colormaps[0][20 * 256];
+
+    while (dstrect.sh--)
+    {
+        int width = dstrect.sw;
+        pixel_t *col = row;
+
+        while (width--)
+        {
+            *col = darkcolormap[*col];
+            ++col;
+        }
+
+        row += linesize;
+    }
+}
+
+void V_ShadeScreen(void)
+{
+    V_ShadeRect(0, 0, video.unscaledw, SCREENHEIGHT);
 }
 
 //

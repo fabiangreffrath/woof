@@ -21,7 +21,6 @@
 #include <string.h>
 
 #include "d_player.h"
-#include "deh_frame.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "g_game.h"
@@ -35,6 +34,7 @@
 #include "p_maputl.h"
 #include "p_mobj.h"
 #include "p_pspr.h"
+#include "p_setup.h"
 #include "p_spec.h"
 #include "p_tick.h"
 #include "r_defs.h"
