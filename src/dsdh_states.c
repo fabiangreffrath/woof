@@ -39,21 +39,21 @@ int DSDH_StateTranslate(int frame_number)
 
     if (!translate)
     {
-        translate = hashmap_init(2048);
+        translate = hashmap_init(2048, sizeof(int));
     }
 
-    int index;
-    if (hashmap_get(translate, frame_number, &index))
+    int *index = hashmap_get(translate, frame_number);
+    if (index)
     {
-        return index;
+        return *index;
     }
 
-    index = num_states;
-    hashmap_put(translate, frame_number, &index);
+    int new_index = num_states;
+    hashmap_put(translate, frame_number, &new_index);
 
-    state_t state = {.sprite = SPR_TNT1, .tics = -1, .nextstate = index};
+    state_t state = {.sprite = SPR_TNT1, .tics = -1, .nextstate = new_index};
     array_push(states, state);
     ++num_states;
 
-    return index;
+    return new_index;
 }

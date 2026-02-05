@@ -28,7 +28,6 @@
 #include "m_misc.h"
 #include "w_wad.h"
 
-#define M_HASHMAP_VALUE_T byte
 #include "m_hashmap.h"
 
 static hashmap_t *defined_args;
@@ -37,12 +36,19 @@ static void SetDefinedCodepointerArgs(int frame_number, int arg)
 {
     if (!defined_args)
     {
-        defined_args = hashmap_init(128);
+        defined_args = hashmap_init(128, sizeof(byte));
     }
-    byte flags = 0;
-    hashmap_get(defined_args, frame_number, &flags);
-    flags |= (1u << arg);
-    hashmap_put(defined_args, frame_number, &flags);
+    byte *args = hashmap_get(defined_args, frame_number);
+    byte flag = (1u << arg);
+    if (args)
+    {
+        *args |= flag;
+    }
+    else
+    {
+        args = &flag;
+    }
+    hashmap_put(defined_args, frame_number, args);
 }
 
 byte DEH_GetDefinedCodepointerArgs(int frame_number)
@@ -51,9 +57,8 @@ byte DEH_GetDefinedCodepointerArgs(int frame_number)
     {
         return 0;
     }
-    byte flags = 0;
-    hashmap_get(defined_args, frame_number, &flags);
-    return flags;
+    byte *args = hashmap_get(defined_args, frame_number);
+    return args ? *args : 0;
 }
 
 //

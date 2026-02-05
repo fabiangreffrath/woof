@@ -41,20 +41,20 @@ int DSDH_SpriteTranslate(int sprite_number)
 
     if (!translate)
     {
-        translate = hashmap_init(1024);
+        translate = hashmap_init(1024, sizeof(int));
     }
 
-    int index;
-    if (hashmap_get(translate, sprite_number, &index))
+    int *index = hashmap_get(translate, sprite_number);
+    if (index)
     {
-        return index;
+        return *index;
     }
 
-    index = num_sprites;
-    hashmap_put(translate, sprite_number, &index);
+    int new_index = num_sprites;
+    hashmap_put(translate, sprite_number, &new_index);
 
     array_push(sprnames, NULL);
     ++num_sprites;
 
-    return index;
+    return new_index;
 }

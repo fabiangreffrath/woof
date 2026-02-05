@@ -6,7 +6,7 @@
 
 #include "doomtype.h"
 #include "m_array.h"
-#include "m_fixed.h"
+#include "m_hashmap.h"
 #include "m_misc.h"
 #include "m_scanner.h"
 #include "p_mobj.h"
@@ -128,10 +128,6 @@ typedef struct
     char *string;
     int number;
 } propvalue_t;
-
-#define M_HASHMAP_KEY_STRING
-#define M_HASHMAP_VALUE_T propvalue_t
-#include "m_hashmap.h"
 
 typedef struct
 {
@@ -756,14 +752,14 @@ switch (CheckKeyword(sc, keywords))
                 {
                     case TYPE_Int:
                         val.number = GetNegativeInteger(sc);
-                        hashmap_put(actor->props.props, prop->name,
-                                    &val);
+                        // hashmap_put(actor->props.props, prop->name,
+                        //             &val);
                         break;
                     case TYPE_Fixed:
                         SC_MustGetToken(sc, TK_FloatConst);
                         val.number = SC_GetDecimal(sc) * 0x10000;
-                        hashmap_put(actor->props.props, prop->name,
-                                    &val);
+                        // hashmap_put(actor->props.props, prop->name,
+                        //             &val);
                         break;
                     case TYPE_Sound:
                         printf("TYPE_Sound");
@@ -775,8 +771,8 @@ switch (CheckKeyword(sc, keywords))
                             SC_Error(sc, "Sound '%s' is not defined.",
                                      SC_GetString(sc));
                         }
-                        hashmap_put(actor->props.props, prop->name,
-                                    &val);
+                        // hashmap_put(actor->props.props, prop->name,
+                        //             &val);
                         break;
                     case TYPE_Flags:
                     case TYPE_State:
@@ -974,7 +970,7 @@ void ParseActor(scanner_t *sc)
     actor.classNum = array_size(actorclasses);
     actor.parent = -1;
     actor.doomednum = -1;
-    actor.props.props = hashmap_init(16);
+    actor.props.props = NULL;//hashmap_init(16);
 
     SC_MustGetToken(sc, TK_Identifier);
     actor.name = strdup(SC_GetString(sc));
@@ -1234,30 +1230,30 @@ static void DECL_Integrate(void)
         mobjinfo_ptr->flags = actor->props.flags;
 
         propvalue_t val;
-        if (hashmap_get(actor->props.props, "health", &val))
-        {
-            mobjinfo_ptr->spawnhealth = val.number;
-        }
-        if (hashmap_get(actor->props.props, "radius", &val))
-        {
-            mobjinfo_ptr->radius = val.number;
-        }
-        if (hashmap_get(actor->props.props, "height", &val))
-        {
-            mobjinfo_ptr->height = val.number;
-        }
-        if (hashmap_get(actor->props.props, "mass", &val))
-        {
-            mobjinfo_ptr->mass = val.number;
-        }
-        if (hashmap_get(actor->props.props, "speed", &val))
-        {
-            mobjinfo_ptr->speed = val.number;
-        }
-        if (hashmap_get(actor->props.props, "damage", &val))
-        {
-            mobjinfo_ptr->damage = val.number;
-        }
+        // if (hashmap_get(actor->props.props, "health", &val))
+        // {
+        //     mobjinfo_ptr->spawnhealth = val.number;
+        // }
+        // if (hashmap_get(actor->props.props, "radius", &val))
+        // {
+        //     mobjinfo_ptr->radius = val.number;
+        // }
+        // if (hashmap_get(actor->props.props, "height", &val))
+        // {
+        //     mobjinfo_ptr->height = val.number;
+        // }
+        // if (hashmap_get(actor->props.props, "mass", &val))
+        // {
+        //     mobjinfo_ptr->mass = val.number;
+        // }
+        // if (hashmap_get(actor->props.props, "speed", &val))
+        // {
+        //     mobjinfo_ptr->speed = val.number;
+        // }
+        // if (hashmap_get(actor->props.props, "damage", &val))
+        // {
+        //     mobjinfo_ptr->damage = val.number;
+        // }
 
         printf("\n%s\n", actor->name);
 
