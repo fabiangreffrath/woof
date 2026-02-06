@@ -93,15 +93,36 @@ inline static int32_t div64_32(int64_t a, int32_t b)
 
 inline static fixed_t FixedDiv(fixed_t a, fixed_t b)
 {
-    // [FG] avoid 31-bit shift (from Chocolate Doom)
-    if ((abs(a) >> 14) >= abs(b))
+    // Get absolute values without triggering UBSan
+    int abs_a, abs_b;
+
+    // For 'a': handle INT_MIN specially
+    if (a == INT_MIN)
     {
-        return (a ^ b) < 0 ? INT_MIN : INT_MAX;
+        abs_a = INT_MIN; // Matches original abs(INT_MIN) behavior
     }
     else
     {
-        return div64_32(shiftleft64(a, FRACBITS), b);
+        abs_a = abs(a);
     }
+
+    // For 'b': handle INT_MIN specially
+    if (b == INT_MIN)
+    {
+        abs_b = INT_MIN; // Matches original abs(INT_MIN) behavior
+    }
+    else
+    {
+        abs_b = abs(b);
+    }
+
+    // Original overflow check
+    if ((abs_a >> 14) >= abs_b)
+    {
+        return (a ^ b) < 0 ? INT_MIN : INT_MAX;
+    }
+
+    return div64_32(shiftleft64(a, FRACBITS), b);
 }
 
 #endif
