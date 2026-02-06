@@ -125,8 +125,11 @@ boolean DEH_SetStringMapping(deh_context_t *context, deh_mapping_t *mapping, voi
     }
 
     void *location = GetStructField(structptr, mapping, entry);
-    // Copy value into field:
-    M_StringCopy(location, value, entry->size);
+    if (location)
+    {
+        free(location);
+    }
+    location = M_StringDuplicate(value);
     return true;
 }
 

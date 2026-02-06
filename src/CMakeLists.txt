@@ -18,7 +18,11 @@ set(WOOF_SOURCES
                            doomdef.h
     doomstat.c             doomstat.h
                            doomtype.h
+                           decl_defs.h
     decl_main.c            decl_main.h
+                           decl_misc.h
+    decl_props.c
+    decl_states.c
     deh_ammo.c
     deh_bex_helper.c
     deh_bex_includes.c

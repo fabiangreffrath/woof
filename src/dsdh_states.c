@@ -20,11 +20,14 @@
 state_t *states = NULL;
 int num_states;
 
+static int max_frame_number;
+
 static hashmap_t *translate;
 
 void DSDH_StatesInit(void)
 {
     num_states = NUMSTATES;
+    max_frame_number = NUMSTATES - 1;
 
     array_resize(states, NUMSTATES);
     memcpy(states, original_states, NUMSTATES * sizeof(*states));
@@ -32,6 +35,8 @@ void DSDH_StatesInit(void)
 
 int DSDH_StateTranslate(int frame_number)
 {
+    max_frame_number = MAX(max_frame_number, frame_number);
+
     if (frame_number < NUMSTATES)
     {
         return frame_number;
@@ -56,4 +61,10 @@ int DSDH_StateTranslate(int frame_number)
     ++num_states;
 
     return new_index;
+}
+
+int DSDH_StatesGetNewIndex(void)
+{
+    ++max_frame_number;
+    return DSDH_StateTranslate(max_frame_number);
 }

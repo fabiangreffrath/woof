@@ -658,6 +658,8 @@ void SC_Rewind(scanner_t *s) // Only can rewind one step.
     s->line = s->prevstate.tokenline;
     s->logicalpos = s->prevstate.tokenlinepos;
     s->scanpos = s->prevstate.scanpos;
+
+    CheckForWhitespace(s);
 }
 
 boolean SC_SameLine(scanner_t *s)

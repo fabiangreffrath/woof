@@ -17,6 +17,7 @@
 void DSDH_Init(void);
 
 int DSDH_StateTranslate(int frame_number);
+int DSDH_StatesGetNewIndex(void);
 
 int DSDH_ThingTranslate(int thing_number);
 int DSDH_MobjInfoGetNewIndex(void);
@@ -25,5 +26,6 @@ int DSDH_SoundTranslate(int sfx_number);
 int DSDH_SoundsGetNewIndex(void);
 
 int DSDH_SpriteTranslate(int sprite_number);
+int DSDH_SpritesGetNewIndex(void);
 
 #endif

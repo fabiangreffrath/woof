@@ -2108,7 +2108,7 @@ void D_DoomMain(void)
   // End DeHackEd Loading
   //
 
-  W_ProcessInWads("DECORATE", DECL_Parse, PROCESS_IWAD | PROCESS_PWAD);
+  W_ProcessInWads("DECLARE", DECL_Parse, PROCESS_IWAD | PROCESS_PWAD);
 
   // SNDINFO
   P_InitAmbientSoundMobjInfo();
