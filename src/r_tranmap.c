@@ -94,7 +94,7 @@ inline static const byte BlendChannelAdditive(const byte bg, const byte fg, cons
 {
     const double fg_linear = byte_to_linear(fg);
     const double bg_linear = byte_to_linear(bg);
-    const double r_linear = (fg_linear * a) + bg_linear / 2;
+    const double r_linear = (fg_linear * a) + bg_linear / 2.0;
     return linear_to_byte(r_linear);
 }
 
