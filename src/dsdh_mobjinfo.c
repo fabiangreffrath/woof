@@ -92,6 +92,14 @@ void DSDH_MobjInfoInit(void)
         states[i].flags |= STATEF_SKILL5FAST;
     }
 
+    // ID24
+    mobjinfo[MT_MISC4].flags3 |= MF3_SPECIALSTAYSCOOP;
+    mobjinfo[MT_MISC5].flags3 |= MF3_SPECIALSTAYSCOOP;
+    mobjinfo[MT_MISC6].flags3 |= MF3_SPECIALSTAYSCOOP;
+    mobjinfo[MT_MISC7].flags3 |= MF3_SPECIALSTAYSCOOP;
+    mobjinfo[MT_MISC8].flags3 |= MF3_SPECIALSTAYSCOOP;
+    mobjinfo[MT_MISC9].flags3 |= MF3_SPECIALSTAYSCOOP;
+
     // Woof! randomly mirrored death animations
     for (int i = MT_PLAYER; i <= MT_KEEN; ++i)
     {
