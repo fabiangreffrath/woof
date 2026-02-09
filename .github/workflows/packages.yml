@@ -23,7 +23,7 @@ jobs:
       matrix:
         config:
           - name: Linux GCC
-            os: ubuntu-22.04
+            os: ubuntu-24.04
             toolchain: $VCPKG_INSTALLATION_ROOT
             triplet: x64-linux-dynamic-release
             artifact-name: AppImage
@@ -67,13 +67,15 @@ jobs:
       - name: Install dependencies (Linux)
         if: runner.os == 'Linux'
         run: |
+          sudo apt-get update
           sudo apt-get install build-essential libtool autoconf-archive git make \
           pkg-config cmake ninja-build gnome-desktop-testing libasound2-dev libpulse-dev \
           libaudio-dev libfribidi-dev libjack-dev libsndio-dev libx11-dev libxext-dev \
           libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxtst-dev \
           libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
           libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev \
-          libpipewire-0.3-dev libwayland-dev libdecor-0-dev liburing-dev
+          libpipewire-0.3-dev libwayland-dev libdecor-0-dev liburing-dev \
+          libltdl-dev
 
       - name: Developer Command Prompt
         if: runner.os == 'Windows'
@@ -82,7 +84,7 @@ jobs:
           arch: ${{ matrix.config.arch }}
 
       - name: Restore vcpkg cache
-        id: cache
+        id: cache-vcpkg
         uses: actions/cache/restore@v5
         with:
           path: ${{ github.workspace }}/vcpkg_cache
@@ -111,16 +113,16 @@ jobs:
       # Delete the old cache on hit to emulate a cache update.
       - name: Delete old cache
         continue-on-error: true
-        if: steps.cache.outputs.cache-hit
+        if: steps.cache-vcpkg.outputs.cache-hit
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh cache delete --repo ${{ github.repository }} ${{ steps.cache.outputs.cache-primary-key }}
+        run: gh cache delete --repo ${{ github.repository }} ${{ steps.cache-vcpkg.outputs.cache-primary-key }}
 
-      - name: Save cache
+      - name: Save vcpkg cache
         uses: actions/cache/save@v5
         with:
           path: ${{ github.workspace }}/vcpkg_cache
-          key: ${{ steps.cache.outputs.cache-primary-key }}
+          key: ${{ steps.cache-vcpkg.outputs.cache-primary-key }}
 
       - name: Build
         run: cmake --build build --config "Release"
@@ -129,12 +131,29 @@ jobs:
         if: ${{ matrix.config.name == 'macOS uni' }}
         run: cmake --build build-x64 --config "Release"
 
+      - name: Restore demotest cache
+        id: cache-demotest
+        uses: actions/cache/restore@v5
+        with:
+          path: demotest/extract
+          key: demotest
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.x'
+
       - name: Test
-        if: github.event_name == 'workflow_dispatch'
         run: |
           cd demotest
           pip install pyyaml joblib
           python demotest --jobs 4 --port ../build/src/woof
+
+      - name: Save demotest cache
+        if: steps.cache-demotest.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: demotest/extract
+          key: demotest
 
       - name: Package (Linux)
         if: runner.os == 'Linux'

@@ -231,11 +231,6 @@ extern int snd_MusicVolume;    // maximum volume for music
 // Status flags for refresh.
 //
 
-// Depending on view size - no status bar?
-// Note that there is no way to disable the
-//  status bar explicitely.
-extern  boolean statusbaractive;
-
 extern  boolean automapactive; // In AutoMap mode?
 
 typedef enum

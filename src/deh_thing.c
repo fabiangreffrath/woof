@@ -26,214 +26,13 @@
 #include "deh_main.h"
 #include "deh_mapping.h"
 #include "deh_thing.h"
-#include "doomstat.h"
 #include "doomtype.h"
 #include "i_system.h"
 #include "info.h"
-#include "m_argv.h"
-#include "m_array.h"
-#include "m_fixed.h"
-#include "p_ambient.h"
-#include "p_map.h"
 #include "p_mobj.h"
-#include "sounds.h"
 #include "z_zone.h"
 
 boolean deh_set_blood_color = false;
-
-//
-// DSDhacked Things
-//
-
-mobjinfo_t *mobjinfo = NULL;
-int num_mobj_types;
-static int mobj_index;
-
-void DEH_InitMobjInfo(void)
-{
-    mobjinfo = original_mobjinfo;
-    num_mobj_types = NUMMOBJTYPES;
-    mobj_index = NUMMOBJTYPES - 1;
-
-    // don't want to reorganize info.c structure for a few tweaks...
-    for (int i = 0; i < num_mobj_types; ++i)
-    {
-        // DEHEXTRA
-        mobjinfo[i].droppeditem = MT_NULL;
-        // MBF21
-        mobjinfo[i].flags2           = 0;
-        mobjinfo[i].infighting_group = IG_DEFAULT;
-        mobjinfo[i].projectile_group = PG_DEFAULT;
-        mobjinfo[i].splash_group     = SG_DEFAULT;
-        mobjinfo[i].ripsound         = sfx_None;
-        mobjinfo[i].altspeed         = NO_ALTSPEED;
-        mobjinfo[i].meleerange       = MELEERANGE;
-        // ID24
-        mobjinfo[i].flags3             = 0;
-        mobjinfo[i].respawn_min_tics   = 12 * TICRATE;
-        mobjinfo[i].respawn_dice       = 4;
-        mobjinfo[i].pickup_ammo_type   = NO_INDEX;
-        mobjinfo[i].pickup_weapon_type = NO_INDEX;
-        mobjinfo[i].pickup_item_type   = NO_INDEX;
-        mobjinfo[i].pickup_sound       = sfx_None;
-        mobjinfo[i].pickup_bonus       = 6;
-        mobjinfo[i].pickup_mnemonic    = NULL;
-        mobjinfo[i].self_damage        = IntToFixed(1);
-        // Eternity
-        mobjinfo[i].bloodcolor = 0;
-    }
-
-    // DEHEXTRA
-    mobjinfo[MT_WOLFSS].droppeditem    = MT_CLIP;
-    mobjinfo[MT_POSSESSED].droppeditem = MT_CLIP;
-    mobjinfo[MT_SHOTGUY].droppeditem   = MT_SHOTGUN;
-    mobjinfo[MT_CHAINGUY].droppeditem  = MT_CHAINGUN;
-
-    // MBF21
-    mobjinfo[MT_VILE].flags2    = MF2_SHORTMRANGE|MF2_DMGIGNORED|MF2_NOTHRESHOLD;
-    mobjinfo[MT_UNDEAD].flags2  = MF2_LONGMELEE|MF2_RANGEHALF;
-    mobjinfo[MT_FATSO].flags2   = MF2_MAP07BOSS1;
-    mobjinfo[MT_BRUISER].flags2 = MF2_E1M8BOSS;
-    mobjinfo[MT_SKULL].flags2   = MF2_RANGEHALF;
-    mobjinfo[MT_SPIDER].flags2  = MF2_NORADIUSDMG|MF2_RANGEHALF|MF2_FULLVOLSOUNDS|MF2_E3M8BOSS|MF2_E4M8BOSS;
-    mobjinfo[MT_BABY].flags2    = MF2_MAP07BOSS2;
-    mobjinfo[MT_CYBORG].flags2  = MF2_NORADIUSDMG|MF2_HIGHERMPROB|MF2_RANGEHALF|MF2_FULLVOLSOUNDS|MF2_E2M8BOSS|MF2_E4M6BOSS;
-
-    mobjinfo[MT_BRUISER].projectile_group = PG_BARON;
-    mobjinfo[MT_KNIGHT].projectile_group  = PG_BARON;
-
-    mobjinfo[MT_BRUISERSHOT].altspeed = IntToFixed(20);
-    mobjinfo[MT_TROOPSHOT].altspeed   = IntToFixed(20);
-    mobjinfo[MT_HEADSHOT].altspeed    = IntToFixed(20);
-
-    for (int i = S_SARG_RUN1; i <= S_SARG_PAIN2; ++i)
-    {
-        states[i].flags |= STATEF_SKILL5FAST;
-    }
-
-    // ID24
-    mobjinfo[MT_MISC4].flags3 |= MF3_SPECIALSTAYSCOOP;
-    mobjinfo[MT_MISC5].flags3 |= MF3_SPECIALSTAYSCOOP;
-    mobjinfo[MT_MISC6].flags3 |= MF3_SPECIALSTAYSCOOP;
-    mobjinfo[MT_MISC7].flags3 |= MF3_SPECIALSTAYSCOOP;
-    mobjinfo[MT_MISC8].flags3 |= MF3_SPECIALSTAYSCOOP;
-    mobjinfo[MT_MISC9].flags3 |= MF3_SPECIALSTAYSCOOP;
-
-    // Woof! randomly mirrored death animations
-    for (int i = MT_PLAYER; i <= MT_KEEN; ++i)
-    {
-        switch (i)
-        {
-            case MT_FIRE:
-            case MT_TRACER:
-            case MT_SMOKE:
-            case MT_FATSHOT:
-            case MT_BRUISERSHOT:
-            case MT_CYBORG:
-                continue;
-        }
-        mobjinfo[i].flags_extra |= MFX_MIRROREDCORPSE;
-    }
-
-    mobjinfo[MT_PUFF].flags_extra  |= MFX_MIRROREDCORPSE;
-    mobjinfo[MT_BLOOD].flags_extra |= MFX_MIRROREDCORPSE;
-
-    for (int i = MT_MISC61; i <= MT_MISC69; ++i)
-    {
-        mobjinfo[i].flags_extra |= MFX_MIRROREDCORPSE;
-    }
-
-    mobjinfo[MT_DOGS].flags_extra |= MFX_MIRROREDCORPSE;
-
-    // SNDINFO
-    P_InitAmbientSoundMobjInfo();
-
-    //!
-    // @category game
-    //
-    // Press beta emulation mode (complevel mbf only).
-    //
-    beta_emulation = M_CheckParm("-beta");
-    if (beta_emulation)
-    {
-        // killough 10/98: beta lost soul has different behavior frames
-        mobjinfo[MT_SKULL].spawnstate   = S_BSKUL_STND;
-        mobjinfo[MT_SKULL].seestate     = S_BSKUL_RUN1;
-        mobjinfo[MT_SKULL].painstate    = S_BSKUL_PAIN1;
-        mobjinfo[MT_SKULL].missilestate = S_BSKUL_ATK1;
-        mobjinfo[MT_SKULL].deathstate   = S_BSKUL_DIE1;
-        mobjinfo[MT_SKULL].damage       = 1;
-    }
-    else
-    {
-        // This code causes MT_SCEPTRE and MT_BIBLE to not spawn on the map,
-        // which causes desync in Eviternity.wad demos.
-#ifdef MBF_STRICT
-        mobjinfo[MT_SCEPTRE].doomednum = mobjinfo[MT_BIBLE].doomednum = -1;
-#endif
-    }
-}
-
-void DEH_MobjInfoEnsureCapacity(int limit)
-{
-    if (limit > mobj_index)
-    {
-        mobj_index = limit;
-    }
-
-    if (limit < num_mobj_types)
-    {
-        return;
-    }
-
-    const int old_num_mobj_types = num_mobj_types;
-
-    static boolean first_allocation = true;
-    if (first_allocation)
-    {
-        mobjinfo = NULL;
-        array_grow(mobjinfo, old_num_mobj_types + limit);
-        memcpy(mobjinfo, original_mobjinfo, old_num_mobj_types * sizeof(*mobjinfo));
-        first_allocation = false;
-    }
-    else
-    {
-        array_grow(mobjinfo, limit);
-    }
-
-    num_mobj_types = array_capacity(mobjinfo);
-    memset(mobjinfo + old_num_mobj_types, 0, (num_mobj_types - old_num_mobj_types) * sizeof(*mobjinfo));
-
-    for (int i = old_num_mobj_types; i < num_mobj_types; ++i)
-    {
-        // DEHEXTRA
-        mobjinfo[i].droppeditem = MT_NULL;
-        // MBF21
-        mobjinfo[i].infighting_group = IG_DEFAULT;
-        mobjinfo[i].projectile_group = PG_DEFAULT;
-        mobjinfo[i].splash_group     = SG_DEFAULT;
-        mobjinfo[i].altspeed         = NO_ALTSPEED;
-        mobjinfo[i].meleerange       = MELEERANGE;
-        // ID24
-        mobjinfo[i].flags3             = 0;
-        mobjinfo[i].respawn_min_tics   = 12 * TICRATE;
-        mobjinfo[i].respawn_dice       = 4;
-        mobjinfo[i].pickup_ammo_type   = NO_INDEX;
-        mobjinfo[i].pickup_weapon_type = NO_INDEX;
-        mobjinfo[i].pickup_item_type   = NO_INDEX;
-        mobjinfo[i].pickup_sound       = sfx_None;
-        mobjinfo[i].pickup_bonus       = 6;
-        mobjinfo[i].pickup_mnemonic    = NULL;
-        mobjinfo[i].self_damage        = IntToFixed(1);
-    }
-}
-
-int DEH_MobjInfoGetNewIndex(void)
-{
-    mobj_index++;
-    DEH_MobjInfoEnsureCapacity(mobj_index);
-    return mobj_index;
-}
 
 //
 // BEX flag mnemonics with matching bit flags
@@ -317,28 +116,28 @@ static const bex_bitflags_t mobj_flags_woof[] = {
 
 DEH_BEGIN_MAPPING(thing_mapping, mobjinfo_t)
     DEH_MAPPING("ID #", doomednum)
-    DEH_MAPPING("Initial frame", spawnstate)
+    DEH_MAPPING_STATE("Initial frame", spawnstate)
     DEH_MAPPING("Hit points", spawnhealth)
-    DEH_MAPPING("First moving frame", seestate)
-    DEH_MAPPING("Alert sound", seesound)
+    DEH_MAPPING_STATE("First moving frame", seestate)
+    DEH_MAPPING_SOUND("Alert sound", seesound)
     DEH_MAPPING("Reaction time", reactiontime)
-    DEH_MAPPING("Attack sound", attacksound)
-    DEH_MAPPING("Injury frame", painstate)
+    DEH_MAPPING_SOUND("Attack sound", attacksound)
+    DEH_MAPPING_STATE("Injury frame", painstate)
     DEH_MAPPING("Pain chance", painchance)
-    DEH_MAPPING("Pain sound", painsound)
-    DEH_MAPPING("Close attack frame", meleestate)
-    DEH_MAPPING("Far attack frame", missilestate)
-    DEH_MAPPING("Death frame", deathstate)
-    DEH_MAPPING("Exploding frame", xdeathstate)
-    DEH_MAPPING("Death sound", deathsound)
+    DEH_MAPPING_SOUND("Pain sound", painsound)
+    DEH_MAPPING_STATE("Close attack frame", meleestate)
+    DEH_MAPPING_STATE("Far attack frame", missilestate)
+    DEH_MAPPING_STATE("Death frame", deathstate)
+    DEH_MAPPING_STATE("Exploding frame", xdeathstate)
+    DEH_MAPPING_SOUND("Death sound", deathsound)
     DEH_MAPPING("Speed", speed)
     DEH_MAPPING("Width", radius)
     DEH_MAPPING("Height", height)
     DEH_MAPPING("Mass", mass)
     DEH_MAPPING("Missile damage", damage)
-    DEH_MAPPING("Action sound", activesound)
+    DEH_MAPPING_SOUND("Action sound", activesound)
     DEH_MAPPING("Bits", flags)
-    DEH_MAPPING("Respawn frame", raisestate)
+    DEH_MAPPING_STATE("Respawn frame", raisestate)
     // dehextra
     DEH_MAPPING("Dropped item", droppeditem)
     // mbf21
@@ -348,7 +147,7 @@ DEH_BEGIN_MAPPING(thing_mapping, mobjinfo_t)
     DEH_MAPPING("Splash group", splash_group)
     DEH_MAPPING("Fast speed", altspeed)
     DEH_MAPPING("Melee range", meleerange)
-    DEH_MAPPING("Rip sound", ripsound)
+    DEH_MAPPING_SOUND("Rip sound", ripsound)
     // id24
     DEH_MAPPING("ID24 Bits", flags3)
     DEH_MAPPING("Min respawn tics", respawn_min_tics)
@@ -430,14 +229,14 @@ DEH_END_MAPPING
      !strcasecmp(str, "Decal")      || !strcasecmp(str, "Physical height") || \
      !strcasecmp(str, "Projectile pass height"))
 
-static void *DEH_ThingStart(deh_context_t *context, char *line)
+static int DEH_ThingStart(deh_context_t *context, char *line)
 {
     int thing_number = -1;
 
     if (sscanf(line, "Thing %i", &thing_number) != 1)
     {
         DEH_Warning(context, "Parse error on section start");
-        return NULL;
+        return -1;
     }
 
     // dehacked files are indexed from 1
@@ -446,25 +245,25 @@ static void *DEH_ThingStart(deh_context_t *context, char *line)
     if (thing_number < 0)
     {
         DEH_Warning(context, "Invalid thing number: %i", thing_number);
-        return NULL;
+        return -1;
     }
 
     // DSDhacked
-    DEH_MobjInfoEnsureCapacity(thing_number);
+    thing_number = DSDH_ThingTranslate(thing_number);
 
-    mobjinfo_t *mobj = &mobjinfo[thing_number];
-
-    return mobj;
+    return thing_number;
 }
 
-static void DEH_ThingParseLine(deh_context_t *context, char *line, void *tag)
+static void DEH_ThingParseLine(deh_context_t *context, char *line, int tag)
 {
-    if (tag == NULL)
+    if (tag == -1)
     {
         return;
     }
 
-    mobjinfo_t *mobj = (mobjinfo_t *)tag;
+    int thing_number = tag;
+
+    mobjinfo_t *mobj = &mobjinfo[thing_number];
 
     // Parse the assignment
     char *variable_name, *value;
@@ -483,7 +282,7 @@ static void DEH_ThingParseLine(deh_context_t *context, char *line, void *tag)
 
         if ((ivalue & (MF_NOBLOCKMAP | MF_MISSILE)) == MF_MISSILE)
         {
-            DEH_Warning(context, "Thing %ld has MF_MISSILE without MF_NOBLOCKMAP", (long)(mobj - mobjinfo) + 1);
+            DEH_Debug(context, "Thing %ld has MF_MISSILE without MF_NOBLOCKMAP", (long)(mobj - mobjinfo) + 1);
         }
     }
     else if (!strcasecmp(variable_name, "MBF21 Bits"))
@@ -505,6 +304,8 @@ static void DEH_ThingParseLine(deh_context_t *context, char *line, void *tag)
             I_Error("Dropped item must be >= 0 (check your dehacked)");
         }
         ivalue += MT_NULL; // DeHackEd is off-by-one
+        ivalue = DSDH_ThingTranslate(ivalue);
+        mobj = &mobjinfo[thing_number];
     }
     else if (!strcasecmp(variable_name, "Infighting group"))
     {

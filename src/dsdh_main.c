@@ -1,8 +1,5 @@
 //
-// Copyright(C) 2005-2014 Simon Howard
-// Copyright(C) 2014 Fabian Greffrath
-// Copyright(C) 2021 Roman Fomin
-// Copyright(C) 2025 Guilherme Miranda
+// Copyright(C) 2026 Roman Fomin
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -13,20 +10,16 @@
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-//
-//
-// Parses [SPRITES] sections in BEX files
-//
 
-#ifndef DEH_BEX_SPRITES_H
-#define DEH_BEX_SPRITES_H
+extern void DSDH_StatesInit(void);
+extern void DSDH_MobjInfoInit(void);
+extern void DSDH_SoundsInit(void);
+extern void DSDH_SpritesInit(void);
 
-#include <stddef.h>
-
-extern void DEH_InitSprites(void);
-extern void DEH_FreeSprites(void);
-
-extern int DEH_SpritesGetIndex(const char *key);
-extern int DEH_SpritesGetOriginalIndex(const char *key);
-
-#endif
+void DSDH_Init(void)
+{
+    DSDH_StatesInit();
+    DSDH_MobjInfoInit();
+    DSDH_SoundsInit();
+    DSDH_SpritesInit();
+}

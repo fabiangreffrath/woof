@@ -22,8 +22,6 @@
 
 #include <string.h>
 
-#include "deh_bex_music.h"
-#include "deh_bex_sounds.h"
 #include "deh_strings.h"
 #include "doomdef.h"
 #include "doomstat.h"
@@ -1398,7 +1396,7 @@ void S_Init(int sfxVolume, int musicVolume)
 void S_BindSoundVariables(void)
 {
     BIND_NUM(extra_music, EXMUS_OFF, EXMUS_OFF, EXMUS_ORIGINAL,
-             "Extra soundtrack (0 = Off; 1 = Remix; 2 = Original");
+             "Extra soundtrack (0 = Off; 1 = Remix; 2 = Original)");
 }
 
 //----------------------------------------------------------------------------

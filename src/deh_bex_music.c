@@ -20,67 +20,23 @@
 
 #include <ctype.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
-#include "deh_bex_music.h"
 #include "deh_defs.h"
 #include "deh_io.h"
 #include "deh_main.h"
-#include "m_array.h"
+#include "doomtype.h"
 #include "m_misc.h"
 #include "sounds.h"
 
-//
-//   Music
-//
+static boolean modified[NUMMUSIC];
 
-musicinfo_t *S_music = NULL;
-int num_music;
-static char **deh_musicnames = NULL;
-static byte *music_state = NULL;
-
-void DEH_InitMusic(void)
+static int MusicGetIndex(const char *key)
 {
-    S_music = original_S_music;
-    num_music = NUMMUSIC;
-
-    array_grow(deh_musicnames, num_music);
-    for (int i = 1; i < num_music; i++)
+    for (int i = 1; i < NUMMUSIC; ++i)
     {
-        deh_musicnames[i] = S_music[i].name ? strdup(S_music[i].name) : NULL;
-    }
-
-    array_grow(music_state, num_music);
-    memset(music_state, 0, num_music * sizeof(*music_state));
-}
-
-void DEH_FreeMusic(void)
-{
-    array_free(music_state);
-}
-
-int DEH_MusicGetIndex(const char *key, int length)
-{
-    for (int i = 1; i < num_music; ++i)
-    {
-        if (S_music[i].name
-            && strlen(S_music[i].name) == length
-            && !strncasecmp(S_music[i].name, key, length)
-            && !music_state[i])
-        {
-            music_state[i] = true; // music has been edited
-            return i;
-        }
-    }
-
-    return -1;
-}
-
-int DEH_MusicGetOriginalIndex(const char *key)
-{
-    for (int i = 1; i < array_capacity(deh_musicnames); ++i)
-    {
-        if (deh_musicnames[i] && !strncasecmp(deh_musicnames[i], key, 6))
+        if (S_music[i].name && !strncasecmp(S_music[i].name, key, 6))
         {
             return i;
         }
@@ -97,8 +53,7 @@ int DEH_MusicGetOriginalIndex(const char *key)
 
     int i = atoi(key);
     // no DSDHacked for music
-    // DEH_MusicEnsureCapacity(i);
-    if (i >= num_music)
+    if (i >= NUMMUSIC)
     {
         return -1;
     }
@@ -109,7 +64,7 @@ int DEH_MusicGetOriginalIndex(const char *key)
 // The actual parser
 //
 
-static void *DEH_BEXMusicStart(deh_context_t *context, char *line)
+static int DEH_BEXMusicStart(deh_context_t *context, char *line)
 {
     char s[9];
 
@@ -118,34 +73,39 @@ static void *DEH_BEXMusicStart(deh_context_t *context, char *line)
         DEH_Warning(context, "Parse error on section start");
     }
 
-    return NULL;
+    return 0;
 }
 
-static void DEH_BEXMusicParseLine(deh_context_t *context, char *line, void *tag)
+static void DEH_BEXMusicParseLine(deh_context_t *context, char *line, int tag)
 {
-    char *music_mnemonic, *value;
+    char *music_key, *music_name;
 
-    if (!DEH_ParseAssignment(line, &music_mnemonic, &value))
+    if (!DEH_ParseAssignment(line, &music_key, &music_name))
     {
         DEH_Warning(context, "Failed to parse music assignment");
         return;
     }
 
-    const int len = strlen(value);
+    const int len = strlen(music_name);
     if (len < 1 || len > 6)
     {
         DEH_Warning(context, "Invalid music string length");
         return;
     }
 
-    int index = DEH_MusicGetOriginalIndex(music_mnemonic);
+    int index = MusicGetIndex(music_key);
     if (index >= 0)
     {
-        S_music[index].name = M_StringDuplicate(value);
+        if (modified[index])
+        {
+            free(S_music[index].name);
+        }
+        S_music[index].name = M_StringDuplicate(music_name);
+        modified[index] = true;
     }
     else
     {
-        DEH_Warning(context, "Unknown music replacemnt %s for %s", value, music_mnemonic);
+        DEH_Warning(context, "Unknown music replacement %s for %s", music_name, music_key);
     }
 }
 

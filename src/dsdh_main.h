@@ -1,7 +1,5 @@
 //
-// Copyright(C) 2005-2014 Simon Howard
-// Copyright(C) 2021 Roman Fomin
-// Copyright(C) 2025 Guilherme Miranda
+// Copyright(C) 2026 Roman Fomin
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -12,25 +10,20 @@
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-//
-//
-// Parses "Frame" sections in dehacked files
-//
 
-#ifndef DEH_FRAME_H
-#define DEH_FRAME_H
+#ifndef DSDH_MAIN_H
+#define DSDH_MAIN_H
 
-#include "doomtype.h"
-#include "info.h"
+void DSDH_Init(void);
 
-extern byte *defined_codepointer_args;
-extern union actionf_u *deh_codepointer;
-extern statenum_t *seenstate_tab;
+int DSDH_StateTranslate(int frame_number);
 
-extern void DEH_InitStates(void);
-extern void DEH_FreeStates(void);
+int DSDH_ThingTranslate(int thing_number);
+int DSDH_MobjInfoGetNewIndex(void);
 
-extern void DEH_StatesEnsureCapacity(int limit);
-extern void DEH_ValidateStateArgs(void);
+int DSDH_SoundTranslate(int sfx_number);
+int DSDH_SoundsGetNewIndex(void);
+
+int DSDH_SpriteTranslate(int sprite_number);
 
 #endif

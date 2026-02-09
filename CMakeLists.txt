@@ -95,21 +95,14 @@ check_symbol_exists(strncasecmp "strings.h" HAVE_DECL_STRNCASECMP)
 check_symbol_exists(getpwuid "unistd.h;sys/types.h;pwd.h" HAVE_GETPWUID)
 check_c_source_compiles(
     "
-    #include <immintrin.h>
+    typedef float quat __attribute__((ext_vector_type(4)));
     int main(void)
     {
-        int tmp = _div64(4, 2, NULL);
-        return 0;
-    }
-    "
-    HAVE__DIV64
-)
-check_c_source_compiles(
-    "
-    typedef float vec __attribute__((ext_vector_type(4)));
-    int main(void)
-    {
-        vec a = (vec){0, 1, 2, 3};
+        quat a;
+        a.x = 0;
+        a.y = 1;
+        a.z = 2;
+        a.w = 3;
         return 0;
     }
     "
@@ -119,7 +112,7 @@ check_c_source_compiles(
 set(CMAKE_FIND_FRAMEWORK NEVER)
 
 # Library requirements.
-find_package(SDL3 3.3 REQUIRED)
+find_package(SDL3 3.4.0 REQUIRED)
 find_package(OpenAL REQUIRED)
 find_package(libebur128 REQUIRED)
 find_package(SndFile 1.0.29 REQUIRED)

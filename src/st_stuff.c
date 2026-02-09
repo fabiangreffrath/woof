@@ -41,9 +41,11 @@
 #include "m_array.h"
 #include "m_cheat.h"
 #include "m_config.h"
+#include "m_input.h"
 #include "m_misc.h"
 #include "m_random.h"
 #include "m_swap.h"
+#include "mn_menu.h"
 #include "p_inter.h"
 #include "p_mobj.h"
 #include "p_user.h"
@@ -130,6 +132,8 @@ static int armor_green;   // armor amount above is blue, below is green
 static boolean hud_armor_type; // color of armor depends on type
 
 static boolean weapon_carousel;
+
+static boolean minimap;
 
 static sbardef_t *sbardef;
 
@@ -1303,6 +1307,10 @@ static void UpdateElem(sbarelem_t *elem, player_t *player)
             UpdateString(elem);
             break;
 
+        case sbe_minimap:
+            elem->enabled = (minimap && !automapactive && !strictmode);
+            break;
+
         default:
             break;
     }
@@ -1396,6 +1404,10 @@ static void ResetElem(sbarelem_t *elem, player_t *player)
                     string->line.string = "";
                 }
             }
+            break;
+
+        case sbe_minimap:
+            AM_MiniStart();
             break;
 
         default:
@@ -1735,6 +1747,54 @@ static void DrawWidget(int x1, int y1, int *x2, int *y2, boolean dry,
     }
 }
 
+static void DrawMiniMap(int x1, int y1, int *x2, int *y2, boolean dry,
+                        sbarelem_t *elem)
+{
+    if (automapactive)
+    {
+        return;
+    }
+
+    sbe_minimap_t *mm = elem->subtype.minimap;
+
+    int width = mm->width;
+    int height = mm->height;
+
+    x1 = AdjustX(x1, width, elem->alignment);
+    x1 = WideShiftX(x1, elem->alignment);
+    y1 = AdjustY(y1, height, elem->alignment);
+
+    if (x2)
+    {
+        *x2 = MAX(*x2, x1 + width);
+    }
+    if (y2)
+    {
+        *y2 = MAX(*y2, y1 + height);
+    }
+
+    if (dry)
+    {
+        return;
+    }
+
+    x1 += video.deltaw;
+
+    if (mm->background == sbmm_background_black)
+    {
+        V_FillRect(x1, y1, width, height, v_darkest_color);
+    }
+    else if (mm->background == sbmm_background_dark && !MN_MenuIsShaded())
+    {
+        V_ShadeRect(x1, y1, width, height);
+    }
+
+    vrect_t rect = {.x = x1, .y = y1, .w = width, .h = height};
+    V_ScaleRect(&rect);
+
+    AM_MiniDrawer(rect.sx, rect.sy, rect.sw, rect.sh, mm->scale);
+}
+
 static void DrawListOfElem(int x1, int y1, int *x2, int *y2, boolean dry,
                            sbarelem_t *elem);
 
@@ -1824,6 +1884,10 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
             }
             break;
 
+        case sbe_minimap:
+            DrawMiniMap(x1, y1, x2, y2, dry, elem);
+            break;
+
         default:
             break;
     }
@@ -1837,15 +1901,36 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
 
 static void UpdateListOfElem(sbarelem_t *elem, player_t *player)
 {
+    sbe_list_t *list = elem->subtype.list;
+
+    int listwidth = 0, listheight = 0;
+
     array_foreach_type(child, elem->children, sbarelem_t)
     {
         UpdateElem(child, player);
 
         int width = 0, height = 0;
-        DrawElem(0, 0, &width, &height, true, child); // Dry run
+        if (child->enabled)
+        {
+            DrawElem(0, 0, &width, &height, true, child); // Dry run
+            width -= child->x_pos;
+            height -= child->y_pos;
+        }
         child->width = width;
         child->height = height;
+
+        if (list->horizontal && width)
+        {
+            listwidth += (width + list->spacing);
+        }
+        else if (height)
+        {
+            listheight += (height + list->spacing);
+        }
     }
+
+    elem->width = listwidth;
+    elem->height = listheight;
 }
 
 static void DrawListOfElem(int x1, int y1, int *x2, int *y2, boolean dry,
@@ -1853,35 +1938,13 @@ static void DrawListOfElem(int x1, int y1, int *x2, int *y2, boolean dry,
 {
     sbe_list_t *list = elem->subtype.list;
 
-    int listwidth = 0, listheight = 0;
-
-    array_foreach_type(child, elem->children, sbarelem_t)
-    {
-        if (dry)
-        {
-            int width = 0, height = 0;
-            DrawElem(0, 0, &width, &height, true, child);
-            child->width = width;
-            child->height = height;
-        }
-
-        if (list->horizontal && child->width)
-        {
-            listwidth += (child->width + list->spacing);
-        }
-        else if (child->height)
-        {
-            listheight += (child->height + list->spacing);
-        }
-    }
-
     if (list->horizontal)
     {
-        x1 = AdjustX(x1, listwidth, elem->alignment);
+        x1 = AdjustX(x1, elem->width, elem->alignment);
     }
     else
     {
-        y1 = AdjustY(y1, listheight, elem->alignment);
+        y1 = AdjustY(y1, elem->height, elem->alignment);
     }
 
     x1 = WideShiftX(x1, elem->alignment);
@@ -1977,10 +2040,6 @@ static void DrawBackground(const char *name)
         if (old_st_height < st_height)
         {
             old_st_height = st_height;
-            if (st_backing_screen)
-            {
-                Z_Free(st_backing_screen);
-            }
             ST_InitRes();
         }
 
@@ -2071,10 +2130,10 @@ void ST_Erase(void)
 //  intercept cheats.
 boolean ST_Responder(event_t *ev)
 {
-    // Filter automap on/off.
-    if (ev->type == ev_keyup && (ev->data1.i & 0xffff0000) == AM_MSGHEADER)
+    if (M_InputActivated(input_map_mini))
     {
-        return false;
+        minimap = !minimap;
+        return true;
     }
     else if (ST_MessagesResponder(ev))
     {
@@ -2267,10 +2326,15 @@ void ST_InitRes(void)
     {
         return;
     }
+
+    if (st_backing_screen)
+    {
+        Z_Free(st_backing_screen);
+    }
     // killough 11/98: allocate enough for hires
     st_backing_screen =
         Z_Malloc(video.width * V_ScaleY(st_height) * sizeof(*st_backing_screen),
-                 PU_RENDERER, 0);
+                 PU_STATIC, 0);
 }
 
 const char **ST_StatusbarList(void)
@@ -2384,6 +2448,8 @@ void ST_BindSTSVariables(void)
 
   M_BindBool("weapon_carousel", &weapon_carousel, NULL,
              true, ss_weap, wad_no, "Show weapon carousel");
+
+  M_BindBool("minimap", &minimap, NULL, false, ss_auto, wad_no, "Show minimap");
 }
 
 //----------------------------------------------------------------------------

@@ -23,21 +23,16 @@
 
 #include "d_items.h"
 #include "d_iwad.h"
-#include "deh_bex_music.h"
-#include "deh_bex_sounds.h"
-#include "deh_bex_sprites.h"
-#include "deh_bex_strings.h"
 #include "deh_defs.h"
-#include "deh_frame.h"
 #include "deh_io.h"
 #include "deh_main.h"
 #include "deh_misc.h"
 #include "deh_strings.h"
-#include "deh_thing.h"
 #include "doomtype.h"
 #include "i_glob.h"
 #include "i_printf.h"
 #include "i_system.h"
+#include "info.h"
 #include "m_argv.h"
 #include "m_misc.h"
 #include "w_wad.h"
@@ -273,7 +268,7 @@ static void DEH_ParseContext(deh_context_t *context)
 {
     deh_section_t *current_section = NULL;
     deh_section_t *prev_section = NULL; // [crispy] remember previous line parser
-    void *tag = NULL;
+    int tag = -1;
     char *line;
 
     // Read the header and check it matches the signature
@@ -503,25 +498,4 @@ void DEH_PostProcess(void)
     {
         states[S_DSGUNFLASH1].tics = 4;
     }
-
-    DEH_FreeTables();
-}
-
-void DEH_InitTables(void)
-{
-    DEH_InitStates();
-    DEH_InitSprites();
-    DEH_InitSFX();
-    DEH_InitMusic();
-
-    DEH_InitMobjInfo();
-    DEH_InitMnemonic();
-}
-
-void DEH_FreeTables(void)
-{
-    DEH_FreeStates();
-    DEH_FreeSprites();
-    DEH_FreeSFX();
-    DEH_FreeMusic();
 }

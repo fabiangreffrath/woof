@@ -938,7 +938,7 @@ static void F_StartCast(void)
   wipegamestate = -1; // force a screen wipe
   finalestage = FINALE_STAGE_CAST;
 
-  if (gamemapinfo->flags & MapInfo_EndGameCustomFinale)
+  if (gamemapinfo && gamemapinfo->flags & MapInfo_EndGameCustomFinale)
   {
     EndFinaleCast_SetupCall();
     return;
@@ -983,7 +983,7 @@ static boolean F_CastTicker(void)
   int st;
   int sfx;
 
-  if (gamemapinfo->flags & MapInfo_EndGameCustomFinale)
+  if (gamemapinfo && gamemapinfo->flags & MapInfo_EndGameCustomFinale)
     return EndFinaleCast_Ticker();
 
   if (--casttics > 0)
@@ -1091,7 +1091,7 @@ static boolean F_CastTicker(void)
 
 static boolean F_CastResponder(event_t* ev)
 {
-  if (gamemapinfo->flags & MapInfo_EndGameCustomFinale)
+  if (gamemapinfo && gamemapinfo->flags & MapInfo_EndGameCustomFinale)
     return EndFinaleCast_Responder(ev);
 
   if (ev->type != ev_keydown && ev->type != ev_mouseb_down && ev->type != ev_joyb_down)
@@ -1169,7 +1169,7 @@ static void F_CastPrint(const char* text)
 
 static void F_CastDrawer(void)
 {
-  if (gamemapinfo->flags & MapInfo_EndGameCustomFinale)
+  if (gamemapinfo && gamemapinfo->flags & MapInfo_EndGameCustomFinale)
   {
       EndFinaleCast_Drawer();
       return;

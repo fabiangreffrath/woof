@@ -979,6 +979,7 @@ static void UDMF_LoadSectors(void)
         sectors[i].floorpic = R_FlatNumForName(udmf_sectors[i].texturefloor);
         sectors[i].ceilingpic = R_FlatNumForName(udmf_sectors[i].textureceiling);
         sectors[i].lightlevel = udmf_sectors[i].lightlevel;
+        sectors[i].special = udmf_sectors[i].special;
         sectors[i].tag = udmf_sectors[i].tag;
 
         sectors[i].flags = udmf_sectors[i].flags;

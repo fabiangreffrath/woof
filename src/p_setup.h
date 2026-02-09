@@ -22,8 +22,11 @@
 
 #include "doomdef.h"
 #include "doomtype.h"
+#include "info.h"
 #include "m_fixed.h"
 #include "r_defs.h"
+
+extern statenum_t *seenstate_tab;
 
 void P_SetupLevel(int episode, int map, int playermask, skill_t skill);
 void P_Init(void);               // Called by startup code.
