@@ -158,7 +158,7 @@ void DECL_ParseActorProperty(scanner_t *sc, proplist_t *proplist)
         case prop_renderstyle:
             {
                 SC_MustGetToken(sc, TK_StringConst);
-                switch (CheckKeyword(sc, "none", "fuzzy"))
+                switch (DECL_CheckKeyword(sc, "none", "fuzzy"))
                 {
                     case 0:
                         proplist->flags &= ~MF_SHADOW;
@@ -192,7 +192,7 @@ void DECL_ParseActorProperty(scanner_t *sc, proplist_t *proplist)
                 switch (decl_properties[type].valtype)
                 {
                     case TYPE_Int:
-                        value.number = GetNegativeInteger(sc);
+                        value.number = DECL_GetNegativeInteger(sc);
                         break;
                     case TYPE_Fixed:
                         SC_MustGetToken(sc, TK_FloatConst);

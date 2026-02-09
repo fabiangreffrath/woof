@@ -322,7 +322,7 @@ void DECL_ParseActorStates(scanner_t *sc, actor_t *actor)
             {
                 SC_MustGetToken(sc, TK_Identifier);
                 char *label = M_StringDuplicate(SC_GetString(sc));
-                if (CheckKeyword(sc, "loop", "goto", "stop", "wait") >= 0
+                if (DECL_CheckKeyword(sc, "loop", "goto", "stop", "wait") >= 0
                     || !SC_CheckToken(sc, ':'))
                 {
                     break;
@@ -338,7 +338,7 @@ void DECL_ParseActorStates(scanner_t *sc, actor_t *actor)
         boolean usestate = false;
 
         enum {KEYWORD_Loop, KEYWORD_Goto, KEYWORD_Stop, KEYWORD_Wait};
-        switch (CheckKeyword(sc, "loop", "goto", "stop", "wait"))
+        switch (DECL_CheckKeyword(sc, "loop", "goto", "stop", "wait"))
         {
             case KEYWORD_Loop:
                 if (laststate)
@@ -410,14 +410,14 @@ void DECL_ParseActorStates(scanner_t *sc, actor_t *actor)
                 state.frames = M_StringDuplicate(SC_GetString(sc));
                 M_StringToUpper(state.frames);
 
-                state.duration = GetNegativeInteger(sc);
+                state.duration = DECL_GetNegativeInteger(sc);
 
                 if (SC_CheckToken(sc, TK_Identifier))
                 {
                     int keyword;
                     do
                     {
-                        keyword = CheckKeyword(sc, "bright", "offset");
+                        keyword = DECL_CheckKeyword(sc, "bright", "offset");
                         switch (keyword)
                         {
                             case 0:
@@ -425,9 +425,9 @@ void DECL_ParseActorStates(scanner_t *sc, actor_t *actor)
                                 break;
                             case 1:
                                 SC_MustGetToken(sc, '(');
-                                state.xoffset = GetNegativeInteger(sc);
+                                state.xoffset = DECL_GetNegativeInteger(sc);
                                 SC_MustGetToken(sc, ',');
-                                state.yoffset = GetNegativeInteger(sc);
+                                state.yoffset = DECL_GetNegativeInteger(sc);
                                 SC_MustGetToken(sc, ')');
                                 break;
                             default:

@@ -70,7 +70,7 @@ static void ParseActorBody(scanner_t *sc, actor_t *actor)
             }
             else
             {
-                switch (CheckKeyword(sc, "states"))
+                switch (DECL_CheckKeyword(sc, "states"))
                 {
                     case 0:
                         DECL_ParseActorStates(sc, actor);
@@ -122,7 +122,7 @@ static void ParseActor(scanner_t *sc)
         actor.parent = NULL;
     }
 
-    if (CheckKeyword(sc, "replaces") == 0)
+    if (DECL_CheckKeyword(sc, "replaces") == 0)
     {
         SC_GetNextToken(sc, false); // consume "replaces"
         SC_MustGetToken(sc, TK_Identifier);
@@ -143,7 +143,7 @@ void ParseDecorate(scanner_t *sc)
     while (SC_TokensLeft(sc))
     {
         SC_MustGetToken(sc, TK_Identifier);
-        RequireKeyword(sc, "actor");
+        DECL_RequireKeyword(sc, "actor");
         ParseActor(sc);
     }
 }

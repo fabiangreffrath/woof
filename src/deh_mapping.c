@@ -18,6 +18,8 @@
 // name
 //
 
+#include <stdlib.h>
+
 #include "deh_mapping.h"
 #include "deh_io.h"
 #include "doomtype.h"
