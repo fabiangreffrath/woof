@@ -84,7 +84,7 @@ jobs:
           arch: ${{ matrix.config.arch }}
 
       - name: Restore vcpkg cache
-        id: cache
+        id: cache-vcpkg
         uses: actions/cache/restore@v5
         with:
           path: ${{ github.workspace }}/vcpkg_cache
@@ -113,16 +113,16 @@ jobs:
       # Delete the old cache on hit to emulate a cache update.
       - name: Delete old cache
         continue-on-error: true
-        if: steps.cache.outputs.cache-hit
+        if: steps.cache-vcpkg.outputs.cache-hit
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh cache delete --repo ${{ github.repository }} ${{ steps.cache.outputs.cache-primary-key }}
+        run: gh cache delete --repo ${{ github.repository }} ${{ steps.cache-vcpkg.outputs.cache-primary-key }}
 
-      - name: Save cache
+      - name: Save vcpkg cache
         uses: actions/cache/save@v5
         with:
           path: ${{ github.workspace }}/vcpkg_cache
-          key: ${{ steps.cache.outputs.cache-primary-key }}
+          key: ${{ steps.cache-vcpkg.outputs.cache-primary-key }}
 
       - name: Build
         run: cmake --build build --config "Release"
@@ -132,6 +132,7 @@ jobs:
         run: cmake --build build-x64 --config "Release"
 
       - name: Restore demotest cache
+        id: cache-demotest
         uses: actions/cache/restore@v5
         with:
           path: demotest/extract
@@ -148,6 +149,7 @@ jobs:
           python demotest --jobs 4 --port ../build/src/woof
 
       - name: Save demotest cache
+        if: steps.cache-demotest.outputs.cache-hit != 'true'
         uses: actions/cache/save@v5
         with:
           path: demotest/extract

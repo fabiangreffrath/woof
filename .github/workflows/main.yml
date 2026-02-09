@@ -106,6 +106,7 @@ jobs:
         run: cmake --build build
 
       - name: Restore demotest cache
+        id: cache-demotest
         uses: actions/cache/restore@v5
         with:
           path: demotest/extract
@@ -122,6 +123,7 @@ jobs:
           python demotest --jobs 4 --port ../build/src/woof
 
       - name: Save demotest cache
+        if: steps.cache-demotest.outputs.cache-hit != 'true'
         uses: actions/cache/save@v5
         with:
           path: demotest/extract
