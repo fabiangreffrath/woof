@@ -491,12 +491,17 @@ static boolean P_SmartMove(mobj_t *actor)
   // dropoff==1 means always allow it, dropoff==2 means only up to 128 high,
   // and only if the target is immediately on the other side of the line.
 
-  if (actor->type == MT_DOGS && target && dog_jumping &&
-      !((target->flags ^ actor->flags) & MF_FRIEND) &&
-      P_AproxDistance(actor->x - target->x,
-		      actor->y - target->y) < FRACUNIT*144 &&
-      P_Random(pr_dropoff) < 235)
-    dropoff = 2;
+  // haleyjd: allow all friends of HelperType to also jump down
+
+  if ((actor->type == MT_DOGS || (actor->type == helper_type && actor->flags & MF_FRIEND))
+      && target
+      && dog_jumping
+      && !((target->flags ^ actor->flags) & MF_FRIEND)
+      && P_AproxDistance(actor->x - target->x, actor->y - target->y) < FRACUNIT * 144
+      && P_Random(pr_dropoff) < 235)
+  {
+      dropoff = 2;
+  }
 
   if (!P_Move(actor, dropoff))
     return false;
@@ -1172,7 +1177,7 @@ void A_Chase(mobj_t *actor)
   else
     if (actor->movedir < 8)
       {
-	int delta = (actor->angle &= (7u<<29)) - (actor->movedir << 29);
+	int delta = (actor->angle &= (7u<<29)) - shiftleft32(actor->movedir, 29);
 	if (delta > 0)
 	  actor->angle -= ANG90/2;
 	else
@@ -1297,7 +1302,8 @@ void A_FaceTarget(mobj_t *actor)
 
 void A_PosAttack(mobj_t *actor)
 {
-  int angle, damage, slope, t;
+  int damage, slope, t;
+  angle_t angle;
 
   if (!actor->target)
     return;
@@ -1308,7 +1314,7 @@ void A_PosAttack(mobj_t *actor)
 
   // killough 5/5/98: remove dependence on order of evaluation:
   t = P_Random(pr_posattack);
-  angle += (t - P_Random(pr_posattack))<<20;
+  angle += shiftleft32(t - P_Random(pr_posattack), 20);
   damage = (P_Random(pr_posattack)%5 + 1)*3;
   P_LineAttack(actor, angle, MISSILERANGE, slope, damage);
 }
@@ -1326,7 +1332,7 @@ void A_SPosAttack(mobj_t* actor)
   for (i=0; i<3; i++)
     {  // killough 5/5/98: remove dependence on order of evaluation:
       int t = P_Random(pr_sposattack);
-      int angle = bangle + ((t - P_Random(pr_sposattack))<<20);
+      int angle = bangle + shiftleft32(t - P_Random(pr_sposattack), 20);
       int damage = ((P_Random(pr_sposattack)%5)+1)*3;
       P_LineAttack(actor, angle, MISSILERANGE, slope, damage);
     }
@@ -1345,7 +1351,7 @@ void A_CPosAttack(mobj_t *actor)
 
   // killough 5/5/98: remove dependence on order of evaluation:
   t = P_Random(pr_cposattack);
-  angle = bangle + ((t - P_Random(pr_cposattack))<<20);
+  angle = bangle + shiftleft32(t - P_Random(pr_cposattack), 20);
   damage = ((P_Random(pr_cposattack)%5)+1)*3;
   P_LineAttack(actor, angle, MISSILERANGE, slope, damage);
 }

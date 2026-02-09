@@ -34,3 +34,9 @@
   wad_url: "https://dsdarchive.com/files/wads/doom2/806/cydreams.zip"
   deh: Cyber110.deh
   statdump: cydreams.txt
+
+- demo: lodam642.lmp
+  demo_url: "https://dsdarchive.com/files/demos/longdays/76921/lodam642.zip"
+  wad: longdays.wad
+  wad_url: "https://dsdarchive.com/files/wads/doom2/1879/longdays.zip"
+  levelstat: longdays.txt
