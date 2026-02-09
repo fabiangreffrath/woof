@@ -105,16 +105,29 @@ jobs:
       - name: Build
         run: cmake --build build
 
+      - name: Restore demotest cache
+        id: cache-demotest
+        uses: actions/cache/restore@v5
+        with:
+          path: demotest/extract
+          key: demotest
+
       - uses: actions/setup-python@v6
         with:
           python-version: '3.x'
 
       - name: Test
-        if: github.event_name == 'workflow_dispatch'
         run: |
           cd demotest
           pip install pyyaml joblib
-          python3 demotest --jobs 4 --port ../build/src/woof
+          python demotest --jobs 4 --port ../build/src/woof
+
+      - name: Save demotest cache
+        if: steps.cache-demotest.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: demotest/extract
+          key: demotest
 
       - name: Install
         run: |
