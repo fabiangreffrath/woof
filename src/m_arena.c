@@ -271,7 +271,7 @@ uintptr_t *M_ArenaTable(const arena_t *arena)
     uintptr_t *table = calloc(hashmap_size(arena->hashmap), sizeof(*table));
 
     hashmap_iterator_t iter = hashmap_iterator(arena->hashmap);
-    uintptr_t key;
+    uint64_t key;
     hashmap_value_t *value;
     while ((value = hashmap_next(&iter, &key)))
     {
