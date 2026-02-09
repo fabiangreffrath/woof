@@ -131,12 +131,27 @@ jobs:
         if: ${{ matrix.config.name == 'macOS uni' }}
         run: cmake --build build-x64 --config "Release"
 
+      - name: Restore demotest cache
+        uses: actions/cache/restore@v5
+        with:
+          path: demotest/extract
+          key: demotest
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.x'
+
       - name: Test
-        if: github.event_name == 'workflow_dispatch'
         run: |
           cd demotest
           pip install pyyaml joblib
           python demotest --jobs 4 --port ../build/src/woof
+
+      - name: Save demotest cache
+        uses: actions/cache/save@v5
+        with:
+          path: demotest/extract
+          key: demotest
 
       - name: Package (Linux)
         if: runner.os == 'Linux'
