@@ -53,10 +53,10 @@ static void DEH_BEXHelperParseLine(deh_context_t *context, char *line, int tag)
         return;
     }
 
-    int index = atoi(type);
-    if (index >= 0)
+    int deh_num = atoi(type);
+    if (deh_num >= 1)
     {
-        helper_type = index;
+        helper_type = deh_num - 1;
     }
     else
     {

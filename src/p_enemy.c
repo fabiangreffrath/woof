@@ -491,12 +491,17 @@ static boolean P_SmartMove(mobj_t *actor)
   // dropoff==1 means always allow it, dropoff==2 means only up to 128 high,
   // and only if the target is immediately on the other side of the line.
 
-  if (actor->type == helper_type && target && dog_jumping &&
-      !((target->flags ^ actor->flags) & MF_FRIEND) &&
-      P_AproxDistance(actor->x - target->x,
-		      actor->y - target->y) < FRACUNIT*144 &&
-      P_Random(pr_dropoff) < 235)
-    dropoff = 2;
+  // haleyjd: allow all friends of HelperType to also jump down
+
+  if ((actor->type == MT_DOGS || (actor->type == helper_type && actor->flags & MF_FRIEND))
+      && target
+      && dog_jumping
+      && !((target->flags ^ actor->flags) & MF_FRIEND)
+      && P_AproxDistance(actor->x - target->x, actor->y - target->y) < FRACUNIT * 144
+      && P_Random(pr_dropoff) < 235)
+  {
+      dropoff = 2;
+  }
 
   if (!P_Move(actor, dropoff))
     return false;
