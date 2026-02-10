@@ -24,7 +24,9 @@
 
 // Needed for action function pointer handling.
 #include "d_think.h"
+#include "doomdef.h"
 #include "doomtype.h"
+#include "m_fixed.h"
 
 #define MAXSTATEARGS 8
 
@@ -1522,6 +1524,19 @@ typedef struct
     int ripsound;
     int altspeed;
     int meleerange;
+
+    // ID24
+    int flags3;
+    int respawn_min_tics;
+    int respawn_dice;
+    int pickup_ammo_type;
+    int pickup_ammo_category;
+    int pickup_weapon_type;
+    itemtype_t pickup_item_type;
+    int pickup_sound;
+    int pickup_bonus;
+    const char *pickup_mnemonic;
+    fixed_t self_damage;
 
     // MBF2y
     const char *obituary, *obituary_melee, *obituary_self;

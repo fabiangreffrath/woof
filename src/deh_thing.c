@@ -30,6 +30,7 @@
 #include "i_system.h"
 #include "info.h"
 #include "p_mobj.h"
+#include "z_zone.h"
 
 boolean deh_set_blood_color = false;
 
@@ -102,6 +103,13 @@ static const bex_bitflags_t mobj_flags_mbf21[] = {
     {"FULLVOLSOUNDS",  MF2_FULLVOLSOUNDS },
 };
 
+static const bex_bitflags_t mobj_flags_id24[] = {
+    {"NORESPAWN",          MF3_NORESPAWN         },
+    {"SPECIALSTAYSSINGLE", MF3_SPECIALSTAYSSINGLE},
+    {"SPECIALSTAYSCOOP",   MF3_SPECIALSTAYSCOOP  },
+    {"SPECIALSTAYSDM",     MF3_SPECIALSTAYSDM    },
+};
+
 static const bex_bitflags_t mobj_flags_woof[] = {
     {"MIRROREDCORPSE", MFX_MIRROREDCORPSE}
 };
@@ -141,33 +149,34 @@ DEH_BEGIN_MAPPING(thing_mapping, mobjinfo_t)
     DEH_MAPPING("Melee range", meleerange)
     DEH_MAPPING_SOUND("Rip sound", ripsound)
     // id24
-    DEH_UNSUPPORTED_MAPPING("ID24 Bits")
-    DEH_UNSUPPORTED_MAPPING("Min respawn tics")
-    DEH_UNSUPPORTED_MAPPING("Respawn dice")
-    DEH_UNSUPPORTED_MAPPING("Pickup ammo type")
-    DEH_UNSUPPORTED_MAPPING("Pickup ammo category")
-    DEH_UNSUPPORTED_MAPPING("Pickup weapon type")
-    DEH_UNSUPPORTED_MAPPING("Pickup item type")
-    DEH_UNSUPPORTED_MAPPING("Pickup bonus count")
-    DEH_UNSUPPORTED_MAPPING("Pickup sound")
-    DEH_UNSUPPORTED_MAPPING("Pickup message")
+    DEH_MAPPING("ID24 Bits", flags3)
+    DEH_MAPPING("Min respawn tics", respawn_min_tics)
+    DEH_MAPPING("Respawn dice", respawn_dice)
+    DEH_MAPPING("Pickup ammo type", pickup_ammo_type)
+    DEH_MAPPING("Pickup ammo category", pickup_ammo_category)
+    DEH_MAPPING("Pickup weapon type", pickup_weapon_type)
+    DEH_MAPPING("Pickup item type", pickup_item_type)
+    DEH_MAPPING("Pickup bonus count", pickup_bonus)
+    DEH_MAPPING("Pickup sound", pickup_sound)
+    DEH_MAPPING("Pickup message", pickup_mnemonic)
     DEH_UNSUPPORTED_MAPPING("Translation")
+    DEH_MAPPING("Self damage factor", self_damage)
     // mbf2y
     DEH_UNSUPPORTED_MAPPING("MBF2y Bits")
-    DEH_UNSUPPORTED_MAPPING("Melee threshold")            // p.f crispy
-    DEH_UNSUPPORTED_MAPPING("Max target range")           // p.f crispy
-    DEH_UNSUPPORTED_MAPPING("Min missile chance")         // p.f crispy
-    DEH_UNSUPPORTED_MAPPING("Missile chance multiplier")  // p.f crispy
-    DEH_UNSUPPORTED_MAPPING("Projectile collision group") // i.b mbf21
-    DEH_UNSUPPORTED_MAPPING("Pickup health amount")       // i.b id24
-    DEH_UNSUPPORTED_MAPPING("Pickup armor amount")        // i.b id24
-    DEH_UNSUPPORTED_MAPPING("Pickup powerup duration")    // i.b id24
-    DEH_UNSUPPORTED_MAPPING("Gib Health")                 // p.f Retro
-    DEH_UNSUPPORTED_MAPPING("Blood Thing")                // i.b Eternity
-    DEH_UNSUPPORTED_MAPPING("Crush State")                // i.b Eternity
-    DEH_MAPPING_STRING("Obituary", obituary)              // p.f ZDoom
-    DEH_MAPPING_STRING("Melee obituary", obituary_melee)  // p.f ZDoom
-    DEH_MAPPING_STRING("Self obituary", obituary_self)    // p.f ZDoom
+    DEH_UNSUPPORTED_MAPPING("Melee threshold")
+    DEH_UNSUPPORTED_MAPPING("Max target range")
+    DEH_UNSUPPORTED_MAPPING("Min missile chance")
+    DEH_UNSUPPORTED_MAPPING("Missile chance multiplier")
+    DEH_UNSUPPORTED_MAPPING("Projectile collision group")
+    DEH_UNSUPPORTED_MAPPING("Pickup health amount")
+    DEH_UNSUPPORTED_MAPPING("Pickup armor amount")
+    DEH_UNSUPPORTED_MAPPING("Pickup powerup duration")
+    DEH_UNSUPPORTED_MAPPING("Gib Health")
+    DEH_UNSUPPORTED_MAPPING("Blood Thing")
+    DEH_UNSUPPORTED_MAPPING("Crush State")
+    DEH_MAPPING("Obituary", obituary)
+    DEH_MAPPING("Melee obituary", obituary_melee)
+    DEH_MAPPING("Self obituary", obituary_self)
     // eternity
     DEH_MAPPING("Blood Color", bloodcolor)
     // woof
@@ -280,6 +289,10 @@ static void DEH_ThingParseLine(deh_context_t *context, char *line, int tag)
     {
         ivalue = DEH_ParseBexBitFlags(ivalue, value, mobj_flags_mbf21, arrlen(mobj_flags_mbf21));
     }
+    else if (!strcasecmp(variable_name, "ID24 Bits"))
+    {
+        ivalue = DEH_ParseBexBitFlags(ivalue, value, mobj_flags_id24, arrlen(mobj_flags_id24));
+    }
     else if (!strcasecmp(variable_name, "Woof Bits"))
     {
         ivalue = DEH_ParseBexBitFlags(ivalue, value, mobj_flags_woof, arrlen(mobj_flags_woof));
@@ -321,17 +334,35 @@ static void DEH_ThingParseLine(deh_context_t *context, char *line, int tag)
             ivalue = PG_GROUPLESS;
         }
     }
-    else if (!strcasecmp(variable_name, "Obituray")
-            || !strcasecmp(variable_name, "Melee Obituray")
-            || !strcasecmp(variable_name, "Self Obituray"))
+    else if (!strcasecmp(variable_name, "Obituary"))
     {
         if (strlen(value) >= 1)
         {
-            DEH_SetStringMapping(context, &thing_mapping, mobj, variable_name, value);
+            mobj->obituary = Z_StrDup(value, PU_STATIC);
         }
-        else
+        return;
+    }
+    else if (!strcasecmp(variable_name, "Melee Obituary"))
+    {
+        if (strlen(value) >= 1)
         {
-            DEH_Warning(context, "%s is empty!", variable_name);
+            mobj->obituary_melee = Z_StrDup(value, PU_STATIC);
+        }
+        return;
+    }
+    else if (!strcasecmp(variable_name, "Self Obituary"))
+    {
+        if (strlen(value) >= 1)
+        {
+            mobj->obituary_self = Z_StrDup(value, PU_STATIC);
+        }
+        return;
+    }
+    else if (!strcasecmp(variable_name, "Pickup message"))
+    {
+        if (strlen(value) >= 1)
+        {
+            mobj->pickup_mnemonic = Z_StrDup(value, PU_STATIC);
         }
         return;
     }

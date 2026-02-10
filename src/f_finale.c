@@ -21,6 +21,7 @@
 #include <string.h>
 
 #include "d_event.h"
+#include "deh_bex_strings.h"
 #include "deh_strings.h"
 #include "doomdef.h"
 #include "doomstat.h"

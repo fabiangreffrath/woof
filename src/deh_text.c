@@ -29,7 +29,6 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
-#include "i_printf.h"
 #include "m_misc.h"
 
 // Strings for dehacked replacements of the startup banner
@@ -64,7 +63,6 @@ const char *GetBanner(void)
                    : (gamemission == pack_tnt) ? cbanner_tnt
                                                : cbanner_1_9;
         banner = cbanners[i];
-        
     }
     else if (gamemode == retail)
     {

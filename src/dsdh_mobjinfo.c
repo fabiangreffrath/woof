@@ -50,6 +50,16 @@ void DSDH_MobjInfoInit(void)
         mobjinfo[i].ripsound         = sfx_None;
         mobjinfo[i].altspeed         = NO_ALTSPEED;
         mobjinfo[i].meleerange       = MELEERANGE;
+        // ID24
+        mobjinfo[i].flags3             = 0;
+        mobjinfo[i].respawn_min_tics   = 12 * TICRATE;
+        mobjinfo[i].respawn_dice       = 4;
+        mobjinfo[i].pickup_ammo_type   = NO_INDEX;
+        mobjinfo[i].pickup_weapon_type = NO_INDEX;
+        mobjinfo[i].pickup_item_type   = NO_INDEX;
+        mobjinfo[i].pickup_sound       = sfx_None;
+        mobjinfo[i].pickup_bonus       = 6;
+        mobjinfo[i].pickup_mnemonic    = NULL;
         // Eternity
         mobjinfo[i].bloodcolor = 0;
     }
@@ -81,6 +91,14 @@ void DSDH_MobjInfoInit(void)
     {
         states[i].flags |= STATEF_SKILL5FAST;
     }
+
+    // ID24
+    mobjinfo[MT_MISC4].flags3 |= MF3_SPECIALSTAYSCOOP;
+    mobjinfo[MT_MISC5].flags3 |= MF3_SPECIALSTAYSCOOP;
+    mobjinfo[MT_MISC6].flags3 |= MF3_SPECIALSTAYSCOOP;
+    mobjinfo[MT_MISC7].flags3 |= MF3_SPECIALSTAYSCOOP;
+    mobjinfo[MT_MISC8].flags3 |= MF3_SPECIALSTAYSCOOP;
+    mobjinfo[MT_MISC9].flags3 |= MF3_SPECIALSTAYSCOOP;
 
     // Woof! randomly mirrored death animations
     for (int i = MT_PLAYER; i <= MT_KEEN; ++i)
@@ -165,7 +183,14 @@ int DSDH_ThingTranslate(int thing_number)
         .projectile_group = PG_DEFAULT,
         .splash_group     = SG_DEFAULT,
         .altspeed         = NO_ALTSPEED,
-        .meleerange       = MELEERANGE
+        .meleerange       = MELEERANGE,
+        // ID24
+        .respawn_min_tics   = 12 * TICRATE,
+        .respawn_dice       = 4,
+        .pickup_ammo_type   = NO_INDEX,
+        .pickup_weapon_type = NO_INDEX,
+        .pickup_item_type   = NO_INDEX,
+        .pickup_bonus       = 6,
     };
     array_push(mobjinfo, mobj);
     ++num_mobj_types;
