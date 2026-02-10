@@ -79,7 +79,7 @@ enum
 // * Subtractive -- alpha is a foreground multiplier, subtracted from unmodifed background
 //
 
-inline static const int BlendChannel(const byte bg, const byte fg,
+inline static const int BlendChannel(const byte fg, const byte bg,
                                      const double fg_alpha,
                                      const double bg_alpha)
 {
@@ -89,14 +89,14 @@ inline static const int BlendChannel(const byte bg, const byte fg,
     return linear_to_byte(r_linear);
 }
 
-inline static const int ColorBlend(byte *playpal, const byte *bg,
-                                   const byte *fg, const double fg_alpha,
+inline static const int ColorBlend(byte *playpal, const byte *fg,
+                                   const byte *bg, const double fg_alpha,
                                    const double bg_alpha)
 {
     int blend[3] = {0};
-    blend[r] = BlendChannel(bg[r], fg[r], fg_alpha, bg_alpha);
-    blend[g] = BlendChannel(bg[g], fg[g], fg_alpha, bg_alpha);
-    blend[b] = BlendChannel(bg[b], fg[b], fg_alpha, bg_alpha);
+    blend[r] = BlendChannel(fg[r], bg[r], fg_alpha, bg_alpha);
+    blend[g] = BlendChannel(fg[g], bg[g], fg_alpha, bg_alpha);
+    blend[b] = BlendChannel(fg[b], bg[b], fg_alpha, bg_alpha);
     return I_GetNearestColor(playpal, blend[r], blend[g], blend[b]);
 }
 
@@ -163,6 +163,8 @@ static byte *GenerateTranmapData(double fg_alpha, double bg_alpha)
     // Background
     for (int i = 0; i < 256; i++)
     {
+        const byte *bg = playpal + 3 * i;
+
         // killough 10/98: display flashing disk
         if (!(~i & 15))
         {
@@ -179,10 +181,9 @@ static byte *GenerateTranmapData(double fg_alpha, double bg_alpha)
         // Foreground
         for (int j = 0; j < 256; j++)
         {
-            const byte *bg = playpal + 3 * i;
             const byte *fg = playpal + 3 * j;
 
-            *tp++ = ColorBlend(playpal, bg, fg, fg_alpha, bg_alpha);
+            *tp++ = ColorBlend(playpal, fg, bg, fg_alpha, bg_alpha);
         }
     }
 
