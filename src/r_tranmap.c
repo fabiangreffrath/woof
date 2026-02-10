@@ -51,7 +51,6 @@ static const int playpal_base_layer = 256 * 3;    // RGB triplets
 static const int tranmap_lump_length = 256 * 256; // Plain RAW graphic
 static const int default_tranmap_alpha = 66;      // Keep it simple, only do alpha of 66
 
-static byte playpal_digest[16];
 static char playpal_string[33];
 static char *tranmap_dir, *playpal_dir;
 static byte *normal_tranmap[100];
@@ -109,6 +108,7 @@ static void CalculatePlaypalChecksum(void)
 {
     const int lump = W_GetNumForName("PLAYPAL");
     struct MD5Context md5;
+    byte playpal_digest[16];
 
     MD5Init(&md5);
     MD5Update(&md5, W_CacheLumpNum(lump, PU_STATIC), playpal_base_layer);
