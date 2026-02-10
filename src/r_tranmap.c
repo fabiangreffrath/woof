@@ -51,7 +51,6 @@ static const int playpal_base_layer = 256 * 3;    // RGB triplets
 static const int tranmap_lump_length = 256 * 256; // Plain RAW graphic
 static const int default_tranmap_alpha = 66;      // Keep it simple, only do alpha of 66
 
-static byte playpal_digest[16];
 static char playpal_string[33];
 static char *tranmap_dir, *playpal_dir;
 static byte *normal_tranmap[100];
@@ -74,38 +73,30 @@ enum
 //
 // The heart of the calculation, the blending algorithm. Currently supported:
 // * Normal -- applies standard alpha interpolation
-// * Additive -- alpha is a foreground multiplier, added to unmodified background
+// * Additive -- alpha is a foreground multiplier, added to (shaded) background
 //
 // TODO, tentative additions:
 // * Subtractive -- alpha is a foreground multiplier, subtracted from unmodifed background
 //
 
-typedef const byte (blendfunc_t)(const byte, const byte, const double);
-
-inline static const byte BlendChannelNormal(const byte bg, const byte fg, const double a)
+inline static const int BlendChannel(const byte fg, const byte bg,
+                                     const double fg_alpha,
+                                     const double bg_alpha)
 {
     const double fg_linear = byte_to_linear(fg);
     const double bg_linear = byte_to_linear(bg);
-    const double r_linear = (fg_linear * a) + (bg_linear * (1.0 - a));
+    const double r_linear = (fg_linear * fg_alpha) + (bg_linear * bg_alpha);
     return linear_to_byte(r_linear);
 }
 
-inline static const byte BlendChannelAdditive(const byte bg, const byte fg, const double a)
-{
-    const double fg_linear = byte_to_linear(fg);
-    const double bg_linear = byte_to_linear(bg);
-    const double r_linear = (fg_linear * a) + bg_linear / 2.0;
-    return linear_to_byte(r_linear);
-}
-
-inline static const byte ColorBlend(byte *playpal, blendfunc_t blendfunc,
-                                    const byte *bg, const byte *fg,
-                                    const double alpha)
+inline static const int ColorBlend(byte *playpal, const byte *fg,
+                                   const byte *bg, const double fg_alpha,
+                                   const double bg_alpha)
 {
     int blend[3] = {0};
-    blend[r] = blendfunc(bg[r], fg[r], alpha);
-    blend[g] = blendfunc(bg[g], fg[g], alpha);
-    blend[b] = blendfunc(bg[b], fg[b], alpha);
+    blend[r] = BlendChannel(fg[r], bg[r], fg_alpha, bg_alpha);
+    blend[g] = BlendChannel(fg[g], bg[g], fg_alpha, bg_alpha);
+    blend[b] = BlendChannel(fg[b], bg[b], fg_alpha, bg_alpha);
     return I_GetNearestColor(playpal, blend[r], blend[g], blend[b]);
 }
 
@@ -117,6 +108,7 @@ static void CalculatePlaypalChecksum(void)
 {
     const int lump = W_GetNumForName("PLAYPAL");
     struct MD5Context md5;
+    byte playpal_digest[16];
 
     MD5Init(&md5);
     MD5Update(&md5, W_CacheLumpNum(lump, PU_STATIC), playpal_base_layer);
@@ -129,7 +121,7 @@ static void CreateTranMapBaseDir(void)
     const char *data_root = D_DoomPrefDir();
     const int length = strlen(data_root) + sizeof("/tranmaps");
 
-    tranmap_dir = Z_Malloc(length, PU_STATIC, 0);
+    tranmap_dir = malloc(length);
     M_snprintf(tranmap_dir, length, "%s/tranmaps", data_root);
 
     M_MakeDirectory(tranmap_dir);
@@ -148,8 +140,10 @@ static void CreateTranMapPaletteDir(void)
     }
 
     int length = strlen(tranmap_dir) + sizeof(playpal_string) + 1;
-    playpal_dir = Z_Malloc(length, PU_STATIC, 0);
+    playpal_dir = malloc(length);
     M_snprintf(playpal_dir, length, "%s/%s", tranmap_dir, playpal_string);
+    free(tranmap_dir);
+    tranmap_dir = NULL;
 
     M_MakeDirectory(playpal_dir);
 }
@@ -158,7 +152,7 @@ static void CreateTranMapPaletteDir(void)
 // The heart of it all
 //
 
-static byte *GenerateTranmapData(blendfunc_t blendfunc, double alpha)
+static byte *GenerateTranmapData(double fg_alpha, double bg_alpha)
 {
     byte *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
 
@@ -169,6 +163,8 @@ static byte *GenerateTranmapData(blendfunc_t blendfunc, double alpha)
     // Background
     for (int i = 0; i < 256; i++)
     {
+        const byte *bg = playpal + 3 * i;
+
         // killough 10/98: display flashing disk
         if (!(~i & 15))
         {
@@ -185,10 +181,9 @@ static byte *GenerateTranmapData(blendfunc_t blendfunc, double alpha)
         // Foreground
         for (int j = 0; j < 256; j++)
         {
-            const byte *bg = playpal + 3 * i;
             const byte *fg = playpal + 3 * j;
 
-            *tp++ = ColorBlend(playpal, blendfunc, bg, fg, alpha);
+            *tp++ = ColorBlend(playpal, fg, bg, fg_alpha, bg_alpha);
         }
     }
 
@@ -210,8 +205,10 @@ byte *R_NormalTranMap(int alpha, boolean force)
         }
 
         const int length = strlen(playpal_dir) + sizeof("/tranmap_XY.dat");
-        char *filename = Z_Malloc(length, PU_STATIC, 0);
+        char *filename = malloc(length);
         M_snprintf(filename, length, "%s/tranmap_%02d.dat", playpal_dir, alpha);
+        free(playpal_dir);
+        playpal_dir = NULL;
 
         byte *buffer = NULL;
         if (!force && M_FileExistsNotDir(filename))
@@ -226,9 +223,10 @@ byte *R_NormalTranMap(int alpha, boolean force)
 
         if (force || !buffer)
         {
-            buffer = GenerateTranmapData(BlendChannelNormal, alpha/100.0);
+            buffer = GenerateTranmapData(alpha / 100.0, 1.0 - (alpha / 100.0));
             M_WriteFile(filename, buffer, tranmap_lump_length);
         }
+        free(filename);
 
         normal_tranmap[alpha] = buffer;
     }
@@ -257,8 +255,7 @@ void R_InitTranMap(void)
     }
 
     // Some things look better with added luminosity :)
-    main_addimap = strictmode ? main_tranmap
-                 : GenerateTranmapData(BlendChannelAdditive, 1.0);
+    main_addimap = strictmode ? main_tranmap : GenerateTranmapData(1.0, 0.5);
 
     I_Printf(VB_INFO, "Playpal checksum: %s", playpal_string);
 
