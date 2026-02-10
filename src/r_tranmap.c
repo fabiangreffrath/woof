@@ -202,7 +202,7 @@ byte *R_NormalTranMap(int alpha, boolean force)
         }
 
         const int length = strlen(playpal_dir) + sizeof("/tranmap_XY.dat");
-        char *filename = Z_Malloc(length, PU_STATIC, 0);
+        char *filename = malloc(length);
         M_snprintf(filename, length, "%s/tranmap_%02d.dat", playpal_dir, alpha);
 
         byte *buffer = NULL;
@@ -221,6 +221,7 @@ byte *R_NormalTranMap(int alpha, boolean force)
             buffer = GenerateTranmapData(alpha / 100.0, 1.0 - (alpha / 100.0));
             M_WriteFile(filename, buffer, tranmap_lump_length);
         }
+        free(filename);
 
         normal_tranmap[alpha] = buffer;
     }
