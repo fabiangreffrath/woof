@@ -81,23 +81,23 @@ enum
 //
 
 inline static const int BlendChannel(const byte bg, const byte fg,
-                                     const double alpha_fg,
-                                     const double alpha_bg)
+                                     const double fg_alpha,
+                                     const double bg_alpha)
 {
     const double fg_linear = byte_to_linear(fg);
     const double bg_linear = byte_to_linear(bg);
-    const double r_linear = (fg_linear * alpha_fg) + (bg_linear * alpha_bg);
+    const double r_linear = (fg_linear * fg_alpha) + (bg_linear * bg_alpha);
     return linear_to_byte(r_linear);
 }
 
 inline static const int ColorBlend(byte *playpal, const byte *bg,
-                                   const byte *fg, const double alpha_fg,
-                                   const double alpha_bg)
+                                   const byte *fg, const double fg_alpha,
+                                   const double bg_alpha)
 {
     int blend[3] = {0};
-    blend[r] = BlendChannel(bg[r], fg[r], alpha_fg, alpha_bg);
-    blend[g] = BlendChannel(bg[g], fg[g], alpha_fg, alpha_bg);
-    blend[b] = BlendChannel(bg[b], fg[b], alpha_fg, alpha_bg);
+    blend[r] = BlendChannel(bg[r], fg[r], fg_alpha, bg_alpha);
+    blend[g] = BlendChannel(bg[g], fg[g], fg_alpha, bg_alpha);
+    blend[b] = BlendChannel(bg[b], fg[b], fg_alpha, bg_alpha);
     return I_GetNearestColor(playpal, blend[r], blend[g], blend[b]);
 }
 
@@ -150,7 +150,7 @@ static void CreateTranMapPaletteDir(void)
 // The heart of it all
 //
 
-static byte *GenerateTranmapData(double alpha_fg, double alpha_bg)
+static byte *GenerateTranmapData(double fg_alpha, double bg_alpha)
 {
     byte *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
 
@@ -180,7 +180,7 @@ static byte *GenerateTranmapData(double alpha_fg, double alpha_bg)
             const byte *bg = playpal + 3 * i;
             const byte *fg = playpal + 3 * j;
 
-            *tp++ = ColorBlend(playpal, bg, fg, alpha_fg, alpha_bg);
+            *tp++ = ColorBlend(playpal, bg, fg, fg_alpha, bg_alpha);
         }
     }
 
