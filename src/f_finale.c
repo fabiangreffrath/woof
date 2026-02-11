@@ -25,7 +25,7 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
-#include "f_finale.h"
+#include "f_wipe.h"
 #include "g_game.h"
 #include "g_umapinfo.h"
 #include "i_printf.h"
@@ -414,7 +414,7 @@ static boolean MapInfo_Ticker()
                 {
                     finalecount = 0;
                     finalestage = FINALE_STAGE_ART;
-                    wipegamestate = -1; // force a wipe
+                    F_SetWipe(wipe_Melt); // force a wipe
                     S_ChangeMusInfoMusic(W_GetNumForName(endfinale->music), 
                                          endfinale->musicloops);
                     if (endfinale->type == END_ART)
@@ -431,7 +431,7 @@ static boolean MapInfo_Ticker()
             {
                 finalecount = 0;
                 finalestage = FINALE_STAGE_ART;
-                wipegamestate = -1; // force a wipe
+                F_SetWipe(wipe_Melt); // force a wipe
                 if (gamemapinfo->flags & MapInfo_EndGameBunny)
                 {
                     S_StartMusic(mus_bunny);
@@ -675,7 +675,7 @@ void F_Ticker(void)
           {                               // with enough time, it's automatic
             finalecount = 0;
             finalestage = FINALE_STAGE_ART;
-            wipegamestate = -1;         // force a wipe
+            F_SetWipe(wipe_Melt); // force a wipe
             if (gameepisode == 3)
               S_StartMusic(mus_bunny);
           }
@@ -934,7 +934,7 @@ boolean         castattacking;
 //
 static void F_StartCast(void)
 {
-  wipegamestate = -1; // force a screen wipe
+  F_SetWipe(wipe_Melt); // force a screen wipe
   finalestage = FINALE_STAGE_CAST;
 
   if (gamemapinfo && gamemapinfo->flags & MapInfo_EndGameCustomFinale)
