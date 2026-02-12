@@ -77,4 +77,11 @@ inline static int DECL_GetNegativeInteger(scanner_t *sc)
     return neg ? -SC_GetNumber(sc) : SC_GetNumber(sc);
 }
 
+inline static double DECL_GetNegativeDecimal(scanner_t *sc)
+{
+    boolean neg = SC_CheckToken(sc, '-');
+    SC_MustGetToken(sc, TK_FloatConst);
+    return neg ? -SC_GetDecimal(sc) : SC_GetDecimal(sc);
+}
+
 #endif

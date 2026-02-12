@@ -66,7 +66,7 @@ static void ParseActorBody(scanner_t *sc, actor_t *actor)
             else if (strcasecmp(SC_GetString(sc), "PROJECTILE") == 0)
             {
                 actor->props.flags |=
-                    MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOCLIP;
+                    MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY;
             }
             else
             {
@@ -114,7 +114,8 @@ static void ParseActor(scanner_t *sc)
 
         actor.parent = parent;
         actor.props.flags = parent->props.flags;
-        memcpy(actor.props.props, parent->props.props, prop_number * sizeof(property_t));
+        memcpy(actor.props.props, parent->props.props,
+               prop_number * sizeof(property_t));
     }
     else if (actor.classnum != 0)
     {
@@ -138,7 +139,7 @@ static void ParseActor(scanner_t *sc)
     ParseActorBody(sc, &actorclasses[array_size(actorclasses) - 1]);
 }
 
-void ParseDecorate(scanner_t *sc)
+static void ParseDecorate(scanner_t *sc)
 {
     while (SC_TokensLeft(sc))
     {
@@ -148,39 +149,17 @@ void ParseDecorate(scanner_t *sc)
     }
 }
 
-static void DECL_Integrate(void)
+static void InstallMobjInfo(int start_mobjtype)
 {
-    statenum_t basenum = -1;
-
-    array_foreach_type(decl, statetable, statetable_t)
-    {
-        statenum_t num = DSDH_StatesGetNewIndex();
-        if (basenum == -1)
-        {
-            basenum = num;
-        }
-
-        state_t *state = &states[num];
-
-        state->sprite = decl->spritenum;
-        state->frame = decl->frame;
-        if (decl->bright)
-        {
-            state->frame |= FF_FULLBRIGHT;
-        }
-        state->tics = decl->duration;
-        state->action = decl->action;
-        state->nextstate = basenum + decl->next;
-    }
-
+    mobjtype_t mobjtype = start_mobjtype;
     array_foreach_type(actor, actorclasses, actor_t)
     {
-        mobjtype_t mobjtype = DSDH_MobjInfoGetNewIndex();
-
+        mobjtype = DSDH_ThingTranslate(mobjtype);
         mobjinfo_t *mobj = &mobjinfo[mobjtype];
 
         mobj->doomednum = actor->doomednum;
         mobj->flags = actor->props.flags;
+        mobj->flags2 = actor->props.flags2;
 
         for (proptype_t type = 0; type < prop_number; ++type)
         {
@@ -192,6 +171,9 @@ static void DECL_Integrate(void)
                     break;
                 case prop_seesound:
                     mobj->seesound = value.number;
+                    break;
+                case prop_reactiontime:
+                    mobj->reactiontime = value.number;
                     break;
                 case prop_attacksound:
                     mobj->attacksound = value.number;
@@ -206,13 +188,15 @@ static void DECL_Integrate(void)
                     mobj->deathsound = value.number;
                     break;
                 case prop_speed:
-                    mobj->speed = value.number;
+                    mobj->speed = mobj->flags & MF_MISSILE
+                                      ? IntToFixed(value.number)
+                                      : value.number;
                     break;
                 case prop_radius:
-                    mobj->radius = value.number;
+                    mobj->radius = IntToFixed(value.number);
                     break;
                 case prop_height:
-                    mobj->height = value.number;
+                    mobj->height = IntToFixed(value.number);
                     break;
                 case prop_mass:
                     mobj->mass = value.number;
@@ -228,9 +212,21 @@ static void DECL_Integrate(void)
             }
         }
 
+        ++mobjtype;
+    }
+}
+
+static void ResolveMobjInfoStatePointers(int start_statenum, int start_mobjtype)
+{
+    array_foreach_type(actor, actorclasses, actor_t)
+    {
+        mobjtype_t mobjtype = start_mobjtype + actor->classnum;
+        mobjinfo_t *mobj = &mobjinfo[mobjtype];
+
         array_foreach_type(label, actor->labels, label_t)
         {
-            int statenum = basenum + label->tablepos;
+            int statenum =
+                start_statenum + actor->statetablepos + label->tablepos;
             if (!strcasecmp(label->label, "spawn"))
             {
                 mobj->spawnstate = statenum;
@@ -265,6 +261,208 @@ static void DECL_Integrate(void)
             }
         }
     }
+}
+
+static int ResolveActionArgs(arg_t *arg, int start_statenum, int start_mobjtype)
+{
+    switch (arg->type)
+    {
+        case arg_thing:
+            array_foreach_type(target_actor, actorclasses, actor_t)
+            {
+                if (!strcasecmp(target_actor->name, arg->data.string))
+                {
+                    return start_mobjtype + target_actor->classnum + 1;
+                }
+            }
+            I_Error("Not found actor '%s' for action parameter.",
+                    arg->data.string);
+            break;
+
+        case arg_state:
+            array_foreach_type(owner, actorclasses, actor_t)
+            {
+                array_foreach_type(label, owner->labels, label_t)
+                {
+                    if (!strcasecmp(label->label, arg->data.string))
+                    {
+                        return start_statenum + owner->statetablepos
+                               + label->tablepos;
+                    }
+                }
+            }
+            I_Error("Not found state label for action parameter '%s'.",
+                    arg->data.string);
+            break;
+
+        default:
+            return arg->value;
+            break;
+    }
+}
+
+static void InstallStateAction(state_t *state, stateaction_t *action,
+                               int start_statenum, int start_mobjtype)
+{
+    if (action->type == func_mbf)
+    {
+        state->misc1 = ResolveActionArgs(&action->misc1, start_statenum,
+                                         start_mobjtype);
+        state->misc2 = ResolveActionArgs(&action->misc2, start_statenum,
+                                         start_mobjtype);
+    }
+    else if (action->type == func_mbf21)
+    {
+        for (int i = 0; i < action->argcount; ++i)
+        {
+            arg_t *arg = &action->args[i];
+            if (arg->type == arg_flags)
+            {
+                state->args[i] = arg->value;
+                state->args[i + 1] = arg->data.integer;
+            }
+            else
+            {
+                state->args[i] = ResolveActionArgs(arg, start_statenum,
+                                                   start_mobjtype);
+            }
+        }
+    }
+
+    state->action = action->pointer;
+}
+
+static statenum_t ResolveGoto(const actor_t *current_actor,
+                              const statelink_t *link, int start_statenum)
+{
+    const actor_t *target_actor = current_actor;
+    if (link->jumpclass != NULL && link->jumpclass[0] != '\0')
+    {
+        if (strcasecmp(link->jumpclass, "Super") == 0)
+        {
+            if (current_actor->parent)
+            {
+                target_actor = current_actor->parent;
+            }
+            else
+            {
+                I_Error("Actor '%s' has no parent for Super:: goto.",
+                        current_actor->name);
+            }
+        }
+    }
+
+    label_t *label;
+    array_foreach(label, target_actor->labels)
+    {
+        if (strcasecmp(label->label, link->jumpstate) == 0)
+        {
+            break;
+        }
+    }
+    if (label == array_end(target_actor->labels))
+    {
+        I_Error("Could not resolve goto %s::%s+%d",
+                link->jumpclass ? link->jumpclass : "", link->jumpstate,
+                link->jumpoffset);
+    }
+
+    return start_statenum + target_actor->statetablepos + label->tablepos
+           + link->jumpoffset;
+}
+
+static void InstallStates(int start_statenum, int start_mobjtype)
+{
+    // Pass 1: Calculate state offsets and fill label->tablepos
+    int total_states = 0;
+    array_foreach_type(actor, actorclasses, actor_t)
+    {
+        actor->statetablepos = total_states;
+        int offset = 0;
+        array_foreach_type(dstate, actor->states, dstate_t)
+        {
+            array_foreach_type(label, actor->labels, label_t)
+            {
+                if (label->statenum == (dstate - actor->states))
+                {
+                    label->tablepos = offset;
+                }
+            }
+            offset += strlen(dstate->frames);
+        }
+        total_states += offset;
+    }
+
+    // Pass 2: Install states
+    statenum_t statenum = start_statenum;
+    array_foreach_type(actor, actorclasses, actor_t)
+    {
+        int actor_state_offset = 0;
+        array_foreach_type(dstate, actor->states, dstate_t)
+        {
+            int label_start_offset = actor_state_offset;
+            int frameslen = strlen(dstate->frames);
+
+            for (int i = 0; i < frameslen; ++i)
+            {
+                statenum = DSDH_StateTranslate(statenum);
+                state_t *state = &states[statenum];
+
+                state->sprite = dstate->spritenum;
+                state->frame = dstate->frames[i] - 'A';
+                if (dstate->bright)
+                {
+                    state->frame |= FF_FULLBRIGHT;
+                }
+                state->tics = dstate->duration;
+
+                InstallStateAction(state, &dstate->action, start_statenum,
+                                   start_mobjtype);
+
+                // nextstate handling
+                if (i == frameslen - 1)
+                {
+                    switch (dstate->next.sequence)
+                    {
+                        case SEQ_Next:
+                            state->nextstate = statenum + 1;
+                            break;
+                        case SEQ_Wait:
+                            state->nextstate = statenum;
+                            break;
+                        case SEQ_Stop:
+                            state->nextstate = S_NULL;
+                            break;
+                        case SEQ_Loop:
+                            state->nextstate = start_statenum
+                                               + actor->statetablepos
+                                               + label_start_offset;
+                            break;
+                        case SEQ_Goto:
+                            state->nextstate = ResolveGoto(actor, &dstate->next,
+                                                           start_statenum);
+                            break;
+                    }
+                }
+                else
+                {
+                    state->nextstate = statenum + 1;
+                }
+                statenum++;
+            }
+            actor_state_offset += frameslen;
+        }
+    }
+}
+
+static void DECL_Integrate(void)
+{
+    int start_statenum = DSDH_StatesGetNewIndex();
+    int start_mobjtype = DSDH_MobjInfoGetNewIndex();
+
+    InstallMobjInfo(start_mobjtype);
+    InstallStates(start_statenum, start_mobjtype);
+    ResolveMobjInfoStatePointers(start_statenum, start_mobjtype);
 }
 
 void DECL_Parse(int lumpnum)

@@ -44,57 +44,136 @@ typedef struct
 } flag_t;
 
 static flag_t decl_flags[] = {
-    {"SPECIAL",      MF_SPECIAL     },
-    {"SOLID",        MF_SOLID       },
-    {"SHOOTABLE",    MF_SHOOTABLE   },
-    {"NOSECTOR",     MF_NOSECTOR    },
-    {"NOBLOCKMAP",   MF_NOBLOCKMAP  },
-    {"AMBUSH",       MF_AMBUSH      },
-    {"JUSTHIT",      MF_JUSTHIT     },
-    {"JUSTATTACKED", MF_JUSTATTACKED},
-    {"SPAWNCEILING", MF_SPAWNCEILING},
-    {"NOGRAVITY",    MF_NOGRAVITY   },
-    {"DROPOFF",      MF_DROPOFF     },
-    {"PICKUP",       MF_PICKUP      },
-    {"NOCLIP",       MF_NOCLIP      },
-    {"SLIDE",        MF_SLIDE       },
-    {"FLOAT",        MF_FLOAT       },
-    {"TELEPORT",     MF_TELEPORT    },
-    {"MISSILE",      MF_MISSILE     },
-    {"DROPPED",      MF_DROPPED     },
-    {"SHADOW",       MF_SHADOW      },
-    {"NOBLOOD",      MF_NOBLOOD     },
-    {"CORPSE",       MF_CORPSE      },
-    {"INFLOAT",      MF_INFLOAT     },
-    {"COUNTKILL",    MF_COUNTKILL   },
-    {"COUNTITEM",    MF_COUNTITEM   },
-    {"SKULLFLY",     MF_SKULLFLY    },
-    {"NOTDMATCH",    MF_NOTDMATCH   },
-    {"TRANSLATION1", MF_TRANSLATION1},
-    {"TRANSLATION2", MF_TRANSLATION2}
+    {"SPECIAL",        MF_SPECIAL     },
+    {"SOLID",          MF_SOLID       },
+    {"SHOOTABLE",      MF_SHOOTABLE   },
+    {"NOSECTOR",       MF_NOSECTOR    },
+    {"NOBLOCKMAP",     MF_NOBLOCKMAP  },
+    {"AMBUSH",         MF_AMBUSH      },
+    {"JUSTHIT",        MF_JUSTHIT     },
+    {"JUSTATTACKED",   MF_JUSTATTACKED},
+    {"SPAWNCEILING",   MF_SPAWNCEILING},
+    {"NOGRAVITY",      MF_NOGRAVITY   },
+    {"DROPOFF",        MF_DROPOFF     },
+    {"PICKUP",         MF_PICKUP      },
+    {"NOCLIP",         MF_NOCLIP      },
+    {"SLIDE",          MF_SLIDE       },
+    {"FLOAT",          MF_FLOAT       },
+    {"TELEPORT",       MF_TELEPORT    },
+    {"MISSILE",        MF_MISSILE     },
+    {"DROPPED",        MF_DROPPED     },
+    {"SHADOW",         MF_SHADOW      },
+    {"NOBLOOD",        MF_NOBLOOD     },
+    {"CORPSE",         MF_CORPSE      },
+    {"INFLOAT",        MF_INFLOAT     },
+    {"COUNTKILL",      MF_COUNTKILL   },
+    {"COUNTITEM",      MF_COUNTITEM   },
+    {"SKULLFLY",       MF_SKULLFLY    },
+    {"NOTDMATCH",      MF_NOTDMATCH   },
+    {"TRANSLATION1",   MF_TRANSLATION1},
+    {"TRANSLATION2",   MF_TRANSLATION2},
+    // MBF
+    {"TOUCHY",         MF_TOUCHY      },
+    {"BOUNCES",        MF_BOUNCES     },
+    {"FRIEND",         MF_FRIEND      },
+    // Boom
+    {"TRANSLUCENT",    MF_TRANSLUCENT }
 };
+
+static flag_t decl_flags_mbf21[]  = {
+    {"LOGRAV",         MF2_LOGRAV        },
+    {"SHORTMRANGE",    MF2_SHORTMRANGE   },
+    {"DMGIGNORED",     MF2_DMGIGNORED    },
+    {"NORADIUSDMG",    MF2_NORADIUSDMG   },
+    {"FORCERADIUSDMG", MF2_FORCERADIUSDMG},
+    {"HIGHERMPROB",    MF2_HIGHERMPROB   },
+    {"RANGEHALF",      MF2_RANGEHALF     },
+    {"NOTHRESHOLD",    MF2_NOTHRESHOLD   },
+    {"LONGMELEE",      MF2_LONGMELEE     },
+    {"BOSS",           MF2_BOSS          },
+    {"MAP07BOSS1",     MF2_MAP07BOSS1    },
+    {"MAP07BOSS2",     MF2_MAP07BOSS2    },
+    {"E1M8BOSS",       MF2_E1M8BOSS      },
+    {"E2M8BOSS",       MF2_E2M8BOSS      },
+    {"E3M8BOSS",       MF2_E3M8BOSS      },
+    {"E4M6BOSS",       MF2_E4M6BOSS      },
+    {"E4M8BOSS",       MF2_E4M8BOSS      },
+    {"RIP",            MF2_RIP           },
+    {"FULLVOLSOUNDS",  MF2_FULLVOLSOUNDS },
+};
+
+static uint32_t GetFlagByName(const char *name, flag_t *flags, size_t count)
+{
+    for (int i = 0; i < count; ++i)
+    {
+        if (!strcasecmp(name, flags[i].name))
+        {
+            return flags[i].flag;
+        }
+    }
+    return 0;
+}
+
+void DECL_ParseArgFlag(scanner_t *sc, arg_t *arg)
+{
+    SC_MustGetToken(sc, TK_Identifier);
+    const char *name = SC_GetString(sc);
+
+    uint32_t flag = GetFlagByName(name, decl_flags, arrlen(decl_flags));
+    if (flag)
+    {
+        arg->value |= flag;
+    }
+    else
+    {
+        flag = GetFlagByName(name, decl_flags_mbf21, arrlen(decl_flags_mbf21));
+        if (flag)
+        {
+            arg->data.integer |= flag;
+        }
+        else
+        {
+            SC_Error(sc, "Unknown flag '%s'.", name);
+        }
+    }
+}
 
 void DECL_ParseActorFlag(scanner_t *sc, proplist_t *proplist, boolean set)
 {
     SC_MustGetToken(sc, TK_Identifier);
     const char *name = SC_GetString(sc);
-    
-    for (int i = 0; i < arrlen(decl_flags); ++i)
+
+    uint32_t flag = GetFlagByName(name, decl_flags, arrlen(decl_flags));
+    if (flag)
     {
-        if (!strcasecmp(name, decl_flags[i].name))
+        if (set)
+        {
+            proplist->flags |= flag;
+        }
+        else
+        {
+            proplist->flags &= ~flag;
+        }
+    }
+    else
+    {
+        flag = GetFlagByName(name, decl_flags_mbf21, arrlen(decl_flags_mbf21));
+        if (flag)
         {
             if (set)
             {
-                proplist->flags |= decl_flags[i].flag;
+                proplist->flags2 |= flag;
             }
             else
             {
-                proplist->flags &= ~decl_flags[i].flag;
+                proplist->flags2 &= ~flag;
             }
-            return;
+        }
+        else
+        {
+            SC_Error(sc, "Unknown flag '%s'.", name);
         }
     }
-    SC_Warning(sc, "Unknown flag '%s'.", name);
 }
 
 static property_t decl_properties[] = {
@@ -106,8 +185,8 @@ static property_t decl_properties[] = {
     [prop_painsound] =    {TYPE_Sound, "PainSound"   },
     [prop_deathsound] =   {TYPE_Sound, "DeathSound"  },
     [prop_speed] =        {TYPE_Int,   "Speed"       },
-    [prop_radius] =       {TYPE_Fixed, "Radius"      },
-    [prop_height] =       {TYPE_Fixed, "Height"      },
+    [prop_radius] =       {TYPE_Int,   "Radius"      },
+    [prop_height] =       {TYPE_Int,   "Height"      },
     [prop_mass] =         {TYPE_Int,   "Mass"        },
     [prop_damage] =       {TYPE_Int,   "Damage"      },
     [prop_activesound] =  {TYPE_Sound, "ActiveSound" },
@@ -121,15 +200,26 @@ static property_t decl_properties[] = {
     [prop_obituary_self] = {TYPE_String, "SelfObituary"}
 };
 
-static int SoundMapping(const char *name)
+int DECL_SoundMapping(scanner_t *sc)
 {
+    SC_MustGetToken(sc, TK_StringConst);
+    const char *name = SC_GetString(sc);
+
     for (int i = 0; i < num_sfx; ++i)
     {
-        if (!strcasecmp(name, S_sfx[i].name))
+        if (S_sfx[i].name && !strcasecmp(name, S_sfx[i].name))
         {
             return i;
         }
     }
+
+    // char namebuf[9] = {0};
+    // M_snprintf(namebuf, sizeof(namebuf), "ds%s", name);
+    // if (W_CheckNumForName(name) < 0)
+    // {
+    //     SC_Error(sc, "Sound not found '%s'.", name);
+    // }
+
     int sfx_number = DSDH_SoundsGetNewIndex();
     S_sfx[sfx_number].name = M_StringDuplicate(name);
     return sfx_number;
@@ -195,12 +285,10 @@ void DECL_ParseActorProperty(scanner_t *sc, proplist_t *proplist)
                         value.number = DECL_GetNegativeInteger(sc);
                         break;
                     case TYPE_Fixed:
-                        SC_MustGetToken(sc, TK_FloatConst);
-                        value.number = DoubleToFixed(SC_GetDecimal(sc));
+                        value.number = DoubleToFixed(DECL_GetNegativeDecimal(sc));
                         break;
                     case TYPE_Sound:
-                        SC_MustGetToken(sc, TK_StringConst);
-                        value.number = SoundMapping(SC_GetString(sc));
+                        value.number = DECL_SoundMapping(sc);
                         break;
                     case TYPE_String:
                         SC_MustGetToken(sc, TK_StringConst);

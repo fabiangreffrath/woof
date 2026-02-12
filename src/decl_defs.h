@@ -87,8 +87,10 @@ typedef struct
 {
     property_t props[prop_number];
     uint32_t flags;
+    uint32_t flags2;
 } proplist_t;
 
+int DECL_SoundMapping(scanner_t *sc);
 void DECL_ParseActorProperty(scanner_t *sc, proplist_t *proplist);
 void DECL_ParseActorFlag(scanner_t *sc, proplist_t *proplist, boolean set);
 
@@ -116,12 +118,50 @@ typedef struct
     int jumpoffset;
 } statelink_t;
 
+typedef enum
+{
+    func_vanilla,
+    func_mbf,
+    func_mbf21
+} actiontype_t;
+
+typedef enum
+{
+    arg_fixed,
+    arg_int,
+    arg_thing,
+    arg_state,
+    arg_sound,
+    arg_flags
+} argtype_t;
+
+typedef struct
+{
+    argtype_t type;
+    int value;
+    union
+    {
+        const char *string;
+        int integer;
+    } data;
+} arg_t;
+
+typedef struct
+{
+    actiontype_t type;
+    actionf_t pointer;
+    arg_t misc1;
+    arg_t misc2;
+    int argcount;
+    arg_t args[8];
+} stateaction_t;
+
 typedef struct
 {
     int spritenum;
-  char *frames;
+    char *frames;
     statelink_t next;
-    actionf_t action;
+    stateaction_t action;
     int duration;
     int xoffset;
     int yoffset;
@@ -133,32 +173,17 @@ typedef struct actor_s actor_t;
 struct actor_s
 {
     char *name;
-    char *codename;
     char *replaces;
+    int doomednum;
     int classnum;
     actor_t *parent;
-    int doomednum;
-    bool native;
     proplist_t props;
     dstate_t *states;
     label_t *labels;
+    int statetablepos;
 };
 
+void DECL_ParseArgFlag(scanner_t *sc, arg_t *arg);
 void DECL_ParseActorStates(scanner_t *sc, actor_t *actor);
-
-typedef struct
-{
-    char *label;
-    int spritenum;
-    unsigned frame;
-    int duration;
-    actionf_t action;
-    int next;
-    int xoffset;
-    int yoffset;
-    boolean bright;
-} statetable_t;
-
-extern statetable_t *statetable;
 
 #endif
