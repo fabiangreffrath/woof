@@ -37,15 +37,6 @@
 
 typedef enum
 {
-    TYPE_None = -1,
-    TYPE_Int,
-    TYPE_Fixed,
-    TYPE_Sound,
-    TYPE_String
-} valtype_t;
-
-typedef enum
-{
     prop_health,
     prop_seesound,
     prop_reactiontime,
@@ -59,6 +50,7 @@ typedef enum
     prop_mass,
     prop_damage,
     prop_activesound,
+    prop_dropitem,
 
     prop_renderstyle,
     prop_translation,
@@ -78,14 +70,13 @@ typedef struct
 
 typedef struct
 {
-    valtype_t valtype;
-    char *name;
+    proptype_t type;
     propvalue_t value;
 } property_t;
 
 typedef struct
 {
-    property_t props[prop_number];
+    property_t *props;
     uint32_t flags;
     uint32_t flags2;
 } proplist_t;

@@ -26,6 +26,7 @@ set(BASE_SOURCES
     all-all/crtan.lmp
     all-all/crwhite.lmp
     all-all/cryellow.lmp
+    all-all/declare.lmp
     all-all/dig033.png
     all-all/dig037.png
     all-all/dig043.png

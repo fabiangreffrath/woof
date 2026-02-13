@@ -91,9 +91,7 @@ static void ParseActor(scanner_t *sc)
     actor.doomednum = -1;
 
     SC_MustGetToken(sc, TK_Identifier);
-    actor.name = strdup(SC_GetString(sc));
-
-    // TODO root class Actor
+    actor.name = M_StringDuplicate(SC_GetString(sc));
 
     if (SC_CheckToken(sc, ':'))
     {
@@ -102,7 +100,7 @@ static void ParseActor(scanner_t *sc)
         actor_t *parent;
         array_foreach(parent, actorclasses)
         {
-            if (strcasecmp(parent->name, parent_name))
+            if (!strcasecmp(parent->name, parent_name))
             {
                 break;
             }
@@ -114,13 +112,9 @@ static void ParseActor(scanner_t *sc)
 
         actor.parent = parent;
         actor.props.flags = parent->props.flags;
-        memcpy(actor.props.props, parent->props.props,
-               prop_number * sizeof(property_t));
-    }
-    else if (actor.classnum != 0)
-    {
-        actor.props.flags = actorclasses[0].props.flags;
-        actor.parent = NULL;
+        array_copy(actor.props.props, parent->props.props);
+        array_copy(actor.states, parent->states);
+        array_copy(actor.labels, parent->labels);
     }
 
     if (DECL_CheckKeyword(sc, "replaces") == 0)
@@ -161,10 +155,10 @@ static void InstallMobjInfo(int start_mobjtype)
         mobj->flags = actor->props.flags;
         mobj->flags2 = actor->props.flags2;
 
-        for (proptype_t type = 0; type < prop_number; ++type)
+        array_foreach_type(prop, actor->props.props, property_t)
         {
-            propvalue_t value = actor->props.props[type].value;
-            switch (type)
+            propvalue_t value = prop->value;
+            switch (prop->type)
             {
                 case prop_health:
                     mobj->spawnhealth = value.number;
@@ -206,6 +200,9 @@ static void InstallMobjInfo(int start_mobjtype)
                     break;
                 case prop_activesound:
                     mobj->activesound = value.number;
+                    break;
+                case prop_dropitem:
+                    mobj->droppeditem = value.number;
                     break;
                 default:
                     break;
@@ -455,7 +452,7 @@ static void InstallStates(int start_statenum, int start_mobjtype)
     }
 }
 
-static void DECL_Integrate(void)
+void DECL_Integrate(void)
 {
     int start_statenum = DSDH_StatesGetNewIndex();
     int start_mobjtype = DSDH_MobjInfoGetNewIndex();
@@ -469,10 +466,6 @@ void DECL_Parse(int lumpnum)
 {
     scanner_t *sc = SC_Open("DECLARE", W_CacheLumpNum(lumpnum, PU_CACHE),
                             W_LumpLength(lumpnum));
-
     ParseDecorate(sc);
-
     SC_Close(sc);
-
-    DECL_Integrate();
 }

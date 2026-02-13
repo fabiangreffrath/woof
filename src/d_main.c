@@ -2110,6 +2110,8 @@ void D_DoomMain(void)
 
   W_ProcessInWads("DECLARE", DECL_Parse, PROCESS_IWAD | PROCESS_PWAD);
 
+  DECL_Integrate();
+
   // SNDINFO
   P_InitAmbientSoundMobjInfo();
 

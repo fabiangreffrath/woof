@@ -31,6 +31,8 @@
 #include "decl_misc.h"
 #include "dsdh_main.h"
 #include "doomtype.h"
+#include "info.h"
+#include "m_array.h"
 #include "m_fixed.h"
 #include "m_misc.h"
 #include "m_scanner.h"
@@ -176,28 +178,56 @@ void DECL_ParseActorFlag(scanner_t *sc, proplist_t *proplist, boolean set)
     }
 }
 
-static property_t decl_properties[] = {
-    [prop_health] =       {TYPE_Int,   "Health"      },
-    [prop_seesound] =     {TYPE_Sound, "SeeSound"    },
-    [prop_reactiontime] = {TYPE_Int,   "ReactionTime"},
-    [prop_attacksound] =  {TYPE_Sound, "AttackSound" },
-    [prop_painchance] =   {TYPE_Int,   "PainChance"  },
-    [prop_painsound] =    {TYPE_Sound, "PainSound"   },
-    [prop_deathsound] =   {TYPE_Sound, "DeathSound"  },
-    [prop_speed] =        {TYPE_Int,   "Speed"       },
-    [prop_radius] =       {TYPE_Int,   "Radius"      },
-    [prop_height] =       {TYPE_Int,   "Height"      },
-    [prop_mass] =         {TYPE_Int,   "Mass"        },
-    [prop_damage] =       {TYPE_Int,   "Damage"      },
-    [prop_activesound] =  {TYPE_Sound, "ActiveSound" },
+typedef enum
+{
+    ValType_None = -1,
+    ValType_Int,
+    ValType_Fixed,
+    ValType_Sound,
+    ValType_Item,
+    ValType_String
+} valtype_t;
 
-    [prop_renderstyle] =  {TYPE_None,  "RenderStyle"},
-    [prop_translation] =  {TYPE_None,  "Translation"},
+static struct
+{
+    valtype_t valtype;
+    char *name;
+} decl_properties[] = {
+    [prop_health] =       {ValType_Int,   "Health"      },
+    [prop_seesound] =     {ValType_Sound, "SeeSound"    },
+    [prop_reactiontime] = {ValType_Int,   "ReactionTime"},
+    [prop_attacksound] =  {ValType_Sound, "AttackSound" },
+    [prop_painchance] =   {ValType_Int,   "PainChance"  },
+    [prop_painsound] =    {ValType_Sound, "PainSound"   },
+    [prop_deathsound] =   {ValType_Sound, "DeathSound"  },
+    [prop_speed] =        {ValType_Int,   "Speed"       },
+    [prop_radius] =       {ValType_Int,   "Radius"      },
+    [prop_height] =       {ValType_Int,   "Height"      },
+    [prop_mass] =         {ValType_Int,   "Mass"        },
+    [prop_damage] =       {ValType_Int,   "Damage"      },
+    [prop_activesound] =  {ValType_Sound, "ActiveSound" },
 
-    // Woof!
-    [prop_obituary] =     {TYPE_String, "Obituary"},
-    [prop_obituary_melee] = {TYPE_String, "HitObituary"},
-    [prop_obituary_self] = {TYPE_String, "SelfObituary"}
+    // Declarate
+    [prop_dropitem] =     {ValType_Item,  "DropItem"},
+    [prop_renderstyle] =  {ValType_None,  "RenderStyle"},
+    [prop_translation] =  {ValType_None,  "Translation"},
+    [prop_obituary] =     {ValType_String, "Obituary"},
+    [prop_obituary_melee] = {ValType_String, "HitObituary"},
+    [prop_obituary_self] = {ValType_String, "SelfObituary"}
+};
+
+static struct
+{
+    mobjtype_t type;
+    const char *name;
+} decl_items[] = {
+// TODO
+    {MT_CLIP, "clip"},
+    {MT_SHOTGUN, "shotgun"},
+    {MT_CHAINGUN, "chaingun"},
+    {MT_MISC22, "shell"},
+    {MT_ROCKET, "rocket"},
+    {MT_MISC20, "cell"}
 };
 
 int DECL_SoundMapping(scanner_t *sc)
@@ -213,16 +243,24 @@ int DECL_SoundMapping(scanner_t *sc)
         }
     }
 
-    // char namebuf[9] = {0};
-    // M_snprintf(namebuf, sizeof(namebuf), "ds%s", name);
-    // if (W_CheckNumForName(name) < 0)
-    // {
-    //     SC_Error(sc, "Sound not found '%s'.", name);
-    // }
-
     int sfx_number = DSDH_SoundsGetNewIndex();
     S_sfx[sfx_number].name = M_StringDuplicate(name);
     return sfx_number;
+}
+
+static int ItemMapping(scanner_t *sc)
+{
+    SC_MustGetToken(sc, TK_StringConst);
+    const char *name = SC_GetString(sc);
+
+    for (int i = 0; i < arrlen(decl_items); ++i)
+    {
+        if (!strcasecmp(name, decl_items[i].name))
+        {
+            return decl_items[i].type;
+        }
+    }
+    return MT_NULL;
 }
 
 void DECL_ParseActorProperty(scanner_t *sc, proplist_t *proplist)
@@ -281,23 +319,40 @@ void DECL_ParseActorProperty(scanner_t *sc, proplist_t *proplist)
                 propvalue_t value = {0};
                 switch (decl_properties[type].valtype)
                 {
-                    case TYPE_Int:
+                    case ValType_Int:
                         value.number = DECL_GetNegativeInteger(sc);
                         break;
-                    case TYPE_Fixed:
+                    case ValType_Fixed:
                         value.number = DoubleToFixed(DECL_GetNegativeDecimal(sc));
                         break;
-                    case TYPE_Sound:
+                    case ValType_Sound:
                         value.number = DECL_SoundMapping(sc);
                         break;
-                    case TYPE_String:
+                    case ValType_String:
                         SC_MustGetToken(sc, TK_StringConst);
                         value.string = M_StringDuplicate(SC_GetString(sc));
+                        break;
+                    case ValType_Item:
+                        value.number = ItemMapping(sc);
                         break;
                     default:
                         break;
                 }
-                proplist->props[type].value = value;
+
+                property_t *prop;
+                array_foreach(prop, proplist->props)
+                {
+                    if (prop->type == type)
+                    {
+                        prop->value = value;
+                        break;
+                    }
+                }
+                if (prop == array_end(proplist->props))
+                {
+                    property_t new_prop = {.type = type, .value = value};
+                    array_push(proplist->props, new_prop);
+                }
             }
             break;
     }
