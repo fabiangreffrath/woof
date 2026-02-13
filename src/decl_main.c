@@ -222,8 +222,18 @@ static int InstallMobjInfo(void)
                 case prop_activesound:
                     mobj->activesound = value.number;
                     break;
+
                 case prop_dropitem:
                     mobj->droppeditem = value.number;
+                    break;
+                case prop_obituary:
+                    mobj->obituary = value.string;
+                    break;
+                case prop_obituary_melee:
+                    mobj->obituary_melee = value.string;
+                    break;
+                case prop_obituary_self:
+                    mobj->obituary_self = value.string;
                     break;
                 default:
                     break;
@@ -299,19 +309,12 @@ static int ResolveActionArgs(arg_t *arg, int start_statenum, int start_mobjtype)
             {
                 if (!strcasecmp(target_actor->name, arg->data.string))
                 {
-                    if (target_actor->native)
-                    {
-                        I_Error(
-                            "Cannot use native actor '%s' in action parameter.",
-                            arg->data.string);
-                    }
                     return start_mobjtype + target_actor->installnum + 1;
                 }
             }
             I_Error("Not found actor '%s' for action parameter.",
                     arg->data.string);
             break;
-
         case arg_state:
             array_foreach_type(owner, actorclasses, actor_t)
             {
@@ -319,12 +322,6 @@ static int ResolveActionArgs(arg_t *arg, int start_statenum, int start_mobjtype)
                 {
                     if (!strcasecmp(label->label, arg->data.string))
                     {
-                        if (owner->statetablepos == -1)
-                        {
-                            I_Error("Cannot use states from native actor '%s' "
-                                    "in action parameter.",
-                                    owner->name);
-                        }
                         return start_statenum + owner->statetablepos
                                + label->tablepos;
                     }
@@ -333,11 +330,11 @@ static int ResolveActionArgs(arg_t *arg, int start_statenum, int start_mobjtype)
             I_Error("Not found state label for action parameter '%s'.",
                     arg->data.string);
             break;
-
         default:
             return arg->value;
             break;
     }
+    return 0;
 }
 
 static void InstallStateAction(state_t *state, stateaction_t *action,
