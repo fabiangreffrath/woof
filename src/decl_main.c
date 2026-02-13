@@ -142,6 +142,7 @@ static void ParseActor(scanner_t *sc)
         array_copy(actor.props.props, parent->props.props);
         array_copy(actor.states, parent->states);
         array_copy(actor.labels, parent->labels);
+        actor.numstates = parent->numstates;
     }
 
     if (SC_CheckToken(sc, TK_Identifier))
@@ -401,48 +402,30 @@ static void InstallStateAction(state_t *state, stateaction_t *action,
     state->action = action->pointer;
 }
 
-static statenum_t ResolveGoto(const actor_t *current_actor,
-                              const statelink_t *link, int start_statenum)
+static statenum_t ResolveGoto(const actor_t *actor, const statelink_t *link,
+                              int start_statenum)
 {
-    const actor_t *target_actor = current_actor;
-    if (link->jumpclass != NULL && link->jumpclass[0] != '\0')
-    {
-        if (strcasecmp(link->jumpclass, "Super") == 0)
-        {
-            if (current_actor->parent)
-            {
-                target_actor = current_actor->parent;
-            }
-            else
-            {
-                I_Error("Actor '%s' has no parent for Super:: goto.",
-                        current_actor->name);
-            }
-        }
-    }
-
     label_t *label;
-    array_foreach(label, target_actor->labels)
+    array_foreach(label, actor->labels)
     {
         if (strcasecmp(label->label, link->jumpstate) == 0)
         {
             break;
         }
     }
-    if (label == array_end(target_actor->labels))
+    if (label == array_end(actor->labels))
     {
-        I_Error("Could not resolve goto %s::%s+%d",
-                link->jumpclass ? link->jumpclass : "", link->jumpstate,
+        I_Error("Could not resolve goto %s+%d", link->jumpstate,
                 link->jumpoffset);
     }
 
-    if (target_actor->statetablepos == -1)
+    if (label->tablepos + link->jumpoffset >= actor->numstates)
     {
-        I_Error("Cannot resolve goto to native actor '%s'.",
-                target_actor->name);
+        I_Error("Goto %s+%d jumps out of actor states.",
+                link->jumpstate, link->jumpoffset);
     }
 
-    return start_statenum + target_actor->statetablepos + label->tablepos
+    return start_statenum + actor->statetablepos + label->tablepos
            + link->jumpoffset;
 }
 
@@ -477,6 +460,7 @@ static int InstallStates(int start_mobjtype)
             }
             offset += strlen(dstate->frames);
         }
+        actor->numstates = offset;
         total_states += offset;
     }
 

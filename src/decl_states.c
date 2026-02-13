@@ -291,14 +291,6 @@ static void ParseStateJump(scanner_t *sc, dstate_t *state)
 {
     SC_MustGetToken(sc, TK_Identifier);
     state->next.jumpstate = M_StringDuplicate(SC_GetString(sc));
-
-    if (SC_CheckToken(sc, TK_ScopeResolution))
-    {
-        state->next.jumpclass = state->next.jumpstate;
-        SC_MustGetToken(sc, TK_Identifier);
-        state->next.jumpstate = M_StringDuplicate(SC_GetString(sc));
-    }
-
     if (SC_CheckToken(sc, '+'))
     {
         SC_MustGetToken(sc, TK_IntConst);

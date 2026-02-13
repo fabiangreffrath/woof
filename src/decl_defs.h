@@ -106,7 +106,6 @@ typedef struct
 {
     sequence_t sequence;
     char *jumpstate;
-    char *jumpclass;
     int jumpoffset;
 } statelink_t;
 
@@ -175,6 +174,7 @@ struct actor_s
     dstate_t *states;
     label_t *labels;
     int statetablepos;
+    int numstates;
 };
 
 void DECL_ParseArgFlag(scanner_t *sc, arg_t *arg);
