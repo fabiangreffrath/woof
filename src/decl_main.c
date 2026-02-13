@@ -84,6 +84,32 @@ static void ParseActorBody(scanner_t *sc, actor_t *actor)
     }
 }
 
+static int ReplaceActor(scanner_t *sc, const char *name)
+{
+    actor_t *actor;
+    array_foreach(actor, actorclasses)
+    {
+        if (strcasecmp(actor->name, name) == 0)
+        {
+            break;
+        }
+    }
+    if (actor == array_end(actorclasses))
+    {
+        SC_Error(sc, "Actor '%s' is not found.", name);
+    }
+
+    for (mobjtype_t type = 0; type < num_mobj_types; ++type)
+    {
+        if (mobjinfo[type].doomednum == actor->doomednum)
+        {
+            mobjinfo[type].doomednum = -1;
+            break;
+        }
+    }
+    return actor->doomednum;
+}
+
 static void ParseActor(scanner_t *sc)
 {
     actor_t actor = {0};
@@ -120,24 +146,31 @@ static void ParseActor(scanner_t *sc)
 
     if (SC_CheckToken(sc, TK_Identifier))
     {
-        switch (DECL_CheckKeyword(sc, "native", "replaces"))
+        if (DECL_CheckKeyword(sc, "replaces") == 0)
         {
-            case 0:
-                actor.native = true;
-                break;
-            case 1:
-                SC_MustGetToken(sc, TK_Identifier);
-                actor.replaces = M_StringDuplicate(SC_GetString(sc));
-                break;
-            default:
-                SC_Rewind(sc);
-                break;
+            SC_MustGetToken(sc, TK_Identifier);
+            actor.doomednum = ReplaceActor(sc, SC_GetString(sc));
+        }
+        else
+        {
+            SC_Rewind(sc);
         }
     }
 
     if (SC_CheckToken(sc, TK_IntConst))
     {
-        actor.doomednum = SC_GetNumber(sc);
+        if (actor.doomednum == -1)
+        {
+            actor.doomednum = SC_GetNumber(sc);
+        }
+    }
+
+    if (SC_CheckToken(sc, TK_Identifier))
+    {
+        if (DECL_CheckKeyword(sc, "native") == 0)
+        {
+            actor.native = true;
+        }
     }
 
     ParseActorBody(sc, &actor);
@@ -208,10 +241,10 @@ static int InstallMobjInfo(void)
                                       : value.number;
                     break;
                 case prop_radius:
-                    mobj->radius = IntToFixed(value.number);
+                    mobj->radius = value.number;
                     break;
                 case prop_height:
-                    mobj->height = IntToFixed(value.number);
+                    mobj->height = value.number;
                     break;
                 case prop_mass:
                     mobj->mass = value.number;

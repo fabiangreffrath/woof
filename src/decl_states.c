@@ -76,8 +76,8 @@ static action_t actions[] = {
     {"A_FirePlasma",      {.p2 = A_FirePlasma}             },
     {"A_BFGsound",        {.p2 = A_BFGsound}               },
     {"A_FireBFG",         {.p2 = A_FireBFG}                },
-    {"A_BFGSpray",        {.p1 = A_BFGSpray}               },
 #endif
+    {"A_BFGSpray",        {.p1 = A_BFGSpray}               },
     {"A_Explode",         {.p1 = A_Explode}                },
     {"A_Pain",            {.p1 = A_Pain}                   },
     {"A_PlayerScream",    {.p1 = A_PlayerScream}           },

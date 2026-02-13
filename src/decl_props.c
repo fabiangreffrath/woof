@@ -201,19 +201,19 @@ static struct
     [prop_painsound] =    {ValType_Sound, "PainSound"   },
     [prop_deathsound] =   {ValType_Sound, "DeathSound"  },
     [prop_speed] =        {ValType_Int,   "Speed"       },
-    [prop_radius] =       {ValType_Int,   "Radius"      },
-    [prop_height] =       {ValType_Int,   "Height"      },
+    [prop_radius] =       {ValType_Fixed, "Radius"      },
+    [prop_height] =       {ValType_Fixed, "Height"      },
     [prop_mass] =         {ValType_Int,   "Mass"        },
     [prop_damage] =       {ValType_Int,   "Damage"      },
     [prop_activesound] =  {ValType_Sound, "ActiveSound" },
 
     // Declarate
-    [prop_dropitem] =     {ValType_Item,  "DropItem"},
-    [prop_renderstyle] =  {ValType_None,  "RenderStyle"},
-    [prop_translation] =  {ValType_None,  "Translation"},
-    [prop_obituary] =     {ValType_String, "Obituary"},
+    [prop_renderstyle] =    {ValType_None,  "RenderStyle"},
+    [prop_translation] =    {ValType_None,  "Translation"},
+    [prop_dropitem] =       {ValType_Item,  "DropItem"},
+    [prop_obituary] =       {ValType_String, "Obituary"},
     [prop_obituary_melee] = {ValType_String, "HitObituary"},
-    [prop_obituary_self] = {ValType_String, "SelfObituary"}
+    [prop_obituary_self] =  {ValType_String, "SelfObituary"}
 };
 
 static struct
@@ -276,8 +276,7 @@ void DECL_ParseActorProperty(scanner_t *sc, proplist_t *proplist)
     }
     if (type == prop_number)
     {
-        SC_Warning(sc, "Unknown property '%s'.", name);
-        SC_GetNextToken(sc, true);
+        SC_Error(sc, "Unknown property '%s'.", name);
         return;
     }
 
@@ -295,8 +294,8 @@ void DECL_ParseActorProperty(scanner_t *sc, proplist_t *proplist)
                         proplist->flags |= MF_SHADOW;
                         break;
                     default:
-                        SC_Warning(sc, "Unknown render style '%s'.",
-                                   SC_GetString(sc));
+                        SC_Error(sc, "Unknown render style '%s'.",
+                                 SC_GetString(sc));
                         break;
                 }
             }

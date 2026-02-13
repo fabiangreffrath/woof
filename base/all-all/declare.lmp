@@ -4,7 +4,7 @@
 // Zombie man
 //
 //===========================================================================
-actor ZombieMan native
+actor ZombieMan 3004 native
 {
     Health 20
     Radius 20
@@ -61,7 +61,7 @@ actor ZombieMan native
 // Sergeant / Shotgun guy
 //
 //===========================================================================
-actor ShotgunGuy native
+actor ShotgunGuy 3002 native
 {
     Health 30
     Radius 20
@@ -119,7 +119,7 @@ actor ShotgunGuy native
 // Chaingunner
 //
 //===========================================================================
-actor ChaingunGuy native
+actor ChaingunGuy 65 native
 {
     Health 70
     Radius 20
@@ -237,7 +237,7 @@ actor WolfensteinSS native
 // Imp
 //
 //===========================================================================
-actor DoomImp native
+actor DoomImp 3001 native
 {
     Health 60
     Radius 20
@@ -298,7 +298,6 @@ actor DoomImpBall native
     Radius 6
     Height 8
     Speed 10
-    FastSpeed 20
     Damage 3
     PROJECTILE
     SeeSound "firsht"
