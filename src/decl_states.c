@@ -352,6 +352,7 @@ static void ParseStateAction(scanner_t *sc, dstate_t *state)
     if (!action)
     {
         SC_Error(sc, "Unknown action function %s.", fname);
+        return;
     }
 
     state->action.type = action->type;
@@ -576,4 +577,6 @@ void DECL_ParseActorStates(scanner_t *sc, actor_t *actor)
             laststate = NULL;
         }
     }
+
+    array_free(labels);
 }
