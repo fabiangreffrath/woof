@@ -33,6 +33,7 @@
 #include <stdint.h>
 
 #include "d_think.h"
+#include "doomtype.h"
 #include "m_scanner.h"
 
 typedef enum
@@ -165,8 +166,10 @@ struct actor_s
 {
     char *name;
     char *replaces;
+    boolean native;
     int doomednum;
     int classnum;
+    int installnum;
     actor_t *parent;
     proplist_t props;
     dstate_t *states;

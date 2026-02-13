@@ -87,6 +87,7 @@ static void ParseActorBody(scanner_t *sc, actor_t *actor)
 static void ParseActor(scanner_t *sc)
 {
     actor_t actor = {0};
+    actor.installnum = -1;
     actor.classnum = array_size(actorclasses);
     actor.doomednum = -1;
 
@@ -117,11 +118,21 @@ static void ParseActor(scanner_t *sc)
         array_copy(actor.labels, parent->labels);
     }
 
-    if (DECL_CheckKeyword(sc, "replaces") == 0)
+    if (SC_CheckToken(sc, TK_Identifier))
     {
-        SC_GetNextToken(sc, false); // consume "replaces"
-        SC_MustGetToken(sc, TK_Identifier);
-        actor.replaces = M_StringDuplicate(SC_GetString(sc));
+        switch (DECL_CheckKeyword(sc, "native", "replaces"))
+        {
+            case 0:
+                actor.native = true;
+                break;
+            case 1:
+                SC_MustGetToken(sc, TK_Identifier);
+                actor.replaces = M_StringDuplicate(SC_GetString(sc));
+                break;
+            default:
+                SC_Rewind(sc);
+                break;
+        }
     }
 
     if (SC_CheckToken(sc, TK_IntConst))
@@ -129,8 +140,8 @@ static void ParseActor(scanner_t *sc)
         actor.doomednum = SC_GetNumber(sc);
     }
 
+    ParseActorBody(sc, &actor);
     array_push(actorclasses, actor);
-    ParseActorBody(sc, &actorclasses[array_size(actorclasses) - 1]);
 }
 
 static void ParseDecorate(scanner_t *sc)
@@ -143,12 +154,22 @@ static void ParseDecorate(scanner_t *sc)
     }
 }
 
-static void InstallMobjInfo(int start_mobjtype)
+static int InstallMobjInfo(void)
 {
-    mobjtype_t mobjtype = start_mobjtype;
+    int start_mobjtype = -1;
     array_foreach_type(actor, actorclasses, actor_t)
     {
-        mobjtype = DSDH_ThingTranslate(mobjtype);
+        if (actor->native)
+        {
+            continue;
+        }
+
+        mobjtype_t mobjtype = DSDH_MobjInfoGetNewIndex();
+        if (start_mobjtype == -1)
+        {
+            start_mobjtype = mobjtype;
+        }
+
         mobjinfo_t *mobj = &mobjinfo[mobjtype];
 
         mobj->doomednum = actor->doomednum;
@@ -208,16 +229,25 @@ static void InstallMobjInfo(int start_mobjtype)
                     break;
             }
         }
-
-        ++mobjtype;
     }
+    return start_mobjtype;
 }
 
 static void ResolveMobjInfoStatePointers(int start_statenum, int start_mobjtype)
 {
+    if (start_statenum == -1 || start_mobjtype == -1)
+    {
+        return;
+    }
+
     array_foreach_type(actor, actorclasses, actor_t)
     {
-        mobjtype_t mobjtype = start_mobjtype + actor->classnum;
+        if (actor->native)
+        {
+            continue;
+        }
+
+        mobjtype_t mobjtype = start_mobjtype + actor->installnum;
         mobjinfo_t *mobj = &mobjinfo[mobjtype];
 
         array_foreach_type(label, actor->labels, label_t)
@@ -269,7 +299,13 @@ static int ResolveActionArgs(arg_t *arg, int start_statenum, int start_mobjtype)
             {
                 if (!strcasecmp(target_actor->name, arg->data.string))
                 {
-                    return start_mobjtype + target_actor->classnum + 1;
+                    if (target_actor->native)
+                    {
+                        I_Error(
+                            "Cannot use native actor '%s' in action parameter.",
+                            arg->data.string);
+                    }
+                    return start_mobjtype + target_actor->installnum + 1;
                 }
             }
             I_Error("Not found actor '%s' for action parameter.",
@@ -283,6 +319,12 @@ static int ResolveActionArgs(arg_t *arg, int start_statenum, int start_mobjtype)
                 {
                     if (!strcasecmp(label->label, arg->data.string))
                     {
+                        if (owner->statetablepos == -1)
+                        {
+                            I_Error("Cannot use states from native actor '%s' "
+                                    "in action parameter.",
+                                    owner->name);
+                        }
                         return start_statenum + owner->statetablepos
                                + label->tablepos;
                     }
@@ -364,17 +406,35 @@ static statenum_t ResolveGoto(const actor_t *current_actor,
                 link->jumpoffset);
     }
 
+    if (target_actor->statetablepos == -1)
+    {
+        I_Error("Cannot resolve goto to native actor '%s'.",
+                target_actor->name);
+    }
+
     return start_statenum + target_actor->statetablepos + label->tablepos
            + link->jumpoffset;
 }
 
-static void InstallStates(int start_statenum, int start_mobjtype)
+static int InstallStates(int start_mobjtype)
 {
+    if (start_mobjtype == -1)
+    {
+        return -1;
+    }
+
     // Pass 1: Calculate state offsets and fill label->tablepos
     int total_states = 0;
     array_foreach_type(actor, actorclasses, actor_t)
     {
+        if (actor->native)
+        {
+            actor->statetablepos = -1;
+            continue;
+        }
+
         actor->statetablepos = total_states;
+
         int offset = 0;
         array_foreach_type(dstate, actor->states, dstate_t)
         {
@@ -391,9 +451,14 @@ static void InstallStates(int start_statenum, int start_mobjtype)
     }
 
     // Pass 2: Install states
-    statenum_t statenum = start_statenum;
+    int start_statenum = -1;
     array_foreach_type(actor, actorclasses, actor_t)
     {
+        if (actor->native)
+        {
+            continue;
+        }
+
         int actor_state_offset = 0;
         array_foreach_type(dstate, actor->states, dstate_t)
         {
@@ -402,7 +467,12 @@ static void InstallStates(int start_statenum, int start_mobjtype)
 
             for (int i = 0; i < frameslen; ++i)
             {
-                statenum = DSDH_StateTranslate(statenum);
+                statenum_t statenum = DSDH_StatesGetNewIndex();
+                if (start_statenum == -1)
+                {
+                    start_statenum = statenum;
+                }
+
                 state_t *state = &states[statenum];
 
                 state->sprite = dstate->spritenum;
@@ -445,20 +515,25 @@ static void InstallStates(int start_statenum, int start_mobjtype)
                 {
                     state->nextstate = statenum + 1;
                 }
-                statenum++;
             }
             actor_state_offset += frameslen;
         }
     }
+    return start_statenum;
 }
 
 void DECL_Integrate(void)
 {
-    int start_statenum = DSDH_StatesGetNewIndex();
-    int start_mobjtype = DSDH_MobjInfoGetNewIndex();
-
-    InstallMobjInfo(start_mobjtype);
-    InstallStates(start_statenum, start_mobjtype);
+    int install_count = 0;
+    array_foreach_type(actor, actorclasses, actor_t)
+    {
+        if (!actor->native)
+        {
+            actor->installnum = install_count++;
+        }
+    }
+    int start_mobjtype = InstallMobjInfo();
+    int start_statenum = InstallStates(start_mobjtype);
     ResolveMobjInfoStatePointers(start_statenum, start_mobjtype);
 }
 
