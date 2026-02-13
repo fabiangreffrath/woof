@@ -66,8 +66,11 @@ def call_port(source_port, record):
 
         subprocess.run(cmd, cwd=base_dir, capture_output=True)
 
-        shutil.copyfile(Path(base_dir, 'levelstat.txt'),
-                        Path(OUTPUT_DIR, record['levelstat']))
+        path = Path(base_dir, 'levelstat.txt')
+        if not path.exists():
+            with open(path, 'w') as f:
+                pass
+        shutil.copyfile(path, Path(OUTPUT_DIR, record['levelstat']))
         shutil.rmtree(base_dir)
     else:
         subprocess.run(cmd, capture_output=True)
