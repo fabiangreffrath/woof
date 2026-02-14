@@ -180,12 +180,12 @@ void DECL_ParseActorFlag(scanner_t *sc, proplist_t *proplist, boolean set)
 
 typedef enum
 {
-    ValType_None = -1,
-    ValType_Int,
-    ValType_Fixed,
-    ValType_Sound,
-    ValType_Item,
-    ValType_String
+    TYPE_None = -1,
+    TYPE_Int,
+    TYPE_Fixed,
+    TYPE_Sound,
+    TYPE_Item,
+    TYPE_String
 } valtype_t;
 
 static struct
@@ -193,27 +193,27 @@ static struct
     valtype_t valtype;
     char *name;
 } decl_properties[] = {
-    [prop_health] =       {ValType_Int,   "Health"      },
-    [prop_seesound] =     {ValType_Sound, "SeeSound"    },
-    [prop_reactiontime] = {ValType_Int,   "ReactionTime"},
-    [prop_attacksound] =  {ValType_Sound, "AttackSound" },
-    [prop_painchance] =   {ValType_Int,   "PainChance"  },
-    [prop_painsound] =    {ValType_Sound, "PainSound"   },
-    [prop_deathsound] =   {ValType_Sound, "DeathSound"  },
-    [prop_speed] =        {ValType_Int,   "Speed"       },
-    [prop_radius] =       {ValType_Fixed, "Radius"      },
-    [prop_height] =       {ValType_Fixed, "Height"      },
-    [prop_mass] =         {ValType_Int,   "Mass"        },
-    [prop_damage] =       {ValType_Int,   "Damage"      },
-    [prop_activesound] =  {ValType_Sound, "ActiveSound" },
+    [prop_health] =       {TYPE_Int,   "Health"      },
+    [prop_seesound] =     {TYPE_Sound, "SeeSound"    },
+    [prop_reactiontime] = {TYPE_Int,   "ReactionTime"},
+    [prop_attacksound] =  {TYPE_Sound, "AttackSound" },
+    [prop_painchance] =   {TYPE_Int,   "PainChance"  },
+    [prop_painsound] =    {TYPE_Sound, "PainSound"   },
+    [prop_deathsound] =   {TYPE_Sound, "DeathSound"  },
+    [prop_speed] =        {TYPE_Int,   "Speed"       },
+    [prop_radius] =       {TYPE_Fixed, "Radius"      },
+    [prop_height] =       {TYPE_Fixed, "Height"      },
+    [prop_mass] =         {TYPE_Int,   "Mass"        },
+    [prop_damage] =       {TYPE_Int,   "Damage"      },
+    [prop_activesound] =  {TYPE_Sound, "ActiveSound" },
 
     // Declarate
-    [prop_renderstyle] =    {ValType_None,  "RenderStyle"},
-    [prop_translation] =    {ValType_None,  "Translation"},
-    [prop_dropitem] =       {ValType_Item,  "DropItem"},
-    [prop_obituary] =       {ValType_String, "Obituary"},
-    [prop_obituary_melee] = {ValType_String, "HitObituary"},
-    [prop_obituary_self] =  {ValType_String, "SelfObituary"}
+    [prop_renderstyle] =    {TYPE_None,  "RenderStyle"},
+    [prop_translation] =    {TYPE_None,  "Translation"},
+    [prop_dropitem] =       {TYPE_Item,  "DropItem"},
+    [prop_obituary] =       {TYPE_String, "Obituary"},
+    [prop_obituary_melee] = {TYPE_String, "HitObituary"},
+    [prop_obituary_self] =  {TYPE_String, "SelfObituary"}
 };
 
 static struct
@@ -318,20 +318,20 @@ void DECL_ParseActorProperty(scanner_t *sc, proplist_t *proplist)
                 propvalue_t value = {0};
                 switch (decl_properties[type].valtype)
                 {
-                    case ValType_Int:
+                    case TYPE_Int:
                         value.number = DECL_GetNegativeInteger(sc);
                         break;
-                    case ValType_Fixed:
+                    case TYPE_Fixed:
                         value.number = DoubleToFixed(DECL_GetNegativeDecimal(sc));
                         break;
-                    case ValType_Sound:
+                    case TYPE_Sound:
                         value.number = DECL_SoundMapping(sc);
                         break;
-                    case ValType_String:
+                    case TYPE_String:
                         SC_MustGetToken(sc, TK_StringConst);
                         value.string = M_StringDuplicate(SC_GetString(sc));
                         break;
-                    case ValType_Item:
+                    case TYPE_Item:
                         value.number = ItemMapping(sc);
                         break;
                     default:

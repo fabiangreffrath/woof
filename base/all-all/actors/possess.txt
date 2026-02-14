@@ -159,7 +159,7 @@ actor ChaingunGuy 65 native
         CPOS N -1
         Stop
     XDeath:
-        CPOS O 5 
+        CPOS O 5
         CPOS P 5 A_XScream
         CPOS Q 5 A_Fall
         CPOS RS 5
@@ -219,7 +219,7 @@ actor WolfensteinSS native
         SSWV M -1
         Stop
     XDeath:
-        SSWV N 5 
+        SSWV N 5
         SSWV O 5 A_XScream
         SSWV P 5 A_Fall
         SSWV QRSTU 5

@@ -115,7 +115,6 @@ static void ParseActor(scanner_t *sc)
 {
     actor_t actor = {0};
     actor.installnum = -1;
-    actor.classnum = array_size(actorclasses);
     actor.doomednum = -1;
 
     SC_MustGetToken(sc, TK_Identifier);
@@ -140,6 +139,7 @@ static void ParseActor(scanner_t *sc)
 
         actor.parent = parent;
         actor.props.flags = parent->props.flags;
+        actor.props.flags2 = parent->props.flags2;
         array_copy(actor.props.props, parent->props.props);
         array_copy(actor.states, parent->states);
         array_copy(actor.labels, parent->labels);
@@ -199,7 +199,7 @@ static void ParseDecorate(scanner_t *sc)
         else
         {
             SC_MustGetToken(sc, TK_Identifier);
-            DECL_RequireKeyword(sc, "actor");   
+            DECL_RequireKeyword(sc, "actor");
             ParseActor(sc);
         }
     }
@@ -314,7 +314,7 @@ static void ResolveMobjInfoStatePointers(int start_statenum, int start_mobjtype)
         array_foreach_type(label, actor->labels, label_t)
         {
             int statenum =
-                start_statenum + actor->statetablepos + label->tablepos;
+                start_statenum + actor->tablepos + label->tablepos;
             if (!strcasecmp(label->label, "spawn"))
             {
                 mobj->spawnstate = statenum;
@@ -351,34 +351,36 @@ static void ResolveMobjInfoStatePointers(int start_statenum, int start_mobjtype)
     }
 }
 
-static int ResolveActionArgs(arg_t *arg, int start_statenum, int start_mobjtype)
+static int ResolveActionArgs(const actor_t *owner, const arg_t *arg,
+                             int start_statenum, int start_mobjtype)
 {
     switch (arg->type)
     {
         case arg_thing:
-            array_foreach_type(target_actor, actorclasses, actor_t)
+            array_foreach_type(actor, actorclasses, actor_t)
             {
-                if (!strcasecmp(target_actor->name, arg->data.string))
+                if (actor->native)
                 {
-                    return start_mobjtype + target_actor->installnum + 1;
+                    continue;
+                }
+                if (!strcasecmp(actor->name, arg->data.string))
+                {
+                    return start_mobjtype + actor->installnum + 1;
                 }
             }
             I_Error("Not found actor '%s' for action parameter.",
                     arg->data.string);
             break;
         case arg_state:
-            array_foreach_type(owner, actorclasses, actor_t)
+            array_foreach_type(label, owner->labels, label_t)
             {
-                array_foreach_type(label, owner->labels, label_t)
+                if (!strcasecmp(label->label, arg->data.string))
                 {
-                    if (!strcasecmp(label->label, arg->data.string))
-                    {
-                        return start_statenum + owner->statetablepos
-                               + label->tablepos;
-                    }
+                    return start_statenum + owner->tablepos
+                           + label->tablepos;
                 }
             }
-            I_Error("Not found state label for action parameter '%s'.",
+            I_Error("Not found state label '%s' for action parameter.",
                     arg->data.string);
             break;
         default:
@@ -388,14 +390,15 @@ static int ResolveActionArgs(arg_t *arg, int start_statenum, int start_mobjtype)
     return 0;
 }
 
-static void InstallStateAction(state_t *state, stateaction_t *action,
-                               int start_statenum, int start_mobjtype)
+static void InstallStateAction(const actor_t *owner, state_t *state,
+                               stateaction_t *action, int start_statenum,
+                               int start_mobjtype)
 {
     if (action->type == func_mbf)
     {
-        state->misc1 = ResolveActionArgs(&action->misc1, start_statenum,
+        state->misc1 = ResolveActionArgs(owner, &action->misc1, start_statenum,
                                          start_mobjtype);
-        state->misc2 = ResolveActionArgs(&action->misc2, start_statenum,
+        state->misc2 = ResolveActionArgs(owner, &action->misc2, start_statenum,
                                          start_mobjtype);
     }
     else if (action->type == func_mbf21)
@@ -410,7 +413,7 @@ static void InstallStateAction(state_t *state, stateaction_t *action,
             }
             else
             {
-                state->args[i] = ResolveActionArgs(arg, start_statenum,
+                state->args[i] = ResolveActionArgs(owner, arg, start_statenum,
                                                    start_mobjtype);
             }
         }
@@ -442,7 +445,7 @@ static statenum_t ResolveGoto(const actor_t *actor, const statelink_t *link,
                 link->jumpstate, link->jumpoffset);
     }
 
-    return start_statenum + actor->statetablepos + label->tablepos
+    return start_statenum + actor->tablepos + label->tablepos
            + link->jumpoffset;
 }
 
@@ -459,11 +462,11 @@ static int InstallStates(int start_mobjtype)
     {
         if (actor->native)
         {
-            actor->statetablepos = -1;
+            actor->tablepos = -1;
             continue;
         }
 
-        actor->statetablepos = total_states;
+        actor->tablepos = total_states;
 
         int offset = 0;
         array_foreach_type(dstate, actor->states, dstate_t)
@@ -518,7 +521,7 @@ static int InstallStates(int start_mobjtype)
                 }
                 state->tics = dstate->duration;
 
-                InstallStateAction(state, &dstate->action, start_statenum,
+                InstallStateAction(actor, state, &dstate->action, start_statenum,
                                    start_mobjtype);
 
                 // nextstate handling
@@ -537,7 +540,7 @@ static int InstallStates(int start_mobjtype)
                             break;
                         case SEQ_Loop:
                             state->nextstate = start_statenum
-                                               + actor->statetablepos
+                                               + actor->tablepos
                                                + label_start_offset;
                             break;
                         case SEQ_Goto:
@@ -574,7 +577,9 @@ void DECL_Integrate(void)
 
 void DECL_Parse(int lumpnum)
 {
-    scanner_t *sc = SC_Open("DECLARE", W_CacheLumpNum(lumpnum, PU_CACHE),
+    char lumpname[9] = {0};
+    M_CopyLumpName(lumpname, lumpinfo[lumpnum].name);
+    scanner_t *sc = SC_Open(lumpname, W_CacheLumpNum(lumpnum, PU_CACHE),
                             W_LumpLength(lumpnum));
     ParseDecorate(sc);
     SC_Close(sc);

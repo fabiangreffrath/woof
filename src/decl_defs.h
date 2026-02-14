@@ -168,13 +168,12 @@ struct actor_s
     char *replaces;
     boolean native;
     int doomednum;
-    int classnum;
-    int installnum;
     actor_t *parent;
     proplist_t props;
     dstate_t *states;
     label_t *labels;
-    int statetablepos;
+    int installnum;
+    int tablepos;
     int numstates;
 };
 
