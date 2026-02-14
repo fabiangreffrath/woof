@@ -145,17 +145,17 @@ int DSDH_ThingTranslate(int thing_number)
 
     if (!translate)
     {
-        translate = hashmap_init(256);
+        translate = hashmap_init(256, sizeof(int));
     }
 
-    int index;
-    if (hashmap_get(translate, thing_number, &index))
+    int *index = hashmap_get(translate, thing_number); 
+    if (index)
     {
-        return index;
+        return *index;
     }
 
-    index = num_mobj_types;
-    hashmap_put(translate, thing_number, &index);
+    int new_index = num_mobj_types;
+    hashmap_put(translate, thing_number, &new_index);
 
     mobjinfo_t mobj = {
         // DEHEXTRA
@@ -170,7 +170,7 @@ int DSDH_ThingTranslate(int thing_number)
     array_push(mobjinfo, mobj);
     ++num_mobj_types;
 
-    return index;
+    return new_index;
 }
 
 int DSDH_MobjInfoGetNewIndex(void)

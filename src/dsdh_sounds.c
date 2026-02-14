@@ -51,23 +51,23 @@ int DSDH_SoundTranslate(int sfx_number)
 
     if (!translate)
     {
-        translate = hashmap_init(1024);
+        translate = hashmap_init(1024, sizeof(int));
     }
 
-    int index;
-    if (hashmap_get(translate, sfx_number, &index))
+    int *index = hashmap_get(translate, sfx_number);
+    if (index)
     {
-        return index;
+        return *index;
     }
 
-    index = num_sfx;
-    hashmap_put(translate, sfx_number, &index);
+    int new_index = num_sfx;
+    hashmap_put(translate, sfx_number, &new_index);
 
     sfxinfo_t sfx = {.priority = 127, .lumpnum = -1};
     array_push(S_sfx, sfx);
     ++num_sfx;
 
-    return index;
+    return new_index;
 }
 
 int DSDH_SoundsGetNewIndex(void)

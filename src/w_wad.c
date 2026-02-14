@@ -80,7 +80,7 @@ void W_AddMarker(const char *name)
 boolean W_SkipFile(const char *filename)
 {
     static const char *ext[] = { ".wad", ".zip", ".pk3", ".deh", ".exe",
-                                 ".bat", ".txt" };
+                                 ".bat" };
 
     for (int i = 0; i < arrlen(ext); ++i)
     {
@@ -101,6 +101,7 @@ static struct
 } subdirs[] = {
     {"music",     NULL,       NULL,     ns_global   },
     {"graphics",  NULL,       NULL,     ns_global   },
+    {"actors",    NULL,       NULL,     ns_global   },
     {"textures",  "TX_START", "TX_END", ns_textures },
     {"sprites",   "S_START",  "S_END",  ns_sprites  },
     {"flats",     "F_START",  "F_END",  ns_flats    },

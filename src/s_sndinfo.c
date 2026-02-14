@@ -304,9 +304,10 @@ static boolean ResolveAmbientSounds(sound_def_t *sound_defs,
     return (num_resolved > 0);
 }
 
-// If "$random" is found, search for '{'. If no '{' is found, ignore the `SNDINFO` lump.
-// Then search for '}'. If no '}' is found, ignore the `SNDINFO` lump.
-// Otherwise, skip ahead to the next line after '}' and continue parsing.
+// If "$random" is found, search for '{'. If no '{' is found, ignore the
+// `SNDINFO` lump. Then search for '}'. If no '}' is found, ignore the
+// `SNDINFO` lump. Otherwise, skip ahead to the next line after '}' and
+// continue parsing.
 
 static boolean SkipRandomSoundCommand(scanner_t *s)
 {
