@@ -36,13 +36,14 @@
 #include "dsdh_main.h"
 #include "info.h"
 #include "m_array.h"
+#include "m_hashmap.h"
 #include "m_misc.h"
 #include "m_scanner.h"
 #include "p_mobj.h"
 #include "w_wad.h"
 #include "z_zone.h"
 
-static actor_t *actorclasses;
+static hashmap_t *actorclasses;
 
 static void ParseActorBody(scanner_t *sc, actor_t *actor)
 {
@@ -87,15 +88,8 @@ static void ParseActorBody(scanner_t *sc, actor_t *actor)
 
 static int ReplaceActor(scanner_t *sc, const char *name)
 {
-    actor_t *actor;
-    array_foreach(actor, actorclasses)
-    {
-        if (strcasecmp(actor->name, name) == 0)
-        {
-            break;
-        }
-    }
-    if (actor == array_end(actorclasses))
+    actor_t *actor = hashmap_get_str(actorclasses, name);
+    if (!actor)
     {
         SC_Error(sc, "Actor '%s' is not found.", name);
     }
@@ -119,23 +113,19 @@ static void ParseActor(scanner_t *sc)
 
     SC_MustGetToken(sc, TK_Identifier);
     actor.name = M_StringDuplicate(SC_GetString(sc));
+    M_StringToLower(actor.name);
 
     if (SC_CheckToken(sc, ':'))
     {
         SC_MustGetToken(sc, TK_Identifier);
-        const char *parent_name = SC_GetString(sc);
-        actor_t *parent;
-        array_foreach(parent, actorclasses)
-        {
-            if (!strcasecmp(parent->name, parent_name))
-            {
-                break;
-            }
-        }
-        if (parent == array_end(actorclasses))
+        char *parent_name = M_StringDuplicate(SC_GetString(sc));
+        M_StringToLower(parent_name);
+        actor_t *parent = hashmap_get_str(actorclasses, parent_name);
+        if (!parent)
         {
             SC_Error(sc, "Unknown parent actor '%s'.", parent_name);
         }
+        free(parent_name);
 
         actor.parent = parent;
         actor.props.flags = parent->props.flags;
@@ -151,7 +141,10 @@ static void ParseActor(scanner_t *sc)
         if (DECL_CheckKeyword(sc, "replaces") == 0)
         {
             SC_MustGetToken(sc, TK_Identifier);
-            actor.doomednum = ReplaceActor(sc, SC_GetString(sc));
+            char *name = M_StringDuplicate(SC_GetString(sc));
+            M_StringToLower(name);
+            actor.doomednum = ReplaceActor(sc, name);
+            free(name);
         }
         else
         {
@@ -176,11 +169,16 @@ static void ParseActor(scanner_t *sc)
     }
 
     ParseActorBody(sc, &actor);
-    array_push(actorclasses, actor);
+    hashmap_put_str(actorclasses, actor.name, &actor);
 }
 
 static void ParseDecorate(scanner_t *sc)
 {
+    if (!actorclasses)
+    {
+        actorclasses = hashmap_init_str(16, sizeof(actor_t));
+    }
+
     while (SC_TokensLeft(sc))
     {
         if (SC_CheckToken(sc, '#'))
@@ -208,7 +206,8 @@ static void ParseDecorate(scanner_t *sc)
 static int InstallMobjInfo(void)
 {
     int start_mobjtype = -1;
-    array_foreach_type(actor, actorclasses, actor_t)
+    actor_t *actor;
+    hashmap_foreach_str(actor, actorclasses)
     {
         if (actor->native)
         {
@@ -301,7 +300,8 @@ static void ResolveMobjInfoStatePointers(int start_statenum, int start_mobjtype)
         return;
     }
 
-    array_foreach_type(actor, actorclasses, actor_t)
+    actor_t *actor;
+    hashmap_foreach_str(actor, actorclasses)
     {
         if (actor->native)
         {
@@ -351,25 +351,21 @@ static void ResolveMobjInfoStatePointers(int start_statenum, int start_mobjtype)
     }
 }
 
-static int ResolveActionArgs(const actor_t *owner, const arg_t *arg,
-                             int start_statenum, int start_mobjtype)
+static int ResolveArg(const actor_t *owner, const arg_t *arg,
+                      int start_statenum, int start_mobjtype)
 {
     switch (arg->type)
     {
         case arg_thing:
-            array_foreach_type(actor, actorclasses, actor_t)
             {
-                if (actor->native)
-                {
-                    continue;
-                }
-                if (!strcasecmp(actor->name, arg->data.string))
+                actor_t *actor = hashmap_get_str(actorclasses, arg->data.string);
+                if (actor && !actor->native)
                 {
                     return start_mobjtype + actor->installnum + 1;
                 }
+                I_Error("Not found actor '%s' for action parameter.",
+                        arg->data.string);
             }
-            I_Error("Not found actor '%s' for action parameter.",
-                    arg->data.string);
             break;
         case arg_state:
             array_foreach_type(label, owner->labels, label_t)
@@ -396,9 +392,9 @@ static void InstallStateAction(const actor_t *owner, state_t *state,
 {
     if (action->type == func_mbf)
     {
-        state->misc1 = ResolveActionArgs(owner, &action->misc1, start_statenum,
+        state->misc1 = ResolveArg(owner, &action->misc1, start_statenum,
                                          start_mobjtype);
-        state->misc2 = ResolveActionArgs(owner, &action->misc2, start_statenum,
+        state->misc2 = ResolveArg(owner, &action->misc2, start_statenum,
                                          start_mobjtype);
     }
     else if (action->type == func_mbf21)
@@ -413,7 +409,7 @@ static void InstallStateAction(const actor_t *owner, state_t *state,
             }
             else
             {
-                state->args[i] = ResolveActionArgs(owner, arg, start_statenum,
+                state->args[i] = ResolveArg(owner, arg, start_statenum,
                                                    start_mobjtype);
             }
         }
@@ -458,7 +454,8 @@ static int InstallStates(int start_mobjtype)
 
     // Pass 1: Calculate state offsets and fill label->tablepos
     int total_states = 0;
-    array_foreach_type(actor, actorclasses, actor_t)
+    actor_t *actor;
+    hashmap_foreach_str(actor, actorclasses)
     {
         if (actor->native)
         {
@@ -486,7 +483,7 @@ static int InstallStates(int start_mobjtype)
 
     // Pass 2: Install states
     int start_statenum = -1;
-    array_foreach_type(actor, actorclasses, actor_t)
+    hashmap_foreach_str(actor, actorclasses)
     {
         if (actor->native)
         {
@@ -563,7 +560,8 @@ static int InstallStates(int start_mobjtype)
 void DECL_Integrate(void)
 {
     int install_count = 0;
-    array_foreach_type(actor, actorclasses, actor_t)
+    actor_t *actor;
+    hashmap_foreach_str(actor, actorclasses)
     {
         if (!actor->native)
         {

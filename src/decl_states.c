@@ -311,8 +311,12 @@ static void ParseArg(scanner_t *sc, arg_t *arg)
             break;
         case arg_thing:
         case arg_state:
-            SC_MustGetToken(sc, TK_Identifier);
-            arg->data.string = M_StringDuplicate(SC_GetString(sc));
+            {
+                SC_MustGetToken(sc, TK_Identifier);
+                char *string = M_StringDuplicate(SC_GetString(sc));
+                M_StringToLower(string);
+                arg->data.string = string;
+            }
             break;
         case arg_sound:
             arg->value = DECL_SoundMapping(sc);
@@ -489,6 +493,7 @@ void DECL_ParseActorStates(scanner_t *sc, actor_t *actor)
                 if (DECL_CheckKeyword(sc, "loop", "goto", "stop", "wait") >= 0
                     || !SC_CheckToken(sc, ':'))
                 {
+                    free(label);
                     break;
                 }
                 else
