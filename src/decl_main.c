@@ -30,6 +30,7 @@
 #include <string.h>
 
 #include "decl_defs.h"
+#include "decl_main.h"
 #include "decl_misc.h"
 #include "doomtype.h"
 #include "dsdh_main.h"
@@ -182,9 +183,25 @@ static void ParseDecorate(scanner_t *sc)
 {
     while (SC_TokensLeft(sc))
     {
-        SC_MustGetToken(sc, TK_Identifier);
-        DECL_RequireKeyword(sc, "actor");
-        ParseActor(sc);
+        if (SC_CheckToken(sc, '#'))
+        {
+            SC_MustGetToken(sc, TK_Identifier);
+            DECL_RequireKeyword(sc, "include");
+            SC_MustGetToken(sc, TK_StringConst);
+            const char *lump = SC_GetString(sc);
+            int lumpnum = W_CheckNumForName(lump);
+            if (lumpnum < 0)
+            {
+                SC_Error(sc, "Lump '%s' is not found.", lump);
+            }
+            DECL_Parse(lumpnum);
+        }
+        else
+        {
+            SC_MustGetToken(sc, TK_Identifier);
+            DECL_RequireKeyword(sc, "actor");   
+            ParseActor(sc);
+        }
     }
 }
 

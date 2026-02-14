@@ -1,0 +1,81 @@
+
+//===========================================================================
+//
+// Imp
+//
+//===========================================================================
+actor DoomImp 3001 native
+{
+    Health 60
+    Radius 20
+    Height 56
+    Mass 100
+    Speed 8
+    PainChance 200
+    MONSTER
+    SeeSound "bgsit1" // random 2
+    PainSound "popain"
+    DeathSound "bgdth1" // random 2
+    ActiveSound "bgact"
+    States
+    {
+    Spawn:
+        TROO AB 10 A_Look
+        Loop
+    See:
+        TROO AABBCCDD 3 A_Chase
+        Loop
+    Melee:
+    Missile:
+        TROO EF 8 A_FaceTarget
+        TROO G 6 A_TroopAttack
+        Goto See
+    Pain:
+        TROO H 2
+        TROO H 2 A_Pain
+        Goto See
+    Death:
+        TROO I 8
+        TROO J 8 A_Scream
+        TROO K 6
+        TROO L 6 A_Fall
+        TROO M -1
+        Stop
+    XDeath:
+        TROO N 5
+        TROO O 5 A_XScream
+        TROO P 5
+        TROO Q 5 A_Fall
+        TROO RST 5
+        TROO U -1
+        Stop
+    Raise:
+        TROO MLKJI 8
+        Goto See
+    }
+}
+
+//===========================================================================
+//
+// Imp fireball
+//
+//===========================================================================
+actor DoomImpBall native
+{
+    Radius 6
+    Height 8
+    Speed 10
+    Damage 3
+    PROJECTILE
+    SeeSound "firsht"
+    DeathSound "firxpl"
+    States
+    {
+    Spawn:
+        BAL1 AB 4 Bright
+        Loop
+    Death:
+        BAL1 CDE 6 Bright
+        Stop
+    }
+}
