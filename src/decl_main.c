@@ -495,6 +495,10 @@ static int InstallStates(int start_mobjtype)
                 {
                     state->frame |= FF_FULLBRIGHT;
                 }
+                if (dstate->fast)
+                {
+                    state->flags |= STATEF_SKILL5FAST;
+                }
                 state->tics = dstate->duration;
 
                 InstallStateAction(state, &dstate->action, start_statenum,

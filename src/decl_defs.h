@@ -157,6 +157,7 @@ typedef struct
     int xoffset;
     int yoffset;
     boolean bright;
+    boolean fast;
 } dstate_t;
 
 typedef struct actor_s actor_t;

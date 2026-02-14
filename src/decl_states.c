@@ -430,13 +430,16 @@ static void ParseState(scanner_t *sc, dstate_t *state)
         int keyword;
         do
         {
-            keyword = DECL_CheckKeyword(sc, "bright", "offset");
+            keyword = DECL_CheckKeyword(sc, "bright", "fast", "offset");
             switch (keyword)
             {
                 case 0:
                     state->bright = true;
                     break;
                 case 1:
+                    state->fast = true;
+                    break;
+                case 2:
                     SC_MustGetToken(sc, '(');
                     state->xoffset = DECL_GetNegativeInteger(sc);
                     SC_MustGetToken(sc, ',');
