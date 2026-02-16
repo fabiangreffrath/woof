@@ -4,7 +4,7 @@
 // Zombie man
 //
 //===========================================================================
-actor ZombieMan 3004 native
+thing ZombieMan 3004 native
 {
     Health 20
     Radius 20
@@ -61,7 +61,7 @@ actor ZombieMan 3004 native
 // Sergeant / Shotgun guy
 //
 //===========================================================================
-actor ShotgunGuy 3002 native
+thing ShotgunGuy 3002 native
 {
     Health 30
     Radius 20
@@ -119,7 +119,7 @@ actor ShotgunGuy 3002 native
 // Chaingunner
 //
 //===========================================================================
-actor ChaingunGuy 65 native
+thing ChaingunGuy 65 native
 {
     Health 70
     Radius 20
@@ -177,7 +177,7 @@ actor ChaingunGuy 65 native
 // SS Nazi
 //
 //===========================================================================
-actor WolfensteinSS native
+thing WolfensteinSS native
 {
     Health 50
     Radius 20

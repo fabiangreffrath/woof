@@ -57,10 +57,6 @@ void *hashmap_next_str(hashmap_iterator_t *iter, const char **key_out);
     for (hashmap_iterator_t _iter = hashmap_iterator(map); \
          (value = hashmap_next(&_iter, NULL));)
 
-#define hashmap_foreach_str(value, map) \
-    for (hashmap_iterator_t _iter = hashmap_iterator(map); \
-         (value = hashmap_next_str(&_iter, NULL));)
-
 hashmap_t *M_HashMapCopy(const hashmap_t *map);
 
 #endif // M_HASHMAP_H

@@ -32,6 +32,6 @@
 
 void DECL_Parse(int lumpnum);
 
-void DECL_Integrate(void);
+void DECL_Install(void);
 
 #endif

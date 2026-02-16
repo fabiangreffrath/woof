@@ -4,7 +4,7 @@
 // Imp
 //
 //===========================================================================
-actor DoomImp 3001 native
+thing DoomImp 3001 native
 {
     Health 60
     Radius 20
@@ -52,30 +52,5 @@ actor DoomImp 3001 native
     Raise:
         TROO MLKJI 8
         Goto See
-    }
-}
-
-//===========================================================================
-//
-// Imp fireball
-//
-//===========================================================================
-actor DoomImpBall native
-{
-    Radius 6
-    Height 8
-    Speed 10
-    Damage 3
-    PROJECTILE
-    SeeSound "firsht"
-    DeathSound "firxpl"
-    States
-    {
-    Spawn:
-        BAL1 AB 4 Bright
-        Loop
-    Death:
-        BAL1 CDE 6 Bright
-        Stop
     }
 }

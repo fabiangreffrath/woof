@@ -197,7 +197,7 @@ static void ParseDecorate(scanner_t *sc)
         else
         {
             SC_MustGetToken(sc, TK_Identifier);
-            DECL_RequireKeyword(sc, "actor");
+            DECL_RequireKeyword(sc, "thing");
             ParseActor(sc);
         }
     }
@@ -207,7 +207,7 @@ static int InstallMobjInfo(void)
 {
     int start_mobjtype = -1;
     actor_t *actor;
-    hashmap_foreach_str(actor, actorclasses)
+    hashmap_foreach(actor, actorclasses)
     {
         if (actor->native)
         {
@@ -301,7 +301,7 @@ static void ResolveMobjInfoStatePointers(int start_statenum, int start_mobjtype)
     }
 
     actor_t *actor;
-    hashmap_foreach_str(actor, actorclasses)
+    hashmap_foreach(actor, actorclasses)
     {
         if (actor->native)
         {
@@ -455,7 +455,7 @@ static int InstallStates(int start_mobjtype)
     // Pass 1: Calculate state offsets and fill label->tablepos
     int total_states = 0;
     actor_t *actor;
-    hashmap_foreach_str(actor, actorclasses)
+    hashmap_foreach(actor, actorclasses)
     {
         if (actor->native)
         {
@@ -483,7 +483,7 @@ static int InstallStates(int start_mobjtype)
 
     // Pass 2: Install states
     int start_statenum = -1;
-    hashmap_foreach_str(actor, actorclasses)
+    hashmap_foreach(actor, actorclasses)
     {
         if (actor->native)
         {
@@ -557,11 +557,11 @@ static int InstallStates(int start_mobjtype)
     return start_statenum;
 }
 
-void DECL_Integrate(void)
+void DECL_Install(void)
 {
     int install_count = 0;
     actor_t *actor;
-    hashmap_foreach_str(actor, actorclasses)
+    hashmap_foreach(actor, actorclasses)
     {
         if (!actor->native)
         {

@@ -19,22 +19,37 @@
 #include "m_hashmap.h"
 #include "m_misc.h"
 
-typedef enum 
+typedef enum
 {
     KEY_TYPE_UINT64,
     KEY_TYPE_STRING
 } hashmap_key_type_t;
 
+// An entry in the hash map
+typedef struct
+{
+    uint64_t key_or_hash;
+    char *string_key;
+    boolean occupied;
+
+    union
+    {
+        int value_index;
+        char value_embedded[sizeof(void *)];
+    } v;
+} hashmap_entry_t;
+
 // The hash map structure
 struct hashmap_s
 {
     hashmap_key_type_t key_type;
-    uint64_t *keys;
-    char **string_keys;
-    char *values; // Contiguous block for values
+    hashmap_entry_t *entries;
+    char *values; // Contiguous block for values if not embedded
     int capacity;
+    int values_capacity;
     int size;
-    size_t value_size;
+    int value_size;
+    boolean values_are_packed;
 };
 
 // SplitMix64
@@ -60,13 +75,21 @@ inline static uint64_t HashString(const char *key)
         hash = ((hash << 5) + hash) + c;
     }
 
-    return hash ? hash : 1;
+    return hash;
 }
 
 // Get a pointer to the value for a given entry index
 inline static void *ValuePtr(const hashmap_t *map, int entry_index)
 {
-    return map->values + (entry_index * map->value_size);
+    const hashmap_entry_t *entry = &map->entries[entry_index];
+    if (map->values_are_packed)
+    {
+        return map->values + (entry->v.value_index * map->value_size);
+    }
+    else
+    {
+        return (void *)entry->v.value_embedded;
+    }
 }
 
 // Finds the index for a key, or the index where it should be inserted.
@@ -77,13 +100,15 @@ inline static int FindIndex(const hashmap_t *map, uint64_t key)
         return -1;
     }
 
-    int index = HashInt64(key) & (map->capacity - 1);
+    uint64_t hash = HashInt64(key);
+    int index = hash & (map->capacity - 1);
 
     for (int i = 0; i < map->capacity; ++i)
     {
         int try_index = (index + i) & (map->capacity - 1);
+        const hashmap_entry_t *entry = &map->entries[try_index];
 
-        if (!map->keys[try_index] || map->keys[try_index] == key)
+        if (!entry->occupied || entry->key_or_hash == key)
         {
             return try_index;
         }
@@ -105,10 +130,11 @@ inline static int FindIndexStr(const hashmap_t *map, const char *key,
     for (int i = 0; i < map->capacity; ++i)
     {
         int try_index = (index + i) & (map->capacity - 1);
+        const hashmap_entry_t *entry = &map->entries[try_index];
 
-        if (!map->keys[try_index]
-            || (map->keys[try_index] == hash
-                && strcmp(map->string_keys[try_index], key) == 0))
+        if (!entry->occupied
+            || (entry->key_or_hash == hash
+                && strcmp(entry->string_key, key) == 0))
         {
             return try_index;
         }
@@ -116,118 +142,102 @@ inline static int FindIndexStr(const hashmap_t *map, const char *key,
     return -1; // Should not happen if load factor < 1
 }
 
-// Resizes the hash map to a new capacity and re-hashes all entries.
+// Resizes the hash map's main table and re-hashes all entries.
 static void Resize(hashmap_t *map, int new_capacity)
 {
-    uint64_t *old_keys = map->keys;
-    char **old_string_keys = map->string_keys;
-    char *old_values = map->values;
+    hashmap_entry_t *old_entries = map->entries;
     int old_capacity = map->capacity;
 
-    map->keys = calloc(new_capacity, sizeof(uint64_t));
-    map->values = malloc(new_capacity * map->value_size);
+    map->entries = calloc(new_capacity, sizeof(hashmap_entry_t));
     map->capacity = new_capacity;
-
-    if (map->key_type == KEY_TYPE_STRING)
-    {
-        map->string_keys = calloc(new_capacity, sizeof(char *));
-    }
-    else
-    {
-        map->string_keys = NULL; // Ensure it's NULL if not a string map
-    }
 
     for (int i = 0; i < old_capacity; ++i)
     {
-        if (old_keys[i])
+        if (old_entries[i].occupied)
         {
-            int new_index;
+            uint64_t key_or_hash = old_entries[i].key_or_hash;
+            uint64_t hash;
             if (map->key_type == KEY_TYPE_STRING)
             {
-                new_index = old_keys[i] & (new_capacity - 1); // old_keys[i] is already hash
+                hash = key_or_hash;
             }
             else
             {
-                new_index = HashInt64(old_keys[i]) & (new_capacity - 1);
+                hash = HashInt64(key_or_hash);
             }
+            int new_index = hash & (new_capacity - 1);
 
-            while (map->keys[new_index])
+            while (map->entries[new_index].occupied)
             {
                 new_index = (new_index + 1) & (new_capacity - 1);
             }
-
-            map->keys[new_index] = old_keys[i];
-            if (map->key_type == KEY_TYPE_STRING)
-            {
-                map->string_keys[new_index] = old_string_keys[i];
-            }
-            void *old_value = old_values + i * map->value_size;
-            void *new_value = ValuePtr(map, new_index);
-            memcpy(new_value, old_value, map->value_size);
+            map->entries[new_index] = old_entries[i];
         }
     }
 
-    free(old_keys);
-    free(old_values);
-    if (old_string_keys)
+    free(old_entries);
+}
+
+static hashmap_t *Init(int initial_capacity, size_t value_size,
+                       hashmap_key_type_t key_type)
+{
+    hashmap_t *map = calloc(1, sizeof(hashmap_t));
+
+    int capacity = 16;
+    while (capacity < initial_capacity)
     {
-        free(old_string_keys);
+        capacity <<= 1;
     }
+
+    map->key_type = key_type;
+    map->entries = calloc(capacity, sizeof(hashmap_entry_t));
+    map->capacity = capacity;
+    map->size = 0;
+    map->value_size = value_size;
+    map->values_are_packed = value_size > sizeof(void *);
+
+    if (map->values_are_packed)
+    {
+        map->values_capacity = capacity;
+        map->values = malloc(map->values_capacity * value_size);
+    }
+    else
+    {
+        map->values_capacity = 0;
+        map->values = NULL;
+    }
+
+    return map;
 }
 
 hashmap_t *hashmap_init(int initial_capacity, size_t value_size)
 {
-    hashmap_t *map = calloc(1, sizeof(hashmap_t));
-
-    int capacity = 16;
-    while (capacity < initial_capacity)
-    {
-        capacity <<= 1;
-    }
-
-    map->key_type = KEY_TYPE_UINT64;
-    map->keys = calloc(capacity, sizeof(uint64_t));
-    map->string_keys = NULL;
-    map->values = malloc(capacity * value_size);
-    map->capacity = capacity;
-    map->size = 0;
-    map->value_size = value_size;
-
-    return map;
+    return Init(initial_capacity, value_size, KEY_TYPE_UINT64);
 }
 
 hashmap_t *hashmap_init_str(int initial_capacity, size_t value_size)
 {
-    hashmap_t *map = calloc(1, sizeof(hashmap_t));
-
-    int capacity = 16;
-    while (capacity < initial_capacity)
-    {
-        capacity <<= 1;
-    }
-
-    map->key_type = KEY_TYPE_STRING;
-    map->keys = calloc(capacity, sizeof(uint64_t));
-    map->string_keys = calloc(capacity, sizeof(char *));
-    map->values = malloc(capacity * value_size);
-    map->capacity = capacity;
-    map->size = 0;
-    map->value_size = value_size;
-
-    return map;
+    return Init(initial_capacity, value_size, KEY_TYPE_STRING);
 }
 
 void hashmap_free(hashmap_t *map)
 {
-    if (map->string_keys)
+    if (!map)
+    {
+        return;
+    }
+
+    if (map->key_type == KEY_TYPE_STRING)
     {
         for (int i = 0; i < map->capacity; ++i)
         {
-            free(map->string_keys[i]);
+            if (map->entries[i].occupied)
+            {
+                free(map->entries[i].string_key);
+            }
         }
-        free(map->string_keys);
     }
-    free(map->keys);
+    free(map->entries);
     free(map->values);
     free(map);
 }
@@ -240,10 +250,22 @@ void hashmap_put(hashmap_t *map, uint64_t key, const void *value)
     }
 
     int index = FindIndex(map, key);
+    hashmap_entry_t *entry = &map->entries[index];
 
-    if (!map->keys[index])
+    if (!entry->occupied)
     {
-        map->keys[index] = key;
+        entry->occupied = true;
+        entry->key_or_hash = key;
+        if (map->values_are_packed)
+        {
+            if (map->size >= map->values_capacity)
+            {
+                map->values_capacity *= 2;
+                map->values = realloc(map->values,
+                                      map->values_capacity * map->value_size);
+            }
+            entry->v.value_index = map->size;
+        }
         map->size++;
     }
 
@@ -256,7 +278,7 @@ void *hashmap_get(const hashmap_t *map, uint64_t key)
     int index = FindIndex(map, key);
     if (index != -1)
     {
-        if (map->keys[index])
+        if (map->entries[index].occupied)
         {
             return ValuePtr(map, index);
         }
@@ -271,10 +293,36 @@ int hashmap_size(const hashmap_t *map)
 
 hashmap_t *M_HashMapCopy(const hashmap_t *from)
 {
-    hashmap_t *to = hashmap_init(from->capacity, from->value_size);
+    hashmap_t *to = calloc(1, sizeof(hashmap_t));
+
+    to->key_type = from->key_type;
+    to->capacity = from->capacity;
+    to->values_capacity = from->values_capacity;
     to->size = from->size;
-    memcpy(to->keys, from->keys, from->capacity * sizeof(uint64_t));
-    memcpy(to->values, from->values, from->capacity * from->value_size);
+    to->value_size = from->value_size;
+    to->values_are_packed = from->values_are_packed;
+
+    to->entries = malloc(from->capacity * sizeof(hashmap_entry_t));
+    memcpy(to->entries, from->entries, from->capacity * sizeof(hashmap_entry_t));
+
+    if (from->key_type == KEY_TYPE_STRING)
+    {
+        for (int i = 0; i < to->capacity; i++)
+        {
+            if (to->entries[i].occupied)
+            {
+                to->entries[i].string_key =
+                    M_StringDuplicate(from->entries[i].string_key);
+            }
+        }
+    }
+
+    if (from->values_are_packed)
+    {
+        to->values = malloc(from->values_capacity * from->value_size);
+        memcpy(to->values, from->values, from->size * from->value_size);
+    }
+
     return to;
 }
 
@@ -290,12 +338,12 @@ void *hashmap_next(hashmap_iterator_t *iter, uint64_t *key_out)
 {
     while (++iter->index < iter->map->capacity)
     {
-        uint64_t key = iter->map->keys[iter->index];
-        if (key)
+        const hashmap_entry_t *entry = &iter->map->entries[iter->index];
+        if (entry->occupied)
         {
-            if (key_out)
+            if (key_out && iter->map->key_type == KEY_TYPE_UINT64)
             {
-                *key_out = key;
+                *key_out = entry->key_or_hash;
             }
             return ValuePtr(iter->map, iter->index);
         }
@@ -307,7 +355,7 @@ void hashmap_put_str(hashmap_t *map, const char *key, const void *value)
 {
     if (map->key_type != KEY_TYPE_STRING)
     {
-        // This map was not initialized for string keys.
+        I_Error("This hashmap was not initialized for string keys.");
         return;
     }
 
@@ -318,11 +366,23 @@ void hashmap_put_str(hashmap_t *map, const char *key, const void *value)
 
     uint64_t hash = HashString(key);
     int index = FindIndexStr(map, key, hash);
+    hashmap_entry_t *entry = &map->entries[index];
 
-    if (!map->keys[index])
+    if (!entry->occupied)
     {
-        map->keys[index] = hash;
-        map->string_keys[index] = M_StringDuplicate(key);
+        entry->occupied = true;
+        entry->key_or_hash = hash;
+        entry->string_key = M_StringDuplicate(key);
+        if (map->values_are_packed)
+        {
+            if (map->size >= map->values_capacity)
+            {
+                map->values_capacity *= 2;
+                map->values = realloc(map->values,
+                                      map->values_capacity * map->value_size);
+            }
+            entry->v.value_index = map->size;
+        }
         map->size++;
     }
 
@@ -343,7 +403,7 @@ void *hashmap_get_str(const hashmap_t *map, const char *key)
 
     if (index != -1)
     {
-        if (map->keys[index])
+        if (map->entries[index].occupied)
         {
             return ValuePtr(map, index);
         }
@@ -356,12 +416,12 @@ void *hashmap_next_str(hashmap_iterator_t *iter, const char **key_out)
 {
     while (++iter->index < iter->map->capacity)
     {
-        uint64_t key = iter->map->keys[iter->index];
-        if (key)
+        const hashmap_entry_t *entry = &iter->map->entries[iter->index];
+        if (entry->occupied && iter->map->key_type == KEY_TYPE_STRING)
         {
             if (key_out)
             {
-                *key_out = iter->map->string_keys[iter->index];
+                *key_out = entry->string_key;
             }
             return ValuePtr(iter->map, iter->index);
         }
