@@ -75,7 +75,7 @@ static void ParseSoundDefinition(scanner_t *s, sound_def_t **sound_defs)
         return;
     }
 
-    SC_MustGetToken(s, TK_RawString);
+    SC_GetNextToken(s, true);
     def.lump_name = M_StringDuplicate(SC_GetString(s));
     def.lumpnum = W_CheckNumForName(def.lump_name);
 
