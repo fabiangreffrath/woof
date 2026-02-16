@@ -91,6 +91,12 @@ static void ParseSoundDefinition(scanner_t *s, sound_def_t **sound_defs)
         return;
     }
 
+    // Skip rest of line.
+    if (SC_SameLine(s))
+    {
+        SC_GetNextLineToken(s);
+    }
+
     // If there are multiple sound definitions with the same sound name, only
     // the last sound definition will be used.
     for (int i = 0; i < array_size(*sound_defs); i++)
