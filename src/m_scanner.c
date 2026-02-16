@@ -281,93 +281,59 @@ boolean SC_GetNextToken(scanner_t *s, boolean expandstate)
     boolean float_has_exponent = false;
     boolean string_finished =
         false; // Strings are the only things that can have 0 length tokens.
-    boolean is_negative = false;
 
     char cur = s->data[s->scanpos++];
-
-    // Check for negative number first
-    if (cur == '-' && s->scanpos < s->length)
+    // Determine by first character
+    if (cur == '_' || (cur >= 'A' && cur <= 'Z') || (cur >= 'a' && cur <= 'z'))
     {
-        char next_char = s->data[s->scanpos];
-        if (next_char >= '0' && next_char <= '9')
-        {
-            is_negative = true;
-            start = s->scanpos - 1; // Include the minus sign in the token
-            cur = s->data[s->scanpos++]; // Move to the digit after '-'
-            s->nextstate.token = TK_IntConst;
-            if (cur == '0')
-            {
-                integer_base = 8;
-            }
-        }
-        else if (next_char == '.' && s->scanpos + 1 < s->length)
-        {
-            char after_dot = s->data[s->scanpos + 1];
-            if (after_dot >= '0' && after_dot <= '9')
-            {
-                is_negative = true;
-                start = s->scanpos - 1; // Include the minus sign in the token
-                cur = s->data[s->scanpos++]; // Move to the '.' after '-'
-                float_has_decimal = true;
-                s->nextstate.token = TK_FloatConst;
-            }
-        }
+        s->nextstate.token = TK_Identifier;
     }
-
-    // If not a negative number, determine by first character
-    if (!is_negative)
+    else if (cur >= '0' && cur <= '9')
     {
-        if (cur == '_' || (cur >= 'A' && cur <= 'Z') || (cur >= 'a' && cur <= 'z'))
+        if (cur == '0')
         {
-            s->nextstate.token = TK_Identifier;
+            integer_base = 8;
         }
-        else if (cur >= '0' && cur <= '9')
+        s->nextstate.token = TK_IntConst;
+    }
+    else if (cur == '.' && s->scanpos < s->length && s->data[s->scanpos] != '.')
+    {
+        float_has_decimal = true;
+        s->nextstate.token = TK_FloatConst;
+    }
+    else if (cur == '"')
+    {
+        end = ++start; // Move the start up one character so we don't have to
+                       // trim it later.
+        s->nextstate.token = TK_StringConst;
+    }
+    else
+    {
+        end = s->scanpos;
+        s->nextstate.token = cur;
+
+        // Now check for operator tokens
+        if (s->scanpos < s->length)
         {
-            if (cur == '0')
+            char next = s->data[s->scanpos];
+
+            if (cur == ':' && next == ':')
             {
-                integer_base = 8;
+                s->nextstate.token = TK_ScopeResolution;
             }
-            s->nextstate.token = TK_IntConst;
-        }
-        else if (cur == '.' && s->scanpos < s->length && s->data[s->scanpos] != '.')
-        {
-            float_has_decimal = true;
-            s->nextstate.token = TK_FloatConst;
-        }
-        else if (cur == '"')
-        {
-            end = ++start; // Move the start up one character so we don't have to
-                           // trim it later.
-            s->nextstate.token = TK_StringConst;
-        }
-        else
-        {
-            end = s->scanpos;
-            s->nextstate.token = cur;
-
-            // Now check for operator tokens
-            if (s->scanpos < s->length)
+            else if (cur == '/' && next == '*')
             {
-                char next = s->data[s->scanpos];
+                s->nextstate.token = TK_AnnotateStart;
+            }
+            else if (cur == '*' && next == '/')
+            {
+                s->nextstate.token = TK_AnnotateEnd;
+            }
 
-                if (cur == ':' && next == ':')
-                {
-                    s->nextstate.token = TK_ScopeResolution;
-                }
-                else if (cur == '/' && next == '*')
-                {
-                    s->nextstate.token = TK_AnnotateStart;
-                }
-                else if (cur == '*' && next == '/')
-                {
-                    s->nextstate.token = TK_AnnotateEnd;
-                }
-
-                if (s->nextstate.token != cur)
-                {
-                    s->scanpos++;
-                    end = s->scanpos;
-                }
+            if (s->nextstate.token != cur)
+            {
+                s->scanpos++;
+                end = s->scanpos;
             }
         }
     }
@@ -692,6 +658,8 @@ void SC_Rewind(scanner_t *s) // Only can rewind one step.
     s->line = s->prevstate.tokenline;
     s->logicalpos = s->prevstate.tokenlinepos;
     s->scanpos = s->prevstate.scanpos;
+
+    CheckForWhitespace(s);
 }
 
 boolean SC_SameLine(scanner_t *s)

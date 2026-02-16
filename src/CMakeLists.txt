@@ -18,6 +18,11 @@ set(WOOF_SOURCES
                            doomdef.h
     doomstat.c             doomstat.h
                            doomtype.h
+                           decl_defs.h
+    decl_main.c            decl_main.h
+                           decl_misc.h
+    decl_props.c
+    decl_states.c
     deh_ammo.c
     deh_bex_helper.c
     deh_bex_includes.c
@@ -93,7 +98,7 @@ set(WOOF_SOURCES
     m_bbox.c               m_bbox.h
     m_cheat.c              m_cheat.h
     m_config.c             m_config.h
-                           m_hashmap.h
+    m_hashmap.c            m_hashmap.h
                            m_fixed.h
     m_input.c              m_input.h
     m_io.c                 m_io.h

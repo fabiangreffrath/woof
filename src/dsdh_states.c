@@ -20,11 +20,14 @@
 state_t *states = NULL;
 int num_states;
 
+static int max_frame_number;
+
 static hashmap_t *translate;
 
 void DSDH_StatesInit(void)
 {
     num_states = NUMSTATES;
+    max_frame_number = NUMSTATES - 1;
 
     array_resize(states, NUMSTATES);
     memcpy(states, original_states, NUMSTATES * sizeof(*states));
@@ -32,6 +35,8 @@ void DSDH_StatesInit(void)
 
 int DSDH_StateTranslate(int frame_number)
 {
+    max_frame_number = MAX(max_frame_number, frame_number);
+
     if (frame_number < NUMSTATES)
     {
         return frame_number;
@@ -39,21 +44,27 @@ int DSDH_StateTranslate(int frame_number)
 
     if (!translate)
     {
-        translate = hashmap_init(2048);
+        translate = hashmap_init(2048, sizeof(int));
     }
 
-    int index;
-    if (hashmap_get(translate, frame_number, &index))
+    int *index = hashmap_get(translate, frame_number);
+    if (index)
     {
-        return index;
+        return *index;
     }
 
-    index = num_states;
-    hashmap_put(translate, frame_number, &index);
+    int new_index = num_states;
+    hashmap_put(translate, frame_number, &new_index);
 
-    state_t state = {.sprite = SPR_TNT1, .tics = -1, .nextstate = index};
+    state_t state = {.sprite = SPR_TNT1, .tics = -1, .nextstate = new_index};
     array_push(states, state);
     ++num_states;
 
-    return index;
+    return new_index;
+}
+
+int DSDH_StatesGetNewIndex(void)
+{
+    ++max_frame_number;
+    return DSDH_StateTranslate(max_frame_number);
 }

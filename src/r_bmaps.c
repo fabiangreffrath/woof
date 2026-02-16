@@ -62,12 +62,15 @@ static void ReadColormask(scanner_t *s, byte *colormask)
         {
             colormask[color1] = 1;
         }
-        if (!SC_CheckToken(s, TK_IntConst))
+
+        if (!SC_CheckToken(s, '-'))
         {
             continue;
         }
-        color2 = abs(SC_GetNumber(s));
-        if (color2 < COLORMASK_SIZE)
+
+        SC_MustGetToken(s, TK_IntConst);
+        color2 = SC_GetNumber(s);
+        if (color2 >= 0 && color2 < COLORMASK_SIZE)
         {
             for (int i = color1 + 1; i <= color2; ++i)
             {

@@ -19,11 +19,14 @@
 char **sprnames = NULL;
 int num_sprites;
 
+static int max_sprite_number;
+
 static hashmap_t *translate;
 
 void DSDH_SpritesInit(void)
 {
     num_sprites = NUMSPRITES;
+    max_sprite_number = NUMSPRITES - 1;
 
     array_resize(sprnames, NUMSPRITES);
     for (int i = 0; i < NUMSPRITES; ++i)
@@ -34,6 +37,8 @@ void DSDH_SpritesInit(void)
 
 int DSDH_SpriteTranslate(int sprite_number)
 {
+    max_sprite_number = MAX(max_sprite_number, sprite_number);
+
     if (sprite_number < NUMSPRITES)
     {
         return sprite_number;
@@ -41,20 +46,26 @@ int DSDH_SpriteTranslate(int sprite_number)
 
     if (!translate)
     {
-        translate = hashmap_init(1024);
+        translate = hashmap_init(1024, sizeof(int));
     }
 
-    int index;
-    if (hashmap_get(translate, sprite_number, &index))
+    int *index = hashmap_get(translate, sprite_number);
+    if (index)
     {
-        return index;
+        return *index;
     }
 
-    index = num_sprites;
-    hashmap_put(translate, sprite_number, &index);
+    int new_index = num_sprites;
+    hashmap_put(translate, sprite_number, &new_index);
 
     array_push(sprnames, NULL);
     ++num_sprites;
 
-    return index;
+    return new_index;
+}
+
+int DSDH_SpritesGetNewIndex(void)
+{
+    ++max_sprite_number;
+    return DSDH_SpriteTranslate(max_sprite_number);
 }
