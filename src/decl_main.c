@@ -301,6 +301,25 @@ static int InstallMobjInfo(void)
                 case prop_dropitem:
                     mobj->droppeditem = value.number;
                     break;
+                case prop_infighting_group:
+                    mobj->infighting_group = value.number;
+                    break;
+                case prop_projectile_group:
+                    mobj->projectile_group = value.number;
+                    break;
+                case prop_splash_group:
+                    mobj->splash_group = value.number;
+                    break;
+                case prop_ripsound:
+                    mobj->ripsound = value.number;
+                    break;
+                case prop_altspeed:
+                    mobj->altspeed = value.number;
+                    break;
+                case prop_meleerange:
+                    mobj->meleerange = value.number;
+                    break;
+
                 case prop_obituary:
                     mobj->obituary = value.string;
                     break;

@@ -53,9 +53,15 @@ typedef enum
     prop_activesound,
     prop_dropitem,
 
+    prop_infighting_group,
+    prop_projectile_group,
+    prop_splash_group,
+    prop_ripsound,
+    prop_altspeed,
+    prop_meleerange,
+
     prop_renderstyle,
     prop_translation,
-
     prop_obituary,
     prop_obituary_melee,
     prop_obituary_self,

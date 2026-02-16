@@ -185,7 +185,8 @@ typedef enum
     TYPE_Fixed,
     TYPE_Sound,
     TYPE_Item,
-    TYPE_String
+    TYPE_String,
+    TYPE_Group,
 } valtype_t;
 
 static struct
@@ -207,10 +208,18 @@ static struct
     [prop_damage] =       {TYPE_Int,   "Damage"      },
     [prop_activesound] =  {TYPE_Sound, "ActiveSound" },
 
+    // MBF21
+    [prop_dropitem] =         {TYPE_Item,  "DropItem"},
+    [prop_infighting_group] = {TYPE_Group, "InfightingGroup"},
+    [prop_projectile_group] = {TYPE_Group, "ProjectileGroup"},
+    [prop_splash_group] =     {TYPE_Group, "SplashGroup"},
+    [prop_ripsound] =         {TYPE_Sound, "RipSound"},
+    [prop_altspeed] =         {TYPE_Int,   "AltSpeed"},
+    [prop_meleerange] =       {TYPE_Fixed, "MeleeRange"},
+
     // Declarate
     [prop_renderstyle] =    {TYPE_None,  "RenderStyle"},
     [prop_translation] =    {TYPE_None,  "Translation"},
-    [prop_dropitem] =       {TYPE_Item,  "DropItem"},
     [prop_obituary] =       {TYPE_String, "Obituary"},
     [prop_obituary_melee] = {TYPE_String, "HitObituary"},
     [prop_obituary_self] =  {TYPE_String, "SelfObituary"}
@@ -261,6 +270,42 @@ static int ItemMapping(scanner_t *sc)
         }
     }
     return MT_NULL;
+}
+
+static int GroupMapping(scanner_t *sc, proptype_t type)
+{
+    SC_MustGetToken(sc, TK_IntConst);
+    int ivalue = SC_GetNumber(sc);
+    switch (type)
+    {
+        case prop_infighting_group:
+            if (ivalue < 0)
+            {
+                SC_Error(sc, "Infighting groups must be >= 0.");
+            }
+            ivalue += IG_END;
+            break;
+        case prop_projectile_group:
+            if (ivalue >= PG_DEFAULT)
+            {
+                ivalue += PG_END;
+            }
+            else
+            {
+                ivalue = PG_GROUPLESS;
+            }
+            break;
+        case prop_splash_group:
+            if (ivalue < 0)
+            {
+                SC_Error(sc, "Splash groups must be >= 0.");
+            }
+            ivalue += SG_END;
+            break;
+        default:
+            break;
+    }
+    return ivalue;
 }
 
 void DECL_ParseActorProperty(scanner_t *sc, proplist_t *proplist)
@@ -333,6 +378,9 @@ void DECL_ParseActorProperty(scanner_t *sc, proplist_t *proplist)
                         break;
                     case TYPE_Item:
                         value.number = ItemMapping(sc);
+                        break;
+                    case TYPE_Group:
+                        value.number = GroupMapping(sc, type);
                         break;
                     default:
                         break;
