@@ -27,6 +27,7 @@
 // OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 // SUCH DAMAGE.
 
+#include <stdio.h>
 #include <string.h>
 
 #include "decl_defs.h"
@@ -43,7 +44,14 @@
 #include "w_wad.h"
 #include "z_zone.h"
 
-static hashmap_t *actorclasses;
+typedef struct
+{
+    int major;
+    int minor;
+    int revision;
+} version_t;
+
+static hashmap_t *actors;
 
 static void ParseActorBody(scanner_t *sc, actor_t *actor)
 {
@@ -88,7 +96,7 @@ static void ParseActorBody(scanner_t *sc, actor_t *actor)
 
 static int ReplaceActor(scanner_t *sc, const char *name)
 {
-    actor_t *actor = hashmap_get_str(actorclasses, name);
+    actor_t *actor = hashmap_get_str(actors, name);
     if (!actor)
     {
         SC_Error(sc, "Actor '%s' is not found.", name);
@@ -120,7 +128,7 @@ static void ParseActor(scanner_t *sc)
         SC_MustGetToken(sc, TK_Identifier);
         char *parent_name = M_StringDuplicate(SC_GetString(sc));
         M_StringToLower(parent_name);
-        actor_t *parent = hashmap_get_str(actorclasses, parent_name);
+        actor_t *parent = hashmap_get_str(actors, parent_name);
         if (!parent)
         {
             SC_Error(sc, "Unknown parent actor '%s'.", parent_name);
@@ -169,14 +177,31 @@ static void ParseActor(scanner_t *sc)
     }
 
     ParseActorBody(sc, &actor);
-    hashmap_put_str(actorclasses, actor.name, &actor);
+    hashmap_put_str(actors, actor.name, &actor);
 }
 
 static void ParseDecorate(scanner_t *sc)
 {
-    if (!actorclasses)
+    if (!actors)
     {
-        actorclasses = hashmap_init_str(16, sizeof(actor_t));
+        actors = hashmap_init_str(16, sizeof(actor_t));
+    }
+
+    SC_MustGetToken(sc, TK_Identifier);
+    boolean found = false;
+    if (!strcasecmp("version", SC_GetString(sc)))
+    {
+        SC_MustGetToken(sc, TK_StringConst);
+        const char *string = SC_GetString(sc);
+        version_t v;
+        if (sscanf(string, "%d.%d.%d", &v.major, &v.minor, &v.revision) == 3)
+        {
+            found = true;
+        }
+    }
+    if (!found)
+    {
+        SC_Error(sc, "Must include version.");
     }
 
     while (SC_TokensLeft(sc))
@@ -207,7 +232,7 @@ static int InstallMobjInfo(void)
 {
     int start_mobjtype = -1;
     actor_t *actor;
-    hashmap_foreach(actor, actorclasses)
+    hashmap_foreach(actor, actors)
     {
         if (actor->native)
         {
@@ -301,7 +326,7 @@ static void ResolveMobjInfoStatePointers(int start_statenum, int start_mobjtype)
     }
 
     actor_t *actor;
-    hashmap_foreach(actor, actorclasses)
+    hashmap_foreach(actor, actors)
     {
         if (actor->native)
         {
@@ -358,7 +383,7 @@ static int ResolveArg(const actor_t *owner, const arg_t *arg,
     {
         case arg_thing:
             {
-                actor_t *actor = hashmap_get_str(actorclasses, arg->data.string);
+                actor_t *actor = hashmap_get_str(actors, arg->data.string);
                 if (actor && !actor->native)
                 {
                     return start_mobjtype + actor->installnum + 1;
@@ -455,7 +480,7 @@ static int InstallStates(int start_mobjtype)
     // Pass 1: Calculate state offsets and fill label->tablepos
     int total_states = 0;
     actor_t *actor;
-    hashmap_foreach(actor, actorclasses)
+    hashmap_foreach(actor, actors)
     {
         if (actor->native)
         {
@@ -483,7 +508,7 @@ static int InstallStates(int start_mobjtype)
 
     // Pass 2: Install states
     int start_statenum = -1;
-    hashmap_foreach(actor, actorclasses)
+    hashmap_foreach(actor, actors)
     {
         if (actor->native)
         {
@@ -561,7 +586,7 @@ void DECL_Install(void)
 {
     int install_count = 0;
     actor_t *actor;
-    hashmap_foreach(actor, actorclasses)
+    hashmap_foreach(actor, actors)
     {
         if (!actor->native)
         {
