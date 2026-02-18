@@ -231,6 +231,8 @@ static void ParseDecorate(scanner_t *sc)
 static int InstallMobjInfo(void)
 {
     int start_mobjtype = -1;
+    int install_count = 0;
+
     actor_t *actor;
     hashmap_foreach(actor, actors)
     {
@@ -238,6 +240,8 @@ static int InstallMobjInfo(void)
         {
             continue;
         }
+
+        actor->installnum = install_count++;
 
         mobjtype_t mobjtype = DSDH_MobjInfoGetNewIndex();
         if (start_mobjtype == -1)
@@ -603,15 +607,6 @@ static int InstallStates(int start_mobjtype)
 
 void DECL_Install(void)
 {
-    int install_count = 0;
-    actor_t *actor;
-    hashmap_foreach(actor, actors)
-    {
-        if (!actor->native)
-        {
-            actor->installnum = install_count++;
-        }
-    }
     int start_mobjtype = InstallMobjInfo();
     int start_statenum = InstallStates(start_mobjtype);
     ResolveMobjInfoStatePointers(start_statenum, start_mobjtype);

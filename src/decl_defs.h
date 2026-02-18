@@ -171,16 +171,15 @@ typedef struct actor_s actor_t;
 struct actor_s
 {
     char *name;
-    char *replaces;
     boolean native;
     int doomednum;
     actor_t *parent;
     proplist_t props;
     dstate_t *states;
     label_t *labels;
-    int installnum;
     int tablepos;
     int numstates;
+    int installnum;
 };
 
 void DECL_ParseArgFlag(scanner_t *sc, arg_t *arg);

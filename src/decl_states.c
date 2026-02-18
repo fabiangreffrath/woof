@@ -322,11 +322,10 @@ static void ParseArg(scanner_t *sc, arg_t *arg)
             arg->value = DECL_SoundMapping(sc);
             break;
         case arg_flags:
-            DECL_ParseArgFlag(sc, arg);
-            while (SC_CheckToken(sc, '+') || SC_CheckToken(sc, '|'))
+            do
             {
                 DECL_ParseArgFlag(sc, arg);
-            }
+            } while (SC_CheckToken(sc, '+') || SC_CheckToken(sc, '|'));
             break;
     }
 }
