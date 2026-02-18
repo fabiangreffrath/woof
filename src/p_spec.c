@@ -2259,16 +2259,23 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line, int side)
 
     // ID24 Music Changers
     case 2061: case 2067: case 2091: case 2097:
+      P_ChangeSwitchTexture(line,0);
+      EV_ChangeMusic(line, side);
+      break;
+
     case 2062: case 2068: case 2092: case 2098:
+      P_ChangeSwitchTexture(line,1);
       EV_ChangeMusic(line, side);
       break;
 
     case 2080:
-      dirty_line(line)->special = 0;
-      // fallthrough
-
     case 2081:
     {
+      if (line->special == 2080)
+        P_ChangeSwitchTexture(line,0);
+      else
+        P_ChangeSwitchTexture(line,1);
+
       int colormap_index = side ? line->backtint : line->fronttint;
       for (int s = -1; (s = P_FindSectorFromLineTag(line, s)) >= 0;)
       {
