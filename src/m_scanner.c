@@ -46,7 +46,6 @@ static const char* const token_names[] =
     [TK_FloatConst] = "Float Constant",
     [TK_AnnotateStart] = "Annotation Start",
     [TK_AnnotateEnd] = "Annotation End",
-    [TK_RawString] = "Raw String"
 };
 
 typedef struct
@@ -511,46 +510,6 @@ boolean SC_GetNextToken(scanner_t *s, boolean expandstate)
     return false;
 }
 
-static boolean SC_GetNextTokenRawString(scanner_t *s)
-{
-    if (!s->neednext)
-    {
-        s->neednext = true;
-        return true;
-    }
-
-    s->nextstate.tokenline = s->line;
-    s->nextstate.tokenlinepos = s->scanpos - s->linestart;
-    s->nextstate.token = TK_NoToken;
-    if (s->scanpos >= s->length)
-    {
-        return false;
-    }
-
-    int start = s->scanpos++;
-    while (s->scanpos < s->length)
-    {
-        char cur = s->data[s->scanpos];
-        if (cur == ' ' || cur == '\t' || cur == '\n' || cur == '\r' || cur == 0)
-        {
-            break;
-        }
-        s->scanpos++;
-    }
-    s->nextstate.scanpos = s->scanpos;
-
-    int length = s->scanpos - start;
-    if (length > 0)
-    {
-        s->nextstate.token = TK_RawString;
-        CopyString(&s->nextstate, s->data + start, length);
-        return true;
-    }
-
-    s->nextstate.token = TK_NoToken;
-    return false;
-}
-
 // Skips all Tokens in current line and parses the first token on the next
 // line.
 void SC_GetNextLineToken(scanner_t *s)
@@ -564,14 +523,7 @@ boolean SC_CheckToken(scanner_t *s, char token)
 {
     if (s->neednext)
     {
-        if (token == TK_RawString)
-        {
-            if (!SC_GetNextTokenRawString(s))
-            {
-                return false;
-            }
-        }
-        else if (!SC_GetNextToken(s, false))
+        if (!SC_GetNextToken(s, false))
         {
             return false;
         }
@@ -579,9 +531,7 @@ boolean SC_CheckToken(scanner_t *s, char token)
 
     if (s->nextstate.token == token
         // An int can also be a float.
-        || (s->nextstate.token == TK_IntConst && token == TK_FloatConst)
-        // Raw string can also be a identifier
-        || (s->nextstate.token == TK_Identifier && token == TK_RawString))
+        || (s->nextstate.token == TK_IntConst && token == TK_FloatConst))
     {
         s->neednext = true;
         ExpandState(s);
@@ -679,6 +629,175 @@ void SC_MustGetStringOrIdent(scanner_t *s)
     {
         SC_Error(s, "expected string constant or identifier");
     }
+}
+
+static boolean GetNextRawString(scanner_t *s, char delimiter,
+                                boolean expandstate)
+{
+    s->nextstate.tokenline = s->line;
+    s->nextstate.tokenlinepos = s->scanpos - s->linestart;
+    s->nextstate.token = TK_NoToken;
+
+    CheckForWhitespace(s);
+
+    if (s->scanpos >= s->length)
+    {
+        if (expandstate)
+        {
+            ExpandState(s);
+        }
+        return false;
+    }
+
+    int start = s->scanpos;
+    int end = s->scanpos;
+    boolean quoted = false;
+    boolean string_finished = false;
+
+    // Check if string starts with a quote
+    if (s->data[s->scanpos] == '"')
+    {
+        quoted = true;
+        start = ++s->scanpos; // Skip opening quote
+    }
+
+    while (s->scanpos < s->length)
+    {
+        char cur = s->data[s->scanpos];
+        if (quoted)
+        {
+            if (cur == '"')
+            {
+                string_finished = true;
+                end = s->scanpos;
+                s->scanpos++; // Skip closing quote
+                break;
+            }
+            else if (cur == '\\')
+            {
+                s->scanpos++; // Skip escape character
+            }
+            else if (cur == '\n' || cur == '\r')
+            {
+                // Unterminated string - treat as error or end at line
+                end = s->scanpos;
+                break;
+            }
+        }
+        else
+        {
+            if (cur == delimiter || cur == ' ' || cur == '\t'
+                || cur == '\n' || cur == '\r' || cur == 0)
+            {
+                end = s->scanpos;
+                if (delimiter)
+                {
+                    s->scanpos++;
+                }
+                break;
+            }
+        }
+        s->scanpos++;
+    }
+
+    if (s->scanpos == s->length && !string_finished)
+    {
+        end = s->scanpos;
+    }
+
+    s->nextstate.scanpos = s->scanpos;
+
+    if (end - start > 0 || (quoted && string_finished))
+    {
+        CopyString(&s->nextstate, s->data + start, end - start);
+        if (quoted)
+        {
+            Unescape(s->nextstate.string);
+        }
+        s->nextstate.token = TK_StringConst;
+        if (expandstate)
+        {
+            ExpandState(s);
+        }
+        return true;
+    }
+
+    if (expandstate)
+    {
+        ExpandState(s);
+    }
+    return false;
+}
+
+boolean SC_GetNextRawString(scanner_t *s, boolean expandstate)
+{
+    if (!s->neednext)
+    {
+        s->neednext = true;
+        if (expandstate)
+        {
+            ExpandState(s);
+        }
+        return true;
+    }
+
+    return GetNextRawString(s, 0, expandstate);
+}
+
+boolean SC_CheckRawString(scanner_t *s)
+{
+    if (s->neednext)
+    {
+        if (!SC_GetNextRawString(s, false))
+        {
+            return false;
+        }
+    }
+
+    if (s->nextstate.token == TK_StringConst)
+    {
+        s->neednext = true;
+        ExpandState(s);
+        return true;
+    }
+    s->neednext = false;
+    return false;
+}
+
+boolean SC_GetNextRawStringUntil(scanner_t *s, char delimiter,
+                                 boolean expandstate)
+{
+    if (!s->neednext)
+    {
+        s->neednext = true;
+        if (expandstate)
+        {
+            ExpandState(s);
+        }
+        return true;
+    }
+
+    return GetNextRawString(s, delimiter, expandstate);
+}
+
+boolean SC_CheckRawStringUntil(scanner_t *s, char delimiter)
+{
+    if (s->neednext)
+    {
+        if (!SC_GetNextRawStringUntil(s, delimiter, false))
+        {
+            return false;
+        }
+    }
+
+    if (s->nextstate.token == TK_StringConst)
+    {
+        s->neednext = true;
+        ExpandState(s);
+        return true;
+    }
+    s->neednext = false;
+    return false;
 }
 
 boolean SC_TokensLeft(scanner_t *s)

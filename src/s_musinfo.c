@@ -78,7 +78,10 @@ void S_ParseMusInfo(const char *mapid)
             // Check number in range
             if (num > 0 && num < MAX_MUS_ENTRIES)
             {
-                SC_MustGetToken(s, TK_RawString);
+                if (!SC_CheckRawString(s))
+                {
+                    I_Printf(VB_WARNING, "S_ParseMusInfo: Expected MUS lump");
+                }
                 lumpnum = W_CheckNumForName(SC_GetString(s));
                 if (lumpnum > 0)
                 {

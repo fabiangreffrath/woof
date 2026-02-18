@@ -121,7 +121,10 @@ static boolean ParseProperty(scanner_t *s, elem_t *elem)
 
     int game = DOOM1AND2;
 
-    SC_MustGetToken(s, TK_RawString);
+    if (!SC_CheckRawString(s))
+    {
+        SC_Error(s, "name not found");
+    }
     name = M_StringDuplicate(SC_GetString(s));
     SC_MustGetToken(s, TK_Identifier);
     idx = GetBrightmap(SC_GetString(s));

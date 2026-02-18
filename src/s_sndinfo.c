@@ -68,14 +68,13 @@ static void ParseSoundDefinition(scanner_t *s, sound_def_t **sound_defs)
     // Skip equal sign if found.
     SC_CheckToken(s, '=');
 
-    if (!SC_SameLine(s))
+    if (!SC_SameLine(s) || !SC_CheckRawString(s))
     {
         SC_Warning(s, "expected lump name");
         free(def.sound_name);
         return;
     }
 
-    SC_GetNextToken(s, true);
     def.lump_name = M_StringDuplicate(SC_GetString(s));
     def.lumpnum = W_CheckNumForName(def.lump_name);
 
@@ -140,7 +139,10 @@ static void ParseAmbientSoundCommand(scanner_t *s, char ***sound_names,
     const int array_index = index - 1;
 
     // Sound name
-    SC_MustGetToken(s, TK_RawString);
+    if (!SC_CheckRawString(s))
+    {
+        SC_Error(s, "logical name not found");
+    }
     char *sound_name = M_StringDuplicate(SC_GetString(s));
 
     // Type is optional, but mode is required.
@@ -317,7 +319,7 @@ static boolean SkipRandomSoundCommand(scanner_t *s)
 
     while (SC_TokensLeft(s))
     {
-        SC_CheckToken(s, TK_RawString);
+        SC_CheckRawString(s);
         const char *string = SC_GetString(s);
 
         if (string[0] == '{' && brackets_found == 0)
@@ -383,7 +385,7 @@ void S_ParseSndInfo(int lumpnum)
 
     while (SC_TokensLeft(s))
     {
-        SC_CheckToken(s, TK_RawString);
+        SC_CheckRawStringUntil(s, '=');
         const char *string = SC_GetString(s);
         if (string[0] != '$')
         {
