@@ -68,13 +68,15 @@ static void ParseSoundDefinition(scanner_t *s, sound_def_t **sound_defs)
     // Skip equal sign if found.
     SC_CheckToken(s, '=');
 
-    if (!SC_SameLine(s) || !SC_CheckRawString(s))
+    if (!SC_SameLine(s))
     {
         SC_Warning(s, "expected lump name");
         free(def.sound_name);
+        SC_GetNextLineToken(s);
         return;
     }
 
+    SC_GetNextRawString(s, true);
     def.lump_name = M_StringDuplicate(SC_GetString(s));
     def.lumpnum = W_CheckNumForName(def.lump_name);
 
