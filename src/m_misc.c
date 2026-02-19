@@ -19,7 +19,6 @@
 
 #include <SDL3/SDL.h>
 
-#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -640,24 +639,15 @@ char *AddDefaultExtension(const char *path, const char *ext)
 
 boolean M_WriteFile(char const *name, const void *source, int length)
 {
-    FILE *fp;
+    boolean success = SDL_SaveFile(name, source, length);
 
-    errno = 0;
-
-    if (!(fp = M_fopen(name, "wb"))) // Try opening file
+    if (!success)
     {
-        return 0; // Could not open file for writing
+        M_remove(name); // Remove partially written file
+        I_Printf(VB_ERROR, "Couldn't write file %s: %s", name, SDL_GetError());
     }
 
-    length = fwrite(source, 1, length, fp) == length; // Write data
-    fclose(fp);
-
-    if (!length) // Remove partially written file
-    {
-        M_remove(name);
-    }
-
-    return length;
+    return success;
 }
 
 //
@@ -667,29 +657,18 @@ boolean M_WriteFile(char const *name, const void *source, int length)
 
 int M_ReadFile(char const *name, byte **buffer)
 {
-    FILE *fp;
+    size_t datasize;
+    char *data = SDL_LoadFile(name, &datasize);
 
-    errno = 0;
-
-    if ((fp = M_fopen(name, "rb")))
+    if (data)
     {
-        size_t length;
-
-        fseek(fp, 0, SEEK_END);
-        length = ftell(fp);
-        fseek(fp, 0, SEEK_SET);
-        *buffer = Z_Malloc(length, PU_STATIC, 0);
-        if (fread(*buffer, 1, length, fp) == length)
-        {
-            fclose(fp);
-            return length;
-        }
-        fclose(fp);
+        *buffer = Z_Malloc(datasize, PU_STATIC, 0);
+        memcpy(*buffer, data, datasize);
+        SDL_free(data);
+        return (int)datasize;
     }
 
-    I_Error("Couldn't read file %s: %s", name,
-            errno ? strerror(errno) : "(Unknown Error)");
-
+    I_Error("Couldn't read file %s: %s", name, SDL_GetError());
     return 0;
 }
 
