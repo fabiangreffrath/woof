@@ -19,7 +19,6 @@
 #define M_IO_INCLUDED
 
 #include <stdio.h>
-#include <sys/stat.h>
 
 #ifdef _MSC_VER
 #  include <direct.h>

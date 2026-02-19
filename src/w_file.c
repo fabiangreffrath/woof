@@ -25,18 +25,6 @@
 #include "w_internal.h"
 #include "w_wad.h"
 
-static int FileLength(int descriptor)
-{
-   struct stat st;
-
-   if (fstat(descriptor, &st) == -1)
-   {
-      I_Error("failure in fstat\n");
-   }
-
-   return st.st_size;
-}
-
 static boolean W_FILE_AddDir(w_handle_t handle, const char *path,
                              const char *start_marker, const char *end_marker)
 {
@@ -89,7 +77,7 @@ static boolean W_FILE_AddDir(w_handle_t handle, const char *path,
 
         lumpinfo_t item = {0};
         W_ExtractFileBase(filename, item.name);
-        item.size = FileLength(descriptor);
+        item.size = M_FileLength(filename);
 
         item.module = &w_file_module;
         w_handle_t local_handle = {.p1.descriptor = descriptor,
@@ -139,7 +127,7 @@ static w_type_t W_FILE_Open(const char *path, w_handle_t *handle)
 
         lumpinfo_t item = {0};
         W_ExtractFileBase(path, item.name);
-        item.size = FileLength(descriptor);
+        item.size = M_FileLength(path);
         item.module = &w_file_module;
         item.handle = local_handle;
         array_push(lumpinfo, item);
