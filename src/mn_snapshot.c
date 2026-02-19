@@ -89,9 +89,9 @@ boolean MN_ReadSnapshot(int i, FILE *fp)
 
 void MN_ReadSavegameTime(int i, char *name)
 {
-    int64_t mtime = M_FileMTime(name);
+    time_t mtime = (time_t)M_FileMTime(name);
 
-    if (mtime == -1)
+    if (mtime == (time_t)-1)
     {
         savegametimes[i][0] = '\0';
     }
