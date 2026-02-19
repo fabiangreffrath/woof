@@ -3450,6 +3450,11 @@ void MN_DisableVoxelsRenderingItem(void)
     DisableItem(true, gen_settings5, "voxels_rendering");
 }
 
+void MN_DisableBrightmapsItem(void)
+{
+    DisableItem(true, gen_settings5, "brightmaps");
+}
+
 // Setting up for the General screen. Turn on flags, set pointers,
 // locate the first item on the screen where the cursor is allowed to
 // land.
@@ -5127,8 +5132,6 @@ void MN_SetupResetMenu(void)
     DisableItem(M_ParmExists("-uncapped") || M_ParmExists("-nouncapped"),
                 gen_settings1, "uncapped");
     DisableItem(deh_set_blood_color, enem_settings1, "colored_blood");
-    DisableItem(!brightmaps_found || force_brightmaps, gen_settings5,
-                "brightmaps");
     DisableItem(!trakinfo_found, gen_settings2, "extra_music");
     DisableItem(M_ParmExists("-save"), gen_settings6, "organize_savefiles");
     DisableItem(!map_smooth_lines, auto_settings1, "map_line_thickness");

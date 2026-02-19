@@ -73,7 +73,6 @@
 #include "deh_misc.h" // deh_max_health_bonus
 #include "p_ambient.h"
 #include "p_setup.h"
-#include "r_bmaps.h"
 #include "r_defs.h"
 #include "r_draw.h"
 #include "r_main.h"
@@ -2114,8 +2113,6 @@ void D_DoomMain(void)
 
   // SNDINFO
   P_InitAmbientSoundMobjInfo();
-
-  W_ProcessInWads("BRGHTMPS", R_ParseBrightmaps, PROCESS_PWAD);
 
   // Moved after WAD initialization because we are checking the COMPLVL lump
   G_ReloadDefaults(false); // killough 3/4/98: set defaults just loaded.
