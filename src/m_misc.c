@@ -74,7 +74,7 @@ int64_t M_FileMTime(const char *path)
 
     if (!SDL_GetPathInfo(path, &info))
     {
-        return (int64_t)-1;
+        return 0;
     }
 
     return (int64_t)SDL_NS_TO_SECONDS(info.modify_time);

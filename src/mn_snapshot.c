@@ -91,7 +91,7 @@ void MN_ReadSavegameTime(int i, char *name)
 {
     time_t mtime = (time_t)M_FileMTime(name);
 
-    if (mtime == (time_t)-1)
+    if (mtime == 0)
     {
         savegametimes[i][0] = '\0';
     }
