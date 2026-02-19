@@ -158,17 +158,20 @@ static int ParseProperty(scanner_t *s)
 
 const byte *R_BrightmapForTexName(const char *texname)
 {
-    int *idx = hashmap_get_str(textures_bm, texname);
-    if (idx)
+    if (textures_bm)
     {
-        return allbrightmaps[*idx].colormask;
+        int *idx = hashmap_get_str(textures_bm, texname);
+        if (idx)
+        {
+            return allbrightmaps[*idx].colormask;
+        }
     }
     return nobrightmap;
 }
 
 const byte *R_BrightmapForSprite(const int type)
 {
-    if (STRICTMODE(brightmaps) || force_brightmaps)
+    if ((STRICTMODE(brightmaps) || force_brightmaps) && sprites_bm)
     {
         int *idx = hashmap_get(sprites_bm, type);
         if (idx)
@@ -181,7 +184,7 @@ const byte *R_BrightmapForSprite(const int type)
 
 const byte *R_BrightmapForFlatNum(const int num)
 {
-    if (STRICTMODE(brightmaps) || force_brightmaps)
+    if ((STRICTMODE(brightmaps) || force_brightmaps) && flats_bm)
     {
         int *idx = hashmap_get(flats_bm, num);
         if (idx)
@@ -194,7 +197,7 @@ const byte *R_BrightmapForFlatNum(const int num)
 
 const byte *R_BrightmapForState(const int state)
 {
-    if (STRICTMODE(brightmaps) || force_brightmaps)
+    if ((STRICTMODE(brightmaps) || force_brightmaps) && states_bm)
     {
         int *idx = hashmap_get(states_bm, state);
         if (idx)
@@ -209,17 +212,12 @@ void R_ParseBrightmaps(int lumpnum)
 {
     force_brightmaps = W_IsWADLump(lumpnum);
 
-    if (!array_size(allbrightmaps))
+    if (!allbrightmaps)
     {
         brightmap_t brightmap;
         brightmap.name = "NOBRIGHTMAP";
         memset(brightmap.colormask, 0, COLORMASK_SIZE);
         array_push(allbrightmaps, brightmap);
-
-        textures_bm = hashmap_init_str(128, sizeof(int));
-        sprites_bm = hashmap_init(128, sizeof(int));
-        flats_bm = hashmap_init(64, sizeof(int));
-        states_bm = hashmap_init(64, sizeof(int));
     }
 
     scanner_t *s = SC_Open("BRGHTMPS", W_CacheLumpNum(lumpnum, PU_CACHE),
@@ -251,6 +249,10 @@ void R_ParseBrightmaps(int lumpnum)
             int idx = ParseProperty(s);
             if (idx >= 0)
             {
+                if (!textures_bm)
+                {
+                    textures_bm = hashmap_init_str(128, sizeof(int));
+                }
                 hashmap_put_str(textures_bm, name, &idx);
             }
             free(name);
@@ -269,6 +271,10 @@ void R_ParseBrightmaps(int lumpnum)
                 {
                     if (!strcasecmp(name, sprnames[i]))
                     {
+                        if (!sprites_bm)
+                        {
+                            sprites_bm = hashmap_init(128, sizeof(int));
+                        }
                         hashmap_put(sprites_bm, i, &idx);
                         break;
                     }
@@ -289,6 +295,10 @@ void R_ParseBrightmaps(int lumpnum)
                 int num = R_FlatNumForName(name);
                 if (num >= 0)
                 {
+                    if (!flats_bm)
+                    {
+                        flats_bm = hashmap_init(64, sizeof(int));
+                    }
                     hashmap_put(flats_bm, num, &idx);
                 }
             }
@@ -306,6 +316,10 @@ void R_ParseBrightmaps(int lumpnum)
             int idx = GetBrightmap(SC_GetString(s));
             if (idx >= 0)
             {
+                if (!states_bm)
+                {
+                    states_bm = hashmap_init(64, sizeof(int));
+                }
                 hashmap_put(states_bm, num, &idx);
             }
             else

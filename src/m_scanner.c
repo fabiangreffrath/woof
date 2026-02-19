@@ -707,7 +707,7 @@ static boolean GetNextRawString(scanner_t *s, char delimiter,
 
     s->nextstate.scanpos = s->scanpos;
 
-    if (end - start > 0 || (quoted && string_finished))
+    if (end - start > 0)
     {
         CopyString(&s->nextstate, s->data + start, end - start);
         if (quoted)
