@@ -964,7 +964,7 @@ void R_InitData(void)
   // mistaken as patches and by R_InitFlatBrightmaps() to set brightmaps for
   // flats.
   R_InitFlats();
-  R_InitFlatBrightmaps();
+  W_ProcessInWads("BRGHTMPS", R_ParseBrightmaps, PROCESS_PWAD);
   R_InitTextures();
   R_InitSpriteLumps();
   R_InitTranMap();                      // killough 2/21/98, 3/6/98
