@@ -68,6 +68,18 @@ int M_FileLength(const char *path)
     return (int)info.size;
 }
 
+int64_t M_FileMTime(const char *path)
+{
+    SDL_PathInfo info;
+
+    if (!SDL_GetPathInfo(path, &info))
+    {
+        return (int64_t)-1;
+    }
+
+    return (int64_t)SDL_NS_TO_SECONDS(info.modify_time);
+}
+
 // Returns the path to a temporary file of the given name, stored
 // inside the system temporary directory.
 //
