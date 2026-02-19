@@ -17,6 +17,8 @@
 //      [FG] miscellaneous helper functions from Chocolate Doom.
 //
 
+#include <SDL3/SDL.h>
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,45 +40,32 @@
 
 // Check if a file exists
 
-boolean M_FileExistsNotDir(const char *filename)
+boolean M_FileExistsNotDir(const char *path)
 {
-    FILE *fstream;
+    SDL_PathInfo info;
 
-    fstream = M_fopen(filename, "r");
-
-    if (fstream != NULL)
-    {
-        fclose(fstream);
-        return M_DirExists(filename) == false;
-    }
-    else
-    {
-        return false;
-    }
+    return (SDL_GetPathInfo(path, &info)
+            && info.type != SDL_PATHTYPE_DIRECTORY);
 }
 
 boolean M_DirExists(const char *path)
 {
-    struct stat st;
+    SDL_PathInfo info;
 
-    if (M_stat(path, &st) == 0 && S_ISDIR(st.st_mode))
-    {
-        return true;
-    }
-
-    return false;
+    return (SDL_GetPathInfo(path, &info)
+            && info.type == SDL_PATHTYPE_DIRECTORY);
 }
 
 int M_FileLength(const char *path)
 {
-    struct stat st;
+    SDL_PathInfo info;
 
-    if (M_stat(path, &st) == -1)
+    if (!SDL_GetPathInfo(path, &info))
     {
-        I_Error("stat error %s", strerror(errno));
+        I_Error("SDL_GetPathInfo: %s", SDL_GetError());
     }
 
-    return st.st_size;
+    return (int)info.size;
 }
 
 // Returns the path to a temporary file of the given name, stored
