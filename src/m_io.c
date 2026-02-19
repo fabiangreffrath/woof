@@ -15,6 +15,8 @@
 //      Compatibility wrappers from Chocolate Doom
 //
 
+#include <SDL3/SDL.h>
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,7 +31,6 @@
 #  include <unistd.h>
 #endif
 
-#include <sys/stat.h>
 #include <sys/types.h>
 
 #include "i_printf.h"
@@ -154,58 +155,12 @@ FILE *M_fopen(const char *filename, const char *mode)
 
 int M_remove(const char *path)
 {
-#ifdef _WIN32
-    wchar_t *wpath = NULL;
-    int ret;
-
-    wpath = ConvertUtf8ToWide(path);
-
-    if (!wpath)
-    {
-        return -1;
-    }
-
-    ret = _wremove(wpath);
-
-    free(wpath);
-
-    return ret;
-#else
-    return remove(path);
-#endif
+    return SDL_RemovePath(path);
 }
 
 int M_rename(const char *oldname, const char *newname)
 {
-#ifdef _WIN32
-    wchar_t *wold = NULL;
-    wchar_t *wnew = NULL;
-    int ret;
-
-    wold = ConvertUtf8ToWide(oldname);
-
-    if (!wold)
-    {
-        return 0;
-    }
-
-    wnew = ConvertUtf8ToWide(newname);
-
-    if (!wnew)
-    {
-        free(wold);
-        return 0;
-    }
-
-    ret = _wrename(wold, wnew);
-
-    free(wold);
-    free(wnew);
-
-    return ret;
-#else
-    return rename(oldname, newname);
-#endif
+    return SDL_RenamePath(oldname, newname);
 }
 
 int M_open(const char *filename, int oflag)
@@ -256,22 +211,7 @@ int M_access(const char *path, int mode)
 
 void M_MakeDirectory(const char *path)
 {
-#ifdef _WIN32
-    wchar_t *wdir;
-
-    wdir = ConvertUtf8ToWide(path);
-
-    if (!wdir)
-    {
-        return;
-    }
-
-    _wmkdir(wdir);
-
-    free(wdir);
-#else
-    mkdir(path, 0755);
-#endif
+    SDL_CreateDirectory(path);
 }
 
 #ifdef _WIN32
