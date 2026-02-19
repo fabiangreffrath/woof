@@ -155,12 +155,12 @@ FILE *M_fopen(const char *filename, const char *mode)
 
 int M_remove(const char *path)
 {
-    return SDL_RemovePath(path);
+    return SDL_RemovePath(path) ? 0 : -1;
 }
 
 int M_rename(const char *oldname, const char *newname)
 {
-    return SDL_RenamePath(oldname, newname);
+    return SDL_RenamePath(oldname, newname) ? 0 : -1;
 }
 
 int M_open(const char *filename, int oflag)
