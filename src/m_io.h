@@ -39,9 +39,7 @@
 
 FILE *M_fopen(const char *filename, const char *mode);
 int M_remove(const char *path);
-int M_rmdir(const char *dirname);
 int M_rename(const char *oldname, const char *newname);
-int M_stat(const char *path, struct stat *buf);
 int M_open(const char *filename, int oflag);
 int M_access(const char *path, int mode);
 void M_MakeDirectory(const char *dir);

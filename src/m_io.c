@@ -175,29 +175,6 @@ int M_remove(const char *path)
 #endif
 }
 
-int M_rmdir(const char *dirname)
-{
-#ifdef _WIN32
-    wchar_t *wdirname = NULL;
-    int ret;
-
-    wdirname = ConvertUtf8ToWide(dirname);
-
-    if (!wdirname)
-    {
-        return 0;
-    }
-
-    ret = _wrmdir(wdirname);
-
-    free(wdirname);
-
-    return ret;
-#else
-    return rmdir(dirname);
-#endif
-}
-
 int M_rename(const char *oldname, const char *newname)
 {
 #ifdef _WIN32
@@ -228,37 +205,6 @@ int M_rename(const char *oldname, const char *newname)
     return ret;
 #else
     return rename(oldname, newname);
-#endif
-}
-
-int M_stat(const char *path, struct stat *buf)
-{
-#ifdef _WIN32
-    wchar_t *wpath = NULL;
-    struct _stat wbuf;
-    int ret;
-
-    wpath = ConvertUtf8ToWide(path);
-
-    if (!wpath)
-    {
-        return -1;
-    }
-
-    ret = _wstat(wpath, &wbuf);
-
-    // The _wstat() function expects a struct _stat* parameter that is
-    // incompatible with struct stat*. We copy only the required compatible
-    // fields.
-    buf->st_mode = wbuf.st_mode;
-    buf->st_mtime = wbuf.st_mtime;
-    buf->st_size = wbuf.st_size;
-
-    free(wpath);
-
-    return ret;
-#else
-    return stat(path, buf);
 #endif
 }
 
