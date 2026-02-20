@@ -144,7 +144,7 @@ static void GetSoundFonts(void)
     }
 
 #if defined(_WIN32)
-    const char *sys = M_getenv("SystemRoot");
+    const char *sys = M_getenv("SYSTEMROOT");
     char *path = M_StringJoin(sys, "\\System32\\drivers\\gm.dls");
     if (M_FileExistsNotDir(path))
     {
