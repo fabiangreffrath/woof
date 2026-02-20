@@ -15,6 +15,8 @@
 //      Compatibility wrappers from Chocolate Doom
 //
 
+#include <SDL3/SDL.h>
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,7 +31,6 @@
 #  include <unistd.h>
 #endif
 
-#include <sys/stat.h>
 #include <sys/types.h>
 
 #include "i_printf.h"
@@ -154,112 +155,12 @@ FILE *M_fopen(const char *filename, const char *mode)
 
 int M_remove(const char *path)
 {
-#ifdef _WIN32
-    wchar_t *wpath = NULL;
-    int ret;
-
-    wpath = ConvertUtf8ToWide(path);
-
-    if (!wpath)
-    {
-        return -1;
-    }
-
-    ret = _wremove(wpath);
-
-    free(wpath);
-
-    return ret;
-#else
-    return remove(path);
-#endif
-}
-
-int M_rmdir(const char *dirname)
-{
-#ifdef _WIN32
-    wchar_t *wdirname = NULL;
-    int ret;
-
-    wdirname = ConvertUtf8ToWide(dirname);
-
-    if (!wdirname)
-    {
-        return 0;
-    }
-
-    ret = _wrmdir(wdirname);
-
-    free(wdirname);
-
-    return ret;
-#else
-    return rmdir(dirname);
-#endif
+    return SDL_RemovePath(path) ? 0 : -1;
 }
 
 int M_rename(const char *oldname, const char *newname)
 {
-#ifdef _WIN32
-    wchar_t *wold = NULL;
-    wchar_t *wnew = NULL;
-    int ret;
-
-    wold = ConvertUtf8ToWide(oldname);
-
-    if (!wold)
-    {
-        return 0;
-    }
-
-    wnew = ConvertUtf8ToWide(newname);
-
-    if (!wnew)
-    {
-        free(wold);
-        return 0;
-    }
-
-    ret = _wrename(wold, wnew);
-
-    free(wold);
-    free(wnew);
-
-    return ret;
-#else
-    return rename(oldname, newname);
-#endif
-}
-
-int M_stat(const char *path, struct stat *buf)
-{
-#ifdef _WIN32
-    wchar_t *wpath = NULL;
-    struct _stat wbuf;
-    int ret;
-
-    wpath = ConvertUtf8ToWide(path);
-
-    if (!wpath)
-    {
-        return -1;
-    }
-
-    ret = _wstat(wpath, &wbuf);
-
-    // The _wstat() function expects a struct _stat* parameter that is
-    // incompatible with struct stat*. We copy only the required compatible
-    // fields.
-    buf->st_mode = wbuf.st_mode;
-    buf->st_mtime = wbuf.st_mtime;
-    buf->st_size = wbuf.st_size;
-
-    free(wpath);
-
-    return ret;
-#else
-    return stat(path, buf);
-#endif
+    return SDL_RenamePath(oldname, newname) ? 0 : -1;
 }
 
 int M_open(const char *filename, int oflag)
@@ -310,22 +211,7 @@ int M_access(const char *path, int mode)
 
 void M_MakeDirectory(const char *path)
 {
-#ifdef _WIN32
-    wchar_t *wdir;
-
-    wdir = ConvertUtf8ToWide(path);
-
-    if (!wdir)
-    {
-        return;
-    }
-
-    _wmkdir(wdir);
-
-    free(wdir);
-#else
-    mkdir(path, 0755);
-#endif
+    SDL_CreateDirectory(path);
 }
 
 #ifdef _WIN32
@@ -338,7 +224,7 @@ typedef struct
 static env_var_t *env_vars = NULL;
 #endif
 
-char *M_getenv(const char *name)
+const char *M_getenv(const char *name)
 {
 #ifdef _WIN32
     int i;

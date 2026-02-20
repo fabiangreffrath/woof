@@ -22,7 +22,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h>
 #include <time.h>
 
 #include "am_map.h"
@@ -2908,9 +2907,8 @@ boolean G_AutoSaveEnabled(void)
 //
 boolean G_LoadAutoSaveDeathUse(void)
 {
-  struct stat st;
   char *auto_path = G_AutoSaveName();
-  time_t auto_time = (M_stat(auto_path, &st) != -1 ? st.st_mtime : 0);
+  int64_t auto_time = M_FileMTime(auto_path);
   boolean result = (auto_time > 0);
 
   if (result)
@@ -2918,7 +2916,7 @@ boolean G_LoadAutoSaveDeathUse(void)
     if (savegameslot >= 0)
     {
       char *save_path = G_SaveGameName(savegameslot);
-      time_t save_time = (M_stat(save_path, &st) != -1 ? st.st_mtime : 0);
+      int64_t save_time = M_FileMTime(save_path);
       free(save_path);
       result = (auto_time > save_time);
     }

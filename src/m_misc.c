@@ -17,6 +17,8 @@
 //      [FG] miscellaneous helper functions from Chocolate Doom.
 //
 
+#include <SDL3/SDL.h>
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,45 +40,44 @@
 
 // Check if a file exists
 
-boolean M_FileExistsNotDir(const char *filename)
+boolean M_FileExistsNotDir(const char *path)
 {
-    FILE *fstream;
+    SDL_PathInfo info;
 
-    fstream = M_fopen(filename, "r");
-
-    if (fstream != NULL)
-    {
-        fclose(fstream);
-        return M_DirExists(filename) == false;
-    }
-    else
-    {
-        return false;
-    }
+    return (SDL_GetPathInfo(path, &info)
+            && info.type != SDL_PATHTYPE_DIRECTORY);
 }
 
 boolean M_DirExists(const char *path)
 {
-    struct stat st;
+    SDL_PathInfo info;
 
-    if (M_stat(path, &st) == 0 && S_ISDIR(st.st_mode))
-    {
-        return true;
-    }
-
-    return false;
+    return (SDL_GetPathInfo(path, &info)
+            && info.type == SDL_PATHTYPE_DIRECTORY);
 }
 
 int M_FileLength(const char *path)
 {
-    struct stat st;
+    SDL_PathInfo info;
 
-    if (M_stat(path, &st) == -1)
+    if (!SDL_GetPathInfo(path, &info))
     {
-        I_Error("stat error %s", strerror(errno));
+        I_Error("SDL_GetPathInfo: %s", SDL_GetError());
     }
 
-    return st.st_size;
+    return (int)info.size;
+}
+
+int64_t M_FileMTime(const char *path)
+{
+    SDL_PathInfo info;
+
+    if (!SDL_GetPathInfo(path, &info))
+    {
+        return 0;
+    }
+
+    return (int64_t)SDL_NS_TO_SECONDS(info.modify_time);
 }
 
 // Returns the path to a temporary file of the given name, stored
@@ -242,9 +243,9 @@ const char *M_BaseName(const char *path)
     }
 }
 
-char *M_HomeDir(void)
+const char *M_HomeDir(void)
 {
-    static char *home_dir;
+    static const char *home_dir;
 
     if (home_dir == NULL)
     {
@@ -271,9 +272,9 @@ char *M_HomeDir(void)
 // > is either not set or empty, a default equal to
 // > $HOME/.local/share should be used.
 
-char *M_DataDir(void)
+const char *M_DataDir(void)
 {
-    static char *data_dir;
+    static const char *data_dir;
 
     if (data_dir == NULL)
     {
@@ -639,24 +640,15 @@ char *AddDefaultExtension(const char *path, const char *ext)
 
 boolean M_WriteFile(char const *name, const void *source, int length)
 {
-    FILE *fp;
+    boolean success = SDL_SaveFile(name, source, length);
 
-    errno = 0;
-
-    if (!(fp = M_fopen(name, "wb"))) // Try opening file
+    if (!success)
     {
-        return 0; // Could not open file for writing
+        M_remove(name); // Remove partially written file
+        I_Printf(VB_ERROR, "Couldn't write file %s: %s", name, SDL_GetError());
     }
 
-    length = fwrite(source, 1, length, fp) == length; // Write data
-    fclose(fp);
-
-    if (!length) // Remove partially written file
-    {
-        M_remove(name);
-    }
-
-    return length;
+    return success;
 }
 
 //
@@ -717,37 +709,4 @@ void M_DigestToString(const byte *digest, char *string, int size)
     {
         M_snprintf(&string[i * 2], 3, "%02x", digest[i]);
     }
-}
-
-// Really complex printing shit...
-void M_ProgressBarStart(const int item_count, const char *msg)
-{
-    const int loop_count = (item_count + 255) / 128;
-    I_Printf(VB_INFO, " %s: ", msg);
-
-    I_PutChar(VB_INFO, '[');
-    for (int i = 0; i <= loop_count; i++)
-    {
-        I_PutChar(VB_INFO, ' ');
-    }
-    I_PutChar(VB_INFO, ']');
-
-    for (int i = 0; i <= loop_count; i++)
-    {
-        I_PutChar(VB_INFO, '\x8');
-    }
-}
-
-void M_ProgressBarMove(const int item_current)
-{
-    if (!(item_current & 127))
-    {
-        I_PutChar(VB_INFO, '.');
-    }
-}
-
-// [FG] finish progress line
-void M_ProgressBarEnd(void)
-{
-    I_PutChar(VB_INFO, '\n');
 }

@@ -25,22 +25,23 @@
 
 typedef struct
 {
-    char *(*func)(void);
+    const char *(*func)(void);
     const char *dir;
-    char *(*check_func)(void);
+    const char *(*check_func)(void);
     boolean makedir;
 } constructed_dir_t;
 
 boolean M_DirExists(const char *path);
 int M_FileLength(const char *path);
+int64_t M_FileMTime(const char *path);
 char *M_TempFile(const char *s);
 boolean M_FileExistsNotDir(const char *filename);
 char *M_FileCaseExists(const char *file);
 boolean M_StrToInt(const char *str, int *result);
 char *M_DirName(const char *path);
 const char *M_BaseName(const char *path);
-char *M_HomeDir(void);
-char *M_DataDir(void);
+const char *M_HomeDir(void);
+const char *M_DataDir(void);
 char M_ToUpper(const char c);
 void M_StringToUpper(char *text);
 char M_ToLower(const char c);
@@ -72,10 +73,5 @@ boolean M_WriteFile(const char *name, const void *source, int length);
 int M_ReadFile(const char *name, byte **buffer);
 boolean M_StringToDigest(const char *string, byte *digest, int size);
 void M_DigestToString(const byte *digest, char *string, int size);
-
-// Really complex printing shit...
-void M_ProgressBarStart(const int item_count, const char *msg);
-void M_ProgressBarMove(const int item_current);
-void M_ProgressBarEnd(void); // [FG] finish progress line
 
 #endif
