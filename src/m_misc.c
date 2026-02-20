@@ -19,6 +19,7 @@
 
 #include <SDL3/SDL.h>
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -657,18 +658,29 @@ boolean M_WriteFile(char const *name, const void *source, int length)
 
 int M_ReadFile(char const *name, byte **buffer)
 {
-    size_t datasize;
-    char *data = SDL_LoadFile(name, &datasize);
+    FILE *fp;
 
-    if (data)
+    errno = 0;
+
+    if ((fp = M_fopen(name, "rb")))
     {
-        *buffer = Z_Malloc(datasize, PU_STATIC, 0);
-        memcpy(*buffer, data, datasize);
-        SDL_free(data);
-        return (int)datasize;
+        size_t length;
+
+        fseek(fp, 0, SEEK_END);
+        length = ftell(fp);
+        fseek(fp, 0, SEEK_SET);
+        *buffer = Z_Malloc(length, PU_STATIC, 0);
+        if (fread(*buffer, 1, length, fp) == length)
+        {
+            fclose(fp);
+            return length;
+        }
+        fclose(fp);
     }
 
-    I_Error("Couldn't read file %s: %s", name, SDL_GetError());
+    I_Error("Couldn't read file %s: %s", name,
+            errno ? strerror(errno) : "(Unknown Error)");
+
     return 0;
 }
 
