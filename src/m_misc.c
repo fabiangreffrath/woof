@@ -710,36 +710,3 @@ void M_DigestToString(const byte *digest, char *string, int size)
         M_snprintf(&string[i * 2], 3, "%02x", digest[i]);
     }
 }
-
-// Really complex printing shit...
-void M_ProgressBarStart(const int item_count, const char *msg)
-{
-    const int loop_count = (item_count + 255) / 128;
-    I_Printf(VB_INFO, " %s: ", msg);
-
-    I_PutChar(VB_INFO, '[');
-    for (int i = 0; i <= loop_count; i++)
-    {
-        I_PutChar(VB_INFO, ' ');
-    }
-    I_PutChar(VB_INFO, ']');
-
-    for (int i = 0; i <= loop_count; i++)
-    {
-        I_PutChar(VB_INFO, '\x8');
-    }
-}
-
-void M_ProgressBarMove(const int item_current)
-{
-    if (!(item_current & 127))
-    {
-        I_PutChar(VB_INFO, '.');
-    }
-}
-
-// [FG] finish progress line
-void M_ProgressBarEnd(void)
-{
-    I_PutChar(VB_INFO, '\n');
-}
