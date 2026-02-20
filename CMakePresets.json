@@ -1,0 +1,13 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "vcpkg",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "CMAKE_INSTALL_RPATH": "$ORIGIN/../lib",
+        "CMAKE_BUILD_RPATH_USE_ORIGIN": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,356 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+    tags: ['*']
+    paths-ignore: ['**.md']
+  pull_request:
+    branches: [ master ]
+    paths-ignore: ['**.md']
+  workflow_dispatch:
+
+env:
+  VCPKG_BINARY_SOURCES: "clear;files,${{ github.workspace }}/vcpkg_cache,readwrite"
+
+jobs:
+  build:
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+    defaults:
+      run:
+        shell: ${{ matrix.config.shell }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - name: Linux GCC
+            os: ubuntu-latest
+            shell: bash
+            type: system
+            extra-options: -DCMAKE_FIND_PACKAGE_PREFER_CONFIG=OFF
+
+          - name: macOS Clang
+            os: macos-latest
+            shell: bash
+            type: system
+
+          - name: MSYS2 UCRT64
+            os: windows-latest
+            shell: 'msys2 {0}'
+            type: system
+            msystem: ucrt64
+            msys-env: mingw-w64-ucrt-x86_64
+            artifact-name: MSYS2-UCRT64
+            artifact-path: build/*.zip
+
+          - name: Linux GCC (vcpkg)
+            os: ubuntu-24.04
+            shell: bash
+            type: vcpkg
+            triplet: x64-linux-dynamic-release
+            artifact-name: AppImage
+            artifact-path: build/*.AppImage
+            extra-options: >-
+             --preset vcpkg
+             -DWITH_DISCORD_RPC=ON
+             -DCMAKE_INSTALL_PREFIX=/usr
+
+          - name: MSVC x64
+            os: windows-latest
+            shell: pwsh
+            type: vcpkg
+            arch: x64
+            triplet: x64-windows-static-release
+            artifact-name: Win-64
+            artifact-path: build/*.zip
+            extra-options: >-
+              --preset vcpkg
+              -DWITH_DISCORD_RPC=ON
+              -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
+              -DCMAKE_IGNORE_PATH="C:/Strawberry/perl/bin;C:/Strawberry/c/lib"
+
+          - name: MSVC x86
+            os: windows-latest
+            shell: pwsh
+            type: vcpkg
+            arch: x86
+            triplet: x86-windows-static-release
+            artifact-name: Win-32
+            artifact-path: build/*.zip
+            extra-options: >-
+              --preset vcpkg
+              -DWITH_DISCORD_RPC=ON
+              -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
+              -DCMAKE_IGNORE_PATH="C:/Strawberry/perl/bin;C:/Strawberry/c/lib"
+
+          - name: macOS uni
+            os: macos-latest
+            shell: bash
+            type: vcpkg
+            triplet: arm64-osx
+            triplet-x64: x64-osx
+            artifact-name: Mac-uni
+            artifact-path: build/*.zip
+            extra-options: >-
+              --preset vcpkg
+              -DWITH_DISCORD_RPC=ON
+              -DCMAKE_INSTALL_PREFIX=/usr
+    env:
+      VCPKG_TARGET_TRIPLET: ${{ matrix.config.triplet }}
+
+    steps:
+      - name: Developer Command Prompt (MSVC)
+        if: runner.os == 'Windows' && matrix.config.type == 'vcpkg'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.config.arch }}
+
+      - name: Install dependencies (Linux)
+        if: runner.os == 'Linux' && matrix.config.type == 'system'
+        run: |
+          sudo apt-get update
+          sudo apt-get install \
+            ninja-build \
+            libopenal-dev \
+            libebur128-dev \
+            libsndfile1-dev \
+            libfluidsynth-dev \
+            libxmp-dev
+
+      - name: Install dependencies (Linux vcpkg)
+        if: runner.os == 'Linux' && matrix.config.type == 'vcpkg'
+        run: |
+          sudo apt-get update
+          sudo apt-get install build-essential libtool autoconf-archive git make \
+          pkg-config cmake ninja-build gnome-desktop-testing libasound2-dev libpulse-dev \
+          libaudio-dev libfribidi-dev libjack-dev libsndio-dev libx11-dev libxext-dev \
+          libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxtst-dev \
+          libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
+          libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev \
+          libpipewire-0.3-dev libwayland-dev libdecor-0-dev liburing-dev \
+          libltdl-dev
+
+      - name: Install dependencies (macOS)
+        if: runner.os == 'macOS' && matrix.config.type == 'system'
+        run: |
+          brew install \
+            ninja \
+            sdl3 \
+            openal-soft \
+            libebur128 \
+            libsndfile \
+            fluid-synth \
+            libxmp \
+            yyjson
+
+      - name: Install dependencies (MSYS2)
+        if: matrix.config.shell == 'msys2 {0}'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: ${{ matrix.config.msystem }}
+          update: true
+          install: >-
+            diffutils
+            ${{ matrix.config.msys-env }}-python-pip
+            ${{ matrix.config.msys-env }}-gcc
+            ${{ matrix.config.msys-env }}-cmake
+            ${{ matrix.config.msys-env }}-ninja
+            ${{ matrix.config.msys-env }}-sdl3
+            ${{ matrix.config.msys-env }}-openal
+            ${{ matrix.config.msys-env }}-libebur128
+            ${{ matrix.config.msys-env }}-libsndfile
+            ${{ matrix.config.msys-env }}-fluidsynth
+            ${{ matrix.config.msys-env }}-libxmp
+
+      - uses: actions/checkout@v6
+
+      - name: Build SDL3 (Linux)
+        if: runner.os == 'Linux' && matrix.config.type == 'system'
+        uses: libsdl-org/setup-sdl@main
+        with:
+          install-linux-dependencies: true
+          version: 3-latest
+
+      - name: Restore vcpkg cache
+        id: cache-vcpkg
+        if: matrix.config.type == 'vcpkg'
+        uses: actions/cache/restore@v5
+        with:
+          path: ${{ github.workspace }}/vcpkg_cache
+          key: vcpkg-${{ matrix.config.triplet }}
+
+      - name: Configure
+        run: >-
+          cmake -B build -G Ninja
+          -DCMAKE_BUILD_TYPE=Release
+          -DENABLE_WERROR=ON -DENABLE_HARDENING=ON -DENABLE_LTO=ON
+          ${{ matrix.config.extra-options }}
+
+      - name: Configure macOS x64 (universal)
+        if: matrix.config.name == 'macOS uni'
+        run: >-
+          cmake -B build-x64 -G Ninja
+          -DCMAKE_BUILD_TYPE=Release
+          -DENABLE_WERROR=ON -DENABLE_HARDENING=ON -DENABLE_LTO=ON
+          -DCMAKE_OSX_ARCHITECTURES=x86_64
+          -DVCPKG_TARGET_TRIPLET=${{ matrix.config.triplet-x64 }}
+          ${{ matrix.config.extra-options }}
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Build macOS x64 (universal)
+        if: matrix.config.name == 'macOS uni'
+        run: cmake --build build-x64 --config "Release"
+
+      - name: Delete old vcpkg cache
+        continue-on-error: true
+        if: matrix.config.type == 'vcpkg' && steps.cache-vcpkg.outputs.cache-hit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh cache delete --repo ${{ github.repository }} ${{ steps.cache-vcpkg.outputs.cache-primary-key }}
+
+      - name: Save vcpkg cache
+        if: matrix.config.type == 'vcpkg'
+        uses: actions/cache/save@v5
+        with:
+          path: ${{ github.workspace }}/vcpkg_cache
+          key: ${{ steps.cache-vcpkg.outputs.cache-primary-key }}
+
+      - name: Restore demotest cache
+        id: cache-demotest
+        uses: actions/cache/restore@v5
+        with:
+          path: demotest/extract
+          key: demotest
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.x'
+
+      - name: Test
+        run: |
+          cd demotest
+          pip install pyyaml joblib
+          python demotest --jobs 4 --port ../build/src/woof
+
+      - name: Save demotest cache
+        if: steps.cache-demotest.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: demotest/extract
+          key: demotest
+
+      - name: Universal Package (maxOS)
+        if: matrix.config.name == 'macOS uni'
+        run: |
+          lipo build/src/woof build-x64/src/woof -create -output woof
+          lipo build/src/woof-setup build-x64/src/woof-setup -create -output woof-setup
+          rm build/src/woof
+          rm build/src/woof-setup
+          mv woof build/src
+          mv woof-setup build/src
+
+      - name: Package
+        run: |
+          cd build
+          cpack
+
+      - name: Upload Artifacts
+        if: matrix.config.artifact-path
+        uses: actions/upload-artifact@v6
+        with:
+          name: ${{ matrix.config.artifact-name }}
+          path: ${{ matrix.config.artifact-path }}
+
+      - name: Extract Version Number
+        if: matrix.config.type == 'vcpkg' && contains(github.ref, 'tags')
+        shell: bash
+        run: echo "VERSION=${GITHUB_REF##*_}" >> $GITHUB_ENV
+
+      - name: Release
+        if: matrix.config.type == 'vcpkg' && contains(github.ref, 'tags')
+        uses: ncipollo/release-action@v1
+        with:
+          name: Woof! ${{ env.VERSION }}
+          bodyFile: CHANGELOG.md
+          allowUpdates: true
+          artifacts: ${{ matrix.config.artifact-path }}
+
+      - name: Release (zsync)
+        if: runner.os == 'Linux' && matrix.config.type == 'vcpkg' && contains(github.ref, 'tags')
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          artifacts: build/*.zsync
+
+  linter:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        name: [Cppcheck , Clang-Tidy]
+
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install \
+            cppcheck \
+            ninja-build \
+            libopenal-dev \
+            libebur128-dev \
+            libsndfile1-dev \
+            libfluidsynth-dev \
+            libxmp-dev
+
+      - name: Build SDL3
+        uses: libsdl-org/setup-sdl@main
+        with:
+          install-linux-dependencies: true
+          version: 3-latest
+
+      - uses: actions/checkout@v6
+
+      - name: Configure
+        run: >-
+          cmake -B build -G Ninja
+          -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+          -DCMAKE_FIND_PACKAGE_PREFER_CONFIG=OFF
+
+      - name: Run Cppcheck
+        if: ${{ matrix.name == 'Cppcheck' }}
+        run: |
+          mkdir cppcheck_cache
+          cppcheck -j4  --cppcheck-build-dir="cppcheck_cache" \
+            --quiet \
+            --error-exitcode=1 \
+            --check-level=exhaustive \
+            --inconclusive \
+            --inline-suppr \
+            --std=c11 \
+            --project="${{ github.workspace }}/build/compile_commands.json" \
+            -i"${{ github.workspace }}/third-party" \
+            -D__GNUC__
+
+      - name: Run Clang-Tidy
+        if: ${{ matrix.name == 'Clang-Tidy' }}
+        uses: cpp-linter/cpp-linter-action@v2
+        id: cpp-linter
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          version: 21
+          step-summary: true
+          files-changed-only: true
+          style: ''
+          tidy-checks: >-
+            -*
+            ,clang-analyzer-*
+            ,-clang-analyzer-cplusplus*
+            ,-clang-analyzer-security*
+            ,-clang-analyzer-valist*
+          database: 'build'
+          ignore: 'third-party|toolsrc|src/i_pcsound.c'
