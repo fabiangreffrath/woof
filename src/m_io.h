@@ -42,7 +42,7 @@ int M_rename(const char *oldname, const char *newname);
 int M_open(const char *filename, int oflag);
 int M_access(const char *path, int mode);
 void M_MakeDirectory(const char *dir);
-char *M_getenv(const char *name);
+const char *M_getenv(const char *name);
 
 #ifdef _WIN32
 char *M_ConvertWideToUtf8(const wchar_t *wstr);

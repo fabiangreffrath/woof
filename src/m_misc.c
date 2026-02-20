@@ -243,9 +243,9 @@ const char *M_BaseName(const char *path)
     }
 }
 
-char *M_HomeDir(void)
+const char *M_HomeDir(void)
 {
-    static char *home_dir;
+    static const char *home_dir;
 
     if (home_dir == NULL)
     {
@@ -272,9 +272,9 @@ char *M_HomeDir(void)
 // > is either not set or empty, a default equal to
 // > $HOME/.local/share should be used.
 
-char *M_DataDir(void)
+const char *M_DataDir(void)
 {
-    static char *data_dir;
+    static const char *data_dir;
 
     if (data_dir == NULL)
     {

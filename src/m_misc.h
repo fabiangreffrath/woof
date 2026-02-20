@@ -25,9 +25,9 @@
 
 typedef struct
 {
-    char *(*func)(void);
+    const char *(*func)(void);
     const char *dir;
-    char *(*check_func)(void);
+    const char *(*check_func)(void);
     boolean makedir;
 } constructed_dir_t;
 
@@ -40,8 +40,8 @@ char *M_FileCaseExists(const char *file);
 boolean M_StrToInt(const char *str, int *result);
 char *M_DirName(const char *path);
 const char *M_BaseName(const char *path);
-char *M_HomeDir(void);
-char *M_DataDir(void);
+const char *M_HomeDir(void);
+const char *M_DataDir(void);
 char M_ToUpper(const char c);
 void M_StringToUpper(char *text);
 char M_ToLower(const char c);

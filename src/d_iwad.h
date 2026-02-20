@@ -29,8 +29,8 @@ typedef struct
     const char *description;
 } iwad_t;
 
-char *D_DoomExeDir(void); // killough 2/16/98: path to executable's dir
-char *D_DoomPrefDir(void); // [FG] default configuration dir
+const char *D_DoomExeDir(void); // killough 2/16/98: path to executable's dir
+const char *D_DoomPrefDir(void); // [FG] default configuration dir
 char *D_FindWADByName(const char *filename);
 char *D_TryFindWADByName(const char *filename);
 char *D_FindLMPByName(const char *filename);
