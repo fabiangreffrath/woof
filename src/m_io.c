@@ -214,7 +214,58 @@ void M_MakeDirectory(const char *path)
     SDL_CreateDirectory(path);
 }
 
+#ifdef _WIN32
+typedef struct
+{
+    char *var;
+    const char *name;
+} env_var_t;
+
+static env_var_t *env_vars = NULL;
+#endif
+
 const char *M_getenv(const char *name)
 {
-    return SDL_getenv(name);
+#ifdef _WIN32
+    int i;
+    wchar_t *wenv = NULL, *wname = NULL;
+    char *env;
+
+    for (i = 0; i < array_size(env_vars); ++i)
+    {
+        if (!strcasecmp(name, env_vars[i].name))
+        {
+            return env_vars[i].var;
+        }
+    }
+
+    wname = ConvertUtf8ToWide(name);
+
+    if (!wname)
+    {
+        return NULL;
+    }
+
+    wenv = _wgetenv(wname);
+
+    free(wname);
+
+    if (wenv)
+    {
+        env = M_ConvertWideToUtf8(wenv);
+    }
+    else
+    {
+        env = NULL;
+    }
+
+    env_var_t env_var;
+    env_var.var = env;
+    env_var.name = M_StringDuplicate(name);
+    array_push(env_vars, env_var);
+
+    return env;
+#else
+    return getenv(name);
+#endif
 }
