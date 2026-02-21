@@ -21,7 +21,6 @@
 //
 //-----------------------------------------------------------------------------
 
-#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -1135,9 +1134,7 @@ void V_ScreenShot(void)
 {
     boolean success = false;
 
-    errno = 0;
-
-    if (!M_access(screenshotdir,2))
+    if (M_DirExists(screenshotdir))
     {
         static int shot;
         char lbmname[16] = {0};
@@ -1153,7 +1150,7 @@ void V_ScreenShot(void)
             screenshotname = M_StringJoin(screenshotdir, DIR_SEPARATOR_S,
                                           lbmname);
         }
-        while (!M_access(screenshotname,0) && --tries);
+        while (M_FileExistsNotDir(screenshotname) && --tries);
 
         if (tries)
         {
@@ -1161,9 +1158,7 @@ void V_ScreenShot(void)
             // killough 11/98: add hires support
             if (!(success = I_WritePNGfile(screenshotname))) // [FG] PNG
             {
-                int t = errno;
                 M_remove(screenshotname);
-                errno = t;
             }
         }
         if (screenshotname)
@@ -1178,9 +1173,7 @@ void V_ScreenShot(void)
     // killough 10/98: print error message and change sound effect if error
     S_StartSoundPitch(NULL,
                  !success
-                 ? displaymsg("%s", errno ? strerror(errno)
-                                          : "Could not take screenshot"),
-                 sfx_oof
+                 ? displaymsg("Could not take screenshot"), sfx_oof
                  : gamemode == commercial ? sfx_radio
                                           : sfx_tink, PITCH_NONE);
 }

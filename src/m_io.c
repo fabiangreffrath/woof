@@ -163,29 +163,6 @@ int M_rename(const char *oldname, const char *newname)
     return SDL_RenamePath(oldname, newname) ? 0 : -1;
 }
 
-int M_access(const char *path, int mode)
-{
-#ifdef _WIN32
-    wchar_t *wpath = NULL;
-    int ret;
-
-    wpath = ConvertUtf8ToWide(path);
-
-    if (!wpath)
-    {
-        return 0;
-    }
-
-    ret = _waccess(wpath, mode);
-
-    free(wpath);
-
-    return ret;
-#else
-    return access(path, mode);
-#endif
-}
-
 void M_MakeDirectory(const char *path)
 {
     SDL_CreateDirectory(path);

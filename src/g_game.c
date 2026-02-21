@@ -16,7 +16,6 @@
 //
 //-----------------------------------------------------------------------------
 
-#include <errno.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -2587,8 +2586,7 @@ static void DoSaveGame(char *name)
 
   if (!M_WriteFile(name, savebuffer, length))
   {
-      displaymsg("%s", errno ? strerror(errno)
-                             : "Could not save game: Error unknown");
+      displaymsg("Could not save game");
   }
   else
   {
@@ -4231,7 +4229,7 @@ void G_RecordDemo(const char *name)
 
   // demo file name suffix counter
   static int j;
-  while (M_access(demoname, F_OK) == 0)
+  while (M_FileExistsNotDir(demoname))
   {
     M_snprintf(demoname, demoname_size, "%s-%05d.lmp", demoname_orig, j++);
   }
@@ -4880,8 +4878,7 @@ boolean G_CheckDemoStatus(void)
       G_AddDemoFooter();
 
       if (!M_WriteFile(demoname, demobuffer, demo_p - demobuffer))
-	I_Error("Error recording demo %s: %s", demoname,  // killough 11/98
-		errno ? strerror(errno) : "(Unknown Error)");
+	I_Error("Error recording demo %s", demoname); // killough 11/98
 
       Z_Free(demobuffer);
       demobuffer = NULL;  // killough
