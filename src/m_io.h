@@ -23,7 +23,6 @@
 FILE *M_fopen(const char *filename, const char *mode);
 int M_remove(const char *path);
 int M_rename(const char *oldname, const char *newname);
-int M_open(const char *filename, int oflag);
 void M_MakeDirectory(const char *dir);
 const char *M_getenv(const char *name);
 

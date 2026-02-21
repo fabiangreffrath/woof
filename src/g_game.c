@@ -4878,7 +4878,7 @@ boolean G_CheckDemoStatus(void)
       G_AddDemoFooter();
 
       if (!M_WriteFile(demoname, demobuffer, demo_p - demobuffer))
-	I_Error("Error recording demo %s");
+	I_Error("Error recording demo %s", demoname); // killough 11/98
 
       Z_Free(demobuffer);
       demobuffer = NULL;  // killough

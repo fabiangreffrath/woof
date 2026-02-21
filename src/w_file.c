@@ -67,8 +67,8 @@ static boolean W_FILE_AddDir(w_handle_t handle, const char *path,
             W_AddMarker(start_marker);
         }
 
-        int descriptor = M_open(filename, O_RDONLY | O_BINARY);
-        if (descriptor == -1)
+        FILE *descriptor = M_fopen(filename, "rb");
+        if (descriptor == NULL)
         {
             I_Error("Error opening %s", filename);
         }
@@ -98,7 +98,7 @@ static boolean W_FILE_AddDir(w_handle_t handle, const char *path,
     return true;
 }
 
-static int *descriptors = NULL;
+static FILE **descriptors = NULL;
 
 static w_type_t W_FILE_Open(const char *path, w_handle_t *handle)
 {
@@ -108,8 +108,8 @@ static w_type_t W_FILE_Open(const char *path, w_handle_t *handle)
         return W_DIR;
     }
 
-    int descriptor = M_open(path, O_RDONLY | O_BINARY);
-    if (descriptor == -1)
+    FILE *descriptor = M_fopen(path, "rb");
+    if (descriptor == NULL)
     {
         return W_NONE;
     }
@@ -139,18 +139,18 @@ static w_type_t W_FILE_Open(const char *path, w_handle_t *handle)
 
     wadinfo_t header;
 
-    if (read(descriptor, &header, sizeof(header)) == 0)
+    if (fread(&header, 1, sizeof(header), descriptor) < sizeof(header))
     {
         I_Printf(VB_WARNING, "Error reading header from %s (%s)", path,
                  strerror(errno));
-        close(descriptor);
+        fclose(descriptor);
         return W_NONE;
     }
 
     if (strncmp(header.identification, "IWAD", 4)
         && strncmp(header.identification, "PWAD", 4))
     {
-        close(descriptor);
+        fclose(descriptor);
         return W_NONE;
     }
 
@@ -158,7 +158,7 @@ static w_type_t W_FILE_Open(const char *path, w_handle_t *handle)
     if (header.numlumps == 0)
     {
         I_Printf(VB_WARNING, "Wad file %s is empty", path);
-        close(descriptor);
+        fclose(descriptor);
         return W_NONE;
     }
 
@@ -170,20 +170,20 @@ static w_type_t W_FILE_Open(const char *path, w_handle_t *handle)
     }
 
     header.infotableofs = LONG(header.infotableofs);
-    if (lseek(descriptor, header.infotableofs, SEEK_SET) == -1)
+    if (fseek(descriptor, header.infotableofs, SEEK_SET) == -1)
     {
         I_Printf(VB_WARNING, "Error seeking offset from %s (%s)", path,
                  strerror(errno));
-        close(descriptor);
+        fclose(descriptor);
         free(fileinfo);
         return W_NONE;
     }
 
-    if (read(descriptor, fileinfo, length) == 0)
+    if (fread(fileinfo, sizeof(filelump_t), header.numlumps, descriptor) < header.numlumps)
     {
         I_Printf(VB_WARNING, "Error reading lump directory from %s (%s)", path,
                  strerror(errno));
-        close(descriptor);
+        fclose(descriptor);
         free(fileinfo);
         return W_NONE;
     }
@@ -216,8 +216,8 @@ static w_type_t W_FILE_Open(const char *path, w_handle_t *handle)
 
 static void W_FILE_Read(w_handle_t handle, void *dest, int size)
 {
-    lseek(handle.p1.descriptor, handle.p2.position, SEEK_SET);
-    int bytesread = read(handle.p1.descriptor, dest, size);
+    fseek(handle.p1.descriptor, handle.p2.position, SEEK_SET);
+    int bytesread = fread(dest, 1, size, handle.p1.descriptor);
     if (bytesread < size)
     {
         I_Error("only read %d of %d", bytesread, size);
@@ -228,7 +228,7 @@ static void W_FILE_Close(void)
 {
     for (int i = 0; i < array_size(descriptors); ++i)
     {
-        close(descriptors[i]);
+        fclose(descriptors[i]);
     }
 }
 

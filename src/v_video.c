@@ -1173,8 +1173,7 @@ void V_ScreenShot(void)
     // killough 10/98: print error message and change sound effect if error
     S_StartSoundPitch(NULL,
                  !success
-                 ? displaymsg("Could not take screenshot"),
-                 sfx_oof
+                 ? displaymsg("Could not take screenshot"), sfx_oof
                  : gamemode == commercial ? sfx_radio
                                           : sfx_tink, PITCH_NONE);
 }
