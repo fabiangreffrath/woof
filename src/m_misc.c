@@ -658,11 +658,13 @@ boolean M_WriteFile(char const *name, const void *source, int length)
 
 int M_ReadFile(char const *name, byte **buffer)
 {
-    FILE *fp;
+    int actual_errno = errno = 0;
 
+    FILE *fp = M_fopen(name, "rb");
+    actual_errno = errno;
     errno = 0;
 
-    if ((fp = M_fopen(name, "rb")))
+    if (fp)
     {
         size_t length;
 
@@ -675,11 +677,13 @@ int M_ReadFile(char const *name, byte **buffer)
             fclose(fp);
             return length;
         }
+        actual_errno = errno;
+        errno = 0;
         fclose(fp);
     }
 
     I_Error("Couldn't read file %s: %s", name,
-            errno ? strerror(errno) : "(Unknown Error)");
+            actual_errno ? strerror(actual_errno) : "(Unknown Error)");
 
     return 0;
 }
