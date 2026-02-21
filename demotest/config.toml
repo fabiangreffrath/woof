@@ -1,0 +1,49 @@
+[[demo]]
+demo = "judgep1m3018.lmp"
+demo_url = "https://dsdarchive.com/files/demos/judgment/65491/judgep1m3018.zip"
+wad = "Judgment.wad"
+wad_url = "https://www.quaddicted.com/files/idgames/levels/doom2/Ports/megawads/judgment.zip"
+levelstat = "judgep1.txt"
+
+[[demo]]
+demo = "judgep5m3536.lmp"
+demo_url = "https://dsdarchive.com/files/demos/judgment/66305/judgep5m3536.zip"
+wad = "Judgment.wad"
+levelstat = "judgep5.txt"
+
+[[demo]]
+demo = "gdallm15226.lmp"
+demo_url = "https://dsdarchive.com/files/demos/gd/54630/gdallm15226.zip"
+wad = "gd.wad"
+wad_url = "https://dsdarchive.com/files/wads/doom2/1472/gd.zip"
+levelstat = "gd.txt"
+
+[[demo]]
+demo = "30av-25337.lmp"
+demo_url = "https://dsdarchive.com/files/demos/av/28171/avall-41337.zip"
+wad = "AV.WAD"
+wad_url = "https://dsdarchive.com/files/wads/doom2/385/av_new.zip"
+statdump = "av.txt"
+
+[[demo]]
+demo = "pl2all1.lmp"
+demo_url = "https://dsdarchive.com/files/demos/pl2/19121/p2all-6504.zip"
+wad = "PL2.WAD"
+wad_url = "https://dsdarchive.com/files/wads/plutonia/2283/pl2.zip"
+gameversion = "final"
+statdump = "pl2.txt"
+
+[[demo]]
+demo = "30cyx1904.lmp"
+demo_url = "https://dsdarchive.com/files/demos/cydreams/45733/cyallx1904.zip"
+wad = "Cyber110.wad"
+wad_url = "https://dsdarchive.com/files/wads/doom2/806/cydreams.zip"
+deh = "Cyber110.deh"
+statdump = "cydreams.txt"
+
+[[demo]]
+demo = "lodam642.lmp"
+demo_url = "https://dsdarchive.com/files/demos/longdays/76921/lodam642.zip"
+wad = "longdays.wad"
+wad_url = "https://dsdarchive.com/files/wads/doom2/1879/longdays.zip"
+levelstat = "longdays.txt"
