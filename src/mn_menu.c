@@ -1048,7 +1048,7 @@ static void M_LoadSelect(int choice)
     name = G_SaveGameName(slot);
     saveg_compat = saveg_woof510;
 
-    if (M_access(name, F_OK) != 0)
+    if (!M_FileExistsNotDir(name))
     {
         if (name)
         {
