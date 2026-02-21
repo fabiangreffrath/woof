@@ -19,7 +19,6 @@
 
 #include <SDL3/SDL.h>
 
-#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -660,8 +659,6 @@ int M_ReadFile(char const *name, byte **buffer)
 {
     FILE *fp;
 
-    errno = 0;
-
     if ((fp = M_fopen(name, "rb")))
     {
         size_t length;
@@ -678,8 +675,7 @@ int M_ReadFile(char const *name, byte **buffer)
         fclose(fp);
     }
 
-    I_Error("Couldn't read file %s: %s", name,
-            errno ? strerror(errno) : "(Unknown Error)");
+    I_Error("Couldn't read file %s", name);
 
     return 0;
 }
