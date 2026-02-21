@@ -1,4 +1,4 @@
-name: CI
+name: Build
 
 on:
   push:
@@ -89,7 +89,6 @@ jobs:
             shell: bash
             type: vcpkg
             triplet: arm64-osx
-            triplet-x64: x64-osx
             artifact-name: Mac-uni
             artifact-path: build/*.zip
             extra-options: >-
@@ -135,7 +134,6 @@ jobs:
         if: runner.os == 'macOS' && matrix.config.type == 'system'
         run: |
           brew install \
-            ninja \
             sdl3 \
             openal-soft \
             libebur128 \
@@ -151,8 +149,6 @@ jobs:
           msystem: ${{ matrix.config.msystem }}
           update: true
           install: >-
-            diffutils
-            ${{ matrix.config.msys-env }}-python-pip
             ${{ matrix.config.msys-env }}-gcc
             ${{ matrix.config.msys-env }}-cmake
             ${{ matrix.config.msys-env }}-ninja
@@ -194,7 +190,7 @@ jobs:
           -DCMAKE_BUILD_TYPE=Release
           -DENABLE_WERROR=ON -DENABLE_HARDENING=ON -DENABLE_LTO=ON
           -DCMAKE_OSX_ARCHITECTURES=x86_64
-          -DVCPKG_TARGET_TRIPLET=${{ matrix.config.triplet-x64 }}
+          -DVCPKG_TARGET_TRIPLET=x64-osx
           ${{ matrix.config.extra-options }}
 
       - name: Build
@@ -225,14 +221,9 @@ jobs:
           path: demotest/extract
           key: demotest
 
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.x'
-
       - name: Test
         run: |
           cd demotest
-          pip install pyyaml joblib
           python demotest --jobs 4 --port ../build/src/woof
 
       - name: Save demotest cache
@@ -284,73 +275,3 @@ jobs:
         with:
           allowUpdates: true
           artifacts: build/*.zsync
-
-  linter:
-    name: ${{ matrix.name }}
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        name: [Cppcheck , Clang-Tidy]
-
-    steps:
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install \
-            cppcheck \
-            ninja-build \
-            libopenal-dev \
-            libebur128-dev \
-            libsndfile1-dev \
-            libfluidsynth-dev \
-            libxmp-dev
-
-      - name: Build SDL3
-        uses: libsdl-org/setup-sdl@main
-        with:
-          install-linux-dependencies: true
-          version: 3-latest
-
-      - uses: actions/checkout@v6
-
-      - name: Configure
-        run: >-
-          cmake -B build -G Ninja
-          -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-          -DCMAKE_FIND_PACKAGE_PREFER_CONFIG=OFF
-
-      - name: Run Cppcheck
-        if: ${{ matrix.name == 'Cppcheck' }}
-        run: |
-          mkdir cppcheck_cache
-          cppcheck -j4  --cppcheck-build-dir="cppcheck_cache" \
-            --quiet \
-            --error-exitcode=1 \
-            --check-level=exhaustive \
-            --inconclusive \
-            --inline-suppr \
-            --std=c11 \
-            --project="${{ github.workspace }}/build/compile_commands.json" \
-            -i"${{ github.workspace }}/third-party" \
-            -D__GNUC__
-
-      - name: Run Clang-Tidy
-        if: ${{ matrix.name == 'Clang-Tidy' }}
-        uses: cpp-linter/cpp-linter-action@v2
-        id: cpp-linter
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          version: 21
-          step-summary: true
-          files-changed-only: true
-          style: ''
-          tidy-checks: >-
-            -*
-            ,clang-analyzer-*
-            ,-clang-analyzer-cplusplus*
-            ,-clang-analyzer-security*
-            ,-clang-analyzer-valist*
-          database: 'build'
-          ignore: 'third-party|toolsrc|src/i_pcsound.c'

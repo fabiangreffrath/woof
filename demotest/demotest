@@ -4,17 +4,18 @@ import sys
 import shutil
 import subprocess
 import urllib.request
+import tomllib
+import difflib
 from pathlib import Path, PurePath, PureWindowsPath
 from zipfile import ZipFile
 from argparse import ArgumentParser
-
-import yaml
-from joblib import Parallel, delayed
+from multiprocessing import Pool
 
 EXTRACT_DIR = 'extract'
 EXPECTED_DIR = 'expected'
 OUTPUT_DIR = 'output'
 CMD_BASE = ['-iwad', 'miniwad.wad', '-nodraw', '-noblit', '-nosound', '-nogui']
+
 
 def download(url):
     response = urllib.request.urlopen(url)
@@ -23,11 +24,13 @@ def download(url):
     print('downloaded ' + url)
     return 'tmp'
 
+
 def extract(zipname, filename):
     with ZipFile(zipname, 'r') as zf:
         with zf.open(filename) as stream:
             with open(Path(EXTRACT_DIR, filename), 'wb') as out:
                 out.write(stream.read())
+
 
 def download_and_extract(record):
     if not Path(EXTRACT_DIR, record['wad']).exists():
@@ -41,6 +44,7 @@ def download_and_extract(record):
         zipname = download(record['demo_url'])
         extract(zipname, record['demo'])
         os.remove(zipname)
+
 
 def build_command_line(record):
     cmd = []
@@ -57,7 +61,9 @@ def build_command_line(record):
         cmd += ['-levelstat']
     return cmd
 
-def call_port(source_port, record):
+
+def call_port(args):
+    source_port, record = args
     cmd = [source_port] + build_command_line(record)
 
     if 'levelstat' in record:
@@ -75,19 +81,34 @@ def call_port(source_port, record):
     else:
         subprocess.run(cmd, capture_output=True)
 
+
 def compare_output(record):
     if 'levelstat' in record:
         name = record['levelstat']
     else:
         name = record['statdump']
 
-    cmd = ['diff', '-w', Path(EXPECTED_DIR, name), Path(OUTPUT_DIR, name)]
-    proc = subprocess.run(cmd, capture_output=True, text=True)
-    if proc.stdout == '':
-        return False
-    print("name: " + name)
-    sys.stdout.writelines(proc.stdout)
-    return True
+    with open(Path(EXPECTED_DIR, name), 'r') as f:
+        expected = f.read().splitlines()
+    with open(Path(OUTPUT_DIR, name), 'r') as f:
+        actual = f.read().splitlines()
+
+    # Ignore whitespace (diff -w)
+    def normalize(line):
+        return ''.join(line.split())
+
+    diff = list(difflib.unified_diff(
+        [normalize(line) for line in expected],
+        [normalize(line) for line in actual],
+        lineterm=''
+    ))
+
+    if diff:
+        print("name: " + name)
+        sys.stdout.writelines('\n'.join(diff) + '\n')
+        return True
+    return False
+
 
 def run_program(args):
     source_port = PurePath(args.source_port)
@@ -97,29 +118,31 @@ def run_program(args):
     if not source_port.exists():
         sys.exit("Doom port is not found.")
 
-    with open('config.yml', 'r') as stream:
-        config = yaml.safe_load(stream)
+    with open('config.toml', 'rb') as stream:
+        config = tomllib.load(stream)
 
     extract('miniwad.zip', 'miniwad.wad')
 
-    for record in config:
+    for record in config['demo']:
         download_and_extract(record)
 
     os.environ['SDL_VIDEODRIVER'] = 'dummy'
     os.environ['DOOMWADDIR'] = str(Path(Path().resolve(), EXTRACT_DIR))
 
-    Parallel(n_jobs=args.jobs)(delayed(call_port)(source_port, record) for record in config)
+    with Pool(processes=args.jobs) as pool:
+        pool.map(call_port, [(source_port, record) for record in config['demo']])
 
-    differecies = False
+    differences = False
 
-    for record in config:
+    for record in config['demo']:
         if compare_output(record):
-            differecies = True
+            differences = True
 
-    if differecies:
+    if differences:
         sys.exit(1)
     else:
         print("Success.")
+
 
 if __name__ == "__main__":
     parser = ArgumentParser(description="Execute demos for Doom port in a batch.")
