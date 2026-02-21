@@ -26,12 +26,6 @@
 #  define F_OK       0
 #  define W_OK       2
 #  define R_OK       4
-#  define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
-#elif !defined(_WIN32)
-#  include <unistd.h>
-#  ifndef O_BINARY
-#    define O_BINARY 0
-#  endif
 #else
 #  include <unistd.h>
 #endif
@@ -39,7 +33,6 @@
 FILE *M_fopen(const char *filename, const char *mode);
 int M_remove(const char *path);
 int M_rename(const char *oldname, const char *newname);
-int M_open(const char *filename, int oflag);
 int M_access(const char *path, int mode);
 void M_MakeDirectory(const char *dir);
 const char *M_getenv(const char *name);

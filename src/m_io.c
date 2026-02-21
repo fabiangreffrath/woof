@@ -163,29 +163,6 @@ int M_rename(const char *oldname, const char *newname)
     return SDL_RenamePath(oldname, newname) ? 0 : -1;
 }
 
-int M_open(const char *filename, int oflag)
-{
-#ifdef _WIN32
-    wchar_t *wname = NULL;
-    int ret;
-
-    wname = ConvertUtf8ToWide(filename);
-
-    if (!wname)
-    {
-        return 0;
-    }
-
-    ret = _wopen(wname, oflag);
-
-    free(wname);
-
-    return ret;
-#else
-    return open(filename, oflag);
-#endif
-}
-
 int M_access(const char *path, int mode)
 {
 #ifdef _WIN32
