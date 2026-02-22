@@ -159,8 +159,16 @@ inline static float clampf(float x, float min, float max)
   #define PACKED_SUFFIX
 #endif
 
+// Platform independent aligned attribute
+#if defined(_MSC_VER)
+#define ALIGNED(x) __declspec(align(x))
+#elif defined(__GNUC__) || defined(__clang__)
+#define ALIGNED(x) __attribute__((aligned(x)))
+#else
+#define ALIGNED(x) 
 #endif
 
+#endif
 //----------------------------------------------------------------------------
 //
 // $Log: doomtype.h,v $

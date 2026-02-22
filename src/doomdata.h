@@ -58,9 +58,11 @@ enum {
 };
 
 // A single Vertex.
-typedef struct {
+#pragma pack(push, 1)
+typedef struct ALIGNED(4) {
   short x,y;
 } mapvertex_t;
+#pragma pack(pop)
 
 // A SideDef, defining the visual appearance of a wall,
 // by setting textures and offsets.
