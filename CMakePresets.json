@@ -5,7 +5,9 @@
       "name": "base-vcpkg",
       "hidden": true,
       "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake"
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "CMAKE_INSTALL_RPATH": "$ORIGIN/../lib",
+        "CMAKE_BUILD_RPATH_USE_ORIGIN": true
       }
     },
     {
@@ -33,9 +35,7 @@
       "name": "linux-x64-dynamic-release",
       "inherits": "base-vcpkg",
       "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": "x64-linux-dynamic-release",
-        "CMAKE_INSTALL_RPATH": "$ORIGIN/../lib",
-        "CMAKE_BUILD_RPATH_USE_ORIGIN": true
+        "VCPKG_TARGET_TRIPLET": "x64-linux-dynamic-release"
       }
     },
     {
