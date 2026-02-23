@@ -66,7 +66,7 @@ typedef enum
     prop_obituary_melee,
     prop_obituary_self,
 
-    prop_number
+    prop_end
 } proptype_t;
 
 typedef struct
@@ -88,7 +88,6 @@ typedef struct
     uint32_t flags2;
 } proplist_t;
 
-int DECL_SoundMapping(scanner_t *sc);
 void DECL_ParseActorProperty(scanner_t *sc, proplist_t *proplist);
 void DECL_ParseActorFlag(scanner_t *sc, proplist_t *proplist, boolean set);
 
@@ -184,5 +183,9 @@ struct actor_s
 
 void DECL_ParseArgFlag(scanner_t *sc, arg_t *arg);
 void DECL_ParseActorStates(scanner_t *sc, actor_t *actor);
+
+void DECL_ParseSound(scanner_t *sc);
+void DECL_InstallSounds(void);
+int DECL_SoundMapping(const char *name);
 
 #endif

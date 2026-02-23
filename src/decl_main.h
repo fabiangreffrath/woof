@@ -34,4 +34,6 @@ void DECL_Parse(int lumpnum);
 
 void DECL_Install(void);
 
+int DECL_RandomSound(int sfx_number);
+
 #endif

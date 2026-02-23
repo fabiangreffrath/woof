@@ -134,7 +134,7 @@ void I_OAL_ShutdownModule(void)
         {
             alDeleteBuffers(1, &S_sfx[i].buffer);
             S_sfx[i].cached = false;
-            if (!S_sfx[i].ambient) // Keep ambient sound lumpnums.
+            if (!(S_sfx[i].flags & SFX_Ambient)) // Keep ambient sound lumpnums.
             {
                 S_sfx[i].lumpnum = -1;
             }
@@ -714,7 +714,7 @@ boolean I_OAL_CacheSound(sfxinfo_t *sfx)
         sfx->buffer = buffer;
         sfx->cached = true;
 
-        if (sfx->ambient)
+        if (sfx->flags & SFX_Ambient)
         {
             sfx->length = GetSoundLength(sfx->buffer);
 

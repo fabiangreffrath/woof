@@ -40,6 +40,14 @@ typedef struct sfxparams_s
 // SoundFX struct.
 //
 
+typedef enum
+{
+  SFX_None,
+  SFX_Random  = (1u << 0),
+  SFX_Ambient = (1u << 1),
+  SFX_NoPrefix  = (1u << 2)
+} sfxflags_t;
+
 typedef struct sfxrumble_s
 {
   float *low;     // Pointer to array of low frequency rumble values.
@@ -85,8 +93,7 @@ typedef struct sfxinfo_s
   // Sound length in seconds.
   float length;
 
-  // Is this an ambient sound?
-  boolean ambient;
+  sfxflags_t flags;
 
   // Is this a looping sound?
   boolean looping;

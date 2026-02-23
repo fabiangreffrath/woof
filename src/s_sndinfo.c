@@ -141,10 +141,7 @@ static void ParseAmbientSoundCommand(scanner_t *s, char ***sound_names,
     const int array_index = index - 1;
 
     // Sound name
-    if (!SC_CheckRawString(s))
-    {
-        SC_Error(s, "logical name not found");
-    }
+    SC_GetNextRawString(s, true);
     char *sound_name = M_StringDuplicate(SC_GetString(s));
 
     // Type is optional, but mode is required.
@@ -289,7 +286,7 @@ static boolean ResolveAmbientSounds(sound_def_t *sound_defs,
                     sfxinfo_t *sfx = &S_sfx[amb->sfx_id];
                     sfx->name = M_StringDuplicate(def->lump_name);
                     sfx->lumpnum = def->lumpnum;
-                    sfx->ambient = true;
+                    sfx->flags |= SFX_Ambient;
                     sfx->looping = (amb->mode == AMB_MODE_CONTINUOUS);
                     num_resolved++;
                     //I_Printf(VB_DEBUG, "SNDINFO: %s", sound_name);
@@ -321,7 +318,7 @@ static boolean SkipRandomSoundCommand(scanner_t *s)
 
     while (SC_TokensLeft(s))
     {
-        SC_CheckRawString(s);
+        SC_GetNextRawString(s, true);
         const char *string = SC_GetString(s);
 
         if (string[0] == '{' && brackets_found == 0)
@@ -387,7 +384,7 @@ void S_ParseSndInfo(int lumpnum)
 
     while (SC_TokensLeft(s))
     {
-        SC_CheckRawStringUntil(s, '=');
+        SC_GetNextRawString(s, true);
         const char *string = SC_GetString(s);
         if (string[0] != '$')
         {

@@ -1,10 +1,47 @@
 version "0.5.0"
 
+sound ImpSight
+{
+    Prefix True
+    Lump "BGSIT1", "BGSIT2"
+}
+sound ImpPain
+{
+    Prefix True
+    Lump "POPAIN"
+}
+sound ImpMelee
+{
+    Prefix True
+    Lump "CLAW"
+}
+sound ImpDeath
+{
+    Prefix True
+    Lump "BGDTH1", "BGDTH2"
+}
+sound ImpActive
+{
+    Prefix True
+    Lump "BGACT"
+}
+sound ImpAttack
+{
+    Prefix True
+    Lump "FIRSHT"
+}
+sound ImpShotx
+{
+    Prefix True
+    Lump "FIRXPL"
+}
+
 //===========================================================================
 //
 // Imp
 //
 //===========================================================================
+
 thing DoomImp 3001 native
 {
     Health 60
@@ -14,10 +51,10 @@ thing DoomImp 3001 native
     Speed 8
     PainChance 200
     MONSTER
-    SeeSound "bgsit1" // random 2
-    PainSound "popain"
-    DeathSound "bgdth1" // random 2
-    ActiveSound "bgact"
+    SeeSound ImpSight
+    PainSound ImpPain
+    DeathSound ImpDeath
+    ActiveSound ImpActive
     States
     {
     Spawn:

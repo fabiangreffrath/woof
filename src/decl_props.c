@@ -29,7 +29,6 @@
 
 #include "decl_defs.h"
 #include "decl_misc.h"
-#include "dsdh_main.h"
 #include "doomtype.h"
 #include "info.h"
 #include "m_array.h"
@@ -37,7 +36,6 @@
 #include "m_misc.h"
 #include "m_scanner.h"
 #include "p_mobj.h"
-#include "sounds.h"
 
 typedef struct
 {
@@ -239,24 +237,6 @@ static struct
     {MT_MISC20, "cell"}
 };
 
-int DECL_SoundMapping(scanner_t *sc)
-{
-    SC_MustGetToken(sc, TK_StringConst);
-    const char *name = SC_GetString(sc);
-
-    for (int i = 0; i < num_sfx; ++i)
-    {
-        if (S_sfx[i].name && !strcasecmp(name, S_sfx[i].name))
-        {
-            return i;
-        }
-    }
-
-    int sfx_number = DSDH_SoundsGetNewIndex();
-    S_sfx[sfx_number].name = M_StringDuplicate(name);
-    return sfx_number;
-}
-
 static int ItemMapping(scanner_t *sc)
 {
     SC_MustGetToken(sc, TK_StringConst);
@@ -310,18 +290,18 @@ static int GroupMapping(scanner_t *sc, proptype_t type)
 
 void DECL_ParseActorProperty(scanner_t *sc, proplist_t *proplist)
 {
-    const char *name = SC_GetString(sc);
+    const char *prop_name = SC_GetString(sc);
     proptype_t type;
-    for (type = 0; type < prop_number; ++type)
+    for (type = 0; type < prop_end; ++type)
     {
-        if (!strcasecmp(name, decl_properties[type].name))
+        if (!strcasecmp(prop_name, decl_properties[type].name))
         {
             break;
         }
     }
-    if (type == prop_number)
+    if (type == prop_end)
     {
-        SC_Error(sc, "Unknown property '%s'.", name);
+        SC_Error(sc, "Unknown property '%s'.", prop_name);
         return;
     }
 
@@ -370,7 +350,8 @@ void DECL_ParseActorProperty(scanner_t *sc, proplist_t *proplist)
                         value.number = DoubleToFixed(DECL_GetNegativeDecimal(sc));
                         break;
                     case TYPE_Sound:
-                        value.number = DECL_SoundMapping(sc);
+                        SC_MustGetToken(sc, TK_Identifier);
+                        value.string = M_StringDuplicate(SC_GetString(sc));
                         break;
                     case TYPE_String:
                         SC_MustGetToken(sc, TK_StringConst);

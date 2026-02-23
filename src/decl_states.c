@@ -311,15 +311,9 @@ static void ParseArg(scanner_t *sc, arg_t *arg)
             break;
         case arg_thing:
         case arg_state:
-            {
-                SC_MustGetToken(sc, TK_Identifier);
-                char *string = M_StringDuplicate(SC_GetString(sc));
-                M_StringToLower(string);
-                arg->data.string = string;
-            }
-            break;
         case arg_sound:
-            arg->value = DECL_SoundMapping(sc);
+            SC_MustGetToken(sc, TK_Identifier);
+            arg->data.string = M_StringDuplicate(SC_GetString(sc));
             break;
         case arg_flags:
             do

@@ -23,6 +23,7 @@ set(WOOF_SOURCES
                            decl_misc.h
     decl_props.c
     decl_states.c
+    decl_sounds.c
     deh_ammo.c
     deh_bex_helper.c
     deh_bex_includes.c

@@ -5,6 +5,33 @@ version "0.5.0"
 // Zombie man
 //
 //===========================================================================
+
+sound GruntSight
+{
+    Prefix True
+    Lump "POSIT1", "POSIT2", "POSIT3"
+}
+sound GruntActive
+{
+    Prefix True
+    Lump "POSACT"
+}
+sound GruntPain
+{
+    Prefix True
+    Lump "POPAIN"
+}
+sound GruntDeath
+{
+    Prefix True
+    Lump "PODTH1", "PODTH2", "PODTH3"
+}
+sound GruntAttack
+{
+    Prefix True
+    Lump "PISTOL"
+}
+
 thing ZombieMan 3004 native
 {
     Health 20
@@ -13,11 +40,11 @@ thing ZombieMan 3004 native
     Speed 8
     PainChance 200
     MONSTER
-    SeeSound "posit1" // random 3
-    AttackSound "pistol"
-    PainSound "popain"
-    DeathSound "podth1" // random 3
-    ActiveSound "posact"
+    SeeSound GruntSight
+    AttackSound GruntAttack
+    PainSound GruntPain
+    DeathSound GruntDeath
+    ActiveSound GruntActive
     DropItem "Clip"
     States
     {
@@ -62,6 +89,13 @@ thing ZombieMan 3004 native
 // Sergeant / Shotgun guy
 //
 //===========================================================================
+
+sound ShotGuyAttack
+{
+    Prefix True
+    Lump "SHOTGN"
+}
+
 thing ShotgunGuy 3002 native
 {
     Health 30
@@ -71,11 +105,11 @@ thing ShotgunGuy 3002 native
     Speed 8
     PainChance 170
     MONSTER
-    SeeSound "posit1" // random 3
-    AttackSound "shotgn"
-    PainSound "popain"
-    DeathSound "podth1" // random 3
-    ActiveSound "posact"
+    SeeSound GruntSight
+    AttackSound ShotGuyAttack
+    PainSound GruntPain
+    DeathSound GruntDeath
+    ActiveSound GruntActive
     DropItem "Shotgun"
     States
     {
@@ -120,6 +154,7 @@ thing ShotgunGuy 3002 native
 // Chaingunner
 //
 //===========================================================================
+
 thing ChaingunGuy 65 native
 {
     Health 70
@@ -129,11 +164,11 @@ thing ChaingunGuy 65 native
     Speed 8
     PainChance 170
     MONSTER
-    SeeSound "posit1" // random 3
-    PainSound "popain"
-    DeathSound "podth1" // random 3
-    ActiveSound "posact"
-    AttackSound "shotgn"
+    SeeSound GruntSight
+    PainSound GruntPain
+    DeathSound GruntDeath
+    ActiveSound GruntActive
+    AttackSound ShotGuyAttack
     Dropitem "Chaingun"
     States
     {
@@ -178,6 +213,18 @@ thing ChaingunGuy 65 native
 // SS Nazi
 //
 //===========================================================================
+
+sound WolfSSSight
+{
+    Prefix True
+    Lump "SSSIT"
+}
+sound WolfSSDeath
+{
+    Prefix True
+    Lump "SSDTH"
+}
+
 thing WolfensteinSS native
 {
     Health 50
@@ -186,11 +233,11 @@ thing WolfensteinSS native
     Speed 8
     PainChance 170
     MONSTER
-    SeeSound "sssit"
-    PainSound "popain"
-    DeathSound "ssdth"
-    ActiveSound "posact"
-    AttackSound "shotgn"
+    SeeSound WolfSSSight
+    PainSound GruntPain
+    DeathSound WolfSSDeath
+    ActiveSound GruntActive
+    AttackSound ShotGuyAttack
     Dropitem "Clip"
     States
     {

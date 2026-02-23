@@ -262,9 +262,17 @@ int I_GetSfxLumpNum(sfxinfo_t *sfx)
 {
     if (sfx->lumpnum == -1)
     {
-        char namebuf[9] = {0};
-        M_snprintf(namebuf, sizeof(namebuf), "ds%s", DEH_String(sfx->name));
-        sfx->lumpnum = W_CheckNumForName(namebuf);
+        if (sfx->flags & SFX_NoPrefix)
+        {
+            sfx->lumpnum = W_CheckNumForName(sfx->name);
+        }
+        else
+        {
+            char namebuf[9] = {0};
+            M_snprintf(namebuf, sizeof(namebuf), "ds%s", DEH_String(sfx->name));
+            sfx->lumpnum = W_CheckNumForName(namebuf);
+        }
+
     }
 
     return sfx->lumpnum;

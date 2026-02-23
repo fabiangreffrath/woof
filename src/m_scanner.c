@@ -631,9 +631,18 @@ void SC_MustGetStringOrIdent(scanner_t *s)
     }
 }
 
-static boolean GetNextRawString(scanner_t *s, char delimiter,
-                                boolean expandstate)
+boolean SC_GetNextRawString(scanner_t *s, boolean expandstate)
 {
+    if (!s->neednext)
+    {
+        s->neednext = true;
+        if (expandstate)
+        {
+            ExpandState(s);
+        }
+        return true;
+    }
+
     s->nextstate.tokenline = s->line;
     s->nextstate.tokenlinepos = s->scanpos - s->linestart;
     s->nextstate.token = TK_NoToken;
@@ -686,14 +695,10 @@ static boolean GetNextRawString(scanner_t *s, char delimiter,
         }
         else
         {
-            if (cur == delimiter || cur == ' ' || cur == '\t'
-                || cur == '\n' || cur == '\r' || cur == 0)
+            if (cur == ' ' || cur == '\t' || cur == '\n' || cur == '\r'
+                || cur == 0)
             {
                 end = s->scanpos;
-                if (delimiter)
-                {
-                    s->scanpos++;
-                }
                 break;
             }
         }
@@ -713,8 +718,12 @@ static boolean GetNextRawString(scanner_t *s, char delimiter,
         if (quoted)
         {
             Unescape(s->nextstate.string);
+            s->nextstate.token = TK_StringConst;
         }
-        s->nextstate.token = TK_StringConst;
+        else
+        {
+            s->nextstate.token = s->data[start];
+        }
         if (expandstate)
         {
             ExpandState(s);
@@ -729,22 +738,7 @@ static boolean GetNextRawString(scanner_t *s, char delimiter,
     return false;
 }
 
-boolean SC_GetNextRawString(scanner_t *s, boolean expandstate)
-{
-    if (!s->neednext)
-    {
-        s->neednext = true;
-        if (expandstate)
-        {
-            ExpandState(s);
-        }
-        return true;
-    }
-
-    return GetNextRawString(s, 0, expandstate);
-}
-
-boolean SC_CheckRawString(scanner_t *s)
+boolean SC_CheckRawToken(scanner_t *s, char token)
 {
     if (s->neednext)
     {
@@ -754,43 +748,7 @@ boolean SC_CheckRawString(scanner_t *s)
         }
     }
 
-    if (s->nextstate.token == TK_StringConst)
-    {
-        s->neednext = true;
-        ExpandState(s);
-        return true;
-    }
-    s->neednext = false;
-    return false;
-}
-
-boolean SC_GetNextRawStringUntil(scanner_t *s, char delimiter,
-                                 boolean expandstate)
-{
-    if (!s->neednext)
-    {
-        s->neednext = true;
-        if (expandstate)
-        {
-            ExpandState(s);
-        }
-        return true;
-    }
-
-    return GetNextRawString(s, delimiter, expandstate);
-}
-
-boolean SC_CheckRawStringUntil(scanner_t *s, char delimiter)
-{
-    if (s->neednext)
-    {
-        if (!SC_GetNextRawStringUntil(s, delimiter, false))
-        {
-            return false;
-        }
-    }
-
-    if (s->nextstate.token == TK_StringConst)
+    if (s->nextstate.token == token)
     {
         s->neednext = true;
         ExpandState(s);

@@ -180,7 +180,7 @@ static void ParseActor(scanner_t *sc)
     hashmap_put_str(actors, actor.name, &actor);
 }
 
-static void ParseDecorate(scanner_t *sc)
+static void ParseDeclarate(scanner_t *sc)
 {
     if (!actors)
     {
@@ -222,8 +222,18 @@ static void ParseDecorate(scanner_t *sc)
         else
         {
             SC_MustGetToken(sc, TK_Identifier);
-            DECL_RequireKeyword(sc, "thing");
-            ParseActor(sc);
+            enum {KEYWORD_Thing, KEYWORD_Sound};
+            switch (DECL_RequireKeyword(sc, "thing", "sound"))
+            {
+                case KEYWORD_Thing:
+                    ParseActor(sc);
+                    break;
+                case KEYWORD_Sound:
+                    DECL_ParseSound(sc);
+                    break;
+                default:
+                    break;
+            }
         }
     }
 }
@@ -264,22 +274,22 @@ static int InstallMobjInfo(void)
                     mobj->spawnhealth = value.number;
                     break;
                 case prop_seesound:
-                    mobj->seesound = value.number;
+                    mobj->seesound = DECL_SoundMapping(value.string);
                     break;
                 case prop_reactiontime:
                     mobj->reactiontime = value.number;
                     break;
                 case prop_attacksound:
-                    mobj->attacksound = value.number;
+                    mobj->attacksound = DECL_SoundMapping(value.string);
                     break;
                 case prop_painchance:
                     mobj->painchance = value.number;
                     break;
                 case prop_painsound:
-                    mobj->painsound = value.number;
+                    mobj->painsound = DECL_SoundMapping(value.string);
                     break;
                 case prop_deathsound:
-                    mobj->deathsound = value.number;
+                    mobj->deathsound = DECL_SoundMapping(value.string);
                     break;
                 case prop_speed:
                     mobj->speed = mobj->flags & MF_MISSILE
@@ -299,7 +309,7 @@ static int InstallMobjInfo(void)
                     mobj->damage = value.number;
                     break;
                 case prop_activesound:
-                    mobj->activesound = value.number;
+                    mobj->activesound = DECL_SoundMapping(value.string);
                     break;
 
                 case prop_dropitem:
@@ -315,7 +325,7 @@ static int InstallMobjInfo(void)
                     mobj->splash_group = value.number;
                     break;
                 case prop_ripsound:
-                    mobj->ripsound = value.number;
+                    mobj->ripsound = DECL_SoundMapping(value.string);
                     break;
                 case prop_altspeed:
                     mobj->altspeed = value.number;
@@ -406,7 +416,10 @@ static int ResolveArg(const actor_t *owner, const arg_t *arg,
     {
         case arg_thing:
             {
-                actor_t *actor = hashmap_get_str(actors, arg->data.string);
+                char *name = M_StringDuplicate(arg->data.string);
+                M_StringToLower(name);
+                actor_t *actor = hashmap_get_str(actors, name);
+                free(name);
                 if (actor && !actor->native)
                 {
                     return start_mobjtype + actor->installnum + 1;
@@ -426,6 +439,9 @@ static int ResolveArg(const actor_t *owner, const arg_t *arg,
             }
             I_Error("Not found state label '%s' for action parameter.",
                     arg->data.string);
+            break;
+        case arg_sound:
+            return DECL_SoundMapping(arg->data.string);
             break;
         default:
             return arg->value;
@@ -607,6 +623,7 @@ static int InstallStates(int start_mobjtype)
 
 void DECL_Install(void)
 {
+    DECL_InstallSounds();
     int start_mobjtype = InstallMobjInfo();
     int start_statenum = InstallStates(start_mobjtype);
     ResolveMobjInfoStatePointers(start_statenum, start_mobjtype);
@@ -618,6 +635,6 @@ void DECL_Parse(int lumpnum)
     M_CopyLumpName(lumpname, lumpinfo[lumpnum].name);
     scanner_t *sc = SC_Open(lumpname, W_CacheLumpNum(lumpnum, PU_CACHE),
                             W_LumpLength(lumpnum));
-    ParseDecorate(sc);
+    ParseDeclarate(sc);
     SC_Close(sc);
 }

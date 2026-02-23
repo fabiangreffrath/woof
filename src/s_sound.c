@@ -22,6 +22,7 @@
 
 #include <string.h>
 
+#include "decl_main.h"
 #include "deh_strings.h"
 #include "doomdef.h"
 #include "doomstat.h"
@@ -461,6 +462,12 @@ static boolean StartSoundEx(const mobj_t *origin, int sfx_id,
 #endif
 
     sfx = &S_sfx[sfx_id];
+
+    if (sfx->flags & SFX_Random)
+    {
+        sfx_id = DECL_RandomSound(sfx_id);
+        sfx = &S_sfx[sfx_id];
+    }
 
     // Initialize sound parameters
     if (ambient)

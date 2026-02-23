@@ -72,9 +72,7 @@ boolean SC_CheckStringOrIdent(scanner_t *s);
 void SC_MustGetStringOrIdent(scanner_t *s);
 
 boolean SC_GetNextRawString(scanner_t *s, boolean expandstate);
-boolean SC_CheckRawString(scanner_t *s);
-boolean SC_GetNextRawStringUntil(scanner_t *s, char delimiter, boolean expandstate);
-boolean SC_CheckRawStringUntil(scanner_t *s, char delimiter);
+boolean SC_CheckRawToken(scanner_t *s, char token);
 
 typedef enum
 {
