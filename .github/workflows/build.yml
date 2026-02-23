@@ -48,55 +48,49 @@ jobs:
             os: ubuntu-24.04
             shell: bash
             type: vcpkg
-            triplet: x64-linux-dynamic-release
             artifact-name: AppImage
             artifact-path: build/*.AppImage
             extra-options: >-
-             --preset vcpkg
-             -DWITH_DISCORD_RPC=ON
-             -DCMAKE_INSTALL_PREFIX=/usr
+              --preset linux-x64-dynamic-release
+              -DWITH_DISCORD_RPC=ON
+              -DCMAKE_INSTALL_PREFIX=/usr
 
-          - name: MSVC x64
+          - name: MSVC x64 (vcpkg)
             os: windows-latest
             shell: pwsh
             type: vcpkg
             arch: x64
-            triplet: x64-windows-static-release
             artifact-name: Win-64
             artifact-path: build/*.zip
             extra-options: >-
-              --preset vcpkg
+              --preset windows-x64-static-release
               -DWITH_DISCORD_RPC=ON
               -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
               -DCMAKE_IGNORE_PATH="C:/Strawberry/perl/bin;C:/Strawberry/c/lib"
 
-          - name: MSVC x86
+          - name: MSVC x86 (vcpkg)
             os: windows-latest
             shell: pwsh
             type: vcpkg
             arch: x86
-            triplet: x86-windows-static-release
             artifact-name: Win-32
             artifact-path: build/*.zip
             extra-options: >-
-              --preset vcpkg
+              --preset windows-x86-static-release
               -DWITH_DISCORD_RPC=ON
               -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
               -DCMAKE_IGNORE_PATH="C:/Strawberry/perl/bin;C:/Strawberry/c/lib"
 
-          - name: macOS uni
+          - name: macOS uni (vcpkg)
             os: macos-latest
             shell: bash
             type: vcpkg
-            triplet: arm64-osx
             artifact-name: Mac-uni
             artifact-path: build/*.zip
             extra-options: >-
-              --preset vcpkg
+              --preset macos-arm64
               -DWITH_DISCORD_RPC=ON
               -DCMAKE_INSTALL_PREFIX=/usr
-    env:
-      VCPKG_TARGET_TRIPLET: ${{ matrix.config.triplet }}
 
     steps:
       - name: Developer Command Prompt (MSVC)
@@ -189,9 +183,10 @@ jobs:
           cmake -B build-x64 -G Ninja
           -DCMAKE_BUILD_TYPE=Release
           -DENABLE_WERROR=ON -DENABLE_HARDENING=ON -DENABLE_LTO=ON
+          -DWITH_DISCORD_RPC=ON
           -DCMAKE_OSX_ARCHITECTURES=x86_64
           -DVCPKG_TARGET_TRIPLET=x64-osx
-          ${{ matrix.config.extra-options }}
+          -DCMAKE_INSTALL_PREFIX=/usr
 
       - name: Build
         run: cmake --build build
