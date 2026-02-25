@@ -70,6 +70,7 @@ extern boolean setrefreshneeded;
 extern boolean toggle_fullscreen;
 extern boolean toggle_exclusive_fullscreen;
 extern boolean correct_aspect_ratio;
+extern boolean window_focused;
 extern boolean screenvisible;
 
 extern int gamma2;

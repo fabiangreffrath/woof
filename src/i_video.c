@@ -119,7 +119,7 @@ static SDL_FRect frect = {0.0f};
 
 static int window_width, window_height;
 static int default_window_width, default_window_height;
-static boolean window_focused = true;
+boolean window_focused = true;
 static int scalefactor;
 
 static int actualheight;

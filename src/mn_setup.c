@@ -2582,6 +2582,8 @@ static setup_menu_t gen_settings2[] = {
 
     MI_GAP,
 
+    {"Mute When Unfocused", S_ONOFF, CNTR_X, M_SPC, {"mute_unfocused"}},
+
     {"Sound Module", S_CHOICE, CNTR_X, M_SPC, {"snd_module"},
      .strings_id = str_sound_module, .action = SetSoundModule},
 

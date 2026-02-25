@@ -192,6 +192,8 @@ int     key_help = KEY_F1;                                 // phares 4/13/98
 // [FG] double click acts as "use"
 static boolean dclick_use;
 
+static boolean mute_unfocused;
+
 #define MAXPLMOVE   (forwardmove[1])
 #define TURBOTHRESHOLD  0x32
 #define SLOWTURNTICS  6
@@ -3035,6 +3037,17 @@ void G_Ticker(void)
 
   CheckSaveAutoSave();
 
+  if (mute_unfocused && !window_focused)
+  {
+    S_PauseSound();
+    S_PauseMusic();
+  }
+  else
+  {
+    S_ResumeSound();
+    S_ResumeMusic();
+  }
+
   // killough 10/6/98: allow games to be saved during demo
   // playback, by the playback user (not by demo itself)
 
@@ -5031,6 +5044,8 @@ void G_BindGameVariables(void)
     "Use-button action upon death (0 = Default; 1 = Last Save; 2 = Nothing)");
   BIND_BOOL_GENERAL(autosave, true,
     "Auto save at the beginning of a map, after completing the previous one");
+  BIND_BOOL_GENERAL(mute_unfocused, true,
+                    "Mute audio when the window is not focused");
 }
 
 void G_BindEnemVariables(void)
