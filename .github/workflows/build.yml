@@ -48,10 +48,12 @@ jobs:
             os: ubuntu-24.04
             shell: bash
             type: vcpkg
+            triplet: x64-linux-release
             artifact-name: AppImage
             artifact-path: build/*.AppImage
             extra-options: >-
               -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+              -DVCPKG_TARGET_TRIPLET=x64-linux-release
               -DWITH_DISCORD_RPC=ON
               -DCMAKE_INSTALL_PREFIX=/usr
 
@@ -59,6 +61,7 @@ jobs:
             os: windows-latest
             shell: pwsh
             type: vcpkg
+            triplet: x64-windows-static-release
             arch: x64
             artifact-name: Win-64
             artifact-path: build/*.zip
@@ -73,6 +76,7 @@ jobs:
             os: windows-latest
             shell: pwsh
             type: vcpkg
+            triplet: x86-windows-static-release
             arch: x86
             artifact-name: Win-32
             artifact-path: build/*.zip
@@ -87,6 +91,7 @@ jobs:
             os: macos-latest
             shell: bash
             type: vcpkg
+            triplet: arm64-osx
             artifact-name: Mac-uni
             artifact-path: build/*.zip
             extra-options: >-
@@ -197,7 +202,7 @@ jobs:
 
       - name: Build macOS x64 (universal)
         if: matrix.config.name == 'macOS uni (vcpkg)'
-        run: cmake --build build-x64 --config "Release"
+        run: cmake --build build-x64
 
       - name: Delete old vcpkg cache
         continue-on-error: true
