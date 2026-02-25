@@ -31,6 +31,7 @@
 #define M_SCANNER_H
 
 #include "doomtype.h"
+#include "m_misc.h"
 
 typedef struct scanner_s scanner_t;
 
@@ -53,6 +54,8 @@ enum
 };
 
 scanner_t *SC_Open(const char *scriptname, const char *data, int length);
+scanner_t *SC_OpenOptions(const char *type, version_t maxversion,
+                          const char *scriptname, const char *data, int length);
 void SC_Close(scanner_t *s);
 
 const char *SC_GetString(scanner_t *s);
@@ -75,5 +78,23 @@ boolean SC_GetNextRawString(scanner_t *s, boolean expandstate);
 boolean SC_CheckRawToken(scanner_t *s, char token);
 
 NORETURN void SC_Error(scanner_t *s, const char *msg, ...) PRINTF_ATTR(2, 3);
+
+int SC_CheckKeywordInternal(scanner_t *s, const char *keywords[], int count);
+
+#define SC_CheckKeyword(s, ...)                                   \
+    SC_CheckKeywordInternal(sc, (const char *[]){__VA_ARGS__},    \
+                            sizeof((const char *[]){__VA_ARGS__}) \
+                                / sizeof(const char *))
+
+int SC_RequireKeywordInternal(scanner_t *s, const char *keywords[], int count);
+
+#define SC_RequireKeyword(sc, ...)                                  \
+    SC_RequireKeywordInternal(sc, (const char *[]){__VA_ARGS__},    \
+                              sizeof((const char *[]){__VA_ARGS__}) \
+                                  / sizeof(const char *))
+
+// Helper functions for when we need to parse a signed integer or decimal.
+int SC_GetNegativeInteger(scanner_t *sc);
+double SC_GetNegativeDecimal(scanner_t *sc);
 
 #endif

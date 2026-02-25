@@ -74,4 +74,15 @@ int M_ReadFile(const char *name, byte **buffer);
 boolean M_StringToDigest(const char *string, byte *digest, int size);
 void M_DigestToString(const byte *digest, char *string, int size);
 
+typedef struct
+{
+    int major;
+    int minor;
+    int revision;
+} version_t;
+
+// Negative if v1 < v2, zero if equal, positive if v1 > v2.
+int M_CompareVersions(const version_t *v1, const version_t *v2);
+boolean M_ParseVersion(const char *s, version_t *v);
+
 #endif

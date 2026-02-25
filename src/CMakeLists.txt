@@ -20,7 +20,6 @@ set(WOOF_SOURCES
                            doomtype.h
                            decl_defs.h
     decl_main.c            decl_main.h
-                           decl_misc.h
     decl_props.c
     decl_states.c
     decl_sounds.c          decl_sounds.h

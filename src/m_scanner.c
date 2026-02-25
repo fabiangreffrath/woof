@@ -29,6 +29,7 @@
 
 #include "m_scanner.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -775,6 +776,72 @@ double SC_GetDecimal(scanner_t *s)
     return s->state.decimal;
 }
 
+static void CheckMetadata(scanner_t *s, const char *type, version_t maxversion)
+{
+    SC_MustGetToken(s, TK_Identifier);
+    if (strcasecmp("metadata", SC_GetString(s)))
+    {
+        SC_Error(s, "Expect metadata block.");
+    }
+
+    boolean setversion = false, settype = false;
+    SC_MustGetToken(s, '{');
+    while (!SC_CheckToken(s, '}'))
+    {
+        SC_MustGetToken(s, TK_Identifier);
+        switch (SC_RequireKeyword(s, "type", "version"))
+        {
+            case 0:
+                {
+                    SC_MustGetToken(s, TK_StringConst);
+                    const char *string = SC_GetString(s);
+                    if (strcasecmp(string, type))
+                    {
+                        SC_Error(s, "Wrong type '%s', expected '%s'.", type, string);
+                    }
+                    settype = true;
+                }
+                break;
+            case 1:
+                {
+                    SC_MustGetToken(s, TK_StringConst);
+                    const char *string = SC_GetString(s);
+                    version_t v;
+                    if (!M_ParseVersion(string, &v))
+                    {
+                        SC_Error(s, "Error parsing version.");
+                    }
+                    if (M_CompareVersions(&v, &maxversion) > 0)
+                    {
+                        SC_Error(s, "Max supported version %d.%d.%d",
+                            maxversion.major, maxversion.minor, maxversion.revision);
+                    }
+                    setversion = true;
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+    if (!settype)
+    {
+        SC_Error(s, "Missed 'type' in metadata.");
+    }
+    if (!setversion)
+    {
+        SC_Error(s, "Missed 'version' in metadata.");
+    }
+}
+
+scanner_t *SC_OpenOptions(const char *type, version_t maxversion,
+                          const char *scriptname, const char *data, int length)
+{
+    scanner_t *s = SC_Open(scriptname, data, length);
+    CheckMetadata(s, type, maxversion);
+    return s;
+}
+
 scanner_t *SC_Open(const char *scriptname, const char *data, int length)
 {
     scanner_t *s = calloc(1, sizeof(*s));
@@ -812,4 +879,42 @@ void SC_Close(scanner_t *s)
     }
     free(s->data);
     free(s);
+}
+
+int SC_CheckKeywordInternal(scanner_t *s, const char *keywords[], int count)
+{
+    const char *string = SC_GetString(s);
+    for (int i = 0; i < count; ++i)
+    {
+        if (strcasecmp(keywords[i], string) == 0)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
+int SC_RequireKeywordInternal(scanner_t *s, const char *keywords[], int count)
+{
+    int result = SC_CheckKeywordInternal(s, keywords, count);
+    if (result >= 0)
+    {
+        return result;
+    }
+    SC_Error(s, "Invalid keyword at this point.");
+    return -1;
+}
+
+int SC_GetNegativeInteger(scanner_t *s)
+{
+    boolean neg = SC_CheckToken(s, '-');
+    SC_MustGetToken(s, TK_IntConst);
+    return neg ? -SC_GetNumber(s) : SC_GetNumber(s);
+}
+
+double SC_GetNegativeDecimal(scanner_t *s)
+{
+    boolean neg = SC_CheckToken(s, '-');
+    SC_MustGetToken(s, TK_FloatConst);
+    return neg ? -SC_GetDecimal(s) : SC_GetDecimal(s);
 }

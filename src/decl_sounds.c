@@ -12,10 +12,9 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
-#include "decl_sounds.h"
 #include <math.h>
 
-#include "decl_misc.h"
+#include "decl_sounds.h"
 #include "doomdef.h"
 #include "doomtype.h"
 #include "dsdh_main.h"
@@ -166,7 +165,7 @@ void DECL_ParseSound(scanner_t *sc)
             switch (decl_sound_props[type].valtype)
             {
                 case TYPE_Int:
-                    value.number = DECL_GetNegativeInteger(sc);
+                    value.number = SC_GetNegativeInteger(sc);
                     break;
                 case TYPE_ListOfStrings:
                     do
@@ -326,7 +325,7 @@ static hashmap_t *ambient_data;
 static ambient_mode_t PointType(scanner_t *sc)
 {
     SC_MustGetToken(sc, TK_Identifier);
-    return DECL_RequireKeyword(sc, "continuous", "random", "periodic");
+    return SC_RequireKeyword(sc, "continuous", "random", "periodic");
 }
 
 void DECL_ParseAmbient(scanner_t *sc)

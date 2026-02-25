@@ -1,4 +1,10 @@
-version "0.5.0"
+metadata { type "declarate" version "1.0.0" }
+
+//===========================================================================
+//
+// Imp
+//
+//===========================================================================
 
 sound ImpSight  { prefix lump "BGSIT1", "BGSIT2" }
 sound ImpPain   { prefix lump "POPAIN" }
@@ -7,12 +13,6 @@ sound ImpDeath  { prefix lump "BGDTH1", "BGDTH2" }
 sound ImpActive { prefix lump "BGACT" }
 sound ImpAttack { prefix lump "FIRSHT" }
 sound ImpShotx  { prefix lump "FIRXPL" }
-
-//===========================================================================
-//
-// Imp
-//
-//===========================================================================
 
 thing DoomImp 3001 native
 {

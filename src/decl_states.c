@@ -32,7 +32,6 @@
 
 #include "d_think.h"
 #include "decl_defs.h"
-#include "decl_misc.h"
 #include "dsdh_main.h"
 #include "doomtype.h"
 #include "info.h"
@@ -304,7 +303,7 @@ static void ParseArg(scanner_t *sc, arg_t *arg)
     switch (arg->type)
     {
         case arg_fixed:
-            arg->value = DoubleToFixed(DECL_GetNegativeDecimal(sc));
+            arg->value = DoubleToFixed(SC_GetNegativeDecimal(sc));
             break;
         case arg_int:
             SC_MustGetToken(sc, TK_IntConst);
@@ -421,14 +420,14 @@ static void ParseState(scanner_t *sc, dstate_t *state)
     state->frames = M_StringDuplicate(SC_GetString(sc));
     M_StringToUpper(state->frames);
 
-    state->duration = DECL_GetNegativeInteger(sc);
+    state->duration = SC_GetNegativeInteger(sc);
 
     if (SC_CheckToken(sc, TK_Identifier))
     {
         int keyword;
         do
         {
-            keyword = DECL_CheckKeyword(sc, "bright", "fast", "offset");
+            keyword = SC_CheckKeyword(sc, "bright", "fast", "offset");
             switch (keyword)
             {
                 case 0:
@@ -439,9 +438,9 @@ static void ParseState(scanner_t *sc, dstate_t *state)
                     break;
                 case 2:
                     SC_MustGetToken(sc, '(');
-                    state->xoffset = DECL_GetNegativeInteger(sc);
+                    state->xoffset = SC_GetNegativeInteger(sc);
                     SC_MustGetToken(sc, ',');
-                    state->yoffset = DECL_GetNegativeInteger(sc);
+                    state->yoffset = SC_GetNegativeInteger(sc);
                     SC_MustGetToken(sc, ')');
                     break;
                 default:
@@ -484,7 +483,7 @@ void DECL_ParseActorStates(scanner_t *sc, actor_t *actor)
             {
                 SC_MustGetToken(sc, TK_Identifier);
                 char *label = M_StringDuplicate(SC_GetString(sc));
-                if (DECL_CheckKeyword(sc, "loop", "goto", "stop", "wait") >= 0
+                if (SC_CheckKeyword(sc, "loop", "goto", "stop", "wait") >= 0
                     || !SC_CheckToken(sc, ':'))
                 {
                     free(label);
@@ -501,7 +500,7 @@ void DECL_ParseActorStates(scanner_t *sc, actor_t *actor)
         boolean usestate = false;
 
         enum {KEYWORD_Loop, KEYWORD_Goto, KEYWORD_Stop, KEYWORD_Wait};
-        switch (DECL_CheckKeyword(sc, "loop", "goto", "stop", "wait"))
+        switch (SC_CheckKeyword(sc, "loop", "goto", "stop", "wait"))
         {
             case KEYWORD_Loop:
                 if (laststate)

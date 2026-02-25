@@ -27,14 +27,9 @@
 // OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 // SUCH DAMAGE.
 
-#include <stdio.h>
-#include <string.h>
-
 #include "decl_defs.h"
 #include "decl_main.h"
-#include "decl_misc.h"
 #include "doomtype.h"
-#include "dsdh_main.h"
 #include "info.h"
 #include "m_array.h"
 #include "m_hashmap.h"
@@ -43,13 +38,6 @@
 #include "p_mobj.h"
 #include "w_wad.h"
 #include "z_zone.h"
-
-typedef struct
-{
-    int major;
-    int minor;
-    int revision;
-} version_t;
 
 hashmap_t *actors;
 
@@ -80,7 +68,7 @@ static void ParseActorBody(scanner_t *sc, actor_t *actor)
             }
             else
             {
-                switch (DECL_CheckKeyword(sc, "states"))
+                switch (SC_CheckKeyword(sc, "states"))
                 {
                     case 0:
                         DECL_ParseActorStates(sc, actor);
@@ -145,7 +133,7 @@ static void ParseActor(scanner_t *sc)
 
     if (SC_CheckToken(sc, TK_Identifier))
     {
-        if (DECL_CheckKeyword(sc, "replaces") == 0)
+        if (SC_CheckKeyword(sc, "replaces") == 0)
         {
             SC_MustGetToken(sc, TK_Identifier);
             char *name = M_StringDuplicate(SC_GetString(sc));
@@ -169,46 +157,29 @@ static void ParseActor(scanner_t *sc)
 
     if (SC_CheckToken(sc, TK_Identifier))
     {
-        if (DECL_CheckKeyword(sc, "native") == 0)
+        if (SC_CheckKeyword(sc, "native") == 0)
         {
             actor.native = true;
         }
     }
 
     ParseActorBody(sc, &actor);
+
+    if (!actors)
+    {
+        actors = hashmap_init_str(16, sizeof(actor_t));
+    }
     hashmap_put_str(actors, actor.name, &actor);
 }
 
 static void ParseDeclarate(scanner_t *sc)
 {
-    if (!actors)
-    {
-        actors = hashmap_init_str(16, sizeof(actor_t));
-    }
-
-    SC_MustGetToken(sc, TK_Identifier);
-    boolean found = false;
-    if (!strcasecmp("version", SC_GetString(sc)))
-    {
-        SC_MustGetToken(sc, TK_StringConst);
-        const char *string = SC_GetString(sc);
-        version_t v;
-        if (sscanf(string, "%d.%d.%d", &v.major, &v.minor, &v.revision) == 3)
-        {
-            found = true;
-        }
-    }
-    if (!found)
-    {
-        SC_Error(sc, "Must include version.");
-    }
-
     while (SC_TokensLeft(sc))
     {
         if (SC_CheckToken(sc, '#'))
         {
             SC_MustGetToken(sc, TK_Identifier);
-            DECL_RequireKeyword(sc, "include");
+            SC_RequireKeyword(sc, "include");
             SC_MustGetToken(sc, TK_StringConst);
             const char *lump = SC_GetString(sc);
             int lumpnum = W_CheckNumForName(lump);
@@ -222,7 +193,7 @@ static void ParseDeclarate(scanner_t *sc)
         {
             SC_MustGetToken(sc, TK_Identifier);
             enum {KEYWORD_Thing, KEYWORD_Sound, KEYWORD_Ambient};
-            switch (DECL_RequireKeyword(sc, "thing", "sound", "ambient"))
+            switch (SC_RequireKeyword(sc, "thing", "sound", "ambient"))
             {
                 case KEYWORD_Thing:
                     ParseActor(sc);
@@ -253,8 +224,9 @@ void DECL_Parse(int lumpnum)
 {
     char lumpname[9] = {0};
     M_CopyLumpName(lumpname, lumpinfo[lumpnum].name);
-    scanner_t *sc = SC_Open(lumpname, W_CacheLumpNum(lumpnum, PU_CACHE),
-                            W_LumpLength(lumpnum));
+    scanner_t *sc = SC_OpenOptions("declarate", (version_t){1, 0, 0}, lumpname,
+                                   W_CacheLumpNum(lumpnum, PU_CACHE),
+                                   W_LumpLength(lumpnum));
     ParseDeclarate(sc);
     SC_Close(sc);
 }

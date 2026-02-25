@@ -15,19 +15,13 @@
 #define M_JSON_H
 
 #include "doomtype.h"
+#include "m_misc.h"
 
 typedef struct yyjson_val json_t;
 
 typedef struct yyjson_arr_iter json_arr_iter_t;
 
 typedef struct yyjson_obj_iter json_obj_iter_t;
-
-typedef struct
-{
-    int major;
-    int minor;
-    int revision;
-} version_t;
 
 boolean JS_GetVersion(json_t *json, version_t *version);
 

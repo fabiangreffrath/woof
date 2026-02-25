@@ -28,7 +28,6 @@
 // SUCH DAMAGE.
 
 #include "decl_defs.h"
-#include "decl_misc.h"
 #include "doomtype.h"
 #include "dsdh_main.h"
 #include "info.h"
@@ -312,7 +311,7 @@ void DECL_ParseActorProperty(scanner_t *sc, proplist_t *proplist)
         case prop_renderstyle:
             {
                 SC_MustGetToken(sc, TK_StringConst);
-                switch (DECL_CheckKeyword(sc, "none", "fuzzy"))
+                switch (SC_CheckKeyword(sc, "none", "fuzzy"))
                 {
                     case 0:
                         proplist->flags &= ~MF_SHADOW;
@@ -346,10 +345,10 @@ void DECL_ParseActorProperty(scanner_t *sc, proplist_t *proplist)
                 switch (decl_properties[type].valtype)
                 {
                     case TYPE_Int:
-                        value.number = DECL_GetNegativeInteger(sc);
+                        value.number = SC_GetNegativeInteger(sc);
                         break;
                     case TYPE_Fixed:
-                        value.number = DoubleToFixed(DECL_GetNegativeDecimal(sc));
+                        value.number = DoubleToFixed(SC_GetNegativeDecimal(sc));
                         break;
                     case TYPE_Sound:
                         SC_MustGetToken(sc, TK_Identifier);
