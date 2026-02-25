@@ -306,7 +306,7 @@ int S_RandomSound(int sfx_number)
     if (random_sounds)
     {
         random_sound_t *sound = hashmap_get(random_sounds, sfx_number);
-        if (sound)
+        if (sound && array_size(sound->sfx))
         {
             int index = P_Random(pr_misc) % array_size(sound->sfx);
             return sound->sfx[index];
