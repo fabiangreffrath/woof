@@ -41,7 +41,7 @@
 
 typedef enum
 {
-    TYPE_Boolean,
+    TYPE_None,
     TYPE_Int,
     TYPE_Float,
     TYPE_String,
@@ -86,7 +86,7 @@ static struct
     const char *name;
 } decl_sound_props[] = {
     [prop_sound_lump]   = {TYPE_ListOfStrings, "lump"},
-    [prop_sound_prefix] = {TYPE_Boolean, "prefix"},
+    [prop_sound_prefix] = {TYPE_None, "prefix"},
 };
 
 static sndproperty_t *GetProp(sound_t *sound, sndproptype_t type)
@@ -132,8 +132,7 @@ void DECL_ParseSound(scanner_t *sc)
 
         if (type == prop_sound_prefix)
         {
-            SC_MustGetToken(sc, TK_BoolConst);
-            sound.prefix = SC_GetBoolean(sc);
+            sound.prefix = true;
         }
         else
         {

@@ -1,40 +1,12 @@
 version "0.5.0"
 
-sound ImpSight
-{
-    Prefix True
-    Lump "BGSIT1", "BGSIT2"
-}
-sound ImpPain
-{
-    Prefix True
-    Lump "POPAIN"
-}
-sound ImpMelee
-{
-    Prefix True
-    Lump "CLAW"
-}
-sound ImpDeath
-{
-    Prefix True
-    Lump "BGDTH1", "BGDTH2"
-}
-sound ImpActive
-{
-    Prefix True
-    Lump "BGACT"
-}
-sound ImpAttack
-{
-    Prefix True
-    Lump "FIRSHT"
-}
-sound ImpShotx
-{
-    Prefix True
-    Lump "FIRXPL"
-}
+sound ImpSight  { prefix lump "BGSIT1", "BGSIT2" }
+sound ImpPain   { prefix lump "POPAIN" }
+sound ImpMelee  { prefix lump "CLAW" }
+sound ImpDeath  { prefix lump "BGDTH1", "BGDTH2" }
+sound ImpActive { prefix lump "BGACT" }
+sound ImpAttack { prefix lump "FIRSHT" }
+sound ImpShotx  { prefix lump "FIRXPL" }
 
 //===========================================================================
 //
@@ -44,41 +16,44 @@ sound ImpShotx
 
 thing DoomImp 3001 native
 {
-    Health 60
-    Radius 20
-    Height 56
-    Mass 100
-    Speed 8
-    PainChance 200
+    health 60
+    radius 20
+    height 56
+    mass 100
+    speed 8
+    painchance 200
+
     MONSTER
-    SeeSound ImpSight
-    PainSound ImpPain
-    DeathSound ImpDeath
-    ActiveSound ImpActive
-    States
+
+    seesound ImpSight
+    painsound ImpPain
+    deathsound ImpDeath
+    activesound ImpActive
+
+    states
     {
     Spawn:
         TROO AB 10 A_Look
-        Loop
+        loop
     See:
         TROO AABBCCDD 3 A_Chase
-        Loop
+        loop
     Melee:
     Missile:
         TROO EF 8 A_FaceTarget
         TROO G 6 A_TroopAttack
-        Goto See
+        goto See
     Pain:
         TROO H 2
         TROO H 2 A_Pain
-        Goto See
+        goto See
     Death:
         TROO I 8
         TROO J 8 A_Scream
         TROO K 6
         TROO L 6 A_Fall
         TROO M -1
-        Stop
+        stop
     XDeath:
         TROO N 5
         TROO O 5 A_XScream
@@ -86,9 +61,9 @@ thing DoomImp 3001 native
         TROO Q 5 A_Fall
         TROO RST 5
         TROO U -1
-        Stop
+        stop
     Raise:
         TROO MLKJI 8
-        Goto See
+        goto See
     }
 }

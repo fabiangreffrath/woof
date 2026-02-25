@@ -6,81 +6,65 @@ version "0.5.0"
 //
 //===========================================================================
 
-sound GruntSight
-{
-    Prefix True
-    Lump "POSIT1", "POSIT2", "POSIT3"
-}
-sound GruntActive
-{
-    Prefix True
-    Lump "POSACT"
-}
-sound GruntPain
-{
-    Prefix True
-    Lump "POPAIN"
-}
-sound GruntDeath
-{
-    Prefix True
-    Lump "PODTH1", "PODTH2", "PODTH3"
-}
-sound GruntAttack
-{
-    Prefix True
-    Lump "PISTOL"
-}
+sound GruntSight  { prefix lump "POSIT1", "POSIT2", "POSIT3" }
+sound GruntActive { prefix lump "POSACT" }
+sound GruntPain   { prefix lump "POPAIN" }
+sound GruntDeath  { prefix lump "PODTH1", "PODTH2", "PODTH3" }
+sound GruntAttack { prefix lump "PISTOL" }
 
 thing ZombieMan 3004 native
 {
-    Health 20
-    Radius 20
-    Height 56
-    Speed 8
-    PainChance 200
+    health 20
+    radius 20
+    height 56
+    speed 8
+    painchance 200
+
     MONSTER
-    SeeSound GruntSight
-    AttackSound GruntAttack
-    PainSound GruntPain
-    DeathSound GruntDeath
-    ActiveSound GruntActive
-    DropItem "Clip"
-    States
+
+    seesound GruntSight
+    attacksound GruntAttack
+    painsound GruntPain
+    deathsound GruntDeath
+    activesound GruntActive
+
+    dropitem "Clip"
+
+    states
     {
     Spawn:
         POSS AB 10 A_Look
-        Loop
+        loop
     See:
         POSS AABBCCDD 4 A_Chase
-        Loop
+        loop
     Missile:
         POSS E 10 A_FaceTarget
         POSS F 8 A_PosAttack
         POSS E 8
-        Goto See
+        goto See
     Pain:
         POSS G 3
         POSS G 3 A_Pain
-        Goto See
+        goto See
     Death:
         POSS H 5
         POSS I 5 A_Scream
         POSS J 5 A_Fall
         POSS K 5
         POSS L -1
-        Stop
+        stop
     XDeath:
         POSS M 5
         POSS N 5 A_XScream
         POSS O 5 A_Fall
         POSS PQRST 5
         POSS U -1
-        Stop
+        stop
     Raise:
         POSS K 5
         POSS JIH 5
-        Goto See
+        goto See
     }
 }
 
@@ -90,62 +74,62 @@ thing ZombieMan 3004 native
 //
 //===========================================================================
 
-sound ShotGuyAttack
-{
-    Prefix True
-    Lump "SHOTGN"
-}
+sound ShotGuyAttack { prefix lump "SHOTGN" }
 
 thing ShotgunGuy 3002 native
 {
-    Health 30
-    Radius 20
-    Height 56
-    Mass 100
-    Speed 8
-    PainChance 170
+    health 30
+    radius 20
+    height 56
+    mass 100
+    speed 8
+    painchance 170
+
     MONSTER
-    SeeSound GruntSight
-    AttackSound ShotGuyAttack
-    PainSound GruntPain
-    DeathSound GruntDeath
-    ActiveSound GruntActive
-    DropItem "Shotgun"
-    States
+
+    seesound GruntSight
+    attacksound ShotGuyAttack
+    painsound GruntPain
+    deathsound GruntDeath
+    activesound GruntActive
+
+    dropitem "Shotgun"
+
+    states
     {
     Spawn:
         SPOS AB 10 A_Look
-        Loop
+        loop
     See:
         SPOS AABBCCDD 3 A_Chase
-        Loop
+        loop
     Missile:
         SPOS E 10 A_FaceTarget
-        SPOS F 10 Bright A_SPosAttack
+        SPOS F 10 bright A_SPosAttack
         SPOS E 10
-        Goto See
+        goto See
     Pain:
         SPOS G 3
         SPOS G 3 A_Pain
-        Goto See
+        goto See
     Death:
         SPOS H 5
         SPOS I 5 A_Scream
         SPOS J 5 A_Fall
         SPOS K 5
         SPOS L -1
-        Stop
+        stop
     XDeath:
         SPOS M 5
         SPOS N 5 A_XScream
         SPOS O 5 A_Fall
         SPOS PQRST 5
         SPOS U -1
-        Stop
+        stop
     Raise:
         SPOS L 5
         SPOS KJIH 5
-        Goto See
+        goto See
     }
 }
 
@@ -157,54 +141,58 @@ thing ShotgunGuy 3002 native
 
 thing ChaingunGuy 65 native
 {
-    Health 70
-    Radius 20
-    Height 56
-    Mass 100
-    Speed 8
-    PainChance 170
+    health 70
+    radius 20
+    height 56
+    mass 100
+    speed 8
+    painchance 170
+
     MONSTER
-    SeeSound GruntSight
-    PainSound GruntPain
-    DeathSound GruntDeath
-    ActiveSound GruntActive
-    AttackSound ShotGuyAttack
-    Dropitem "Chaingun"
-    States
+
+    seesound GruntSight
+    painsound GruntPain
+    deathsound GruntDeath
+    activesound GruntActive
+    attacksound ShotGuyAttack
+
+    dropitem "Chaingun"
+
+    states
     {
     Spawn:
         CPOS AB 10 A_Look
-        Loop
+        loop
     See:
         CPOS AABBCCDD 3 A_Chase
-        Loop
+        loop
     Missile:
         CPOS E 10 A_FaceTarget
-        CPOS FE 4 Bright A_CPosAttack
+        CPOS FE 4 bright A_CPosAttack
         CPOS F 1 A_CPosRefire
-        Goto Missile+1
+        goto Missile+1
     Pain:
         CPOS G 3
         CPOS G 3 A_Pain
-        Goto See
+        goto See
     Death:
         CPOS H 5
         CPOS I 5 A_Scream
         CPOS J 5 A_Fall
         CPOS KLM 5
         CPOS N -1
-        Stop
+        stop
     XDeath:
         CPOS O 5
         CPOS P 5 A_XScream
         CPOS Q 5 A_Fall
         CPOS RS 5
         CPOS T -1
-        Stop
+        stop
     Raise:
         CPOS N 5
         CPOS MLKJIH 5
-        Goto See
+        goto See
     }
 }
 
@@ -214,68 +202,64 @@ thing ChaingunGuy 65 native
 //
 //===========================================================================
 
-sound WolfSSSight
-{
-    Prefix True
-    Lump "SSSIT"
-}
-sound WolfSSDeath
-{
-    Prefix True
-    Lump "SSDTH"
-}
+sound WolfSSSight { prefix lump "SSSIT" }
+sound WolfSSDeath { prefix lump "SSDTH" }
 
 thing WolfensteinSS native
 {
-    Health 50
-    Radius 20
-    Height 56
-    Speed 8
-    PainChance 170
+    health 50
+    radius 20
+    height 56
+    speed 8
+    painchance 170
+
     MONSTER
-    SeeSound WolfSSSight
-    PainSound GruntPain
-    DeathSound WolfSSDeath
-    ActiveSound GruntActive
-    AttackSound ShotGuyAttack
-    Dropitem "Clip"
-    States
+
+    seesound WolfSSSight
+    painsound GruntPain
+    deathsound WolfSSDeath
+    activesound GruntActive
+    attacksound ShotGuyAttack
+
+    dropitem "Clip"
+
+    states
     {
     Spawn:
         SSWV AB 10 A_Look
-        Loop
+        loop
     See:
         SSWV AABBCCDD 3 A_Chase
-        Loop
+        loop
     Missile:
         SSWV E 10 A_FaceTarget
         SSWV F 10 A_FaceTarget
-        SSWV G 4 Bright A_CPosAttack
+        SSWV G 4 bright A_CPosAttack
         SSWV F 6 A_FaceTarget
-        SSWV G 4 Bright A_CPosAttack
+        SSWV G 4 bright A_CPosAttack
         SSWV F 1 A_CPosRefire
-        Goto Missile+1
+        goto Missile+1
     Pain:
         SSWV H 3
         SSWV H 3 A_Pain
-        Goto See
+        goto See
     Death:
         SSWV I 5
         SSWV J 5 A_Scream
         SSWV K 5 A_Fall
         SSWV L 5
         SSWV M -1
-        Stop
+        stop
     XDeath:
         SSWV N 5
         SSWV O 5 A_XScream
         SSWV P 5 A_Fall
         SSWV QRSTU 5
         SSWV V -1
-        Stop
+        stop
     Raise:
         SSWV M 5
         SSWV LKJI 5
-        Goto See
+        goto See
     }
 }
