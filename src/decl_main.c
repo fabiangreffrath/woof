@@ -222,8 +222,8 @@ static void ParseDeclarate(scanner_t *sc)
         else
         {
             SC_MustGetToken(sc, TK_Identifier);
-            enum {KEYWORD_Thing, KEYWORD_Sound};
-            switch (DECL_RequireKeyword(sc, "thing", "sound"))
+            enum {KEYWORD_Thing, KEYWORD_Sound, KEYWORD_Ambient};
+            switch (DECL_RequireKeyword(sc, "thing", "sound", "ambient"))
             {
                 case KEYWORD_Thing:
                     ParseActor(sc);
@@ -231,6 +231,9 @@ static void ParseDeclarate(scanner_t *sc)
                 case KEYWORD_Sound:
                     DECL_ParseSound(sc);
                     break;
+                case KEYWORD_Ambient:
+                    DECL_ParseAmbient(sc);
+                    break;  
                 default:
                     break;
             }
@@ -624,6 +627,7 @@ static int InstallStates(int start_mobjtype)
 void DECL_Install(void)
 {
     DECL_InstallSounds();
+    DECL_InstallAmbient();
     int start_mobjtype = InstallMobjInfo();
     int start_statenum = InstallStates(start_mobjtype);
     ResolveMobjInfoStatePointers(start_statenum, start_mobjtype);

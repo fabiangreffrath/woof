@@ -43,9 +43,9 @@ typedef struct sfxparams_s
 typedef enum
 {
   SFX_None,
-  SFX_Random  = (1u << 0),
-  SFX_Ambient = (1u << 1),
-  SFX_NoPrefix  = (1u << 2)
+  SFX_Random =   (1u << 0),
+  SFX_Ambient =  (1u << 1),
+  SFX_NoPrefix = (1u << 2)
 } sfxflags_t;
 
 typedef struct sfxrumble_s

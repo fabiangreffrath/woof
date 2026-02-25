@@ -23,7 +23,7 @@ set(WOOF_SOURCES
                            decl_misc.h
     decl_props.c
     decl_states.c
-    decl_sounds.c
+    decl_sounds.c          decl_sounds.h
     deh_ammo.c
     deh_bex_helper.c
     deh_bex_includes.c
@@ -174,7 +174,6 @@ set(WOOF_SOURCES
     r_tranmap.c            r_tranmap.h
     r_voxel.c              r_voxel.h
     s_musinfo.c            s_musinfo.h
-    s_sndinfo.c            s_sndinfo.h
     s_sound.c              s_sound.h
     s_trakinfo.c           s_trakinfo.h
     sounds.c               sounds.h

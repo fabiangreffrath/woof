@@ -1,36 +1,25 @@
 //
-//  Copyright (c) 2015, Braden "Blzut3" Obrzut
-//  Copyright (c) 2026, Roman Fomin
+// Copyright(C) 2025 ceski
+// Copyright(C) 2026, Roman Fomin
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above copyright
-//       notice, this list of conditions and the following disclaimer in the
-//       documentation and/or other materials provided with the
-//       distribution.
-//     * The names of its contributors may be used to endorse or promote
-//       products derived from this software without specific prior written
-//       permission.
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
 //
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL COPYRIGHT HOLDER BE LIABLE FOR ANY
-// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-// SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-// LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
-// OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
-// SUCH DAMAGE.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
+#include "decl_sounds.h"
+#include <math.h>
 
 #include "decl_misc.h"
+#include "doomdef.h"
 #include "doomtype.h"
 #include "dsdh_main.h"
+#include "i_sound.h"
 #include "i_system.h"
 #include "m_array.h"
 #include "m_hashmap.h"
@@ -52,9 +41,20 @@ typedef enum
 typedef enum
 {
     prop_sound_lump,
-    prop_sound_prefix,
-    prop_sound_end
+    prop_sound_prefix
 } sndproptype_t;
+
+typedef enum
+{
+    prop_amb_index,
+    prop_amb_sound,
+    prop_amb_attenuation,
+    prop_amb_type,
+    prop_amb_period,
+    prop_amb_minperiod,
+    prop_amb_maxperiod,
+    prop_amb_volume
+} ambproptype_t;
 
 typedef struct
 {
@@ -72,24 +72,50 @@ typedef struct
 
 typedef struct
 {
+    ambproptype_t type;
+    sndpropvalue_t value;
+} ambproperty_t;
+
+typedef struct
+{
     const char *name;
     sndproperty_t *props;
     boolean prefix;
     int sfx_number;
-} sound_t;
+} decl_sound_t;
 
 static hashmap_t *sounds;
 
-static struct
+typedef struct
+{
+    ambproperty_t *props;
+    int index;
+    ambient_mode_t mode;
+} decl_ambient_t;
+
+typedef struct
 {
     valtype_t valtype;
     const char *name;
-} decl_sound_props[] = {
-    [prop_sound_lump]   = {TYPE_ListOfStrings, "lump"},
-    [prop_sound_prefix] = {TYPE_None, "prefix"},
+} decl_prop_t;
+
+static decl_prop_t decl_sound_props[] = {
+    [prop_sound_lump] =      {TYPE_ListOfStrings, "lump"},
+    [prop_sound_prefix] =    {TYPE_None, "prefix"},
 };
 
-static sndproperty_t *GetProp(sound_t *sound, sndproptype_t type)
+static decl_prop_t decl_ambient_props[] = {
+    [prop_amb_index] =       {TYPE_None, "index"},
+    [prop_amb_sound] =       {TYPE_Sound, "sound"},
+    [prop_amb_attenuation] = {TYPE_Float, "attenuation"},
+    [prop_amb_type] =        {TYPE_None, "type"},
+    [prop_amb_period] =      {TYPE_Float, "period"},
+    [prop_amb_minperiod] =   {TYPE_Float, "minperiod"},
+    [prop_amb_maxperiod] =   {TYPE_Float, "maxperiod"},
+    [prop_amb_volume] =      {TYPE_Float, "volume"},
+};
+
+static sndproperty_t *GetProp(decl_sound_t *sound, sndproptype_t type)
 {
     sndproperty_t *prop;
     array_foreach(prop, sound->props)
@@ -104,7 +130,7 @@ static sndproperty_t *GetProp(sound_t *sound, sndproptype_t type)
 
 void DECL_ParseSound(scanner_t *sc)
 {
-    sound_t sound = {0};
+    decl_sound_t sound = {0};
 
     SC_MustGetToken(sc, TK_Identifier);
     char *sound_name = M_StringDuplicate(SC_GetString(sc));
@@ -117,14 +143,14 @@ void DECL_ParseSound(scanner_t *sc)
         SC_MustGetToken(sc, TK_Identifier);
         const char *prop_name = SC_GetString(sc);
         sndproptype_t type;
-        for (type = 0; type < prop_sound_end; ++type)
+        for (type = 0; type < arrlen(decl_sound_props); ++type)
         {
             if (!strcasecmp(prop_name, decl_sound_props[type].name))
             {
                 break;
             }
         }
-        if (type == prop_sound_end)
+        if (type == arrlen(decl_sound_props))
         {
             SC_Error(sc, "Unknown property '%s'.", prop_name);
             return;
@@ -142,14 +168,6 @@ void DECL_ParseSound(scanner_t *sc)
                 case TYPE_Int:
                     value.number = DECL_GetNegativeInteger(sc);
                     break;
-                case TYPE_Float:
-                    SC_MustGetToken(sc, TK_FloatConst);
-                    value.decimal = SC_GetDecimal(sc);
-                    break;
-                case TYPE_String:
-                    SC_MustGetToken(sc, TK_StringConst);
-                    value.string = M_StringDuplicate(SC_GetString(sc));
-                    break;
                 case TYPE_ListOfStrings:
                     do
                     {
@@ -158,8 +176,6 @@ void DECL_ParseSound(scanner_t *sc)
                         M_StringToLower(string);
                         array_push(value.list, string);
                     } while (SC_CheckToken(sc, ','));
-                    break;
-                case TYPE_Sound:
                     break;
                 default:
                     break;
@@ -180,7 +196,7 @@ void DECL_ParseSound(scanner_t *sc)
 
     if (!sounds)
     {
-        sounds = hashmap_init_str(32, sizeof(sound_t));
+        sounds = hashmap_init_str(32, sizeof(decl_sound_t));
     }
     hashmap_put_str(sounds, sound.name, &sound);
 }
@@ -206,7 +222,7 @@ static int CheckSound(const char *name)
 
 void DECL_InstallSounds(void)
 {
-    sound_t *sound;
+    decl_sound_t *sound;
     hashmap_foreach(sound, sounds)
     {
         sndproperty_t *prop = GetProp(sound, prop_sound_lump);
@@ -273,7 +289,7 @@ int DECL_SoundMapping(const char *sound_name)
     {
         char *name = M_StringDuplicate(sound_name);
         M_StringToLower(name);
-        sound_t *sound = hashmap_get_str(sounds, name);
+        decl_sound_t *sound = hashmap_get_str(sounds, name);
         free(name);
         if (sound)
         {
@@ -285,7 +301,7 @@ int DECL_SoundMapping(const char *sound_name)
     return sfx_None;
 }
 
-int DECL_RandomSound(int sfx_number)
+int S_RandomSound(int sfx_number)
 {
     if (random_sounds)
     {
@@ -299,4 +315,218 @@ int DECL_RandomSound(int sfx_number)
 
     I_Error("Random sound %d not found.", sfx_number);
     return sfx_None;
+}
+
+// DoomEd numbers 14001 to 14064 are supported.
+#define MAX_AMBIENT_DATA 64
+
+static hashmap_t *ambient_sounds;
+static hashmap_t *ambient_data;
+
+static ambient_mode_t PointType(scanner_t *sc)
+{
+    SC_MustGetToken(sc, TK_Identifier);
+    return DECL_RequireKeyword(sc, "continuous", "random", "periodic");
+}
+
+void DECL_ParseAmbient(scanner_t *sc)
+{
+    decl_ambient_t ambient = {0};
+
+    SC_MustGetToken(sc, '{');
+    while (!SC_CheckToken(sc, '}'))
+    {
+        SC_MustGetToken(sc, TK_Identifier);
+        const char *prop_name = SC_GetString(sc);
+        ambproptype_t type;
+        for (type = 0; type < arrlen(decl_ambient_props); ++type)
+        {
+            if (!strcasecmp(prop_name, decl_ambient_props[type].name))
+            {
+                break;
+            }
+        }
+        if (type == arrlen(decl_ambient_props))
+        {
+            SC_Error(sc, "Unknown property '%s'.", prop_name);
+            return;
+        }
+
+        if (type == prop_amb_index)
+        {
+            SC_MustGetToken(sc, TK_IntConst);
+            int index = SC_GetNumber(sc);
+            if (index < 1 || index > MAX_AMBIENT_DATA)
+            {
+                SC_Error(sc, "Index not in range 1 to %d (found %d).", 
+                         MAX_AMBIENT_DATA, index);
+            }
+            ambient.index = index;
+        }
+        else if (type == prop_amb_type)
+        {
+            ambient.mode = PointType(sc);
+        }
+        else
+        {
+            sndpropvalue_t value = {0};
+            switch (decl_ambient_props[type].valtype)
+            {
+                case TYPE_Float:
+                    SC_MustGetToken(sc, TK_FloatConst);
+                    value.decimal = SC_GetDecimal(sc);
+                    break;
+                case TYPE_Sound:
+                    SC_MustGetToken(sc, TK_Identifier);
+                    value.string = M_StringDuplicate(SC_GetString(sc));
+                    break;
+                default:
+                    break;
+            }
+
+            ambproperty_t *prop;
+            array_foreach(prop, ambient.props)
+            {
+                if (prop->type == type)
+                {
+                    prop->value = value;
+                    break;
+                }
+            }
+            if (prop == array_end(ambient.props))
+            {
+                ambproperty_t new_prop = {.type = type, .value = value};
+                array_push(ambient.props, new_prop);
+            }
+        }
+    }
+
+    if (!ambient_sounds)
+    {
+        ambient_sounds = hashmap_init(16, sizeof(decl_ambient_t));
+    }
+    hashmap_put(ambient_sounds, ambient.index, &ambient);
+}
+
+// Limit the range based on max value from M_Random().
+#define MAX_TICS (INT_MAX / 255)
+
+void DECL_InstallAmbient(void)
+{
+    if (!ambient_sounds)
+    {
+        return;
+    }
+
+    snd_ambient = true;
+
+    decl_ambient_t *ambient;
+    hashmap_foreach(ambient, ambient_sounds)
+    {
+        ambient_data_t data = {
+            .close_dist = S_CLOSE_DIST,
+            .clipping_dist = S_CLIPPING_DIST,
+            .type = AMB_TYPE_POINT
+        };
+
+        ambproperty_t *prop;
+        array_foreach(prop, ambient->props)
+        {
+            switch (prop->type)
+            {
+                case prop_amb_sound:
+                    data.sfx_id = DECL_SoundMapping(prop->value.string);
+                    break;
+                case prop_amb_attenuation:
+                    {
+                        double attenuation = prop->value.decimal;
+                        attenuation = MAX(0.0, attenuation);
+
+                        if (attenuation > 0.0)
+                        {
+                            // Limit the range based on volume calculations in
+                            // AdjustSoundParams.
+                            int min_dist = 0;
+                            int max_dist = INT_MAX / 127;
+
+                            double dist = data.close_dist / attenuation;
+                            dist = clamp(dist, min_dist, max_dist);
+                            data.close_dist = lround(dist);
+
+                            // Make sure clipping distance is always greater
+                            // than close distance.
+                            min_dist = data.close_dist + 1;
+                            max_dist = INT_MAX / 127 + 1;
+
+                            dist = data.clipping_dist / attenuation;
+                            dist = clamp(dist, min_dist, max_dist);
+                            data.clipping_dist = lround(dist);
+                        }
+                    }
+                    break;
+                case prop_amb_period:
+                    if (ambient->mode == AMB_MODE_PERIODIC)
+                    {
+                        double tics = prop->value.decimal * TICRATE;
+                        tics = clamp(tics, 0.0, MAX_TICS);
+                        data.min_tics = lround(tics);
+                        data.max_tics = data.min_tics;
+                    }
+                    break;
+                case prop_amb_minperiod:
+                    if (ambient->mode == AMB_MODE_RANDOM)
+                    {
+                        double tics = prop->value.decimal * TICRATE;
+                        data.min_tics = lround(tics);
+                    }
+                    break;
+                case prop_amb_maxperiod:
+                    if (ambient->mode == AMB_MODE_RANDOM)
+                    {
+                        double tics = prop->value.decimal * TICRATE;
+                        data.max_tics = lround(tics);
+                    }
+                    break;
+                case prop_amb_volume:
+                    {
+                        double volume = clamp(prop->value.decimal, 0.0, 1.0);
+                        data.volume_scale = lround(volume * 127.0);
+                    }
+                    break;
+                default:
+                    break;
+            }
+
+            if (ambient->mode == AMB_MODE_CONTINUOUS)
+            {
+                data.min_tics = -1;
+                data.max_tics = -1;
+            }
+            else if (ambient->mode == AMB_MODE_RANDOM)
+            {
+                data.min_tics = clampi(data.min_tics, 0, MAX_TICS);
+                data.max_tics = clampi(data.max_tics, data.min_tics, MAX_TICS);
+            }
+
+            sfxinfo_t *sfx = &S_sfx[data.sfx_id];
+            sfx->flags |= SFX_Ambient;
+            sfx->looping = (ambient->mode == AMB_MODE_CONTINUOUS);
+
+            if (!ambient_data)
+            {
+                ambient_data = hashmap_init(16, sizeof(ambient_data_t));
+            }
+            hashmap_put(ambient_data, ambient->index, &data);
+        }
+    }
+}
+
+const ambient_data_t *S_GetAmbientData(int index)
+{
+    if (!ambient_data || index < 1 || index > MAX_AMBIENT_DATA)
+    {
+        return NULL;
+    }
+
+    return hashmap_get(ambient_data, index);
 }

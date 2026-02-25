@@ -188,4 +188,7 @@ void DECL_ParseSound(scanner_t *sc);
 void DECL_InstallSounds(void);
 int DECL_SoundMapping(const char *name);
 
+void DECL_ParseAmbient(scanner_t *sc);
+void DECL_InstallAmbient(void);
+
 #endif

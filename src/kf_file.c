@@ -35,7 +35,6 @@
 #include "p_tick.h"
 #include "r_defs.h"
 #include "r_state.h"
-#include "s_sndinfo.h"
 
 #include <stddef.h>
 #include <stdint.h>
