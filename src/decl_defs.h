@@ -34,6 +34,8 @@
 
 #include "d_think.h"
 #include "doomtype.h"
+#include "info.h"
+#include "m_hashmap.h"
 #include "m_scanner.h"
 
 typedef enum
@@ -64,9 +66,7 @@ typedef enum
     prop_translation,
     prop_obituary,
     prop_obituary_melee,
-    prop_obituary_self,
-
-    prop_end
+    prop_obituary_self
 } proptype_t;
 
 typedef struct
@@ -90,6 +90,8 @@ typedef struct
 
 void DECL_ParseActorProperty(scanner_t *sc, proplist_t *proplist);
 void DECL_ParseActorFlag(scanner_t *sc, proplist_t *proplist, boolean set);
+
+void DECL_InstallMobjInfo(void);
 
 typedef struct
 {
@@ -176,13 +178,18 @@ struct actor_s
     proplist_t props;
     dstate_t *states;
     label_t *labels;
-    int tablepos;
-    int numstates;
-    int installnum;
+    int states_offset;
+    int states_count;
+    mobjtype_t mobjtype;
 };
+
+extern hashmap_t *actors;
 
 void DECL_ParseArgFlag(scanner_t *sc, arg_t *arg);
 void DECL_ParseActorStates(scanner_t *sc, actor_t *actor);
+
+void DECL_InstallStates(void);
+void DECL_ResolveMobjInfoStatePointers(void);
 
 void DECL_ParseSound(scanner_t *sc);
 void DECL_InstallSounds(void);
