@@ -322,12 +322,6 @@ int S_RandomSound(int sfx_number)
 static hashmap_t *ambient_sounds;
 static hashmap_t *ambient_data;
 
-static ambient_mode_t PointType(scanner_t *sc)
-{
-    SC_MustGetToken(sc, TK_Identifier);
-    return SC_RequireKeyword(sc, "continuous", "random", "periodic");
-}
-
 void DECL_ParseAmbient(scanner_t *sc)
 {
     decl_ambient_t ambient = {0};
@@ -364,7 +358,8 @@ void DECL_ParseAmbient(scanner_t *sc)
         }
         else if (type == prop_amb_type)
         {
-            ambient.mode = PointType(sc);
+            SC_MustGetToken(sc, TK_Identifier);
+            ambient.mode = SC_RequireKeyword(sc, "continuous", "random", "periodic");
         }
         else
         {

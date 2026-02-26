@@ -128,7 +128,6 @@ static void ParseActor(scanner_t *sc)
         array_copy(actor.props.props, parent->props.props);
         array_copy(actor.states, parent->states);
         array_copy(actor.labels, parent->labels);
-        actor.states_count = parent->states_count;
     }
 
     if (SC_CheckToken(sc, TK_Identifier))
@@ -203,7 +202,7 @@ static void ParseDeclarate(scanner_t *sc)
                     break;
                 case KEYWORD_Ambient:
                     DECL_ParseAmbient(sc);
-                    break;  
+                    break;
                 default:
                     break;
             }

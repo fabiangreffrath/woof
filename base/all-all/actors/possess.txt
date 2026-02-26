@@ -205,7 +205,7 @@ thing ChaingunGuy 65 native
 sound WolfSSSight { prefix lump "SSSIT" }
 sound WolfSSDeath { prefix lump "SSDTH" }
 
-thing WolfensteinSS native
+thing WolfensteinSS 84 native
 {
     health 50
     radius 20
