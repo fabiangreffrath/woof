@@ -706,3 +706,25 @@ void M_DigestToString(const byte *digest, char *string, int size)
         M_snprintf(&string[i * 2], 3, "%02x", digest[i]);
     }
 }
+
+int M_CompareVersions(const version_t *v1, const version_t *v2)
+{
+    if (v1->major != v2->major)
+    {
+        return v1->major - v2->major;
+    }
+    if (v1->minor != v2->minor)
+    {
+        return v1->minor - v2->minor;
+    }
+    return v1->revision - v2->revision;
+}
+
+boolean M_ParseVersion(const char *s, version_t *v)
+{
+    if (sscanf(s, "%d.%d.%d", &v->major, &v->minor, &v->revision) == 3)
+    {
+        return true;
+    }
+    return false;
+}

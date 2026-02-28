@@ -27,14 +27,9 @@
 // OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 // SUCH DAMAGE.
 
-#include <stdio.h>
-#include <string.h>
-
 #include "decl_defs.h"
 #include "decl_main.h"
-#include "decl_misc.h"
 #include "doomtype.h"
-#include "dsdh_main.h"
 #include "info.h"
 #include "m_array.h"
 #include "m_hashmap.h"
@@ -44,14 +39,7 @@
 #include "w_wad.h"
 #include "z_zone.h"
 
-typedef struct
-{
-    int major;
-    int minor;
-    int revision;
-} version_t;
-
-static hashmap_t *actors;
+hashmap_t *actors;
 
 static void ParseActorBody(scanner_t *sc, actor_t *actor)
 {
@@ -80,7 +68,7 @@ static void ParseActorBody(scanner_t *sc, actor_t *actor)
             }
             else
             {
-                switch (DECL_CheckKeyword(sc, "states"))
+                switch (SC_CheckKeyword(sc, "states"))
                 {
                     case 0:
                         DECL_ParseActorStates(sc, actor);
@@ -116,7 +104,6 @@ static int ReplaceActor(scanner_t *sc, const char *name)
 static void ParseActor(scanner_t *sc)
 {
     actor_t actor = {0};
-    actor.installnum = -1;
     actor.doomednum = -1;
 
     SC_MustGetToken(sc, TK_Identifier);
@@ -141,12 +128,11 @@ static void ParseActor(scanner_t *sc)
         array_copy(actor.props.props, parent->props.props);
         array_copy(actor.states, parent->states);
         array_copy(actor.labels, parent->labels);
-        actor.numstates = parent->numstates;
     }
 
     if (SC_CheckToken(sc, TK_Identifier))
     {
-        if (DECL_CheckKeyword(sc, "replaces") == 0)
+        if (SC_CheckKeyword(sc, "replaces") == 0)
         {
             SC_MustGetToken(sc, TK_Identifier);
             char *name = M_StringDuplicate(SC_GetString(sc));
@@ -170,46 +156,29 @@ static void ParseActor(scanner_t *sc)
 
     if (SC_CheckToken(sc, TK_Identifier))
     {
-        if (DECL_CheckKeyword(sc, "native") == 0)
+        if (SC_CheckKeyword(sc, "native") == 0)
         {
             actor.native = true;
         }
     }
 
     ParseActorBody(sc, &actor);
-    hashmap_put_str(actors, actor.name, &actor);
-}
 
-static void ParseDecorate(scanner_t *sc)
-{
     if (!actors)
     {
         actors = hashmap_init_str(16, sizeof(actor_t));
     }
+    hashmap_put_str(actors, actor.name, &actor);
+}
 
-    SC_MustGetToken(sc, TK_Identifier);
-    boolean found = false;
-    if (!strcasecmp("version", SC_GetString(sc)))
-    {
-        SC_MustGetToken(sc, TK_StringConst);
-        const char *string = SC_GetString(sc);
-        version_t v;
-        if (sscanf(string, "%d.%d.%d", &v.major, &v.minor, &v.revision) == 3)
-        {
-            found = true;
-        }
-    }
-    if (!found)
-    {
-        SC_Error(sc, "Must include version.");
-    }
-
+static void ParseDeclarate(scanner_t *sc)
+{
     while (SC_TokensLeft(sc))
     {
         if (SC_CheckToken(sc, '#'))
         {
             SC_MustGetToken(sc, TK_Identifier);
-            DECL_RequireKeyword(sc, "include");
+            SC_RequireKeyword(sc, "include");
             SC_MustGetToken(sc, TK_StringConst);
             const char *lump = SC_GetString(sc);
             int lumpnum = W_CheckNumForName(lump);
@@ -222,402 +191,41 @@ static void ParseDecorate(scanner_t *sc)
         else
         {
             SC_MustGetToken(sc, TK_Identifier);
-            DECL_RequireKeyword(sc, "thing");
-            ParseActor(sc);
-        }
-    }
-}
-
-static int InstallMobjInfo(void)
-{
-    int start_mobjtype = -1;
-    int install_count = 0;
-
-    actor_t *actor;
-    hashmap_foreach(actor, actors)
-    {
-        if (actor->native)
-        {
-            continue;
-        }
-
-        actor->installnum = install_count++;
-
-        mobjtype_t mobjtype = DSDH_MobjInfoGetNewIndex();
-        if (start_mobjtype == -1)
-        {
-            start_mobjtype = mobjtype;
-        }
-
-        mobjinfo_t *mobj = &mobjinfo[mobjtype];
-
-        mobj->doomednum = actor->doomednum;
-        mobj->flags = actor->props.flags;
-        mobj->flags2 = actor->props.flags2;
-
-        array_foreach_type(prop, actor->props.props, property_t)
-        {
-            propvalue_t value = prop->value;
-            switch (prop->type)
+            enum {KEYWORD_Thing, KEYWORD_Sound, KEYWORD_Ambient};
+            switch (SC_RequireKeyword(sc, "thing", "sound", "ambient"))
             {
-                case prop_health:
-                    mobj->spawnhealth = value.number;
+                case KEYWORD_Thing:
+                    ParseActor(sc);
                     break;
-                case prop_seesound:
-                    mobj->seesound = value.number;
+                case KEYWORD_Sound:
+                    DECL_ParseSound(sc);
                     break;
-                case prop_reactiontime:
-                    mobj->reactiontime = value.number;
-                    break;
-                case prop_attacksound:
-                    mobj->attacksound = value.number;
-                    break;
-                case prop_painchance:
-                    mobj->painchance = value.number;
-                    break;
-                case prop_painsound:
-                    mobj->painsound = value.number;
-                    break;
-                case prop_deathsound:
-                    mobj->deathsound = value.number;
-                    break;
-                case prop_speed:
-                    mobj->speed = mobj->flags & MF_MISSILE
-                                      ? IntToFixed(value.number)
-                                      : value.number;
-                    break;
-                case prop_radius:
-                    mobj->radius = value.number;
-                    break;
-                case prop_height:
-                    mobj->height = value.number;
-                    break;
-                case prop_mass:
-                    mobj->mass = value.number;
-                    break;
-                case prop_damage:
-                    mobj->damage = value.number;
-                    break;
-                case prop_activesound:
-                    mobj->activesound = value.number;
-                    break;
-
-                case prop_dropitem:
-                    mobj->droppeditem = value.number;
-                    break;
-                case prop_infighting_group:
-                    mobj->infighting_group = value.number;
-                    break;
-                case prop_projectile_group:
-                    mobj->projectile_group = value.number;
-                    break;
-                case prop_splash_group:
-                    mobj->splash_group = value.number;
-                    break;
-                case prop_ripsound:
-                    mobj->ripsound = value.number;
-                    break;
-                case prop_altspeed:
-                    mobj->altspeed = value.number;
-                    break;
-                case prop_meleerange:
-                    mobj->meleerange = value.number;
-                    break;
-
-                case prop_obituary:
-                    mobj->obituary = value.string;
-                    break;
-                case prop_obituary_melee:
-                    mobj->obituary_melee = value.string;
-                    break;
-                case prop_obituary_self:
-                    mobj->obituary_self = value.string;
+                case KEYWORD_Ambient:
+                    DECL_ParseAmbient(sc);
                     break;
                 default:
                     break;
             }
         }
     }
-    return start_mobjtype;
-}
-
-static void ResolveMobjInfoStatePointers(int start_statenum, int start_mobjtype)
-{
-    if (start_statenum == -1 || start_mobjtype == -1)
-    {
-        return;
-    }
-
-    actor_t *actor;
-    hashmap_foreach(actor, actors)
-    {
-        if (actor->native)
-        {
-            continue;
-        }
-
-        mobjtype_t mobjtype = start_mobjtype + actor->installnum;
-        mobjinfo_t *mobj = &mobjinfo[mobjtype];
-
-        array_foreach_type(label, actor->labels, label_t)
-        {
-            int statenum =
-                start_statenum + actor->tablepos + label->tablepos;
-            if (!strcasecmp(label->label, "spawn"))
-            {
-                mobj->spawnstate = statenum;
-            }
-            else if (!strcasecmp(label->label, "see"))
-            {
-                mobj->seestate = statenum;
-            }
-            else if (!strcasecmp(label->label, "pain"))
-            {
-                mobj->painstate = statenum;
-            }
-            else if (!strcasecmp(label->label, "melee"))
-            {
-                mobj->meleestate = statenum;
-            }
-            else if (!strcasecmp(label->label, "missile"))
-            {
-                mobj->missilestate = statenum;
-            }
-            else if (!strcasecmp(label->label, "death"))
-            {
-                mobj->deathstate = statenum;
-            }
-            else if (!strcasecmp(label->label, "xdeath"))
-            {
-                mobj->xdeathstate = statenum;
-            }
-            else if (!strcasecmp(label->label, "raise"))
-            {
-                mobj->raisestate = statenum;
-            }
-        }
-    }
-}
-
-static int ResolveArg(const actor_t *owner, const arg_t *arg,
-                      int start_statenum, int start_mobjtype)
-{
-    switch (arg->type)
-    {
-        case arg_thing:
-            {
-                actor_t *actor = hashmap_get_str(actors, arg->data.string);
-                if (actor && !actor->native)
-                {
-                    return start_mobjtype + actor->installnum + 1;
-                }
-                I_Error("Not found actor '%s' for action parameter.",
-                        arg->data.string);
-            }
-            break;
-        case arg_state:
-            array_foreach_type(label, owner->labels, label_t)
-            {
-                if (!strcasecmp(label->label, arg->data.string))
-                {
-                    return start_statenum + owner->tablepos
-                           + label->tablepos;
-                }
-            }
-            I_Error("Not found state label '%s' for action parameter.",
-                    arg->data.string);
-            break;
-        default:
-            return arg->value;
-            break;
-    }
-    return 0;
-}
-
-static void InstallStateAction(const actor_t *owner, state_t *state,
-                               stateaction_t *action, int start_statenum,
-                               int start_mobjtype)
-{
-    if (action->type == func_mbf)
-    {
-        state->misc1 = ResolveArg(owner, &action->misc1, start_statenum,
-                                         start_mobjtype);
-        state->misc2 = ResolveArg(owner, &action->misc2, start_statenum,
-                                         start_mobjtype);
-    }
-    else if (action->type == func_mbf21)
-    {
-        for (int i = 0; i < action->argcount; ++i)
-        {
-            arg_t *arg = &action->args[i];
-            if (arg->type == arg_flags)
-            {
-                state->args[i] = arg->value;
-                state->args[i + 1] = arg->data.integer;
-            }
-            else
-            {
-                state->args[i] = ResolveArg(owner, arg, start_statenum,
-                                                   start_mobjtype);
-            }
-        }
-    }
-
-    state->action = action->pointer;
-}
-
-static statenum_t ResolveGoto(const actor_t *actor, const statelink_t *link,
-                              int start_statenum)
-{
-    label_t *label;
-    array_foreach(label, actor->labels)
-    {
-        if (strcasecmp(label->label, link->jumpstate) == 0)
-        {
-            break;
-        }
-    }
-    if (label == array_end(actor->labels))
-    {
-        I_Error("Could not resolve goto %s+%d", link->jumpstate,
-                link->jumpoffset);
-    }
-
-    if (label->tablepos + link->jumpoffset >= actor->numstates)
-    {
-        I_Error("Goto %s+%d jumps out of actor states.",
-                link->jumpstate, link->jumpoffset);
-    }
-
-    return start_statenum + actor->tablepos + label->tablepos
-           + link->jumpoffset;
-}
-
-static int InstallStates(int start_mobjtype)
-{
-    if (start_mobjtype == -1)
-    {
-        return -1;
-    }
-
-    // Pass 1: Calculate state offsets and fill label->tablepos
-    int total_states = 0;
-    actor_t *actor;
-    hashmap_foreach(actor, actors)
-    {
-        if (actor->native)
-        {
-            actor->tablepos = -1;
-            continue;
-        }
-
-        actor->tablepos = total_states;
-
-        int offset = 0;
-        array_foreach_type(dstate, actor->states, dstate_t)
-        {
-            array_foreach_type(label, actor->labels, label_t)
-            {
-                if (label->statenum == (dstate - actor->states))
-                {
-                    label->tablepos = offset;
-                }
-            }
-            offset += strlen(dstate->frames);
-        }
-        actor->numstates = offset;
-        total_states += offset;
-    }
-
-    // Pass 2: Install states
-    int start_statenum = -1;
-    hashmap_foreach(actor, actors)
-    {
-        if (actor->native)
-        {
-            continue;
-        }
-
-        int actor_state_offset = 0;
-        array_foreach_type(dstate, actor->states, dstate_t)
-        {
-            int label_start_offset = actor_state_offset;
-            int frameslen = strlen(dstate->frames);
-
-            for (int i = 0; i < frameslen; ++i)
-            {
-                statenum_t statenum = DSDH_StatesGetNewIndex();
-                if (start_statenum == -1)
-                {
-                    start_statenum = statenum;
-                }
-
-                state_t *state = &states[statenum];
-
-                state->sprite = dstate->spritenum;
-                state->frame = dstate->frames[i] - 'A';
-                if (dstate->bright)
-                {
-                    state->frame |= FF_FULLBRIGHT;
-                }
-                if (dstate->fast)
-                {
-                    state->flags |= STATEF_SKILL5FAST;
-                }
-                state->tics = dstate->duration;
-
-                InstallStateAction(actor, state, &dstate->action, start_statenum,
-                                   start_mobjtype);
-
-                // nextstate handling
-                if (i == frameslen - 1)
-                {
-                    switch (dstate->next.sequence)
-                    {
-                        case SEQ_Next:
-                            state->nextstate = statenum + 1;
-                            break;
-                        case SEQ_Wait:
-                            state->nextstate = statenum;
-                            break;
-                        case SEQ_Stop:
-                            state->nextstate = S_NULL;
-                            break;
-                        case SEQ_Loop:
-                            state->nextstate = start_statenum
-                                               + actor->tablepos
-                                               + label_start_offset;
-                            break;
-                        case SEQ_Goto:
-                            state->nextstate = ResolveGoto(actor, &dstate->next,
-                                                           start_statenum);
-                            break;
-                    }
-                }
-                else
-                {
-                    state->nextstate = statenum + 1;
-                }
-            }
-            actor_state_offset += frameslen;
-        }
-    }
-    return start_statenum;
 }
 
 void DECL_Install(void)
 {
-    int start_mobjtype = InstallMobjInfo();
-    int start_statenum = InstallStates(start_mobjtype);
-    ResolveMobjInfoStatePointers(start_statenum, start_mobjtype);
+    DECL_InstallSounds();
+    DECL_InstallAmbient();
+    DECL_InstallMobjInfo();
+    DECL_InstallStates();
+    DECL_ResolveMobjInfoStatePointers();
 }
 
 void DECL_Parse(int lumpnum)
 {
     char lumpname[9] = {0};
     M_CopyLumpName(lumpname, lumpinfo[lumpnum].name);
-    scanner_t *sc = SC_Open(lumpname, W_CacheLumpNum(lumpnum, PU_CACHE),
-                            W_LumpLength(lumpnum));
-    ParseDecorate(sc);
+    scanner_t *sc = SC_OpenOptions("declarate", (version_t){1, 0, 0}, lumpname,
+                                   W_CacheLumpNum(lumpnum, PU_CACHE),
+                                   W_LumpLength(lumpnum));
+    ParseDeclarate(sc);
     SC_Close(sc);
 }

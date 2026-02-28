@@ -240,10 +240,7 @@ void R_ParseBrightmaps(int lumpnum)
         }
         else if (!strcasecmp("TEXTURE", SC_GetString(s)))
         {
-            if (!SC_CheckRawString(s))
-            {
-                SC_Error(s, "expected lump name");
-            }
+            SC_GetNextRawString(s, true);
             char *name = M_StringDuplicate(SC_GetString(s));
             M_StringToUpper(name);
             int idx = ParseProperty(s);
@@ -259,10 +256,7 @@ void R_ParseBrightmaps(int lumpnum)
         }
         else if (!strcasecmp("SPRITE", SC_GetString(s)))
         {
-            if (!SC_CheckRawString(s))
-            {
-                SC_Error(s, "expected lump name");
-            }
+            SC_GetNextRawString(s, true);
             char *name = M_StringDuplicate(SC_GetString(s));
             int idx = ParseProperty(s);
             if (idx >= 0)
@@ -284,10 +278,7 @@ void R_ParseBrightmaps(int lumpnum)
         }
         else if (!strcasecmp("FLAT", SC_GetString(s)))
         {
-            if (!SC_CheckRawString(s))
-            {
-                SC_Error(s, "expected lump name");
-            }
+            SC_GetNextRawString(s, true);
             char *name = M_StringDuplicate(SC_GetString(s));
             int idx = ParseProperty(s);
             if (idx >= 0)

@@ -32,12 +32,12 @@
 
 #include "d_think.h"
 #include "decl_defs.h"
-#include "decl_misc.h"
 #include "dsdh_main.h"
 #include "doomtype.h"
 #include "info.h"
 #include "m_array.h"
 #include "m_fixed.h"
+#include "m_hashmap.h"
 #include "m_misc.h"
 #include "m_scanner.h"
 
@@ -303,7 +303,7 @@ static void ParseArg(scanner_t *sc, arg_t *arg)
     switch (arg->type)
     {
         case arg_fixed:
-            arg->value = DoubleToFixed(DECL_GetNegativeDecimal(sc));
+            arg->value = DoubleToFixed(SC_GetNegativeDecimal(sc));
             break;
         case arg_int:
             SC_MustGetToken(sc, TK_IntConst);
@@ -311,15 +311,9 @@ static void ParseArg(scanner_t *sc, arg_t *arg)
             break;
         case arg_thing:
         case arg_state:
-            {
-                SC_MustGetToken(sc, TK_Identifier);
-                char *string = M_StringDuplicate(SC_GetString(sc));
-                M_StringToLower(string);
-                arg->data.string = string;
-            }
-            break;
         case arg_sound:
-            arg->value = DECL_SoundMapping(sc);
+            SC_MustGetToken(sc, TK_Identifier);
+            arg->data.string = M_StringDuplicate(SC_GetString(sc));
             break;
         case arg_flags:
             do
@@ -426,14 +420,14 @@ static void ParseState(scanner_t *sc, dstate_t *state)
     state->frames = M_StringDuplicate(SC_GetString(sc));
     M_StringToUpper(state->frames);
 
-    state->duration = DECL_GetNegativeInteger(sc);
+    state->duration = SC_GetNegativeInteger(sc);
 
     if (SC_CheckToken(sc, TK_Identifier))
     {
         int keyword;
         do
         {
-            keyword = DECL_CheckKeyword(sc, "bright", "fast", "offset");
+            keyword = SC_CheckKeyword(sc, "bright", "fast", "offset");
             switch (keyword)
             {
                 case 0:
@@ -444,9 +438,9 @@ static void ParseState(scanner_t *sc, dstate_t *state)
                     break;
                 case 2:
                     SC_MustGetToken(sc, '(');
-                    state->xoffset = DECL_GetNegativeInteger(sc);
+                    state->xoffset = SC_GetNegativeInteger(sc);
                     SC_MustGetToken(sc, ',');
-                    state->yoffset = DECL_GetNegativeInteger(sc);
+                    state->yoffset = SC_GetNegativeInteger(sc);
                     SC_MustGetToken(sc, ')');
                     break;
                 default:
@@ -489,7 +483,7 @@ void DECL_ParseActorStates(scanner_t *sc, actor_t *actor)
             {
                 SC_MustGetToken(sc, TK_Identifier);
                 char *label = M_StringDuplicate(SC_GetString(sc));
-                if (DECL_CheckKeyword(sc, "loop", "goto", "stop", "wait") >= 0
+                if (SC_CheckKeyword(sc, "loop", "goto", "stop", "wait") >= 0
                     || !SC_CheckToken(sc, ':'))
                 {
                     free(label);
@@ -506,7 +500,7 @@ void DECL_ParseActorStates(scanner_t *sc, actor_t *actor)
         boolean usestate = false;
 
         enum {KEYWORD_Loop, KEYWORD_Goto, KEYWORD_Stop, KEYWORD_Wait};
-        switch (DECL_CheckKeyword(sc, "loop", "goto", "stop", "wait"))
+        switch (SC_CheckKeyword(sc, "loop", "goto", "stop", "wait"))
         {
             case KEYWORD_Loop:
                 if (laststate)
@@ -578,4 +572,251 @@ void DECL_ParseActorStates(scanner_t *sc, actor_t *actor)
     }
 
     array_free(labels);
+}
+
+static int ResolveArg(const actor_t *owner, const arg_t *arg)
+{
+    switch (arg->type)
+    {
+        case arg_thing:
+            {
+                char *name = M_StringDuplicate(arg->data.string);
+                M_StringToLower(name);
+                actor_t *actor = hashmap_get_str(actors, name);
+                free(name);
+                if (actor && !actor->native)
+                {
+                    return actor->mobjtype + 1;
+                }
+                I_Error("Not found actor '%s' for action parameter.",
+                        arg->data.string);
+            }
+            break;
+        case arg_state:
+            array_foreach_type(label, owner->labels, label_t)
+            {
+                if (!strcasecmp(label->label, arg->data.string))
+                {
+                    return owner->states_offset + label->tablepos;
+                }
+            }
+            I_Error("Not found state label '%s' for action parameter.",
+                    arg->data.string);
+            break;
+        case arg_sound:
+            return DECL_SoundMapping(arg->data.string);
+            break;
+        default:
+            return arg->value;
+            break;
+    }
+    return 0;
+}
+
+static void InstallStateAction(const actor_t *owner, state_t *state,
+                               stateaction_t *action)
+{
+    if (action->type == func_mbf)
+    {
+        state->misc1 = ResolveArg(owner, &action->misc1);
+        state->misc2 = ResolveArg(owner, &action->misc2);
+    }
+    else if (action->type == func_mbf21)
+    {
+        for (int i = 0; i < action->argcount; ++i)
+        {
+            arg_t *arg = &action->args[i];
+            if (arg->type == arg_flags)
+            {
+                state->args[i] = arg->value;
+                state->args[i + 1] = arg->data.integer;
+            }
+            else
+            {
+                state->args[i] = ResolveArg(owner, arg);
+            }
+        }
+    }
+
+    state->action = action->pointer;
+}
+
+static statenum_t ResolveGoto(const actor_t *actor, const statelink_t *link)
+{
+    label_t *label;
+    array_foreach(label, actor->labels)
+    {
+        if (strcasecmp(label->label, link->jumpstate) == 0)
+        {
+            break;
+        }
+    }
+    if (label == array_end(actor->labels))
+    {
+        I_Error("Could not resolve goto %s+%d", link->jumpstate,
+                link->jumpoffset);
+    }
+
+    if (label->tablepos + link->jumpoffset >= actor->states_count)
+    {
+        I_Error("Goto %s+%d jumps out of actor states.",
+                link->jumpstate, link->jumpoffset);
+    }
+
+    return actor->states_offset + label->tablepos + link->jumpoffset;
+}
+
+void DECL_InstallStates(void)
+{
+    // Pass 1: Calculate offsets and label positions
+    actor_t *actor;
+    hashmap_foreach(actor, actors)
+    {
+        if (actor->native)
+        {
+            actor->states_offset = -1;
+            continue;
+        }
+
+        actor->states_offset = num_states;
+
+        int offset = 0;
+        array_foreach_type(dstate, actor->states, dstate_t)
+        {
+            array_foreach_type(label, actor->labels, label_t)
+            {
+                if (label->statenum == (dstate - actor->states))
+                {
+                    label->tablepos = offset;
+                }
+            }
+            offset += strlen(dstate->frames);
+        }
+        actor->states_count = offset;
+
+        // Reserve indices
+        for (int i = 0; i < offset; ++i)
+        {
+            DSDH_StatesGetNewIndex();
+        }
+    }
+
+    // Pass 2: Install states
+    hashmap_foreach(actor, actors)
+    {
+        if (actor->native)
+        {
+            continue;
+        }
+
+        int state_index = 0;
+        array_foreach_type(dstate, actor->states, dstate_t)
+        {
+            int label_start_offset = state_index;
+            int frameslen = strlen(dstate->frames);
+
+            for (int i = 0; i < frameslen; ++i)
+            {
+                statenum_t statenum = actor->states_offset + state_index;
+
+                state_t *state = &states[statenum];
+
+                state->sprite = dstate->spritenum;
+                state->frame = dstate->frames[i] - 'A';
+                if (dstate->bright)
+                {
+                    state->frame |= FF_FULLBRIGHT;
+                }
+                if (dstate->fast)
+                {
+                    state->flags |= STATEF_SKILL5FAST;
+                }
+                state->tics = dstate->duration;
+
+                InstallStateAction(actor, state, &dstate->action);
+
+                // nextstate handling
+                if (i == frameslen - 1)
+                {
+                    switch (dstate->next.sequence)
+                    {
+                        case SEQ_Next:
+                            state->nextstate = statenum + 1;
+                            break;
+                        case SEQ_Wait:
+                            state->nextstate = statenum;
+                            break;
+                        case SEQ_Stop:
+                            state->nextstate = S_NULL;
+                            break;
+                        case SEQ_Loop:
+                            state->nextstate =
+                                actor->states_offset + label_start_offset;
+                            break;
+                        case SEQ_Goto:
+                            state->nextstate =
+                                ResolveGoto(actor, &dstate->next);
+                            break;
+                    }
+                }
+                else
+                {
+                    state->nextstate = statenum + 1;
+                }
+
+                ++state_index;
+            }
+        }
+    }
+}
+
+void DECL_ResolveMobjInfoStatePointers(void)
+{
+    actor_t *actor;
+    hashmap_foreach(actor, actors)
+    {
+        if (actor->native)
+        {
+            continue;
+        }
+
+        mobjinfo_t *mobj = &mobjinfo[actor->mobjtype];
+
+        array_foreach_type(label, actor->labels, label_t)
+        {
+            int statenum = actor->states_offset + label->tablepos;
+            if (!strcasecmp(label->label, "spawn"))
+            {
+                mobj->spawnstate = statenum;
+            }
+            else if (!strcasecmp(label->label, "see"))
+            {
+                mobj->seestate = statenum;
+            }
+            else if (!strcasecmp(label->label, "pain"))
+            {
+                mobj->painstate = statenum;
+            }
+            else if (!strcasecmp(label->label, "melee"))
+            {
+                mobj->meleestate = statenum;
+            }
+            else if (!strcasecmp(label->label, "missile"))
+            {
+                mobj->missilestate = statenum;
+            }
+            else if (!strcasecmp(label->label, "death"))
+            {
+                mobj->deathstate = statenum;
+            }
+            else if (!strcasecmp(label->label, "xdeath"))
+            {
+                mobj->xdeathstate = statenum;
+            }
+            else if (!strcasecmp(label->label, "raise"))
+            {
+                mobj->raisestate = statenum;
+            }
+        }
+    }
 }
