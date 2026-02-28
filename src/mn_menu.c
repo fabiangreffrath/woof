@@ -1814,22 +1814,25 @@ static void M_ChangeMessages(int choice)
 // hud_active controlled soley by F5=key_detail (key_hud)
 // hud_displayed is toggled by + or = in fullscreen
 // hud_displayed is cleared by -
+// [Woof!] Return early and do not play sound
+// if the screen size was not actually changed.
 
 static void M_SizeDisplay(int choice)
 {
-    switch (choice)
+    if (choice == 0 && screenblocks > 3)
     {
-        case 0:
-            screenblocks--;
-            break;
-        case 1:
-            screenblocks++;
-            break;
-        default:
-            break;
+        screenblocks--;
     }
-    screenblocks = CLAMP(screenblocks, 3, maxscreenblocks);
+    else if (choice == 1 && screenblocks < maxscreenblocks)
+    {
+        screenblocks++;
+    }
+    else
+    {
+        return;
+    }
     R_SetViewSize(screenblocks /*, detailLevel obsolete -- killough */);
+    M_StartSound(sfx_stnmov);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -2588,7 +2591,6 @@ boolean M_ShortcutResponder(const event_t *ev)
             return false;
         }
         M_SizeDisplay(0);
-        M_StartSound(sfx_stnmov);
         return true;
     }
 
@@ -2599,7 +2601,6 @@ boolean M_ShortcutResponder(const event_t *ev)
             return false;
         }
         M_SizeDisplay(1);
-        M_StartSound(sfx_stnmov);
         return true;
     }
 
