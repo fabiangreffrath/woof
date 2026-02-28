@@ -108,6 +108,7 @@ void DECL_ParseSound(scanner_t *sc)
                 sound.prefix = true;
                 break;
             case 1:
+                array_clear(sound.lumps);
                 do
                 {
                     SC_MustGetToken(sc, TK_StringConst);
@@ -286,7 +287,13 @@ void DECL_ParseAmbient(scanner_t *sc)
         else if (type == prop_amb_type)
         {
             SC_MustGetToken(sc, TK_Identifier);
-            ambient.mode = SC_RequireKeyword(sc, "continuous", "random", "periodic");
+            static const char *keywords[] =
+            {
+                [AMB_MODE_CONTINUOUS] = "continuous",
+                [AMB_MODE_RANDOM] = "random",
+                [AMB_MODE_PERIODIC] = "periodic"
+            };
+            ambient.mode = SC_RequireKeywordInternal(sc, keywords, arrlen(keywords));
         }
         else
         {
