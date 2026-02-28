@@ -69,9 +69,10 @@ typedef enum
     prop_obituary_self
 } proptype_t;
 
-typedef struct
+typedef union
 {
     char *string;
+    double decimal;
     int number;
 } propvalue_t;
 

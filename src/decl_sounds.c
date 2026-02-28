@@ -15,6 +15,7 @@
 #include <math.h>
 
 #include "decl_sounds.h"
+#include "decl_defs.h"
 #include "doomdef.h"
 #include "doomtype.h"
 #include "dsdh_main.h"
@@ -33,15 +34,8 @@ typedef enum
     TYPE_Int,
     TYPE_Float,
     TYPE_String,
-    TYPE_ListOfStrings,
     TYPE_Sound
 } valtype_t;
-
-typedef enum
-{
-    prop_sound_lump,
-    prop_sound_prefix
-} sndproptype_t;
 
 typedef enum
 {
@@ -57,29 +51,15 @@ typedef enum
 
 typedef struct
 {
-    const char *string;
-    const char **list;
-    int number;
-    double decimal;
-} sndpropvalue_t;
-
-typedef struct
-{
-    sndproptype_t type;
-    sndpropvalue_t value;
-} sndproperty_t;
-
-typedef struct
-{
     ambproptype_t type;
-    sndpropvalue_t value;
+    propvalue_t value;
 } ambproperty_t;
 
 typedef struct
 {
     const char *name;
-    sndproperty_t *props;
     boolean prefix;
+    const char **lumps;
     int sfx_number;
 } decl_sound_t;
 
@@ -98,11 +78,6 @@ typedef struct
     const char *name;
 } decl_prop_t;
 
-static decl_prop_t decl_sound_props[] = {
-    [prop_sound_lump] =      {TYPE_ListOfStrings, "lump"},
-    [prop_sound_prefix] =    {TYPE_None, "prefix"},
-};
-
 static decl_prop_t decl_ambient_props[] = {
     [prop_amb_index] =       {TYPE_None, "index"},
     [prop_amb_sound] =       {TYPE_Sound, "sound"},
@@ -113,19 +88,6 @@ static decl_prop_t decl_ambient_props[] = {
     [prop_amb_maxperiod] =   {TYPE_Float, "maxperiod"},
     [prop_amb_volume] =      {TYPE_Float, "volume"},
 };
-
-static sndproperty_t *GetProp(decl_sound_t *sound, sndproptype_t type)
-{
-    sndproperty_t *prop;
-    array_foreach(prop, sound->props)
-    {
-        if (prop->type == type)
-        {
-            return prop;
-        }
-    }
-    return NULL;
-}
 
 void DECL_ParseSound(scanner_t *sc)
 {
@@ -140,56 +102,23 @@ void DECL_ParseSound(scanner_t *sc)
     while (!SC_CheckToken(sc, '}'))
     {
         SC_MustGetToken(sc, TK_Identifier);
-        const char *prop_name = SC_GetString(sc);
-        sndproptype_t type;
-        for (type = 0; type < arrlen(decl_sound_props); ++type)
+        switch (SC_CheckKeyword(sc, "prefix", "lump"))
         {
-            if (!strcasecmp(prop_name, decl_sound_props[type].name))
-            {
+            case 0:
+                sound.prefix = true;
                 break;
-            }
-        }
-        if (type == arrlen(decl_sound_props))
-        {
-            SC_Error(sc, "Unknown property '%s'.", prop_name);
-            return;
-        }
-
-        if (type == prop_sound_prefix)
-        {
-            sound.prefix = true;
-        }
-        else
-        {
-            sndpropvalue_t value = {0};
-            switch (decl_sound_props[type].valtype)
-            {
-                case TYPE_Int:
-                    value.number = SC_GetNegativeInteger(sc);
-                    break;
-                case TYPE_ListOfStrings:
-                    do
-                    {
-                        SC_MustGetToken(sc, TK_StringConst);
-                        char *string = M_StringDuplicate(SC_GetString(sc));
-                        M_StringToLower(string);
-                        array_push(value.list, string);
-                    } while (SC_CheckToken(sc, ','));
-                    break;
-                default:
-                    break;
-            }
-
-            sndproperty_t *old_prop = GetProp(&sound, type);
-            if (old_prop)
-            {
-                old_prop->value = value;
-            }
-            else
-            {
-                sndproperty_t new_prop = {.type = type, .value = value};
-                array_push(sound.props, new_prop);
-            }
+            case 1:
+                do
+                {
+                    SC_MustGetToken(sc, TK_StringConst);
+                    char *string = M_StringDuplicate(SC_GetString(sc));
+                    M_StringToLower(string);
+                    array_push(sound.lumps, string);
+                } while (SC_CheckToken(sc, ','));
+                break;
+            default:
+                SC_Error(sc, "Unknown property '%s'.", SC_GetString(sc));
+                break;
         }
     }
 
@@ -224,14 +153,12 @@ void DECL_InstallSounds(void)
     decl_sound_t *sound;
     hashmap_foreach(sound, sounds)
     {
-        sndproperty_t *prop = GetProp(sound, prop_sound_lump);
-
-        boolean random = (array_size(prop->value.list) > 1);
+        boolean random = (array_size(sound->lumps) > 1);
         random_sound_t random_sound = {0};
 
-        for (int i = 0; i < array_size(prop->value.list); ++i)
+        for (int i = 0; i < array_size(sound->lumps); ++i)
         {
-            char *lumpname = M_StringDuplicate(prop->value.list[i]);
+            char *lumpname = M_StringDuplicate(sound->lumps[i]);
             M_StringToLower(lumpname);
 
             int sfx_number = sfx_None;
@@ -363,7 +290,7 @@ void DECL_ParseAmbient(scanner_t *sc)
         }
         else
         {
-            sndpropvalue_t value = {0};
+            propvalue_t value = {0};
             switch (decl_ambient_props[type].valtype)
             {
                 case TYPE_Float:
