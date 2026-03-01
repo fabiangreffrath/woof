@@ -1814,8 +1814,6 @@ static void M_ChangeMessages(int choice)
 // hud_active controlled soley by F5=key_detail (key_hud)
 // hud_displayed is toggled by + or = in fullscreen
 // hud_displayed is cleared by -
-// [Woof!] Return early and do not play sound
-// if the screen size was not actually changed.
 
 static void M_SizeDisplay(int choice)
 {
