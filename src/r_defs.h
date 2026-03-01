@@ -55,13 +55,15 @@ struct mobj_s;
 // Note: transformed values not buffered locally,
 // like some DOOM-alikes ("wt", "WebView") do.
 //
-typedef struct vertex_s
+#pragma pack(push, 1)
+typedef struct ALIGNED(8) vertex_s
 {
   fixed_t x, y;
 
   // [FG] vertex coordinates used for rendering
   fixed_t r_x, r_y;
 } vertex_t;
+#pragma pack(pop)
 
 // Each sector has a degenmobj_t in its center for sound origin purposes.
 typedef struct
@@ -351,11 +353,13 @@ typedef struct node_s
 } node_t;
 
 // posts are runs of non masked source pixels
-typedef struct
+#pragma pack(push, 1)
+typedef struct ALIGNED(2)
 {
   byte topdelta; // -1 is the last post in a column
   byte length;   // length data bytes follows
 } post_t;
+#pragma pack(pop)
 
 // column_t is a list of 0 or more post_t, (byte)-1 terminated
 typedef post_t column_t;
