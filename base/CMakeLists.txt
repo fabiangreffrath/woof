@@ -1,6 +1,21 @@
 set(BASE_SOURCES
-    all-all/actors/possess.txt
+    all-all/actors/archvile.txt
+    all-all/actors/baby.txt
+    all-all/actors/brain.txt
+    all-all/actors/bruiser.txt
+    all-all/actors/caco.txt
+    all-all/actors/cyber.txt
+    all-all/actors/demon.txt
+    all-all/actors/doomdeco.txt
     all-all/actors/doomimp.txt
+    all-all/actors/doommisc.txt
+    all-all/actors/fatso.txt
+    all-all/actors/keen.txt
+    all-all/actors/lostsoul.txt
+    all-all/actors/painelem.txt
+    all-all/actors/possess.txt
+    all-all/actors/revenant.txt
+    all-all/actors/spider.txt
     all-all/colormaps/watermap.cmp
     all-all/graphics/cross00.png
     all-all/graphics/cross01.png
