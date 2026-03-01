@@ -13,7 +13,7 @@ sound SpiderAttack { prefix lump "SHOTGN" }
 sound SpiderDeath  { prefix lump "SPIDTH" }
 sound SpiderWalk   { prefix lump "METAL" }
 
-thing SpiderMastermind
+thing SpiderMastermind 7 native
 {
     Health 3000
     Radius 128

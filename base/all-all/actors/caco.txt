@@ -68,7 +68,7 @@ thing Cacodemon 3005 native
 //
 //===========================================================================
 
-thing CacodemonBall
+thing CacodemonBall native
 {
     Radius 6
     Height 8

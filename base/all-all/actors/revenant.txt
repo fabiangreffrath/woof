@@ -106,7 +106,7 @@ thing RevenantTracer native
 //
 //===========================================================================
 
-thing RevenantTracerSmoke
+thing RevenantTracerSmoke native
 {
     +NOBLOCKMAP
     +NOGRAVITY

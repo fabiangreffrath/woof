@@ -62,7 +62,7 @@ thing TallGreenColumn 30 native
 
 // Short green column ------------------------------------------------------
 
-thing ShortGreenColumn 31
+thing ShortGreenColumn 31 native
 {
     Radius 16
     Height 40
@@ -77,7 +77,7 @@ thing ShortGreenColumn 31
 
 // Tall red column ---------------------------------------------------------
 
-thing TallRedColumn 32
+thing TallRedColumn 32 native
 {
     Radius 16
     Height 52
@@ -92,7 +92,7 @@ thing TallRedColumn 32
 
 // Short red column --------------------------------------------------------
 
-thing ShortRedColumn 33
+thing ShortRedColumn 33 native
 {
     Radius 16
     Height 40
