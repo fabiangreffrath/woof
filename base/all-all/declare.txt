@@ -1,4 +1,20 @@
 metadata { type "declarate" version "1.0.0" }
 
-#include "possess"
+#include "archvile"
+#include "baby"
+#include "brain"
+#include "bruiser"
+#include "caco"
+#include "cyber"
+#include "demon"
 #include "doomimp"
+#include "fatso"
+#include "keen"
+#include "lostsoul"
+#include "painelem"
+#include "possess"
+#include "revenant"
+#include "spider"
+
+#include "doomdeco"
+#include "doommisc"

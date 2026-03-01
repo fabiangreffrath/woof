@@ -1,0 +1,67 @@
+metadata { type "declarate" version "1.0.0" }
+
+//===========================================================================
+//
+// Spider boss
+//
+//===========================================================================
+
+sound SpiderSight  { prefix lump "SPISIT" }
+sound SpiderActive { prefix lump "DMACT" }
+sound SpiderPain   { prefix lump "DMPAIN" }
+sound SpiderAttack { prefix lump "SHOTGN" }
+sound SpiderDeath  { prefix lump "SPIDTH" }
+sound SpiderWalk   { prefix lump "METAL" }
+
+thing SpiderMastermind 7 native
+{
+    Health 3000
+    Radius 128
+    Height 100
+    Mass 1000
+    Speed 12
+    PainChance 40
+    MONSTER
+    +NORADIUSDMG
+    +RANGEHALF
+    +FULLVOLSOUNDS
+    +E3M8BOSS
+    +E4M8BOSS
+    SeeSound SpiderSight
+    AttackSound SpiderAttack
+    PainSound SpiderPain
+    DeathSound SpiderDeath
+    ActiveSound SpiderActive
+    Obituary "%o stood in awe of the spider demon."
+    States
+    {
+    Spawn:
+        SPID AB 10 A_Look
+        Loop
+    See:
+        SPID A 3 A_Metal
+        SPID ABB 3 A_Chase
+        SPID C 3 A_Metal
+        SPID CDD 3 A_Chase
+        SPID E 3 A_Metal
+        SPID EFF 3 A_Chase
+        Loop
+    Missile:
+        SPID A 20 BRIGHT A_FaceTarget
+        SPID G 4 BRIGHT A_SPosAttack
+        SPID H 4 BRIGHT A_SPosAttack
+        SPID H 1 BRIGHT A_SpidRefire
+        Goto Missile+1
+    Pain:
+        SPID I 3
+        SPID I 3 A_Pain
+        Goto See
+    Death:
+        SPID J 20 A_Scream
+        SPID K 10 A_Fall
+        SPID LMNOPQR 10
+        SPID S 30
+        SPID S -1 A_BossDeath
+        Stop
+    }
+}

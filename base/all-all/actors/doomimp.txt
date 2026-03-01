@@ -16,44 +16,43 @@ sound ImpShotx  { prefix lump "FIRXPL" }
 
 thing DoomImp 3001 native
 {
-    health 60
-    radius 20
-    height 56
-    mass 100
-    speed 8
-    painchance 200
-
+    Health 60
+    Radius 20
+    Height 56
+    Mass 100
+    Speed 8
+    PainChance 200
     MONSTER
-
-    seesound ImpSight
-    painsound ImpPain
-    deathsound ImpDeath
-    activesound ImpActive
-
+    SeeSound ImpSight
+    PainSound ImpPain
+    DeathSound ImpDeath
+    ActiveSound ImpActive
+    HitObituary "%o was slashed by an imp."
+    Obituary "%o was burned by an imp."
     states
     {
     Spawn:
         TROO AB 10 A_Look
-        loop
+        Loop
     See:
         TROO AABBCCDD 3 A_Chase
-        loop
+        Loop
     Melee:
     Missile:
         TROO EF 8 A_FaceTarget
         TROO G 6 A_TroopAttack
-        goto See
+        Goto See
     Pain:
         TROO H 2
         TROO H 2 A_Pain
-        goto See
+        Goto See
     Death:
         TROO I 8
         TROO J 8 A_Scream
         TROO K 6
         TROO L 6 A_Fall
         TROO M -1
-        stop
+        Stop
     XDeath:
         TROO N 5
         TROO O 5 A_XScream
@@ -61,9 +60,37 @@ thing DoomImp 3001 native
         TROO Q 5 A_Fall
         TROO RST 5
         TROO U -1
-        stop
+        Stop
     Raise:
         TROO MLKJI 8
-        goto See
+        Goto See
+    }
+}
+
+//===========================================================================
+//
+// Imp fireball
+//
+//===========================================================================
+
+thing DoomImpBall native
+{
+    Radius 6
+    Height 8
+    Speed 10
+    AltSpeed 20
+    Damage 3
+    PROJECTILE
+    //RenderStyle "Add"
+    SeeSound ImpAttack
+    DeathSound ImpShotx
+    States
+    {
+    Spawn:
+        BAL1 AB 4 BRIGHT
+        Loop
+    Death:
+        BAL1 CDE 6 BRIGHT
+        Stop
     }
 }
