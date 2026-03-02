@@ -96,7 +96,7 @@ void DECL_InstallMobjInfo(void);
 
 typedef struct
 {
-    char *label;
+    char *name;
     int statenum;
     int tablepos;
 } label_t;
