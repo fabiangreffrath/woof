@@ -556,22 +556,22 @@ void DECL_ParseActorStates(scanner_t *sc, actor_t *actor)
 
             for (int i = 0; i < array_size(labels); ++i)
             {
-                label_t newlabel = {
-                    .name = labels[i],
-                    .statenum = array_size(actor->states) - 1
-                };
-
                 label_t *label;
                 array_foreach(label, actor->labels)
                 {
                     if (strcasecmp(label->name, labels[i]) == 0)
                     {
-                        *label = newlabel;
+                        label->statenum = array_size(actor->states) - 1;
+                        free(labels[i]);
                         break;
                     }
                 }
                 if (label == array_end(actor->labels))
                 {
+                    label_t newlabel = {
+                        .name = labels[i],
+                        .statenum = array_size(actor->states) - 1
+                    };
                     array_push(actor->labels, newlabel);
                 }
             }
