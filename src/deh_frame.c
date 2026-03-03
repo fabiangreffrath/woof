@@ -46,9 +46,8 @@ static void SetDefinedCodepointerArgs(int frame_number, int arg)
     }
     else
     {
-        args = &flag;
+        hashmap_put(defined_args, frame_number, &flag);
     }
-    hashmap_put(defined_args, frame_number, args);
 }
 
 byte DEH_GetDefinedCodepointerArgs(int frame_number)
