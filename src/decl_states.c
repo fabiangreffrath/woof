@@ -556,12 +556,26 @@ void DECL_ParseActorStates(scanner_t *sc, actor_t *actor)
 
             for (int i = 0; i < array_size(labels); ++i)
             {
-                label_t new_label = {
-                    .label = labels[i],
-                    .statenum = array_size(actor->states) - 1
-                };
-                array_push(actor->labels, new_label);
+                label_t *label;
+                array_foreach(label, actor->labels)
+                {
+                    if (strcasecmp(label->name, labels[i]) == 0)
+                    {
+                        label->statenum = array_size(actor->states) - 1;
+                        free(labels[i]);
+                        break;
+                    }
+                }
+                if (label == array_end(actor->labels))
+                {
+                    label_t newlabel = {
+                        .name = labels[i],
+                        .statenum = array_size(actor->states) - 1
+                    };
+                    array_push(actor->labels, newlabel);
+                }
             }
+
             array_free(labels);
             labels = NULL;
         }
@@ -595,7 +609,7 @@ static int ResolveArg(const actor_t *owner, const arg_t *arg)
         case arg_state:
             array_foreach_type(label, owner->labels, label_t)
             {
-                if (!strcasecmp(label->label, arg->data.string))
+                if (!strcasecmp(label->name, arg->data.string))
                 {
                     return owner->states_offset + label->tablepos;
                 }
@@ -646,7 +660,7 @@ static statenum_t ResolveGoto(const actor_t *actor, const statelink_t *link)
     label_t *label;
     array_foreach(label, actor->labels)
     {
-        if (strcasecmp(label->label, link->jumpstate) == 0)
+        if (strcasecmp(label->name, link->jumpstate) == 0)
         {
             break;
         }
@@ -785,35 +799,36 @@ void DECL_ResolveMobjInfoStatePointers(void)
         array_foreach_type(label, actor->labels, label_t)
         {
             int statenum = actor->states_offset + label->tablepos;
-            if (!strcasecmp(label->label, "spawn"))
+            M_StringToLower(label->name);
+            if (!strcmp(label->name, "spawn"))
             {
                 mobj->spawnstate = statenum;
             }
-            else if (!strcasecmp(label->label, "see"))
+            else if (!strcmp(label->name, "see"))
             {
                 mobj->seestate = statenum;
             }
-            else if (!strcasecmp(label->label, "pain"))
+            else if (!strcmp(label->name, "pain"))
             {
                 mobj->painstate = statenum;
             }
-            else if (!strcasecmp(label->label, "melee"))
+            else if (!strcmp(label->name, "melee"))
             {
                 mobj->meleestate = statenum;
             }
-            else if (!strcasecmp(label->label, "missile"))
+            else if (!strcmp(label->name, "missile"))
             {
                 mobj->missilestate = statenum;
             }
-            else if (!strcasecmp(label->label, "death"))
+            else if (!strcmp(label->name, "death"))
             {
                 mobj->deathstate = statenum;
             }
-            else if (!strcasecmp(label->label, "xdeath"))
+            else if (!strcmp(label->name, "xdeath"))
             {
                 mobj->xdeathstate = statenum;
             }
-            else if (!strcasecmp(label->label, "raise"))
+            else if (!strcmp(label->name, "raise"))
             {
                 mobj->raisestate = statenum;
             }
