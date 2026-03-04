@@ -1026,10 +1026,13 @@ static void UpdateNumber(sbarelem_t *elem, player_t *player)
     int totalwidth = font->monowidth * valglyphs;
     if (font->type == sbf_mono0)
     {
-        if (elem->type == sbe_percent && font->percent != NULL
-            && SHORT(font->percent->width) > font->monowidth)
+        if (elem->type == sbe_percent && font->percent != NULL)
         {
-            totalwidth += SHORT(font->percent->width) - font->monowidth;
+            const int extrawidth = SHORT(font->percent->width) - font->monowidth;
+            if (extrawidth > 0)
+            {
+                totalwidth += extrawidth;
+            }
         }
     }
     else if (font->type == sbf_proportional)
