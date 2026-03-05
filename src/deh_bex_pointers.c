@@ -202,6 +202,7 @@ static translate_args_t translate_things[] = {
 };
 
 static translate_args_t translate_sounds[] = {
+    { {.p1 = A_PlaySound},          arg_misc1},
     { {.p1 = A_MonsterMeleeAttack}, arg_3 },
     { {.p1 = A_HealChase},          arg_2 },
     { {.p2 = A_WeaponMeleeAttack},  arg_4 },
