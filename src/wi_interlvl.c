@@ -18,9 +18,9 @@
 #include "i_printf.h"
 #include "z_zone.h"
 
-#define M_ARRAY_MALLOC(size) Z_Malloc((size), PU_LEVEL, NULL)
-#define M_ARRAY_REALLOC(ptr, size) Z_Realloc((ptr), (size), PU_LEVEL, NULL)
-#define M_ARRAY_FREE(ptr) Z_Free((ptr))
+#define M_ARRAY_MALLOC(size) Z_Malloc(size, PU_LEVEL, NULL)
+#define M_ARRAY_REALLOC(ptr, size) Z_Realloc(ptr, size, PU_LEVEL, NULL)
+#define M_ARRAY_FREE(ptr) Z_Free(ptr)
 #include "m_array.h"
 
 #include "m_json.h"

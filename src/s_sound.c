@@ -20,9 +20,9 @@
 // killough 3/7/98: modified to allow arbitrary listeners in spy mode
 // killough 5/2/98: reindented, removed useless code, beautified
 
-#include <math.h>
 #include <string.h>
 
+#include "deh_strings.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "g_umapinfo.h"
@@ -461,6 +461,12 @@ static boolean StartSoundEx(const mobj_t *origin, int sfx_id,
 #endif
 
     sfx = &S_sfx[sfx_id];
+
+    if (sfx->flags & SFX_Random)
+    {
+        sfx_id = S_RandomSound(sfx_id);
+        sfx = &S_sfx[sfx_id];
+    }
 
     // Initialize sound parameters
     if (ambient)
@@ -978,7 +984,7 @@ void S_ChangeMusic(int musicnum, int looping)
     if (!music->lumpnum)
     {
         char namebuf[9];
-        M_snprintf(namebuf, sizeof(namebuf), "d_%s", music->name);
+        M_snprintf(namebuf, sizeof(namebuf), "d_%s", DEH_String(music->name));
         music->lumpnum = W_GetNumForName(namebuf);
     }
 
@@ -1211,7 +1217,7 @@ static void InitE4Music(void)
         musicinfo_t *music = &S_music[i];
         char namebuf[9];
 
-        M_snprintf(namebuf, sizeof(namebuf), "d_%s", music->name);
+        M_snprintf(namebuf, sizeof(namebuf), "d_%s", DEH_String(music->name));
 
         if (W_CheckNumForName(namebuf) == -1)
         {
@@ -1360,7 +1366,6 @@ static void InitPitchStepTable(void)
 void S_Init(int sfxVolume, int musicVolume)
 {
     ResetActive();
-    S_PostParseSndInfo();
 
     // jff 1/22/98 skip sound init if sound not enabled
     if (!nosfxparm)
@@ -1396,7 +1401,7 @@ void S_Init(int sfxVolume, int musicVolume)
 void S_BindSoundVariables(void)
 {
     BIND_NUM(extra_music, EXMUS_OFF, EXMUS_OFF, EXMUS_ORIGINAL,
-             "Extra soundtrack (0 = Off; 1 = Remix; 2 = Original");
+             "Extra soundtrack (0 = Off; 1 = Remix; 2 = Original)");
 }
 
 //----------------------------------------------------------------------------

@@ -27,7 +27,7 @@
 #include "r_main.h"
 #include "r_state.h"
 #include "st_stuff.h"
-#include "v_fmt.h"
+#include "v_patch.h"
 #include "v_video.h"
 
 static player_t *plr = players;
@@ -65,7 +65,7 @@ void HU_InitCrosshair(void)
 
         if (W_IsWADLump(lump))
         {
-            if (R_IsPatchLump(lump))
+            if (V_LumpIsPatch(lump))
             {
                 crosshair_strings[i] = crosshair_lumps[i];
             }
@@ -127,7 +127,7 @@ void HU_UpdateCrosshair(void)
     plr = &players[displayplayer];
 
     crosshair.x = SCREENWIDTH / 2;
-    crosshair.y = (screenblocks <= 10) ? (SCREENHEIGHT - ST_HEIGHT) / 2
+    crosshair.y = (screenblocks <= 10) ? (SCREENHEIGHT - st_height) / 2
                                        : SCREENHEIGHT / 2;
 
     boolean invul = ST_PlayerInvulnerable(plr);

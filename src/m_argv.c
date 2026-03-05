@@ -144,8 +144,7 @@ void M_CheckCommandLine(void)
     for (i = 0; i < arrlen(params_with_args); ++i)
     {
       if (!strcasecmp(myargv[p], "-file") ||
-          !strcasecmp(myargv[p], "-deh")  ||
-          !strcasecmp(myargv[p], "-bex"))
+          !strcasecmp(myargv[p], "-deh"))
       {
         args = -1;
         break;
@@ -203,8 +202,7 @@ void M_CheckCommandLine(void)
         ++p;
       }
       // -statdump and -dehout allow "-" parameter
-      else if ((!strcasecmp(myargv[p], "-statdump") ||
-                !strcasecmp(myargv[p], "-dehout")) &&
+      else if ((!strcasecmp(myargv[p], "-statdump")) &&
                 p + 1 < myargc && !strcmp(myargv[p + 1], "-"))
       {
         p += 2;

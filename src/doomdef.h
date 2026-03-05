@@ -45,14 +45,6 @@ typedef enum {
   none
 } GameMission_t;
 
-// Identify language to use, software localization.
-typedef enum {
-  english,
-  french,
-  german,
-  unknown
-} Language_t;
-
 // [FG] emulate a specific version of Doom
 
 typedef enum

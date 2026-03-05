@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include "d_player.h"
+#include "deh_strings.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
@@ -43,7 +44,7 @@
 #include "r_tranmap.h"
 #include "r_voxel.h"
 #include "tables.h"
-#include "v_fmt.h"
+#include "v_patch.h"
 #include "v_video.h"
 #include "w_wad.h"
 #include "z_zone.h"
@@ -228,7 +229,7 @@ void R_InitSpriteDefs(char **namelist)
 
   for (i=0 ; i<num_sprites ; i++)
     {
-      const char *spritename = namelist[i];
+      const char *spritename = namelist[i] ? DEH_String(namelist[i]) : namelist[i];
       int j;
 
       if (!spritename)
@@ -729,7 +730,7 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
   {
     vis->tranmap = thing->tranmap;
   }
-  else if (thing->flags & MF_TRANSLUCENT && thing->state->sprite & FF_FULLBRIGHT)
+  else if (thing->flags & MF_TRANSLUCENT && thing->state->frame & FF_FULLBRIGHT)
   {
     vis->tranmap = main_addimap;
   }
@@ -960,7 +961,7 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
   {
     vis->tranmap = viewplayer->mo->tranmap;
   }
-  else if (viewplayer->mo->flags & MF_TRANSLUCENT && psp->state->sprite & FF_FULLBRIGHT)
+  else if (viewplayer->mo->flags & MF_TRANSLUCENT && psp->state->frame & FF_FULLBRIGHT)
   {
     vis->tranmap = main_addimap;
   }

@@ -30,7 +30,7 @@ extern int  myargc;
 extern char **myargv;
 
 // Returns the position of the given parameter in the arg list (0 if not found).
-int M_CheckParm(const char *check);
+extern int M_CheckParm(const char *check);
 
 // Same as M_CheckParm, but checks that num_args arguments are available
 // following the specified argument.

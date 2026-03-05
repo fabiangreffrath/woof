@@ -626,16 +626,23 @@ P_UseSpecialLine
 
     // ID24 Music Changers
     case 2059: case 2065: case 2089: case 2095:
+      P_ChangeSwitchTexture(line,0);
+      EV_ChangeMusic(line, side);
+      return true;
+
     case 2060: case 2066: case 2090: case 2096:
+      P_ChangeSwitchTexture(line,1);
       EV_ChangeMusic(line, side);
       return true;
 
     case 2078:
-      dirty_line(line)->special = 0;
-      // fallthrough
-
     case 2079:
     {
+      if (line->special == 2078)
+        P_ChangeSwitchTexture(line,0);
+      else
+        P_ChangeSwitchTexture(line,1);
+
       int colormap_index = side ? line->backtint : line->fronttint;
       for (int s = -1; (s = P_FindSectorFromLineTag(line, s)) >= 0;)
       {

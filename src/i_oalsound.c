@@ -23,7 +23,6 @@
 
 #include <math.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include "i_oalcommon.h"
 #include "i_oalequalizer.h"
@@ -135,7 +134,7 @@ void I_OAL_ShutdownModule(void)
         {
             alDeleteBuffers(1, &S_sfx[i].buffer);
             S_sfx[i].cached = false;
-            if (!S_sfx[i].ambient) // Keep ambient sound lumpnums.
+            if (!(S_sfx[i].flags & SFX_Ambient)) // Keep ambient sound lumpnums.
             {
                 S_sfx[i].lumpnum = -1;
             }
@@ -443,7 +442,7 @@ static void GetAttribs(ALCint **attribs)
 void I_OAL_BindSoundVariables(void)
 {
     BIND_BOOL_GENERAL(snd_hrtf, false,
-        "[OpenAL 3D] Headphones mode (0 = No; 1 = Yes)");
+        "[OpenAL 3D] Headphones mode");
     BIND_NUM_SFX(snd_resampler, 1, 0, UL,
         "Sound resampler (0 = Nearest; 1 = Linear; ...)");
     BIND_NUM(snd_absorption, 0, 0, 10,
@@ -715,7 +714,7 @@ boolean I_OAL_CacheSound(sfxinfo_t *sfx)
         sfx->buffer = buffer;
         sfx->cached = true;
 
-        if (sfx->ambient)
+        if (sfx->flags & SFX_Ambient)
         {
             sfx->length = GetSoundLength(sfx->buffer);
 

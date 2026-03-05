@@ -33,7 +33,7 @@
 #include "r_main.h"
 #include "r_state.h"
 #include "r_tranmap.h"
-#include "v_fmt.h"
+#include "v_patch.h"
 #include "v_video.h"
 #include "z_zone.h"
 
@@ -1109,7 +1109,7 @@ void R_FillBackScreen(void)
 // Copy a screen buffer.
 //
 
-void R_VideoErase(int x, int y, int w, int h)
+static void R_VideoErase(int x, int y, int w, int h)
 {
     if (background_buffer == NULL)
     {

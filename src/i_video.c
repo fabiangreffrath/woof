@@ -53,8 +53,9 @@
 #include "r_main.h"
 #include "r_plane.h"
 #include "r_voxel.h"
+#include "s_sound.h"
 #include "st_stuff.h"
-#include "v_fmt.h"
+#include "v_patch.h"
 #include "v_video.h"
 #include "w_wad.h"
 #include "z_zone.h"
@@ -119,8 +120,8 @@ static SDL_FRect frect = {0.0f};
 
 static int window_width, window_height;
 static int default_window_width, default_window_height;
-static int window_position_x, window_position_y;
 static boolean window_focused = true;
+static boolean mute_unfocused;
 static int scalefactor;
 
 static int actualheight;
@@ -339,11 +340,21 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
         case SDL_EVENT_WINDOW_FOCUS_GAINED:
             window_focused = true;
             I_UpdatePriority(true);
+            if (mute_unfocused)
+            {
+                S_ResumeSound();
+                S_ResumeMusic();
+            }
             break;
 
         case SDL_EVENT_WINDOW_FOCUS_LOST:
             window_focused = false;
             I_UpdatePriority(false);
+            if (mute_unfocused)
+            {
+                S_PauseSound();
+                S_PauseMusic();
+            }
             break;
 
         // We want to save the user's preferred monitor to use for running the
@@ -1161,42 +1172,11 @@ void I_InitWindowIcon(void)
     SDL_DestroySurface(surface);
 }
 
-static boolean WindowOutOfBounds(void)
-{
-    SDL_Rect bounds;
-
-    if (!SDL_GetDisplayBounds(video_display_id, &bounds))
-    {
-        I_Printf(VB_WARNING, "Failed to read display bounds for display #%d!",
-                 video_display);
-        return true;
-    }
-
-    return ((window_position_x + window_width > bounds.x + bounds.w)
-            || window_position_x < bounds.x
-            || (window_position_y + window_height > bounds.y + bounds.h)
-            || window_position_y < bounds.y);
-}
-
 static void SetWindowPosition(void)
 {
-    // in fullscreen mode, the window "position" still matters, because
-    // we use it to control which display we run fullscreen on.
+    const int pos = (int)SDL_WINDOWPOS_CENTERED_DISPLAY(video_display_id);
 
-    int x, y;
-
-    if (fullscreen || (window_position_x == 0 && window_position_y == 0)
-        || WindowOutOfBounds())
-    {
-        x = y = (int)SDL_WINDOWPOS_CENTERED_DISPLAY(video_display_id);
-    }
-    else
-    {
-        x = window_position_x;
-        y = window_position_y;
-    }
-
-    SDL_SetWindowPosition(screen, x, y);
+    SDL_SetWindowPosition(screen, pos, pos);
     SDL_SyncWindow(screen);
 }
 
@@ -1269,10 +1249,7 @@ static void ResetResolution(int height)
     R_SetFuzzColumnMode();
     setsizeneeded = true; // run R_ExecuteSetViewSize
 
-    if (automapactive)
-    {
-        AM_ResetScreenSize();
-    }
+    AM_ResetScreenSize();
 
     I_Printf(VB_DEBUG, "ResetResolution: %dx%d (%s)", video.width, video.height,
              widescreen_strings[widescreen]);
@@ -1706,11 +1683,6 @@ void I_ResetScreen(void)
 
 void I_ShutdownGraphics(void)
 {
-    if (!fullscreen)
-    {
-        SDL_GetWindowPosition(screen, &window_position_x, &window_position_y);
-    }
-
     if (scalefactor == 0)
     {
         default_window_width = window_width;
@@ -1789,8 +1761,6 @@ void I_BindVideoVariables(void)
         "Maximum horizontal resolution (0 = Native)");
     BIND_NUM(max_video_height, 0, SCREENHEIGHT, UL,
         "Maximum vertical resolution (0 = Native)");
-    BIND_NUM(window_position_x, 0, UL, UL, "Window position X (0 = Center)");
-    BIND_NUM(window_position_y, 0, UL, UL, "Window position Y (0 = Center)");
     M_BindNum("window_width", &default_window_width, &window_width, 1065, 0, UL,
         ss_none, wad_no, "Window width");
     M_BindNum("window_height", &default_window_height, &window_height, 600, 0, UL,
@@ -1798,6 +1768,8 @@ void I_BindVideoVariables(void)
 
     M_BindBool("grabmouse", &default_grabmouse, &grabmouse, true, ss_none,
                wad_no, "Grab mouse during play");
+    BIND_BOOL_GENERAL(mute_unfocused, true,
+                      "Mute audio when the window is not focused");
 }
 
 //----------------------------------------------------------------------------

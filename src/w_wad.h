@@ -20,6 +20,8 @@
 #ifndef __W_WAD__
 #define __W_WAD__
 
+#include <stdio.h>
+
 #include "doomtype.h"
 #include "z_zone.h"
 
@@ -74,7 +76,7 @@ typedef struct
     {
         archive_t *archive;
         const char *base_path;
-        int descriptor;
+        FILE *descriptor;
     } p1;
 
     union
@@ -142,6 +144,7 @@ void    W_ReadLumpSize(int lump, void *dest, int size);
 void    *W_CacheLumpNum(int lump, pu_tag tag);
 
 #define W_CacheLumpName(name,tag) W_CacheLumpNum (W_GetNumForName(name),(tag))
+#define W_CacheSpriteName(name,tag) W_CacheLumpNum((W_CheckNumForName)(name, ns_sprites),(tag))
 
 const char *W_CheckWidescreenPatch(const char *lump);
 

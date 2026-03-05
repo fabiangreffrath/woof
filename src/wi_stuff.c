@@ -18,11 +18,10 @@
 //
 //-----------------------------------------------------------------------------
 
-#include <string.h>
 
 #include "d_event.h"
-#include "d_deh.h"
 #include "d_player.h"
+#include "deh_bex_partimes.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
@@ -38,7 +37,7 @@
 #include "st_sbardef.h"
 #include "st_stuff.h"
 #include "sounds.h"
-#include "v_fmt.h"
+#include "v_patch.h"
 #include "v_video.h"
 #include "w_wad.h"
 #include "wi_interlvl.h"
@@ -2304,8 +2303,8 @@ static void WI_drawStats(void)
   V_DrawPatch(SP_STATSX, SP_STATSY+2*lh, sp_secret);
   WI_drawPercent(SCREENWIDTH - SP_STATSX, SP_STATSY+2*lh, cnt_secret[0]);
 
-  const boolean draw_partime = (W_IsIWADLump(maplump) || deh_pars || um_pars) &&
-                               (wbs->epsd < 3 || um_pars);
+  const boolean draw_partime = (W_IsIWADLump(maplump) || bex_partimes || umapinfo_partimes) &&
+                               (wbs->epsd < 3 || umapinfo_partimes);
   // [FG] choose x-position depending on width of time string
   const boolean wide_total = (wbs->totaltimes / TICRATE > 61*59) ||
                              (SP_TIMEX + SHORT(total->width) >= SCREENWIDTH/4);

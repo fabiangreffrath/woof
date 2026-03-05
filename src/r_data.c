@@ -44,7 +44,7 @@
 #include "r_skydefs.h"
 #include "r_state.h"
 #include "r_tranmap.h"
-#include "v_fmt.h"
+#include "v_patch.h"
 #include "v_video.h" // cr_dark, cr_shaded
 #include "w_wad.h"
 #include "z_zone.h"
@@ -122,6 +122,37 @@ int       *flatterrain;
 int       *texturetranslation;
 const byte **texturebrightmap; // [crispy] brightmaps
 
+// Really complex printing shit...
+static void M_ProgressBarStart(const int item_count, const char *msg)
+{
+    const int loop_count = (item_count + 255) / 128;
+    I_Printf(VB_INFO, " %s: ", msg);
+
+    I_PutChar(VB_INFO, '[');
+    for (int i = 0; i <= loop_count; i++)
+    {
+        I_PutChar(VB_INFO, ' ');
+    }
+    I_PutChar(VB_INFO, ']');
+
+    for (int i = 0; i <= loop_count; i++)
+    {
+        I_PutChar(VB_INFO, '\x8');
+    }
+}
+
+static void M_ProgressBarMove(const int item_current)
+{
+    if (!(item_current & 127))
+    {
+        I_PutChar(VB_INFO, '.');
+    }
+}
+
+static void M_ProgressBarEnd(void)
+{
+    I_PutChar(VB_INFO, '\n');
+}
 
 // needed for pre-rendering
 fixed_t   *spritewidth, *spriteoffset, *spritetopoffset;
@@ -199,8 +230,8 @@ static void R_DrawColumnInCache(const column_t *patch, byte *cache,
 
 static void R_GenerateComposite(int texnum)
 {
-  byte *block = Z_Malloc(texturecompositesize[texnum], PU_STATIC,
-                         (void **) &texturecomposite[texnum]);
+  byte *block = texturecomposite[texnum],
+       *block2 = texturecomposite2[texnum];
   texture_t *texture = textures[texnum];
   // Composite the columns together.
   texpatch_t *patch = texture->patches;
@@ -211,9 +242,17 @@ static void R_GenerateComposite(int texnum)
   // killough 4/9/98: marks to identify transparent regions in merged textures
   byte *marks = Z_Calloc(texture->width, texture->height, PU_STATIC, 0), *source;
 
+  if (!block)
+  {
+    block = Z_Malloc(texturecompositesize[texnum], PU_LEVEL,
+                     (void **) &texturecomposite[texnum]);
+  }
   // [FG] memory block for opaque textures
-  byte *block2 = Z_Malloc(texture->width * texture->height, PU_STATIC,
-                          (void **) &texturecomposite2[texnum]);
+  if (!block2)
+  {
+    block2 = Z_Malloc(texture->width * texture->height, PU_LEVEL,
+                      (void **) &texturecomposite2[texnum]);
+  }
   // [FG] initialize composite background to palette index 0 (usually black)
   memset(block, 0, texturecompositesize[texnum]);
 
@@ -296,12 +335,6 @@ static void R_GenerateComposite(int texnum)
       }
   Z_Free(source);         // free temporary column
   Z_Free(marks);          // free transparency marks
-
-  // Now that the texture has been built in column cache,
-  // it is purgable from zone memory.
-
-  Z_ChangeTag(block, PU_CACHE);
-  Z_ChangeTag(block2, PU_CACHE);
 }
 
 //
@@ -595,6 +628,11 @@ void R_InitTextures (void)
     {
       strncpy (name,name_p+i*8, 8);
       patchlookup[i] = W_CheckNumForName(name);
+
+      // [EB] some wads use the texture namespace but then still use those in pnames
+      if (patchlookup[i] == -1)
+        patchlookup[i] = (W_CheckNumForName)(name, ns_textures);
+
       if (patchlookup[i] == -1)
         {
           // killough 4/17/98:
@@ -611,7 +649,7 @@ void R_InitTextures (void)
             I_Printf(VB_DEBUG, "Warning: patch %.8s, index %d does not exist",name,i);
         }
 
-      if (patchlookup[i] != -1 && !R_IsPatchLump(patchlookup[i]))
+      if (patchlookup[i] != -1 && !V_LumpIsPatch(patchlookup[i]))
         {
           I_Printf(VB_WARNING, "R_InitTextures: patch %.8s, index %d is invalid", name, i);
           patchlookup[i] = (W_CheckNumForName)("TNT1A0", ns_sprites);
@@ -750,7 +788,7 @@ void R_InitTextures (void)
       texture = textures[i] = Z_Malloc(sizeof(texture_t), PU_STATIC, 0);
       M_CopyLumpName(texture->name, lumpinfo[tx_lump].name);
 
-      if (!R_IsPatchLump(tx_lump))
+      if (!V_LumpIsPatch(tx_lump))
       {
         I_Printf(VB_WARNING, "R_InitTextures: Texture %.8s in wrong format",
                  texture->name);
@@ -867,9 +905,9 @@ void R_InitSpriteLumps(void)
       M_ProgressBarMove(i); // killough
 
       patch = V_CachePatchNum(firstspritelump+i, PU_CACHE);
-      spritewidth[i] = SHORT(patch->width)<<FRACBITS;
-      spriteoffset[i] = SHORT(patch->leftoffset)<<FRACBITS;
-      spritetopoffset[i] = SHORT(patch->topoffset)<<FRACBITS;
+      spritewidth[i] = IntToFixed(SHORT(patch->width));
+      spriteoffset[i] = IntToFixed(SHORT(patch->leftoffset));
+      spritetopoffset[i] = IntToFixed(SHORT(patch->topoffset));
     }
 
   M_ProgressBarEnd();
@@ -957,7 +995,7 @@ void R_InitData(void)
   // mistaken as patches and by R_InitFlatBrightmaps() to set brightmaps for
   // flats.
   R_InitFlats();
-  R_InitFlatBrightmaps();
+  W_ProcessInWads("BRGHTMPS", R_ParseBrightmaps, PROCESS_PWAD);
   R_InitTextures();
   R_InitSpriteLumps();
   R_InitTranMap();                      // killough 2/21/98, 3/6/98
@@ -1136,58 +1174,6 @@ void R_PrecacheLevel(void)
           }
       }
   Z_Free(hitlist);
-}
-
-// [FG] check if the lump can be a Doom patch
-// taken from PrBoom+ prboom2/src/r_patch.c:L350-L390
-
-boolean R_IsPatchLump (const int lump)
-{
-  int size;
-  int width, height;
-  const patch_t *patch;
-  boolean result;
-
-  // [FG] non-existent cannot be a patch lump
-  if (lump < 0)
-    return false;
-
-  patch = V_CachePatchNum(lump, PU_CACHE);
-
-  size = V_LumpSize(lump);
-
-  // minimum length of a valid Doom patch
-  if (size < 13)
-    return false;
-
-  width = SHORT(patch->width);
-  height = SHORT(patch->height);
-
-  result = (height > 0 && height <= 16384 && width > 0 && width <= 16384
-            && width < size / 4);
-
-  if (result)
-  {
-    // The dimensions seem like they might be valid for a patch, so
-    // check the column directory for extra security. All columns
-    // must begin after the column directory, and none of them must
-    // point past the end of the patch.
-    int x;
-
-    for (x = 0; x < width; x++)
-    {
-      unsigned int ofs = LONG(patch->columnofs[x]);
-
-      // Need one byte for an empty column (but there's patches that don't know that!)
-      if (ofs < (unsigned int)width * 4 + 8 || ofs >= (unsigned int)size)
-      {
-        result = false;
-        break;
-      }
-    }
-  }
-
-  return result;
 }
 
 //-----------------------------------------------------------------------------

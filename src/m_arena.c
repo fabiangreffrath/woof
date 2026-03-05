@@ -22,10 +22,10 @@
 
 #include "i_region.h"
 #include "i_system.h"
-#include "m_hashmap.h"
 
 #define M_ARRAY_INIT_CAPACITY 32
 #include "m_array.h"
+#include "m_hashmap.h"
 
 typedef struct
 {
@@ -33,6 +33,13 @@ typedef struct
     int size;
     int align;
 } block_t;
+
+typedef struct
+{
+    int size;
+    int align;
+    int index;
+} hashmap_value_t;
 
 struct arena_s
 {
@@ -63,7 +70,8 @@ void *M_ArenaAlloc(arena_t *arena, int size, int align)
         }
     }
 
-    ptrdiff_t padding = -(uintptr_t)arena->beg & (align - 1);
+    ptrdiff_t padding = (align - ((uintptr_t)arena->beg & (align - 1))) & (align - 1);
+
     ptrdiff_t available = arena->end - arena->beg - padding;
 
     while (available < 0 || size > available)
@@ -95,7 +103,12 @@ void *M_ArenaAlloc(arena_t *arena, int size, int align)
     void *ptr = arena->beg + padding;
     arena->beg += padding + size;
 
-    hashmap_put(arena->hashmap, (uintptr_t)ptr, size, align);
+    hashmap_value_t value = {
+        .size = size,
+        .align = align,
+        .index = hashmap_size(arena->hashmap)
+    };
+    hashmap_put(arena->hashmap, (uintptr_t)ptr, &value);
 
     return ptr;
 }
@@ -109,22 +122,22 @@ void *M_ArenaCalloc(arena_t *arena, int size, int align)
 
 void arena_free(arena_t *arena, void *ptr)
 {
-    int size, align;
-    if (!hashmap_get(arena->hashmap, (uintptr_t)ptr, &size, &align))
+    hashmap_value_t *value = hashmap_get(arena->hashmap, (uintptr_t)ptr);
+    if (!value)
     {
         I_Error("Freed a pointer not from arena");
     }
 
     array_foreach_type(block, arena->deleted, block_t)
     {
-        if (block->size == size && block->align == align)
+        if (block->size == value->size && block->align == value->align)
         {
             array_push(block->ptrs, ptr);
             return;
         }
     }
 
-    block_t block = {.ptrs = NULL, .size = size, .align = align};
+    block_t block = {.ptrs = NULL, .size = value->size, .align = value->align};
     array_push(block.ptrs, ptr);
     array_push(arena->deleted, block);
 }
@@ -146,7 +159,7 @@ arena_t *M_ArenaInit(int reserve, int commit)
     arena->beg = arena->buffer;
     arena->end = arena->beg + commit;
 
-    arena->hashmap = hashmap_init(1024);
+    arena->hashmap = hashmap_init(1024, sizeof(hashmap_value_t));
 
     return arena;
 }
@@ -168,7 +181,7 @@ void M_ArenaClear(arena_t *arena)
     arena->deleted = NULL;
 
     hashmap_free(arena->hashmap);
-    arena->hashmap = hashmap_init(1024);
+    arena->hashmap = hashmap_init(1024, sizeof(hashmap_value_t));
 }
 
 struct arena_copy_s
@@ -237,24 +250,32 @@ void M_ArenaFreeCopy(arena_copy_t *copy)
     free(copy);
 }
 
-hashmap_t *M_ArenaHashMap(const arena_t *arena)
+int M_ArenaTableIndex(const arena_t *arena, uintptr_t key)
 {
-    return arena->hashmap;
+    hashmap_value_t *value = hashmap_get(arena->hashmap, key);
+    if (value)
+    {
+        return value->index;
+    }
+    return -1;
+}
+
+int M_ArenaTableSize(const arena_t *arena)
+{
+    return hashmap_size(arena->hashmap);
 }
 
 // Get an ordered array of pointers to the allocated memory.
 uintptr_t *M_ArenaTable(const arena_t *arena)
 {
-    uintptr_t *table = NULL;
-
-    array_resize(table, hashmap_get_size(arena->hashmap));
+    uintptr_t *table = calloc(hashmap_size(arena->hashmap), sizeof(*table));
 
     hashmap_iterator_t iter = hashmap_iterator(arena->hashmap);
-    uintptr_t key;
-    int index;
-    while (hashmap_next(&iter, &key, &index))
+    uint64_t key;
+    hashmap_value_t *value;
+    while ((value = hashmap_next(&iter, &key)))
     {
-        table[index] = key;
+        table[value->index] = key;
     }
 
     return table;

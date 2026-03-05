@@ -45,7 +45,7 @@ def generate_font_data(filename):
           (width, height) dimensions of each font character.
           Array of byte data for font.
     """
-    im = Image.open(filename)
+    im = Image.open(filename).convert("RGB")
     width, height = im.size
     assert (width % GRID_COLUMNS) == 0
     assert (height % GRID_ROWS) == 0

@@ -110,6 +110,11 @@ inline static float clampf(float x, float min, float max)
     return (min > x ? min : x > max ? max : x);
 }
 
+inline static double clamp(double x, double min, double max)
+{
+    return (min > x ? min : x > max ? max : x);
+}
+
 #define DIV_ROUND_FLOOR(n, d) (((n) - (d) / 2) / (d))
 
 #define DIV_ROUND_CEIL(n, d)  (((n) + (d) / 2) / (d))

@@ -17,6 +17,8 @@
 
 #include "al.h"
 
+#include <float.h>
+#include <math.h>
 #include <stdlib.h>
 
 #include "d_player.h"
@@ -157,56 +159,36 @@ static void CalcSourceParams(const mobj_t *source, oal_source_params_t *src)
     }
 }
 
-static void CalcHypotenuse(int adx, int ady, int *dist)
+inline static const double CalcHypotenuse(const double dx, const double dy)
 {
-    if (ady > adx)
-    {
-        const int temp = adx;
-        adx = ady;
-        ady = temp;
-    }
-
-    if (adx)
-    {
-        const int slope = FixedDiv(ady, adx) >> DBITS;
-        const int angle = tantoangle[slope] >> ANGLETOFINESHIFT;
-        *dist = FixedDiv(adx, finecosine[angle]);
-    }
-    else
-    {
-        *dist = 0;
-    }
+    return sqrt(dx * dx + dy * dy);
 }
 
-static void CalcDistance(const mobj_t *listener, const mobj_t *source,
-                         oal_source_params_t *src, int *dist)
+static double CalcDistance(const mobj_t *listener, const mobj_t *source,
+                           oal_source_params_t *src)
 {
-    const int adx = abs((listener->x >> FRACBITS) - (source->x >> FRACBITS));
-    const int ady = abs((listener->y >> FRACBITS) - (source->y >> FRACBITS));
-    int distxy;
-
-    CalcHypotenuse(adx, ady, &distxy);
+    const double dx = FixedToDouble(listener->x - source->x);
+    const double dy = FixedToDouble(listener->y - source->y);
+    const double distxy = CalcHypotenuse(dx, dy);
 
     // Treat monsters, projectiles, other players, and ambient sounds as point
     // sources.
     src->point_source =
-        (source->thinker.function.p1 != P_DegenMobjThinker
-         && source->info);
+        (source->thinker.function.p1 != P_DegenMobjThinker && source->info);
 
     if (src->point_source)
     {
-        int adz;
         // Vertical distance is from player's view to middle of source's height.
         src->z = source->z + (source->height >> 1);
-        adz = abs((listener->player->viewz >> FRACBITS) - (src->z >> FRACBITS));
-        CalcHypotenuse(distxy, adz, dist);
+        const double dz = FixedToDouble(listener->player->viewz - src->z);
+        return CalcHypotenuse(distxy, dz);
     }
     else
     {
         // The source is a door, switch, lift, etc. and doesn't have a proper
         // vertical position. Ignore vertical distance like vanilla Doom.
         src->z = listener->player->viewz;
-        *dist = distxy;
+        return distxy;
     }
 }
 
@@ -221,9 +203,9 @@ static void UpdatePriority(sfxparams_t *params)
     }
 }
 
-static boolean CalcVolumePriority(int dist, sfxparams_t *params)
+static boolean CalcVolumePriority(double dist, sfxparams_t *params)
 {
-    if (dist == 0)
+    if (dist < DBL_EPSILON)
     {
         return true;
     }
@@ -253,8 +235,6 @@ static boolean CalcVolumePriority(int dist, sfxparams_t *params)
 static boolean I_3D_AdjustSoundParams(const mobj_t *listener,
                                       const mobj_t *source, sfxparams_t *params)
 {
-    int dist;
-
     params->volume = snd_SfxVolume * params->volume_scale / 15;
 
     if (params->volume < 1)
@@ -273,7 +253,7 @@ static boolean I_3D_AdjustSoundParams(const mobj_t *listener,
         return true;
     }
 
-    CalcDistance(listener, source, &src, &dist);
+    const double dist = CalcDistance(listener, source, &src);
 
     if (!CalcVolumePriority(dist, params))
     {
@@ -341,8 +321,7 @@ static boolean I_3D_ReinitSound(void)
     return I_OAL_ReinitSound(SND_MODULE_3D);
 }
 
-const sound_module_t sound_3d_module =
-{
+const sound_module_t sound_3d_module = {
     I_3D_InitSound,
     I_3D_ReinitSound,
     I_OAL_AllowReinitSound,

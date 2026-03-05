@@ -1,5 +1,5 @@
 set(CONVERT_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/convert-font")
-set(INPUT_PNG "${CMAKE_CURRENT_SOURCE_DIR}/hauge-8x18-v1-5.png")
+set(INPUT_PNG "${CMAKE_CURRENT_SOURCE_DIR}/hauge-8x18-v1-6.png")
 set(OUTPUT_H "${CMAKE_CURRENT_SOURCE_DIR}/normal.h")
 
 add_custom_command(

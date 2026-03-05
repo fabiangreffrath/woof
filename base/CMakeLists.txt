@@ -1,120 +1,116 @@
 set(BASE_SOURCES
-    all-all/animated.lmp
-    all-all/chexdeh.lmp
-    all-all/compdb.lmp
-    all-all/crblack.lmp
-    all-all/crblue.lmp
-    all-all/crblue2.lmp
-    all-all/crbrick.lmp
-    all-all/crbrown.lmp
-    all-all/crgold.lmp
-    all-all/crgray.lmp
-    all-all/crgreen.lmp
-    all-all/crorange.lmp
-    all-all/cross00.png
-    all-all/cross01.png
-    all-all/cross02.png
-    all-all/cross03.png
-    all-all/cross04.png
-    all-all/cross05.png
-    all-all/cross06.png
-    all-all/cross07.png
-    all-all/cross08.png
-    all-all/crpurple.lmp
-    all-all/crred.lmp
-    all-all/crtan.lmp
-    all-all/crwhite.lmp
-    all-all/cryellow.lmp
-    all-all/dig033.png
-    all-all/dig037.png
-    all-all/dig043.png
-    all-all/dig045.png
-    all-all/dig046.png
-    all-all/dig047.png
-    all-all/dig048.png
-    all-all/dig049.png
-    all-all/dig050.png
-    all-all/dig051.png
-    all-all/dig052.png
-    all-all/dig053.png
-    all-all/dig054.png
-    all-all/dig055.png
-    all-all/dig056.png
-    all-all/dig057.png
-    all-all/dig058.png
-    all-all/dig065.png
-    all-all/dig066.png
-    all-all/dig067.png
-    all-all/dig068.png
-    all-all/dig069.png
-    all-all/dig070.png
-    all-all/dig071.png
-    all-all/dig072.png
-    all-all/dig073.png
-    all-all/dig074.png
-    all-all/dig075.png
-    all-all/dig076.png
-    all-all/dig077.png
-    all-all/dig078.png
-    all-all/dig079.png
-    all-all/dig080.png
-    all-all/dig081.png
-    all-all/dig082.png
-    all-all/dig083.png
-    all-all/dig084.png
-    all-all/dig085.png
-    all-all/dig086.png
-    all-all/dig087.png
-    all-all/dig088.png
-    all-all/dig089.png
-    all-all/dig090.png
-    all-all/dig091.png
-    all-all/dig093.png
-    all-all/dmxopl.op2
-    all-all/dsdgact.wav
-    all-all/dsdgatk.wav
-    all-all/dsdgdth.wav
-    all-all/dsdgpain.wav
-    all-all/dsdgsit.wav
-    all-all/m_butt1.png
-    all-all/m_butt2.png
-    all-all/m_vbox.png
-    all-all/sbardef.lmp
-    all-all/sbhuddef.lmp
-    all-all/skytran.lmp
-
-    all-all/smbfgg0.png
-    all-all/smbfgg1.png
-    all-all/smcsaw0.png
-    all-all/smcsaw1.png
-    all-all/smfist0.png
-    all-all/smfist1.png
-    all-all/smlaun0.png
-    all-all/smlaun1.png
-    all-all/smmgun0.png
-    all-all/smmgun1.png
-    all-all/smpisg0.png
-    all-all/smpisg1.png
-    all-all/smplas0.png
-    all-all/smplas1.png
-    all-all/smsgn20.png
-    all-all/smsgn21.png
-    all-all/smshot0.png
-    all-all/smshot1.png
-    all-all/smunkn0.png
-    all-all/smunkn1.png
-
-    all-all/stbr123.png
-    all-all/stbr124.png
-    all-all/stbr125.png
-    all-all/stbr126.png
-    all-all/stbr127.png
-    all-all/stkeys6.png
-    all-all/stkeys7.png
-    all-all/stkeys8.png
-    all-all/switches.lmp
-
+    all-all/actors/archvile.txt
+    all-all/actors/baby.txt
+    all-all/actors/brain.txt
+    all-all/actors/bruiser.txt
+    all-all/actors/caco.txt
+    all-all/actors/cyber.txt
+    all-all/actors/demon.txt
+    all-all/actors/doomdeco.txt
+    all-all/actors/doomimp.txt
+    all-all/actors/doommisc.txt
+    all-all/actors/fatso.txt
+    all-all/actors/keen.txt
+    all-all/actors/lostsoul.txt
+    all-all/actors/painelem.txt
+    all-all/actors/possess.txt
+    all-all/actors/revenant.txt
+    all-all/actors/spider.txt
     all-all/colormaps/watermap.cmp
+    all-all/graphics/cross00.png
+    all-all/graphics/cross01.png
+    all-all/graphics/cross02.png
+    all-all/graphics/cross03.png
+    all-all/graphics/cross04.png
+    all-all/graphics/cross05.png
+    all-all/graphics/cross06.png
+    all-all/graphics/cross07.png
+    all-all/graphics/cross08.png
+    all-all/graphics/dig033.png
+    all-all/graphics/dig037.png
+    all-all/graphics/dig043.png
+    all-all/graphics/dig045.png
+    all-all/graphics/dig046.png
+    all-all/graphics/dig047.png
+    all-all/graphics/dig048.png
+    all-all/graphics/dig049.png
+    all-all/graphics/dig050.png
+    all-all/graphics/dig051.png
+    all-all/graphics/dig052.png
+    all-all/graphics/dig053.png
+    all-all/graphics/dig054.png
+    all-all/graphics/dig055.png
+    all-all/graphics/dig056.png
+    all-all/graphics/dig057.png
+    all-all/graphics/dig058.png
+    all-all/graphics/dig065.png
+    all-all/graphics/dig066.png
+    all-all/graphics/dig067.png
+    all-all/graphics/dig068.png
+    all-all/graphics/dig069.png
+    all-all/graphics/dig070.png
+    all-all/graphics/dig071.png
+    all-all/graphics/dig072.png
+    all-all/graphics/dig073.png
+    all-all/graphics/dig074.png
+    all-all/graphics/dig075.png
+    all-all/graphics/dig076.png
+    all-all/graphics/dig077.png
+    all-all/graphics/dig078.png
+    all-all/graphics/dig079.png
+    all-all/graphics/dig080.png
+    all-all/graphics/dig081.png
+    all-all/graphics/dig082.png
+    all-all/graphics/dig083.png
+    all-all/graphics/dig084.png
+    all-all/graphics/dig085.png
+    all-all/graphics/dig086.png
+    all-all/graphics/dig087.png
+    all-all/graphics/dig088.png
+    all-all/graphics/dig089.png
+    all-all/graphics/dig090.png
+    all-all/graphics/dig091.png
+    all-all/graphics/dig093.png
+
+    all-all/graphics/smbfgg0.png
+    all-all/graphics/smbfgg1.png
+    all-all/graphics/smcsaw0.png
+    all-all/graphics/smcsaw1.png
+    all-all/graphics/smfist0.png
+    all-all/graphics/smfist1.png
+    all-all/graphics/smlaun0.png
+    all-all/graphics/smlaun1.png
+    all-all/graphics/smmgun0.png
+    all-all/graphics/smmgun1.png
+    all-all/graphics/smpisg0.png
+    all-all/graphics/smpisg1.png
+    all-all/graphics/smplas0.png
+    all-all/graphics/smplas1.png
+    all-all/graphics/smsgn20.png
+    all-all/graphics/smsgn21.png
+    all-all/graphics/smshot0.png
+    all-all/graphics/smshot1.png
+    all-all/graphics/smunkn0.png
+    all-all/graphics/smunkn1.png
+
+    all-all/graphics/stbr123.png
+    all-all/graphics/stbr124.png
+    all-all/graphics/stbr125.png
+    all-all/graphics/stbr126.png
+    all-all/graphics/stbr127.png
+    all-all/graphics/stkeys6.png
+    all-all/graphics/stkeys7.png
+    all-all/graphics/stkeys8.png
+
+    all-all/graphics/m_butt1.png
+    all-all/graphics/m_butt2.png
+    all-all/graphics/m_vbox.png
+
+    all-all/sounds/dsdgact.wav
+    all-all/sounds/dsdgatk.wav
+    all-all/sounds/dsdgdth.wav
+    all-all/sounds/dsdgpain.wav
+    all-all/sounds/dsdgsit.wav
 
     all-all/sprites/dogsa1.png
     all-all/sprites/dogsa2.png
@@ -200,6 +196,31 @@ set(BASE_SOURCES
     all-all/sprites/pls2e0.png
     all-all/sprites/tnt1a0.png
 
+    all-all/animated.lmp
+    all-all/amapdef.json
+    all-all/chexdeh.lmp
+    all-all/compdb.json
+    all-all/crblack.lmp
+    all-all/crblue.lmp
+    all-all/crblue2.lmp
+    all-all/crbrick.lmp
+    all-all/crbrown.lmp
+    all-all/crgold.lmp
+    all-all/crgray.lmp
+    all-all/crgreen.lmp
+    all-all/crorange.lmp
+    all-all/crpurple.lmp
+    all-all/crred.lmp
+    all-all/crtan.lmp
+    all-all/crwhite.lmp
+    all-all/cryellow.lmp
+    all-all/declare.txt
+    all-all/dmxopl.op2
+    all-all/sbardef.json
+    all-all/sbhuddef.json
+    all-all/skytran.lmp
+    all-all/switches.lmp
+
     betalevl.wad/umapinfo.lmp
 
     chex.wad/brghtmps.lmp
@@ -215,13 +236,10 @@ set(BASE_SOURCES
     e1m4b.wad/dehacked.lmp
     e1m8b.wad/dehacked.lmp
 
-    extras.wad/sbardef.lmp
-
     hacx.wad/brghtmps.lmp
     hacx.wad/dehacked.deh
 
     id1.wad/dehacked.lmp
-    id1.wad/sbardef.lmp
 
     rekkr-all/dehacked.lmp
 

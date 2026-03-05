@@ -24,7 +24,7 @@
 #include "m_misc.h"
 #include "m_swap.h"
 #include "r_defs.h"
-#include "v_fmt.h"
+#include "v_patch.h"
 #include "v_video.h"
 #include "w_wad.h"
 #include "z_zone.h"

@@ -25,7 +25,7 @@
 #include "m_fixed.h"
 #include "r_defs.h"
 #include "tables.h"
-#include "v_fmt.h"
+#include "v_patch.h"
 #include "z_zone.h"
 
 boolean r_swirl;

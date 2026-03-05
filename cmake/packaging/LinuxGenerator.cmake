@@ -30,6 +30,7 @@ execute_process(
     COMMAND
         ${CMAKE_COMMAND} -E env LDAI_OUTPUT=${CPACK_PACKAGE_FILE_NAME}.AppImage
         LINUXDEPLOY_OUTPUT_VERSION=${CPACK_PACKAGE_VERSION} NO_STRIP=1
+        LDAI_UPDATE_INFORMATION=gh-releases-zsync|fabiangreffrath|woof|latest|Woof-*-Linux.AppImage.zsync
         ${LINUXDEPLOY_EXECUTABLE} --appimage-extract-and-run
         --appdir=${CPACK_TEMPORARY_DIRECTORY}
         --executable=${CPACK_TEMPORARY_DIRECTORY}/${CPACK_PACKAGING_INSTALL_PREFIX}/${CPACK_BIN_DIR}/woof

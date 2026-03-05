@@ -29,11 +29,11 @@
 
 #include "m_scanner.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "doomtype.h"
-#include "i_printf.h"
 #include "i_system.h"
 #include "m_misc.h"
 
@@ -46,7 +46,6 @@ static const char* const token_names[] =
     [TK_FloatConst] = "Float Constant",
     [TK_AnnotateStart] = "Annotation Start",
     [TK_AnnotateEnd] = "Annotation End",
-    [TK_RawString] = "Raw String"
 };
 
 typedef struct
@@ -67,7 +66,7 @@ struct scanner_s
     parserstate_t state;
     parserstate_t nextstate, prevstate;
 
-    char *data;
+    const char *data;
     size_t length;
 
     int line;
@@ -220,7 +219,7 @@ static void Unescape(char *str)
         {
             *str++ = c;
         }
-        else
+        else if (*p)
         {
             switch (*p)
             {
@@ -241,6 +240,10 @@ static void Unescape(char *str)
                     break;
             }
             p++;
+        }
+        else
+        {
+            /* Trailing backslash */
         }
     }
     *str = 0;
@@ -277,93 +280,59 @@ boolean SC_GetNextToken(scanner_t *s, boolean expandstate)
     boolean float_has_exponent = false;
     boolean string_finished =
         false; // Strings are the only things that can have 0 length tokens.
-    boolean is_negative = false;
 
     char cur = s->data[s->scanpos++];
-
-    // Check for negative number first
-    if (cur == '-' && s->scanpos < s->length)
+    // Determine by first character
+    if (cur == '_' || (cur >= 'A' && cur <= 'Z') || (cur >= 'a' && cur <= 'z'))
     {
-        char next_char = s->data[s->scanpos];
-        if (next_char >= '0' && next_char <= '9')
-        {
-            is_negative = true;
-            start = s->scanpos - 1; // Include the minus sign in the token
-            cur = s->data[s->scanpos++]; // Move to the digit after '-'
-            s->nextstate.token = TK_IntConst;
-            if (cur == '0')
-            {
-                integer_base = 8;
-            }
-        }
-        else if (next_char == '.' && s->scanpos + 1 < s->length)
-        {
-            char after_dot = s->data[s->scanpos + 1];
-            if (after_dot >= '0' && after_dot <= '9')
-            {
-                is_negative = true;
-                start = s->scanpos - 1; // Include the minus sign in the token
-                cur = s->data[s->scanpos++]; // Move to the '.' after '-'
-                float_has_decimal = true;
-                s->nextstate.token = TK_FloatConst;
-            }
-        }
+        s->nextstate.token = TK_Identifier;
     }
-
-    // If not a negative number, determine by first character
-    if (!is_negative)
+    else if (cur >= '0' && cur <= '9')
     {
-        if (cur == '_' || (cur >= 'A' && cur <= 'Z') || (cur >= 'a' && cur <= 'z'))
+        if (cur == '0')
         {
-            s->nextstate.token = TK_Identifier;
+            integer_base = 8;
         }
-        else if (cur >= '0' && cur <= '9')
+        s->nextstate.token = TK_IntConst;
+    }
+    else if (cur == '.' && s->scanpos < s->length && s->data[s->scanpos] != '.')
+    {
+        float_has_decimal = true;
+        s->nextstate.token = TK_FloatConst;
+    }
+    else if (cur == '"')
+    {
+        end = ++start; // Move the start up one character so we don't have to
+                       // trim it later.
+        s->nextstate.token = TK_StringConst;
+    }
+    else
+    {
+        end = s->scanpos;
+        s->nextstate.token = cur;
+
+        // Now check for operator tokens
+        if (s->scanpos < s->length)
         {
-            if (cur == '0')
+            char next = s->data[s->scanpos];
+
+            if (cur == ':' && next == ':')
             {
-                integer_base = 8;
+                s->nextstate.token = TK_ScopeResolution;
             }
-            s->nextstate.token = TK_IntConst;
-        }
-        else if (cur == '.' && s->scanpos < s->length && s->data[s->scanpos] != '.')
-        {
-            float_has_decimal = true;
-            s->nextstate.token = TK_FloatConst;
-        }
-        else if (cur == '"')
-        {
-            end = ++start; // Move the start up one character so we don't have to
-                           // trim it later.
-            s->nextstate.token = TK_StringConst;
-        }
-        else
-        {
-            end = s->scanpos;
-            s->nextstate.token = cur;
-
-            // Now check for operator tokens
-            if (s->scanpos < s->length)
+            else if (cur == '/' && next == '*')
             {
-                char next = s->data[s->scanpos];
+                s->nextstate.token = TK_AnnotateStart;
+            }
+            else if (cur == '*' && next == '/')
+            {
+                s->nextstate.token = TK_AnnotateEnd;
+            }
 
-                if (cur == ':' && next == ':')
-                {
-                    s->nextstate.token = TK_ScopeResolution;
-                }
-                else if (cur == '/' && next == '*')
-                {
-                    s->nextstate.token = TK_AnnotateStart;
-                }
-                else if (cur == '*' && next == '/')
-                {
-                    s->nextstate.token = TK_AnnotateEnd;
-                }
-
-                if (s->nextstate.token != cur)
-                {
-                    s->scanpos++;
-                    end = s->scanpos;
-                }
+            if (s->nextstate.token != cur)
+            {
+                s->scanpos++;
+                end = s->scanpos;
             }
         }
     }
@@ -541,46 +510,6 @@ boolean SC_GetNextToken(scanner_t *s, boolean expandstate)
     return false;
 }
 
-static boolean SC_GetNextTokenRawString(scanner_t *s)
-{
-    if (!s->neednext)
-    {
-        s->neednext = true;
-        return true;
-    }
-
-    s->nextstate.tokenline = s->line;
-    s->nextstate.tokenlinepos = s->scanpos - s->linestart;
-    s->nextstate.token = TK_NoToken;
-    if (s->scanpos >= s->length)
-    {
-        return false;
-    }
-
-    int start = s->scanpos++;
-    while (s->scanpos < s->length)
-    {
-        char cur = s->data[s->scanpos];
-        if (cur == ' ' || cur == '\t' || cur == '\n' || cur == '\r' || cur == 0)
-        {
-            break;
-        }
-        s->scanpos++;
-    }
-    s->nextstate.scanpos = s->scanpos;
-
-    int length = s->scanpos - start;
-    if (length > 0)
-    {
-        s->nextstate.token = TK_RawString;
-        CopyString(&s->nextstate, s->data + start, length);
-        return true;
-    }
-
-    s->nextstate.token = TK_NoToken;
-    return false;
-}
-
 // Skips all Tokens in current line and parses the first token on the next
 // line.
 void SC_GetNextLineToken(scanner_t *s)
@@ -594,14 +523,7 @@ boolean SC_CheckToken(scanner_t *s, char token)
 {
     if (s->neednext)
     {
-        if (token == TK_RawString)
-        {
-            if (!SC_GetNextTokenRawString(s))
-            {
-                return false;
-            }
-        }
-        else if (!SC_GetNextToken(s, false))
+        if (!SC_GetNextToken(s, false))
         {
             return false;
         }
@@ -609,9 +531,7 @@ boolean SC_CheckToken(scanner_t *s, char token)
 
     if (s->nextstate.token == token
         // An int can also be a float.
-        || (s->nextstate.token == TK_IntConst && token == TK_FloatConst)
-        // Raw string can also be a identifier
-        || (s->nextstate.token == TK_Identifier && token == TK_RawString))
+        || (s->nextstate.token == TK_IntConst && token == TK_FloatConst))
     {
         s->neednext = true;
         ExpandState(s);
@@ -621,7 +541,7 @@ boolean SC_CheckToken(scanner_t *s, char token)
     return false;
 }
 
-void SC_PrintMsg(scmsg_t type, scanner_t *s, const char *msg, ...)
+void SC_Error(scanner_t *s, const char *msg, ...)
 {
     char buffer[1024];
     va_list args;
@@ -629,16 +549,8 @@ void SC_PrintMsg(scmsg_t type, scanner_t *s, const char *msg, ...)
     M_vsnprintf(buffer, sizeof(buffer), msg, args);
     va_end(args);
 
-    if (type == SC_ERROR)
-    {
-        I_Error("%s(%d:%d): %s", s->scriptname, s->state.tokenline,
-                s->state.tokenlinepos + 1, buffer);
-    }
-    else
-    {
-        I_Printf(VB_ERROR, "%s(%d:%d): %s", s->scriptname, s->state.tokenline,
-                 s->state.tokenlinepos + 1, buffer);
-    }
+    I_Error("%s(%d:%d): %s", s->scriptname, s->state.tokenline,
+            s->state.tokenlinepos + 1, buffer);
 }
 
 void SC_MustGetToken(scanner_t *s, char token)
@@ -688,6 +600,8 @@ void SC_Rewind(scanner_t *s) // Only can rewind one step.
     s->line = s->prevstate.tokenline;
     s->logicalpos = s->prevstate.tokenlinepos;
     s->scanpos = s->prevstate.scanpos;
+
+    CheckForWhitespace(s);
 }
 
 boolean SC_SameLine(scanner_t *s)
@@ -707,6 +621,133 @@ void SC_MustGetStringOrIdent(scanner_t *s)
     {
         SC_Error(s, "expected string constant or identifier");
     }
+}
+
+boolean SC_GetNextRawString(scanner_t *s, boolean expandstate)
+{
+    if (!s->neednext)
+    {
+        s->neednext = true;
+        if (expandstate)
+        {
+            ExpandState(s);
+        }
+        return true;
+    }
+
+    s->nextstate.tokenline = s->line;
+    s->nextstate.tokenlinepos = s->scanpos - s->linestart;
+    s->nextstate.token = TK_NoToken;
+
+    CheckForWhitespace(s);
+
+    if (s->scanpos >= s->length)
+    {
+        if (expandstate)
+        {
+            ExpandState(s);
+        }
+        return false;
+    }
+
+    int start = s->scanpos;
+    int end = s->scanpos;
+    boolean quoted = false;
+    boolean string_finished = false;
+
+    // Check if string starts with a quote
+    if (s->data[s->scanpos] == '"')
+    {
+        quoted = true;
+        start = ++s->scanpos; // Skip opening quote
+    }
+
+    while (s->scanpos < s->length)
+    {
+        char cur = s->data[s->scanpos];
+        if (quoted)
+        {
+            if (cur == '"')
+            {
+                string_finished = true;
+                end = s->scanpos;
+                s->scanpos++; // Skip closing quote
+                break;
+            }
+            else if (cur == '\\')
+            {
+                s->scanpos++; // Skip escape character
+            }
+            else if (cur == '\n' || cur == '\r')
+            {
+                // Unterminated string - treat as error or end at line
+                end = s->scanpos;
+                break;
+            }
+        }
+        else
+        {
+            if (cur == ' ' || cur == '\t' || cur == '\n' || cur == '\r'
+                || cur == 0)
+            {
+                end = s->scanpos;
+                break;
+            }
+        }
+        s->scanpos++;
+    }
+
+    if (s->scanpos == s->length && !string_finished)
+    {
+        end = s->scanpos;
+    }
+
+    s->nextstate.scanpos = s->scanpos;
+
+    if (end - start > 0)
+    {
+        CopyString(&s->nextstate, s->data + start, end - start);
+        if (quoted)
+        {
+            Unescape(s->nextstate.string);
+            s->nextstate.token = TK_StringConst;
+        }
+        else
+        {
+            s->nextstate.token = s->data[start];
+        }
+        if (expandstate)
+        {
+            ExpandState(s);
+        }
+        return true;
+    }
+
+    if (expandstate)
+    {
+        ExpandState(s);
+    }
+    return false;
+}
+
+boolean SC_CheckRawToken(scanner_t *s, char token)
+{
+    if (s->neednext)
+    {
+        if (!SC_GetNextRawString(s, false))
+        {
+            return false;
+        }
+    }
+
+    if (s->nextstate.token == token)
+    {
+        s->neednext = true;
+        ExpandState(s);
+        return true;
+    }
+    s->neednext = false;
+    return false;
 }
 
 boolean SC_TokensLeft(scanner_t *s)
@@ -734,6 +775,72 @@ double SC_GetDecimal(scanner_t *s)
     return s->state.decimal;
 }
 
+static void CheckMetadata(scanner_t *s, const char *type, version_t maxversion)
+{
+    SC_MustGetToken(s, TK_Identifier);
+    if (strcasecmp("metadata", SC_GetString(s)))
+    {
+        SC_Error(s, "Expect metadata block.");
+    }
+
+    boolean setversion = false, settype = false;
+    SC_MustGetToken(s, '{');
+    while (!SC_CheckToken(s, '}'))
+    {
+        SC_MustGetToken(s, TK_Identifier);
+        switch (SC_RequireKeyword(s, "type", "version"))
+        {
+            case 0:
+                {
+                    SC_MustGetToken(s, TK_StringConst);
+                    const char *string = SC_GetString(s);
+                    if (strcasecmp(string, type))
+                    {
+                        SC_Error(s, "Wrong type '%s', expected '%s'.", type, string);
+                    }
+                    settype = true;
+                }
+                break;
+            case 1:
+                {
+                    SC_MustGetToken(s, TK_StringConst);
+                    const char *string = SC_GetString(s);
+                    version_t v;
+                    if (!M_ParseVersion(string, &v))
+                    {
+                        SC_Error(s, "Error parsing version.");
+                    }
+                    if (M_CompareVersions(&v, &maxversion) > 0)
+                    {
+                        SC_Error(s, "Max supported version %d.%d.%d",
+                            maxversion.major, maxversion.minor, maxversion.revision);
+                    }
+                    setversion = true;
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+    if (!settype)
+    {
+        SC_Error(s, "Missed 'type' in metadata.");
+    }
+    if (!setversion)
+    {
+        SC_Error(s, "Missed 'version' in metadata.");
+    }
+}
+
+scanner_t *SC_OpenOptions(const char *type, version_t maxversion,
+                          const char *scriptname, const char *data, int length)
+{
+    scanner_t *s = SC_Open(scriptname, data, length);
+    CheckMetadata(s, type, maxversion);
+    return s;
+}
+
 scanner_t *SC_Open(const char *scriptname, const char *data, int length)
 {
     scanner_t *s = calloc(1, sizeof(*s));
@@ -742,8 +849,7 @@ scanner_t *SC_Open(const char *scriptname, const char *data, int length)
     s->neednext = true;
 
     s->length = length;
-    s->data = malloc(length);
-    memcpy(s->data, data, length);
+    s->data = data;
 
     CheckForWhitespace(s);
     s->state.scanpos = s->scanpos;
@@ -769,6 +875,43 @@ void SC_Close(scanner_t *s)
     {
         free((char *)s->scriptname);
     }
-    free(s->data);
     free(s);
+}
+
+int SC_CheckKeywordInternal(scanner_t *s, const char *keywords[], int count)
+{
+    const char *string = SC_GetString(s);
+    for (int i = 0; i < count; ++i)
+    {
+        if (strcasecmp(keywords[i], string) == 0)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
+int SC_RequireKeywordInternal(scanner_t *s, const char *keywords[], int count)
+{
+    int result = SC_CheckKeywordInternal(s, keywords, count);
+    if (result >= 0)
+    {
+        return result;
+    }
+    SC_Error(s, "Invalid keyword at this point.");
+    return -1;
+}
+
+int SC_GetNegativeInteger(scanner_t *s)
+{
+    boolean neg = SC_CheckToken(s, '-');
+    SC_MustGetToken(s, TK_IntConst);
+    return neg ? -SC_GetNumber(s) : SC_GetNumber(s);
+}
+
+double SC_GetNegativeDecimal(scanner_t *s)
+{
+    boolean neg = SC_CheckToken(s, '-');
+    SC_MustGetToken(s, TK_FloatConst);
+    return neg ? -SC_GetDecimal(s) : SC_GetDecimal(s);
 }

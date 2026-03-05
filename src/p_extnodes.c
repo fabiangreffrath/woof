@@ -418,7 +418,7 @@ void P_LoadNodes_DEEP(int lump)
     byte *data;
     int i;
 
-    numnodes = W_LumpLength(lump) / sizeof(mapnode_deep_t);
+    numnodes = (W_LumpLength(lump) - 8) / sizeof(mapnode_deep_t);
     nodes = Z_Malloc(numnodes * sizeof(node_t), PU_LEVEL, 0);
     data = W_CacheLumpNum(lump, PU_STATIC);
 

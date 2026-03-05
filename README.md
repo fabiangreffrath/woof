@@ -116,7 +116,7 @@ After successful compilation, the executable will be available in the `build/src
 The following build system and libraries need to be installed:
  
  * [CMake](https://cmake.org) (>= 3.15)
- * [SDL3](https://github.com/libsdl-org/SDL) (>= 3.3.0)
+ * [SDL3](https://github.com/libsdl-org/SDL) (>= 3.4.0)
  * [openal-soft](https://github.com/kcat/openal-soft) (>= 1.22.0 for PC Speaker emulation)
  * [libsndfile](https://github.com/libsndfile/libsndfile) (>= 1.1.0 for MPEG support)
  * [libebur128](https://github.com/jiixyj/libebur128) (>= 1.2.0)
@@ -271,7 +271,7 @@ Copyright:
  © 2005-2017 Simon Howard.  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
-Files: `textscreen/fonts/hauge-8x18-v1-5.png`  
+Files: `textscreen/fonts/hauge-8x18-v1-6.png`  
 Copyright:  
  © 2025 Zokum.  
 License: [CC BY-SA](https://creativecommons.org/licenses/by-sa/4.0/)
