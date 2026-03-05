@@ -580,7 +580,7 @@ static void UDMF_ParseSidedef(scanner_t *s)
         {
             side.flags |= UDMF_ScanFlag(s, SF_NO_FAKE_CONTRAST);
         }
-        else if (PROP(smoothfakecontrast, UDMF_SIDE_LIGHT))
+        else if (PROP(smoothlighting, UDMF_SIDE_LIGHT))
         {
             side.flags |= UDMF_ScanFlag(s, SF_SMOOTH_CONTRAST);
         }
