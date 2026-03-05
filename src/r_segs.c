@@ -224,6 +224,7 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
     }
 
   dc_texturemid += side->interprowoffset + side->offsety_mid;
+  dc_brightmap = texturebrightmap[texnum];
 
   // draw the columns
   for (dc_x = x1 ; dc_x <= x2 ; dc_x++, spryscale += rw_scalestep)

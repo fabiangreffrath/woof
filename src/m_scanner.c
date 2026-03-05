@@ -46,6 +46,7 @@ static const char* const token_names[] =
     [TK_FloatConst] = "Float Constant",
     [TK_AnnotateStart] = "Annotation Start",
     [TK_AnnotateEnd] = "Annotation End",
+    [TK_ScopeResolution] = "Scope Resolution"
 };
 
 typedef struct
