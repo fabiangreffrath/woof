@@ -367,7 +367,7 @@ static void cheat_mus(char *buf)
   if (!isdigit(buf[0]) || !isdigit(buf[1]))
     return;
 
-  displaymsg(DEH_String(STSTR_MUS));
+  displaymsg("%s", DEH_String(STSTR_MUS));
   
   // First check if we have a mapinfo entry for the requested level.
   if (gamemode == commercial)
@@ -380,7 +380,7 @@ static void cheat_mus(char *buf)
      musnum = W_CheckNumForName(entry->music);
 
      if (musnum == -1)
-        displaymsg(DEH_String(STSTR_NOMUS));
+        displaymsg("%s", DEH_String(STSTR_NOMUS));
      else
      {
         S_ChangeMusInfoMusic(musnum, 1);
@@ -395,7 +395,7 @@ static void cheat_mus(char *buf)
           
       //jff 4/11/98 prevent IDMUS00 in DOOMII and IDMUS36 or greater
       if (musnum < mus_runnin || musnum >= NUMMUSIC)
-        displaymsg(DEH_String(STSTR_NOMUS));
+        displaymsg("%s", DEH_String(STSTR_NOMUS));
       else
         {
           S_ChangeMusic(musnum, 1);
@@ -408,7 +408,7 @@ static void cheat_mus(char *buf)
           
       //jff 4/11/98 prevent IDMUS0x IDMUSx0 in DOOMI and greater than introa
       if (musnum < mus_e1m1 || musnum >= mus_runnin)
-        displaymsg(DEH_String(STSTR_NOMUS));
+        displaymsg("%s", DEH_String(STSTR_NOMUS));
       else
         {
           S_ChangeMusic(musnum, 1);
@@ -423,7 +423,7 @@ static void cheat_choppers(void)
   plyr->weaponowned[wp_chainsaw] = true;
   plyr->powers[pw_invulnerability] = true;
   plyr->bonuscount += 2; // trigger evil grin now
-  displaymsg(DEH_String(STSTR_CHOPPERS));
+  displaymsg("%s", DEH_String(STSTR_CHOPPERS));
 }
 
 static void cheat_god(void)
@@ -460,10 +460,10 @@ static void cheat_god(void)
         plyr->mo->health = deh_god_mode_health;  // Ty 03/09/98 - deh
           
       plyr->health = deh_god_mode_health;
-      displaymsg(DEH_String(STSTR_DQDON));
+      displaymsg("%s", DEH_String(STSTR_DQDON));
     }
   else 
-    displaymsg(DEH_String(STSTR_DQDOFF));
+    displaymsg("%s", DEH_String(STSTR_DQDOFF));
 }
 
 static void cheat_buddha(void)
@@ -511,7 +511,7 @@ static void cheat_health(void)
     if (plyr->mo)
       plyr->mo->health = deh_megasphere_health;
     plyr->health = deh_megasphere_health;
-    displaymsg(DEH_String(STSTR_BEHOLDX));
+    displaymsg("%s", DEH_String(STSTR_BEHOLDX));
   }
 }
 
@@ -519,7 +519,7 @@ static void cheat_megaarmour(void)
 {
   plyr->armorpoints = deh_idfa_armor;      // Ty 03/09/98 - deh
   plyr->armortype = deh_idfa_armor_class;  // Ty 03/09/98 - deh
-  displaymsg(DEH_String(STSTR_BEHOLDX));
+  displaymsg("%s", DEH_String(STSTR_BEHOLDX));
 }
 
 static void cheat_tst(void)
@@ -553,7 +553,7 @@ static void cheat_fa(void)
       plyr->ammo[i] = plyr->maxammo[i];
 
   plyr->bonuscount += 2; // trigger evil grin now
-  displaymsg(DEH_String(STSTR_FAADDED));
+  displaymsg("%s", DEH_String(STSTR_FAADDED));
 }
 
 static void cheat_k(void)
@@ -571,7 +571,7 @@ static void cheat_kfa(void)
 {
   cheat_k();
   cheat_fa();
-  displaymsg(DEH_String(STSTR_KFAADDED));
+  displaymsg("%s", DEH_String(STSTR_KFAADDED));
 }
 
 static void cheat_noclip(void)
@@ -579,7 +579,7 @@ static void cheat_noclip(void)
   // Simplified, accepting both "noclip" and "idspispopd".
   // no clipping mode cheat
 
-  displaymsg(DEH_String(((plyr->cheats ^= CF_NOCLIP) & CF_NOCLIP )? STSTR_NCON : STSTR_NCOFF));
+  displaymsg("%s", DEH_String(((plyr->cheats ^= CF_NOCLIP) & CF_NOCLIP )? STSTR_NCON : STSTR_NCOFF));
 }
 
 // 'behold?' power-up cheats (modified for infinite duration -- killough)
@@ -599,13 +599,13 @@ static void cheat_pw(int pw)
       if (pw != pw_strength && !comp[comp_infcheat])
         plyr->powers[pw] = -1;      // infinite duration -- killough
     }
-  displaymsg(DEH_String(STSTR_BEHOLDX));
+  displaymsg("%s", DEH_String(STSTR_BEHOLDX));
 }
 
 // 'behold' power-up menu
 static void cheat_behold(void)
 {
-  displaymsg(DEH_String(STSTR_BEHOLD));
+  displaymsg("%s", DEH_String(STSTR_BEHOLD));
 }
 
 // 'clev' change-level cheat
@@ -682,7 +682,7 @@ static void cheat_clev(char *buf)
 
   idmusnum = -1; //jff 3/17/98 revert to normal level music on IDCLEV
 
-  displaymsg(DEH_String(STSTR_CLEV));
+  displaymsg("%s", DEH_String(STSTR_CLEV));
 
   G_DeferedInitNew(gameskill, epsd, map);
 }
