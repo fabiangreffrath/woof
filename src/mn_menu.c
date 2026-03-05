@@ -1798,11 +1798,11 @@ static void M_ChangeMessages(int choice)
 
     if (!show_messages)
     {
-        displaymsg(DEH_String(MSGOFF));
+        displaymsg("%s", DEH_String(MSGOFF));
     }
     else
     {
-        displaymsg(DEH_String(MSGON));
+        displaymsg("%s", DEH_String(MSGON));
     }
 }
 
