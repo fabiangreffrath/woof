@@ -1889,7 +1889,7 @@ static const char *hud_anchoring_strings[] = {
 
 static setup_menu_t stat_settings1[] = {
 
-    {"Screen Size", S_THERMO, H_X_THRM8, M_THRM_SPC, {"screenblocks"},
+    {"HUD Layout", S_THERMO, H_X_THRM8, M_THRM_SPC, {"screenblocks"},
      .strings_id = str_screensize, .action = SizeDisplayAlt},
 
     MI_GAP,
