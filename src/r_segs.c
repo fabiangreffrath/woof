@@ -90,7 +90,7 @@ static int    *maskedtexturecol; // [FG] 32-bit integer math
 // UDMF extensions, adapted from DSDA
 //
 
-inline static void SetLight(const int32_t lightlevel)
+static void SetLight(const int32_t lightlevel)
 {
     if (!fixedcolormapindex)
     {
@@ -106,7 +106,7 @@ inline static void SetLight(const int32_t lightlevel)
     walllightoffset = &scalelightoffset[walllightindex * MAXLIGHTSCALE];
 }
 
-inline static void CalculateLighting(const lighttable_t * const thiscolormap, fixed_t scale)
+static void CalculateLighting(const lighttable_t * const thiscolormap, fixed_t scale)
 {
     // dimishing
     int32_t colormapindex = fixedcolormapindex;
@@ -124,13 +124,13 @@ inline static void CalculateLighting(const lighttable_t * const thiscolormap, fi
                    : dc_colormap[0];
 }
 
-inline static const int32_t R_SideLightLevel(const side_t *side)
+static const int32_t R_SideLightLevel(const side_t *side)
 {
     return (side->flags & SF_ABS_LIGHT) ? side->light
                                         : side->light + rw_lightlevel;
 }
 
-inline static void SideLightLevel_Top(const side_t *side)
+static void SideLightLevel_Top(const side_t *side)
 {
     const int32_t light = (side->flags & SF_ABS_LIGHT_TOP)
                         ? side->light_top
@@ -138,7 +138,7 @@ inline static void SideLightLevel_Top(const side_t *side)
     SetLight(light);
 }
 
-inline static void SideLightLevel_Mid(const side_t *side)
+static void SideLightLevel_Mid(const side_t *side)
 {
     const int32_t light = (side->flags & SF_ABS_LIGHT_MID)
                         ? side->light_mid
@@ -146,7 +146,7 @@ inline static void SideLightLevel_Mid(const side_t *side)
     SetLight(light);
 }
 
-inline static void SideLightLevel_Bottom(const side_t *side)
+static void SideLightLevel_Bottom(const side_t *side)
 {
     const int32_t light = (side->flags & SF_ABS_LIGHT_BOTTOM)
                         ? side->light_bottom
@@ -158,7 +158,7 @@ inline static void SideLightLevel_Bottom(const side_t *side)
 // Woof! advanced tint control
 //
 
-inline static const lighttable_t * const GetSideTint(const side_t * const side,
+static const lighttable_t * const GetSideTint(const side_t * const side,
                                                      const sector_t * const sect)
 {
   const int32_t tint = (side->tint >= 0) ? side->tint : sect->tint;
