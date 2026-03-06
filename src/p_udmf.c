@@ -37,6 +37,7 @@
 #include "r_tranmap.h"
 #include "tables.h"
 #include "w_wad.h"
+#include <math.h>
 
 //
 // Universal Doom Map Format (UDMF) support
@@ -1183,10 +1184,11 @@ static void UDMF_LoadLineDefs(void)
 
         if (lump == NO_INDEX && udmf_linedefs[i].alpha < 1.0)
         {
-            lines[i].tranmap = R_NormalTranMap(udmf_linedefs[i].alpha);
+            const int32_t alpha = (int32_t)floorf(udmf_linedefs[i].alpha * 100.0);
+            lines[i].tranmap = GetNormalTranMap(alpha);
         }
 
-        if (lump != NO_INDEX && W_LumpLength(lump) == TRANMAP_SIZE)
+        if (lump != NO_INDEX && W_LumpLength(lump) == tranmap_lump_length)
         {
             lines[i].tranmap = W_CacheLumpNum(lump, PU_CACHE);
         }
@@ -1314,10 +1316,11 @@ void UDMF_LoadThings(void)
 
         if (lump == NO_INDEX && udmf_things[i].alpha < 1.0)
         {
-            mt.tranmap = R_NormalTranMap(udmf_things[i].alpha);
+            const int32_t alpha = (int32_t)floorf(udmf_things[i].alpha * 100.0);
+            mt.tranmap = GetNormalTranMap(alpha);
         }
 
-        if (lump != NO_INDEX && W_LumpLength(lump) == TRANMAP_SIZE)
+        if (lump != NO_INDEX && W_LumpLength(lump) == tranmap_lump_length)
         {
             mt.tranmap = W_CacheLumpNum(lump, PU_CACHE);
         }
