@@ -2358,9 +2358,9 @@ const char **ST_StatusbarList(void)
     statusbar_t *item;
     array_foreach(item, sbardef->statusbars)
     {
-        if (item->fullscreenrender)
+        if (item->name)
         {
-            array_push(strings, "Fullscreen");
+            array_push(strings, item->name);
         }
         else
         {

@@ -36,6 +36,7 @@
         "height": 32,
         "fullscreenrender": false,
         "fillflat": null,
+        "name": "Classic",
         "children": [
           {
             "graphic": {
@@ -1154,6 +1155,7 @@
         "height": 200,
         "fullscreenrender": true,
         "fillflat": null,
+        "name": "Nightdive",
         "children": [
           {
             "canvas": {
@@ -2039,6 +2041,7 @@
         "height": 200,
         "fullscreenrender": true,
         "fillflat": null,
+        "name": "Crispy",
         "children": [
           {
             "number": {
@@ -3113,6 +3116,7 @@
         "height": 200,
         "fullscreenrender": true,
         "fillflat": null,
+        "name": "Fullscreen",
         "children": [
           {
             "component": {

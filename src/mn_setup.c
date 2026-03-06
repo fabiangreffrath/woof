@@ -5095,7 +5095,10 @@ static const char **GetScreenSizeStrings(void)
     }
     for (int i = 3; i < 10; ++i)
     {
-        array_push(strings, "Status Bar");
+        char buf[8];
+        buf[0] = '\0';
+        M_snprintf(buf, sizeof(buf), "%d", i);
+        array_push(strings, M_StringDuplicate(buf));
     }
 
     const char **st_strings = ST_StatusbarList();
