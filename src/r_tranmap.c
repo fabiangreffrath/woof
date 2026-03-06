@@ -20,8 +20,7 @@
 //   Generation of transparency lookup tables.
 //
 
-#include "r_tranmap.h"
-
+#include <stdlib.h>
 #include <string.h>
 
 #include "d_iwad.h"
@@ -36,6 +35,7 @@
 #include "m_misc.h"
 #include "md5.h"
 #include "r_srgb.h"
+#include "r_tranmap.h"
 #include "w_wad.h"
 #include "z_zone.h"
 
@@ -53,7 +53,7 @@ static const int default_tranmap_alpha = 66;      // Keep it simple, only do alp
 
 static char playpal_string[33];
 static char *tranmap_dir, *playpal_dir;
-static byte *normal_tranmap[ALPHA_MAX];
+static byte *normal_tranmap[100];
 
 const byte *tranmap;      // translucency filter maps 256x256   // phares
 const byte *main_tranmap; // killough 4/11/98
@@ -111,7 +111,7 @@ static void CalculatePlaypalChecksum(void)
     byte playpal_digest[16];
 
     MD5Init(&md5);
-    MD5Update(&md5, W_CacheLumpNum(lump, PU_STATIC), PLAYPAL_BASE);
+    MD5Update(&md5, W_CacheLumpNum(lump, PU_STATIC), playpal_base_layer);
     MD5Final(playpal_digest, &md5);
     M_DigestToString(playpal_digest, playpal_string, sizeof(playpal_digest));
 }
@@ -157,7 +157,7 @@ static byte *GenerateTranmapData(double fg_alpha, double bg_alpha)
     byte *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
 
     // killough 4/11/98
-    byte *buffer = Z_Malloc(TRANMAP_SIZE, PU_STATIC, 0);
+    byte *buffer = Z_Malloc(tranmap_lump_length, PU_STATIC, 0);
     byte *tp = buffer;
 
     // Background
@@ -190,16 +190,14 @@ static byte *GenerateTranmapData(double fg_alpha, double bg_alpha)
     return buffer;
 }
 
-byte *R_NormalTranMap(double a)
+byte *R_NormalTranMap(int alpha, boolean force)
 {
-    if (a >= 1.0) return NULL;
-    if (a <= 0.0) a = 0.0;
+    if (alpha > 99)
+    {
+        return NULL;
+    }
 
-    int alpha = a * ALPHA_FACTOR;
-    alpha = CLAMP(alpha, 0, ALPHA_MAX - 1);
-    a = alpha / ALPHA_FACTOR;
-
-    if (!normal_tranmap[alpha])
+    if (force || !normal_tranmap[alpha])
     {
         if (!playpal_dir)
         {
@@ -213,17 +211,17 @@ byte *R_NormalTranMap(double a)
         playpal_dir = NULL;
 
         byte *buffer = NULL;
-        if (M_FileExistsNotDir(filename))
+        if (!force && M_FileExistsNotDir(filename))
         {
             const int file_length = M_ReadFile(filename, &buffer);
-            if (buffer && file_length != TRANMAP_SIZE)
+            if (buffer && file_length != tranmap_lump_length)
             {
                 Z_Free(buffer);
                 buffer = NULL;
             }
         }
 
-        if (!buffer)
+        if (force || !buffer)
         {
             buffer = GenerateTranmapData(alpha / 100.0, 1.0 - (alpha / 100.0));
             M_WriteFile(filename, buffer, tranmap_lump_length);
@@ -253,7 +251,7 @@ void R_InitTranMap(void)
     }
     else
     {
-        main_tranmap = R_NormalTranMap(ALPHA_DEFAULT);
+        main_tranmap = R_NormalTranMap(default_tranmap_alpha, true);
     }
 
     // Some things look better with added luminosity :)
@@ -271,10 +269,10 @@ void R_InitTranMap(void)
     const int p = M_CheckParmWithArgs("-dumptranmap", 2);
     if (p > 0)
     {
-        const double alpha = CLAMP(M_ParmArgToInt(p), 0, ALPHA_MAX - 1) / ALPHA_FACTOR;
-        const byte *tranmap = R_NormalTranMap(alpha);
+        const int alpha = CLAMP(M_ParmArgToInt(p), 0, 99);
+        const byte *tranmap = R_NormalTranMap(alpha, true);
         char *path = AddDefaultExtension(myargv[p + 2], ".lmp");
-        M_WriteFile(path, tranmap, TRANMAP_SIZE);
+        M_WriteFile(path, tranmap, tranmap_lump_length);
         free(path);
 
         I_SafeExit(0);

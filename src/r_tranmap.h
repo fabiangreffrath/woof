@@ -29,14 +29,9 @@ extern const byte *tranmap;
 extern const byte *main_tranmap;
 extern const byte *main_addimap;
 
-#define ALPHA_MAX     100
-#define ALPHA_DEFAULT 0.66
-#define ALPHA_FACTOR  (double)ALPHA_MAX
-#define TRANMAP_SIZE  256 * 256
-#define PLAYPAL_BASE  256 * 3
-
 // killough 3/6/98: translucency initialization
 void R_InitTranMap(void);
-byte *R_NormalTranMap(double alpha);
+byte *R_NormalTranMap(int alpha, boolean force);
+#define GetNormalTranMap(alpha) R_NormalTranMap(alpha, false)
 
 #endif
