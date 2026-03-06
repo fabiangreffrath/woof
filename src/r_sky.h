@@ -1,6 +1,8 @@
 //
 //  Copyright (C) 1999 by
 //  id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman
+//  Copyright (C) 2025 by
+//  Fabian Greffrath, Roman Fomin, Guilherme Miranda
 //
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU General Public License
@@ -21,6 +23,7 @@
 #define __R_SKY__
 
 #include "doomtype.h"
+#include "r_defs.h"
 #include "r_skydefs.h"
 
 // SKY, store the number for name.
@@ -36,24 +39,21 @@ extern boolean stretchsky;
 // [FG] linear horizontal sky scrolling
 extern boolean linearsky;
 
-extern int skytexture;
-extern int skytexturemid;
-
-#define PL_FLATMAPPING (0xC0000000) // (PL_SKYFLAT | 0x40000000)
-
-extern sky_t *sky;
+extern sky_t *levelskies;
+void R_ClearLevelskies(void);
+skyindex_t R_AddLevelsky(int texture);
+skyindex_t R_AddLevelskyFromLine(side_t *side);
+sky_t *R_GetLevelsky(skyindex_t index);
+void R_UpdateStretchSkies(void);
 
 // Called whenever the view size changes.
 void R_InitSkyMap(void);
 
+void R_InitSkyDefs(void);
+
 byte R_GetSkyColor(int texturenum);
 
-void R_UpdateSky(void);
-
-#define FIRE_WIDTH     128
-#define FIRE_HEIGHT    320
-
-byte *R_GetFireColumn(int col);
+void R_UpdateSkies(void);
 
 #endif
 

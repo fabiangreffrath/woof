@@ -15,7 +15,6 @@
 //  DSDA Compatibility
 //
 
-#include <stdio.h>
 #include <string.h>
 
 #include "doomstat.h"
@@ -181,11 +180,7 @@ static void GetLevelCheckSum(int lump, md5_checksum_t* cksum)
 
     MD5Final(cksum->digest, &md5);
 
-    for (int i = 0; i < sizeof(cksum->digest); ++i)
-    {
-        sprintf(&cksum->string[i * 2], "%02x", cksum->digest[i]);
-    }
-    cksum->string[32] = '\0';
+    M_DigestToString(cksum->digest, cksum->string, sizeof(cksum->digest));
 }
 
 // For casual players that aren't careful about setting complevels, this

@@ -24,6 +24,10 @@
 
 #include "p_action.h"
 
+struct player_s;
+struct pspdef_s;
+struct mobj_s;
+
 typedef void (*actionf_v)(void);
 typedef void (*actionf_p1)(struct mobj_s *);
 typedef void (*actionf_p2)(struct player_s *, struct pspdef_s *);

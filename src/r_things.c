@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include "d_player.h"
+#include "deh_strings.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "hu_crosshair.h" // [Alaux] Lock crosshair on target
@@ -34,15 +35,15 @@
 #include "p_pspr.h"
 #include "r_bmaps.h" // [crispy] R_BrightmapForTexName()
 #include "r_bsp.h"
-#include "r_data.h"
 #include "r_draw.h"
 #include "r_main.h"
 #include "r_segs.h"
 #include "r_state.h"
 #include "r_things.h"
+#include "r_tranmap.h"
 #include "r_voxel.h"
 #include "tables.h"
-#include "v_fmt.h"
+#include "v_patch.h"
 #include "v_video.h"
 #include "w_wad.h"
 #include "z_zone.h"
@@ -227,7 +228,7 @@ void R_InitSpriteDefs(char **namelist)
 
   for (i=0 ; i<num_sprites ; i++)
     {
-      const char *spritename = namelist[i];
+      const char *spritename = namelist[i] ? DEH_String(namelist[i]) : namelist[i];
       int j;
 
       if (!spritename)
@@ -437,7 +438,7 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
     colfunc = R_DrawFuzzColumn;    // killough 3/14/98
   else
     // [FG] colored blood and gibs
-    if (vis->mobjflags2 & MF2_COLOREDBLOOD)
+    if (vis->mobjflags_extra & MFX_COLOREDBLOOD)
       {
         colfunc = R_DrawTranslatedColumn;
         dc_translation = red2col[vis->color];
@@ -451,10 +452,10 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
       }
     else
       if (translucency && !(strictmode && demo_compatibility)
-          && vis->mobjflags & MF_TRANSLUCENT) // phares
+          && vis->tranmap) // phares // ID24
         {
-          colfunc = R_DrawTLColumn;
-          tranmap = main_tranmap;       // killough 4/11/98
+          colfunc = R_DrawTLColumn; // killough 4/11/98
+          tranmap = vis->tranmap;   // ID24
         }
       else
         colfunc = R_DrawColumn;         // killough 3/14/98, 4/11/98
@@ -488,7 +489,7 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
 
 boolean flipcorpses = false;
 
-static void R_ProjectSprite (mobj_t* thing)
+static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
 {
   fixed_t   gzt;               // killough 3/27/98
   fixed_t   tx, txc;
@@ -508,7 +509,7 @@ static void R_ProjectSprite (mobj_t* thing)
   fixed_t interpx, interpy, interpz, interpangle;
 
   // andrewj: voxel support
-  if (VX_ProjectVoxel (thing))
+  if (VX_ProjectVoxel(thing, lightlevel_override))
       return;
 
   // [AM] Interpolate between current and last position,
@@ -585,7 +586,7 @@ static void R_ProjectSprite (mobj_t* thing)
 
   // [crispy] randomly flip corpse, blood and death animation sprites
   if (STRICTMODE(flipcorpses) &&
-      (thing->flags2 & MF2_FLIPPABLE) &&
+      (thing->flags_extra & MFX_MIRROREDCORPSE) &&
       !(thing->flags & MF_SHOOTABLE) &&
       (thing->intflags & MIF_FLIP))
     {
@@ -647,6 +648,7 @@ static void R_ProjectSprite (mobj_t* thing)
 
   vis->mobjflags = thing->flags;
   vis->mobjflags2 = thing->flags2;
+  vis->mobjflags_extra = thing->flags_extra;
   vis->scale = xscale;
   vis->gx = interpx;
   vis->gy = interpy;
@@ -657,6 +659,15 @@ static void R_ProjectSprite (mobj_t* thing)
   vis->x2 = x2 >= viewwidth ? viewwidth-1 : x2;
   iscale = FixedDiv(FRACUNIT, xscale);
   vis->color = thing->bloodcolor;
+
+  if (thing->subsector->sector->floorlightsec >= 0)
+  {
+    vis->tint = sectors[thing->subsector->sector->floorlightsec].tint;
+  }
+  else
+  {
+    vis->tint = thing->subsector->sector->tint;
+  }
 
   if (flip)
     {
@@ -673,34 +684,76 @@ static void R_ProjectSprite (mobj_t* thing)
     vis->startfrac += vis->xiscale*(vis->x1-x1);
   vis->patch = lump;
 
+  lighttable_t *thiscolormap = vis->tint ? colormaps[vis->tint] : fullcolormap;
+
   // get light level
   if (thing->flags & MF_SHADOW)
-    vis->colormap[0] = vis->colormap[1] = NULL;               // shadow draw
+  {
+    // shadow draw
+    vis->colormap[0] = vis->colormap[1] = NULL;
+  }
   else if (fixedcolormap)
-    vis->colormap[0] = vis->colormap[1] = fixedcolormap;      // fixed map
+  {
+    // fixed map
+    vis->colormap[0] = vis->colormap[1] = thiscolormap + fixedcolormapindex * 256;
+  }
   else if (thing->frame & FF_FULLBRIGHT)
-    vis->colormap[0] = vis->colormap[1] = fullcolormap;       // full bright  // killough 3/20/98
+  {
+    // full bright
+    // killough 3/20/98
+    vis->colormap[0] = vis->colormap[1] = thiscolormap;
+  }
   else
-    {      // diminished light
-      const int index = R_GetLightIndex(xscale);
+  {
+    // diminished light
+    const int index = R_GetLightIndex(xscale);
+    int lightnum = (demo_version >= DV_MBF)
+                 ? (lightlevel_override >> LIGHTSEGSHIFT)
+                 : (thing->subsector->sector->lightlevel >> LIGHTSEGSHIFT);
 
-      vis->colormap[0] = spritelights[index];
-      vis->colormap[1] = fullcolormap;
-    }
+    lightnum = CLAMP(lightnum + extralight, 0, LIGHTLEVELS - 1);
+    int* spritelightoffsets = &scalelightoffset[MAXLIGHTSCALE * lightnum];
 
-  vis->brightmap = R_BrightmapForState(thing->state - states);
+    vis->colormap[0] = thiscolormap + spritelightoffsets[index];
+    vis->colormap[1] = (STRICTMODE(brightmaps) || force_brightmaps)
+                       ? thiscolormap
+                       : dc_colormap[0];
+  }
+
+  // ID24 per-state tranmap
+  if (thing->state && thing->state->tranmap)
+  {
+    vis->tranmap = thing->state->tranmap;
+  }
+  else if (thing->tranmap)
+  {
+    vis->tranmap = thing->tranmap;
+  }
+  else if (thing->flags & MF_TRANSLUCENT && thing->state && thing->state->frame & FF_FULLBRIGHT)
+  {
+    vis->tranmap = main_addimap;
+  }
+  else if (thing->flags & MF_TRANSLUCENT)
+  {
+    vis->tranmap = main_tranmap;
+  }
+  else
+  {
+    vis->tranmap = NULL;
+  }
+
+  vis->brightmap = thing->state ? R_BrightmapForState(thing->state - states) : nobrightmap;
   if (vis->brightmap == nobrightmap)
     vis->brightmap = R_BrightmapForSprite(thing->sprite);
 
   // [Alaux] Lock crosshair on target
   if (STRICTMODE(hud_crosshair_lockon) && thing == crosshair_target)
   {
-    HU_UpdateCrosshairLock
-    (
-      BETWEEN(0, viewwidth  - 1, (centerxfrac + FixedMul(txc, xscale)) >> FRACBITS),
-      BETWEEN(0, viewheight - 1, (centeryfrac + FixedMul(viewz - interpz - crosshair_target->actualheight/2, xscale)) >> FRACBITS)
-    );
-
+    int x = (centerxfrac + FixedMul(txc, xscale)) >> FRACBITS;
+    int y = (centeryfrac + FixedMul(viewz - interpz - crosshair_target->actualheight / 2, xscale)) >> FRACBITS;
+    x = clampi(x, 0, viewwidth - 1);
+    y = clampi(y, 0, viewheight - 1);
+    HU_UpdateCrosshairLock(x, y);
     crosshair_target = NULL; // Don't update it again until next tic
   }
 }
@@ -713,10 +766,9 @@ static void R_ProjectSprite (mobj_t* thing)
 boolean draw_nearby_sprites;
 
 // killough 9/18/98: add lightlevel as parameter, fixing underwater lighting
-void R_AddSprites(sector_t* sec, int lightlevel)
+void R_AddSprites(sector_t* sec, int lightlevel_override)
 {
   mobj_t *thing;
-  int    lightnum;
 
   // BSP is traversed by subsector.
   // A sector might have been split into several
@@ -729,22 +781,10 @@ void R_AddSprites(sector_t* sec, int lightlevel)
   // Well, now it will be done.
   sec->validcount = validcount;
 
-  if (demo_version < DV_MBF)
-    lightlevel = sec->lightlevel;
-
-  lightnum = (lightlevel >> LIGHTSEGSHIFT)+extralight;
-
-  if (lightnum < 0)
-    spritelights = scalelight[0];
-  else if (lightnum >= LIGHTLEVELS)
-    spritelights = scalelight[LIGHTLEVELS-1];
-  else
-    spritelights = scalelight[lightnum];
-
   // Handle all things in sector.
 
   for (thing = sec->thinglist; thing; thing = thing->snext)
-    R_ProjectSprite(thing);
+    R_ProjectSprite(thing, lightlevel_override);
 
   if (STRICTMODE(draw_nearby_sprites))
   {
@@ -771,16 +811,7 @@ void R_NearbySprites (void)
     // [FG] sprites in sector have already been projected
     if (sec->validcount != validcount)
     {
-      int lightnum = (sec->lightlevel >> LIGHTSEGSHIFT) + extralight;
-
-      if (lightnum < 0)
-        spritelights = scalelight[0];
-      else if (lightnum >= LIGHTLEVELS)
-        spritelights = scalelight[LIGHTLEVELS-1];
-      else
-        spritelights = scalelight[lightnum];
-
-      R_ProjectSprite(thing);
+      R_ProjectSprite(thing, 0);
     }
   }
 
@@ -791,7 +822,7 @@ void R_NearbySprites (void)
 // R_DrawPSprite
 //
 
-void R_DrawPSprite (pspdef_t *psp)
+void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
 {
   fixed_t       tx;
   int           x1, x2;
@@ -825,7 +856,7 @@ void R_DrawPSprite (pspdef_t *psp)
 
   fixed_t sx2, sy2;
 
-  if (uncapped && oldleveltime < leveltime)
+  if (uncapped && oldleveltime < leveltime && psp_interp)
   {
     sx2 = LerpFixed(psp->oldsx2, psp->sx2);
     sy2 = LerpFixed(psp->oldsy2, psp->sy2);
@@ -857,6 +888,7 @@ void R_DrawPSprite (pspdef_t *psp)
   vis = &avis;
   vis->mobjflags = 0;
   vis->mobjflags2 = 0;
+  vis->mobjflags_extra = 0;
 
   // killough 12/98: fix psprite positioning problem
   vis->texturemid = (BASEYCENTER<<FRACBITS) /* + FRACUNIT/2 */ -
@@ -865,6 +897,15 @@ void R_DrawPSprite (pspdef_t *psp)
   vis->x1 = x1 < 0 ? 0 : x1;
   vis->x2 = x2 >= viewwidth ? viewwidth-1 : x2;
   vis->scale = pspritescale;
+
+  if (players[consoleplayer].mo->subsector->sector->floorlightsec >= 0)
+  {
+    vis->tint = sectors[players[consoleplayer].mo->subsector->sector->floorlightsec].tint;
+  }
+  else
+  {
+    vis->tint = players[consoleplayer].mo->subsector->sector->tint;
+  }
 
   if (flip)
     {
@@ -882,20 +923,64 @@ void R_DrawPSprite (pspdef_t *psp)
 
   vis->patch = lump;
 
+  lighttable_t *thiscolormap = vis->tint ? colormaps[vis->tint] : fullcolormap;
+
   // killough 7/11/98: beta psprites did not draw shadows
   if ((viewplayer->powers[pw_invisibility] > 4*32
       || viewplayer->powers[pw_invisibility] & 8) && !beta_emulation)
-
-    vis->colormap[0] = vis->colormap[1] = NULL;                    // shadow draw
+  {
+    // shadow draw
+    vis->colormap[0] = vis->colormap[1] = NULL;
+  }
   else if (fixedcolormap)
-    vis->colormap[0] = vis->colormap[1] = fixedcolormap;           // fixed color
+  {
+    // fixed color
+    vis->colormap[0] = vis->colormap[1] = thiscolormap + fixedcolormapindex * 256;
+  }
   else if (psp->state->frame & FF_FULLBRIGHT)
-    vis->colormap[0] = vis->colormap[1] = fullcolormap;            // full bright // killough 3/20/98
+  {
+    // full bright
+    // killough 3/20/98
+    vis->colormap[0] = vis->colormap[1] = thiscolormap;
+  }
   else
   {
-    vis->colormap[0] = spritelights[MAXLIGHTSCALE-1];  // local light
-    vis->colormap[1] = fullcolormap;
+    // local light
+    int lightnum = (demo_version >= DV_MBF)
+                 ? (lightlevel_override >> LIGHTSEGSHIFT)
+                 : (players[consoleplayer].mo->subsector->sector->lightlevel >> LIGHTSEGSHIFT);
+
+    lightnum = CLAMP(lightnum, 0, LIGHTLEVELS - 1);
+    int* spritelightoffsets = &scalelightoffset[MAXLIGHTSCALE * lightnum];
+
+    vis->colormap[0] = thiscolormap + spritelightoffsets[MAXLIGHTSCALE - 1];
+    vis->colormap[1] = (STRICTMODE(brightmaps) || force_brightmaps)
+                        ? thiscolormap
+                        : dc_colormap[0];
   }
+
+  // ID24 per-state tranmap
+  if (psp->state && psp->state->tranmap)
+  {
+    vis->tranmap = psp->state->tranmap;
+  }
+  else if (viewplayer->mo->tranmap)
+  {
+    vis->tranmap = viewplayer->mo->tranmap;
+  }
+  else if (viewplayer->mo->flags & MF_TRANSLUCENT && psp->state->frame & FF_FULLBRIGHT)
+  {
+    vis->tranmap = main_addimap;
+  }
+  else if (viewplayer->mo->flags & MF_TRANSLUCENT)
+  {
+    vis->tranmap = main_tranmap;
+  }
+  else
+  {
+    vis->tranmap = NULL;
+  }
+
   vis->brightmap = R_BrightmapForState(psp->state - states);
 
   // [crispy] free look
@@ -913,7 +998,7 @@ void R_DrawPSprite (pspdef_t *psp)
 
 void R_DrawPlayerSprites(void)
 {
-  int i, lightnum;
+  int i;
   pspdef_t *psp;
   sector_t tmpsec;
   int floorlightlevel, ceilinglightlevel;
@@ -924,15 +1009,6 @@ void R_DrawPlayerSprites(void)
 
   R_FakeFlat(viewplayer->mo->subsector->sector, &tmpsec,
              &floorlightlevel, &ceilinglightlevel, 0);
-  lightnum = ((floorlightlevel+ceilinglightlevel) >> (LIGHTSEGSHIFT+1))
-    + extralight;
-
-  if (lightnum < 0)
-    spritelights = scalelight[0];
-  else if (lightnum >= LIGHTLEVELS)
-    spritelights = scalelight[LIGHTLEVELS-1];
-  else
-    spritelights = scalelight[lightnum];
 
   // clip to screen bounds
   mfloorclip = screenheightarray;
@@ -945,7 +1021,7 @@ void R_DrawPlayerSprites(void)
   // add all active psprites
   for (i=0, psp=viewplayer->psprites; i<NUMPSPRITES; i++,psp++)
     if (psp->state)
-      R_DrawPSprite (psp);
+      R_DrawPSprite(psp, ((floorlightlevel + ceilinglightlevel) / 2));
 }
 
 //

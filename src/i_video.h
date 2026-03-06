@@ -29,24 +29,13 @@
 #define ASPECT_RATIO_MAX 3.6 // Up to 32:9 aspect ratio.
 #define ASPECT_RATIO_MIN (4.0 / 3.0)
 
-typedef enum
-{
-    RATIO_ORIG,
-    RATIO_AUTO,
-    RATIO_16_10,
-    RATIO_16_9,
-    RATIO_21_9,
-    RATIO_32_9,
-    NUM_RATIOS
-} aspect_ratio_mode_t;
-
 typedef struct
 {
     int max;
     int step;
 } resolution_scaling_t;
 
-void I_GetResolutionScaling(resolution_scaling_t *rs);
+resolution_scaling_t I_GetResolutionScaling(void);
 
 // Called by D_DoomMain,
 // determines the hardware configuration
@@ -54,6 +43,7 @@ void I_GetResolutionScaling(resolution_scaling_t *rs);
 
 void I_InitGraphics(void);
 void I_ShutdownGraphics(void);
+void I_QuitVideo(void);
 
 // Takes full 8 bit values.
 void I_SetPalette(byte *palette);
@@ -62,13 +52,14 @@ void I_FinishUpdate(void);
 
 void I_ReadScreen(pixel_t *dst);
 
+void I_UpdateHudAnchoring(void);
 void I_ResetScreen(void); // killough 10/98
 void I_ToggleVsync(void); // [JN] Calls native SDL vsync toggle
 
 void I_DynamicResolution(void);
+void I_ResetDRS(void);
 
 extern int current_video_height;
-extern boolean drs_skip_frame;
 #define DRS_MIN_HEIGHT 400
 extern boolean dynamic_resolution;
 extern boolean uncapped;

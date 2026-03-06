@@ -29,6 +29,7 @@
 
 #include "m_scanner.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -41,16 +42,17 @@ static const char* const token_names[] =
     [TK_Identifier] = "Identifier",
     [TK_StringConst] = "String Constant",
     [TK_IntConst] = "Integer Constant",
-    [TK_BoolConst] = "boolean Constant",
+    [TK_BoolConst] = "Boolean Constant",
     [TK_FloatConst] = "Float Constant",
     [TK_AnnotateStart] = "Annotation Start",
     [TK_AnnotateEnd] = "Annotation End",
-    [TK_LumpName] = "Lump Name"
+    [TK_ScopeResolution] = "Scope Resolution"
 };
 
 typedef struct
 {
     char *string;
+    int length;
     int number;
     double decimal;
     char token;
@@ -65,7 +67,7 @@ struct scanner_s
     parserstate_t state;
     parserstate_t nextstate, prevstate;
 
-    char *data;
+    const char *data;
     size_t length;
 
     int line;
@@ -169,16 +171,26 @@ static void CheckForWhitespace(scanner_t *s)
     }
 }
 
+static void CopyString(parserstate_t *state, const char *string, int length)
+{
+    if (state->length < length)
+    {
+        if (state->string)
+        {
+            free(state->string);
+        }
+        state->string = malloc(length + 1);
+        state->length = length;
+    }
+    memcpy(state->string, string, length);
+    state->string[length] = '\0';
+}
+
 static void CopyState(parserstate_t *to, const parserstate_t *from)
 {
-    if (to->string)
+    if (from->length)
     {
-        free(to->string);
-        to->string = NULL;
-    }
-    if (from->string)
-    {
-        to->string = M_StringDuplicate(from->string);
+        CopyString(to, from->string, from->length);
     }
     to->number = from->number;
     to->decimal = from->decimal;
@@ -208,7 +220,7 @@ static void Unescape(char *str)
         {
             *str++ = c;
         }
-        else
+        else if (*p)
         {
             switch (*p)
             {
@@ -229,6 +241,10 @@ static void Unescape(char *str)
                     break;
             }
             p++;
+        }
+        else
+        {
+            /* Trailing backslash */
         }
     }
     *str = 0;
@@ -443,15 +459,7 @@ boolean SC_GetNextToken(scanner_t *s, boolean expandstate)
     s->nextstate.scanpos = s->scanpos;
     if (end - start > 0 || string_finished)
     {
-        if (s->nextstate.string)
-        {
-            free(s->nextstate.string);
-        }
-        int length = end - start;
-        s->nextstate.string = malloc(length + 1);
-        memcpy(s->nextstate.string, s->data + start, length);
-        s->nextstate.string[length] = '\0';
-
+        CopyString(&s->nextstate, s->data + start, end - start);
         if (s->nextstate.token == TK_FloatConst)
         {
             if (float_has_decimal && strlen(s->nextstate.string) == 1)
@@ -503,52 +511,6 @@ boolean SC_GetNextToken(scanner_t *s, boolean expandstate)
     return false;
 }
 
-void SC_GetNextTokenLumpName(scanner_t *s)
-{
-    if (!s->neednext)
-    {
-        s->neednext = true;
-        ExpandState(s);
-        return;
-    }
-
-    s->nextstate.tokenline = s->line;
-    s->nextstate.tokenlinepos = s->scanpos - s->linestart;
-    s->nextstate.token = TK_NoToken;
-    if (s->scanpos >= s->length)
-    {
-        ExpandState(s);
-        return;
-    }
-
-    int start = s->scanpos++;
-    while (s->scanpos < s->length)
-    {
-        char cur = s->data[s->scanpos];
-        if (cur == ' ' || cur == '\t' || cur == '\n' || cur == '\r' || cur == 0)
-        {
-            break;
-        }
-        s->scanpos++;
-    }
-    s->nextstate.scanpos = s->scanpos;
-
-    int length = s->scanpos - start;
-    if (length > 0)
-    {
-        s->nextstate.token = TK_LumpName;
-        if (s->nextstate.string)
-        {
-            free(s->nextstate.string);
-        }
-        s->nextstate.string = malloc(length + 1);
-        memcpy(s->nextstate.string, s->data + start, length);
-        s->nextstate.string[length] = '\0';
-    }
-
-    ExpandState(s);
-}
-
 // Skips all Tokens in current line and parses the first token on the next
 // line.
 void SC_GetNextLineToken(scanner_t *s)
@@ -568,8 +530,8 @@ boolean SC_CheckToken(scanner_t *s, char token)
         }
     }
 
-    // An int can also be a float.
     if (s->nextstate.token == token
+        // An int can also be a float.
         || (s->nextstate.token == TK_IntConst && token == TK_FloatConst))
     {
         s->neednext = true;
@@ -588,7 +550,7 @@ void SC_Error(scanner_t *s, const char *msg, ...)
     M_vsnprintf(buffer, sizeof(buffer), msg, args);
     va_end(args);
 
-    I_Error("%s(%d:%d): %s", s->scriptname, s->state.tokenline + 1,
+    I_Error("%s(%d:%d): %s", s->scriptname, s->state.tokenline,
             s->state.tokenlinepos + 1, buffer);
 }
 
@@ -639,6 +601,154 @@ void SC_Rewind(scanner_t *s) // Only can rewind one step.
     s->line = s->prevstate.tokenline;
     s->logicalpos = s->prevstate.tokenlinepos;
     s->scanpos = s->prevstate.scanpos;
+
+    CheckForWhitespace(s);
+}
+
+boolean SC_SameLine(scanner_t *s)
+{
+    return (s->state.tokenline == s->line);
+}
+
+boolean SC_CheckStringOrIdent(scanner_t *s)
+{
+    return (SC_CheckToken(s, TK_StringConst)
+            || SC_CheckToken(s, TK_Identifier));
+}
+
+void SC_MustGetStringOrIdent(scanner_t *s)
+{
+    if (!SC_CheckStringOrIdent(s))
+    {
+        SC_Error(s, "expected string constant or identifier");
+    }
+}
+
+boolean SC_GetNextRawString(scanner_t *s, boolean expandstate)
+{
+    if (!s->neednext)
+    {
+        s->neednext = true;
+        if (expandstate)
+        {
+            ExpandState(s);
+        }
+        return true;
+    }
+
+    s->nextstate.tokenline = s->line;
+    s->nextstate.tokenlinepos = s->scanpos - s->linestart;
+    s->nextstate.token = TK_NoToken;
+
+    CheckForWhitespace(s);
+
+    if (s->scanpos >= s->length)
+    {
+        if (expandstate)
+        {
+            ExpandState(s);
+        }
+        return false;
+    }
+
+    int start = s->scanpos;
+    int end = s->scanpos;
+    boolean quoted = false;
+    boolean string_finished = false;
+
+    // Check if string starts with a quote
+    if (s->data[s->scanpos] == '"')
+    {
+        quoted = true;
+        start = ++s->scanpos; // Skip opening quote
+    }
+
+    while (s->scanpos < s->length)
+    {
+        char cur = s->data[s->scanpos];
+        if (quoted)
+        {
+            if (cur == '"')
+            {
+                string_finished = true;
+                end = s->scanpos;
+                s->scanpos++; // Skip closing quote
+                break;
+            }
+            else if (cur == '\\')
+            {
+                s->scanpos++; // Skip escape character
+            }
+            else if (cur == '\n' || cur == '\r')
+            {
+                // Unterminated string - treat as error or end at line
+                end = s->scanpos;
+                break;
+            }
+        }
+        else
+        {
+            if (cur == ' ' || cur == '\t' || cur == '\n' || cur == '\r'
+                || cur == 0)
+            {
+                end = s->scanpos;
+                break;
+            }
+        }
+        s->scanpos++;
+    }
+
+    if (s->scanpos == s->length && !string_finished)
+    {
+        end = s->scanpos;
+    }
+
+    s->nextstate.scanpos = s->scanpos;
+
+    if (end - start > 0)
+    {
+        CopyString(&s->nextstate, s->data + start, end - start);
+        if (quoted)
+        {
+            Unescape(s->nextstate.string);
+            s->nextstate.token = TK_StringConst;
+        }
+        else
+        {
+            s->nextstate.token = s->data[start];
+        }
+        if (expandstate)
+        {
+            ExpandState(s);
+        }
+        return true;
+    }
+
+    if (expandstate)
+    {
+        ExpandState(s);
+    }
+    return false;
+}
+
+boolean SC_CheckRawToken(scanner_t *s, char token)
+{
+    if (s->neednext)
+    {
+        if (!SC_GetNextRawString(s, false))
+        {
+            return false;
+        }
+    }
+
+    if (s->nextstate.token == token)
+    {
+        s->neednext = true;
+        ExpandState(s);
+        return true;
+    }
+    s->neednext = false;
+    return false;
 }
 
 boolean SC_TokensLeft(scanner_t *s)
@@ -666,6 +776,72 @@ double SC_GetDecimal(scanner_t *s)
     return s->state.decimal;
 }
 
+static void CheckMetadata(scanner_t *s, const char *type, version_t maxversion)
+{
+    SC_MustGetToken(s, TK_Identifier);
+    if (strcasecmp("metadata", SC_GetString(s)))
+    {
+        SC_Error(s, "Expect metadata block.");
+    }
+
+    boolean setversion = false, settype = false;
+    SC_MustGetToken(s, '{');
+    while (!SC_CheckToken(s, '}'))
+    {
+        SC_MustGetToken(s, TK_Identifier);
+        switch (SC_RequireKeyword(s, "type", "version"))
+        {
+            case 0:
+                {
+                    SC_MustGetToken(s, TK_StringConst);
+                    const char *string = SC_GetString(s);
+                    if (strcasecmp(string, type))
+                    {
+                        SC_Error(s, "Wrong type '%s', expected '%s'.", type, string);
+                    }
+                    settype = true;
+                }
+                break;
+            case 1:
+                {
+                    SC_MustGetToken(s, TK_StringConst);
+                    const char *string = SC_GetString(s);
+                    version_t v;
+                    if (!M_ParseVersion(string, &v))
+                    {
+                        SC_Error(s, "Error parsing version.");
+                    }
+                    if (M_CompareVersions(&v, &maxversion) > 0)
+                    {
+                        SC_Error(s, "Max supported version %d.%d.%d",
+                            maxversion.major, maxversion.minor, maxversion.revision);
+                    }
+                    setversion = true;
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+    if (!settype)
+    {
+        SC_Error(s, "Missed 'type' in metadata.");
+    }
+    if (!setversion)
+    {
+        SC_Error(s, "Missed 'version' in metadata.");
+    }
+}
+
+scanner_t *SC_OpenOptions(const char *type, version_t maxversion,
+                          const char *scriptname, const char *data, int length)
+{
+    scanner_t *s = SC_Open(scriptname, data, length);
+    CheckMetadata(s, type, maxversion);
+    return s;
+}
+
 scanner_t *SC_Open(const char *scriptname, const char *data, int length)
 {
     scanner_t *s = calloc(1, sizeof(*s));
@@ -674,8 +850,7 @@ scanner_t *SC_Open(const char *scriptname, const char *data, int length)
     s->neednext = true;
 
     s->length = length;
-    s->data = malloc(length);
-    memcpy(s->data, data, length);
+    s->data = data;
 
     CheckForWhitespace(s);
     s->state.scanpos = s->scanpos;
@@ -701,6 +876,43 @@ void SC_Close(scanner_t *s)
     {
         free((char *)s->scriptname);
     }
-    free(s->data);
     free(s);
+}
+
+int SC_CheckKeywordInternal(scanner_t *s, const char *keywords[], int count)
+{
+    const char *string = SC_GetString(s);
+    for (int i = 0; i < count; ++i)
+    {
+        if (strcasecmp(keywords[i], string) == 0)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
+int SC_RequireKeywordInternal(scanner_t *s, const char *keywords[], int count)
+{
+    int result = SC_CheckKeywordInternal(s, keywords, count);
+    if (result >= 0)
+    {
+        return result;
+    }
+    SC_Error(s, "Invalid keyword at this point.");
+    return -1;
+}
+
+int SC_GetNegativeInteger(scanner_t *s)
+{
+    boolean neg = SC_CheckToken(s, '-');
+    SC_MustGetToken(s, TK_IntConst);
+    return neg ? -SC_GetNumber(s) : SC_GetNumber(s);
+}
+
+double SC_GetNegativeDecimal(scanner_t *s)
+{
+    boolean neg = SC_CheckToken(s, '-');
+    SC_MustGetToken(s, TK_FloatConst);
+    return neg ? -SC_GetDecimal(s) : SC_GetDecimal(s);
 }

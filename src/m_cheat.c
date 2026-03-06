@@ -22,10 +22,11 @@
 #include <string.h>
 
 #include "am_map.h"
-#include "d_deh.h" // Ty 03/27/98 - externalized strings
 #include "d_event.h"
 #include "d_player.h"
 #include "d_think.h"
+#include "deh_strings.h"
+#include "deh_misc.h"
 #include "doomdata.h"
 #include "doomdef.h"
 #include "doomstat.h"
@@ -133,7 +134,7 @@ static void cheat_speed(void);
 //
 //-----------------------------------------------------------------------------
 
-struct cheat_s cheat[] = {
+cheat_sequence_t cheats_table[] = {
   {"idmus",      "Change music",      always,
    {.s = cheat_mus}, -2 },
 
@@ -161,7 +162,7 @@ struct cheat_s cheat[] = {
   {"idclip",     "No Clipping 2",     not_net | not_demo,
    {.v = cheat_noclip} },
 
-  {"idbeholdo",  NULL,                not_net | not_demo | not_deh,
+  {"idbehold0",  NULL,                not_net | not_demo | not_deh,
    {.i = cheat_pw}, NUMPOWERS }, // [FG] disable all powerups at once
 
   {"idbeholdh",  "Health",            not_net | not_demo,
@@ -225,16 +226,16 @@ struct cheat_s cheat[] = {
    {.v = cheat_freeze} },
 
   {"iddt",       "Map cheat",         not_dm,
-   {.v = cheat_ddt} },        // killough 2/07/98: moved from am_map.c
+   {.v = cheat_ddt}, .repeatable = true },        // killough 2/07/98: moved from am_map.c
 
   {"iddst",      NULL,                not_dm,
-   {.v = cheat_reveal_secret} },
+   {.v = cheat_reveal_secret}, .repeatable = true },
 
   {"iddkt",      NULL,                not_dm,
-   {.v = cheat_reveal_kill} },
+   {.v = cheat_reveal_kill}, .repeatable = true },
 
   {"iddit",      NULL,                not_dm,
-   {.v = cheat_reveal_item} },
+   {.v = cheat_reveal_item}, .repeatable = true },
 
   {"hom",     NULL,                   always,
    {.v = cheat_hom} },        // killough 2/07/98: HOM autodetector
@@ -366,7 +367,7 @@ static void cheat_mus(char *buf)
   if (!isdigit(buf[0]) || !isdigit(buf[1]))
     return;
 
-  displaymsg("%s", s_STSTR_MUS); // Ty 03/27/98 - externalized
+  displaymsg("%s", DEH_String(STSTR_MUS));
   
   // First check if we have a mapinfo entry for the requested level.
   if (gamemode == commercial)
@@ -379,7 +380,7 @@ static void cheat_mus(char *buf)
      musnum = W_CheckNumForName(entry->music);
 
      if (musnum == -1)
-        displaymsg("%s", s_STSTR_NOMUS);
+        displaymsg("%s", DEH_String(STSTR_NOMUS));
      else
      {
         S_ChangeMusInfoMusic(musnum, 1);
@@ -394,7 +395,7 @@ static void cheat_mus(char *buf)
           
       //jff 4/11/98 prevent IDMUS00 in DOOMII and IDMUS36 or greater
       if (musnum < mus_runnin || musnum >= NUMMUSIC)
-        displaymsg("%s", s_STSTR_NOMUS); // Ty 03/27/98 - externalized
+        displaymsg("%s", DEH_String(STSTR_NOMUS));
       else
         {
           S_ChangeMusic(musnum, 1);
@@ -407,7 +408,7 @@ static void cheat_mus(char *buf)
           
       //jff 4/11/98 prevent IDMUS0x IDMUSx0 in DOOMI and greater than introa
       if (musnum < mus_e1m1 || musnum >= mus_runnin)
-        displaymsg("%s", s_STSTR_NOMUS); // Ty 03/27/98 - externalized
+        displaymsg("%s", DEH_String(STSTR_NOMUS));
       else
         {
           S_ChangeMusic(musnum, 1);
@@ -422,7 +423,7 @@ static void cheat_choppers(void)
   plyr->weaponowned[wp_chainsaw] = true;
   plyr->powers[pw_invulnerability] = true;
   plyr->bonuscount += 2; // trigger evil grin now
-  displaymsg("%s", s_STSTR_CHOPPERS); // Ty 03/27/98 - externalized
+  displaymsg("%s", DEH_String(STSTR_CHOPPERS));
 }
 
 static void cheat_god(void)
@@ -434,8 +435,8 @@ static void cheat_god(void)
     mapthing_t mt = {0};
 
     P_MapStart();
-    mt.x = plyr->mo->x >> FRACBITS;
-    mt.y = plyr->mo->y >> FRACBITS;
+    mt.x = plyr->mo->x;
+    mt.y = plyr->mo->y;
     mt.angle = (plyr->mo->angle + ANG45/2)*(uint64_t)45/ANG45;
     mt.type = consoleplayer + 1;
     P_SpawnPlayer(&mt);
@@ -448,21 +449,21 @@ static void cheat_god(void)
 
     // Fix reviving as "zombie" if god mode was already enabled
     if (plyr->mo)
-      plyr->mo->health = god_health;  // Ty 03/09/98 - deh
-    plyr->health = god_health;
+      plyr->mo->health = deh_god_mode_health;  // Ty 03/09/98 - deh
+    plyr->health = deh_god_mode_health;
   }
 
   plyr->cheats ^= CF_GODMODE;
   if (plyr->cheats & CF_GODMODE)
     {
       if (plyr->mo)
-        plyr->mo->health = god_health;  // Ty 03/09/98 - deh
+        plyr->mo->health = deh_god_mode_health;  // Ty 03/09/98 - deh
           
-      plyr->health = god_health;
-      displaymsg("%s", s_STSTR_DQDON); // Ty 03/27/98 - externalized
+      plyr->health = deh_god_mode_health;
+      displaymsg("%s", DEH_String(STSTR_DQDON));
     }
   else 
-    displaymsg("%s", s_STSTR_DQDOFF); // Ty 03/27/98 - externalized
+    displaymsg("%s", DEH_String(STSTR_DQDOFF));
 }
 
 static void cheat_buddha(void)
@@ -508,17 +509,17 @@ static void cheat_health(void)
   if (!(plyr->cheats & CF_GODMODE))
   {
     if (plyr->mo)
-      plyr->mo->health = mega_health;
-    plyr->health = mega_health;
-    displaymsg("%s", s_STSTR_BEHOLDX); // Ty 03/27/98 - externalized
+      plyr->mo->health = deh_megasphere_health;
+    plyr->health = deh_megasphere_health;
+    displaymsg("%s", DEH_String(STSTR_BEHOLDX));
   }
 }
 
 static void cheat_megaarmour(void)
 {
-  plyr->armorpoints = idfa_armor;      // Ty 03/09/98 - deh
-  plyr->armortype = idfa_armor_class;  // Ty 03/09/98 - deh
-  displaymsg("%s", s_STSTR_BEHOLDX); // Ty 03/27/98 - externalized
+  plyr->armorpoints = deh_idfa_armor;      // Ty 03/09/98 - deh
+  plyr->armortype = deh_idfa_armor_class;  // Ty 03/09/98 - deh
+  displaymsg("%s", DEH_String(STSTR_BEHOLDX));
 }
 
 static void cheat_tst(void)
@@ -538,8 +539,8 @@ static void cheat_fa(void)
       plyr->backpack = true;
     }
 
-  plyr->armorpoints = idfa_armor;      // Ty 03/09/98 - deh
-  plyr->armortype = idfa_armor_class;  // Ty 03/09/98 - deh
+  plyr->armorpoints = deh_idfa_armor;      // Ty 03/09/98 - deh
+  plyr->armortype = deh_idfa_armor_class;  // Ty 03/09/98 - deh
         
   // You can't own weapons that aren't in the game // phares 02/27/98
   for (i=0;i<NUMWEAPONS;i++)
@@ -552,7 +553,7 @@ static void cheat_fa(void)
       plyr->ammo[i] = plyr->maxammo[i];
 
   plyr->bonuscount += 2; // trigger evil grin now
-  displaymsg("%s", s_STSTR_FAADDED);
+  displaymsg("%s", DEH_String(STSTR_FAADDED));
 }
 
 static void cheat_k(void)
@@ -570,7 +571,7 @@ static void cheat_kfa(void)
 {
   cheat_k();
   cheat_fa();
-  displaymsg("%s", s_STSTR_KFAADDED);
+  displaymsg("%s", DEH_String(STSTR_KFAADDED));
 }
 
 static void cheat_noclip(void)
@@ -578,8 +579,7 @@ static void cheat_noclip(void)
   // Simplified, accepting both "noclip" and "idspispopd".
   // no clipping mode cheat
 
-  displaymsg("%s", (plyr->cheats ^= CF_NOCLIP) & CF_NOCLIP ? 
-    s_STSTR_NCON : s_STSTR_NCOFF); // Ty 03/27/98 - externalized
+  displaymsg("%s", DEH_String(((plyr->cheats ^= CF_NOCLIP) & CF_NOCLIP )? STSTR_NCON : STSTR_NCOFF));
 }
 
 // 'behold?' power-up cheats (modified for infinite duration -- killough)
@@ -599,13 +599,13 @@ static void cheat_pw(int pw)
       if (pw != pw_strength && !comp[comp_infcheat])
         plyr->powers[pw] = -1;      // infinite duration -- killough
     }
-  displaymsg("%s", s_STSTR_BEHOLDX); // Ty 03/27/98 - externalized
+  displaymsg("%s", DEH_String(STSTR_BEHOLDX));
 }
 
 // 'behold' power-up menu
 static void cheat_behold(void)
 {
-  displaymsg("%s", s_STSTR_BEHOLD); // Ty 03/27/98 - externalized
+  displaymsg("%s", DEH_String(STSTR_BEHOLD));
 }
 
 // 'clev' change-level cheat
@@ -682,7 +682,7 @@ static void cheat_clev(char *buf)
 
   idmusnum = -1; //jff 3/17/98 revert to normal level music on IDCLEV
 
-  displaymsg("%s", s_STSTR_CLEV); // Ty 03/27/98 - externalized
+  displaymsg("%s", DEH_String(STSTR_CLEV));
 
   G_DeferedInitNew(gameskill, epsd, map);
 }
@@ -740,7 +740,7 @@ static void cheat_friction(void)
 
 static void cheat_skill0(void)
 {
-  displaymsg("Skill: %s", default_skill_strings[gameskill + 1]);
+  displaymsg("Skill: %s", skill_strings[gameskill]);
 }
 
 static void cheat_skill(char *buf)
@@ -750,7 +750,7 @@ static void cheat_skill(char *buf)
   if (skill >= 1 && skill <= 5)
   {
     gameskill = skill - 1;
-    displaymsg("Next Level Skill: %s", default_skill_strings[gameskill + 1]);
+    displaymsg("Next Level Skill: %s", skill_strings[gameskill]);
 
     G_SetFastParms(fastparm || gameskill == sk_nightmare);
     respawnmonsters = gameskill == sk_nightmare || respawnparm;
@@ -787,7 +787,7 @@ static void cheat_massacre(void)    // jff 2/01/98 kill all monsters
   P_MapStart();
   do
     while ((currentthinker=currentthinker->next)!=&thinkercap)
-      if (currentthinker->function.p1 == (actionf_p1)P_MobjThinker &&
+      if (currentthinker->function.p1 == P_MobjThinker &&
 	  !(((mobj_t *) currentthinker)->flags & mask) && // killough 7/20/98
 	  (((mobj_t *) currentthinker)->flags & MF_COUNTKILL ||
 	   ((mobj_t *) currentthinker)->type == MT_SKULL))
@@ -850,13 +850,21 @@ static void cheat_spechits(void)
         case 208:
         case 209:
         case 210:
+        case 243:
+        case 244:
+        case 262:
+        case 263:
+        case 264:
+        case 265:
+        case 266:
+        case 267:
         case 268:
         case 269:
         {
           continue;
         }
 
-      // [EA] do not trigger any ID24 actions
+      // do not trigger any ID24 actions
       if (lines[i].special >= 2048 && lines[i].special <= 2098)
       {
         continue;
@@ -864,7 +872,7 @@ static void cheat_spechits(void)
 
       // [crispy] special without tag --> DR linedef type
       // do not change door direction if it is already moving
-      if (lines[i].tag == 0 &&
+      if (lines[i].args[0] == 0 &&
           lines[i].sidenum[1] != NO_INDEX &&
          (sides[lines[i].sidenum[1]].sector->floordata ||
           sides[lines[i].sidenum[1]].sector->ceilingdata))
@@ -891,7 +899,7 @@ static void cheat_spechits(void)
 
     for (th = thinkercap.next ; th != &thinkercap ; th = th->next)
     {
-      if (th->function.p1 == (actionf_p1)P_MobjThinker)
+      if (th->function.p1 == P_MobjThinker)
       {
         mobj_t *mo = (mobj_t *) th;
 
@@ -902,14 +910,14 @@ static void cheat_spechits(void)
           {
             dummy = *lines;
             dummy.special = (short)bossaction->special;
-            dummy.tag = (short)bossaction->tag;
+            dummy.args[0] = (short)bossaction->tag;
             // use special semantics for line activation to block problem types.
             if (!P_UseSpecialLine(mo, &dummy, 0, true))
               P_CrossSpecialLine(&dummy, 0, mo, true);
 
             speciallines++;
 
-            if (dummy.tag == 666)
+            if (dummy.args[0] == 666)
               trigger_keen = false;
           }
         }
@@ -924,12 +932,12 @@ static void cheat_spechits(void)
       if (gamemap == 7)
       {
         // Mancubi
-        dummy.tag = 666;
+        dummy.args[0] = 666;
         speciallines += EV_DoFloor(&dummy, lowerFloorToLowest);
         trigger_keen = false;
 
         // Arachnotrons
-        dummy.tag = 667;
+        dummy.args[0] = 667;
         speciallines += EV_DoFloor(&dummy, raiseToTexture);
       }
     }
@@ -938,7 +946,7 @@ static void cheat_spechits(void)
       if (gameepisode == 1)
       {
         // Barons of Hell
-        dummy.tag = 666;
+        dummy.args[0] = 666;
         speciallines += EV_DoFloor(&dummy, lowerFloorToLowest);
         trigger_keen = false;
       }
@@ -947,14 +955,14 @@ static void cheat_spechits(void)
         if (gamemap == 6)
         {
           // Cyberdemons
-          dummy.tag = 666;
+          dummy.args[0] = 666;
           speciallines += EV_DoDoor(&dummy, blazeOpen);
           trigger_keen = false;
         }
         else if (gamemap == 8)
         {
           // Spider Masterminds
-          dummy.tag = 666;
+          dummy.args[0] = 666;
           speciallines += EV_DoFloor(&dummy, lowerFloorToLowest);
           trigger_keen = false;
         }
@@ -965,7 +973,7 @@ static void cheat_spechits(void)
   // Keens (no matter which level they are on)
   if (trigger_keen)
   {
-    dummy.tag = 666;
+    dummy.args[0] = 666;
     speciallines += EV_DoDoor(&dummy, doorOpen);
   }
 
@@ -1041,11 +1049,16 @@ static void cheat_cycle_mobj(mobj_t **last_mobj, int *last_count,
   do
   {
     th = th->next;
-    if (th->function.p1 == (actionf_p1)P_MobjThinker)
+    if (th->function.p1 == P_MobjThinker)
     {
       mobj_t *mobj;
 
       mobj = (mobj_t *) th;
+
+      if (mobj->intflags & MIF_SPAWNED_BY_ICON)
+      {
+        continue;
+      }
 
       if ((!alive || mobj->health > 0) && mobj->flags & flags)
       {
@@ -1203,144 +1216,175 @@ static void cheat_rate(void)
   plyr->cheats ^= CF_RENDERSTATS;
 }
 
-//-----------------------------------------------------------------------------
-// 2/7/98: Cheat detection rewritten by Lee Killough, to avoid
-// scrambling and to use a more general table-driven approach.
-//-----------------------------------------------------------------------------
-
-static boolean M_CheatAllowed(cheat_when_t when)
+static boolean CheatAllowed(cheat_when_t when)
 {
-  return
-    !(when & not_dm   && deathmatch && !demoplayback) &&
-    !(when & not_coop && netgame && !deathmatch) &&
-    !(when & not_demo && (demorecording || demoplayback)) &&
-    !(when & not_menu && menuactive) &&
-    !(when & beta_only && !beta_emulation);
+    return !(when & not_dm && deathmatch && !demoplayback)
+           && !(when & not_coop && netgame && !deathmatch)
+           && !(when & not_demo && (demorecording || demoplayback))
+           && !(when & not_menu && menuactive)
+           && !(when & beta_only && !beta_emulation);
 }
 
-#define CHEAT_ARGS_MAX 8  /* Maximum number of args at end of cheats */
+// The cheat detection function was replaced with a version from Chocolate Doom
+// that included improvements from DSDA-Doom.
 
-boolean M_FindCheats(int key)
+static void InitCheats(void)
 {
-  static uint64_t sr;
-  static char argbuf[CHEAT_ARGS_MAX+1], *arg;
-  static int init, argsleft, cht;
-  int i, ret, matchedbefore;
+    static boolean init = false;
 
-  // If we are expecting arguments to a cheat
-  // (e.g. idclev), put them in the arg buffer
-
-  if (argsleft)
+    if (!init)
     {
-      *arg++ = M_ToLower(key);             // store key in arg buffer
-      if (!--argsleft)                   // if last key in arg list,
-        cheat[cht].func.s(argbuf);       // process the arg buffer
-      return 1;                          // affirmative response
-    }
+        init = true;
 
-  key = M_ToLower(key) - 'a';
-  if (key < 0 || key >= 32)              // ignore most non-alpha cheat letters
-    {
-      sr = 0;        // clear shift register
-      return 0;
-    }
-
-  if (!init)                             // initialize aux entries of table
-    {
-      init = 1;
-      for (i=0;cheat[i].cheat;i++)
+        for (cheat_sequence_t *cht = cheats_table; cht->sequence; cht++)
         {
-          uint64_t c=0, m=0;
-          const char *p; // [FG] char!
-          for (p=cheat[i].cheat; *p; p++)
+            cht->sequence_len = strlen(cht->sequence);
+        }
+    }
+}
+
+static int M_FindCheats(char key)
+{
+    int rc = 0, matchedbefore = 0;
+    cheat_sequence_t *cht;
+
+    InitCheats();
+
+    for (cht = cheats_table; cht->sequence; cht++)
+    {
+        if (!CheatAllowed(cht->when)
+            || (cht->when & not_deh && cht->deh_modified))
+        {
+            continue;
+        }
+
+        if (cht->chars_read < cht->sequence_len)
+        {
+            // still reading characters from the cheat code
+            // and verifying.  reset back to the beginning
+            // if a key is wrong
+
+            if (key == cht->sequence[cht->chars_read])
             {
-              unsigned key = M_ToLower(*p)-'a';  // convert to 0-31
-              if (key >= 32)            // ignore most non-alpha cheat letters
-                continue;
-              c = (c<<5) + key;         // shift key into code
-              m = (m<<5) + 31;          // shift 1's into mask
+                ++cht->chars_read;
             }
-          cheat[i].code = c;            // code for this cheat key
-          cheat[i].mask = m;            // mask for this cheat key
+            else if (key == cht->sequence[0])
+            {
+                cht->chars_read = 1;
+            }
+            else
+            {
+                cht->chars_read = 0;
+            }
+
+            cht->param_chars_read = 0;
         }
-    }
-
-  sr = (sr<<5) + key;                   // shift this key into shift register
-
-#if 0
-  {signed/*long*/volatile/*double *x,*y;*/static/*const*/int/*double*/i;/**/char/*(*)*/*D_DoomExeName/*(int)*/(void)/*?*/;(void/*)^x*/)((/*sr|1024*/32767/*|8%key*/&sr)-19891||/*isupper(c*/strcasecmp/*)*/("b"/*"'%2d!"*/"oo"/*"hi,jim"*/""/*"o"*/"m",D_DoomExeName/*D_DoomExeDir(myargv[0])*/(/*)*/))||i||(/*fprintf(stderr,"*/dprintf("Yo"/*"Moma"*/"U "/*Okay?*/"mUSt"/*for(you;read;tHis){/_*/" be a "/*MAN! Re-*/"member"/*That.*/" TO uSe"/*x++*/" t"/*(x%y)+5*/"HiS "/*"Life"*/"cHe"/*"eze"**/"aT"),i/*+--*/++/*;&^*/));}
-#endif
-
-  for (matchedbefore = ret = i = 0; cheat[i].cheat; i++)
-    if ((sr & cheat[i].mask) == cheat[i].code &&  // if match found & allowed
-        M_CheatAllowed(cheat[i].when) &&
-        !(cheat[i].when & not_deh  && cheat[i].deh_modified))
-    {
-      if (cheat[i].arg < 0)               // if additional args are required
+        else if (cht->param_chars_read < -cht->arg)
         {
-          cht = i;                        // remember this cheat code
-          arg = argbuf;                   // point to start of arg buffer
-          argsleft = -cheat[i].arg;       // number of args expected
-          ret = 1;                        // responder has eaten key
+            // we have passed the end of the cheat sequence and are
+            // entering parameters now
+
+            cht->parameter_buf[cht->param_chars_read] = key;
+
+            ++cht->param_chars_read;
+
+            // affirmative response
+            rc = 1;
         }
-      else
-        if (!matchedbefore)               // allow only one cheat at a time 
-          {
-            matchedbefore = ret = 1;      // responder has eaten key
-            cheat[i].func.i(cheat[i].arg); // call cheat handler
-          }
+
+        if (cht->chars_read >= cht->sequence_len
+            && cht->param_chars_read >= -cht->arg)
+        {
+            if (!matchedbefore)
+            {
+                if (cht->param_chars_read)
+                {
+                    static char argbuf[MAX_CHEAT_PARAMS + 1];
+
+                    // process the arg buffer
+                    memcpy(argbuf, cht->parameter_buf, -cht->arg);
+
+                    cht->func.s(argbuf);
+                }
+                else
+                {
+                    // call cheat handler
+                    cht->func.i(cht->arg);
+
+                    if (cht->repeatable)
+                    {
+                        --cht->chars_read;
+                    }
+                }
+                matchedbefore = 1;
+            }
+
+            if (!cht->repeatable)
+            {
+                cht->chars_read = cht->param_chars_read = 0;
+            }
+            rc = 1;
+        }
     }
-  return ret;
+
+    return rc;
 }
 
-static const struct {
-  int input;
-  const cheat_when_t when;
-  const cheatf_t func;
-  const int arg;
+static const struct
+{
+    int input;
+    const cheat_when_t when;
+    const cheatf_t func;
+    const int arg;
 } cheat_input[] = {
-  { input_iddqd,     not_net|not_demo, {.v = cheat_god},      0 },
-  { input_idkfa,     not_net|not_demo, {.v = cheat_kfa},      0 },
-  { input_idfa,      not_net|not_demo, {.v = cheat_fa},       0 },
-  { input_idclip,    not_net|not_demo, {.v = cheat_noclip},   0 },
-  { input_idbeholdh, not_net|not_demo, {.v = cheat_health},   0 },
-  { input_idbeholdm, not_net|not_demo, {.v = cheat_megaarmour}, 0 },
-  { input_idbeholdv, not_net|not_demo, {.i = cheat_pw},       pw_invulnerability },
-  { input_idbeholds, not_net|not_demo, {.i = cheat_pw},       pw_strength },
-  { input_idbeholdi, not_net|not_demo, {.i = cheat_pw},       pw_invisibility },
-  { input_idbeholdr, not_net|not_demo, {.i = cheat_pw},       pw_ironfeet },
-  { input_idbeholdl, not_dm,           {.i = cheat_pw},       pw_infrared },
-  { input_iddt,      not_dm,           {.v = cheat_ddt},      0 },
-  { input_notarget,  not_net|not_demo, {.v = cheat_notarget}, 0 },
-  { input_freeze,    not_net|not_demo, {.v = cheat_freeze},   0 },
-  { input_avj,       not_net|not_demo, {.v = cheat_avj},      0 },
+    { input_iddqd,     not_net | not_demo, {.v = cheat_god} },
+    { input_idkfa,     not_net | not_demo, {.v = cheat_kfa} },
+    { input_idfa,      not_net | not_demo, {.v = cheat_fa} },
+    { input_idclip,    not_net | not_demo, {.v = cheat_noclip} },
+    { input_idbeholdh, not_net | not_demo, {.v = cheat_health} },
+    { input_idbeholdm, not_net | not_demo, {.v = cheat_megaarmour} },
+    { input_idbeholdv, not_net | not_demo, {.i = cheat_pw}, pw_invulnerability },
+    { input_idbeholds, not_net | not_demo, {.i = cheat_pw}, pw_strength },
+    { input_idbeholdi, not_net | not_demo, {.i = cheat_pw}, pw_invisibility },
+    { input_idbeholdr, not_net | not_demo, {.i = cheat_pw}, pw_ironfeet },
+    { input_idbeholdl, not_dm,             {.i = cheat_pw}, pw_infrared },
+    { input_iddt,      not_dm,             {.v = cheat_ddt} },
+    { input_notarget,  not_net | not_demo, {.v = cheat_notarget} },
+    { input_freeze,    not_net | not_demo, {.v = cheat_freeze} },
+    { input_avj,       not_net | not_demo, {.v = cheat_avj} },
 };
 
 boolean M_CheatResponder(event_t *ev)
 {
-  int i;
-
-  if (strictmode && demorecording)
-    return false;
-
-  if (ev->type == ev_keydown && M_FindCheats(ev->data2.i))
-    return true;
-
-  if (WS_Override())
-    return false;
-
-  for (i = 0; i < arrlen(cheat_input); ++i)
-  {
-    if (M_InputActivated(cheat_input[i].input))
+    if (strictmode && demorecording)
     {
-      if (M_CheatAllowed(cheat_input[i].when))
-        cheat_input[i].func.i(cheat_input[i].arg);
-
-      return true;
+        return false;
     }
-  }
 
-  return false;
+    if (ev->type == ev_keydown && M_FindCheats(ev->data2.i))
+    {
+        return true;
+    }
+
+    if (WS_Override())
+    {
+        return false;
+    }
+
+    for (int i = 0; i < arrlen(cheat_input); ++i)
+    {
+        if (M_InputActivated(cheat_input[i].input))
+        {
+            if (CheatAllowed(cheat_input[i].when))
+            {
+                cheat_input[i].func.i(cheat_input[i].arg);
+            }
+
+            return true;
+        }
+    }
+
+    return false;
 }
 
 //----------------------------------------------------------------------------

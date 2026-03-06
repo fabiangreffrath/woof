@@ -21,18 +21,17 @@
 #ifndef _D_DEMOLOOP_
 #define _D_DEMOLOOP_
 
-// Screen graphic or DEMO lump, NONE is used for fault tolerance.
+// Screen graphic or DEMO lump.
 typedef enum
 {
     TYPE_ART,
     TYPE_DEMO,
 } dl_type_t;
 
-// Immediate switch or screen melt, NONE is used for fault tolerance.
+// Immediate switch or screen melt.
 // TODO: reimplement more cleanly at a later, more relevant moment
 typedef enum
 {
-    WIPE_NONE = -1,
     WIPE_IMMEDIATE,
     WIPE_MELT,
 } dl_wipe_t;

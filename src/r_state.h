@@ -89,6 +89,8 @@ extern line_t           *lines;
 extern int              numsides;
 extern side_t           *sides;
 
+extern struct arena_s   *world_arena;
+
 typedef struct localview_s
 {
     double rawangle;

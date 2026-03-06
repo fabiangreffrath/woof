@@ -44,22 +44,22 @@ static const char *params[] = {
 "-bsp",
 "-force_old_zdoom_nodes",
 "-noautoload",
-"-noextras",
 "-nocheats",
 "-nodeh",
+"-noextras",
 "-nomapinfo",
 "-nooptions",
+"-reject_pad_with_ff",
 "-tranmap",
 "-levelstat",
 "-longtics",
 "-shorttics",
-"-strict",
+"-tas",
 "-nogui",
 };
 
 static const char *params_with_args[] = {
 "-config",
-"-dumptranmap",
 "-file",
 "-iwad",
 "-save",
@@ -79,10 +79,8 @@ static const char *params_with_args[] = {
 "-port",
 "-servername",
 "-timer",
-"-bex",
-"-bexout",
 "-deh",
-"-dehout",
+"-dumptranmap",
 "-fastdemo",
 "-maxdemo",
 "-playdemo",
@@ -135,8 +133,7 @@ Demo options: \n\
   -record <demo>    Record a demo named demo.lmp.\n\
   -shorttics        Play with low turning resolution to emulate demo\n\
                     recording.\n\
-  -strict           Sets compatibility and cosmetic settings according to DSDA\n\
-                    rules.\n\
+  -tas              Lifts strict mode restrictions according to DSDA rules.\n\
 \n\
 Compatibility: \n\
   -cl <version>         Alias to -complevel.\n\

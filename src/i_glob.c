@@ -16,71 +16,22 @@
 // to be interrogated.
 //
 
+#include <SDL3/SDL.h>
+
 #include <stdlib.h>
 #include <string.h>
 
 #include "config.h"
 #include "i_glob.h"
-#include "m_io.h"
+#include "i_system.h"
 #include "m_misc.h"
-
-#if defined(_WIN32)
-#  include "win_opendir.h"
-#  ifndef S_ISDIR
-#    define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
-#  endif
-#elif defined(HAVE_DIRENT_H)
-#  include <dirent.h>
-#  include <sys/stat.h>
-#elif defined(__WATCOMC__)
-// Watcom has the same API in a different header.
-#  include <direct.h>
-#else
-#  define NO_DIRENT_IMPLEMENTATION
-#endif
-
-#ifndef NO_DIRENT_IMPLEMENTATION
-
-// Only the fields d_name and (as an XSI extension) d_ino are specified
-// in POSIX.1.  Other than Linux, the d_type field is available mainly
-// only on BSD systems.  The remaining fields are available on many, but
-// not all systems.
-static boolean IsDirectory(char *dir, struct dirent *de)
-{
-#if defined(_DIRENT_HAVE_D_TYPE)
-    if (de->d_type != DT_UNKNOWN && de->d_type != DT_LNK)
-    {
-        return de->d_type == DT_DIR;
-    }
-    else
-#endif
-    {
-        char *filename;
-        struct stat sb;
-        int result;
-
-        filename = M_StringJoin(dir, DIR_SEPARATOR_S, de->d_name);
-        result = M_stat(filename, &sb);
-        free(filename);
-
-        if (result != 0)
-        {
-            return false;
-        }
-
-        return S_ISDIR(sb.st_mode);
-    }
-}
 
 struct glob_s
 {
     char **globs;
     int num_globs;
     int flags;
-    DIR *dir;
     char *directory;
-    char *last_filename;
-    // These fields are only used when the GLOB_FLAG_SORTED flag is set:
     char **filenames;
     int filenames_len;
     int next_index;
@@ -120,8 +71,7 @@ glob_t *I_StartMultiGlobInternal(const char *directory, int flags,
         return NULL;
     }
 
-    result->dir = opendir(directory);
-    if (result->dir == NULL)
+    if (!M_DirExists(directory))
     {
         FreeStringList(globs, num_globs);
         free(result);
@@ -132,7 +82,6 @@ glob_t *I_StartMultiGlobInternal(const char *directory, int flags,
     result->globs = globs;
     result->num_globs = num_globs;
     result->flags = flags;
-    result->last_filename = NULL;
     result->filenames = NULL;
     result->filenames_len = 0;
     result->next_index = -1;
@@ -155,8 +104,6 @@ void I_EndGlob(glob_t *glob)
     FreeStringList(glob->filenames, glob->filenames_len);
 
     free(glob->directory);
-    free(glob->last_filename);
-    (void)closedir(glob->dir);
     free(glob);
 }
 
@@ -219,43 +166,36 @@ static boolean MatchesAnyGlob(const char *name, glob_t *glob)
     return false;
 }
 
-static char *NextGlob(glob_t *glob)
+static SDL_EnumerationResult Callback(void *userdata, const char *dirname,
+                                      const char *fname)
 {
-    struct dirent *de;
+    glob_t *glob = userdata;
+    char *path = M_StringJoin(dirname, fname);
 
-    do
+    if (!M_DirExists(path) && MatchesAnyGlob(fname, glob))
     {
-        de = readdir(glob->dir);
-        if (de == NULL)
-        {
-            return NULL;
-        }
-    } while (IsDirectory(glob->directory, de)
-             || !MatchesAnyGlob(de->d_name, glob));
+        glob->filenames = realloc(glob->filenames,
+                                  (glob->filenames_len + 1) * sizeof(char *));
+        glob->filenames[glob->filenames_len] = path;
+        ++glob->filenames_len;
+    }
+    else
+    {
+        free(path);
+    }
 
-    // Return the fully-qualified path, not just the bare filename.
-    return M_StringJoin(glob->directory, DIR_SEPARATOR_S, de->d_name);
+    return SDL_ENUM_CONTINUE;
 }
 
 static void ReadAllFilenames(glob_t *glob)
 {
-    char *name;
-
     glob->filenames = NULL;
     glob->filenames_len = 0;
     glob->next_index = 0;
 
-    for (;;)
+    if (!SDL_EnumerateDirectory(glob->directory, Callback, glob))
     {
-        name = NextGlob(glob);
-        if (name == NULL)
-        {
-            break;
-        }
-        glob->filenames = realloc(glob->filenames,
-                                  (glob->filenames_len + 1) * sizeof(char *));
-        glob->filenames[glob->filenames_len] = name;
-        ++glob->filenames_len;
+        I_Error("Failed to enumerate directory %s", glob->directory);
     }
 }
 
@@ -305,21 +245,15 @@ const char *I_NextGlob(glob_t *glob)
         return NULL;
     }
 
-    // In unsorted mode we just return the filenames as we read
-    // them back from the system API.
-    if ((glob->flags & GLOB_FLAG_SORTED) == 0)
-    {
-        free(glob->last_filename);
-        glob->last_filename = NextGlob(glob);
-        return glob->last_filename;
-    }
-
-    // In sorted mode we read the whole list of filenames into memory,
-    // sort them and return them one at a time.
+    // We read the whole list of filenames into memory, sort them and return
+    // them one at a time.
     if (glob->next_index < 0)
     {
         ReadAllFilenames(glob);
-        SortFilenames(glob->filenames, glob->filenames_len, glob->flags);
+        if (glob->flags & GLOB_FLAG_SORTED)
+        {
+            SortFilenames(glob->filenames, glob->filenames_len, glob->flags);
+        }
     }
     if (glob->next_index >= glob->filenames_len)
     {
@@ -329,23 +263,3 @@ const char *I_NextGlob(glob_t *glob)
     ++glob->next_index;
     return result;
 }
-
-#else /* #ifdef NO_DIRENT_IMPLEMENTATION */
-
-#  warning No native implementation of file globbing.
-
-glob_t *I_StartGlob(const char *directory, const char *glob, int flags)
-{
-    return NULL;
-}
-
-void I_EndGlob(glob_t *glob)
-{
-}
-
-const char *I_NextGlob(glob_t *glob)
-{
-    return "";
-}
-
-#endif /* #ifdef NO_DIRENT_IMPLEMENTATION */

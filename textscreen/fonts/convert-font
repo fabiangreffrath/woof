@@ -45,7 +45,7 @@ def generate_font_data(filename):
           (width, height) dimensions of each font character.
           Array of byte data for font.
     """
-    im = Image.open(filename)
+    im = Image.open(filename).convert("RGB")
     width, height = im.size
     assert (width % GRID_COLUMNS) == 0
     assert (height % GRID_ROWS) == 0
@@ -78,9 +78,8 @@ def convert_image(font_prefix, filename, output_filename):
     dimensions, data = generate_font_data(filename)
 
     with open(output_filename, "w") as outfile:
-        outfile.write("/* Font data generated from %s; do not edit.\n"
-                      "   Please see textscreen/fonts/README for copyright\n"
-                      "   information. */\n\n" % filename)
+        outfile.write("/* Font data generated from %s; do not edit. */\n\n"
+                      % filename)
         outfile.write("static const uint8_t %s_font_data[] =\n{\n" %
                       font_prefix)
         for index, b in enumerate(data):

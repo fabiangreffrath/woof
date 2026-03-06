@@ -17,6 +17,7 @@
 #include "doomtype.h"
 #include "i_printf.h"
 #include "m_array.h"
+#include "m_misc.h"
 #include "w_wad.h"
 #include "z_zone.h"
 
@@ -31,8 +32,7 @@ boolean JS_GetVersion(json_t *json, version_t *version)
     }
 
     const char *string = JS_GetString(js_version);
-    if (sscanf(string, "%d.%d.%d", &version->major, &version->minor,
-               &version->revision) == 3)
+    if (M_ParseVersion(string, version))
     {
         return true;
     }
@@ -63,7 +63,7 @@ json_t *JS_OpenOptions(int lumpnum, boolean comments)
         size_t line, col, chr;
         yyjson_locate_pos(string, length, err.pos, &line, &col, &chr);
         char name[9] = {0};
-        memcpy(name, lumpinfo[lumpnum].name, 8);
+        M_CopyLumpName(name, lumpinfo[lumpnum].name);
         I_Printf(VB_ERROR, "%s(%d:%d): read error: %s\n", name, (int)line,
                  (int)col, err.msg);
         return NULL;
@@ -114,10 +114,7 @@ json_t *JS_Open(const char *lump, const char *type, version_t maxversion)
         return NULL;
     }
 
-    if ((maxversion.major < v.major
-         || (maxversion.major <= v.major && maxversion.minor < v.minor)
-         || (maxversion.major <= v.major && maxversion.minor <= v.minor
-             && maxversion.revision < v.revision)))
+    if (M_CompareVersions(&v, &maxversion) > 0)
     {
         I_Printf(VB_ERROR, "%s: max supported version %d.%d.%d", lump,
                  maxversion.major, maxversion.minor, maxversion.revision);
@@ -197,9 +194,36 @@ json_t *JS_GetArrayItem(json_t *json, int index)
     return yyjson_arr_get(json, index);
 }
 
+json_arr_iter_t *JS_ArrayIterator(json_t *json)
+{
+    json_arr_iter_t *iter = malloc(sizeof(*iter));
+    yyjson_arr_iter_init(json, iter);
+    return iter;
+}
+
+json_t *JS_ArrayNext(json_arr_iter_t *iter)
+{
+    json_t *value = yyjson_arr_iter_next(iter);
+    if (!value)
+    {
+        free(iter);
+    }
+    return value;
+}
+
 boolean JS_GetBoolean(json_t *json)
 {
     return yyjson_get_bool(json);
+}
+
+boolean JS_GetBooleanValue(json_t *json, const char *string)
+{
+    json_t *obj = JS_GetObject(json, string);
+    if (JS_IsBoolean(obj))
+    {
+        return JS_GetBoolean(obj);
+    }
+    return false;
 }
 
 double JS_GetNumber(json_t *json)

@@ -36,7 +36,6 @@
 #include "r_state.h"
 #include "s_sound.h"
 #include "sounds.h"
-#include "z_zone.h"
 
 ///////////////////////////////////////////////////////////////////////
 // 
@@ -245,7 +244,7 @@ result_e T_MovePlane
 // jff 02/08/98 all cases with labels beginning with gen added to support 
 // generalized line type behaviors.
 
-void T_MoveFloor(floormove_t* floor)
+static void T_MoveFloor(floormove_t* floor)
 {
   result_e      res;
 
@@ -310,7 +309,7 @@ void T_MoveFloor(floormove_t* floor)
     }
 
     floor->sector->floordata = NULL; //jff 2/22/98
-    P_RemoveThinker(&floor->thinker);//remove this floor from list of movers
+    P_RemoveFloorThinker(floor);//remove this floor from list of movers
 
     //jff 2/26/98 implement stair retrigger lockout while still building
     // note this only applies to the retriggerable generalized stairs
@@ -344,6 +343,11 @@ void T_MoveFloor(floormove_t* floor)
   }
 }
 
+void T_MoveFloorAdapter(mobj_t *mobj)
+{
+    T_MoveFloor((floormove_t *)mobj);
+}
+
 //
 // T_MoveElevator()
 //
@@ -356,7 +360,7 @@ void T_MoveFloor(floormove_t* floor)
 //
 // jff 02/22/98 added to support parallel floor/ceiling motion
 //
-void T_MoveElevator(elevator_t* elevator)
+static void T_MoveElevator(elevator_t *elevator)
 {
   result_e      res;
 
@@ -417,11 +421,16 @@ void T_MoveElevator(elevator_t* elevator)
   {
     elevator->sector->floordata = NULL;     //jff 2/22/98
     elevator->sector->ceilingdata = NULL;   //jff 2/22/98
-    P_RemoveThinker(&elevator->thinker);    // remove elevator from actives
+    P_RemoveElevatorThinker(elevator);    // remove elevator from actives
 
     // make floor stop sound
     S_StartSound((mobj_t *)&elevator->sector->soundorg, sfx_pstop);
   }
+}
+
+void T_MoveElevatorAdapter(mobj_t *mobj)
+{
+    T_MoveElevator((elevator_t *)mobj);
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -461,10 +470,10 @@ int EV_DoFloor
       
     // new floor thinker
     rtn = 1;
-    floor = Z_Malloc (sizeof(*floor), PU_LEVSPEC, 0);
+    floor = arena_alloc(thinkers_arena, floormove_t);
     P_AddThinker (&floor->thinker);
     sec->floordata = floor; //jff 2/22/98
-    floor->thinker.function.p1 = (actionf_p1)T_MoveFloor;
+    floor->thinker.function.p1 = T_MoveFloorAdapter;
     floor->type = floortype;
     floor->crush = false;
 
@@ -767,10 +776,10 @@ int EV_BuildStairs
       
     // create new floor thinker for first step
     rtn = 1;
-    floor = Z_Malloc (sizeof(*floor), PU_LEVSPEC, 0);
+    floor = arena_alloc(thinkers_arena, floormove_t);
     P_AddThinker (&floor->thinker);
     sec->floordata = floor;
-    floor->thinker.function.p1 = (actionf_p1)T_MoveFloor;
+    floor->thinker.function.p1 = T_MoveFloorAdapter;
     floor->direction = 1;
     floor->sector = sec;
     floor->type = buildStair;   //jff 3/31/98 do not leave uninited
@@ -849,11 +858,11 @@ int EV_BuildStairs
         secnum = newsecnum;
 
         // create and initialize a thinker for the next step
-        floor = Z_Malloc (sizeof(*floor), PU_LEVSPEC, 0);
+        floor = arena_alloc(thinkers_arena, floormove_t);
         P_AddThinker (&floor->thinker);
 
         sec->floordata = floor; //jff 2/22/98
-        floor->thinker.function.p1 = (actionf_p1)T_MoveFloor;
+        floor->thinker.function.p1 = T_MoveFloorAdapter;
         floor->direction = 1;
         floor->sector = sec;
         floor->speed = speed;
@@ -1009,10 +1018,10 @@ int EV_DoDonut(line_t*  line)
       }
 
       //  Spawn rising slime
-      floor = Z_Malloc (sizeof(*floor), PU_LEVSPEC, 0);
+      floor = arena_alloc(thinkers_arena, floormove_t);
       P_AddThinker (&floor->thinker);
       s2->floordata = floor; //jff 2/22/98
-      floor->thinker.function.p1 = (actionf_p1)T_MoveFloor;
+      floor->thinker.function.p1 = T_MoveFloorAdapter;
       floor->type = donutRaise;
       floor->crush = false;
       floor->direction = 1;
@@ -1023,10 +1032,10 @@ int EV_DoDonut(line_t*  line)
       floor->floordestheight = s3_floorheight;
         
       //  Spawn lowering donut-hole pillar
-      floor = Z_Malloc (sizeof(*floor), PU_LEVSPEC, 0);
+      floor = arena_alloc(thinkers_arena, floormove_t);
       P_AddThinker (&floor->thinker);
       s1->floordata = floor; //jff 2/22/98
-      floor->thinker.function.p1 = (actionf_p1)T_MoveFloor;
+      floor->thinker.function.p1 = T_MoveFloorAdapter;
       floor->type = lowerFloor;
       floor->crush = false;
       floor->direction = -1;
@@ -1070,11 +1079,11 @@ int EV_DoElevator
       
     // create and initialize new elevator thinker
     rtn = 1;
-    elevator = Z_Malloc (sizeof(*elevator), PU_LEVSPEC, 0);
+    elevator = arena_alloc(thinkers_arena, elevator_t);
     P_AddThinker (&elevator->thinker);
     sec->floordata = elevator; //jff 2/22/98
     sec->ceilingdata = elevator; //jff 2/22/98
-    elevator->thinker.function.p1 = (actionf_p1)T_MoveElevator;
+    elevator->thinker.function.p1 = T_MoveElevatorAdapter;
     elevator->type = elevtype;
 
     // set up the fields according to the type of elevator action

@@ -18,18 +18,19 @@
 //
 //-----------------------------------------------------------------------------
 
-#include <math.h>
 #include <string.h>
 
 #include "i_sound.h"
 
+#include "deh_strings.h"
 #include "doomstat.h"
 #include "doomtype.h"
+#include "i_exit.h"
 #include "i_oalstream.h"
 #include "i_printf.h"
 #include "i_rumble.h"
-#include "i_system.h"
 #include "m_array.h"
+#include "m_misc.h"
 #include "mn_menu.h"
 #include "p_mobj.h"
 #include "s_sound.h"
@@ -82,12 +83,7 @@ typedef struct
 
 static channel_info_t channelinfo[MAX_CHANNELS];
 
-// [FG] variable pitch bend range
-static int pitch_bend_range;
-
-// Pitch to stepping lookup.
-static float steptable[256];
-
+boolean snd_ambient;
 boolean snd_limiter;
 int snd_channels_per_sfx;
 int snd_volume_per_sfx;
@@ -198,11 +194,28 @@ void I_SetGain(int channel, float gain)
 #ifdef RANGECHECK
     if (channel < 0 || channel >= MAX_CHANNELS)
     {
-        I_Error("I_SetGain: channel out of range");
+        I_Error("channel out of range");
     }
 #endif
 
     sound_module->SetGain(channel, gain);
+}
+
+float I_GetSoundOffset(int channel)
+{
+    if (!snd_init || !sound_module->GetOffset)
+    {
+        return 0.0f;
+    }
+
+#ifdef RANGECHECK
+    if (channel < 0 || channel >= MAX_CHANNELS)
+    {
+        I_Error("channel out of range");
+    }
+#endif
+
+    return sound_module->GetOffset(channel);
 }
 
 //
@@ -215,19 +228,11 @@ void I_SetGain(int channel, float gain)
 void I_SetChannels(void)
 {
     int i;
-    const double base = pitch_bend_range / 100.0;
 
     // Okay, reset internal mixing channels to zero.
     for (i = 0; i < MAX_CHANNELS; i++)
     {
         memset(&channelinfo[i], 0, sizeof(channel_info_t));
-    }
-
-    // This table provides step widths for pitch parameters.
-    for (i = 0; i < arrlen(steptable); i++)
-    {
-        // [FG] variable pitch bend range
-        steptable[i] = pow(base, (double)(2 * (i - NORM_PITCH)) / NORM_PITCH);
     }
 }
 
@@ -257,14 +262,17 @@ int I_GetSfxLumpNum(sfxinfo_t *sfx)
 {
     if (sfx->lumpnum == -1)
     {
-        char namebuf[16];
+        if (sfx->flags & SFX_NoPrefix)
+        {
+            sfx->lumpnum = W_CheckNumForName(sfx->name);
+        }
+        else
+        {
+            char namebuf[9] = {0};
+            M_snprintf(namebuf, sizeof(namebuf), "ds%s", DEH_String(sfx->name));
+            sfx->lumpnum = W_CheckNumForName(namebuf);
+        }
 
-        memset(namebuf, 0, sizeof(namebuf));
-
-        strcpy(namebuf, "DS");
-        strcpy(namebuf + 2, sfx->name);
-
-        sfx->lumpnum = W_CheckNumForName(namebuf);
     }
 
     return sfx->lumpnum;
@@ -281,7 +289,7 @@ int I_GetSfxLumpNum(sfxinfo_t *sfx)
 // active sounds, which is maintained as a given number
 // of internal channels. Returns a free channel.
 //
-int I_StartSound(sfxinfo_t *sfx, const sfxparams_t *params, int pitch)
+int I_StartSound(sfxinfo_t *sfx, const sfxparams_t *params)
 {
     int channel;
 
@@ -318,9 +326,7 @@ int I_StartSound(sfxinfo_t *sfx, const sfxparams_t *params, int pitch)
 
     I_UpdateSoundParams(channel, params);
 
-    float step = (pitch == NORM_PITCH) ? 1.0f : steptable[pitch];
-
-    if (sound_module->StartSound(channel, sfx, step) == false)
+    if (sound_module->StartSound(channel, sfx, params) == false)
     {
         I_Printf(VB_WARNING, "I_StartSound: Error playing sfx.");
         StopChannel(channel);
@@ -468,6 +474,35 @@ struct
     {sfx_lavsml, sfx_None  },
 };
 
+static void LinkSounds(void)
+{
+    // [FG] add links for likely missing sounds
+    for (int i = 0; i < arrlen(sfx_subst); i++)
+    {
+        sfxinfo_t *from = &S_sfx[sfx_subst[i].from],
+                  *to = &S_sfx[sfx_subst[i].to];
+
+        if (from->lumpnum == -1)
+        {
+            from->link = to;
+        }
+    }
+}
+
+static void CacheSounds(void)
+{
+    // [FG] precache all sound effects
+    for (int i = 1; i < num_sfx; i++)
+    {
+        // DEHEXTRA has turned S_sfx into a sparse array
+        if (!S_sfx[i].name)
+        {
+            continue;
+        }
+        sound_module->CacheSound(&S_sfx[i]);
+    }
+}
+
 //
 // I_InitSound
 //
@@ -500,31 +535,10 @@ void I_InitSound(void)
         return;
     }
 
-    // [FG] precache all sound effects
-
     I_Printf(VB_INFO, " Precaching all sound effects... ");
-    for (int i = 1; i < num_sfx; i++)
-    {
-        // DEHEXTRA has turned S_sfx into a sparse array
-        if (!S_sfx[i].name)
-        {
-            continue;
-        }
-        sound_module->CacheSound(&S_sfx[i]);
-    }
+    CacheSounds();
     I_Printf(VB_INFO, "done.");
-
-    // [FG] add links for likely missing sounds
-    for (int i = 0; i < arrlen(sfx_subst); i++)
-    {
-        sfxinfo_t *from = &S_sfx[sfx_subst[i].from],
-                  *to = &S_sfx[sfx_subst[i].to];
-
-        if (from->lumpnum == -1)
-        {
-            from->link = to;
-        }
-    }
+    LinkSounds();
 }
 
 boolean I_AllowReinitSound(void)
@@ -562,6 +576,7 @@ void I_SetSoundModule(void)
         I_Printf(VB_WARNING, "I_SetSoundModule: Failed to reinitialize sound.");
     }
 
+    CacheSounds();
     MN_UpdateAdvancedSoundItems(snd_module != SND_MODULE_3D);
 }
 
@@ -785,18 +800,14 @@ void I_BindSoundVariables(void)
         "Music volume");
     BIND_BOOL_SFX(pitched_sounds, false,
         "Variable pitch for sound effects");
-    BIND_NUM(pitch_bend_range, 120, 100, 300,
-        "Variable pitch bend range (100 = None)");
-    BIND_BOOL_SFX(full_sounds, false, "Play sounds in full length (prevents cutoffs)");
+    BIND_BOOL_SFX(full_sounds, false, "Play sounds in full length (prevent cutoffs)");
     BIND_NUM_SFX(snd_channels, MAX_CHANNELS, 1, MAX_CHANNELS,
         "Number of sound channels");
     BIND_BOOL_SFX(snd_limiter, false, "Use sound output limiter");
     BIND_NUM(snd_channels_per_sfx, 5, 0, MAX_CHANNELS,
-        "[Limiter] Max number of channels allowed to simultaneously play the "
-        "same sound (0 = Off)");
+        "[Limiter] Max number of channels to play the same sound (0 = Off)");
     BIND_NUM(snd_volume_per_sfx, 5 * 100, 0, MAX_CHANNELS * 100,
-        "[Limiter] Max volume allowed for a sound that is played "
-        "simultaneously by multiple channels [percent] (0 = Off)");
+        "[Limiter] Max volume for sounds played by multiple channels [percent] (0 = Off)");
     BIND_NUM_GENERAL(snd_module, SND_MODULE_MBF, 0, NUM_SND_MODULES - 1,
         "Sound module (0 = Standard; 1 = OpenAL 3D; 2 = PC Speaker Sound)");
     for (int i = 0; i < arrlen(sound_modules); ++i)
@@ -806,7 +817,7 @@ void I_BindSoundVariables(void)
             sound_modules[i]->BindVariables();
         }
     }
-    BIND_NUM(midi_player_menu, 0, 0, UL, "MIDI Player menu index");
+    BIND_NUM_MENU(midi_player_menu, 0, UL);
     M_BindStr("midi_player_string", &midi_player_string, "", wad_no,
               "MIDI Player string");
     for (int i = 0; i < arrlen(music_modules); ++i)

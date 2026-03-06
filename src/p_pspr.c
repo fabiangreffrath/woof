@@ -21,10 +21,12 @@
 #include "d_event.h"
 #include "d_items.h"
 #include "d_player.h"
+#include "deh_misc.h"
 #include "doomstat.h"
 #include "g_nextweapon.h"
 #include "i_printf.h"
 #include "i_video.h" // uncapped
+#include "m_fixed.h"
 #include "m_random.h"
 #include "p_action.h"
 #include "p_enemy.h"
@@ -43,8 +45,6 @@
 #define RAISESPEED   (FRACUNIT*6)
 #define WEAPONBOTTOM (FRACUNIT*128)
 #define WEAPONTOP    (FRACUNIT*32)
-
-#define BFGCELLS bfgcells        /* Ty 03/09/98 externalized in p_inter.c */
 
 // The following array holds the recoil values         // phares
 static struct
@@ -126,6 +126,8 @@ void P_SetPspritePtr(player_t *player, pspdef_t *psp, statenum_t stnum)
           // [FG] centered weapon sprite
           psp->sx2 = psp->sx;
           psp->sy2 = psp->sy;
+          psp->sxf = psp->sx2;
+          psp->syf = psp->sy2;
         }
 
       // Call action routine.
@@ -173,6 +175,8 @@ static void P_BringUpWeapon(player_t *player)
   psp->sy = demo_version >= DV_MBF ? WEAPONBOTTOM + FRACUNIT * 2 : WEAPONBOTTOM;
 
   psp->sy2 = psp->oldsy2 = psp->sy;
+
+  psp->sxf = psp->syf = 0;
 
   P_SetPsprite(player, ps_weapon, newstate);
 }
@@ -270,7 +274,7 @@ int P_SwitchWeapon(player_t *player)
   int newweapon = currentweapon;
   int i = NUMWEAPONS+1;   // killough 5/2/98
 
-  G_NextWeaponReset();
+  G_NextWeaponReset(currentweapon);
 
   // [XA] use fixed behavior for mbf21. no need
   // for a discrete compat option for this, as
@@ -365,7 +369,7 @@ boolean P_CheckAmmo(player_t *player)
     count = weaponinfo[player->readyweapon].ammopershot;
   else
   if (player->readyweapon == wp_bfg)  // Minimal amount for one shot varies.
-    count = BFGCELLS;
+      count = deh_bfg_cells_per_shot;
   else
     if (player->readyweapon == wp_supershotgun)        // Double barrel.
       count = 2;
@@ -522,6 +526,8 @@ void A_WeaponReady(player_t *player, pspdef_t *psp)
     }
   else
     player->attackdown = false;
+
+  psp->sxf = psp->syf = 0;
 
   P_ApplyBobbing(&psp->sx, &psp->sy, player->bob);
 }
@@ -729,7 +735,7 @@ void A_Saw(player_t *player, pspdef_t *psp)
   // killough 5/5/98: remove dependence on order of evaluation:
   int t = P_Random(pr_saw);
 
-  angle += (t - P_Random(pr_saw))<<18;
+  angle += shiftleft32(t - P_Random(pr_saw), 18);
 
   // Use meleerange + 1 so that the puff doesn't skip the flash
   range = (mbf21 ? player->mo->info->meleerange : MELEERANGE) + 1;
@@ -788,7 +794,7 @@ void A_FireMissile(player_t *player, pspdef_t *psp)
 
 void A_FireBFG(player_t *player, pspdef_t *psp)
 {
-  P_SubtractAmmo(player, BFGCELLS);
+  P_SubtractAmmo(player, deh_bfg_cells_per_shot);
   P_SpawnPlayerMissile(player->mo, MT_BFG);
 }
 
@@ -825,7 +831,13 @@ void A_FireOldBFG(player_t *player, pspdef_t *psp)
       angle_t an1 = ((P_Random(pr_bfg)&127) - 64) * (ANG90/768) + an;
       angle_t an2 = ((P_Random(pr_bfg)&127) - 64) * (ANG90/640) + ANG90;
 
+// desync fix: mh1910-430
+// in PrBoom, autoaim can only be activated with AIM cheat in beta emulation
+#ifdef MBF_STRICT
       if (autoaim || !beta_emulation)
+#else
+      if (autoaim || direct_vertical_aiming)
+#endif
 	{
 	  // killough 8/2/98: make autoaiming prefer enemies
 	  int mask = MF_FRIEND;
@@ -928,7 +940,7 @@ void P_GunShot(mobj_t *mo, boolean accurate)
   if (!accurate)
     {  // killough 5/5/98: remove dependence on order of evaluation:
       int t = P_Random(pr_misfire);
-      angle += (t - P_Random(pr_misfire))<<18;
+      angle += shiftleft32(t - P_Random(pr_misfire), 18);
     }
 
   P_LineAttack(mo, angle, MISSILERANGE, bulletslope, damage);
@@ -996,10 +1008,10 @@ void A_FireShotgun2(player_t *player, pspdef_t *psp)
       angle_t angle = player->mo->angle;
       // killough 5/5/98: remove dependence on order of evaluation:
       int t = P_Random(pr_shotgun);
-      angle += (t - P_Random(pr_shotgun))<<19;
+      angle += shiftleft32(t - P_Random(pr_shotgun), 19);
       t = P_Random(pr_shotgun);
       P_LineAttack(player->mo, angle, MISSILERANGE, bulletslope +
-                   ((t - P_Random(pr_shotgun))<<5), damage);
+                   shiftleft32(t - P_Random(pr_shotgun), 5), damage);
     }
 }
 
@@ -1119,6 +1131,8 @@ void P_SetupPsprites(player_t *player)
 #define WEAPON_CENTERED 1
 #define WEAPON_BOBBING 2
 
+boolean psp_interp;
+
 void P_MovePsprites(player_t *player)
 {
   pspdef_t *psp = player->psprites;
@@ -1166,7 +1180,8 @@ void P_MovePsprites(player_t *player)
     else if (center_weapon_strict || uncapped)
     {
       // [FG] don't center during lowering and raising states
-      if (psp->state->misc1 || player->switching)
+      if ((psp->state->misc1 && center_weapon_strict != WEAPON_BOBBING) ||
+          player->switching)
       {
       }
       // [FG] not attacking means idle
@@ -1174,6 +1189,12 @@ void P_MovePsprites(player_t *player)
       {
         fixed_t bob = player->bob * weapon_bobbing_pct / 4;
         P_ApplyBobbing(&psp->sx2, &psp->sy2, bob);
+
+        if (psp->sxf)
+        {
+          psp->sx2 += psp->sxf;
+          psp->sy2 += psp->syf - WEAPONTOP;
+        }
       }
       // [FG] center the weapon sprite horizontally and push up vertically
       else if (center_weapon_strict == WEAPON_CENTERED)
@@ -1184,10 +1205,33 @@ void P_MovePsprites(player_t *player)
     }
   }
 
+  static spritenum_t oldsprite = -1;
+  static int oldframe = -1;
+  static fixed_t oldsxf = -1, oldsyf = -1;
+
+  spritenum_t sprite = -1;
+  int frame = -1;
+
+  if (psp->state)
+  {
+    sprite = psp->state->sprite;
+    frame = psp->state->frame & FF_FRAMEMASK;
+  }
+
+  psp_interp = !((oldsprite != sprite || oldframe != frame) &&
+                 (oldsxf != psp->sxf || oldsyf != psp->syf));
+
+  oldsprite = sprite;
+  oldframe = frame;
+  oldsxf = psp->sxf;
+  oldsyf = psp->syf;
+
   player->psprites[ps_flash].sx2 = player->psprites[ps_weapon].sx2;
   player->psprites[ps_flash].sy2 = player->psprites[ps_weapon].sy2;
   player->psprites[ps_flash].oldsx2 = player->psprites[ps_weapon].oldsx2;
   player->psprites[ps_flash].oldsy2 = player->psprites[ps_weapon].oldsy2;
+  player->psprites[ps_flash].sxf = player->psprites[ps_weapon].sxf;
+  player->psprites[ps_flash].syf = player->psprites[ps_weapon].syf;
 }
 
 //

@@ -1,0 +1,3419 @@
+{
+  "type": "statusbar",
+  "version": "1.2.0",
+  "data": {
+    "numberfonts": [
+      {
+        "name": "BigRed",
+        "type": 0,
+        "stem": "STT"
+      },
+      {
+        "name": "SmallGrey",
+        "type": 0,
+        "stem": "STG"
+      },
+      {
+        "name": "SmallYellow",
+        "type": 0,
+        "stem": "STYS"
+      }
+    ],
+    "hudfonts": [
+      {
+        "name": "Console",
+        "type": 2,
+        "stem": "STCFN"
+      },
+      {
+        "name": "Digits",
+        "type": 0,
+        "stem": "DIG"
+      }
+    ],
+    "statusbars": [
+      {
+        "height": 32,
+        "fullscreenrender": false,
+        "fillflat": null,
+        "children": [
+          {
+            "graphic": {
+              "x": 160,
+              "y": 0,
+              "alignment": 1,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "patch": "STBAR"
+            }
+          },
+          {
+            "facebackground": {
+              "x": 143,
+              "y": 1,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 15,
+                  "param": 0,
+                  "param2": 0
+                }
+              ],
+              "children": []
+            }
+          },
+          {
+            "face": {
+              "x": 143,
+              "y": 0,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": []
+            }
+          },
+          {
+            "number": {
+              "x": 44,
+              "y": 3,
+              "alignment": 2,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 4,
+                  "param": 0,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "font": "BigRed",
+              "type": 4,
+              "param": 0,
+              "maxlength": 3
+            }
+          },
+          {
+            "percent": {
+              "x": 104,
+              "y": 3,
+              "alignment": 2,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "BigRed",
+              "type": 0,
+              "param": 0,
+              "maxlength": 3
+            }
+          },
+          {
+            "percent": {
+              "x": 235,
+              "y": 3,
+              "alignment": 2,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "BigRed",
+              "type": 1,
+              "param": 0,
+              "maxlength": 3
+            }
+          },
+          {
+            "number": {
+              "x": 138,
+              "y": 3,
+              "alignment": 2,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 14,
+                  "param": 2,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "font": "BigRed",
+              "type": 2,
+              "param": 0,
+              "maxlength": 2
+            }
+          },
+          {
+            "graphic": {
+              "x": 104,
+              "y": 0,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 15,
+                  "param": 2,
+                  "param2": 0
+                }
+              ],
+              "children": [
+                {
+                  "graphic": {
+                    "x": 7,
+                    "y": 4,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 7,
+                        "param": 2,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "patch": "STGNUM2"
+                  }
+                },
+                {
+                  "graphic": {
+                    "x": 7,
+                    "y": 4,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 6,
+                        "param": 2,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "patch": "STYSNUM2"
+                  }
+                },
+                {
+                  "graphic": {
+                    "x": 19,
+                    "y": 4,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 7,
+                        "param": 3,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "patch": "STGNUM3"
+                  }
+                },
+                {
+                  "graphic": {
+                    "x": 19,
+                    "y": 4,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 6,
+                        "param": 3,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "patch": "STYSNUM3"
+                  }
+                },
+                {
+                  "graphic": {
+                    "x": 31,
+                    "y": 4,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 7,
+                        "param": 4,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "patch": "STGNUM4"
+                  }
+                },
+                {
+                  "graphic": {
+                    "x": 31,
+                    "y": 4,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 6,
+                        "param": 4,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "patch": "STYSNUM4"
+                  }
+                },
+                {
+                  "graphic": {
+                    "x": 7,
+                    "y": 14,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 7,
+                        "param": 5,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "patch": "STGNUM5"
+                  }
+                },
+                {
+                  "graphic": {
+                    "x": 7,
+                    "y": 14,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 6,
+                        "param": 5,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "patch": "STYSNUM5"
+                  }
+                },
+                {
+                  "graphic": {
+                    "x": 19,
+                    "y": 14,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 7,
+                        "param": 6,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "patch": "STGNUM6"
+                  }
+                },
+                {
+                  "graphic": {
+                    "x": 19,
+                    "y": 14,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 6,
+                        "param": 6,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "patch": "STYSNUM6"
+                  }
+                },
+                {
+                  "graphic": {
+                    "x": 31,
+                    "y": 14,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 7,
+                        "param": 7,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "patch": "STGNUM7"
+                  }
+                },
+                {
+                  "graphic": {
+                    "x": 31,
+                    "y": 14,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 6,
+                        "param": 7,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "patch": "STYSNUM7"
+                  }
+                }
+              ],
+              "patch": "STARMS"
+            }
+          },
+          {
+            "number": {
+              "x": 288,
+              "y": 5,
+              "alignment": 2,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "SmallYellow",
+              "type": 3,
+              "param": 0,
+              "maxlength": 3
+            }
+          },
+          {
+            "number": {
+              "x": 314,
+              "y": 5,
+              "alignment": 2,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "SmallYellow",
+              "type": 5,
+              "param": 0,
+              "maxlength": 3
+            }
+          },
+          {
+            "number": {
+              "x": 288,
+              "y": 11,
+              "alignment": 2,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "SmallYellow",
+              "type": 3,
+              "param": 1,
+              "maxlength": 3
+            }
+          },
+          {
+            "number": {
+              "x": 314,
+              "y": 11,
+              "alignment": 2,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "SmallYellow",
+              "type": 5,
+              "param": 1,
+              "maxlength": 3
+            }
+          },
+          {
+            "number": {
+              "x": 288,
+              "y": 17,
+              "alignment": 2,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "SmallYellow",
+              "type": 3,
+              "param": 3,
+              "maxlength": 3
+            }
+          },
+          {
+            "number": {
+              "x": 314,
+              "y": 17,
+              "alignment": 2,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "SmallYellow",
+              "type": 5,
+              "param": 3,
+              "maxlength": 3
+            }
+          },
+          {
+            "number": {
+              "x": 288,
+              "y": 23,
+              "alignment": 2,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "SmallYellow",
+              "type": 3,
+              "param": 2,
+              "maxlength": 3
+            }
+          },
+          {
+            "number": {
+              "x": 314,
+              "y": 23,
+              "alignment": 2,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "SmallYellow",
+              "type": 5,
+              "param": 2,
+              "maxlength": 3
+            }
+          },
+          {
+            "graphic": {
+              "x": 239,
+              "y": 3,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 10,
+                  "param": 1,
+                  "param2": 0
+                },
+                {
+                  "condition": 11,
+                  "param": 4,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "patch": "STKEYS0"
+            }
+          },
+          {
+            "graphic": {
+              "x": 239,
+              "y": 3,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 11,
+                  "param": 1,
+                  "param2": 0
+                },
+                {
+                  "condition": 10,
+                  "param": 4,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "patch": "STKEYS3"
+            }
+          },
+          {
+            "graphic": {
+              "x": 239,
+              "y": 3,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 10,
+                  "param": 1,
+                  "param2": 0
+                },
+                {
+                  "condition": 10,
+                  "param": 4,
+                  "param2": 0
+                },
+                {
+                  "condition": 13,
+                  "param": 1,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "patch": "STKEYS3"
+            }
+          },
+          {
+            "graphic": {
+              "x": 239,
+              "y": 3,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 10,
+                  "param": 1,
+                  "param2": 0
+                },
+                {
+                  "condition": 10,
+                  "param": 4,
+                  "param2": 0
+                },
+                {
+                  "condition": 12,
+                  "param": 1,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "patch": "STKEYS6"
+            }
+          },
+          {
+            "graphic": {
+              "x": 239,
+              "y": 13,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 10,
+                  "param": 2,
+                  "param2": 0
+                },
+                {
+                  "condition": 11,
+                  "param": 5,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "patch": "STKEYS1"
+            }
+          },
+          {
+            "graphic": {
+              "x": 239,
+              "y": 13,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 11,
+                  "param": 2,
+                  "param2": 0
+                },
+                {
+                  "condition": 10,
+                  "param": 5,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "patch": "STKEYS4"
+            }
+          },
+          {
+            "graphic": {
+              "x": 239,
+              "y": 13,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 10,
+                  "param": 2,
+                  "param2": 0
+                },
+                {
+                  "condition": 10,
+                  "param": 5,
+                  "param2": 0
+                },
+                {
+                  "condition": 13,
+                  "param": 1,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "patch": "STKEYS4"
+            }
+          },
+          {
+            "graphic": {
+              "x": 239,
+              "y": 13,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 10,
+                  "param": 2,
+                  "param2": 0
+                },
+                {
+                  "condition": 10,
+                  "param": 5,
+                  "param2": 0
+                },
+                {
+                  "condition": 12,
+                  "param": 1,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "patch": "STKEYS7"
+            }
+          },
+          {
+            "graphic": {
+              "x": 239,
+              "y": 23,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 10,
+                  "param": 3,
+                  "param2": 0
+                },
+                {
+                  "condition": 11,
+                  "param": 6,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "patch": "STKEYS2"
+            }
+          },
+          {
+            "graphic": {
+              "x": 239,
+              "y": 23,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 11,
+                  "param": 3,
+                  "param2": 0
+                },
+                {
+                  "condition": 10,
+                  "param": 6,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "patch": "STKEYS5"
+            }
+          },
+          {
+            "graphic": {
+              "x": 239,
+              "y": 23,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 10,
+                  "param": 3,
+                  "param2": 0
+                },
+                {
+                  "condition": 10,
+                  "param": 6,
+                  "param2": 0
+                },
+                {
+                  "condition": 13,
+                  "param": 1,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "patch": "STKEYS5"
+            }
+          },
+          {
+            "graphic": {
+              "x": 239,
+              "y": 23,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 10,
+                  "param": 3,
+                  "param2": 0
+                },
+                {
+                  "condition": 10,
+                  "param": 6,
+                  "param2": 0
+                },
+                {
+                  "condition": 12,
+                  "param": 1,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "patch": "STKEYS8"
+            }
+          },
+          {
+            "component": {
+              "x": 2,
+              "y": -160,
+              "alignment": 64,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 19,
+                  "param": 3,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "type": "stat_totals",
+              "font": "Digits",
+              "vertical": true
+            }
+          },
+          {
+            "component": {
+              "x": 2,
+              "y": -128,
+              "alignment": 64,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 19,
+                  "param": 3,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "type": "time",
+              "font": "Digits",
+              "vertical": false
+            }
+          },
+          {
+            "component": {
+              "x": 318,
+              "y": -160,
+              "alignment": 130,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 19,
+                  "param": 4,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "type": "coordinates",
+              "font": "Digits",
+              "vertical": false
+            }
+          },
+          {
+            "component": {
+              "x": 256,
+              "y": -160,
+              "alignment": 128,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 19,
+                  "param": 3,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "type": "coordinates",
+              "font": "Digits",
+              "vertical": true
+            }
+          },
+          {
+            "component": {
+              "x": 318,
+              "y": -168,
+              "alignment": 130,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "type": "fps_counter",
+              "font": "Digits",
+              "vertical": false
+            }
+          },
+          {
+            "component": {
+              "x": 2,
+              "y": -160,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "type": "render_stats",
+              "font": "Digits",
+              "vertical": false
+            }
+          },
+          {
+            "component": {
+              "x": 318,
+              "y": -1,
+              "alignment": 138,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "type": "command_history",
+              "font": "Digits",
+              "vertical": false
+            }
+          },
+          {
+            "component": {
+              "x": 160,
+              "y": -1,
+              "alignment": 9,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "type": "speedometer",
+              "font": "Digits",
+              "vertical": false
+            }
+          },
+          {
+            "component": {
+              "x": 0,
+              "y": -168,
+              "alignment": 64,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "type": "message",
+              "font": "Console",
+              "vertical": false,
+              "duration": 4.0
+            }
+          },
+          {
+            "component": {
+              "x": 160,
+              "y": -116,
+              "alignment": 1,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "type": "announce_level_title",
+              "font": "Console",
+              "vertical": false,
+              "duration": 2.5
+            }
+          },
+          {
+            "component": {
+              "x": 0,
+              "y": -160,
+              "alignment": 64,
+              "tranmap": null,
+              "translation": "CRGOLD",
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "type": "chat",
+              "font": "Console",
+              "vertical": false
+            }
+          },
+          {
+            "component": {
+              "x": 0,
+              "y": 0,
+              "alignment": 72,
+              "tranmap": null,
+              "translation": "CRGOLD",
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 19,
+                  "param": 3,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "type": "level_title",
+              "font": "Console",
+              "vertical": false
+            }
+          },
+          {
+            "list": {
+              "x": 2,
+              "y": 0,
+              "alignment": 72,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [
+                {
+                  "component": {
+                    "x": 0,
+                    "y": 0,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 19,
+                        "param": 4,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "type": "time",
+                    "font": "Digits",
+                    "vertical": false,
+                    "duration": 4.0
+                  }
+                },
+                {
+                  "component": {
+                    "x": 0,
+                    "y": 0,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 19,
+                        "param": 4,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "type": "stat_totals",
+                    "font": "Digits",
+                    "vertical": false,
+                    "duration": 4.0
+                  }
+                }
+              ],
+              "horizontal": false,
+              "spacing": 0
+            }
+          },
+          {
+            "minimap": {
+              "x": 2,
+              "y": -159,
+              "alignment": 64,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "width": 72,
+              "height": 60,
+              "background": 1
+            }
+          },
+          {
+            "carousel": {
+              "x": 0,
+              "y": -150,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": []
+            }
+          }
+        ]
+      },
+      {
+        "height": 200,
+        "fullscreenrender": true,
+        "fillflat": null,
+        "children": [
+          {
+            "canvas": {
+              "x": 0,
+              "y": 0,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 18,
+                  "param": 0,
+                  "param2": 0
+                }
+              ],
+              "children": [
+                {
+                  "facebackground": {
+                    "x": 19,
+                    "y": 162,
+                    "alignment": 64,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 15,
+                        "param": 0,
+                        "param2": 0
+                      }
+                    ],
+                    "children": []
+                  }
+                },
+                {
+                  "face": {
+                    "x": 20,
+                    "y": 161,
+                    "alignment": 64,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": []
+                  }
+                },
+                {
+                  "number": {
+                    "x": 53,
+                    "y": 175,
+                    "alignment": 64,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
+                    "font": "BigRed",
+                    "type": 0,
+                    "param": 0,
+                    "maxlength": 3
+                  }
+                },
+                {
+                  "graphic": {
+                    "x": 292,
+                    "y": 189,
+                    "alignment": 128,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 5,
+                        "param": 0,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "patch": "CLIPA0"
+                  }
+                },
+                {
+                  "graphic": {
+                    "x": 295,
+                    "y": 186,
+                    "alignment": 128,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 5,
+                        "param": 1,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "patch": "SHELA0"
+                  }
+                },
+                {
+                  "graphic": {
+                    "x": 297,
+                    "y": 192,
+                    "alignment": 128,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 5,
+                        "param": 2,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "patch": "CELLA0"
+                  }
+                },
+                {
+                  "graphic": {
+                    "x": 295,
+                    "y": 195,
+                    "alignment": 128,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 5,
+                        "param": 3,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "patch": "ROCKA0"
+                  }
+                },
+                {
+                  "number": {
+                    "x": 285,
+                    "y": 175,
+                    "alignment": 130,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 4,
+                        "param": 0,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "font": "BigRed",
+                    "type": 4,
+                    "param": 0,
+                    "maxlength": 3
+                  }
+                },
+                {
+                  "graphic": {
+                    "x": 125,
+                    "y": 192,
+                    "alignment": 64,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 11,
+                        "param": 15,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "patch": "ARM1A0"
+                  }
+                },
+                {
+                  "graphic": {
+                    "x": 125,
+                    "y": 192,
+                    "alignment": 64,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 10,
+                        "param": 15,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "patch": "ARM2A0"
+                  }
+                },
+                {
+                  "number": {
+                    "x": 145,
+                    "y": 175,
+                    "alignment": 64,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
+                    "font": "BigRed",
+                    "type": 1,
+                    "param": 0,
+                    "maxlength": 3
+                  }
+                },
+                {
+                  "number": {
+                    "x": 300,
+                    "y": 5,
+                    "alignment": 130,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 14,
+                        "param": 2,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "font": "BigRed",
+                    "type": 2,
+                    "param": 0,
+                    "maxlength": 2
+                  }
+                },
+                {
+                  "canvas": {
+                    "x": 310,
+                    "y": 168,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [
+                      {
+                        "graphic": {
+                          "x": 0,
+                          "y": 0,
+                          "alignment": 128,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 10,
+                              "param": 1,
+                              "param2": 0
+                            },
+                            {
+                              "condition": 11,
+                              "param": 4,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "patch": "STKEYS0"
+                        }
+                      },
+                      {
+                        "graphic": {
+                          "x": 0,
+                          "y": 0,
+                          "alignment": 128,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 11,
+                              "param": 1,
+                              "param2": 0
+                            },
+                            {
+                              "condition": 10,
+                              "param": 4,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "patch": "STKEYS3"
+                        }
+                      },
+                      {
+                        "graphic": {
+                          "x": 0,
+                          "y": 0,
+                          "alignment": 128,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 10,
+                              "param": 1,
+                              "param2": 0
+                            },
+                            {
+                              "condition": 10,
+                              "param": 4,
+                              "param2": 0
+                            },
+                            {
+                              "condition": 13,
+                              "param": 1,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "patch": "STKEYS3"
+                        }
+                      },
+                      {
+                        "graphic": {
+                          "x": 0,
+                          "y": 0,
+                          "alignment": 128,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 10,
+                              "param": 1,
+                              "param2": 0
+                            },
+                            {
+                              "condition": 10,
+                              "param": 4,
+                              "param2": 0
+                            },
+                            {
+                              "condition": 12,
+                              "param": 1,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "patch": "STKEYS6"
+                        }
+                      },
+                      {
+                        "graphic": {
+                          "x": 0,
+                          "y": 10,
+                          "alignment": 128,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 10,
+                              "param": 2,
+                              "param2": 0
+                            },
+                            {
+                              "condition": 11,
+                              "param": 5,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "patch": "STKEYS1"
+                        }
+                      },
+                      {
+                        "graphic": {
+                          "x": 0,
+                          "y": 10,
+                          "alignment": 128,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 11,
+                              "param": 2,
+                              "param2": 0
+                            },
+                            {
+                              "condition": 10,
+                              "param": 5,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "patch": "STKEYS4"
+                        }
+                      },
+                      {
+                        "graphic": {
+                          "x": 0,
+                          "y": 10,
+                          "alignment": 128,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 10,
+                              "param": 2,
+                              "param2": 0
+                            },
+                            {
+                              "condition": 10,
+                              "param": 5,
+                              "param2": 0
+                            },
+                            {
+                              "condition": 13,
+                              "param": 1,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "patch": "STKEYS4"
+                        }
+                      },
+                      {
+                        "graphic": {
+                          "x": 0,
+                          "y": 10,
+                          "alignment": 128,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 10,
+                              "param": 2,
+                              "param2": 0
+                            },
+                            {
+                              "condition": 10,
+                              "param": 5,
+                              "param2": 0
+                            },
+                            {
+                              "condition": 12,
+                              "param": 1,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "patch": "STKEYS7"
+                        }
+                      },
+                      {
+                        "graphic": {
+                          "x": 0,
+                          "y": 20,
+                          "alignment": 128,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 10,
+                              "param": 3,
+                              "param2": 0
+                            },
+                            {
+                              "condition": 11,
+                              "param": 6,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "patch": "STKEYS2"
+                        }
+                      },
+                      {
+                        "graphic": {
+                          "x": 0,
+                          "y": 20,
+                          "alignment": 128,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 11,
+                              "param": 3,
+                              "param2": 0
+                            },
+                            {
+                              "condition": 10,
+                              "param": 6,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "patch": "STKEYS5"
+                        }
+                      },
+                      {
+                        "graphic": {
+                          "x": 0,
+                          "y": 20,
+                          "alignment": 128,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 10,
+                              "param": 3,
+                              "param2": 0
+                            },
+                            {
+                              "condition": 10,
+                              "param": 6,
+                              "param2": 0
+                            },
+                            {
+                              "condition": 13,
+                              "param": 1,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "patch": "STKEYS5"
+                        }
+                      },
+                      {
+                        "graphic": {
+                          "x": 0,
+                          "y": 20,
+                          "alignment": 128,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 10,
+                              "param": 3,
+                              "param2": 0
+                            },
+                            {
+                              "condition": 10,
+                              "param": 6,
+                              "param2": 0
+                            },
+                            {
+                              "condition": 12,
+                              "param": 1,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "patch": "STKEYS8"
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "component": {
+                    "x": 2,
+                    "y": 8,
+                    "alignment": 64,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 19,
+                        "param": 3,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "type": "stat_totals",
+                    "font": "Digits",
+                    "vertical": true,
+                    "duration": 4.0
+                  }
+                },
+                {
+                  "component": {
+                    "x": 2,
+                    "y": 40,
+                    "alignment": 64,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 19,
+                        "param": 3,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "type": "time",
+                    "font": "Digits",
+                    "vertical": false,
+                    "duration": 4.0
+                  }
+                },
+                {
+                  "component": {
+                    "x": 318,
+                    "y": 8,
+                    "alignment": 130,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 19,
+                        "param": 4,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "type": "coordinates",
+                    "font": "Digits",
+                    "vertical": false,
+                    "duration": 4.0
+                  }
+                },
+                {
+                  "component": {
+                    "x": 256,
+                    "y": 8,
+                    "alignment": 128,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 19,
+                        "param": 3,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "type": "coordinates",
+                    "font": "Digits",
+                    "vertical": true,
+                    "duration": 4.0
+                  }
+                },
+                {
+                  "component": {
+                    "x": 318,
+                    "y": 0,
+                    "alignment": 130,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
+                    "type": "fps_counter",
+                    "font": "Digits",
+                    "vertical": false,
+                    "duration": 4.0
+                  }
+                },
+                {
+                  "component": {
+                    "x": 2,
+                    "y": 8,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
+                    "type": "render_stats",
+                    "font": "Digits",
+                    "vertical": false,
+                    "duration": 4.0
+                  }
+                },
+                {
+                  "component": {
+                    "x": 318,
+                    "y": 167,
+                    "alignment": 138,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
+                    "type": "command_history",
+                    "font": "Digits",
+                    "vertical": false,
+                    "duration": 4.0
+                  }
+                },
+                {
+                  "component": {
+                    "x": 160,
+                    "y": 167,
+                    "alignment": 9,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
+                    "type": "speedometer",
+                    "font": "Digits",
+                    "vertical": false,
+                    "duration": 4.0
+                  }
+                },
+                {
+                  "component": {
+                    "x": 0,
+                    "y": 0,
+                    "alignment": 64,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
+                    "type": "message",
+                    "font": "Console",
+                    "vertical": false,
+                    "duration": 4.0
+                  }
+                },
+                {
+                  "component": {
+                    "x": 160,
+                    "y": 68,
+                    "alignment": 1,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
+                    "type": "announce_level_title",
+                    "font": "Console",
+                    "vertical": false,
+                    "duration": 2.5
+                  }
+                },
+                {
+                  "component": {
+                    "x": 0,
+                    "y": 8,
+                    "alignment": 64,
+                    "tranmap": null,
+                    "translation": "CRGOLD",
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
+                    "type": "chat",
+                    "font": "Console",
+                    "vertical": false,
+                    "duration": 4.0
+                  }
+                },
+                {
+                  "component": {
+                    "x": 0,
+                    "y": 154,
+                    "alignment": 64,
+                    "tranmap": null,
+                    "translation": "CRGOLD",
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 19,
+                        "param": 2,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "type": "level_title",
+                    "font": "Console",
+                    "vertical": false,
+                    "duration": 4.0
+                  }
+                },
+                {
+                  "list": {
+                    "x": 2,
+                    "y": 161,
+                    "alignment": 72,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [
+                      {
+                        "component": {
+                          "x": 0,
+                          "y": 0,
+                          "alignment": 0,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 19,
+                              "param": 4,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "type": "time",
+                          "font": "Digits",
+                          "vertical": false,
+                          "duration": 4.0
+                        }
+                      },
+                      {
+                        "component": {
+                          "x": 0,
+                          "y": 0,
+                          "alignment": 0,
+                          "tranmap": null,
+                          "translation": null,
+                          "translucency": false,
+                          "conditions": [
+                            {
+                              "condition": 19,
+                              "param": 4,
+                              "param2": 0
+                            }
+                          ],
+                          "children": [],
+                          "type": "stat_totals",
+                          "font": "Digits",
+                          "vertical": false,
+                          "duration": 4.0
+                        }
+                      }
+                    ],
+                    "horizontal": false,
+                    "spacing": 0
+                  }
+                },
+                {
+                  "minimap": {
+                    "x": 2,
+                    "y": 9,
+                    "alignment": 64,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": [],
+                    "width": 72,
+                    "height": 60,
+                    "background": 1
+                  }
+                },
+                {
+                  "carousel": {
+                    "x": 0,
+                    "y": 18,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [],
+                    "children": []
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "height": 200,
+        "fullscreenrender": true,
+        "fillflat": null,
+        "children": [
+          {
+            "number": {
+              "x": 44,
+              "y": 171,
+              "alignment": 66,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 4,
+                  "param": 0,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "font": "BigRed",
+              "type": 4,
+              "param": 0,
+              "maxlength": 3
+            }
+          },
+          {
+            "percent": {
+              "x": 104,
+              "y": 171,
+              "alignment": 66,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "BigRed",
+              "type": 0,
+              "param": 0,
+              "maxlength": 3
+            }
+          },
+          {
+            "percent": {
+              "x": 235,
+              "y": 171,
+              "alignment": 130,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "BigRed",
+              "type": 1,
+              "param": 0,
+              "maxlength": 3
+            }
+          },
+          {
+            "number": {
+              "x": 138,
+              "y": 171,
+              "alignment": 66,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 14,
+                  "param": 2,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "font": "BigRed",
+              "type": 2,
+              "param": 0,
+              "maxlength": 2
+            }
+          },
+          {
+            "canvas": {
+              "x": 104,
+              "y": 168,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 15,
+                  "param": 2,
+                  "param2": 0
+                }
+              ],
+              "children": [
+                {
+                  "graphic": {
+                    "x": 7,
+                    "y": 4,
+                    "alignment": 64,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 7,
+                        "param": 2,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "patch": "STGNUM2"
+                  }
+                },
+                {
+                  "graphic": {
+                    "x": 7,
+                    "y": 4,
+                    "alignment": 64,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 6,
+                        "param": 2,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "patch": "STYSNUM2"
+                  }
+                },
+                {
+                  "graphic": {
+                    "x": 19,
+                    "y": 4,
+                    "alignment": 64,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 7,
+                        "param": 3,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "patch": "STGNUM3"
+                  }
+                },
+                {
+                  "graphic": {
+                    "x": 19,
+                    "y": 4,
+                    "alignment": 64,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 6,
+                        "param": 3,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "patch": "STYSNUM3"
+                  }
+                },
+                {
+                  "graphic": {
+                    "x": 31,
+                    "y": 4,
+                    "alignment": 64,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 7,
+                        "param": 4,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "patch": "STGNUM4"
+                  }
+                },
+                {
+                  "graphic": {
+                    "x": 31,
+                    "y": 4,
+                    "alignment": 64,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 6,
+                        "param": 4,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "patch": "STYSNUM4"
+                  }
+                },
+                {
+                  "graphic": {
+                    "x": 7,
+                    "y": 14,
+                    "alignment": 64,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 7,
+                        "param": 5,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "patch": "STGNUM5"
+                  }
+                },
+                {
+                  "graphic": {
+                    "x": 7,
+                    "y": 14,
+                    "alignment": 64,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 6,
+                        "param": 5,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "patch": "STYSNUM5"
+                  }
+                },
+                {
+                  "graphic": {
+                    "x": 19,
+                    "y": 14,
+                    "alignment": 64,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 7,
+                        "param": 6,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "patch": "STGNUM6"
+                  }
+                },
+                {
+                  "graphic": {
+                    "x": 19,
+                    "y": 14,
+                    "alignment": 64,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 6,
+                        "param": 6,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "patch": "STYSNUM6"
+                  }
+                },
+                {
+                  "graphic": {
+                    "x": 31,
+                    "y": 14,
+                    "alignment": 64,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 7,
+                        "param": 7,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "patch": "STGNUM7"
+                  }
+                },
+                {
+                  "graphic": {
+                    "x": 31,
+                    "y": 14,
+                    "alignment": 64,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 6,
+                        "param": 7,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "patch": "STYSNUM7"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "number": {
+              "x": 288,
+              "y": 173,
+              "alignment": 130,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "SmallYellow",
+              "type": 3,
+              "param": 0,
+              "maxlength": 3
+            }
+          },
+          {
+            "number": {
+              "x": 314,
+              "y": 173,
+              "alignment": 130,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "SmallYellow",
+              "type": 5,
+              "param": 0,
+              "maxlength": 3
+            }
+          },
+          {
+            "number": {
+              "x": 288,
+              "y": 179,
+              "alignment": 130,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "SmallYellow",
+              "type": 3,
+              "param": 1,
+              "maxlength": 3
+            }
+          },
+          {
+            "number": {
+              "x": 314,
+              "y": 179,
+              "alignment": 130,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "SmallYellow",
+              "type": 5,
+              "param": 1,
+              "maxlength": 3
+            }
+          },
+          {
+            "number": {
+              "x": 288,
+              "y": 185,
+              "alignment": 130,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "SmallYellow",
+              "type": 3,
+              "param": 3,
+              "maxlength": 3
+            }
+          },
+          {
+            "number": {
+              "x": 314,
+              "y": 185,
+              "alignment": 130,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "SmallYellow",
+              "type": 5,
+              "param": 3,
+              "maxlength": 3
+            }
+          },
+          {
+            "number": {
+              "x": 288,
+              "y": 191,
+              "alignment": 130,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "SmallYellow",
+              "type": 3,
+              "param": 2,
+              "maxlength": 3
+            }
+          },
+          {
+            "number": {
+              "x": 314,
+              "y": 191,
+              "alignment": 130,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "font": "SmallYellow",
+              "type": 5,
+              "param": 2,
+              "maxlength": 3
+            }
+          },
+          {
+            "graphic": {
+              "x": 239,
+              "y": 171,
+              "alignment": 128,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 10,
+                  "param": 1,
+                  "param2": 0
+                },
+                {
+                  "condition": 11,
+                  "param": 4,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "patch": "STKEYS0"
+            }
+          },
+          {
+            "graphic": {
+              "x": 239,
+              "y": 171,
+              "alignment": 128,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 11,
+                  "param": 1,
+                  "param2": 0
+                },
+                {
+                  "condition": 10,
+                  "param": 4,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "patch": "STKEYS3"
+            }
+          },
+          {
+            "graphic": {
+              "x": 239,
+              "y": 171,
+              "alignment": 128,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 10,
+                  "param": 1,
+                  "param2": 0
+                },
+                {
+                  "condition": 10,
+                  "param": 4,
+                  "param2": 0
+                },
+                {
+                  "condition": 13,
+                  "param": 1,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "patch": "STKEYS3"
+            }
+          },
+          {
+            "graphic": {
+              "x": 239,
+              "y": 171,
+              "alignment": 128,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 10,
+                  "param": 1,
+                  "param2": 0
+                },
+                {
+                  "condition": 10,
+                  "param": 4,
+                  "param2": 0
+                },
+                {
+                  "condition": 12,
+                  "param": 1,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "patch": "STKEYS6"
+            }
+          },
+          {
+            "graphic": {
+              "x": 239,
+              "y": 181,
+              "alignment": 128,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 10,
+                  "param": 2,
+                  "param2": 0
+                },
+                {
+                  "condition": 11,
+                  "param": 5,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "patch": "STKEYS1"
+            }
+          },
+          {
+            "graphic": {
+              "x": 239,
+              "y": 181,
+              "alignment": 128,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 11,
+                  "param": 2,
+                  "param2": 0
+                },
+                {
+                  "condition": 10,
+                  "param": 5,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "patch": "STKEYS4"
+            }
+          },
+          {
+            "graphic": {
+              "x": 239,
+              "y": 181,
+              "alignment": 128,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 10,
+                  "param": 2,
+                  "param2": 0
+                },
+                {
+                  "condition": 10,
+                  "param": 5,
+                  "param2": 0
+                },
+                {
+                  "condition": 13,
+                  "param": 1,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "patch": "STKEYS4"
+            }
+          },
+          {
+            "graphic": {
+              "x": 239,
+              "y": 181,
+              "alignment": 128,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 10,
+                  "param": 2,
+                  "param2": 0
+                },
+                {
+                  "condition": 10,
+                  "param": 5,
+                  "param2": 0
+                },
+                {
+                  "condition": 12,
+                  "param": 1,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "patch": "STKEYS7"
+            }
+          },
+          {
+            "graphic": {
+              "x": 239,
+              "y": 191,
+              "alignment": 128,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 10,
+                  "param": 3,
+                  "param2": 0
+                },
+                {
+                  "condition": 11,
+                  "param": 6,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "patch": "STKEYS2"
+            }
+          },
+          {
+            "graphic": {
+              "x": 239,
+              "y": 191,
+              "alignment": 128,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 11,
+                  "param": 3,
+                  "param2": 0
+                },
+                {
+                  "condition": 10,
+                  "param": 6,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "patch": "STKEYS5"
+            }
+          },
+          {
+            "graphic": {
+              "x": 239,
+              "y": 191,
+              "alignment": 128,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 10,
+                  "param": 3,
+                  "param2": 0
+                },
+                {
+                  "condition": 10,
+                  "param": 6,
+                  "param2": 0
+                },
+                {
+                  "condition": 13,
+                  "param": 1,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "patch": "STKEYS5"
+            }
+          },
+          {
+            "graphic": {
+              "x": 239,
+              "y": 191,
+              "alignment": 128,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 10,
+                  "param": 3,
+                  "param2": 0
+                },
+                {
+                  "condition": 10,
+                  "param": 6,
+                  "param2": 0
+                },
+                {
+                  "condition": 12,
+                  "param": 1,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "patch": "STKEYS8"
+            }
+          },
+          {
+            "component": {
+              "x": 2,
+              "y": 8,
+              "alignment": 64,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 19,
+                  "param": 3,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "type": "stat_totals",
+              "font": "Digits",
+              "vertical": true
+            }
+          },
+          {
+            "component": {
+              "x": 2,
+              "y": 40,
+              "alignment": 64,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 19,
+                  "param": 3,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "type": "time",
+              "font": "Digits",
+              "vertical": false
+            }
+          },
+          {
+            "component": {
+              "x": 318,
+              "y": 8,
+              "alignment": 130,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 19,
+                  "param": 4,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "type": "coordinates",
+              "font": "Digits",
+              "vertical": false
+            }
+          },
+          {
+            "component": {
+              "x": 256,
+              "y": 8,
+              "alignment": 128,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 19,
+                  "param": 3,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "type": "coordinates",
+              "font": "Digits",
+              "vertical": true
+            }
+          },
+          {
+            "component": {
+              "x": 318,
+              "y": 0,
+              "alignment": 130,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "type": "fps_counter",
+              "font": "Digits",
+              "vertical": false
+            }
+          },
+          {
+            "component": {
+              "x": 2,
+              "y": 8,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "type": "render_stats",
+              "font": "Digits",
+              "vertical": false
+            }
+          },
+          {
+            "component": {
+              "x": 318,
+              "y": 167,
+              "alignment": 138,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "type": "command_history",
+              "font": "Digits",
+              "vertical": false
+            }
+          },
+          {
+            "component": {
+              "x": 160,
+              "y": 167,
+              "alignment": 9,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "type": "speedometer",
+              "font": "Digits",
+              "vertical": false
+            }
+          },
+          {
+            "component": {
+              "x": 0,
+              "y": 0,
+              "alignment": 64,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "type": "message",
+              "font": "Console",
+              "vertical": false,
+              "duration": 4.0
+            }
+          },
+          {
+            "component": {
+              "x": 160,
+              "y": 52,
+              "alignment": 1,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "type": "announce_level_title",
+              "font": "Console",
+              "vertical": false,
+              "duration": 2.5
+            }
+          },
+          {
+            "component": {
+              "x": 0,
+              "y": 8,
+              "alignment": 64,
+              "tranmap": null,
+              "translation": "CRGOLD",
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "type": "chat",
+              "font": "Console",
+              "vertical": false
+            }
+          },
+          {
+            "component": {
+              "x": 0,
+              "y": 160,
+              "alignment": 64,
+              "tranmap": null,
+              "translation": "CRGOLD",
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 19,
+                  "param": 3,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "type": "level_title",
+              "font": "Console",
+              "vertical": false
+            }
+          },
+          {
+            "list": {
+              "x": 2,
+              "y": 168,
+              "alignment": 72,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [
+                {
+                  "component": {
+                    "x": 0,
+                    "y": 0,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 19,
+                        "param": 4,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "type": "time",
+                    "font": "Digits",
+                    "vertical": false,
+                    "duration": 4.0
+                  }
+                },
+                {
+                  "component": {
+                    "x": 0,
+                    "y": 0,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 19,
+                        "param": 4,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "type": "stat_totals",
+                    "font": "Digits",
+                    "vertical": false,
+                    "duration": 4.0
+                  }
+                }
+              ],
+              "horizontal": false,
+              "spacing": 0
+            }
+          },
+          {
+            "minimap": {
+              "x": 2,
+              "y": 9,
+              "alignment": 64,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "width": 72,
+              "height": 60,
+              "background": 1
+            }
+          },
+          {
+            "carousel": {
+              "x": 0,
+              "y": 18,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": []
+            }
+          }
+        ]
+      },
+      {
+        "height": 200,
+        "fullscreenrender": true,
+        "fillflat": null,
+        "children": [
+          {
+            "component": {
+              "x": 2,
+              "y": 8,
+              "alignment": 64,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 19,
+                  "param": 3,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "type": "stat_totals",
+              "font": "Digits",
+              "vertical": true
+            }
+          },
+          {
+            "component": {
+              "x": 2,
+              "y": 40,
+              "alignment": 64,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 19,
+                  "param": 3,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "type": "time",
+              "font": "Digits",
+              "vertical": false
+            }
+          },
+          {
+            "component": {
+              "x": 318,
+              "y": 8,
+              "alignment": 130,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 19,
+                  "param": 4,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "type": "coordinates",
+              "font": "Digits",
+              "vertical": false
+            }
+          },
+          {
+            "component": {
+              "x": 256,
+              "y": 8,
+              "alignment": 128,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 19,
+                  "param": 3,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "type": "coordinates",
+              "font": "Digits",
+              "vertical": true
+            }
+          },
+          {
+            "component": {
+              "x": 318,
+              "y": 0,
+              "alignment": 130,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "type": "fps_counter",
+              "font": "Digits",
+              "vertical": false
+            }
+          },
+          {
+            "component": {
+              "x": 2,
+              "y": 8,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "type": "render_stats",
+              "font": "Digits",
+              "vertical": false
+            }
+          },
+          {
+            "component": {
+              "x": 318,
+              "y": 200,
+              "alignment": 138,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "type": "command_history",
+              "font": "Digits",
+              "vertical": false
+            }
+          },
+          {
+            "component": {
+              "x": 160,
+              "y": 200,
+              "alignment": 9,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "type": "speedometer",
+              "font": "Digits",
+              "vertical": false
+            }
+          },
+          {
+            "component": {
+              "x": 0,
+              "y": 0,
+              "alignment": 64,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "type": "message",
+              "font": "Console",
+              "vertical": false,
+              "duration": 4.0
+            }
+          },
+          {
+            "component": {
+              "x": 160,
+              "y": 68,
+              "alignment": 1,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "type": "announce_level_title",
+              "font": "Console",
+              "vertical": false,
+              "duration": 2.5
+            }
+          },
+          {
+            "component": {
+              "x": 0,
+              "y": 8,
+              "alignment": 64,
+              "tranmap": null,
+              "translation": "CRGOLD",
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "type": "chat",
+              "font": "Console",
+              "vertical": false
+            }
+          },
+          {
+            "component": {
+              "x": 0,
+              "y": 192,
+              "alignment": 64,
+              "tranmap": null,
+              "translation": "CRGOLD",
+              "translucency": false,
+              "conditions": [
+                {
+                  "condition": 19,
+                  "param": 3,
+                  "param2": 0
+                }
+              ],
+              "children": [],
+              "type": "level_title",
+              "font": "Console",
+              "vertical": false
+            }
+          },
+          {
+            "list": {
+              "x": 2,
+              "y": 200,
+              "alignment": 72,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [
+                {
+                  "component": {
+                    "x": 0,
+                    "y": 0,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 19,
+                        "param": 4,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "type": "time",
+                    "font": "Digits",
+                    "vertical": false,
+                    "duration": 4.0
+                  }
+                },
+                {
+                  "component": {
+                    "x": 0,
+                    "y": 0,
+                    "alignment": 0,
+                    "tranmap": null,
+                    "translation": null,
+                    "translucency": false,
+                    "conditions": [
+                      {
+                        "condition": 19,
+                        "param": 4,
+                        "param2": 0
+                      }
+                    ],
+                    "children": [],
+                    "type": "stat_totals",
+                    "font": "Digits",
+                    "vertical": false,
+                    "duration": 4.0
+                  }
+                }
+              ],
+              "horizontal": false,
+              "spacing": 0
+            }
+          },
+          {
+            "minimap": {
+              "x": 2,
+              "y": 9,
+              "alignment": 64,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": [],
+              "width": 72,
+              "height": 60,
+              "background": 1
+            }
+          },
+          {
+            "carousel": {
+              "x": 0,
+              "y": 18,
+              "alignment": 0,
+              "tranmap": null,
+              "translation": null,
+              "translucency": false,
+              "conditions": [],
+              "children": []
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

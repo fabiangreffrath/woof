@@ -18,8 +18,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "d_deh.h"
 #include "d_player.h"
+#include "deh_strings.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
@@ -58,33 +58,33 @@ static void AssignObituary(const int type, char *ob, char *ob_m)
 {
     if (ob && !mobjinfo[type].obituary)
     {
-        mobjinfo[type].obituary = ob;
+        mobjinfo[type].obituary = DEH_String(ob);
     }
     if (ob_m && !mobjinfo[type].obituary_melee)
     {
-        mobjinfo[type].obituary_melee = ob_m;
+        mobjinfo[type].obituary_melee = DEH_String(ob_m);
     }
 }
 
 void HU_InitObituaries(void)
 {
-    AssignObituary(MT_POSSESSED, s_OB_ZOMBIE,   NULL);
-    AssignObituary(MT_SHOTGUY,   s_OB_SHOTGUY,  NULL);
-    AssignObituary(MT_VILE,      s_OB_VILE,     NULL);
-    AssignObituary(MT_UNDEAD,    s_OB_UNDEAD,   s_OB_UNDEADHIT);
-    AssignObituary(MT_FATSO,     s_OB_FATSO,    NULL);
-    AssignObituary(MT_CHAINGUY,  s_OB_CHAINGUY, NULL);
-    AssignObituary(MT_SKULL,     s_OB_SKULL,    NULL);
-    AssignObituary(MT_TROOP,     s_OB_IMP,      s_OB_IMPHIT);
-    AssignObituary(MT_HEAD,      s_OB_CACO,     s_OB_CACOHIT);
-    AssignObituary(MT_SERGEANT,  NULL,          s_OB_DEMONHIT);
-    AssignObituary(MT_SHADOWS,   NULL,          s_OB_SPECTREHIT);
-    AssignObituary(MT_BRUISER,   s_OB_BARON,    s_OB_BARONHIT);
-    AssignObituary(MT_KNIGHT,    s_OB_KNIGHT,   s_OB_KNIGHTHIT);
-    AssignObituary(MT_SPIDER,    s_OB_SPIDER,   NULL);
-    AssignObituary(MT_BABY,      s_OB_BABY,     NULL);
-    AssignObituary(MT_CYBORG,    s_OB_CYBORG,   NULL);
-    AssignObituary(MT_WOLFSS,    s_OB_WOLFSS,   NULL);
+    AssignObituary(MT_POSSESSED, OB_ZOMBIE,   NULL);
+    AssignObituary(MT_SHOTGUY,   OB_SHOTGUY,  NULL);
+    AssignObituary(MT_VILE,      OB_VILE,     NULL);
+    AssignObituary(MT_UNDEAD,    OB_UNDEAD,   OB_UNDEADHIT);
+    AssignObituary(MT_FATSO,     OB_FATSO,    NULL);
+    AssignObituary(MT_CHAINGUY,  OB_CHAINGUY, NULL);
+    AssignObituary(MT_SKULL,     OB_SKULL,    NULL);
+    AssignObituary(MT_TROOP,     OB_IMP,      OB_IMPHIT);
+    AssignObituary(MT_HEAD,      OB_CACO,     OB_CACOHIT);
+    AssignObituary(MT_SERGEANT,  NULL,        OB_DEMONHIT);
+    AssignObituary(MT_SHADOWS,   NULL,        OB_SPECTREHIT);
+    AssignObituary(MT_BRUISER,   OB_BARON,    OB_BARONHIT);
+    AssignObituary(MT_KNIGHT,    OB_KNIGHT,   OB_KNIGHTHIT);
+    AssignObituary(MT_SPIDER,    OB_SPIDER,   NULL);
+    AssignObituary(MT_BABY,      OB_BABY,     NULL);
+    AssignObituary(MT_CYBORG,    OB_CYBORG,   NULL);
+    AssignObituary(MT_WOLFSS,    OB_WOLFSS,   NULL);
 
     // [FG] TODO only the server knows the names of all clients,
     //           but at least we know ours...
@@ -105,58 +105,64 @@ static inline char *StrReplace(char *str, const char *from, const char *to)
     return str;
 }
 
-void HU_Obituary(mobj_t *target, mobj_t *source, method_t mod)
+void HU_Obituary(mobj_t *target, mobj_t *inflictor, mobj_t *source, method_t mod)
 {
-    int i;
-    char *ob = s_OB_DEFAULT, *str;
+    char *str;
+    const char *ob = OB_DEFAULT;
 
     if (target->player->mo != target)
     {
-        ob = s_OB_VOODOO;
+        ob = OB_VOODOO;
     }
     else if (target == source)
     {
-        ob = s_OB_KILLEDSELF;
+        ob = OB_KILLEDSELF;
+
+        if (inflictor && inflictor != target
+            && mobjinfo[inflictor->type].obituary_self)
+        {
+            ob = mobjinfo[inflictor->type].obituary_self;
+        }
     }
     else if (source)
     {
         if (mod == MOD_Telefrag)
         {
-            ob = (source->player) ? s_OB_MPTELEFRAG : s_OB_MONTELEFRAG;
+            ob = (source->player) ? OB_MPTELEFRAG : OB_MONTELEFRAG;
         }
         else if (source->player)
         {
             switch (source->player->readyweapon)
             {
                 case wp_fist:
-                    ob = s_OB_MPFIST;
+                    ob = OB_MPFIST;
                     break;
                 case wp_pistol:
-                    ob = s_OB_MPPISTOL;
+                    ob = OB_MPPISTOL;
                     break;
                 case wp_shotgun:
-                    ob = s_OB_MPSHOTGUN;
+                    ob = OB_MPSHOTGUN;
                     break;
                 case wp_chaingun:
-                    ob = s_OB_MPCHAINGUN;
+                    ob = OB_MPCHAINGUN;
                     break;
                 case wp_missile:
-                    ob = s_OB_MPROCKET;
+                    ob = OB_MPROCKET;
                     break;
                 case wp_plasma:
-                    ob = s_OB_MPPLASMARIFLE;
+                    ob = OB_MPPLASMARIFLE;
                     break;
                 case wp_bfg:
-                    ob = s_OB_MPBFG_BOOM;
+                    ob = OB_MPBFG_BOOM;
                     break;
                 case wp_chainsaw:
-                    ob = s_OB_MPCHAINSAW;
+                    ob = OB_MPCHAINSAW;
                     break;
                 case wp_supershotgun:
-                    ob = s_OB_MPSSHOTGUN;
+                    ob = OB_MPSSHOTGUN;
                     break;
                 default:
-                    ob = s_OB_MPDEFAULT;
+                    ob = OB_MPDEFAULT;
                     break;
             }
         }
@@ -182,22 +188,22 @@ void HU_Obituary(mobj_t *target, mobj_t *source, method_t mod)
         switch (mod)
         {
             case MOD_Slime:
-                ob = s_OB_SLIME;
+                ob = OB_SLIME;
                 break;
             case MOD_Lava:
-                ob = s_OB_LAVA;
+                ob = OB_LAVA;
                 break;
             case MOD_Crush:
-                ob = s_OB_CRUSH;
+                ob = OB_CRUSH;
                 break;
             default:
                 break;
         }
     }
 
-    str = M_StringDuplicate(ob);
+    str = M_StringDuplicate(DEH_String(ob));
 
-    for (i = 0; i < arrlen(pronouns); i++)
+    for (int i = 0; i < arrlen(pronouns); i++)
     {
         str = StrReplace(str, pronouns[i].from, pronouns[i].to);
     }
@@ -209,7 +215,7 @@ void HU_Obituary(mobj_t *target, mobj_t *source, method_t mod)
 
     str = StrReplace(str, "%o", playerstr[target->player - players]);
 
-    for (i = 0; i < MAXPLAYERS; i++)
+    for (int i = 0; i < MAXPLAYERS; i++)
     {
         if (!playeringame[i])
         {

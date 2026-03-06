@@ -25,35 +25,39 @@
 
 // Persistent storage/archiving.
 // These are the load / save game routines.
-void P_ArchivePlayers(void);
 void P_UnArchivePlayers(void);
-void P_ArchiveWorld(void);
 void P_UnArchiveWorld(void);
-void P_ArchiveThinkers(void);
 void P_UnArchiveThinkers(void);
-void P_ArchiveSpecials(void);
 void P_UnArchiveSpecials(void);
 
 // 1/18/98 killough: add RNG info to savegame
-void P_ArchiveRNG(void);
 void P_UnArchiveRNG(void);
 
 // 2/21/98 killough: add automap info to savegame
-void P_ArchiveMap(void);
 void P_UnArchiveMap(void);
 
 extern byte *save_p, *savebuffer;
 extern size_t savegamesize;
 
-// Check for overrun and realloc if necessary -- Lee Killough 1/22/98
-inline static void saveg_buffer_size(size_t size)
+inline static boolean saveg_check_size(size_t size)
 {
     size_t offset = save_p - savebuffer;
-
     if (offset + size <= savegamesize)
+    {
+        return true;
+    }
+    return false;
+}
+
+// Check for overrun and realloc if necessary -- Lee Killough 1/22/98
+inline static void saveg_grow(size_t size)
+{
+    if (saveg_check_size(size))
     {
         return;
     }
+
+    size_t offset = save_p - savebuffer;
 
     while (offset + size > savegamesize)
     {
@@ -73,20 +77,20 @@ inline static void savep_putbyte(byte value)
 
 inline static void saveg_write8(byte value)
 {
-    saveg_buffer_size(sizeof(byte));
+    saveg_grow(sizeof(byte));
     savep_putbyte(value);
 }
 
 inline static void saveg_write16(short value)
 {
-    saveg_buffer_size(sizeof(int16_t));
+    saveg_grow(sizeof(int16_t));
     savep_putbyte(value & 0xff);
     savep_putbyte((value >> 8) & 0xff);
 }
 
 inline static void saveg_write32(int value)
 {
-    saveg_buffer_size(sizeof(int32_t));
+    saveg_grow(sizeof(int32_t));
     savep_putbyte(value & 0xff);
     savep_putbyte((value >> 8) & 0xff);
     savep_putbyte((value >> 16) & 0xff);
@@ -95,7 +99,7 @@ inline static void saveg_write32(int value)
 
 inline static void saveg_write64(int64_t value)
 {
-    saveg_buffer_size(sizeof(int64_t));
+    saveg_grow(sizeof(int64_t));
     savep_putbyte(value & 0xff);
     savep_putbyte((value >> 8) & 0xff);
     savep_putbyte((value >> 16) & 0xff);
@@ -151,6 +155,7 @@ inline static int64_t saveg_read64(void)
 
 typedef enum
 {
+  saveg_indetermined = -1,
   saveg_mbf,
   saveg_woof510,
   saveg_woof600,

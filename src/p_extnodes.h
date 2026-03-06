@@ -22,32 +22,35 @@
 #ifndef __P_EXTNODES__
 #define __P_EXTNODES__
 
-#include "doomtype.h"
+#include "doomdata.h"
 
 struct vertex_s;
 
 typedef enum
 {
-    MFMT_DOOM,
-    MFMT_DEEP,
-    MFMT_XNOD,
-    MFMT_ZNOD,
-    MFMT_XGLN,
-    MFMT_ZGLN,
-    MFMT_XGL2,
-    MFMT_ZGL2,
-    MFMT_XGL3,
-    MFMT_ZGL3,
+    NFMT_DOOM,
+    NFMT_DEEP,
+    NFMT_XNOD,
+    NFMT_ZNOD,
+    NFMT_XGLN,
+    NFMT_ZGLN,
+    NFMT_XGL2,
+    NFMT_ZGL2,
+    NFMT_XGL3,
+    NFMT_ZGL3,
+    NFMT_NANO,
+} nodeformat_t;
 
-    MFMT_UNSUPPORTED = MFMT_XGL2
-} mapformat_t;
+extern const char *const node_format_names[];
 
 extern mapformat_t P_CheckMapFormat(int lumpnum);
+extern nodeformat_t P_CheckDoomNodeFormat(int lumpnum);
+extern nodeformat_t P_CheckUDMFNodeFormat(int lumpnum);
 extern int P_GetOffset(struct vertex_s *v1, struct vertex_s *v2);
 
 extern void P_LoadSegs_DEEP(int lump);
 extern void P_LoadSubsectors_DEEP(int lump);
 extern void P_LoadNodes_DEEP(int lump);
-extern void P_LoadNodes_XNOD(int lump, boolean compressed, boolean glnodes);
+extern void P_LoadNodes_ZDoom(int lump, nodeformat_t format);
 
 #endif

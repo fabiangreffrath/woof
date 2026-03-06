@@ -42,8 +42,10 @@ void G_ClearInput(void);
 boolean G_MovementResponder(struct event_s *ev);
 boolean G_Responder(struct event_s *ev);
 boolean G_CheckDemoStatus(void);
+void G_CheckDemoRecordingStatus(void);
 void G_DeathMatchSpawnPlayer(int playernum);
 void G_InitNew(skill_t skill, int episode, int map);
+void G_SimplifiedInitNew(int episode, int map);
 void G_DeferedInitNew(skill_t skill, int episode, int map);
 void G_DeferedPlayDemo(const char *demo);
 void G_LoadAutoSave(char *name, boolean is_command);
@@ -77,12 +79,15 @@ void G_DoVictory(void);
 
 void G_EnableWarp(boolean warp);
 void G_SetTimeScale(void);
+void G_Rewind(void);
 
 demo_version_t G_GetNamedComplevel(const char *arg);
 const char *G_GetCurrentComplevelName(void);
 
 int G_GotoNextLevel(int *pEpi, int *pMap);
 int G_GotoPrevLevel(void);
+
+const char *G_GetLevelTitle(void);
 
 void G_BindGameInputVariables(void);
 void G_BindGameVariables(void);
@@ -118,8 +123,7 @@ extern int  key_help;
 extern boolean autorun;           // always running?                   // phares
 extern boolean autostrafe50;
 extern boolean novert;
-extern boolean mouselook;
-extern boolean padlook;
+extern boolean freelook;
 
 extern fixed_t forwardmove[2];
 extern fixed_t default_sidemove[2];
@@ -131,13 +135,9 @@ extern boolean haswolflevels;  //jff 4/18/98 wolf levels present
 
 extern int  bodyquesize, default_bodyquesize; // killough 2/8/98, 10/98
 
-// killough 5/2/98: moved from d_deh.c:
-// Par times (new item with BOOM) - from g_game.c
-extern int pars[][10];  // hardcoded array size
-extern int cpars[];     // hardcoded array size
-extern boolean um_pars;
-
 extern boolean secretexit;
+
+extern byte *demo_p;
 
 #endif
 

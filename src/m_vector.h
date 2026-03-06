@@ -99,11 +99,11 @@ inline static vec vec_scale(const vec v, float scalar)
 //
 // Clamps each vector component.
 //
-inline static vec vec_clamp(float min, float max, const vec v)
+inline static vec vec_clamp(const vec v, float min, float max)
 {
-    return (vec){BETWEEN(min, max, v.x),
-                 BETWEEN(min, max, v.y),
-                 BETWEEN(min, max, v.z)};
+    return (vec){CLAMP(v.x, min, max),
+                 CLAMP(v.y, min, max),
+                 CLAMP(v.z, min, max)};
 }
 
 //

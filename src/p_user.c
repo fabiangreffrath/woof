@@ -31,6 +31,7 @@
 #include "g_nextweapon.h"
 #include "info.h"
 #include "m_cheat.h"
+#include "m_fixed.h"
 #include "p_map.h"
 #include "p_mobj.h"
 #include "p_pspr.h"
@@ -46,10 +47,6 @@ static fixed_t PlayerSlope(player_t *player)
   const fixed_t pitch = player->pitch;
   return pitch ? -finetangent[(ANG90 - pitch) >> ANGLETOFINESHIFT] : 0;
 }
-
-// Index of the special effects (INVUL inverse) map.
-
-#define INVERSECOLORMAP 32
 
 //
 // Movement.
@@ -203,9 +200,9 @@ void P_MovePlayer (player_t* player)
   ticcmd_t *cmd = &player->cmd;
   mobj_t *mo = player->mo;
 
-  mo->angle += cmd->angleturn << 16;
+  mo->angle += IntToFixed(cmd->angleturn);
   onground = mo->z <= mo->floorz;
-  player->ticangle += cmd->ticangleturn << FRACBITS;
+  player->ticangle += IntToFixed(cmd->ticangleturn);
 
   // killough 10/98:
   //
@@ -249,8 +246,8 @@ void P_MovePlayer (player_t* player)
 
   if (!menuactive && !demoplayback && !player->centering)
   {
-    player->pitch += cmd->pitch << FRACBITS;
-    player->pitch = BETWEEN(-max_pitch_angle, max_pitch_angle, player->pitch);
+    player->pitch += IntToFixed(cmd->pitch);
+    player->pitch = CLAMP(player->pitch, -max_pitch_angle, max_pitch_angle);
     player->slope = PlayerSlope(player);
   }
 }
@@ -492,7 +489,7 @@ void P_PlayerThink (player_t* player)
 
 	if ((newweapon != wp_plasma && newweapon != wp_bfg)
 	    || (gamemode != shareware) )
-	  player->nextweapon = player->pendingweapon = newweapon;
+	  player->pendingweapon = newweapon;
     }
 
   // check for use
@@ -563,7 +560,7 @@ void P_PlayerThink (player_t* player)
   // invulernability, and the light amp visor used the last colormap.
   // But white flashes occurred when invulnerability wore off.
 
-  if (STRICTMODE(!palette_changes))
+  if (STRICTMODE(palette_changes == PAL_CHANGE_OFF))
   {
     if (player->powers[pw_invulnerability] || player->powers[pw_infrared])
       player->fixedcolormap = 1;
@@ -622,7 +619,8 @@ boolean P_EvaluateItemOwned(itemtype_t item, player_t *player)
             return player->powers[pw_ironfeet] != 0;
 
         case item_invulnerability:
-            return player->powers[pw_invulnerability] != 0;
+            return player->powers[pw_invulnerability]
+                   || (player->cheats & CF_GODMODE);
 
         case item_healthbonus:
         case item_stimpack:
@@ -637,6 +635,15 @@ boolean P_EvaluateItemOwned(itemtype_t item, player_t *player)
     }
 
     return false;
+}
+
+int P_GetPowerDuration(powertype_t power)
+{
+    static const int tics[NUMPOWERS] = {
+        INVULNTICS, 1 /* strength */, INVISTICS,
+        IRONTICS, 1 /* allmap */, INFRATICS,
+    };
+    return tics[power];
 }
 
 //----------------------------------------------------------------------------

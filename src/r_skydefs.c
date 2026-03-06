@@ -1,5 +1,6 @@
 //
 // Copyright(C) 2024 Roman Fomin
+// Copyright(C) 2025 Fabian Greffrath, Guilherme Miranda
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -22,7 +23,7 @@
 #include "m_misc.h"
 #include "r_data.h"
 
-static boolean ParseFire(json_t *json, fire_t *out)
+static boolean ParseFire(json_t *json, sky_t *out)
 {
     json_t *updatetime = JS_GetObject(json, "updatetime");
     if (!JS_IsNumber(updatetime))
@@ -36,8 +37,9 @@ static boolean ParseFire(json_t *json, fire_t *out)
     {
         return false;
     }
-    int size = JS_GetArraySize(palette);
-    for (int i = 0; i < size; ++i)
+
+    int arr_size = JS_GetArraySize(palette);
+    for (int i = 0; i < arr_size; ++i)
     {
         json_t *color = JS_GetArrayItem(palette, i);
         array_push(out->palette, JS_GetInteger(color));
@@ -60,9 +62,8 @@ static boolean ParseSkyTex(json_t *json, skytex_t *out)
     json_t *scrolly = JS_GetObject(json, "scrolly");
     json_t *scalex = JS_GetObject(json, "scalex");
     json_t *scaley = JS_GetObject(json, "scaley");
-    if (!JS_IsNumber(mid)
-        || !JS_IsNumber(scrollx) || !JS_IsNumber(scrolly)
-        || !JS_IsNumber(scalex)  || !JS_IsNumber(scaley))
+    if (!JS_IsNumber(mid) || !JS_IsNumber(scrollx) || !JS_IsNumber(scrolly)
+        || !JS_IsNumber(scalex) || !JS_IsNumber(scaley))
     {
         return false;
     }
@@ -106,15 +107,13 @@ static boolean ParseSky(json_t *json, sky_t *out)
     {
         return false;
     }
-    out->skytex = background;
+    out->background = background;
 
     json_t *js_fire = JS_GetObject(json, "fire");
-    fire_t fire = {0};
     if (!JS_IsNull(js_fire))
     {
-        ParseFire(js_fire, &fire);
+        ParseFire(js_fire, out);
     }
-    out->fire = fire;
 
     json_t *js_foreground = JS_GetObject(json, "foregroundtex");
     skytex_t foreground = {0};
@@ -132,12 +131,12 @@ static boolean ParseFlatMap(json_t *json, flatmap_t *out)
     const char *flat = JS_GetStringValue(json, "flat");
     if (flat)
     {
-        out->flat = M_StringDuplicate(flat);
+        out->flat_name = M_StringDuplicate(flat);
     }
     const char *sky = JS_GetStringValue(json, "sky");
     if (sky)
     {
-        out->sky = M_StringDuplicate(sky);
+        out->sky_name = M_StringDuplicate(sky);
     }
     return true;
 }
@@ -178,7 +177,7 @@ skydefs_t *R_ParseSkyDefs(void)
         flatmap_t flatmap = {0};
         if (ParseFlatMap(js_flatmap, &flatmap))
         {
-            array_push(out->flatmapping, flatmap);
+            array_push(out->skyflats, flatmap);
         }
     }
 

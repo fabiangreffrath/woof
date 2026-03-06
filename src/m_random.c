@@ -105,7 +105,7 @@ int P_Random(pr_class_t pr_class)
   // killough 9/29/98: but use basetic now instead of levelstarttic
 
   if (demo_insurance)
-    boom += (gametic-basetic)*7;
+    boom += (gametic - boom_basetic) * 7;
 
   return boom & 255;
 }

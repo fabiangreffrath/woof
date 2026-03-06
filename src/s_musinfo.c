@@ -22,7 +22,6 @@
 
 #include "s_musinfo.h"
 
-#include "doomtype.h"
 #include "g_umapinfo.h"
 #include "i_printf.h"
 #include "p_mobj.h"
@@ -79,7 +78,7 @@ void S_ParseMusInfo(const char *mapid)
             // Check number in range
             if (num > 0 && num < MAX_MUS_ENTRIES)
             {
-                SC_GetNextTokenLumpName(s);
+                SC_GetNextRawString(s, true);
                 lumpnum = W_CheckNumForName(SC_GetString(s));
                 if (lumpnum > 0)
                 {
@@ -123,11 +122,12 @@ void T_MusInfo(void)
         if (!musinfo.tics && musinfo.lastmapthing != musinfo.mapthing)
         {
             // [crispy] encode music lump number in mapthing health
-            int arraypt = musinfo.mapthing->health - 1000;
+            // UDMF extension
+            int musinfo_index = musinfo.mapthing->args[0];
 
-            if (arraypt >= 0 && arraypt < MAX_MUS_ENTRIES)
+            if (musinfo_index >= 0 && musinfo_index < MAX_MUS_ENTRIES)
             {
-                int lumpnum = musinfo.items[arraypt];
+                int lumpnum = musinfo.items[musinfo_index];
 
                 if (lumpnum > 0 && lumpnum < numlumps)
                 {

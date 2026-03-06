@@ -98,7 +98,7 @@ static short CarryAngleTic_Full(double angle)
 static short CarryAngle_Full(double angle)
 {
     const short fullres = CarryAngleTic_Full(angle);
-    localview.angle = fullres << FRACBITS;
+    localview.angle = IntToFixed(fullres);
     return fullres;
 }
 
@@ -149,7 +149,7 @@ void G_UpdateAngleFunctions(void)
 short G_CarryPitch(double pitch)
 {
     const short result = CarryError(pitch, &prevcarry.pitch, &carry.pitch);
-    localview.pitch = result << FRACBITS;
+    localview.pitch = IntToFixed(result);
     return result;
 }
 
@@ -180,7 +180,7 @@ void G_UpdateDeltaTics(uint64_t delta_time)
     if (uncapped && raw_input)
     {
         deltatics = (double)delta_time * TICRATE * 1.0e-6;
-        deltatics = BETWEEN(0.0, 1.0, deltatics);
+        deltatics = CLAMP(deltatics, 0.0, 1.0);
     }
     else
     {
@@ -231,21 +231,21 @@ int G_CalcGamepadSideTurn(int speed)
 {
     const int side = RoundSide(forwardmove[speed] * axes[AXIS_TURN]
                                * direction[joy_invert_turn]);
-    return BETWEEN(-forwardmove[speed], forwardmove[speed], side);
+    return CLAMP(side, -forwardmove[speed], forwardmove[speed]);
 }
 
 int G_CalcGamepadSideStrafe(int speed)
 {
     const int side = RoundSide(forwardmove[speed] * axes[AXIS_STRAFE]
                                * direction[joy_invert_strafe]);
-    return BETWEEN(-sidemove[speed], sidemove[speed], side);
+    return CLAMP(side, -sidemove[speed], sidemove[speed]);
 }
 
 int G_CalcGamepadForward(int speed)
 {
     const int forward = lroundf(forwardmove[speed] * axes[AXIS_FORWARD]
                                 * direction[joy_invert_forward]);
-    return BETWEEN(-forwardmove[speed], forwardmove[speed], forward);
+    return CLAMP(forward, -forwardmove[speed], forwardmove[speed]);
 }
 
 //
@@ -266,27 +266,27 @@ static double mouse_sens_side;
 static double mouse_sens_vert;
 static double mouse_scale;
 
-static double AccelerateMouse_Skip(int val)
+static double AccelerateMouse_Skip(float val)
 {
     return val;
 }
 
-static double AccelerateMouse_RawInput(int val)
+static double AccelerateMouse_RawInput(float val)
 {
     return (val * mouse_scale);
 }
 
-static double AccelerateMouse_Chocolate(int val)
+static double AccelerateMouse_Chocolate(float val)
 {
-    if (val < 0)
+    if (val < 0.0f)
     {
         return -AccelerateMouse_Chocolate(-val);
     }
 
-    if (val > mouse_acceleration_threshold)
+    if (val > (float)mouse_acceleration_threshold)
     {
-        return ((val - mouse_acceleration_threshold) * mouse_scale
-                + mouse_acceleration_threshold);
+        return ((val - (float)mouse_acceleration_threshold) * mouse_scale
+                + (float)mouse_acceleration_threshold);
     }
     else
     {
@@ -294,7 +294,7 @@ static double AccelerateMouse_Chocolate(int val)
     }
 }
 
-static double (*AccelerateMouse)(int val);
+static double (*AccelerateMouse)(float val);
 
 void G_UpdateMouseVariables(void)
 {
@@ -339,22 +339,22 @@ void G_UpdateMouseVariables(void)
     }
 }
 
-double G_CalcMouseAngle(int mousex)
+double G_CalcMouseAngle(float mousex)
 {
     return (AccelerateMouse(mousex) * mouse_sens_angle);
 }
 
-double G_CalcMousePitch(int mousey)
+double G_CalcMousePitch(float mousey)
 {
     return (AccelerateMouse(mousey) * mouse_sens_pitch);
 }
 
-double G_CalcMouseSide(int mousex)
+double G_CalcMouseSide(float mousex)
 {
     return (AccelerateMouse(mousex) * mouse_sens_side);
 }
 
-double G_CalcMouseVert(int mousey)
+double G_CalcMouseVert(float mousey)
 {
     return (AccelerateMouse(mousey) * mouse_sens_vert);
 }

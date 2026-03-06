@@ -23,8 +23,6 @@
 #ifndef __S_MUSINFO__
 #define __S_MUSINFO__
 
-#include "doomtype.h"
-
 #define MAX_MUS_ENTRIES 65 // [crispy] 0 to 64 inclusive
 
 typedef struct musinfo_s
@@ -34,7 +32,6 @@ typedef struct musinfo_s
     int tics;
     int current_item;
     int items[MAX_MUS_ENTRIES];
-    boolean from_savegame;
 } musinfo_t;
 
 extern musinfo_t musinfo;

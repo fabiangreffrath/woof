@@ -53,16 +53,16 @@ typedef struct
 
 static double CalcMomentum(const mobj_t *mo)
 {
-    const double mx = FIXED2DOUBLE(mo->momx);
-    const double my = FIXED2DOUBLE(mo->momy);
+    const double mx = FixedToDouble(mo->momx);
+    const double my = FixedToDouble(mo->momy);
 
     return sqrt(mx * mx + my * my);
 }
 
 static double CalcDistance(const mobj_t *mo)
 {
-    const double dx = FIXED2DOUBLE(mo->x - mo->oldx);
-    const double dy = FIXED2DOUBLE(mo->y - mo->oldy);
+    const double dx = FixedToDouble(mo->x - mo->oldx);
+    const double dy = FixedToDouble(mo->y - mo->oldy);
 
     return sqrt(dx * dx + dy * dy);
 }

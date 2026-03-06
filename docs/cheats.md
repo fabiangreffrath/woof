@@ -10,7 +10,7 @@ Typing IDBEHOLD will bring up a small menu where you can choose to enable one of
 `S`: Toggles berserk strength  
 `H`: Gives 200% health points  
 `M`: Gives megaarmor, with 200% armor points  
-`O`: Disables all currently active power-ups  
+`0`: Disables all currently active power-ups  
 
 `IDCLEV00` restarts the current level.
 
@@ -23,9 +23,6 @@ Typing IDBEHOLD will bring up a small menu where you can choose to enable one of
 ## Boom and MBF cheats
 
 In Boom, many of them had a TNT prefix, which was removed in MBF.
-
-`COMPx`  
-Show current [complevel](https://doomwiki.org/wiki/Woof!#Compatibility_modes). If you type a number, the engine will switch to this complevel. Not safe, for full compatibility set complevel in the menu and restart the level.
 
 `KILLEM`  
 This cheat kills all monsters on the map. If there are no enemy monsters on the map and you type this, it will kill all friends on the map (not including the player, of course).
@@ -69,6 +66,9 @@ Toggle the effects of damaging sectors.
 ## New Woof! cheats
 
 Most of them were taken from ZDoom, Crispy Doom and DSDA-Doom.
+
+`COMPx`  
+Show current [complevel](https://doomwiki.org/wiki/Woof!#Compatibility_modes). If you type a number, the engine will switch to this complevel. Not safe, for full compatibility set complevel in the menu and restart the level.
 
 `SPECHITS`  
 Triggers all [Linedef actions](https://doomwiki.org/wiki/Linedef_type) on a map at once, no matter if they are enabled by pushing, walking over or shooting, or if they require a key. It also triggers all boss monster and Commander Keen actions if possible.

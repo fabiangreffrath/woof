@@ -121,7 +121,7 @@ void S_GetExtra(musicinfo_t *music, extra_music_t type)
         return;
     }
 
-    int lumpnum = W_GetNumForName(extra);
+    int lumpnum = W_CheckNumForName(extra);
     if (lumpnum < 0)
     {
         I_Printf(VB_ERROR, "TRAKINFO: lump '%s' is not found", extra);

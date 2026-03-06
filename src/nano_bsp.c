@@ -29,6 +29,7 @@
 
 #include "doomdata.h"
 #include "doomtype.h"
+#include "m_arena.h"
 #include "m_bbox.h"
 #include "m_fixed.h"
 #include "p_extnodes.h"
@@ -55,10 +56,6 @@
 
 #undef MIN
 #define MIN(a, b)  ((a) < (b) ? (a) : (b))
-
-#ifndef NO_INDEX
-#define NO_INDEX  ((int) -1)
-#endif
 
 
 typedef struct Nanode  nanode_t;
@@ -789,8 +786,8 @@ void BSP_BuildNodes (void)
 
 	// allocate the global arrays
 	nodes      = Z_Malloc (numnodes*sizeof(node_t), PU_LEVEL, NULL);
-	subsectors = Z_Malloc (numsubsectors*sizeof(subsector_t), PU_LEVEL, NULL);
-	segs       = Z_Malloc (numsegs*sizeof(seg_t), PU_LEVEL, NULL);
+	subsectors = arena_alloc_num (world_arena, subsector_t, numsubsectors);
+	segs       = arena_alloc_num (world_arena, seg_t, numsegs);
 
 	// clear the initial contents
 	memset (nodes, 0, numnodes*sizeof(node_t));

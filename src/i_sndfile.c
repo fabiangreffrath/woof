@@ -578,7 +578,7 @@ static void FadeInOutMonoFloat32(float *data, ALsizei size, ALsizei freq)
 }
 
 boolean I_SND_LoadFile(void *data, ALenum *format, byte **wavdata,
-                       ALsizei *size, ALsizei *freq)
+                       ALsizei *size, ALsizei *freq, boolean looping)
 {
     sndfile_t file = {0};
     sf_count_t num_frames = 0;
@@ -617,14 +617,18 @@ boolean I_SND_LoadFile(void *data, ALenum *format, byte **wavdata,
     *size = num_frames * file.frame_size / file.sfinfo.channels;
     *freq = file.sfinfo.samplerate;
 
-    // Fade in sounds that start at a non-zero amplitude to prevent clicking.
-    if (*format == AL_FORMAT_MONO16)
+    // Fade in or out sounds that start or end at a non-zero amplitude to
+    // prevent clicking.
+    if (!looping)
     {
-        FadeInOutMono16(local_wavdata, *size, *freq);
-    }
-    else if (*format == AL_FORMAT_MONO_FLOAT32)
-    {
-        FadeInOutMonoFloat32(local_wavdata, *size, *freq);
+        if (*format == AL_FORMAT_MONO16)
+        {
+            FadeInOutMono16(local_wavdata, *size, *freq);
+        }
+        else if (*format == AL_FORMAT_MONO_FLOAT32)
+        {
+            FadeInOutMonoFloat32(local_wavdata, *size, *freq);
+        }
     }
 
     *wavdata = local_wavdata;
@@ -685,7 +689,7 @@ static void I_SND_PlayStream(boolean looping)
     stream_looping = looping;
 }
 
-static int I_SND_FillStream(byte *data, int frames)
+static int I_SND_FillStream(void *data, int frames)
 {
     sf_count_t filled = 0;
     boolean restart = false;
@@ -703,11 +707,11 @@ static int I_SND_FillStream(byte *data, int frames)
 
     if (stream.sample_format == Int16)
     {
-        filled = sf_readf_short(stream.sndfile, (short *)data, frames);
+        filled = sf_readf_short(stream.sndfile, data, frames);
     }
     else if (stream.sample_format == Float)
     {
-        filled = sf_readf_float(stream.sndfile, (float *)data, frames);
+        filled = sf_readf_float(stream.sndfile, data, frames);
     }
 
     if (stream_looping && (restart || filled < frames))

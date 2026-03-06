@@ -16,7 +16,7 @@
 //
 
 #include "alext.h"
-#include "pffft.h"
+#include "pffft/pffft.h"
 
 #include <math.h>
 #include <string.h>
@@ -54,7 +54,7 @@ typedef struct rumble_channel_s
 
 typedef struct
 {
-    SDL_GameController *gamepad;
+    SDL_Gamepad *gamepad;
     boolean enabled;            // Rumble enabled?
     boolean supported;          // Rumble supported?
     float scale;                // Overall rumble scale, based on joy_rumble.
@@ -240,7 +240,7 @@ void I_ShutdownRumble(void)
 
     if (rumble.enabled)
     {
-        SDL_GameControllerRumble(rumble.gamepad, 0, 0, 0);
+        SDL_RumbleGamepad(rumble.gamepad, 0, 0, 0);
     }
 
     for (int i = 1; i < num_sfx; i++)
@@ -298,7 +298,7 @@ static void InitFFT(int rate, int step)
 
     // FFT size must be a power of two (see pffft.h).
     const uint32_t step2 = RoundUpPowerOfTwo(step);
-    fft.size = BETWEEN(128, 8192, step2);
+    fft.size = (int)CLAMP(step2, 128, 8192);
 
     fft.setup = pffft_new_setup(fft.size, PFFFT_REAL);
 
@@ -338,7 +338,7 @@ static float Normalize_Mono16(const void *data, int pos)
 static float Normalize_Mono32(const void *data, int pos)
 {
     const float val = ((float *)data)[pos];
-    return BETWEEN(-1.0f, 1.0f, val);
+    return CLAMP(val, -1.0f, 1.0f);
 }
 
 static float (*Normalize)(const void *data, int pos);
@@ -410,7 +410,7 @@ static void SfxToRumble(const byte *data, int rate, int length,
         if (amp_peak > 0.0001f)
         {
             float weight = (freq_peak - 640.0f) * 0.00625f; // 1/160
-            weight = BETWEEN(-1.0f, 1.0f, weight);
+            weight = CLAMP(weight, -1.0f, 1.0f);
 
             const float dBFS = 20.0f * log10f(amp_peak) + 6.0f;
             const float dBFS_low = dBFS - 6.0f * weight;
@@ -510,7 +510,7 @@ void I_RumbleMenuFeedback(void)
 
     last_rumble = joy_rumble;
     const uint16_t test = (uint16_t)(rumble.scale * 0.25f);
-    SDL_GameControllerRumble(rumble.gamepad, test, test, 125);
+    SDL_RumbleGamepad(rumble.gamepad, test, test, 125);
 }
 
 void I_UpdateRumbleEnabled(void)
@@ -519,11 +519,21 @@ void I_UpdateRumbleEnabled(void)
     rumble.enabled = (joy_rumble && rumble.supported);
 }
 
-void I_SetRumbleSupported(SDL_GameController *gamepad)
+void I_SetRumbleSupported(SDL_Gamepad *gamepad)
 {
     rumble.gamepad = gamepad;
-    rumble.supported =
-        gamepad && (SDL_GameControllerHasRumble(gamepad) == SDL_TRUE);
+    rumble.supported = false;
+
+    if (gamepad)
+    {
+        SDL_PropertiesID props = SDL_GetGamepadProperties(gamepad);
+        if (props > 0)
+        {
+            rumble.supported = SDL_GetBooleanProperty(
+                props, SDL_PROP_GAMEPAD_CAP_RUMBLE_BOOLEAN, false);
+        }
+    }
+
     I_UpdateRumbleEnabled();
 }
 
@@ -552,7 +562,7 @@ void I_ResetAllRumbleChannels(void)
     }
 
     ResetAllChannels();
-    SDL_GameControllerRumble(rumble.gamepad, 0, 0, 0);
+    SDL_RumbleGamepad(rumble.gamepad, 0, 0, 0);
 }
 
 static void GetNodeScale(const rumble_channel_t *node, float *scale_down,
@@ -614,7 +624,7 @@ void I_UpdateRumble(void)
     scale_high *= rumble.scale;
     const uint16_t low = lroundf(MIN(scale_low, MAX_RUMBLE_SDL));
     const uint16_t high = lroundf(MIN(scale_high, MAX_RUMBLE_SDL));
-    SDL_GameControllerRumble(rumble.gamepad, low, high, RUMBLE_DURATION);
+    SDL_RumbleGamepad(rumble.gamepad, low, high, RUMBLE_DURATION);
 }
 
 static boolean CalcChannelScale(const mobj_t *listener, const mobj_t *origin,
@@ -686,10 +696,10 @@ static float ScaleHitFloor(const mobj_t *listener)
     }
     else
     {
-        float scale = (float)FIXED2DOUBLE(listener->momz) + 8.0f;
+        float scale = (float)FixedToDouble(listener->momz) + 8.0f;
         //scale = (1 - 0.25) / pow(40 - 8, 2) * pow(scale, 2) + 0.25;
         scale = 0.75f / 1024.0f * scale * scale + 0.25f;
-        return BETWEEN(0.25f, 1.0f, scale);
+        return CLAMP(scale, 0.25f, 1.0f);
     }
 }
 
@@ -789,7 +799,7 @@ void I_DisableRumble(void)
 
     rumble.enabled = false;
     ResetAllChannels();
-    SDL_GameControllerRumble(rumble.gamepad, 0, 0, 0);
+    SDL_RumbleGamepad(rumble.gamepad, 0, 0, 0);
 }
 
 void I_BindRumbleVariables(void)

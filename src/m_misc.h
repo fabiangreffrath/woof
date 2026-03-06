@@ -23,15 +23,25 @@
 
 #include "doomtype.h"
 
+typedef struct
+{
+    const char *(*func)(void);
+    const char *dir;
+    const char *(*check_func)(void);
+    boolean makedir;
+} constructed_dir_t;
+
 boolean M_DirExists(const char *path);
 int M_FileLength(const char *path);
+int64_t M_FileMTime(const char *path);
 char *M_TempFile(const char *s);
+boolean M_FileExistsNotDir(const char *filename);
 char *M_FileCaseExists(const char *file);
 boolean M_StrToInt(const char *str, int *result);
 char *M_DirName(const char *path);
 const char *M_BaseName(const char *path);
-char *M_HomeDir(void);
-char *M_DataDir(void);
+const char *M_HomeDir(void);
+const char *M_DataDir(void);
 char M_ToUpper(const char c);
 void M_StringToUpper(char *text);
 char M_ToLower(const char c);
@@ -41,6 +51,8 @@ boolean M_StringCopy(char *dest, const char *src, size_t dest_size);
 boolean M_StringConcat(char *dest, const char *src, size_t dest_size);
 char *M_StringReplace(const char *haystack, const char *needle,
                       const char *replacement);
+char *M_StringReplaceWord(const char *haystack, const char *needle,
+                          const char *replacement);
 
 char *M_StringJoinInternal(const char *s[], size_t n);
 #define M_StringJoin(...)                                      \
@@ -51,14 +63,26 @@ char *M_StringJoinInternal(const char *s[], size_t n);
 boolean M_StringStartsWith(const char *s, const char *prefix);
 boolean M_StringEndsWith(const char *s, const char *suffix);
 boolean M_StringCaseEndsWith(const char *s, const char *suffix);
-int M_vsnprintf(char *buf, size_t buf_len, const char *s, va_list args)
-    PRINTF_ATTR(3, 0);
+int M_vsnprintf(char *buf, size_t buf_len, const char *s, va_list args) PRINTF_ATTR(3, 0);
 int M_snprintf(char *buf, size_t buf_len, const char *s, ...) PRINTF_ATTR(3, 4);
+char *M_strcasestr(const char *haystack, const char *needle);
 
 void M_CopyLumpName(char *dest, const char *src);
 char *AddDefaultExtension(const char *path, const char *ext);
-boolean M_WriteFile(const char *name, void *source, int length);
+boolean M_WriteFile(const char *name, const void *source, int length);
 int M_ReadFile(const char *name, byte **buffer);
 boolean M_StringToDigest(const char *string, byte *digest, int size);
+void M_DigestToString(const byte *digest, char *string, int size);
+
+typedef struct
+{
+    int major;
+    int minor;
+    int revision;
+} version_t;
+
+// Negative if v1 < v2, zero if equal, positive if v1 > v2.
+int M_CompareVersions(const version_t *v1, const version_t *v2);
+boolean M_ParseVersion(const char *s, version_t *v);
 
 #endif

@@ -1,48 +1,82 @@
 {
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
   "dependencies": [
-    {
-        "name": "sdl2",
-        "features": [
-            {
-              "name": "vulkan",
-              "platform": "linux"
-            },
-            {
-              "name": "wayland",
-              "platform": "linux"
-            },
-            {
-              "name": "x11",
-              "platform": "linux"
-            },
-            {
-              "name": "ibus",
-              "platform": "linux"
-            }
-        ]
-    },
-    "sdl2-net",
-    {
-        "name": "openal-soft",
-        "features": [
-            {
-              "name": "pipewire",
-              "platform": "linux"
-            }
-        ]
-    },
     "libebur128",
-    "libsndfile",
     {
-        "name": "fluidsynth",
-        "default-features": false,
-        "features": ["sndfile"]
+      "name": "libsndfile",
+      "default-features": false,
+      "features": [
+        "external-libs"
+      ]
+    },
+    "minimp3",
+    "miniz",
+    {
+      "name": "openal-soft",
+      "features": [
+        {
+          "name": "pipewire",
+          "platform": "linux"
+        }
+      ]
     },
     {
-        "name": "libxmp",
-        "default-features": false
+      "name": "sdl3",
+      "features": [
+        {
+          "name": "ibus",
+          "platform": "linux"
+        },
+        "vulkan",
+        {
+          "name": "wayland",
+          "platform": "linux"
+        },
+        {
+          "name": "x11",
+          "platform": "linux"
+        }
+      ]
     },
-    "yyjson"
-  ]
+    {
+      "name": "yyjson",
+      "default-features": false,
+      "features": [
+        "non-standard",
+        "reader"
+      ]
+    }
+  ],
+  "features": {
+    "fluidsynth": {
+      "description": "Build with FluidSynth support",
+      "dependencies": [
+        {
+          "name": "fluidsynth",
+          "default-features": false,
+          "features": [
+            "sndfile"
+          ]
+        }
+      ]
+    },
+    "libxmp": {
+      "description": "Build with libxmp support",
+      "dependencies": [
+        {
+          "name": "libxmp",
+          "default-features": false
+        }
+      ]
+    },
+    "discord-rpc": {
+      "description": "Build with Discord RPC support",
+      "dependencies": [
+        {
+          "name": "discord-rpc",
+          "default-features": false
+        }
+      ]
+    }
+  }
 }

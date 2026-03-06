@@ -98,14 +98,22 @@ static boolean I_XMP_OpenStream(void *data, ALsizei size, ALenum *format,
     return true;
 }
 
-static int I_XMP_FillStream(byte *buffer, int buffer_samples)
+static int I_XMP_FillStream(void *buffer, int buffer_samples)
 {
     int ret = xmp_play_buffer(context, buffer, buffer_samples * 4,
                               stream_looping ? 0 : 1);
 
     if (ret < 0)
     {
-        return 0;
+        if (stream_looping)
+        {
+            xmp_restart_module(context);
+            xmp_set_position(context, 0);
+        }
+        else
+        {
+            return 0;
+        }
     }
 
     return buffer_samples;
@@ -120,6 +128,7 @@ static void I_XMP_PlayStream(boolean looping)
 
     stream_looping = looping;
     xmp_start_player(context, SND_SAMPLERATE, 0);
+    xmp_set_player(context, XMP_PLAYER_VOLUME, 100);
 }
 
 static void I_XMP_CloseStream(void)

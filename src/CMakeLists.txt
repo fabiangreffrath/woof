@@ -2,32 +2,61 @@ include(WoofSettings)
 
 set(WOOF_SOURCES
     am_map.c               am_map.h
-    d_deh.c                d_deh.h
+    am_def.c
     d_demoloop.c           d_demoloop.h
                            d_englsh.h
                            d_event.h
-                           d_french.h
     d_items.c              d_items.h
     d_iwad.c               d_iwad.h
     d_loop.c               d_loop.h
     d_main.c               d_main.h
     d_net.c
                            d_player.h
-    d_quit.c               d_quit.h
                            d_think.h
                            d_ticcmd.h
                            doomdata.h
                            doomdef.h
     doomstat.c             doomstat.h
                            doomtype.h
-    dsdhacked.c            dsdhacked.h
-    dstrings.c             dstrings.h
+                           decl_defs.h
+    decl_main.c            decl_main.h
+    decl_props.c
+    decl_states.c
+    decl_sounds.c          decl_sounds.h
+    deh_ammo.c
+    deh_bex_helper.c
+    deh_bex_includes.c
+    deh_bex_music.c
+    deh_bex_partimes.c     deh_bex_partimes.h
+    deh_bex_pointers.c
+    deh_bex_sounds.c
+    deh_bex_sprites.c
+    deh_bex_strings.c
+    deh_cheat.c
+    deh_defs.h
+    deh_frame.c
+    deh_io.c               deh_io.h
+    deh_main.c             deh_main.h
+    deh_mapping.c          deh_mapping.h
+    deh_misc.c             deh_misc.h
+    deh_pointer.c
+    deh_sound.c
+    deh_strings.c          deh_strings.h
+    deh_text.c
+    deh_thing.c
+    deh_weapon.c
+    dsdh_main.c            dsdh_main.h
+    dsdh_mobjinfo.c
+    dsdh_sounds.c
+    dsdh_sprites.c
+    dsdh_states.c
     f_finale.c             f_finale.h
     f_wipe.c               f_wipe.h
     g_compatibility.c      g_compatibility.h
     g_game.c               g_game.h
     g_input.c              g_input.h
     g_nextweapon.c         g_nextweapon.h
+    g_rewind.c             g_rewind.h
     g_umapinfo.c           g_umapinfo.h
     hu_command.c           hu_command.h
     hu_coordinates.c       hu_coordinates.h
@@ -35,6 +64,7 @@ set(WOOF_SOURCES
     hu_obituary.c          hu_obituary.h
     i_3dsound.c
     i_endoom.c             i_endoom.h
+    i_exit.c               i_exit.h
     i_flickstick.c         i_flickstick.h
     i_gamepad.c            i_gamepad.h
     i_glob.c               i_glob.h
@@ -43,6 +73,7 @@ set(WOOF_SOURCES
     i_main.c
     i_mbfsound.c
     i_midimusic.c
+    i_minimp3.c
                            i_oalcommon.h
     i_oalequalizer.c       i_oalequalizer.h
     i_oalmusic.c
@@ -50,6 +81,8 @@ set(WOOF_SOURCES
                            i_oalstream.h
     i_oplmusic.c
     i_printf.c             i_printf.h
+    i_region.c             i_region.h
+    i_richpresence.c       i_richpresence.h
     i_rumble.c             i_rumble.h
     i_sndfile.c            i_sndfile.h
     i_sound.c              i_sound.h
@@ -57,11 +90,15 @@ set(WOOF_SOURCES
     i_timer.c              i_timer.h
     i_video.c              i_video.h
     info.c                 info.h
+    kf_file.c
+    kf_memory.c
+    m_arena.c              m_arena.h
     m_argv.c               m_argv.h
-                           m_array.h
+    m_array.c              m_array.h
     m_bbox.c               m_bbox.h
     m_cheat.c              m_cheat.h
     m_config.c             m_config.h
+    m_hashmap.c            m_hashmap.h
                            m_fixed.h
     m_input.c              m_input.h
     m_io.c                 m_io.h
@@ -90,17 +127,20 @@ set(WOOF_SOURCES
     net_loop.c             net_loop.h
     net_packet.c           net_packet.h
     net_query.c            net_query.h
-    net_sdl.c              net_sdl.h
+    net_netlib.c           net_netlib.h
     net_server.c           net_server.h
     net_structrw.c         net_structrw.h
                            p_action.h
+    p_ambient.c            p_ambient.h
     p_ceilng.c
+    p_dirty.c              p_dirty.h
     p_doors.c
     p_enemy.c              p_enemy.h
     p_extnodes.c           p_extnodes.h
     p_floor.c
     p_genlin.c
     p_inter.c              p_inter.h
+                           p_keyframe.h
     p_lights.c
     p_map.c                p_map.h
     p_maputl.c             p_maputl.h
@@ -114,6 +154,7 @@ set(WOOF_SOURCES
     p_switch.c
     p_telept.c
     p_tick.c               p_tick.h
+    p_udmf.c               p_udmf.h
     p_user.c               p_user.h
     r_bmaps.c              r_bmaps.h
     r_bsp.c                r_bsp.h
@@ -125,9 +166,11 @@ set(WOOF_SOURCES
     r_segs.c               r_segs.h
     r_sky.c                r_sky.h
     r_skydefs.c            r_skydefs.h
+                           r_srgb.h
                            r_state.h
     r_swirl.c              r_swirl.h
     r_things.c             r_things.h
+    r_tranmap.c            r_tranmap.h
     r_voxel.c              r_voxel.h
     s_musinfo.c            s_musinfo.h
     s_sound.c              s_sound.h
@@ -140,10 +183,9 @@ set(WOOF_SOURCES
     statdump.c             statdump.h
     tables.c               tables.h
     v_flextran.c           v_flextran.h
-    v_fmt.c                v_fmt.h
+    v_patch.c              v_patch.h
     v_trans.c              v_trans.h
     v_video.c              v_video.h
-    version.c              version.h
     w_wad.c                w_wad.h
                            w_internal.h
     w_file.c
@@ -151,57 +193,51 @@ set(WOOF_SOURCES
     wi_stuff.c             wi_stuff.h
     wi_interlvl.c          wi_interlvl.h
     ws_stuff.c             ws_stuff.h
-    z_zone.c               z_zone.h)
+    z_zone.c               z_zone.h
+)
 
 # Standard target definition
-if(WIN32)
-    add_library(woof SHARED EXCLUDE_FROM_ALL ${WOOF_SOURCES})
-    target_compile_definitions(woof PRIVATE WIN_LAUNCHER)
+add_executable(woof ${WOOF_SOURCES})
+target_woof_settings(woof)
+target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 
+if(WIN32)
     # Stamp out and compile resource file on Windows.
     configure_file(resource.rc.in "${CMAKE_CURRENT_BINARY_DIR}/resource.rc")
-
-    add_executable(woof-com WIN32 ../win32/win_launcher.c
-        "${CMAKE_CURRENT_BINARY_DIR}/resource.rc")
-    target_woof_settings(woof-com)
-    target_include_directories(woof-com PRIVATE ${SDL2_INCLUDE_DIR})
-    target_link_libraries(woof-com PRIVATE ${SDL2_LIBRARIES} woof)
-
-    add_executable(woof-exe WIN32 ../win32/win_launcher.c
-        "${CMAKE_CURRENT_BINARY_DIR}/resource.rc")
-    target_woof_settings(woof-exe)
-    target_include_directories(woof-exe PRIVATE ${SDL2_INCLUDE_DIR})
-    target_link_libraries(woof-exe PRIVATE ${SDL2_LIBRARIES} woof)
+    target_sources(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/resource.rc")
 
     # MSVC tries to supply a default manifest and complains when it finds ours
     # unless we specifically tell it not to.
     if(MSVC)
-        target_link_options(woof-com PRIVATE "/MANIFEST:NO" "/SUBSYSTEM:CONSOLE")
-        target_link_options(woof-exe PRIVATE "/MANIFEST:NO")
+        target_link_options(
+            woof
+            PRIVATE "/MANIFEST:NO"
+            "$<IF:$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>,/SUBSYSTEM:CONSOLE,/SUBSYSTEM:WINDOWS>"
+        )
     else()
-        target_link_options(woof-com PRIVATE "-mconsole")
+        target_link_options(woof PRIVATE
+            "$<IF:$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>,-mconsole,-mwindows>")
     endif()
-else()
-    add_executable(woof ${WOOF_SOURCES})
 endif()
 
-target_woof_settings(woof)
-target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
+target_link_libraries(
+    woof
+    PRIVATE SDL3::SDL3
+            OpenAL::OpenAL
+            libebur128::libebur128
+            SndFile::sndfile
+            yyjson::yyjson
+            pffft::pffft
+            miniz::miniz
+            netlib
+            md5
+            spng
+            sha1
+            opl
+            textscreen
+)
 
-target_link_libraries(woof PRIVATE
-    ${SDL2_LIBRARIES}
-    SDL2_net::SDL2_net
-    OpenAL::OpenAL
-    libebur128::libebur128
-    SndFile::sndfile
-    yyjson::yyjson
-    opl
-    pffft
-    textscreen
-    miniz
-    spng
-    sha1
-    md5)
+target_include_directories(woof PRIVATE "${MINIMP3_INCLUDE_DIRS}/minimp3")
 
 # Some platforms require standard libraries to be linked against.
 if(HAVE_LIBM)
@@ -213,32 +249,39 @@ if(HAVE_AL_BUFFER_CALLBACK)
 endif()
 
 if(WIN32)
-    target_include_directories(woof PRIVATE "../win32")
     target_link_libraries(woof PRIVATE winmm shlwapi)
-    target_sources(woof PRIVATE ../win32/win_opendir.c ../win32/win_opendir.h)
 endif()
 
 if(APPLE)
-    target_link_libraries(woof PRIVATE
-        -Wl,-framework,AudioToolbox -Wl,-framework,AudioUnit
-        -Wl,-framework,CoreServices -Wl,-framework,CoreAudio
-        -Wl,-framework,CoreMIDI)
+    target_link_libraries(
+      woof
+      PRIVATE -Wl,-framework,AudioToolbox -Wl,-framework,AudioUnit
+              -Wl,-framework,CoreServices -Wl,-framework,CoreAudio
+              -Wl,-framework,CoreMIDI
+    )
 endif()
 
-if(ALSA_FOUND)
+if(HAVE_ALSA)
     target_include_directories(woof PRIVATE ${ALSA_INCLUDE_DIR})
     target_link_libraries(woof PRIVATE ALSA::ALSA)
 endif()
 
-if(FluidSynth_FOUND)
+if(HAVE_FLUIDSYNTH)
     target_sources(woof PRIVATE i_flmusic.c)
     target_link_libraries(woof PRIVATE FluidSynth::libfluidsynth)
 endif()
 
-if(libxmp_FOUND)
+if(HAVE_LIBXMP)
     target_sources(woof PRIVATE i_xmp.c)
     target_link_libraries(woof PRIVATE libxmp::xmp)
 endif()
+
+if(HAVE_DISCORD_RPC)
+    target_link_libraries(woof PRIVATE DiscordRPC::discord-rpc)
+endif()
+
+target_compile_definitions(woof PRIVATE
+    $<IF:$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>,WOOF_DEBUG,WOOF_RELEASE>)
 
 # Optional features.
 #
@@ -251,8 +294,10 @@ if(WOOF_STRICT)
     target_compile_definitions(woof PRIVATE MBF_STRICT)
 endif()
 
+# Setup tool
 set(SETUP_SOURCES
     d_iwad.c                d_iwad.h
+    i_exit.c                i_exit.h
     i_main.c
     i_printf.c              i_printf.h
     i_system.c              i_system.h
@@ -264,10 +309,10 @@ set(SETUP_SOURCES
     net_io.c                net_io.h
     net_packet.c            net_packet.h
     net_query.c             net_query.h
-    net_sdl.c               net_sdl.h
+    net_netlib.c            net_netlib.h
     net_structrw.c          net_structrw.h
-    version.c               version.h
-    z_zone.c                z_zone.h)
+    z_zone.c                z_zone.h
+)
 
 if(WIN32)
     # Stamp out and compile resource file on Windows.
@@ -279,53 +324,46 @@ add_executable(woof-setup WIN32 ${SETUP_SOURCES})
 target_woof_settings(woof-setup)
 
 target_include_directories(woof-setup PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
-target_link_libraries(woof-setup PRIVATE
-    ${SDL2_LIBRARIES}
-    SDL2_net::SDL2_net
-    textscreen
-    setup)
+target_link_libraries(
+  woof-setup
+  PRIVATE SDL3::SDL3
+          textscreen
+          setup
+          netlib
+)
 
 if(MSVC)
     target_link_options(woof-setup PRIVATE "/MANIFEST:NO")
 endif()
 
+# Base file
 add_dependencies(woof woof-base)
 
 if(MSVC)
-    add_custom_command(TARGET woof POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        "${BASE_PK3_PATH}" "$<TARGET_FILE_DIR:woof>")
+    add_custom_command(
+        TARGET woof
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy "${BASE_PK3_PATH}"
+                "$<TARGET_FILE_DIR:woof>"
+    )
 endif()
 
 # Install
 #
-# Rename woof-com and woof-exe executables.
-if(WIN32)
-    add_custom_command(TARGET woof-com POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        "$<TARGET_FILE_DIR:woof-com>/$<TARGET_FILE_NAME:woof-com>"
-        "$<TARGET_FILE_DIR:woof-com>/woof.com")
-    add_custom_command(TARGET woof-exe POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        "$<TARGET_FILE_DIR:woof-exe>/$<TARGET_FILE_NAME:woof-exe>"
-        "$<TARGET_FILE_DIR:woof-exe>/woof.exe")
-endif()
-
 # Files to package in our distribution.
 if(WIN32)
     if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.21 AND NOT VCPKG_TOOLCHAIN)
-        install(TARGETS woof woof-setup
-                RUNTIME_DEPENDENCIES 
-                    PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
-                    POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
-                    DIRECTORIES $<TARGET_FILE_DIR:woof> $ENV{PATH}
-                RUNTIME DESTINATION .)
+        install(
+            TARGETS woof woof-setup
+            RUNTIME_DEPENDENCIES 
+                PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
+                POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
+                DIRECTORIES $<TARGET_FILE_DIR:woof> $ENV{PATH}
+            RUNTIME DESTINATION .
+        )
     else()
         install(TARGETS woof woof-setup RUNTIME DESTINATION .)
     endif()
-    install(FILES "$<TARGET_FILE_DIR:woof-com>/woof.com"
-                  "$<TARGET_FILE_DIR:woof-exe>/woof.exe"
-            DESTINATION .)
 else()
     install(TARGETS woof woof-setup RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()

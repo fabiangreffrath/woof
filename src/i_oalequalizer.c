@@ -231,9 +231,9 @@ void I_OAL_SetEqualizer(void)
     // Gains vary from 0.251 up to 3.981, which means from -12dB attenuation
     // up to +12dB amplification, i.e. 20*log10(gain).
 
-    #define EQ_GAIN(db) ((ALfloat)BETWEEN(0.251f, 3.981f, DB_TO_GAIN(db)))
-    #define LP_GAIN(db) ((ALfloat)BETWEEN(0.063f, 1.0f, DB_TO_GAIN(db)))
-    #define OCTAVE(x) ((ALfloat)BETWEEN(0.01f, 1.0f, (x) / 100.0f))
+    #define EQ_GAIN(db) ((ALfloat)clampf(DB_TO_GAIN(db), 0.251f, 3.981f))
+    #define LP_GAIN(db) ((ALfloat)clampf(DB_TO_GAIN(db), 0.063f, 1.0f))
+    #define OCTAVE(x) ((ALfloat)clampf((x) / 100.0f, 0.01f, 1.0f))
 
     // Low
     alEffectf(uiEffect, AL_EQUALIZER_LOW_GAIN, EQ_GAIN(default_low_gain));

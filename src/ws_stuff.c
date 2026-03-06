@@ -15,7 +15,7 @@
 //      Weapon slots.
 //
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 
 #include "g_game.h"
 #include "i_input.h"
@@ -155,7 +155,6 @@ weapon_slots_selection_t WS_Selection(void)
 //
 void WS_UpdateSelection(void)
 {
-    int buttons[NUM_WS_SLOTS];
     const int translate[] = SCANCODE_TO_KEYS_ARRAY;
 
     switch (weapon_slots_selection)
@@ -168,11 +167,10 @@ void WS_UpdateSelection(void)
             break;
 
         case WS_SELECT_FACE_BUTTONS:
-            I_GetFaceButtons(buttons);
-            slots[0].input_key = buttons[0];
-            slots[1].input_key = buttons[1];
-            slots[2].input_key = buttons[2];
-            slots[3].input_key = buttons[3];
+            slots[0].input_key = GAMEPAD_NORTH;
+            slots[1].input_key = GAMEPAD_SOUTH;
+            slots[2].input_key = GAMEPAD_WEST;
+            slots[3].input_key = GAMEPAD_EAST;
             break;
 
         default: // WS_SELECT_1234

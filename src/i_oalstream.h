@@ -18,6 +18,7 @@
 #define __I_OALSTREAM__
 
 #include "al.h"
+#include "alext.h"
 
 #include "doomtype.h"
 
@@ -26,7 +27,7 @@ typedef struct
     boolean (*I_InitStream)(int device);
     boolean (*I_OpenStream)(void *data, ALsizei size, ALenum *format,
                             ALsizei *freq, ALsizei *frame_size);
-    int (*I_FillStream)(byte *data, int frames);
+    int (*I_FillStream)(void *data, int frames);
     void (*I_PlayStream)(boolean looping);
     void (*I_CloseStream)(void);
     void (*I_ShutdownStream)(void);
@@ -39,6 +40,7 @@ extern stream_module_t stream_opl_module;
 extern stream_module_t stream_fl_module;
 extern stream_module_t stream_snd_module;
 extern stream_module_t stream_xmp_module;
+extern stream_module_t stream_mp3_module;
 
 boolean I_OAL_InitStream(void);
 

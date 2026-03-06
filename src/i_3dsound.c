@@ -17,6 +17,8 @@
 
 #include "al.h"
 
+#include <float.h>
+#include <math.h>
 #include <stdlib.h>
 
 #include "d_player.h"
@@ -32,7 +34,7 @@
 #include "sounds.h"
 #include "tables.h"
 
-#define FIXED_TO_ALFLOAT(x) ((ALfloat)(FIXED2DOUBLE(x)))
+#define FIXED_TO_ALFLOAT(x) ((ALfloat)(FixedToDouble(x)))
 
 typedef struct oal_listener_params_s
 {
@@ -157,76 +159,41 @@ static void CalcSourceParams(const mobj_t *source, oal_source_params_t *src)
     }
 }
 
-static void CalcHypotenuse(int adx, int ady, int *dist)
+inline static const double CalcHypotenuse(const double dx, const double dy)
 {
-    if (ady > adx)
-    {
-        const int temp = adx;
-        adx = ady;
-        ady = temp;
-    }
-
-    if (adx)
-    {
-        const int slope = FixedDiv(ady, adx) >> DBITS;
-        const int angle = tantoangle[slope] >> ANGLETOFINESHIFT;
-        *dist = FixedDiv(adx, finecosine[angle]);
-    }
-    else
-    {
-        *dist = 0;
-    }
+    return sqrt(dx * dx + dy * dy);
 }
 
-static void CalcDistance(const mobj_t *listener, const mobj_t *source,
-                         oal_source_params_t *src, int *dist)
+static double CalcDistance(const mobj_t *listener, const mobj_t *source,
+                           oal_source_params_t *src)
 {
-    const int adx = abs((listener->x >> FRACBITS) - (source->x >> FRACBITS));
-    const int ady = abs((listener->y >> FRACBITS) - (source->y >> FRACBITS));
-    int distxy;
+    const double dx = FixedToDouble(listener->x - source->x);
+    const double dy = FixedToDouble(listener->y - source->y);
+    const double distxy = CalcHypotenuse(dx, dy);
 
-    CalcHypotenuse(adx, ady, &distxy);
-
-    // Treat monsters, projectiles, and other players as point sources.
+    // Treat monsters, projectiles, other players, and ambient sounds as point
+    // sources.
     src->point_source =
-        (source->thinker.function.p1 != (actionf_p1)P_DegenMobjThinker
-         && source->info && source->actualheight);
+        (source->thinker.function.p1 != P_DegenMobjThinker && source->info);
 
     if (src->point_source)
     {
-        int adz;
-        // Vertical distance is from player's view to middle of source's sprite.
-        src->z = source->z + (source->actualheight >> 1);
-        adz = abs((listener->player->viewz >> FRACBITS) - (src->z >> FRACBITS));
-        CalcHypotenuse(distxy, adz, dist);
+        // Vertical distance is from player's view to middle of source's height.
+        src->z = source->z + (source->height >> 1);
+        const double dz = FixedToDouble(listener->player->viewz - src->z);
+        return CalcHypotenuse(distxy, dz);
     }
     else
     {
         // The source is a door, switch, lift, etc. and doesn't have a proper
         // vertical position. Ignore vertical distance like vanilla Doom.
         src->z = listener->player->viewz;
-        *dist = distxy;
+        return distxy;
     }
 }
 
-static boolean CalcVolumePriority(int dist, sfxparams_t *params)
+static void UpdatePriority(sfxparams_t *params)
 {
-    if (dist == 0)
-    {
-        return true;
-    }
-    else if (dist >= S_CLIPPING_DIST)
-    {
-        return false;
-    }
-    else if (dist > S_CLOSE_DIST)
-    {
-        // OpenAL inverse distance model never reaches zero volume. Gradually
-        // ramp down the volume as the distance approaches the limit.
-        params->volume =
-            params->volume * (S_CLIPPING_DIST - dist) / S_ATTENUATOR;
-    }
-
     // Decrease priority with volume attenuation.
     params->priority += (127 - params->volume);
 
@@ -234,15 +201,40 @@ static boolean CalcVolumePriority(int dist, sfxparams_t *params)
     {
         params->priority = 255;
     }
+}
 
+static boolean CalcVolumePriority(double dist, sfxparams_t *params)
+{
+    if (dist < DBL_EPSILON)
+    {
+        return true;
+    }
+    else if (dist >= params->stop_dist)
+    {
+        return false;
+    }
+    else if (dist >= params->clipping_dist)
+    {
+        // Special case for zero-volume sounds that are allowed to stay active.
+        params->volume = 0;
+        UpdatePriority(params);
+        return true;
+    }
+    else if (dist > params->close_dist)
+    {
+        // OpenAL inverse distance model never reaches zero volume. Gradually
+        // ramp down the volume as the distance approaches the limit.
+        params->volume = params->volume * (params->clipping_dist - dist)
+                         / (params->clipping_dist - params->close_dist);
+    }
+
+    UpdatePriority(params);
     return (params->volume > 0);
 }
 
 static boolean I_3D_AdjustSoundParams(const mobj_t *listener,
                                       const mobj_t *source, sfxparams_t *params)
 {
-    int dist;
-
     params->volume = snd_SfxVolume * params->volume_scale / 15;
 
     if (params->volume < 1)
@@ -261,7 +253,7 @@ static boolean I_3D_AdjustSoundParams(const mobj_t *listener,
         return true;
     }
 
-    CalcDistance(listener, source, &src, &dist);
+    const double dist = CalcDistance(listener, source, &src);
 
     if (!CalcVolumePriority(dist, params))
     {
@@ -304,18 +296,19 @@ static void I_3D_UpdateListenerParams(const mobj_t *listener)
     I_OAL_UpdateListenerParams(lis.position, lis.velocity, lis.orientation);
 }
 
-static boolean I_3D_StartSound(int channel, sfxinfo_t *sfx, float pitch)
+static boolean I_3D_StartSound(int channel, sfxinfo_t *sfx,
+                               const sfxparams_t *params)
 {
     if (src.positional)
     {
-        I_OAL_ResetSource3D(channel, src.point_source);
+        I_OAL_ResetSource3D(channel, src.point_source, params);
     }
     else
     {
         I_OAL_ResetSource2D(channel);
     }
 
-    return I_OAL_StartSound(channel, sfx, pitch);
+    return I_OAL_StartSound(channel, sfx, params);
 }
 
 static boolean I_3D_InitSound(void)
@@ -328,8 +321,7 @@ static boolean I_3D_ReinitSound(void)
     return I_OAL_ReinitSound(SND_MODULE_3D);
 }
 
-const sound_module_t sound_3d_module =
-{
+const sound_module_t sound_3d_module = {
     I_3D_InitSound,
     I_3D_ReinitSound,
     I_OAL_AllowReinitSound,
@@ -338,6 +330,7 @@ const sound_module_t sound_3d_module =
     I_3D_UpdateSoundParams,
     I_3D_UpdateListenerParams,
     I_OAL_SetGain,
+    I_OAL_GetOffset,
     I_3D_StartSound,
     I_OAL_StopSound,
     I_OAL_PauseSound,

@@ -20,6 +20,8 @@
 #ifndef __W_WAD__
 #define __W_WAD__
 
+#include <stdio.h>
+
 #include "doomtype.h"
 #include "z_zone.h"
 
@@ -58,6 +60,7 @@ typedef PACKED_PREFIX struct
 typedef enum
 {
   ns_global,
+  ns_textures,
   ns_sprites,
   ns_flats,
   ns_colormaps,
@@ -73,7 +76,7 @@ typedef struct
     {
         archive_t *archive;
         const char *base_path;
-        int descriptor;
+        FILE *descriptor;
     } p1;
 
     union
@@ -137,9 +140,11 @@ int     (W_CheckNumForName)(const char* name, int);   // killough 4/17/98
 int     W_GetNumForName (const char* name);
 int     W_LumpLength (int lump);
 void    W_ReadLump (int lump, void *dest);
+void    W_ReadLumpSize(int lump, void *dest, int size);
 void    *W_CacheLumpNum(int lump, pu_tag tag);
 
 #define W_CacheLumpName(name,tag) W_CacheLumpNum (W_GetNumForName(name),(tag))
+#define W_CacheSpriteName(name,tag) W_CacheLumpNum((W_CheckNumForName)(name, ns_sprites),(tag))
 
 const char *W_CheckWidescreenPatch(const char *lump);
 

@@ -24,6 +24,7 @@
 #include "doomtype.h"
 
 struct sfxinfo_s;
+struct sfxparams_s;
 
 extern boolean oal_use_doppler;
 
@@ -39,7 +40,8 @@ void I_OAL_SetResampler(void);
 
 void I_OAL_ResetSource2D(int channel);
 
-void I_OAL_ResetSource3D(int channel, boolean point_source);
+void I_OAL_ResetSource3D(int channel, boolean point_source,
+                         const struct sfxparams_s *params);
 
 void I_OAL_UpdateSourceParams(int channel, const ALfloat *position,
                               const ALfloat *velocity);
@@ -58,7 +60,10 @@ boolean I_OAL_AllowReinitSound(void);
 
 boolean I_OAL_CacheSound(struct sfxinfo_s *sfx);
 
-boolean I_OAL_StartSound(int channel, struct sfxinfo_s *sfx, float pitch);
+float I_OAL_GetOffset(int channel);
+
+boolean I_OAL_StartSound(int channel, struct sfxinfo_s *sfx,
+                         const struct sfxparams_s *params);
 
 void I_OAL_StopSound(int channel);
 

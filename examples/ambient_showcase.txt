@@ -1,0 +1,162 @@
+===========================================================================
+Advanced engine needed  : MBF21, SNDINFO ($ambient), Ogg Vorbis support
+Primary purpose         : Single play
+===========================================================================
+Title                   : Ambient Sound Showcase
+Filename                : ambient_showcase.wad
+Release date            : June 7, 2025
+Author                  : ceski
+
+Description             : Ambient sound showcase using SNDINFO.
+
+Additional Credits to   : See copyright section.
+===========================================================================
+* What is included *
+
+New levels              : 1
+Sounds                  : Yes
+Music                   : No
+Graphics                : Yes
+Dehacked/BEX Patch      : No
+Demos                   : Yes
+Other                   : Yes
+Other files required    : None
+
+
+* Play Information *
+
+Game                    : Doom 2
+Map #                   : MAP01
+Single Player           : Designed for
+Cooperative 2-4 Player  : No
+Deathmatch 2-4 Player   : No
+Other game styles       : None
+Difficulty Settings     : Not implemented
+
+
+* Construction *
+
+Base                    : New from scratch
+Build Time              : 2 weeks
+Editor(s) used          : Ultimate Doom Builder, SLADE, Audacity, Photoshop
+Known Bugs              : None
+May Not Run With        : Any port not specified below
+Tested With             : Woof! and GZDoom
+
+
+* Copyright / Permissions *
+
+Lumps: * (any lump not specified below)
+Copyright: © 2025 ceski.
+License: CC-BY-4.0 (https://creativecommons.org/licenses/by/4.0/)
+
+Graphics:
+
+Lumps: BRS1A0, WFALL*
+Copyright: © 2001-2024 Contributors to the Freedoom project.
+License: BSD-3-Clause (https://opensource.org/licenses/BSD-3-Clause)
+
+Lumps: MOS1A0, MOS2A0
+Copyright: © 2009-2023 Contributors to the Blasphemer project.
+License: BSD-3-Clause (https://opensource.org/licenses/BSD-3-Clause)
+
+Sounds:
+All sounds have been modified from their original sources to reduce their
+lengths or loop seamlessly.
+
+Lumps: AMBSND01, AMBSND16, AMBSND17, AMBSND30
+Copyright: © 2014 Metzik.
+License: CC-BY-4.0 (https://creativecommons.org/licenses/by/4.0/)
+Sources: https://freesound.org/people/Metzik/sounds/244148/
+         https://freesound.org/people/Metzik/sounds/244155/
+
+Lumps: AMBSND02, AMBSND18
+Copyright: © 2007 Herbert Boland.
+License: CC-BY-4.0 (https://creativecommons.org/licenses/by/4.0/)
+Sources: https://freesound.org/people/HerbertBoland/sounds/28171/
+
+Lumps: AMBSND04
+Copyright: © 2019 Simone Santarsiero.
+License: CC-BY-4.0 (https://creativecommons.org/licenses/by/4.0/)
+Sources: https://freesound.org/people/Uzbazur/sounds/478456/
+
+Lumps: AMBSND29
+Copyright: © 2017 Simone Santarsiero.
+License: CC0-1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
+Sources: https://freesound.org/people/Uzbazur/sounds/413713/
+
+Lumps: AMBSND05
+Copyright: © 2006 dobroide.
+License: CC-BY-4.0 (https://creativecommons.org/licenses/by/4.0/)
+Sources: https://freesound.org/people/dobroide/sounds/19959/
+
+Lumps: AMBSND06, AMBSND19, DSSPLASH, DSSPLSML
+Copyright: © 2016-2017 Jonathan Shaw.
+License: CC-BY-4.0 (https://creativecommons.org/licenses/by/4.0/)
+Sources: https://freesound.org/people/InspectorJ/sounds/352514/
+         https://freesound.org/people/InspectorJ/sounds/339324/
+         https://freesound.org/people/InspectorJ/sounds/352102/
+         https://freesound.org/people/InspectorJ/sounds/398702/
+
+Lumps: AMBSND07
+Copyright: © 2017 Lasdimot.
+License: CC-BY-4.0 (https://creativecommons.org/licenses/by/4.0/)
+Sources: https://freesound.org/people/Lasdimot/sounds/405515/
+
+Lumps: AMBSND08
+Copyright: © 2014 Chris Castiglione.
+License: CC-BY-3.0 (https://creativecommons.org/licenses/by/3.0/)
+Sources: https://freesound.org/people/alienistcog/sounds/241976/
+
+Lumps: AMBSND09
+Copyright: © 2014 aldeainvisible.
+License: CC-BY-4.0 (https://creativecommons.org/licenses/by/4.0/)
+Sources: https://freesound.org/people/aldeainvisible/sounds/256496/
+
+Lumps: AMBSND10
+Copyright: © 2020 Santi_SF.
+License: CC-BY-4.0 (https://creativecommons.org/licenses/by/4.0/)
+Sources: https://freesound.org/people/Santi_SF/sounds/545395/
+
+Lumps: AMBSND11
+Copyright: © 2008 galeku.
+License: CC0-1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
+Sources: https://freesound.org/people/galeku/sounds/46938/
+
+Lumps: AMBSND12, AMBSND22, AMBSND23, AMBSND26
+Copyright: © 2005-2006 suonho.
+License: CC-BY-4.0 (https://creativecommons.org/licenses/by/4.0/)
+Sources: https://freesound.org/people/suonho/sounds/17781/
+         https://freesound.org/people/suonho/sounds/17727/
+         https://freesound.org/people/suonho/sounds/3161/
+
+Lumps: AMBSND13
+Copyright: © 2006 Pooleside.
+License: CC-BY-4.0 (https://creativecommons.org/licenses/by/4.0/)
+Sources: https://freesound.org/people/Pooleside/sounds/21558/
+
+Lumps: AMBSND15
+Copyright: © 2025 giddster.
+License: CC0-1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
+Sources: https://freesound.org/people/giddster/sounds/805660/
+
+Lumps: AMBSND20, AMBSND21
+Copyright: © 2014 lebaston100.
+License: CC-BY-4.0 (https://creativecommons.org/licenses/by/4.0/)
+Sources: https://freesound.org/people/lebaston100/sounds/240607/
+
+Lumps: AMBSND24, AMBSND25
+Copyright: © 2011 Keith W. Blackwell.
+License: CC-BY-4.0 (https://creativecommons.org/licenses/by/4.0/)
+Sources: https://freesound.org/people/zimbot/sounds/122964/
+         https://freesound.org/people/zimbot/sounds/122970/
+
+Lumps: AMBSND27
+Copyright: © 2022 nlux.
+License: CC-BY-4.0 (https://creativecommons.org/licenses/by/4.0/)
+Sources: https://freesound.org/people/nlux/sounds/622796/
+
+Lumps: AMBSND28
+Copyright: © 2009 sandyrb.
+License: CC-BY-4.0 (https://creativecommons.org/licenses/by/4.0/)
+Sources: https://freesound.org/people/sandyrb/sounds/86653/

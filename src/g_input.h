@@ -48,10 +48,10 @@ int G_CalcGamepadForward(int speed);
 // Mouse
 
 void G_UpdateMouseVariables(void);
-double G_CalcMouseAngle(int mousex);
-double G_CalcMousePitch(int mousey);
-double G_CalcMouseSide(int mousex);
-double G_CalcMouseVert(int mousey);
+double G_CalcMouseAngle(float mousex);
+double G_CalcMousePitch(float mousey);
+double G_CalcMouseSide(float mousex);
+double G_CalcMouseVert(float mousey);
 void G_BindMouseVariables(void);
 
 #endif

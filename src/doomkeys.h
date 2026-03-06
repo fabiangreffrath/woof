@@ -89,6 +89,7 @@ enum
     KEYP_MINUS,
     KEYP_MULTIPLY,
     KEYP_PERIOD,
+    KEYP_BACKSLASH,
     KEYP_EQUALS = KEY_EQUALS,
     KEYP_ENTER = KEY_ENTER,
 };
@@ -115,7 +116,7 @@ enum
     KEYP_MULTIPLY, KEYP_MINUS, KEYP_PLUS, KEYP_ENTER, KEYP_1,               \
     KEYP_2, KEYP_3, KEYP_4, KEYP_5, KEYP_6,                   /* 90-99 */   \
     KEYP_7, KEYP_8, KEYP_9, KEYP_0, KEYP_PERIOD,                            \
-    0, 0, 0, KEYP_EQUALS,                                     /* 100-103 */ \
+    KEYP_BACKSLASH, 0, 0, KEYP_EQUALS,                        /* 100-103 */ \
 }
 
 // Default names for keys, to use in English or as fallback.
@@ -156,10 +157,11 @@ enum
 
 enum
 {
-    GAMEPAD_A,
-    GAMEPAD_B,
-    GAMEPAD_X,
-    GAMEPAD_Y,
+    // Must follow SDL_GamepadButton order.
+    GAMEPAD_SOUTH,
+    GAMEPAD_EAST,
+    GAMEPAD_WEST,
+    GAMEPAD_NORTH,
     GAMEPAD_BACK,
     GAMEPAD_GUIDE,
     GAMEPAD_START,
@@ -172,11 +174,18 @@ enum
     GAMEPAD_DPAD_LEFT,
     GAMEPAD_DPAD_RIGHT,
     GAMEPAD_MISC1,
-    GAMEPAD_PADDLE1,
-    GAMEPAD_PADDLE2,
-    GAMEPAD_PADDLE3,
-    GAMEPAD_PADDLE4,
+    GAMEPAD_RIGHT_PADDLE1,
+    GAMEPAD_LEFT_PADDLE1,
+    GAMEPAD_RIGHT_PADDLE2,
+    GAMEPAD_LEFT_PADDLE2,
     GAMEPAD_TOUCHPAD_PRESS,
+    GAMEPAD_MISC2,
+    GAMEPAD_MISC3,
+    GAMEPAD_MISC4,
+    GAMEPAD_MISC5,
+    GAMEPAD_MISC6,
+
+    // Virtual buttons.
     GAMEPAD_TOUCHPAD_TOUCH,
     GAMEPAD_LEFT_TRIGGER,
     GAMEPAD_RIGHT_TRIGGER,

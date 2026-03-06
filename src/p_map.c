@@ -21,6 +21,7 @@
 #include <stdlib.h>
 
 #include "d_player.h"
+#include "deh_misc.h"
 #include "doomdata.h"
 #include "doomdef.h"
 #include "doomstat.h"
@@ -28,8 +29,10 @@
 #include "i_printf.h"
 #include "i_system.h"
 #include "info.h"
+#include "m_arena.h"
 #include "m_argv.h"
 #include "m_bbox.h"
+#include "m_fixed.h"
 #include "m_misc.h"
 #include "m_random.h"
 #include "p_inter.h"
@@ -91,6 +94,8 @@ int numspechit;
 
 // Temporary holder for thing_sectorlist threads
 msecnode_t *sector_list = NULL;                             // phares 3/16/98
+
+arena_t *msecnodes_arena;
 
 //
 // TELEPORT MOVE
@@ -1608,7 +1613,7 @@ static boolean PTR_ShootTraverse(intercept_t *in)
           if (z < sector->floorheight ||
              (z > sector->ceilingheight && sector->ceilingpic != skyflatnum))
           {
-            z = BETWEEN(sector->floorheight, sector->ceilingheight, z);
+            z = CLAMP(z, sector->floorheight, sector->ceilingheight);
             frac = FixedDiv(z - shootz, FixedMul(aimslope, attackrange));
             x = trace.x + FixedMul (trace.dx, frac);
             y = trace.y + FixedMul (trace.dy, frac);
@@ -1995,7 +2000,7 @@ boolean PIT_RadiusAttack(mobj_t *thing)
 
 void P_RadiusAttack(mobj_t *spot, mobj_t *source, int damage, int distance)
 {
-  fixed_t dist = (distance+MAXRADIUS)<<FRACBITS;
+  fixed_t dist = IntToFixed(distance + MAXRADIUS);
   int yh = (spot->y + dist - bmaporgy)>>MAPBLOCKSHIFT;
   int yl = (spot->y - dist - bmaporgy)>>MAPBLOCKSHIFT;
   int xh = (spot->x + dist - bmaporgx)>>MAPBLOCKSHIFT;
@@ -2048,7 +2053,7 @@ boolean PIT_ChangeSector(mobj_t *thing)
       thing->height = thing->radius = 0;
       if (thing->info->bloodcolor)
       {
-        thing->flags2 |= MF2_COLOREDBLOOD;
+        thing->flags_extra |= MFX_COLOREDBLOOD;
         thing->bloodcolor = V_BloodColor(thing->info->bloodcolor);
       }
       return true;      // keep checking
@@ -2088,7 +2093,7 @@ boolean PIT_ChangeSector(mobj_t *thing)
 
       if (thing->info->bloodcolor)
       {
-        mo->flags2 |= MF2_COLOREDBLOOD;
+        mo->flags_extra |= MFX_COLOREDBLOOD;
         mo->bloodcolor = V_BloodColor(thing->info->bloodcolor);
       }
 
@@ -2190,7 +2195,7 @@ static msecnode_t *P_GetSecnode(void)
 
   return headsecnode ?
     node = headsecnode, headsecnode = node->m_snext, node :
-    Z_Malloc(sizeof *node, PU_LEVEL, NULL);
+    arena_alloc(msecnodes_arena, msecnode_t);
 }
 
 // P_PutSecnode() returns a node to the freelist.

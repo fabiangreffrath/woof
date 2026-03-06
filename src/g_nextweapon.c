@@ -93,10 +93,16 @@ weapontype_t G_AdjustSelection(weapontype_t weapon)
         return weapon;
     }
 
-    if (ALLOW_SSG
-        && weapon == wp_shotgun
-        && players[consoleplayer].weaponowned[wp_supershotgun]
-        && players[consoleplayer].nextweapon != wp_supershotgun)
+    const player_t *player = &players[consoleplayer];
+
+    if (weapon == wp_fist && player->weaponowned[wp_chainsaw]
+        && (player->nextweapon != wp_chainsaw || !player->powers[pw_strength]))
+    {
+        weapon = wp_chainsaw;
+    }
+    else if (ALLOW_SSG && weapon == wp_shotgun
+             && player->weaponowned[wp_supershotgun]
+             && player->nextweapon != wp_supershotgun)
     {
         weapon = wp_supershotgun;
     }
@@ -216,9 +222,11 @@ void G_NextWeaponResendCmd(void)
     }
 }
 
-void G_NextWeaponReset(void)
+void G_NextWeaponReset(weapontype_t weapon)
 {
     currently_active = false;
     state = nw_state_none;
+    players[consoleplayer].nextweapon = players[consoleplayer].readyweapon;
+    players[consoleplayer].nextweapon = G_AdjustSelection(weapon);
     ST_ResetCarousel();
 }

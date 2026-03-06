@@ -1,0 +1,13 @@
+set(CONVERT_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/convert-font")
+set(INPUT_PNG "${CMAKE_CURRENT_SOURCE_DIR}/hauge-8x18-v1-6.png")
+set(OUTPUT_H "${CMAKE_CURRENT_SOURCE_DIR}/normal.h")
+
+add_custom_command(
+    OUTPUT ${OUTPUT_H}
+    COMMAND ${Python3_EXECUTABLE} ${CONVERT_SCRIPT} normal ${INPUT_PNG} ${OUTPUT_H}
+    DEPENDS ${INPUT_PNG} ${CONVERT_SCRIPT}
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+    VERBATIM
+)
+
+add_custom_target(textscreen-font DEPENDS ${OUTPUT_H})

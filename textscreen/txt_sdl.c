@@ -15,7 +15,7 @@
 // Text mode emulation in SDL
 //
 
-#include "SDL.h"
+#include <SDL3/SDL.h>
 
 #include <ctype.h>
 #include <stdio.h>
@@ -23,7 +23,6 @@
 #include <string.h>
 
 #include "doomkeys.h"
-#include "m_io.h"
 
 #include "txt_main.h"
 #include "txt_sdl.h"
@@ -45,11 +44,6 @@ typedef struct
 
 #include "fonts/normal.h"
 
-static const txt_font_t normal_font =
-{
-    "normal", normal_font_data, 8, 16,
-};
-
 #include "fonts/codepage.h"
 
 // Time between character blinks in ms
@@ -57,10 +51,10 @@ static const txt_font_t normal_font =
 #define BLINK_PERIOD 250
 
 SDL_Window *TXT_SDLWindow = NULL;
-static SDL_Surface *screenbuffer;
+static SDL_Palette *palette;
 static unsigned char *screendata;
 static SDL_Renderer *renderer;
-static SDL_Texture *texture_upscaled;
+static SDL_Texture *texture;
 
 // Current input mode.
 static txt_input_mode_t input_mode = TXT_INPUT_NORMAL;
@@ -126,12 +120,47 @@ void TXT_PreInit(SDL_Window *preset_window, SDL_Renderer *preset_renderer)
     }
 }
 
+static void UpdateLogicalPresentation(void)
+{
+    SDL_RendererLogicalPresentation mode = SDL_LOGICAL_PRESENTATION_LETTERBOX;
+    int w, h;
+
+    SDL_GetWindowSizeInPixels(TXT_SDLWindow, &w, &h);
+
+    // Window aspect ratio less than txt aspect ratio?
+    if (w * screen_image_h < h * screen_image_w)
+    {
+        // Window width is the constraint.
+        const int border_w = w % screen_image_w;
+
+        if (border_w >= 0 && border_w <= w / 6)
+        {
+            // Borders are small enough, so use integer scaling.
+            mode = SDL_LOGICAL_PRESENTATION_INTEGER_SCALE;
+        }
+    }
+    else
+    {
+        // Window height is the constraint.
+        const int border_h = h % screen_image_h;
+
+        if (border_h >= 0 && border_h <= h / 6)
+        {
+            // Borders are small enough, so use integer scaling.
+            mode = SDL_LOGICAL_PRESENTATION_INTEGER_SCALE;
+        }
+    }
+
+    // Set width and height of the logical viewport for automatic scaling.
+    SDL_SetRenderLogicalPresentation(renderer, screen_image_w, screen_image_h,
+                                     mode);
+}
+
 int TXT_Init(void)
 {
-    int flags = 0;
-    SDL_RendererInfo info;
+    SDL_WindowFlags flags = 0;
 
-    if (SDL_Init(SDL_INIT_VIDEO) < 0)
+    if (!SDL_Init(SDL_INIT_VIDEO))
     {
         return 0;
     }
@@ -142,73 +171,47 @@ int TXT_Init(void)
     screen_image_h = TXT_SCREEN_H * font->h;
 
     // try to initialize high dpi rendering.
-    flags |= SDL_WINDOW_ALLOW_HIGHDPI;
+    flags |= SDL_WINDOW_HIGH_PIXEL_DENSITY;
 
     if (TXT_SDLWindow == NULL)
     {
-        int w, h;
-
-        w = 3 * screen_image_w / 2;
-        h = 3 * screen_image_h / 2;
-
         flags |= SDL_WINDOW_RESIZABLE;
 
-        TXT_SDLWindow = SDL_CreateWindow("",
-                            SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                            w, h, flags);
+        TXT_SDLWindow =
+            SDL_CreateWindow(NULL, screen_image_w, screen_image_h, flags);
         SDL_SetWindowMinimumSize(TXT_SDLWindow, screen_image_w, screen_image_h);
     }
 
     if (TXT_SDLWindow == NULL)
-        return 0;
-
-    if (renderer == NULL)
     {
-        renderer = SDL_CreateRenderer(TXT_SDLWindow, -1, SDL_RENDERER_PRESENTVSYNC);
-
-        if (renderer == NULL)
-            renderer = SDL_CreateRenderer(TXT_SDLWindow, -1, SDL_RENDERER_SOFTWARE);
+        return 0;
     }
 
     if (renderer == NULL)
+    {
+        renderer = SDL_CreateRenderer(TXT_SDLWindow, NULL);
+        SDL_SetRenderVSync(renderer, 1);
+    }
+
+    if (renderer == NULL)
+    {
         return 0;
+    }
 
-    // Instead, we draw everything into an intermediate 8-bit surface
-    // the same dimensions as the screen. SDL then takes care of all the
-    // 8->32 bit (or whatever depth) color conversions for us.
-    screenbuffer = SDL_CreateRGBSurface(0,
-                                        TXT_SCREEN_W * font->w,
-                                        TXT_SCREEN_H * font->h,
-                                        8, 0, 0, 0, 0);
+    UpdateLogicalPresentation();
 
-    // Apply aspect ratio correction.
-    const int logical_h = screenbuffer->h * 6 / 5;
+    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_INDEX8,
+                                SDL_TEXTUREACCESS_STREAMING, screen_image_w,
+                                screen_image_h);
 
-    // Set width and height of the logical viewport for automatic scaling.
-    SDL_RenderSetLogicalSize(renderer, screenbuffer->w, logical_h);
+    SDL_SetTextureScaleMode(texture, SDL_SCALEMODE_PIXELART);
 
-    SDL_LockSurface(screenbuffer);
-    SDL_SetPaletteColors(screenbuffer->format->palette, ega_colors, 0, 16);
-    SDL_UnlockSurface(screenbuffer);
+    palette = SDL_CreatePalette(256);
+    SDL_SetPaletteColors(palette, ega_colors, 0, 16);
+    SDL_SetTexturePalette(texture, palette);
 
     screendata = malloc(TXT_SCREEN_W * TXT_SCREEN_H * 2);
     memset(screendata, 0, TXT_SCREEN_W * TXT_SCREEN_H * 2);
-
-    SDL_GetRendererInfo(renderer, &info);
-
-    if (!(info.flags & SDL_RENDERER_SOFTWARE))
-    {
-      // Set the scaling quality for rendering the upscaled texture to "linear",
-      // which looks much softer and smoother than "nearest" but does a better
-      // job at downscaling from the upscaled texture to screen.
-
-      SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
-
-      texture_upscaled = SDL_CreateTexture(renderer,
-                           SDL_GetWindowPixelFormat(TXT_SDLWindow),
-                           SDL_TEXTUREACCESS_TARGET,
-                           2*screenbuffer->w, 2*logical_h);
-    }
 
     return 1;
 }
@@ -217,21 +220,15 @@ void TXT_Shutdown(void)
 {
     free(screendata);
     screendata = NULL;
-    SDL_FreeSurface(screenbuffer);
-    screenbuffer = NULL;
-    SDL_DestroyTexture(texture_upscaled);
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(TXT_SDLWindow);
+    SDL_DestroyTexture(texture);
+    texture = NULL;
     SDL_QuitSubSystem(SDL_INIT_VIDEO);
 }
 
 void TXT_SetColor(txt_color_t color, int r, int g, int b)
 {
     SDL_Color c = {r, g, b, 0xff};
-
-    SDL_LockSurface(screenbuffer);
-    SDL_SetPaletteColors(screenbuffer->format->palette, &c, color, 1);
-    SDL_UnlockSurface(screenbuffer);
+    SDL_SetPaletteColors(palette, &c, color, 1);
 }
 
 unsigned char *TXT_GetScreenData(void)
@@ -239,7 +236,7 @@ unsigned char *TXT_GetScreenData(void)
     return screendata;
 }
 
-static inline void UpdateCharacter(int x, int y)
+static inline void UpdateCharacter(unsigned char *pixels, int pitch, int x, int y)
 {
     unsigned char character;
     const uint8_t *p;
@@ -270,9 +267,7 @@ static inline void UpdateCharacter(int x, int y)
     p = &font->data[(character * font->w * font->h) / 8];
     bit = 0;
 
-    s = ((unsigned char *) screenbuffer->pixels)
-      + (y * font->h * screenbuffer->pitch)
-      + (x * font->w);
+    s = pixels + (y * font->h * pitch) + (x * font->w);
 
     for (y1=0; y1<font->h; ++y1)
     {
@@ -297,7 +292,7 @@ static inline void UpdateCharacter(int x, int y)
             }
         }
 
-        s += screenbuffer->pitch;
+        s += pitch;
     }
 }
 
@@ -317,69 +312,30 @@ static int LimitToRange(int val, int min, int max)
     }
 }
 
-static void GetDestRect(SDL_Rect *rect)
-{
-    // Set x and y to 0 due to SDL auto-centering.
-    rect->x = 0;
-    rect->y = 0;
-    rect->w = screenbuffer->w;
-    rect->h = screenbuffer->h;
-}
-
 void TXT_UpdateScreenArea(int x, int y, int w, int h)
 {
-    SDL_Texture *screentx;
-    SDL_Rect rect;
-    int x1, y1;
-    int x_end;
-    int y_end;
+    void *pixels;
+    int pitch;
+    SDL_LockTexture(texture, NULL, &pixels, &pitch);
 
-    SDL_LockSurface(screenbuffer);
-
-    x_end = LimitToRange(x + w, 0, TXT_SCREEN_W);
-    y_end = LimitToRange(y + h, 0, TXT_SCREEN_H);
+    int x_end = LimitToRange(x + w, 0, TXT_SCREEN_W);
+    int y_end = LimitToRange(y + h, 0, TXT_SCREEN_H);
     x = LimitToRange(x, 0, TXT_SCREEN_W);
     y = LimitToRange(y, 0, TXT_SCREEN_H);
 
-    for (y1=y; y1<y_end; ++y1)
+    for (int y1 = y; y1 < y_end; ++y1)
     {
-        for (x1=x; x1<x_end; ++x1)
+        for (int x1 = x; x1 < x_end; ++x1)
         {
-            UpdateCharacter(x1, y1);
+            UpdateCharacter(pixels, pitch, x1, y1);
         }
     }
 
-    SDL_UnlockSurface(screenbuffer);
-
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, texture_upscaled ? "nearest" : "linear");
-
-    // TODO: This is currently creating a new texture every time we render
-    // the screen; find a more efficient way to do it.
-    screentx = SDL_CreateTextureFromSurface(renderer, screenbuffer);
+    SDL_UnlockTexture(texture);
 
     SDL_RenderClear(renderer);
-    GetDestRect(&rect);
-
-    if (texture_upscaled)
-    {
-      // Render this intermediate texture into the upscaled texture
-      // using "nearest" integer scaling.
-
-      SDL_SetRenderTarget(renderer, texture_upscaled);
-      SDL_RenderCopy(renderer, screentx, NULL, NULL);
-
-      // Finally, render this upscaled texture to screen using linear scaling.
-
-      SDL_SetRenderTarget(renderer, NULL);
-      SDL_RenderCopy(renderer, texture_upscaled, NULL, NULL);
-    }
-    else
-    {
-      SDL_RenderCopy(renderer, screentx, NULL, &rect);
-    }
-
+    SDL_RenderTexture(renderer, texture, NULL, NULL);
     SDL_RenderPresent(renderer);
-    SDL_DestroyTexture(screentx);
 }
 
 void TXT_UpdateScreen(void)
@@ -390,8 +346,12 @@ void TXT_UpdateScreen(void)
 void TXT_GetMousePosition(int *x, int *y)
 {
     int window_w, window_h;
+    float outx, outy;
 
-    SDL_GetMouseState(x, y);
+    SDL_GetMouseState(&outx, &outy);
+
+    *x = (int)outx;
+    *y = (int)outy;
 
     // Translate mouse position from 'pixel' position into character position.
     // We are working here in screen coordinates and not pixels, since this is
@@ -455,18 +415,18 @@ static int TranslateScancode(SDL_Scancode scancode)
     }
 }
 
-static int TranslateKeysym(const SDL_Keysym *sym)
+static int TranslateKeysym(SDL_KeyboardEvent *key)
 {
     int translated;
 
     // We cheat here and make use of TranslateScancode. The range of keys
     // associated with printable characters is pretty contiguous, so if it's
     // inside that range we want the localized version of the key instead.
-    translated = TranslateScancode(sym->scancode);
+    translated = TranslateScancode(key->scancode);
 
     if (translated >= 0x20 && translated < 0x7f)
     {
-        return sym->sym;
+        return key->key;
     }
     else
     {
@@ -546,37 +506,37 @@ signed int TXT_GetChar(void)
 
         switch (ev.type)
         {
-            case SDL_MOUSEBUTTONDOWN:
+            case SDL_EVENT_MOUSE_BUTTON_DOWN:
                 if (ev.button.button < TXT_MAX_MOUSE_BUTTONS)
                 {
                     return SDLButtonToTXTButton(ev.button.button);
                 }
                 break;
 
-            case SDL_MOUSEWHEEL:
+            case SDL_EVENT_MOUSE_WHEEL:
                 return SDLWheelToTXTButton(&ev.wheel);
 
-            case SDL_KEYDOWN:
+            case SDL_EVENT_KEY_DOWN:
                 switch (input_mode)
                 {
                     case TXT_INPUT_RAW:
-                        return TranslateScancode(ev.key.keysym.scancode);
+                        return TranslateScancode(ev.key.scancode);
                     case TXT_INPUT_NORMAL:
-                        return TranslateKeysym(&ev.key.keysym);
+                        return TranslateKeysym(&ev.key);
                     case TXT_INPUT_TEXT:
                         // We ignore key inputs in this mode, except for a
                         // few special cases needed during text input:
-                        if (ev.key.keysym.sym == SDLK_ESCAPE
-                         || ev.key.keysym.sym == SDLK_BACKSPACE
-                         || ev.key.keysym.sym == SDLK_RETURN)
+                        if (ev.key.key == SDLK_ESCAPE
+                         || ev.key.key == SDLK_BACKSPACE
+                         || ev.key.key == SDLK_RETURN)
                         {
-                            return TranslateKeysym(&ev.key.keysym);
+                            return TranslateKeysym(&ev.key);
                         }
                         break;
                 }
                 break;
 
-            case SDL_TEXTINPUT:
+            case SDL_EVENT_TEXT_INPUT:
                 if (input_mode == TXT_INPUT_TEXT)
                 {
                     // TODO: Support input of more than just the first char?
@@ -588,19 +548,26 @@ signed int TXT_GetChar(void)
                 }
                 break;
 
-            case SDL_QUIT:
+            case SDL_EVENT_QUIT:
                 // Quit = escape
                 return 27;
 
-            case SDL_MOUSEMOTION:
+            case SDL_EVENT_MOUSE_MOTION:
                 if (MouseHasMoved())
                 {
                     return 0;
                 }
 
-            case SDL_CONTROLLERDEVICEADDED:
-            case SDL_CONTROLLERDEVICEREMOVED:
+            case SDL_EVENT_GAMEPAD_ADDED:
+            case SDL_EVENT_GAMEPAD_REMOVED:
                 SDL_PushEvent(&ev);
+                break;
+
+            case SDL_EVENT_WINDOW_RESIZED:
+                if (ev.window.windowID == SDL_GetWindowID(TXT_SDLWindow))
+                {
+                    UpdateLogicalPresentation();
+                }
                 break;
 
             default:
@@ -620,11 +587,11 @@ int TXT_GetModifierState(txt_modifier_t mod)
     switch (mod)
     {
         case TXT_MOD_SHIFT:
-            return (state & KMOD_SHIFT) != 0;
+            return (state & SDL_KMOD_SHIFT) != 0;
         case TXT_MOD_CTRL:
-            return (state & KMOD_CTRL) != 0;
+            return (state & SDL_KMOD_CTRL) != 0;
         case TXT_MOD_ALT:
-            return (state & KMOD_ALT) != 0;
+            return (state & SDL_KMOD_ALT) != 0;
         default:
             return 0;
     }
@@ -689,7 +656,7 @@ static const char *NameForKey(int key)
     {
         if (scancode_translate_table[i] == key)
         {
-            result = SDL_GetKeyName(SDL_GetKeyFromScancode(i));
+            result = SDL_GetKeyName(SDL_GetKeyFromScancode(i, SDL_GetModState(), false));
             if (TXT_UTF8_Strlen(result) > 6 || !PrintableName(result))
             {
                 break;
@@ -820,13 +787,13 @@ void TXT_Sleep(int timeout)
 
 void TXT_SetInputMode(txt_input_mode_t mode)
 {
-    if (mode == TXT_INPUT_TEXT && !SDL_IsTextInputActive())
+    if (mode == TXT_INPUT_TEXT && !SDL_TextInputActive(TXT_SDLWindow))
     {
-        SDL_StartTextInput();
+        SDL_StartTextInput(TXT_SDLWindow);
     }
-    else if (SDL_IsTextInputActive() && mode != TXT_INPUT_TEXT)
+    else if (SDL_TextInputActive(TXT_SDLWindow) && mode != TXT_INPUT_TEXT)
     {
-        SDL_StopTextInput();
+        SDL_StopTextInput(TXT_SDLWindow);
     }
 
     input_mode = mode;
@@ -905,4 +872,3 @@ int TXT_snprintf(char *buf, size_t buf_len, const char *s, ...)
     va_end(args);
     return result;
 }
-

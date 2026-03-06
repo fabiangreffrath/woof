@@ -17,11 +17,14 @@
 //      [FG] miscellaneous helper functions from Chocolate Doom.
 //
 
-#include <errno.h>
+#include <SDL3/SDL.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
+#include "i_printf.h"
 #include "i_system.h"
 #include "m_io.h"
 #include "m_misc.h"
@@ -36,45 +39,44 @@
 
 // Check if a file exists
 
-static boolean M_FileExistsNotDir(const char *filename)
+boolean M_FileExistsNotDir(const char *path)
 {
-    FILE *fstream;
+    SDL_PathInfo info;
 
-    fstream = M_fopen(filename, "r");
-
-    if (fstream != NULL)
-    {
-        fclose(fstream);
-        return M_DirExists(filename) == false;
-    }
-    else
-    {
-        return false;
-    }
+    return (SDL_GetPathInfo(path, &info)
+            && info.type != SDL_PATHTYPE_DIRECTORY);
 }
 
 boolean M_DirExists(const char *path)
 {
-    struct stat st;
+    SDL_PathInfo info;
 
-    if (M_stat(path, &st) == 0 && S_ISDIR(st.st_mode))
-    {
-        return true;
-    }
-
-    return false;
+    return (SDL_GetPathInfo(path, &info)
+            && info.type == SDL_PATHTYPE_DIRECTORY);
 }
 
 int M_FileLength(const char *path)
 {
-    struct stat st;
+    SDL_PathInfo info;
 
-    if (M_stat(path, &st) == -1)
+    if (!SDL_GetPathInfo(path, &info))
     {
-        I_Error("stat error %s", strerror(errno));
+        I_Error("SDL_GetPathInfo: %s", SDL_GetError());
     }
 
-    return st.st_size;
+    return (int)info.size;
+}
+
+int64_t M_FileMTime(const char *path)
+{
+    SDL_PathInfo info;
+
+    if (!SDL_GetPathInfo(path, &info))
+    {
+        return 0;
+    }
+
+    return (int64_t)SDL_NS_TO_SECONDS(info.modify_time);
 }
 
 // Returns the path to a temporary file of the given name, stored
@@ -97,9 +99,14 @@ char *M_TempFile(const char *s)
         tempdir = ".";
     }
 #else
-    // In Unix, just use /tmp.
+    // Check the $TMPDIR environment variable to find the location.
 
-    tempdir = "/tmp";
+    tempdir = getenv("TMPDIR");
+
+    if (tempdir == NULL)
+    {
+        tempdir = "/tmp";
+    }
 #endif
 
     return M_StringJoin(tempdir, DIR_SEPARATOR_S, s);
@@ -235,9 +242,9 @@ const char *M_BaseName(const char *path)
     }
 }
 
-char *M_HomeDir(void)
+const char *M_HomeDir(void)
 {
-    static char *home_dir;
+    static const char *home_dir;
 
     if (home_dir == NULL)
     {
@@ -264,9 +271,9 @@ char *M_HomeDir(void)
 // > is either not set or empty, a default equal to
 // > $HOME/.local/share should be used.
 
-char *M_DataDir(void)
+const char *M_DataDir(void)
 {
-    static char *data_dir;
+    static const char *data_dir;
 
     if (data_dir == NULL)
     {
@@ -348,12 +355,18 @@ char *M_StringDuplicate(const char *orig)
 
 // String replace function.
 
-char *M_StringReplace(const char *haystack, const char *needle,
-                      const char *replacement)
+static inline int is_boundary(char c)
+{
+    return c == '\0' || isspace((unsigned char)c) || ispunct((unsigned char)c);
+}
+
+static char *M_StringReplaceEx(const char *haystack, const char *needle,
+                               const char *replacement, const boolean whole_word)
 {
     char *result, *dst;
     const char *p;
-    size_t needle_len = strlen(needle);
+    const size_t needle_len = strlen(needle);
+    const size_t repl_len = strlen(replacement);
     size_t result_len, dst_len;
 
     // Iterate through occurrences of 'needle' and calculate the size of
@@ -363,14 +376,20 @@ char *M_StringReplace(const char *haystack, const char *needle,
 
     for (;;)
     {
-        p = strstr(p, needle);
+        p = M_strcasestr(p, needle);
         if (p == NULL)
         {
             break;
         }
 
+        if (!whole_word ||
+            ((p == haystack || is_boundary(p[-1])) &&
+            is_boundary(p[needle_len])))
+        {
+            result_len += repl_len - needle_len;
+        }
+
         p += needle_len;
-        result_len += strlen(replacement) - needle_len;
     }
 
     // Construct new string.
@@ -388,12 +407,15 @@ char *M_StringReplace(const char *haystack, const char *needle,
 
     while (*p != '\0')
     {
-        if (!strncmp(p, needle, needle_len))
+        if (!strncasecmp(p, needle, needle_len) &&
+            (!whole_word ||
+            ((p == haystack || is_boundary(p[-1])) &&
+            is_boundary(p[needle_len]))))
         {
             M_StringCopy(dst, replacement, dst_len);
             p += needle_len;
-            dst += strlen(replacement);
-            dst_len -= strlen(replacement);
+            dst += repl_len;
+            dst_len -= repl_len;
         }
         else
         {
@@ -407,6 +429,18 @@ char *M_StringReplace(const char *haystack, const char *needle,
     *dst = '\0';
 
     return result;
+}
+
+char *M_StringReplace(const char *haystack, const char *needle,
+                      const char *replacement)
+{
+    return M_StringReplaceEx(haystack, needle, replacement, false);
+}
+
+char *M_StringReplaceWord(const char *haystack, const char *needle,
+                          const char *replacement)
+{
+    return M_StringReplaceEx(haystack, needle, replacement, true);
 }
 
 // Safe string copy function that works like OpenBSD's strlcpy().
@@ -477,38 +511,38 @@ boolean M_StringCaseEndsWith(const char *s, const char *suffix)
 
 char *M_StringJoinInternal(const char *s[], size_t n)
 {
-    int length = 1;
+    size_t length = 1; // Start with 1 for the null terminator
 
+    // Check for NULL arguments and calculate total length
     for (int i = 0; i < n; ++i)
     {
         if (s[i] == NULL)
         {
-            I_Error("%d argument is NULL", i);
+            I_Error("%d argument is NULL", i + 1);
         }
-
         length += strlen(s[i]);
     }
 
     char *result = malloc(length);
-
     if (result == NULL)
     {
         I_Error("Failed to allocate new string");
     }
 
-    M_StringCopy(result, s[0], length);
-
-    for (int i = 1; i < n; ++i)
+    int pos = 0;
+    for (int i = 0; i < n; ++i)
     {
-        M_StringConcat(result, s[i], length);
+        size_t slen = strlen(s[i]);
+        memcpy(result + pos, s[i], slen);
+        pos += slen;
     }
+    result[pos] = '\0'; // Null-terminate the result
 
     return result;
 }
 
 // Safe, portable vsnprintf().
-int PRINTF_ATTR(3, 0)
-    M_vsnprintf(char *buf, size_t buf_len, const char *s, va_list args)
+int M_vsnprintf(char *buf, size_t buf_len, const char *s, va_list args)
 {
     int result;
 
@@ -544,20 +578,41 @@ int M_snprintf(char *buf, size_t buf_len, const char *s, ...)
     return result;
 }
 
-// Copy lump name (up to 8 chars) to dest buffer.
+// Source - https://stackoverflow.com/questions/27303062/strstr-function-like-that-ignores-upper-or-lower-case
+// Posted by chux, modified by community. See post 'Timeline' for change history
+// Retrieved 2026-01-03, License - CC BY-SA 3.0
+char *M_strcasestr(const char *haystack, const char *needle)
+{
+    do
+    {
+        const char *h = haystack;
+        const char *n = needle;
+        while (tolower((unsigned char)*h) == tolower((unsigned char)*n) && *n)
+        {
+            h++;
+            n++;
+        }
+        if (*n == 0)
+        {
+            return (char *)haystack;
+        }
+    } while (*haystack++);
+    return NULL;
+}
+
+// Copies characters until either 8 characters are copied or a null terminator
+// is found.
 
 void M_CopyLumpName(char *dest, const char *src)
 {
-    size_t len;
-
-    len = strnlen(src, 8);
-
-    if (len < 8)
+    for (int i = 0; i < 8; i++)
     {
-        len++;
+        dest[i] = src[i];
+        if (src[i] == '\0')
+        {
+            break;
+        }
     }
-
-    memcpy(dest, src, len);
 }
 
 //
@@ -582,26 +637,17 @@ char *AddDefaultExtension(const char *path, const char *ext)
 //
 // killough 9/98: rewritten to use stdio and to flash disk icon
 
-boolean M_WriteFile(char const *name, void *source, int length)
+boolean M_WriteFile(char const *name, const void *source, int length)
 {
-    FILE *fp;
+    boolean success = SDL_SaveFile(name, source, length);
 
-    errno = 0;
-
-    if (!(fp = M_fopen(name, "wb"))) // Try opening file
+    if (!success)
     {
-        return 0; // Could not open file for writing
+        M_remove(name); // Remove partially written file
+        I_Printf(VB_ERROR, "Couldn't write file %s: %s", name, SDL_GetError());
     }
 
-    length = fwrite(source, 1, length, fp) == length; // Write data
-    fclose(fp);
-
-    if (!length) // Remove partially written file
-    {
-        M_remove(name);
-    }
-
-    return length;
+    return success;
 }
 
 //
@@ -612,8 +658,6 @@ boolean M_WriteFile(char const *name, void *source, int length)
 int M_ReadFile(char const *name, byte **buffer)
 {
     FILE *fp;
-
-    errno = 0;
 
     if ((fp = M_fopen(name, "rb")))
     {
@@ -631,8 +675,7 @@ int M_ReadFile(char const *name, byte **buffer)
         fclose(fp);
     }
 
-    I_Error("Couldn't read file %s: %s", name,
-            errno ? strerror(errno) : "(Unknown Error)");
+    I_Error("Couldn't read file %s", name);
 
     return 0;
 }
@@ -654,4 +697,34 @@ boolean M_StringToDigest(const char *string, byte *digest, int size)
         digest[offset] = i;
     }
     return true;
+}
+
+void M_DigestToString(const byte *digest, char *string, int size)
+{
+    for (int i = 0; i < size; ++i)
+    {
+        M_snprintf(&string[i * 2], 3, "%02x", digest[i]);
+    }
+}
+
+int M_CompareVersions(const version_t *v1, const version_t *v2)
+{
+    if (v1->major != v2->major)
+    {
+        return v1->major - v2->major;
+    }
+    if (v1->minor != v2->minor)
+    {
+        return v1->minor - v2->minor;
+    }
+    return v1->revision - v2->revision;
+}
+
+boolean M_ParseVersion(const char *s, version_t *v)
+{
+    if (sscanf(s, "%d.%d.%d", &v->major, &v->minor, &v->revision) == 3)
+    {
+        return true;
+    }
+    return false;
 }

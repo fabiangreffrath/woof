@@ -21,7 +21,6 @@
 //
 //-----------------------------------------------------------------------------
 
-#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -38,15 +37,16 @@
 #include "r_data.h"
 #include "r_defs.h"
 #include "r_state.h"
+#include "r_tranmap.h"
 #include "s_sound.h"
 #include "sounds.h"
-#include "v_fmt.h"
+#include "v_patch.h"
 #include "v_trans.h"
 #include "v_video.h"
 #include "w_wad.h" // needed for color translation lump lookup
 #include "z_zone.h"
 
-pixel_t *I_VideoBuffer;
+pixel_t *I_VideoBuffer = NULL;
 
 // The screen buffer that the v_video.c code draws to.
 
@@ -91,29 +91,23 @@ byte *red2col[CR_LIMIT] = {0};
 // provided in v_video.h.
 //
 
-typedef struct
-{
-    const char *name;
-    byte **map1, **map2, **map_orig;
-} crdef_t;
-
 // killough 5/2/98: table-driven approach
-static const crdef_t crdefs[] =
+const crdef_t crdefs[] =
 {
-    {"CRBRICK",  &cr_brick,  &colrngs[CR_BRICK],  &red2col[CR_BRICK]},
-    {"CRTAN",    &cr_tan,    &colrngs[CR_TAN],    &red2col[CR_TAN]},
-    {"CRGRAY",   &cr_gray,   &colrngs[CR_GRAY],   &red2col[CR_GRAY]},
-    {"CRGREEN",  &cr_green,  &colrngs[CR_GREEN],  &red2col[CR_GREEN]},
-    {"CRBROWN",  &cr_brown,  &colrngs[CR_BROWN],  &red2col[CR_BROWN]},
-    {"CRGOLD",   &cr_gold,   &colrngs[CR_GOLD],   &red2col[CR_GOLD]},
-    {"CRRED",    &cr_red,    &colrngs[CR_RED],    &red2col[CR_RED]},
-    {"CRBLUE",   &cr_blue,   &colrngs[CR_BLUE1],  &red2col[CR_BLUE1]},
-    {"CRORANGE", &cr_orange, &colrngs[CR_ORANGE], &red2col[CR_ORANGE]},
-    {"CRYELLOW", &cr_yellow, &colrngs[CR_YELLOW], &red2col[CR_YELLOW]},
-    {"CRBLUE2",  &cr_blue2,  &colrngs[CR_BLUE2],  &red2col[CR_BLUE2]},
-    {"CRBLACK",  &cr_black,  &colrngs[CR_BLACK],  &red2col[CR_BLACK]},
-    {"CRPURPLE", &cr_purple, &colrngs[CR_PURPLE], &red2col[CR_PURPLE]},
-    {"CRWHITE",  &cr_white,  &colrngs[CR_WHITE],  &red2col[CR_WHITE]},
+    {"CRBRICK",  "\x1b\x30", &cr_brick,  &colrngs[CR_BRICK],  &red2col[CR_BRICK]},
+    {"CRTAN",    "\x1b\x31", &cr_tan,    &colrngs[CR_TAN],    &red2col[CR_TAN]},
+    {"CRGRAY",   "\x1b\x32", &cr_gray,   &colrngs[CR_GRAY],   &red2col[CR_GRAY]},
+    {"CRGREEN",  "\x1b\x33", &cr_green,  &colrngs[CR_GREEN],  &red2col[CR_GREEN]},
+    {"CRBROWN",  "\x1b\x34", &cr_brown,  &colrngs[CR_BROWN],  &red2col[CR_BROWN]},
+    {"CRGOLD",   "\x1b\x35", &cr_gold,   &colrngs[CR_GOLD],   &red2col[CR_GOLD]},
+    {"CRRED",    "\x1b\x36", &cr_red,    &colrngs[CR_RED],    &red2col[CR_RED]},
+    {"CRBLUE",   "\x1b\x37", &cr_blue,   &colrngs[CR_BLUE1],  &red2col[CR_BLUE1]},
+    {"CRORANGE", "\x1b\x38", &cr_orange, &colrngs[CR_ORANGE], &red2col[CR_ORANGE]},
+    {"CRYELLOW", "\x1b\x39", &cr_yellow, &colrngs[CR_YELLOW], &red2col[CR_YELLOW]},
+    {"CRBLUE2",  "\x1b\x3a", &cr_blue2,  &colrngs[CR_BLUE2],  &red2col[CR_BLUE2]},
+    {"CRBLACK",  "\x1b\x3b", &cr_black,  &colrngs[CR_BLACK],  &red2col[CR_BLACK]},
+    {"CRPURPLE", "\x1b\x3c", &cr_purple, &colrngs[CR_PURPLE], &red2col[CR_PURPLE]},
+    {"CRWHITE",  "\x1b\x3d", &cr_white,  &colrngs[CR_WHITE],  &red2col[CR_WHITE]},
     {NULL}
 };
 
@@ -244,6 +238,8 @@ typedef struct
 {
     int x;
     int y1, y2;
+    int height;
+    int topoffset;
 
     fixed_t frac;
     fixed_t step;
@@ -251,55 +247,191 @@ typedef struct
     byte *source;
 } patch_column_t;
 
-static byte *translation;
+crop_t zero_crop = {0};
 
-static byte *translation1, *translation2;
+static const byte *translation, *translation2;
 
 static void (*drawcolfunc)(const patch_column_t *patchcol);
 
-#define DRAW_COLUMN(NAME, SRCPIXEL)                                           \
-    static void DrawPatchColumn##NAME(const patch_column_t *patchcol)         \
-    {                                                                         \
-        int count = patchcol->y2 - patchcol->y1 + 1;                          \
-                                                                              \
-        if (count <= 0)                                                       \
-            return;                                                           \
-                                                                              \
-        if ((unsigned int)patchcol->x >= (unsigned int)video.width            \
-            || (unsigned int)patchcol->y1 >= (unsigned int)video.height)      \
-        {                                                                     \
-            I_Error("%i to %i at %i", patchcol->y1, patchcol->y2,             \
-                    patchcol->x);                                             \
-        }                                                                     \
-                                                                              \
-        pixel_t *dest = V_ADDRESS(dest_screen, patchcol->x, patchcol->y1);    \
-                                                                              \
-        const fixed_t fracstep = patchcol->step;                              \
-        fixed_t frac =                                                        \
-            patchcol->frac + ((patchcol->y1 * fracstep) & FRACMASK);          \
-                                                                              \
-        const byte *source = patchcol->source;                                \
-                                                                              \
-        while ((count -= 2) >= 0)                                             \
-        {                                                                     \
-            *dest = SRCPIXEL;                                                 \
-            dest += linesize;                                                 \
-            frac += fracstep;                                                 \
-            *dest = SRCPIXEL;                                                 \
-            dest += linesize;                                                 \
-            frac += fracstep;                                                 \
-        }                                                                     \
-        if (count & 1)                                                        \
-        {                                                                     \
-            *dest = SRCPIXEL;                                                 \
-        }                                                                     \
+static void DrawPatchColumn(const patch_column_t *patchcol)
+{
+    int count = patchcol->y2 - patchcol->y1 + 1;
+    if (count <= 0)
+    {
+        return;
     }
 
-DRAW_COLUMN(, source[frac >> FRACBITS])
-DRAW_COLUMN(TR, translation[source[frac >> FRACBITS]])
-DRAW_COLUMN(TRTR, translation2[translation1[source[frac >> FRACBITS]]])
-DRAW_COLUMN(TL, tranmap[(*dest << 8) + source[frac >> FRACBITS]])
-DRAW_COLUMN(TRTL, tranmap[(*dest << 8) + translation[source[frac >> FRACBITS]]])
+#ifdef RANGECHECK
+    if ((unsigned int)patchcol->x >= (unsigned int)video.width
+        || (unsigned int)patchcol->y1 >= (unsigned int)video.height)
+    {
+        I_Error("%i to %i at %i", patchcol->y1, patchcol->y2, patchcol->x); 
+    }
+#endif
+
+    pixel_t *dest = V_ADDRESS(dest_screen, patchcol->x, patchcol->y1);
+    const fixed_t fracstep = patchcol->step;
+    fixed_t frac = patchcol->frac + ((patchcol->y1 * fracstep) & FRACMASK);
+    const byte *source = patchcol->source;
+
+    while ((count -= 2) >= 0)
+    {
+        *dest = source[frac >> FRACBITS];
+        dest += linesize;
+        frac += fracstep;
+        *dest = source[frac >> FRACBITS];
+        dest += linesize;
+        frac += fracstep;
+    }
+    if (count & 1)
+    {
+        *dest = source[frac >> FRACBITS];
+    }
+}
+
+static void DrawPatchColumnTR(const patch_column_t *patchcol)
+{
+    int count = patchcol->y2 - patchcol->y1 + 1;
+    if (count <= 0)
+    {
+        return;
+    }
+
+#ifdef RANGECHECK
+    if ((unsigned int)patchcol->x >= (unsigned int)video.width
+        || (unsigned int)patchcol->y1 >= (unsigned int)video.height)
+    {
+        I_Error("%i to %i at %i", patchcol->y1, patchcol->y2, patchcol->x); 
+    }
+#endif
+
+    pixel_t *dest = V_ADDRESS(dest_screen, patchcol->x, patchcol->y1);
+    const fixed_t fracstep = patchcol->step;
+    fixed_t frac = patchcol->frac + ((patchcol->y1 * fracstep) & FRACMASK);
+    const byte *source = patchcol->source;
+
+    while ((count -= 2) >= 0)
+    {
+        *dest = translation[source[frac >> FRACBITS]];
+        dest += linesize;
+        frac += fracstep;
+        *dest = translation[source[frac >> FRACBITS]];
+        dest += linesize;
+        frac += fracstep;
+    }
+    if (count & 1)
+    {
+        *dest = translation[source[frac >> FRACBITS]];
+    }
+}
+
+static void DrawPatchColumnTRTR(const patch_column_t *patchcol)
+{
+    int count = patchcol->y2 - patchcol->y1 + 1;
+    if (count <= 0)
+    {
+        return;
+    }
+
+#ifdef RANGECHECK
+    if ((unsigned int)patchcol->x >= (unsigned int)video.width
+        || (unsigned int)patchcol->y1 >= (unsigned int)video.height)
+    {
+        I_Error("%i to %i at %i", patchcol->y1, patchcol->y2, patchcol->x); 
+    }
+#endif
+
+    pixel_t *dest = V_ADDRESS(dest_screen, patchcol->x, patchcol->y1);
+    const fixed_t fracstep = patchcol->step;
+    fixed_t frac = patchcol->frac + ((patchcol->y1 * fracstep) & FRACMASK);
+    const byte *source = patchcol->source;
+
+    while ((count -= 2) >= 0)
+    {
+        *dest = translation2[translation[source[frac >> FRACBITS]]];
+        dest += linesize;
+        frac += fracstep;
+        *dest = translation2[translation[source[frac >> FRACBITS]]];
+        dest += linesize;
+        frac += fracstep;
+    }
+    if (count & 1)
+    {
+        *dest = translation2[translation[source[frac >> FRACBITS]]];
+    }
+}
+
+static void DrawPatchColumnTL(const patch_column_t *patchcol)
+{
+    int count = patchcol->y2 - patchcol->y1 + 1;
+    if (count <= 0)
+    {
+        return;
+    }
+
+#ifdef RANGECHECK
+    if ((unsigned int)patchcol->x >= (unsigned int)video.width
+        || (unsigned int)patchcol->y1 >= (unsigned int)video.height)
+    {
+        I_Error("%i to %i at %i", patchcol->y1, patchcol->y2, patchcol->x); 
+    }
+#endif
+
+    pixel_t *dest = V_ADDRESS(dest_screen, patchcol->x, patchcol->y1);
+    const fixed_t fracstep = patchcol->step;
+    fixed_t frac = patchcol->frac + ((patchcol->y1 * fracstep) & FRACMASK);
+    const byte *source = patchcol->source;
+
+    while ((count -= 2) >= 0)
+    {
+        *dest = tranmap[(*dest << 8) + source[frac >> FRACBITS]];
+        dest += linesize;
+        frac += fracstep;
+        *dest = tranmap[(*dest << 8) + source[frac >> FRACBITS]];
+        dest += linesize;
+        frac += fracstep;
+    }
+    if (count & 1)
+    {
+        *dest = tranmap[(*dest << 8) + source[frac >> FRACBITS]];
+    }
+}
+
+static void DrawPatchColumnTRTL(const patch_column_t *patchcol)
+{
+    int count = patchcol->y2 - patchcol->y1 + 1;
+    if (count <= 0)
+    {
+        return;
+    }
+
+#ifdef RANGECHECK
+    if ((unsigned int)patchcol->x >= (unsigned int)video.width
+        || (unsigned int)patchcol->y1 >= (unsigned int)video.height)
+    {
+        I_Error("%i to %i at %i", patchcol->y1, patchcol->y2, patchcol->x); 
+    }
+#endif
+
+    pixel_t *dest = V_ADDRESS(dest_screen, patchcol->x, patchcol->y1);
+    const fixed_t fracstep = patchcol->step;
+    fixed_t frac = patchcol->frac + ((patchcol->y1 * fracstep) & FRACMASK);
+    const byte *source = patchcol->source;
+
+    while ((count -= 2) >= 0)
+    {
+        *dest = tranmap[(*dest << 8) + translation[source[frac >> FRACBITS]]];
+        dest += linesize;
+        frac += fracstep;
+        *dest = tranmap[(*dest << 8) + translation[source[frac >> FRACBITS]]];
+        dest += linesize;
+        frac += fracstep;
+    }
+    if (count & 1)
+    {
+        *dest = tranmap[(*dest << 8) + translation[source[frac >> FRACBITS]]];
+    }
+}
 
 static void DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
                              column_t *column)
@@ -319,7 +451,7 @@ static void DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
             }
 
             patchcol->y1 = y1lookup[columntop];
-            patchcol->frac = 0;
+            patchcol->frac = IntToFixed(patchcol->topoffset);
         }
         else
         {
@@ -327,13 +459,19 @@ static void DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
             patchcol->y1 = 0;
         }
 
-        if (columntop + column->length - 1 < 0)
+        int columnbottom = columntop + column->length - 1;
+        if (patchcol->height)
+        {
+            columnbottom = MIN(columnbottom, ytop + patchcol->height - 1);
+        }
+
+        if (columnbottom < 0)
         {
             continue;
         }
-        if (columntop + column->length - 1 < SCREENHEIGHT)
+        if (columnbottom < SCREENHEIGHT)
         {
-            patchcol->y2 = y2lookup[columntop + column->length - 1];
+            patchcol->y2 = y2lookup[columnbottom];
         }
         else
         {
@@ -342,8 +480,11 @@ static void DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
 
         // SoM: The failsafes should be completely redundant now...
         // haleyjd 05/13/08: fix clipping; y2lookup not clamped properly
-        if ((column->length > 0 && patchcol->y2 < patchcol->y1)
-            || patchcol->y2 >= video.height)
+        if (column->length > 0 && patchcol->y2 < patchcol->y1)
+        {
+            continue;
+        }
+        if (patchcol->y2 >= video.height)
         {
             patchcol->y2 = video.height - 1;
         }
@@ -357,25 +498,48 @@ static void DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
     }
 }
 
-static void DrawPatchInternal(int x, int y, patch_t *patch, boolean flipped)
+static inline void DrawPatchInternal(int x, int y, int xoffset, int yoffset,
+                                     const byte *trans, const byte *xlat1,
+                                     const byte *xlat2, const crop_t crop,
+                                     const patch_t *patch, boolean flipped)
 {
-    int x1, x2, w;
+    int x1, x2, w, h;
     fixed_t iscale, xiscale, startfrac = 0;
     patch_column_t patchcol = {0};
 
-    w = SHORT(patch->width);
+    tranmap = trans;
+    translation = xlat1;
+    translation2 = xlat2;
+
+    drawcolfunc = (xlat1 && xlat2) ? DrawPatchColumnTRTR
+                : (xlat1 && trans) ? DrawPatchColumnTRTL
+                : (xlat1)          ? DrawPatchColumnTR
+                : (trans)          ? DrawPatchColumnTL
+                                   : DrawPatchColumn;
+
+    if (crop.width)
+    {
+        w = crop.width;
+    }
+    else
+    {
+        w = SHORT(patch->width);
+    }
+
+    // Adjust for arbitrary resolution
+    x += video.deltaw;
 
     // calculate edges of the shape
     if (flipped)
     {
         // If flipped, then offsets are flipped as well which means they
         // technically offset from the right side of the patch (x2)
-        x2 = x + SHORT(patch->leftoffset);
+        x2 = x + xoffset;
         x1 = x2 - (w - 1);
     }
     else
     {
-        x1 = x - SHORT(patch->leftoffset);
+        x1 = x - xoffset;
         x2 = x1 + w - 1;
     }
 
@@ -444,146 +608,87 @@ static void DrawPatchInternal(int x, int y, patch_t *patch, boolean flipped)
         startfrac += xiscale * (patchcol.x - x1);
     }
 
-    {
-        column_t *column;
-        int texturecolumn;
+    patchcol.height = crop.height;
+    h = SHORT(patch->height);
+    patchcol.topoffset = (crop.center && crop.top) ? h / 2 + crop.top : crop.top;
 
-        const int ytop = y - SHORT(patch->topoffset);
-        for (; patchcol.x <= x2; patchcol.x++, startfrac += xiscale)
+    column_t *column;
+    int texturecolumn;
+
+    w = SHORT(patch->width);
+    int leftoffset = (crop.center && crop.left) ? w / 2 + crop.left : crop.left;
+
+    const int ytop = y - yoffset;
+    for (; patchcol.x <= x2; patchcol.x++, startfrac += xiscale)
+    {
+        texturecolumn = (startfrac >> FRACBITS) + leftoffset;
+
+        if (texturecolumn < 0)
         {
-            texturecolumn = startfrac >> FRACBITS;
-
-            if (texturecolumn < 0)
-            {
-                continue;
-            }
-            else if (texturecolumn >= w)
-            {
-                break;
-            }
-
-            column = (column_t *)((byte *)patch
-                                  + LONG(patch->columnofs[texturecolumn]));
-            DrawMaskedColumn(&patchcol, ytop, column);
+            continue;
         }
-    }
-}
+        else if (texturecolumn >= w)
+        {
+            break;
+        }
 
-//
-// V_DrawPatch
-//
-// Masks a column based masked pic to the screen.
-//
-// The patch is drawn at x,y in the buffer selected by scrn
-// No return value
-//
-// V_DrawPatchFlipped
-//
-// Masks a column based masked pic to the screen.
-// Flips horizontally, e.g. to mirror face.
-//
-// Patch is drawn at x,y in screenbuffer scrn.
-// No return value
-//
-// killough 11/98: Consolidated V_DrawPatch and V_DrawPatchFlipped into one
-//
-
-void V_DrawPatchGeneral(int x, int y, patch_t *patch, boolean flipped)
-{
-    x += video.deltaw;
-
-    drawcolfunc = DrawPatchColumn;
-
-    DrawPatchInternal(x, y, patch, flipped);
-}
-
-void V_DrawPatchTranslated(int x, int y, patch_t *patch, byte *outr)
-{
-    x += video.deltaw;
-
-    if (outr)
-    {
-        translation = outr;
-        drawcolfunc = DrawPatchColumnTR;
-    }
-    else
-    {
-        drawcolfunc = DrawPatchColumn;
+        column = (column_t *)((byte *)patch
+                              + LONG(patch->columnofs[texturecolumn]));
+        DrawMaskedColumn(&patchcol, ytop, column);
     }
 
-    DrawPatchInternal(x, y, patch, false);
+    // Reset
+    tranmap = main_tranmap;
+    translation = NULL;
+    translation2 = NULL;
 }
 
-void V_DrawPatchTL(int x, int y, struct patch_s *patch, byte *tl)
+// Original drawer from vanilla doom
+void V_DrawPatch(int x, int y, patch_t *patch)
 {
-    x += video.deltaw;
-
-    tranmap = tl;
-    drawcolfunc = DrawPatchColumnTL;
-
-    DrawPatchInternal(x, y, patch, false);
+    DrawPatchInternal(x, y, SHORT(patch->leftoffset), SHORT(patch->topoffset), NULL, NULL, NULL, zero_crop, patch, false);
 }
 
-void V_DrawPatchTRTL(int x, int y, struct patch_s *patch, byte *outr, byte *tl)
+// 160px X centers the sprite in the middle
+// while 170px Y puts it just above the callee's name
+void V_DrawPatchCastCall(patch_t *patch, const byte *tranmap, const byte *xlat, boolean flip)
 {
-    x += video.deltaw;
-
-    translation = outr;
-    tranmap = tl;
-    drawcolfunc = DrawPatchColumnTRTL;
-
-    DrawPatchInternal(x, y, patch, false);
+    DrawPatchInternal(160, 170, SHORT(patch->leftoffset), SHORT(patch->topoffset), tranmap, xlat, NULL, zero_crop, patch, flip);
 }
 
-void V_DrawPatchTRTR(int x, int y, patch_t *patch, byte *outr1, byte *outr2)
+// Ignore patch offsets
+void V_DrawPatchCropped(int x, int y, patch_t *patch, crop_t crop)
 {
-    x += video.deltaw;
-
-    translation1 = outr1;
-    translation2 = outr2;
-    drawcolfunc = DrawPatchColumnTRTR;
-
-    DrawPatchInternal(x, y, patch, false);
+    DrawPatchInternal(x, y, 0, 0, NULL, NULL, NULL, crop, patch, false);
 }
 
+// Uses almost everything
+void V_DrawPatchGeneral(int x, int y, int xoffset, int yoffset, const byte *tranmap, byte *xlat, patch_t *patch, crop_t crop)
+{
+    DrawPatchInternal(x, y, xoffset, yoffset, tranmap, xlat, NULL, crop, patch, false);
+}
+
+// Plain translations are pretty common
+void V_DrawPatchTranslated(int x, int y, patch_t *patch, byte* xlat)
+{
+    DrawPatchInternal(x, y, SHORT(patch->leftoffset), SHORT(patch->topoffset), NULL, xlat, NULL, zero_crop, patch, false);
+}
+
+// Used to apply a mouse hover 'highlight' on translated menu entries
+void V_DrawPatchTranslatedTwice(int x, int y, patch_t *patch, byte* xlat, byte* xlat2)
+{
+    DrawPatchInternal(x, y, SHORT(patch->leftoffset), SHORT(patch->topoffset), NULL, xlat, xlat2, zero_crop, patch, false);
+}
+
+// Use negative deltaw to counter-act DrawPatchInternal's adjustment
 void V_DrawPatchFullScreen(patch_t *patch)
 {
     const int x = DIV_ROUND_CLOSEST(video.unscaledw - SHORT(patch->width), 2);
 
-    patch->leftoffset = 0;
-    patch->topoffset = 0;
-
-    // [crispy] fill pillarboxes in widescreen mode
-    if (video.unscaledw != NONWIDEWIDTH)
-    {
-        V_FillRect(0, 0, video.unscaledw, SCREENHEIGHT, v_darkest_color);
-    }
-
-    drawcolfunc = DrawPatchColumn;
-
-    DrawPatchInternal(x, 0, patch, false);
-}
-
-void V_ShadeScreen(void)
-{
-    const byte *darkcolormap = &colormaps[0][20 * 256];
-
-    pixel_t *row = dest_screen;
-    int height = video.height;
-
-    while (height--)
-    {
-        int width = video.width;
-        pixel_t *col = row;
-
-        while (width--)
-        {
-            *col = darkcolormap[*col];
-            ++col;
-        }
-
-        row += linesize;
-    }
+    // [crispy] fill pillarboxes in widescreen mode always clear screen, fixes
+    // eternall.wad's partly transparent CREDIT in non-widescreen
+    V_FillRect(0, 0, video.unscaledw, SCREENHEIGHT, v_darkest_color);
+    DrawPatchInternal(x - video.deltaw, 0, 0, 0, NULL, NULL, NULL, zero_crop, patch, false);
 }
 
 void V_ScaleRect(vrect_t *rect)
@@ -663,6 +768,49 @@ void V_FillRect(int x, int y, int width, int height, byte color)
         memset(dest, color, dstrect.sw);
         dest += linesize;
     }
+}
+
+void V_ShadeRect(int x, int y, int width, int height)
+{
+    vrect_t dstrect;
+
+    dstrect.x = x;
+    dstrect.y = y;
+    dstrect.w = width;
+    dstrect.h = height;
+
+    ClipRect(&dstrect);
+
+    // clipped away completely?
+    if (dstrect.cw <= 0 || dstrect.ch <= 0)
+    {
+        return;
+    }
+
+    ScaleClippedRect(&dstrect);
+
+    pixel_t *row = V_ADDRESS(dest_screen, dstrect.sx, dstrect.sy);
+
+    const byte *darkcolormap = &colormaps[0][20 * 256];
+
+    while (dstrect.sh--)
+    {
+        int width = dstrect.sw;
+        pixel_t *col = row;
+
+        while (width--)
+        {
+            *col = darkcolormap[*col];
+            ++col;
+        }
+
+        row += linesize;
+    }
+}
+
+void V_ShadeScreen(void)
+{
+    V_ShadeRect(0, 0, video.unscaledw, SCREENHEIGHT);
 }
 
 //
@@ -911,43 +1059,50 @@ void V_DrawBackground(const char *patchname)
 
 void V_Init(void)
 {
-    fixed_t frac, lastfrac;
+    linesize = video.width;
 
-    linesize = video.pitch;
-
-    video.xscale = (video.width << FRACBITS) / video.unscaledw;
-    video.yscale = (video.height << FRACBITS) / SCREENHEIGHT;
-    video.xstep = ((video.unscaledw << FRACBITS) / video.width) + 1;
-    video.ystep = ((SCREENHEIGHT << FRACBITS) / video.height) + 1;
+    video.xscale = IntToFixed(video.width) / video.unscaledw;
+    video.yscale = IntToFixed(video.height) / SCREENHEIGHT;
+    video.xstep = IntToFixed(video.unscaledw) / video.width + 1;
+    video.ystep = IntToFixed(SCREENHEIGHT) / video.height + 1;
+   
+    const int width = video.width;
+    const int height = video.height;
+    fixed_t frac, lastfrac, step;
+    int i1, i2;
 
     x1lookup[0] = 0;
     lastfrac = frac = 0;
-    for (int i = 0; i < video.width; i++)
+    step = video.xstep;
+    for (int i = 0; i < width; i++)
     {
-        if (frac >> FRACBITS > lastfrac >> FRACBITS)
+        i1 = FixedToInt(frac);
+        i2 = FixedToInt(lastfrac);
+        if (i1 > i2)
         {
-            x1lookup[frac >> FRACBITS] = i;
-            x2lookup[lastfrac >> FRACBITS] = i - 1;
+            x1lookup[i1] = i;
+            x2lookup[i2] = i - 1;
             lastfrac = frac;
         }
-
-        frac += video.xstep;
+        frac += step;
     }
     x2lookup[video.unscaledw - 1] = video.width - 1;
     x1lookup[video.unscaledw] = x2lookup[video.unscaledw] = video.width;
 
     y1lookup[0] = 0;
     lastfrac = frac = 0;
-    for (int i = 0; i < video.height; i++)
+    step = video.ystep;
+    for (int i = 0; i < height; i++)
     {
-        if (frac >> FRACBITS > lastfrac >> FRACBITS)
+        i1 = FixedToInt(frac);
+        i2 = FixedToInt(lastfrac);
+        if (i1 > i2)
         {
-            y1lookup[frac >> FRACBITS] = i;
-            y2lookup[lastfrac >> FRACBITS] = i - 1;
+            y1lookup[i1] = i;
+            y2lookup[i2] = i - 1;
             lastfrac = frac;
         }
-
-        frac += video.ystep;
+        frac += step;
     }
     y2lookup[SCREENHEIGHT - 1] = video.height - 1;
     y1lookup[SCREENHEIGHT] = y2lookup[SCREENHEIGHT] = video.height;
@@ -979,9 +1134,7 @@ void V_ScreenShot(void)
 {
     boolean success = false;
 
-    errno = 0;
-
-    if (!M_access(screenshotdir,2))
+    if (M_DirExists(screenshotdir))
     {
         static int shot;
         char lbmname[16] = {0};
@@ -997,7 +1150,7 @@ void V_ScreenShot(void)
             screenshotname = M_StringJoin(screenshotdir, DIR_SEPARATOR_S,
                                           lbmname);
         }
-        while (!M_access(screenshotname,0) && --tries);
+        while (M_FileExistsNotDir(screenshotname) && --tries);
 
         if (tries)
         {
@@ -1005,9 +1158,7 @@ void V_ScreenShot(void)
             // killough 11/98: add hires support
             if (!(success = I_WritePNGfile(screenshotname))) // [FG] PNG
             {
-                int t = errno;
                 M_remove(screenshotname);
-                errno = t;
             }
         }
         if (screenshotname)
@@ -1022,9 +1173,7 @@ void V_ScreenShot(void)
     // killough 10/98: print error message and change sound effect if error
     S_StartSoundPitch(NULL,
                  !success
-                 ? displaymsg("%s", errno ? strerror(errno)
-                                          : "Could not take screenshot"),
-                 sfx_oof
+                 ? displaymsg("Could not take screenshot"), sfx_oof
                  : gamemode == commercial ? sfx_radio
                                           : sfx_tink, PITCH_NONE);
 }

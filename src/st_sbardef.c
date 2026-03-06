@@ -16,14 +16,18 @@
 #include <stdlib.h>
 
 #include "doomdef.h"
+#include "doomstat.h"
 #include "doomtype.h"
 #include "i_printf.h"
+#include "i_system.h"
 #include "m_array.h"
 #include "m_json.h"
 #include "m_misc.h"
 #include "m_swap.h"
 #include "r_defs.h"
-#include "v_fmt.h"
+#include "r_tranmap.h"
+#include "st_stuff.h"
+#include "v_patch.h"
 #include "v_video.h"
 #include "w_wad.h"
 #include "z_zone.h"
@@ -34,14 +38,18 @@ static hudfont_t *hudfonts;
 static boolean ParseSbarCondition(json_t *json, sbarcondition_t *out)
 {
     json_t *condition = JS_GetObject(json, "condition");
-    json_t *param = JS_GetObject(json, "param");
-    if (!JS_IsNumber(condition) || !JS_IsNumber(param))
+    if (!JS_IsNumber(condition))
     {
         return false;
     }
     out->condition = JS_GetInteger(condition);
-    out->param = JS_GetInteger(param);
-
+    out->param = JS_GetIntegerValue(json, "param");
+    out->param2 = JS_GetIntegerValue(json, "param2");
+    const char *params = JS_GetStringValue(json, "param_string");
+    if (params)
+    {
+        out->param_string = M_StringDuplicate(params);
+    }
     return true;
 }
 
@@ -63,6 +71,41 @@ static boolean ParseSbarFrame(json_t *json, sbarframe_t *out)
     return true;
 }
 
+const char *sbw_names[] =
+{
+    [sbw_monsec] = "stat_totals",
+    [sbw_time] = "time",
+    [sbw_coord] = "coordinates",
+    [sbw_fps] = "fps_counter",
+    [sbw_rate] = "render_stats",
+    [sbw_cmd] = "command_history",
+    [sbw_speed] = "speedometer",
+    [sbw_message] = "message",
+    [sbw_announce] = "announce_level_title",
+    [sbw_chat] = "chat",
+    [sbw_title] = "level_title",
+};
+
+int sbw_names_len = arrlen(sbw_names);
+
+static crop_t ParseCrop(json_t *json)
+{
+    json_t *js_crop = JS_GetObject(json, "crop");
+    if (js_crop)
+    {
+        crop_t crop = {
+            .top = JS_GetIntegerValue(js_crop, "top"),
+            .left = JS_GetIntegerValue(js_crop, "left"),
+            .center = JS_GetBooleanValue(js_crop, "center"),
+            .width = JS_GetIntegerValue(js_crop, "width"),
+            .height = JS_GetIntegerValue(js_crop, "height")
+        };
+        return crop;
+    }
+
+    return zero_crop;
+}
+
 static boolean ParseSbarElem(json_t *json, sbarelem_t *out);
 
 static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
@@ -80,6 +123,12 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
     out->x_pos = JS_GetInteger(x_pos);
     out->y_pos = JS_GetInteger(y_pos);
     out->alignment = JS_GetInteger(alignment);
+
+    json_t *translucency = JS_GetObject(json, "translucency");
+    if (JS_IsBoolean(translucency) && JS_GetBoolean(translucency))
+    {
+        out->tranmap = main_tranmap;
+    }
 
     const char *tranmap = JS_GetStringValue(json, "tranmap");
     if (tranmap)
@@ -115,6 +164,15 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
 
     switch (type)
     {
+        case sbe_list:
+            {
+                sbe_list_t *list = calloc(1, sizeof(*list));
+                list->horizontal = JS_GetBooleanValue(json, "horizontal");
+                list->spacing = JS_GetIntegerValue(json, "spacing");
+                out->subtype.list = list;
+            }
+            break;
+
         case sbe_graphic:
             {
                 sbe_graphic_t *graphic = calloc(1, sizeof(*graphic));
@@ -125,6 +183,7 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
                     return false;
                 }
                 graphic->patch_name = M_StringDuplicate(patch);
+                graphic->crop = ParseCrop(json);
                 out->subtype.graphic = graphic;
             }
             break;
@@ -191,13 +250,28 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
                     free(widget);
                     return false;
                 }
+
                 json_t *type = JS_GetObject(json, "type");
-                if (!JS_IsNumber(type))
+                if (!JS_IsString(type))
                 {
                     free(widget);
                     return false;
                 }
-                widget->type = JS_GetInteger(type);
+                const char *name = JS_GetString(type);
+                int i;
+                for (i = 0; i < arrlen(sbw_names); ++i)
+                {
+                    if (!strcasecmp(name, sbw_names[i]))
+                    {
+                        widget->type = i;
+                        break;
+                    }
+                }
+                if (i == arrlen(sbw_names))
+                {
+                    free(widget);
+                    return false;
+                }
 
                 hudfont_t *font;
                 array_foreach(font, hudfonts)
@@ -237,7 +311,57 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
         case sbe_face:
             {
                 sbe_face_t *face = calloc(1, sizeof(*face));
+                face->crop = ParseCrop(json);
                 out->subtype.face = face;
+            }
+            break;
+        case sbe_facebackground:
+            {
+                sbe_facebackground_t *facebackground = calloc(1, sizeof(*facebackground));
+                facebackground->crop = ParseCrop(json);
+                out->subtype.facebackground = facebackground;
+            }
+            break;
+
+        case sbe_string:
+            {
+                sbe_string_t *string = calloc(1, sizeof(*string));
+                const char *font_name = JS_GetStringValue(json, "font");
+                if (!font_name)
+                {
+                    free(string);
+                    return false;
+                }
+                array_foreach_type(font, hudfonts, hudfont_t)
+                {
+                    if (!strcmp(font->name, font_name))
+                    {
+                        string->font = font;
+                        break;
+                    }
+                }
+                string->type = JS_GetIntegerValue(json, "type");
+                if (string->type == sbstr_data)
+                {
+                    const char *data = JS_GetStringValue(json, "data");
+                    if (data)
+                    {
+                        string->line.string = M_StringDuplicate(data);
+                    }
+                }
+                out->subtype.string = string;
+            }
+            break;
+
+        case sbe_minimap:
+            {
+                sbe_minimap_t *mm = calloc(1, sizeof(*mm));
+                mm->width = JS_GetIntegerValue(json, "width");
+                mm->height = JS_GetIntegerValue(json, "height");
+                double scale = JS_GetNumberValue(json, "scale");
+                mm->scale = scale ? scale * 1024 : 1024;
+                mm->background = JS_GetIntegerValue(json, "background");
+                out->subtype.minimap = mm;
             }
             break;
 
@@ -256,8 +380,11 @@ static const char *sbe_names[] =
     [sbe_facebackground] = "facebackground",
     [sbe_number] = "number",
     [sbe_percent] = "percent",
-    [sbe_widget] = "widget",
-    [sbe_carousel] = "carousel"
+    [sbe_widget] = "component",
+    [sbe_carousel] = "carousel",
+    [sbe_list] = "list",
+    [sbe_string] = "string",
+    [sbe_minimap] = "minimap"
 };
 
 static boolean ParseSbarElem(json_t *json, sbarelem_t *out)
@@ -459,7 +586,7 @@ static boolean ParseStatusBar(json_t *json, statusbar_t *out)
 
 sbardef_t *ST_ParseSbarDef(void)
 {
-    json_t *json = JS_Open("SBARDEF", "statusbar", (version_t){1, 1, 0});
+    json_t *json = JS_Open("SBARDEF", "statusbar", (version_t){1, 2, 0});
     if (json == NULL)
     {
         return NULL;
@@ -471,6 +598,11 @@ sbardef_t *ST_ParseSbarDef(void)
     if (v.major == 1 && v.minor < 1)
     {
         load_defaults = true;
+    }
+
+    if (v.major == 1 && v.minor == 1 && v.revision == 0)
+    {
+        I_Error("SBARDEF v1.1.0 is not supported.");
     }
 
     json_t *data = JS_GetObject(json, "data");
@@ -550,15 +682,31 @@ sbardef_t *ST_ParseSbarDef(void)
     statusbar_t *statusbar;
     array_foreach(statusbar, out->statusbars)
     {
-        json_t *js_widgets = JS_GetObject(data, "widgets");
+        json_t *js_widgets = JS_GetObject(data, "fullscreen_components");
         json_t *js_widget = NULL;
-
         JS_ArrayForEach(js_widget, js_widgets)
         {
             sbarelem_t elem = {0};
             if (ParseSbarElem(js_widget, &elem))
             {
-                elem.y_pos += (statusbar->height - SCREENHEIGHT);
+                if (!statusbar->fullscreenrender)
+                {
+                    elem.y_pos -= SCREENHEIGHT - statusbar->height;
+                }
+                array_push(statusbar->children, elem);
+            }
+        }
+
+        js_widgets = JS_GetObject(data, "components");
+        JS_ArrayForEach(js_widget, js_widgets)
+        {
+            sbarelem_t elem = {0};
+            if (ParseSbarElem(js_widget, &elem))
+            {
+                if (statusbar->fullscreenrender)
+                {
+                    elem.y_pos += SCREENHEIGHT;
+                }
                 array_push(statusbar->children, elem);
             }
         }
