@@ -233,6 +233,8 @@ typedef struct {
   int16_t angle;
   int16_t type;
   int32_t options;
+  fixed_t health;
+  int32_t tint;
   byte *tranmap;
 } mapthing_t;
 
