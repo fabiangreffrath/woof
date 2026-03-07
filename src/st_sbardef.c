@@ -570,6 +570,9 @@ static boolean ParseStatusBar(json_t *json, statusbar_t *out)
     const char *fillflat = JS_GetStringValue(json, "fillflat");
     out->fillflat = fillflat ? M_StringDuplicate(fillflat) : NULL;
 
+    const char *name = JS_GetStringValue(json, "name");
+    out->name = name ? M_StringDuplicate(name) : NULL;
+
     json_t *js_children = JS_GetObject(json, "children");
     json_t *js_child = NULL;
     JS_ArrayForEach(js_child, js_children)
