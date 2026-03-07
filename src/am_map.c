@@ -756,13 +756,13 @@ static void SwapScale(void)
     {
         if (last_full_automap)
         {
-            ResetSwapScale();    
+            ResetSwapScale();
         }
         min_scale_mtof = max_scale_mtof = scale_mtof
             = FixedDiv(f_w << FRACBITS, minimap.scale << MAPBITS);
         scale_ftom = FixedDiv(FRACUNIT, scale_mtof); 
     }
-    else
+    else if (!last_full_automap)
     {
         min_scale_mtof = full_min_scale_mtof;
         max_scale_mtof = full_max_scale_mtof;
