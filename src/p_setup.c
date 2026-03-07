@@ -1876,6 +1876,8 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   deathmatch_p = deathmatchstarts;
   P_MapStart();
 
+  P_SetThingPosition_SetFuncs();
+
   if (mapformat == MFMT_Doom)
   {
     P_LoadThings(lumpnum+ML_THINGS);
