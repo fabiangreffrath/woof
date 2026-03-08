@@ -34,22 +34,41 @@ II. Implementation Semantics
 II.A : Storage and Retrieval of Data
 ------------------------------------
 
-Any TEXTMAP lump in the "Woof" namespace must be encoded in UTF-8. Otherwise,
-no further changes from the version 1.1 base specification
+Any TEXTMAP lump in the "Woof" namespace must be encoded in UTF-8 compatible
+ASCII. Otherwise, no further changes from the version 1.1 base specification.
 
 -----------------------------------
 II.B : Storage Within Archive Files
 -----------------------------------
 
+(HEADER) = Map name, strictly follows MAPxy or ExMy style.
+TEXTMAP  = Single UDMF lump containing all data for the map.
+ZNODES   = Required. BSP tree in any ZDoom node format. XNOD, etc.
+BLOCKMAP = Optional.
+REJECT   = Optional. Highly recommended.
+BEHAVIOR = Unsupported.
+DIALOGUE = Unsupported.
+LIGHTMAP = Unsupported.
+ENDMAP   = Required closing lump.
+
 For the purposes of demo-accuracy this namespace requires support for the
-ZNODES lumps. While BLOCKMAP and REJECT 
+ZNODES lump. The loading process will give a fatal error out if the lump is
+not found. 
+
+While BLOCKMAP and REJECT will be read if available, they will be generated
+(or padded) internally if invalid or missing, following the PrBoom+ demo
+compatible algorithms. It is recommended to include REJECT to improve the
+performance of line-of-sight checks, specially in medium to large maps, or maps
+with many monsters in closets.
+
+The BEHAVIOR lump (compiled ACS bytecode) is not currently supported.
 
 --------------------------------
 II.C : Implementation Dependence
 --------------------------------
 
 The "Woof" namespace uses only the of classic (Doom-style) line actions.
-Parameterized (Hexen-style) line actions are not supported by this namespace.
+Parameterized (Hexen-style) line actions are not supported.
 
 =======================================
 III. Standardized Fields
