@@ -2355,16 +2355,19 @@ const char **ST_StatusbarList(void)
         return strings;
     }
 
-    statusbar_t *item;
-    array_foreach(item, sbardef->statusbars)
+    for (int i = 0; i < array_size(sbardef->statusbars); ++i)
     {
-        if (item->fullscreenrender)
+        statusbar_t *sb = &sbardef->statusbars[i];
+        if (sb->name)
         {
-            array_push(strings, "Fullscreen");
+            array_push(strings, sb->name);
         }
         else
         {
-            array_push(strings, "Status Bar");
+            char buf[16];
+            buf[0] = '\0';
+            M_snprintf(buf, sizeof(buf), "HUD #%d", i + 1);
+            array_push(strings, M_StringDuplicate(buf));
         }
     }
     return strings;
