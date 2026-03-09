@@ -155,7 +155,7 @@ int V_ScaleY(int y);
 // Allocates buffer screens, call before R_Init.
 void V_Init(void);
 
-void V_UseBuffer(pixel_t *buffer);
+void V_UseBuffer(pixel_t *buffer, int pitch);
 
 void V_RestoreBuffer(void);
 
