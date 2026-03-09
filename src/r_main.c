@@ -102,13 +102,6 @@ angle_t *xtoviewangle = NULL;   // killough 2/8/98
 // [FG] linear horizontal sky scrolling
 angle_t *linearskyangle = NULL;
 
-const int LIGHTLEVELS = 16;
-const int LIGHTSEGSHIFT = 4;
-const int MAXLIGHTSCALE = 48;
-const int LIGHTSCALESHIFT = 12;
-const int MAXLIGHTZ = 128;
-const int LIGHTZSHIFT = 20;
-
 // killough 3/20/98: Support dynamic colormaps, e.g. deep water
 // killough 4/4/98: support dynamic number of them as well
 
