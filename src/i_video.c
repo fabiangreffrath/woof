@@ -1509,26 +1509,16 @@ static void I_InitGraphicsMode(void)
     // [FG] create rendering window
 
     char *title = M_StringJoin(gamedescription, " - ", PROJECT_STRING);
-    screen = SDL_CreateWindow(title, window_width, window_height, flags);
-    free(title);
-
-    if (screen == NULL)
+    if (!SDL_CreateWindowAndRenderer(title, window_width, window_height, flags,
+                                     &screen, &renderer))
     {
         I_Error("Error creating window for video startup: %s", SDL_GetError());
     }
+    free(title);
 
     SetWindowPosition();
 
     I_InitWindowIcon();
-
-    // [FG] create renderer
-    renderer = SDL_CreateRenderer(screen, NULL);
-
-    if (renderer == NULL)
-    {
-        I_Error("Error creating renderer for screen window: %s",
-                SDL_GetError());
-    }
 
     if (use_vsync && !timingdemo)
     {
@@ -1601,7 +1591,7 @@ static void CreateVideoBuffer(void)
     {
         free(I_VideoBuffer);
     }
-    I_VideoBuffer = malloc(video.width * video.height);
+    I_VideoBuffer = calloc(sizeof(pixel_t), video.width * video.height);
     V_RestoreBuffer();
 
     Z_FreeTag(PU_RENDERER);
