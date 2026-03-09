@@ -1519,6 +1519,7 @@ static void I_InitGraphicsMode(void)
     {
         I_Error("Error creating window for video startup: %s", SDL_GetError());
     }
+    free(title);
 
     SetWindowPosition();
 
