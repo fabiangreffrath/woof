@@ -2047,7 +2047,7 @@ static void DrawBackground(const char *name)
             ST_InitRes();
         }
 
-        V_UseBuffer(st_backing_screen);
+        V_UseBuffer(st_backing_screen, video.width);
 
         if (st_solidbackground && st_height > 3)
         {

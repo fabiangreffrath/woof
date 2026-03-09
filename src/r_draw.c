@@ -1096,7 +1096,7 @@ void R_FillBackScreen(void)
             Z_Malloc(size * sizeof(*background_buffer), PU_STATIC, NULL);
     }
 
-    V_UseBuffer(background_buffer);
+    V_UseBuffer(background_buffer, video.width);
 
     V_DrawBackground(gamemode == commercial ? "GRNROCK" : "FLOOR7_2");
 
