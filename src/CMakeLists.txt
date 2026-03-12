@@ -224,7 +224,6 @@ target_link_libraries(
     woof
     PRIVATE SDL3::SDL3
             OpenAL::OpenAL
-            libebur128::libebur128
             SndFile::sndfile
             yyjson::yyjson
             pffft::pffft
@@ -264,6 +263,10 @@ endif()
 if(HAVE_ALSA)
     target_include_directories(woof PRIVATE ${ALSA_INCLUDE_DIR})
     target_link_libraries(woof PRIVATE ALSA::ALSA)
+endif()
+
+if(HAVE_LIBEBUR128)
+    target_link_libraries(woof PRIVATE libebur128::libebur128)
 endif()
 
 if(HAVE_FLUIDSYNTH)

@@ -1,7 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
   "dependencies": [
-    "libebur128",
     {
       "name": "libsndfile",
       "default-features": false,
@@ -48,6 +47,15 @@
     }
   ],
   "features": {
+    "libebur128": {
+      "description": "Build with libebur128 support",
+      "dependencies": [
+        {
+          "name": "libebur128",
+          "default-features": false
+        }
+      ]
+    },
     "fluidsynth": {
       "description": "Build with FluidSynth support",
       "dependencies": [

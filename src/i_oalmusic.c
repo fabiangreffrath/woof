@@ -18,7 +18,11 @@
 #include "al.h"
 #include "alc.h"
 #include "alext.h"
+
+#include "config.h"
+#ifdef HAVE_LIBEBUR128
 #include "ebur128.h"
+#endif
 
 #include <stdlib.h>
 
@@ -95,8 +99,10 @@ static SDL_AtomicInt player_thread_running;
 
 static boolean music_initialized;
 
+boolean auto_gain = false;
+
+#ifdef HAVE_LIBEBUR128
 static ebur128_state *ebur_state;
-boolean auto_gain;
 
 static void ShutdownAutoGain(void)
 {
@@ -222,6 +228,7 @@ static void AutoGain(uint32_t frames)
 
     alSourcef(player.source, AL_GAIN, player.gain * player.auto_gain);
 }
+#endif
 
 static boolean UpdatePlayer(void)
 {
@@ -250,10 +257,12 @@ static boolean UpdatePlayer(void)
         // the source.
         frames = active_module->I_FillStream(player.data, BUFFER_SAMPLES);
 
+#ifdef HAVE_LIBEBUR128
         if (frames > 0)
         {
             AutoGain(frames);
         }
+#endif
 
         if (frames > 0)
         {
@@ -317,10 +326,12 @@ static boolean StartPlayer(void)
             break;
         }
 
+#ifdef HAVE_LIBEBUR128
         if (frames > 0)
         {
             AutoGain(frames);
         }
+#endif
 
         size = frames * player.frame_size;
 
@@ -543,7 +554,9 @@ static void I_OAL_UnRegisterSong(void *handle)
         active_module->I_CloseStream();
     }
 
+#ifdef HAVE_LIBEBUR128
     ShutdownAutoGain();
+#endif
 
     if (player.data)
     {
@@ -583,7 +596,9 @@ static void *I_OAL_RegisterSong(void *data, int len)
                                             &player.freq, &player.frame_size))
         {
             active_module = all_modules[i];
+#ifdef HAVE_LIBEBUR128
             InitAutoGain();
+#endif
             return (void *)1;
         }
     }
@@ -630,7 +645,9 @@ static midiplayertype_t I_OAL_MidiPlayerType(void)
 
 static void I_OAL_BindVariables(void)
 {
+#if defined (HAVE_LIBEBUR128)
     BIND_BOOL_MUSIC(auto_gain, true, "Auto Gain");
+#endif
 #if defined (HAVE_FLUIDSYNTH)
     BIND_NUM_MUSIC(fl_gain, 0, -20, 20, "[FluidSynth] Gain [dB]");
 #endif

@@ -2670,18 +2670,22 @@ void MN_DrawSfx(void)
 
 static void UpdateGainItems(void);
 
+#if defined (HAVE_LIBEBUR128)
 static void ResetAutoGain(void)
 {
     RestartMusic();
     UpdateGainItems();
 }
+#endif
 
 static setup_menu_t music_settings1[] = {
 
+#if defined (HAVE_LIBEBUR128)
     {"Auto Gain", S_ONOFF, CNTR_X, M_SPC, {"auto_gain"},
       .action = ResetAutoGain},
 
     MI_GAP,
+#endif
 
 #if defined (HAVE_FLUIDSYNTH)
     {"FluidSynth Gain", S_THERMO, CNTR_X, M_THRM_SPC, {"fl_gain"},

@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 3.15...4.0)
 
+option(WITH_LIBEBUR128 "Use libebur128 if available" ON)
+if(WITH_LIBEBUR128)
+    list(APPEND VCPKG_MANIFEST_FEATURES "libebur128")
+endif()
+
 option(WITH_FLUIDSYNTH "Use FluidSynth if available" ON)
 if(WITH_FLUIDSYNTH)
     list(APPEND VCPKG_MANIFEST_FEATURES "fluidsynth")
@@ -114,7 +119,6 @@ set(CMAKE_FIND_FRAMEWORK NEVER)
 # Library requirements.
 find_package(SDL3 3.4.0 REQUIRED)
 find_package(OpenAL REQUIRED)
-find_package(libebur128 REQUIRED)
 find_package(SndFile 1.0.29 REQUIRED)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     find_package(ALSA REQUIRED)
@@ -136,6 +140,13 @@ find_package(pffft QUIET)
 find_package(miniz QUIET)
 find_package(yyjson QUIET)
 find_path(MINIMP3_INCLUDE_DIRS "minimp3/minimp3.h" NO_CACHE)
+
+if(WITH_LIBEBUR128)
+    find_package(libebur128)
+    if(libebur128_FOUND)
+        set(HAVE_LIBEBUR128 TRUE)
+    endif()
+endif()
 
 if(WITH_FLUIDSYNTH)
     find_package(FluidSynth)

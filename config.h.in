@@ -8,6 +8,7 @@
 #cmakedefine01 HAVE_DECL_STRNCASECMP
 #cmakedefine HAVE_GETPWUID
 #cmakedefine HAVE_ALSA
+#cmakedefine HAVE_LIBEBUR128
 #cmakedefine HAVE_FLUIDSYNTH
 #cmakedefine HAVE_LIBXMP
 #cmakedefine HAVE_SNDFILE_MPEG
