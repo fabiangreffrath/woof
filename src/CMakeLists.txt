@@ -228,9 +228,9 @@ target_link_libraries(
             yyjson::yyjson
             pffft::pffft
             miniz::miniz
+            spng::spng
             netlib
             md5
-            spng
             sha1
             opl
             textscreen

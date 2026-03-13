@@ -123,6 +123,7 @@ The following build system and libraries need to be installed:
  * [fluidsynth](https://github.com/FluidSynth/fluidsynth) (>= 2.2.0, optional)
  * [libebur128](https://github.com/jiixyj/libebur128) (optional)
  * [libxmp](https://github.com/libxmp/libxmp) (optional)
+ * [libspng](https://github.com/randy408/libspng) (optional)
  * [discord-rpc](https://github.com/discord/discord-rpc) (optional)
  
 Usually your distribution should have the corresponding packages in its repositories. If "development" ("dev") versions of these libraries are available, make sure to install them.
