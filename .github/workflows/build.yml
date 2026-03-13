@@ -142,7 +142,8 @@ jobs:
             libsndfile \
             fluid-synth \
             libxmp \
-            yyjson
+            yyjson \
+            libspng
 
       - name: Install dependencies (MSYS2)
         if: matrix.config.shell == 'msys2 {0}'
@@ -160,6 +161,7 @@ jobs:
             ${{ matrix.config.msys-env }}-libsndfile
             ${{ matrix.config.msys-env }}-fluidsynth
             ${{ matrix.config.msys-env }}-libxmp
+            ${{ matrix.config.msys-env }}-libspng
 
       - uses: actions/checkout@v6
 

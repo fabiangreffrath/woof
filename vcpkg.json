@@ -2,13 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
   "dependencies": [
     "libebur128",
-    {
-      "name": "libsndfile",
-      "default-features": false,
-      "features": [
-        "external-libs"
-      ]
-    },
+    "libspng",
     "minimp3",
     "miniz",
     {
@@ -56,6 +50,18 @@
           "default-features": false,
           "features": [
             "sndfile"
+          ]
+        }
+      ]
+    },
+    "libsndfile": {
+      "description": "Build with SndFile support",
+      "dependencies": [
+        {
+          "name": "libsndfile",
+          "default-features": false,
+          "features": [
+            "external-libs"
           ]
         }
       ]
