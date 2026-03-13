@@ -10,6 +10,7 @@
 #cmakedefine HAVE_ALSA
 #cmakedefine HAVE_FLUIDSYNTH
 #cmakedefine HAVE_LIBXMP
+#cmakedefine HAVE_SNDFILE
 #cmakedefine HAVE_SNDFILE_MPEG
 #cmakedefine HAVE_AL_BUFFER_CALLBACK
 #cmakedefine HAVE_DISCORD_RPC

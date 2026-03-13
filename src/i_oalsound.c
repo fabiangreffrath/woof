@@ -682,6 +682,7 @@ boolean I_OAL_CacheSound(sfxinfo_t *sfx)
             // All Doom sounds are 8-bit
             format = AL_FORMAT_MONO8;
         }
+#ifdef HAVE_SNDFILE
         else
         {
             size = lumplen;
@@ -696,6 +697,7 @@ boolean I_OAL_CacheSound(sfxinfo_t *sfx)
 
             sampledata = wavdata;
         }
+#endif
 
         alGetError();
         alGenBuffers(1, &buffer);
