@@ -119,9 +119,9 @@ The following build system and libraries need to be installed:
  * [SDL3](https://github.com/libsdl-org/SDL) (>= 3.4.0)
  * [openal-soft](https://github.com/kcat/openal-soft) (>= 1.22.0 for PC Speaker emulation)
  * [libsndfile](https://github.com/libsndfile/libsndfile) (>= 1.1.0 for MPEG support)
- * [libebur128](https://github.com/jiixyj/libebur128) (>= 1.2.0)
  * [yyjson](https://github.com/ibireme/yyjson) (>= 0.10.0, optional)
  * [fluidsynth](https://github.com/FluidSynth/fluidsynth) (>= 2.2.0, optional)
+ * [libebur128](https://github.com/jiixyj/libebur128) (optional)
  * [libxmp](https://github.com/libxmp/libxmp) (optional)
  * [discord-rpc](https://github.com/discord/discord-rpc) (optional)
  
@@ -281,6 +281,11 @@ Copyright:
  © 1997-2025 Sam Lantinga;  
  © 2012 Simeon Maxein.  
 License: [zlib](https://opensource.org/license/zlib)
+
+Files: `third-party/libebur128/*`  
+Copyright:  
+ © 2011 Jan Kokemüller.  
+License: [MIT](https://opensource.org/licenses/MIT)
 
 Files: `third-party/md5/*`  
 License: public-domain

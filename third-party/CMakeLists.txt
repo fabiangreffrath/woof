@@ -8,6 +8,12 @@ add_library(sha1 STATIC sha1/sha1.c)
 target_woof_settings(sha1)
 target_include_directories(sha1 INTERFACE sha1)
 
+if(NOT libebur128_FOUND)
+    add_subdirectory(libebur128)
+    target_include_directories(ebur128 INTERFACE libebur128)
+    add_library(libebur128::libebur128 ALIAS ebur128)
+endif()
+
 if(NOT MINIMP3_INCLUDE_DIRS)
     set(MINIMP3_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
 endif()
