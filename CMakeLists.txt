@@ -138,6 +138,7 @@ endif()
 find_package(libebur128 QUIET)
 find_package(pffft QUIET)
 find_package(miniz QUIET)
+include(CMakeFindDependencyMacro) # spng config bug
 find_package(spng QUIET)
 find_package(yyjson QUIET)
 find_path(MINIMP3_INCLUDE_DIRS "minimp3/minimp3.h" NO_CACHE)
