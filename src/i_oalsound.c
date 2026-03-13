@@ -697,13 +697,17 @@ boolean I_OAL_CacheSound(sfxinfo_t *sfx)
 
             sampledata = wavdata;
         }
+#else
+        else
+        {
+            I_Printf(VB_ERROR, " I_OAL_CacheSound: %s", lumpinfo[lumpnum].name);
+            break;
+        }
 #endif
-
-        alGetError();
         alGenBuffers(1, &buffer);
         if (alGetError() != AL_NO_ERROR)
         {
-            I_Printf(VB_ERROR, "I_OAL_CacheSound: Error creating buffers.");
+            I_Printf(VB_ERROR, "I_OAL_CacheSound: Error creating buffer.");
             break;
         }
         alBufferData(buffer, format, sampledata, size, freq);
