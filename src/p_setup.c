@@ -351,6 +351,8 @@ void P_SectorInit(sector_t * const sector)
   sector->floorlightsec = -1;   // sector used to get floor lighting
   sector->ceilinglightsec = -1; // sector used to get ceiling lighting:
 
+  sector->colormap = sector->tint = sector->tintfloor = sector->tintceiling = -1;
+
   // killough 8/28/98: initialize all sectors to normal friction first
   sector->friction = ORIG_FRICTION;
   sector->movefactor = ORIG_FRICTION_FACTOR;
@@ -465,6 +467,9 @@ void P_LoadThings (int lump)
       mt.angle = SHORT(mtd->angle);
       mt.type = SHORT(mtd->type);
       mt.options = SHORT(mtd->options);
+
+      mt.health = FRACUNIT;
+      mt.tint = NO_INDEX;
 
       if (mt.options & MTF_EASY)
       {
@@ -802,6 +807,7 @@ void P_LoadSideDefs2(int lump)
 
 void P_SidedefInit(side_t * const sidedef)
 {
+  sidedef->tint = -1;
   // [crispy] smooth texture scrolling
   sidedef->oldtextureoffset = sidedef->interptextureoffset = sidedef->textureoffset;
   sidedef->oldrowoffset = sidedef->interprowoffset = sidedef->rowoffset;
