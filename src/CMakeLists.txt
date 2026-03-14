@@ -343,7 +343,7 @@ endif()
 # Base file
 add_dependencies(woof woof-base)
 
-if(MSVC)
+if(MSVC OR APPLE)
     add_custom_command(
         TARGET woof
         POST_BUILD
