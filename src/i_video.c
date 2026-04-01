@@ -938,16 +938,12 @@ static vrect_t disk;
 
 static void I_InitDiskFlash(void)
 {
-    pixel_t *temp;
-
     disk.x = 0;
     disk.y = 0;
     disk.w = 16;
     disk.h = 16;
 
     V_ScaleRect(&disk);
-
-    temp = Z_Malloc(disk.sw * disk.sh * sizeof(*temp), PU_STATIC, 0);
 
     if (diskflash)
     {
@@ -958,12 +954,9 @@ static void I_InitDiskFlash(void)
     diskflash = Z_Malloc(disk.sw * disk.sh * sizeof(*diskflash), PU_STATIC, 0);
     old_data = Z_Malloc(disk.sw * disk.sh * sizeof(*old_data), PU_STATIC, 0);
 
-    V_GetBlock(0, 0, disk.sw, disk.sh, temp);
+    V_UseBuffer(diskflash, disk.sw);
     V_DrawPatch(-video.deltaw, 0, V_CachePatchName("STDISK", PU_CACHE));
-    V_GetBlock(0, 0, disk.sw, disk.sh, diskflash);
-    V_PutBlock(0, 0, disk.sw, disk.sh, temp);
-
-    Z_Free(temp);
+    V_RestoreBuffer();
 }
 
 //
@@ -1251,6 +1244,8 @@ static void ResetResolution(int height)
 
     AM_ResetScreenSize();
 
+    I_InitDiskFlash();
+
     I_Printf(VB_DEBUG, "ResetResolution: %dx%d (%s)", video.width, video.height,
              widescreen_strings[widescreen]);
 
@@ -1514,26 +1509,16 @@ static void I_InitGraphicsMode(void)
     // [FG] create rendering window
 
     char *title = M_StringJoin(gamedescription, " - ", PROJECT_STRING);
-    screen = SDL_CreateWindow(title, window_width, window_height, flags);
-    free(title);
-
-    if (screen == NULL)
+    if (!SDL_CreateWindowAndRenderer(title, window_width, window_height, flags,
+                                     &screen, &renderer))
     {
         I_Error("Error creating window for video startup: %s", SDL_GetError());
     }
+    free(title);
 
     SetWindowPosition();
 
     I_InitWindowIcon();
-
-    // [FG] create renderer
-    renderer = SDL_CreateRenderer(screen, NULL);
-
-    if (renderer == NULL)
-    {
-        I_Error("Error creating renderer for screen window: %s",
-                SDL_GetError());
-    }
 
     if (use_vsync && !timingdemo)
     {
@@ -1606,14 +1591,12 @@ static void CreateVideoBuffer(void)
     {
         free(I_VideoBuffer);
     }
-    I_VideoBuffer = malloc(video.width * video.height);
+    I_VideoBuffer = calloc(sizeof(pixel_t), video.width * video.height);
     V_RestoreBuffer();
 
     Z_FreeTag(PU_RENDERER);
     R_InitAnyRes();
     ST_InitRes();
-
-    I_InitDiskFlash();
 
     int n = (scalefactor == 1 ? 1 : 2);
     SDL_SetWindowMinimumSize(screen, video.unscaledw * n,
