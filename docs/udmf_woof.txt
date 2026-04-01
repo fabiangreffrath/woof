@@ -103,17 +103,17 @@ All boolean fields take the keyword values true and false.
     // Boom
     passuse           = <bool>; // true = passes use action.
     // MBF21
-    blocklandmonsters = <bool>; // true = line blocks monsters on the gound.
+    blocklandmonsters = <bool>; // true = line blocks monsters on the ground.
     blockplayers      = <bool>; // true = line blocks players.
 
     special = <integer>; // Special. Default = 0.
-    arg0    = <integer>; // Target ID used on aciton activation. Default = 0.
+    arg0    = <integer>; // Target ID used on action activation. Default = 0.
 
     sidefront = <integer>; // Sidedef 1 index. No valid default.
     sideback  = <integer>; // Sidedef 2 index. Default = -1.
 
     alpha   = <float>;  // Opacity percentage. Default = 1.0.
-    tranmap = <string>; // Custom translucency map lump. Overides alpha.
+    tranmap = <string>; // Custom translucency map lump. Overrides alpha.
 
     comment = <string>; // A comment. No special meaning is attached to it.
   }
@@ -164,6 +164,8 @@ All boolean fields take the keyword values true and false.
 
     clipmidtex = <bool>; // Side's mid textures are clipped to floor and ceiling.
 
+    tint = <string>; // View-agnostic custom COLORMAP lump
+
     comment = <string>; // A comment. No special meaning is attached to it.
   }
 
@@ -199,6 +201,10 @@ All boolean fields take the keyword values true and false.
     lightceiling         = <integer>; // sector's light level. Default = 0.
     lightfloorabsolute   = <bool>;    // true = 'light' is considered "absolute",
     lightceilingabsolute = <bool>;    // overriding the sector's light level.
+
+    tint        = <string>; // View-agnostic custom COLORMAP lump
+    tintfloor   = <string>; // Same as above, but for sector floor
+    tintceiling = <string>; // Same as above, but for sector ceiling
 
     comment = <string>; // A comment. No special meaning is attached to it.
   }
@@ -239,7 +245,8 @@ All boolean fields take the keyword values true and false.
     arg4 = <integer>; // Argument 4.
 
     alpha   = <float>;  // Opacity percentage. Default = 1.0.
-    tranmap = <string>; // Custom translucency map lump. Overides alpha.
+    tranmap = <string>; // Custom translucency map lump. Overrides alpha.
+    tint    = <string>; // View-agnostic custom COLORMAP lump
 
     comment = <string>; // A comment. No special meaning is attached to it.
   }
