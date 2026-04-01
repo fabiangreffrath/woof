@@ -811,7 +811,7 @@ void R_NearbySprites (void)
     // [FG] sprites in sector have already been projected
     if (sec->validcount != validcount)
     {
-      R_ProjectSprite(thing, 0);
+      R_ProjectSprite(thing, sec->lightlevel);
     }
   }
 
