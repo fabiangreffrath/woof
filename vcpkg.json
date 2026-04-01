@@ -18,6 +18,10 @@
       "name": "sdl3",
       "features": [
         {
+          "name": "dbus",
+          "platform": "linux"
+        },
+        {
           "name": "ibus",
           "platform": "linux"
         },
