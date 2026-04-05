@@ -1751,13 +1751,13 @@ static void LoadDoomFormat(int lumpnum, nodeformat_t nodeformat, boolean *gen_bl
     int znode_num = (nodeformat >= NFMT_XNOD && nodeformat <= NFMT_ZNOD)
                   ? lumpnum+ML_NODES
                   : lumpnum+ML_SSECTORS;
-    P_LoadNodes_ZDoom(znode_num, nodeformat);
+    P_LoadBSPTree_ZDBSP(znode_num, nodeformat);
   }
   else if (nodeformat == NFMT_DEEP)
   {
-    P_LoadSubsectors_DEEP(lumpnum+ML_SSECTORS);
-    P_LoadNodes_DEEP     (lumpnum+ML_NODES);
-    P_LoadSegs_DEEP      (lumpnum+ML_SEGS);
+    P_LoadSubsectors_DeePBSPV4(lumpnum+ML_SSECTORS);
+    P_LoadNodes_DeePBSPV4     (lumpnum+ML_NODES);
+    P_LoadSegs_DeePBSPV4      (lumpnum+ML_SEGS);
   }
   else
   {

@@ -57,6 +57,18 @@ enum {
   ML_BEHAVIOR,          // Hexen-format, ACS byte code. Unsupported
 };
 
+// Support uncompiled maps by building with NanoBSP
+// Same semantics as above
+enum {
+  MLX_LABEL,
+  MLX_THINGS,
+  MLX_LINEDEFS,
+  MLX_SIDEDEFS,
+  MLX_VERTEXES,
+  MLX_SECTORS,
+  MLX_BEHAVIOR,
+};
+
 // A single Vertex.
 typedef struct {
   short x,y;
@@ -199,7 +211,6 @@ typedef struct {
 #define NF_SUBSECTOR    0x80000000
  // [FG] extended nodes
 #define NO_INDEX        ((unsigned int)-1)
-// UDMF support
 #define FIX_NO_INDEX(x) if (x == (unsigned short)-1) { x = NO_INDEX; }
 
 typedef struct {

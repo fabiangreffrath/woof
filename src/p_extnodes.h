@@ -14,8 +14,7 @@
 //  GNU General Public License for more details.
 //
 // DESCRIPTION:
-//      support maps with NODES in uncompressed XNOD/XGLN or compressed
-//      ZNOD/ZGLN formats, or DeePBSP format
+//      support extended nodes
 //
 //-----------------------------------------------------------------------------
 
@@ -48,9 +47,9 @@ extern nodeformat_t P_CheckDoomNodeFormat(int lumpnum);
 extern nodeformat_t P_CheckUDMFNodeFormat(int lumpnum);
 extern int P_GetOffset(struct vertex_s *v1, struct vertex_s *v2);
 
-extern void P_LoadSegs_DEEP(int lump);
-extern void P_LoadSubsectors_DEEP(int lump);
-extern void P_LoadNodes_DEEP(int lump);
-extern void P_LoadNodes_ZDoom(int lump, nodeformat_t format);
+extern void P_LoadSegs_DeePBSPV4(int lump);
+extern void P_LoadSubsectors_DeePBSPV4(int lump);
+extern void P_LoadNodes_DeePBSPV4(int lump);
+extern void P_LoadBSPTree_ZDBSP(int lump, nodeformat_t format);
 
 #endif

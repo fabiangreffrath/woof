@@ -14,8 +14,7 @@
 //  GNU General Public License for more details.
 //
 // DESCRIPTION:
-//      support maps with NODES in uncompressed XNOD/XGLN or compressed
-//      ZNOD/ZGLN formats, or DeePBSP format
+//      support extended nodes
 //
 //-----------------------------------------------------------------------------
 
@@ -39,10 +38,10 @@
 #include "w_wad.h"
 #include "z_zone.h"
 
-// [FG] support maps with NODES in compressed ZNOD/ZGLN formats
+// [FG] support maps with NODES in compressed ZDBSP formats
 #include "miniz.h"
 
-// [FG] support maps with NODES in DeePBSP format
+// [FG] support maps with NODES in DeePBSPV4 format
 
 #if defined(_MSC_VER)
   #pragma pack(push, 1)
@@ -56,7 +55,7 @@ typedef PACKED_PREFIX struct
     unsigned short linedef;
     short side;
     unsigned short offset;
-} PACKED_SUFFIX mapseg_deep_t;
+} PACKED_SUFFIX mapseg_deepbspv4_t;
 
 typedef PACKED_PREFIX struct
 {
@@ -66,15 +65,15 @@ typedef PACKED_PREFIX struct
     short dy;
     short bbox[2][4];
     int children[2];
-} PACKED_SUFFIX mapnode_deep_t;
+} PACKED_SUFFIX mapnode_deepbspv4_t;
 
 typedef PACKED_PREFIX struct
 {
     unsigned short numsegs;
     int firstseg;
-} PACKED_SUFFIX mapsubsector_deep_t;
+} PACKED_SUFFIX mapsubsector_deepbspv4_t;
 
-// [FG] support maps with NODES in XNOD/ZNOD format
+// [FG] support maps ZDBSP nodes
 
 typedef PACKED_PREFIX struct
 {
@@ -97,8 +96,6 @@ typedef PACKED_PREFIX struct
 {
     unsigned int numsegs;
 } PACKED_SUFFIX mapsubsector_xnod_t;
-
-// support maps with NODES in XGL2/3 format
 
 typedef PACKED_PREFIX struct
 {
@@ -128,31 +125,59 @@ typedef PACKED_PREFIX struct
   #pragma pack(pop)
 #endif
 
+// logging in P_SetupLevel
 const char *const node_format_names[] = {
-    [NFMT_DOOM] = "Doom", [NFMT_DEEP] = "DeepBSP", [NFMT_XNOD] = "XNOD",
-    [NFMT_ZNOD] = "ZNOD", [NFMT_XGLN] = "XGLN",    [NFMT_ZGLN] = "ZGLN",
-    [NFMT_XGL2] = "XGL2", [NFMT_ZGL2] = "ZGL2",    [NFMT_XGL3] = "XGL3",
-    [NFMT_ZGL3] = "ZGL3", [NFMT_NANO] = "NanoBSP"};
+    [NFMT_DOOM] = "DoomBSP", [NFMT_DEEP] = "DeepBSPV4", [NFMT_XNOD] = "XNOD",
+    [NFMT_ZNOD] = "ZNOD",    [NFMT_XGLN] = "XGLN",    [NFMT_ZGLN] = "ZGLN",
+    [NFMT_XGL2] = "XGL2",    [NFMT_ZGL2] = "ZGL2",    [NFMT_XGL3] = "XGL3",
+    [NFMT_ZGL3] = "ZGL3",    [NFMT_NANO] = "NanoBSP"};
 
+// check for different supported and unsupported formats
 mapformat_t P_CheckMapFormat(int lumpnum)
 {
     mapformat_t format = MFMT_Invalid;
 
+    // Fully built map
     if (W_LumpExistsWithName(lumpnum + ML_THINGS, "THINGS")
         && W_LumpExistsWithName(lumpnum + ML_LINEDEFS, "LINEDEFS")
         && W_LumpExistsWithName(lumpnum + ML_SIDEDEFS, "SIDEDEFS")
         && W_LumpExistsWithName(lumpnum + ML_VERTEXES, "VERTEXES")
-        && W_LumpExistsWithName(lumpnum + ML_SECTORS, "SECTORS"))
+        && W_LumpExistsWithName(lumpnum + ML_SEGS, "SEGS")
+        && W_LumpExistsWithName(lumpnum + ML_SSECTORS, "SSECTORS")
+        && W_LumpExistsWithName(lumpnum + ML_NODES, "NODES")
+        && W_LumpExistsWithName(lumpnum + ML_SECTORS, "SECTORS")
+        && W_LumpExistsWithName(lumpnum + ML_REJECT, "REJECT")
+        && W_LumpExistsWithName(lumpnum + ML_BLOCKMAP, "BLOCKMAP"))
     {
-        format = MFMT_Doom;
+        if (W_LumpExistsWithName(lumpnum + ML_BEHAVIOR, "BEHAVIOR"))
+        {
+            format = MFMT_Hexen;
+        }
+        else
+        {
+            format = MFMT_Doom;
+        }
     }
 
-    if (format == MFMT_Doom
-        && W_LumpExistsWithName(lumpnum + ML_BEHAVIOR, "BEHAVIOR"))
+    // Non built map
+    if (format == MFMT_Invalid
+        && W_LumpExistsWithName(lumpnum + MLX_THINGS, "THINGS")
+        && W_LumpExistsWithName(lumpnum + MLX_LINEDEFS, "LINEDEFS")
+        && W_LumpExistsWithName(lumpnum + MLX_SIDEDEFS, "SIDEDEFS")
+        && W_LumpExistsWithName(lumpnum + MLX_VERTEXES, "VERTEXES")
+        && W_LumpExistsWithName(lumpnum + MLX_SECTORS, "SECTORS"))
     {
-        format = MFMT_Hexen;
+        if (W_LumpExistsWithName(lumpnum + MLX_BEHAVIOR, "BEHAVIOR"))
+        {
+            format = MFMT_Hexen;
+        }
+        else
+        {
+            format = MFMT_Doom;
+        }
     }
 
+    // BSP is checked afterwards
     if (W_LumpExistsWithName(lumpnum + UDMF_TEXTMAP, "TEXTMAP"))
     {
         format = MFMT_UDMF;
@@ -161,8 +186,7 @@ mapformat_t P_CheckMapFormat(int lumpnum)
     return format;
 }
 
-// [FG] support maps with NODES in uncompressed XNOD/XGLN or compressed
-// ZNOD/ZGLN formats, or DeePBSP format
+// [FG] support extended nodes
 
 nodeformat_t P_CheckDoomNodeFormat(int lumpnum)
 {
@@ -279,7 +303,15 @@ nodeformat_t P_CheckUDMFNodeFormat(int lumpnum)
     nodeformat_t format = NFMT_NANO;
 
     byte *lump_data = W_CacheLumpNum(lumpnum, PU_STATIC);
-    if (!memcmp(lump_data, "XGLN", 4))
+    if (!memcmp(lump_data, "XNOD", 4))
+    {
+        format = NFMT_XNOD;
+    }
+    else if (!memcmp(lump_data, "ZNOD", 4))
+    {
+        format = NFMT_ZNOD;
+    }
+    else if (!memcmp(lump_data, "XGLN", 4))
     {
         format = NFMT_XGLN;
     }
@@ -323,12 +355,12 @@ int P_GetOffset(vertex_t *v1, vertex_t *v2)
 
 // [FG] support maps with DeePBSP nodes
 
-void P_LoadSegs_DEEP(int lump)
+void P_LoadSegs_DeePBSPV4(int lump)
 {
     int i;
     byte *data;
 
-    numsegs = W_LumpLength(lump) / sizeof(mapseg_deep_t);
+    numsegs = W_LumpLength(lump) / sizeof(mapseg_deepbspv4_t);
     segs = arena_alloc_num(world_arena, seg_t, numsegs);
     memset(segs, 0, numsegs * sizeof(seg_t));
     data = W_CacheLumpNum(lump, PU_STATIC);
@@ -336,12 +368,12 @@ void P_LoadSegs_DEEP(int lump)
     for (i = 0; i < numsegs; i++)
     {
         seg_t *li = segs + i;
-        mapseg_deep_t *ml = (mapseg_deep_t *)data + i;
+        mapseg_deepbspv4_t *ml = (mapseg_deepbspv4_t *)data + i;
         int side, linedef;
         line_t *ldef;
         int vn1, vn2;
 
-        // [MB] 2020-04-22: Fix endianess for DeePBSDP V4 nodes
+        // [MB] 2020-04-22: Fix endianess for DeePBSPV4 nodes
         vn1 = LONG(ml->v1);
         vn2 = LONG(ml->v2);
 
@@ -392,20 +424,20 @@ void P_LoadSegs_DEEP(int lump)
     Z_Free(data);
 }
 
-void P_LoadSubsectors_DEEP(int lump)
+void P_LoadSubsectors_DeePBSPV4(int lump)
 {
-    mapsubsector_deep_t *data;
+    mapsubsector_deepbspv4_t *data;
     int i;
 
-    numsubsectors = W_LumpLength(lump) / sizeof(mapsubsector_deep_t);
+    numsubsectors = W_LumpLength(lump) / sizeof(mapsubsector_deepbspv4_t);
     subsectors = arena_alloc_num(world_arena, subsector_t, numsubsectors);
-    data = (mapsubsector_deep_t *)W_CacheLumpNum(lump, PU_STATIC);
+    data = (mapsubsector_deepbspv4_t *)W_CacheLumpNum(lump, PU_STATIC);
 
     memset(subsectors, 0, numsubsectors * sizeof(subsector_t));
 
     for (i = 0; i < numsubsectors; i++)
     {
-        // [MB] 2020-04-22: Fix endianess for DeePBSDP V4 nodes
+        // [MB] 2020-04-22: Fix endianess for DeePBSPV4 nodes
         subsectors[i].numlines = (unsigned short)SHORT(data[i].numsegs);
         subsectors[i].firstline = LONG(data[i].firstseg);
     }
@@ -413,12 +445,12 @@ void P_LoadSubsectors_DEEP(int lump)
     Z_Free(data);
 }
 
-void P_LoadNodes_DEEP(int lump)
+void P_LoadNodes_DeePBSPV4(int lump)
 {
     byte *data;
     int i;
 
-    numnodes = (W_LumpLength(lump) - 8) / sizeof(mapnode_deep_t);
+    numnodes = (W_LumpLength(lump) - 8) / sizeof(mapnode_deepbspv4_t);
     nodes = Z_Malloc(numnodes * sizeof(node_t), PU_LEVEL, 0);
     data = W_CacheLumpNum(lump, PU_STATIC);
 
@@ -428,7 +460,7 @@ void P_LoadNodes_DEEP(int lump)
     for (i = 0; i < numnodes; i++)
     {
         node_t *no = nodes + i;
-        mapnode_deep_t *mn = (mapnode_deep_t *)data + i;
+        mapnode_deepbspv4_t *mn = (mapnode_deepbspv4_t *)data + i;
         int j;
 
         no->x = SHORT(mn->x) << FRACBITS;
@@ -440,7 +472,7 @@ void P_LoadNodes_DEEP(int lump)
         {
             int k;
 
-            // [MB] 2020-04-22: Fix endianess for DeePBSDP V4 nodes
+            // [MB] 2020-04-22: Fix endianess for DeePBSPV4 nodes
             no->children[j] = LONG(mn->children[j]);
 
             for (k = 0; k < 4; k++)
@@ -453,15 +485,7 @@ void P_LoadNodes_DEEP(int lump)
     W_CacheLumpNum(lump, PU_CACHE);
 }
 
-// [FG] support maps with NODES in uncompressed XNOD/XGLN or compressed
-// ZNOD/ZGLN formats adapted from prboom-plus/src/p_setup.c:1040-1331 heavily
-// modified, condensed and simplyfied
-// - removed most paranoid checks, brought more in line with Vanilla
-// P_LoadNodes()
-// - removed const type punning pointers
-// - added support for compressed ZNOD/ZGLN and uncompressed XGLN formats
-
-// [MB] 2020-04-22: Fix endianess for ZDoom extended nodes
+// [FG] support ZDBSP nodes
 
 static void P_LoadSegs_XNOD(byte *data)
 {
@@ -529,8 +553,6 @@ static void P_LoadSegs_XNOD(byte *data)
     }
 }
 
-// adapted from dsda-doom/prboom2/src/p_setup.c:P_LoadGLZSegs()
-
 static void P_LoadSegs_XGL(byte *data, nodeformat_t format)
 {
     int i, j;
@@ -553,10 +575,7 @@ static void P_LoadSegs_XGL(byte *data, nodeformat_t format)
                 // partner = LONG(mln->partner);
                 line = (unsigned short)SHORT(mln->linedef);
                 side = mln->side;
-                if (line == 0xffff)
-                {
-                    line = 0xffffffff;
-                }
+                FIX_NO_INDEX(line);
                 mln++;
             }
             else
@@ -580,7 +599,7 @@ static void P_LoadSegs_XGL(byte *data, nodeformat_t format)
                 seg[-1].v2 = seg->v1;
             }
 
-            if (line != 0xffffffff)
+            if (line != NO_INDEX)
             {
                 line_t *ldef;
 
@@ -664,7 +683,7 @@ static void P_LoadSegs_XGL(byte *data, nodeformat_t format)
     }
 }
 
-void P_LoadNodes_ZDoom(int lump, nodeformat_t format)
+void P_LoadBSPTree_ZDBSP(int lump, nodeformat_t format)
 {
     byte *data;
     unsigned int i;
@@ -722,7 +741,7 @@ void P_LoadNodes_ZDoom(int lump, nodeformat_t format)
         }
 
         I_Printf(VB_DEBUG,
-                 "P_LoadNodes_ZDoom: ZNOD nodes compression ratio %.3f",
+                 "P_LoadBSPTree_ZDBSP: ZNOD nodes compression ratio %.3f",
                  (float)zstream->total_out / zstream->total_in);
 
         data = output;
