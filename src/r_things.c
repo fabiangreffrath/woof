@@ -807,11 +807,15 @@ void R_NearbySprites (void)
   {
     mobj_t *thing = nearby_sprites[i];
     sector_t* sec = thing->subsector->sector;
+    sector_t tempsec;
+    int floorlightlevel, ceilinglightlevel;
+
+    R_FakeFlat(sec, &tempsec, &floorlightlevel, &ceilinglightlevel, false);
 
     // [FG] sprites in sector have already been projected
     if (sec->validcount != validcount)
     {
-      R_ProjectSprite(thing, sec->lightlevel);
+      R_ProjectSprite(thing, (floorlightlevel + ceilinglightlevel) / 2);
     }
   }
 
