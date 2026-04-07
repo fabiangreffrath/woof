@@ -31,7 +31,6 @@
 #include "m_swap.h"
 #include "p_extnodes.h"
 #include "p_setup.h"
-#include "p_udmf.h"
 #include "r_defs.h"
 #include "r_main.h"
 #include "r_state.h"
@@ -128,14 +127,17 @@ typedef PACKED_PREFIX struct
 // logging in P_SetupLevel
 const char *const node_format_names[] = {
     [NFMT_DOOM] = "DoomBSP", [NFMT_DEEP] = "DeepBSPV4", [NFMT_XNOD] = "XNOD",
-    [NFMT_ZNOD] = "ZNOD",    [NFMT_XGLN] = "XGLN",    [NFMT_ZGLN] = "ZGLN",
-    [NFMT_XGL2] = "XGL2",    [NFMT_ZGL2] = "ZGL2",    [NFMT_XGL3] = "XGL3",
+    [NFMT_ZNOD] = "ZNOD",    [NFMT_XGLN] = "XGLN",      [NFMT_ZGLN] = "ZGLN",
+    [NFMT_XGL2] = "XGL2",    [NFMT_ZGL2] = "ZGL2",      [NFMT_XGL3] = "XGL3",
     [NFMT_ZGL3] = "ZGL3",    [NFMT_NANO] = "NanoBSP"};
 
 // check for different supported and unsupported formats
 mapformat_t P_CheckMapFormat(int lumpnum)
 {
-    mapformat_t format = MFMT_Invalid;
+    mapformat_t map = {
+        .format = MFMT_Invalid,
+        .built = false,
+    };
 
     // Fully built map
     if (W_LumpExistsWithName(lumpnum + ML_THINGS, "THINGS")
@@ -149,48 +151,45 @@ mapformat_t P_CheckMapFormat(int lumpnum)
         && W_LumpExistsWithName(lumpnum + ML_REJECT, "REJECT")
         && W_LumpExistsWithName(lumpnum + ML_BLOCKMAP, "BLOCKMAP"))
     {
+        map.built = true;
+        map.format = MFMT_Doom;
         if (W_LumpExistsWithName(lumpnum + ML_BEHAVIOR, "BEHAVIOR"))
         {
-            format = MFMT_Hexen;
-        }
-        else
-        {
-            format = MFMT_Doom;
+            map.format = MFMT_Hexen;
         }
     }
 
     // Non built map
-    if (format == MFMT_Invalid
+    if (map.format == MFMT_Invalid
         && W_LumpExistsWithName(lumpnum + MLX_THINGS, "THINGS")
         && W_LumpExistsWithName(lumpnum + MLX_LINEDEFS, "LINEDEFS")
         && W_LumpExistsWithName(lumpnum + MLX_SIDEDEFS, "SIDEDEFS")
         && W_LumpExistsWithName(lumpnum + MLX_VERTEXES, "VERTEXES")
         && W_LumpExistsWithName(lumpnum + MLX_SECTORS, "SECTORS"))
     {
+        map.built = false;
+        map.format = MFMT_Doom;
         if (W_LumpExistsWithName(lumpnum + MLX_BEHAVIOR, "BEHAVIOR"))
         {
-            format = MFMT_Hexen;
-        }
-        else
-        {
-            format = MFMT_Doom;
+            map.format = MFMT_Hexen;
         }
     }
 
     // BSP is checked afterwards
-    if (W_LumpExistsWithName(lumpnum + UDMF_TEXTMAP, "TEXTMAP"))
+    if (W_LumpExistsWithName(lumpnum + ML_TEXTMAP, "TEXTMAP"))
     {
-        format = MFMT_UDMF;
+        map.format = MFMT_UDMF;
+        map.built = true;
     }
 
-    return format;
+    return map;
 }
 
 // [FG] support extended nodes
 
-nodeformat_t P_CheckDoomNodeFormat(int lumpnum)
+bspformat_t P_CheckDoomNodeFormat(int lumpnum)
 {
-    nodeformat_t format = NFMT_DOOM;
+    bspformat_t format = NFMT_DOOM;
     byte *lump_data = NULL;
     int size_subs = 0, size_nodes = 0;
 
@@ -298,9 +297,9 @@ nodeformat_t P_CheckDoomNodeFormat(int lumpnum)
     return format;
 }
 
-nodeformat_t P_CheckUDMFNodeFormat(int lumpnum)
+bspformat_t P_CheckUDMFNodeFormat(int lumpnum)
 {
-    nodeformat_t format = NFMT_NANO;
+    bspformat_t format = NFMT_NANO;
 
     byte *lump_data = W_CacheLumpNum(lumpnum, PU_STATIC);
     if (!memcmp(lump_data, "XNOD", 4))
@@ -353,11 +352,161 @@ int P_GetOffset(vertex_t *v1, vertex_t *v2)
     return r;
 }
 
+// [FG] extended nodes
+
+//
+// P_LoadNodes
+//
+// killough 5/3/98: reformatted, cleaned up
+
+void P_LoadNodes(int lump)
+{
+    byte *data;
+
+    numnodes = W_LumpLength(lump) / sizeof(mapnode_t);
+    nodes = Z_Malloc(numnodes * sizeof(node_t), PU_LEVEL, 0);
+    data = W_CacheLumpNum(lump, PU_STATIC);
+
+    for (int i = 0; i < numnodes; i++)
+    {
+        node_t *no = nodes + i;
+        mapnode_t *mn = (mapnode_t *)data + i;
+
+        no->x = IntToFixed(SHORT(mn->x));
+        no->y = IntToFixed(SHORT(mn->y));
+        no->dx = IntToFixed(SHORT(mn->dx));
+        no->dy = IntToFixed(SHORT(mn->dy));
+
+        for (int j = 0; j < 2; j++)
+        {
+            no->children[j] = (unsigned short)SHORT(mn->children[j]);
+
+            if (no->children[j] == NO_INDEX_SHORT)
+            {
+                no->children[j] = NO_INDEX;
+            }
+            else if (no->children[j] & NF_SUBSECTOR_VANILLA)
+            {
+                no->children[j] &= ~NF_SUBSECTOR_VANILLA;
+
+                if (no->children[j] >= numsubsectors)
+                {
+                    no->children[j] = 0;
+                }
+
+                no->children[j] |= NF_SUBSECTOR;
+            }
+
+            for (int k = 0; k < 4; k++)
+            {
+                no->bbox[j][k] = IntToFixed(SHORT(mn->bbox[j][k]));
+            }
+        }
+    }
+
+    Z_Free(data);
+}
+
+//
+// P_LoadSubsectors
+//
+// killough 5/3/98: reformatted, cleaned up
+
+void P_LoadSubsectors(int lump)
+{
+    byte *data;
+
+    numsubsectors = W_LumpLength(lump) / sizeof(mapsubsector_t);
+    subsectors = arena_alloc_num(world_arena, subsector_t, numsubsectors);
+    data = W_CacheLumpNum(lump, PU_STATIC);
+
+    memset(subsectors, 0, numsubsectors * sizeof(subsector_t));
+
+    for (int i = 0; i < numsubsectors; i++)
+    {
+        // [FG] extended nodes
+        subsectors[i].numlines =
+            (unsigned short)SHORT(((mapsubsector_t *)data)[i].numsegs);
+        subsectors[i].firstline =
+            (unsigned short)SHORT(((mapsubsector_t *)data)[i].firstseg);
+    }
+
+    Z_Free(data);
+}
+
+//
+// P_LoadSegs
+//
+// killough 5/3/98: reformatted, cleaned up
+
+void P_LoadSegs(int lump)
+{
+    byte *data;
+
+    numsegs = W_LumpLength(lump) / sizeof(mapseg_t);
+    segs = arena_alloc_num(world_arena, seg_t, numsegs);
+    memset(segs, 0, numsegs * sizeof(seg_t));
+    data = W_CacheLumpNum(lump, PU_STATIC);
+
+    for (int i = 0; i < numsegs; i++)
+    {
+        seg_t *li = segs + i;
+        mapseg_t *ml = (mapseg_t *)data + i;
+
+        int side, linedef;
+        line_t *ldef;
+
+        // [FG] extended nodes
+        li->v1 = &vertexes[(unsigned short)SHORT(ml->v1)];
+        li->v2 = &vertexes[(unsigned short)SHORT(ml->v2)];
+
+        li->angle = IntToFixed(SHORT(ml->angle));
+        li->offset = IntToFixed(SHORT(ml->offset));
+        linedef = (unsigned short)SHORT(ml->linedef); // [FG] extended nodes
+        ldef = &lines[linedef];
+        li->linedef = ldef;
+        side = SHORT(ml->side);
+
+        // Andrey Budko: check for wrong indexes
+        if ((unsigned)ldef->sidenum[side] >= (unsigned)numsides)
+        {
+            I_Error(
+                "linedef %d for seg %d references a non-existent sidedef %d",
+                linedef, i, (unsigned)ldef->sidenum[side]);
+        }
+
+        li->sidedef = &sides[ldef->sidenum[side]];
+        li->frontsector = sides[ldef->sidenum[side]].sector;
+        // [FG] recalculate
+        li->offset = P_GetOffset(li->v1, (ml->side ? ldef->v2 : ldef->v1));
+
+        if (ldef->flags & ML_TWOSIDED)
+        {
+            int sidenum = ldef->sidenum[side ^ 1];
+
+            if (sidenum == NO_INDEX)
+            {
+                // this is wrong
+                li->backsector = GetSectorAtNullAddress();
+            }
+            else
+            {
+                li->backsector = sides[sidenum].sector;
+            }
+        }
+        else
+        {
+            li->backsector = 0;
+        }
+    }
+
+    Z_Free(data);
+}
+
 // [FG] support maps with DeePBSP nodes
 
 void P_LoadSegs_DeePBSPV4(int lump)
 {
-    int i;
     byte *data;
 
     numsegs = W_LumpLength(lump) / sizeof(mapseg_deepbspv4_t);
@@ -365,7 +514,7 @@ void P_LoadSegs_DeePBSPV4(int lump)
     memset(segs, 0, numsegs * sizeof(seg_t));
     data = W_CacheLumpNum(lump, PU_STATIC);
 
-    for (i = 0; i < numsegs; i++)
+    for (int i = 0; i < numsegs; i++)
     {
         seg_t *li = segs + i;
         mapseg_deepbspv4_t *ml = (mapseg_deepbspv4_t *)data + i;
@@ -553,7 +702,7 @@ static void P_LoadSegs_XNOD(byte *data)
     }
 }
 
-static void P_LoadSegs_XGL(byte *data, nodeformat_t format)
+static void P_LoadSegs_XGL(byte *data, bspformat_t format)
 {
     int i, j;
     const mapseg_xgln_t *mln = (const mapseg_xgln_t *)data;
@@ -683,7 +832,7 @@ static void P_LoadSegs_XGL(byte *data, nodeformat_t format)
     }
 }
 
-void P_LoadBSPTree_ZDBSP(int lump, nodeformat_t format)
+void P_LoadBSPTree_ZDBSP(int lump, bspformat_t format)
 {
     byte *data;
     unsigned int i;

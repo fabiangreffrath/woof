@@ -25,11 +25,16 @@
 #include "doomtype.h"
 #include "m_fixed.h"
 
-typedef enum {
-  MFMT_Invalid,
-  MFMT_Doom,
-  MFMT_Hexen,
-  MFMT_UDMF,
+typedef struct mapformat
+{
+    enum
+    {
+        MFMT_Invalid,
+        MFMT_Doom,
+        MFMT_Hexen,
+        MFMT_UDMF,
+    } format;
+    boolean built;
 } mapformat_t;
 
 extern mapformat_t mapformat;
@@ -55,6 +60,8 @@ enum {
   ML_REJECT,            // LUT, sector-sector visibility
   ML_BLOCKMAP,          // LUT, motion clipping, walls/grid element
   ML_BEHAVIOR,          // Hexen-format, ACS byte code. Unsupported
+
+  ML_TEXTMAP = ML_LABEL + 1,
 };
 
 // Support uncompiled maps by building with NanoBSP
@@ -210,8 +217,9 @@ typedef struct {
 #define NF_SUBSECTOR_VANILLA 0x8000
 #define NF_SUBSECTOR    0x80000000
  // [FG] extended nodes
+#define NO_INDEX_SHORT  ((unsigned short)-1)
 #define NO_INDEX        ((unsigned int)-1)
-#define FIX_NO_INDEX(x) if (x == (unsigned short)-1) { x = NO_INDEX; }
+#define FIX_NO_INDEX(x) if (x == NO_INDEX_SHORT) { x = NO_INDEX; }
 
 typedef struct {
   short x;  // Partition line from (x,y) to x+dx,y+dy)

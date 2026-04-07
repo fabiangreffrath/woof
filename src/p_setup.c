@@ -65,7 +65,7 @@
 statenum_t *seenstate_tab = NULL;
 
 // Detect map Format currently being set up.
-mapformat_t mapformat = MFMT_Invalid;
+mapformat_t mapformat = {};
 
 //
 // MAP related Lookup tables.
@@ -201,101 +201,6 @@ sector_t* GetSectorAtNullAddress(void)
 }
 
 //
-// P_LoadSegs
-//
-// killough 5/3/98: reformatted, cleaned up
-
-void P_LoadSegs (int lump)
-{
-  int  i;
-  byte *data;
-
-  numsegs = W_LumpLength(lump) / sizeof(mapseg_t);
-  segs = arena_alloc_num(world_arena, seg_t, numsegs);
-  memset(segs, 0, numsegs*sizeof(seg_t));
-  data = W_CacheLumpNum(lump,PU_STATIC);
-
-  for (i=0; i<numsegs; i++)
-    {
-      seg_t *li = segs+i;
-      mapseg_t *ml = (mapseg_t *) data + i;
-
-      int side, linedef;
-      line_t *ldef;
-
-      // [FG] extended nodes
-      li->v1 = &vertexes[(unsigned short)SHORT(ml->v1)];
-      li->v2 = &vertexes[(unsigned short)SHORT(ml->v2)];
-
-      li->angle = IntToFixed(SHORT(ml->angle));
-      li->offset = IntToFixed(SHORT(ml->offset));
-      linedef = (unsigned short)SHORT(ml->linedef); // [FG] extended nodes
-      ldef = &lines[linedef];
-      li->linedef = ldef;
-      side = SHORT(ml->side);
-
-      // Andrey Budko: check for wrong indexes
-      if ((unsigned)ldef->sidenum[side] >= (unsigned)numsides)
-      {
-        I_Error("linedef %d for seg %d references a non-existent sidedef %d",
-                linedef, i, (unsigned)ldef->sidenum[side]);
-      }
-
-      li->sidedef = &sides[ldef->sidenum[side]];
-      li->frontsector = sides[ldef->sidenum[side]].sector;
-      // [FG] recalculate
-      li->offset = P_GetOffset(li->v1, (ml->side ? ldef->v2 : ldef->v1));
-
-      if (ldef->flags & ML_TWOSIDED)
-      {
-        int sidenum = ldef->sidenum[side ^ 1];
-
-        if (sidenum == NO_INDEX)
-        {
-          // this is wrong
-          li->backsector = GetSectorAtNullAddress();
-        }
-        else
-        {
-          li->backsector = sides[sidenum].sector;
-        }
-      }
-      else
-      {
-        li->backsector = 0;
-      }
-    }
-
-  Z_Free (data);
-}
-
-//
-// P_LoadSubsectors
-//
-// killough 5/3/98: reformatted, cleaned up
-
-void P_LoadSubsectors (int lump)
-{
-  byte *data;
-  int  i;
-
-  numsubsectors = W_LumpLength (lump) / sizeof(mapsubsector_t);
-  subsectors = arena_alloc_num(world_arena, subsector_t, numsubsectors);
-  data = W_CacheLumpNum(lump, PU_STATIC);
-
-  memset(subsectors, 0, numsubsectors*sizeof(subsector_t));
-
-  for (i=0; i<numsubsectors; i++)
-    {
-      // [FG] extended nodes
-      subsectors[i].numlines  = (unsigned short)SHORT(((mapsubsector_t *) data)[i].numsegs );
-      subsectors[i].firstline = (unsigned short)SHORT(((mapsubsector_t *) data)[i].firstseg);
-    }
-
-  Z_Free (data);
-}
-
-//
 // P_LoadSectors
 //
 // killough 5/3/98: reformatted, cleaned up
@@ -304,16 +209,6 @@ void P_LoadSectors (int lump)
 {
   byte *data;
   int  i;
-
-  // [FG] SEGS, SSECTORS, NODES lumps missing?
-  for (i = ML_SECTORS; !W_LumpExistsWithName(lump, "SECTORS") && i > ML_VERTEXES; i--)
-  {
-    lump--;
-  }
-  if (i == ML_VERTEXES)
-  {
-    I_Error("No SECTORS found for %s!", lumpinfo[lump - i].name);
-  }
 
   numsectors = W_LumpLength (lump) / sizeof(mapsector_t);
   sectors = arena_alloc_num(world_arena, sector_t, numsectors);
@@ -371,59 +266,6 @@ void P_SectorInit(sector_t * const sector)
   // [FG] inhibit sector interpolation during the 0th gametic
   sector->oldceilgametic = sector->oldfloorgametic = -1;
   sector->old_ceil_offs_gametic = sector->old_floor_offs_gametic = -1;
-}
-
-
-//
-// P_LoadNodes
-//
-// killough 5/3/98: reformatted, cleaned up
-
-void P_LoadNodes (int lump)
-{
-  byte *data;
-  int  i;
-
-  numnodes = W_LumpLength (lump) / sizeof(mapnode_t);
-  nodes = Z_Malloc (numnodes*sizeof(node_t),PU_LEVEL,0);
-  data = W_CacheLumpNum (lump, PU_STATIC);
-
-  for (i=0; i<numnodes; i++)
-    {
-      node_t *no = nodes + i;
-      mapnode_t *mn = (mapnode_t *) data + i;
-      int j;
-
-      no->x = IntToFixed(SHORT(mn->x));
-      no->y = IntToFixed(SHORT(mn->y));
-      no->dx = IntToFixed(SHORT(mn->dx));
-      no->dy = IntToFixed(SHORT(mn->dy));
-
-      for (j=0 ; j<2 ; j++)
-        {
-          int k;
-          no->children[j] = (unsigned short)SHORT(mn->children[j]); // [FG] extended nodes
-
-          // [FG] extended nodes
-          if (no->children[j] == (unsigned short)-1)
-              no->children[j] = -1;
-          else
-          if (no->children[j] & NF_SUBSECTOR_VANILLA)
-          {
-              no->children[j] &= ~NF_SUBSECTOR_VANILLA;
-
-              if (no->children[j] >= numsubsectors)
-                  no->children[j] = 0;
-
-              no->children[j] |= NF_SUBSECTOR;
-          }
-
-          for (k=0 ; k<4 ; k++)
-            no->bbox[j][k] = IntToFixed(SHORT(mn->bbox[j][k]));
-        }
-    }
-
-  Z_Free (data);
 }
 
 
@@ -1712,21 +1554,37 @@ static boolean P_LoadReject(int lumpnum, int totallines)
     return ret;
 }
 
-static void LoadDoomFormat(int lumpnum, nodeformat_t nodeformat, boolean *gen_blockmap, boolean *pad_reject)
+static void LoadDoomFormat(int lumpnum, bspformat_t nodeformat,
+                           boolean *gen_blockmap, boolean *pad_reject,
+                           boolean fully_built)
 {
+
+  // Required data, level geometry
+  int vertexes = lumpnum + ML_VERTEXES;
+  int linedefs = lumpnum + ML_LINEDEFS;
+  int sidedefs = lumpnum + ML_SIDEDEFS;
+  int sectors = lumpnum + (fully_built ? ML_SECTORS : MLX_SECTORS);
+
+  // Optional data, pre-compiled data structures
+  int ssectors = lumpnum + ML_SSECTORS;
+  int nodes = lumpnum + ML_NODES;
+  int segs = lumpnum + ML_SEGS;
+  int blockmap = lumpnum + ML_BLOCKMAP;
+  int reject = lumpnum + ML_REJECT;
+
   // note: most of this ordering is important
 
   // killough 3/1/98: P_LoadBlockMap call moved down to below
   // killough 4/4/98: split load of sidedefs into two parts,
   // to allow texture names to be used in special linedefs
 
-  P_LoadVertexes (lumpnum+ML_VERTEXES);
-  P_LoadSectors  (lumpnum+ML_SECTORS);
-  P_LoadSideDefs (lumpnum+ML_SIDEDEFS);                // killough 4/4/98
-  P_LoadLineDefs (lumpnum+ML_LINEDEFS);                //       |
-  P_LoadSideDefs2(lumpnum+ML_SIDEDEFS);                //       |
-  P_LoadLineDefs2(lumpnum+ML_LINEDEFS);                // killough 4/4/98
-  *gen_blockmap = P_LoadBlockMap(lumpnum+ML_BLOCKMAP); // killough 3/1/98
+  P_LoadVertexes (vertexes);
+  P_LoadSectors  (sectors);
+  P_LoadSideDefs (sidedefs);                // killough 4/4/98
+  P_LoadLineDefs (linedefs);                //       |
+  P_LoadSideDefs2(sidedefs);                //       |
+  P_LoadLineDefs2(linedefs);                // killough 4/4/98
+  *gen_blockmap = P_LoadBlockMap(blockmap); // killough 3/1/98
 
   // [FG] build nodes with NanoBSP
   if (nodeformat == NFMT_NANO)
@@ -1737,25 +1595,25 @@ static void LoadDoomFormat(int lumpnum, nodeformat_t nodeformat, boolean *gen_bl
   else if (nodeformat >= NFMT_XNOD && nodeformat <= NFMT_ZGL3)
   {
     int znode_num = (nodeformat >= NFMT_XNOD && nodeformat <= NFMT_ZNOD)
-                  ? lumpnum+ML_NODES
-                  : lumpnum+ML_SSECTORS;
+                  ? nodes
+                  : ssectors;
     P_LoadBSPTree_ZDBSP(znode_num, nodeformat);
   }
   else if (nodeformat == NFMT_DEEP)
   {
-    P_LoadSubsectors_DeePBSPV4(lumpnum+ML_SSECTORS);
-    P_LoadNodes_DeePBSPV4     (lumpnum+ML_NODES);
-    P_LoadSegs_DeePBSPV4      (lumpnum+ML_SEGS);
+    P_LoadSubsectors_DeePBSPV4(ssectors);
+    P_LoadNodes_DeePBSPV4(nodes);
+    P_LoadSegs_DeePBSPV4(segs);
   }
   else
   {
-    P_LoadSubsectors(lumpnum+ML_SSECTORS);
-    P_LoadNodes     (lumpnum+ML_NODES);
-    P_LoadSegs      (lumpnum+ML_SEGS);
+    P_LoadSubsectors(ssectors);
+    P_LoadNodes(nodes);
+    P_LoadSegs(segs);
   }
 
   // [FG] pad the REJECT table when the lump is too small
-  *pad_reject = P_LoadReject(lumpnum+ML_REJECT, P_GroupLines());
+  *pad_reject = P_LoadReject(reject, P_GroupLines());
 }
 
 //
@@ -1771,7 +1629,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   int   i;
   char  lumpname[9];
   int   lumpnum;
-  nodeformat_t nodeformat = NFMT_NANO;
+  bspformat_t nodeformat = NFMT_NANO;
   boolean gen_blockmap = false, pad_reject = false;
 
   totalkills = totalitems = totalsecret = wminfo.maxfrags = 0;
@@ -1817,32 +1675,28 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   lumpnum = W_GetNumForName(lumpname);
 
   mapformat = P_CheckMapFormat(lumpnum);
-  G_ApplyLevelCompatibility(lumpnum);
+  G_ApplyLevelCompatibility(lumpnum, mapformat);
 
   leveltime = 0;
   oldleveltime = 0;
 
   // [FG] check nodes format
-  if (mapformat == MFMT_Doom)
+  if (mapformat.format == MFMT_Doom)
   {
-    R_PointOnSide = R_PointOnSideClassic;
-    R_PointOnSegSide = R_PointOnSegSideClassic;
     P_PointOnLineSide = P_PointOnLineSideClassic;
     P_PointOnDivlineSide = P_PointOnDivlineSideClassic;
 
     nodeformat = P_CheckDoomNodeFormat(lumpnum);
-    LoadDoomFormat(lumpnum, nodeformat, &gen_blockmap, &pad_reject);
+    LoadDoomFormat(lumpnum, nodeformat, &gen_blockmap, &pad_reject, mapformat.built);
   }
-  else if (mapformat == MFMT_UDMF)
+  else if (mapformat.format == MFMT_UDMF)
   {
-    R_PointOnSide = R_PointOnSidePrecise;
-    R_PointOnSegSide = R_PointOnSegSidePrecise;
     P_PointOnLineSide = P_PointOnLineSidePrecise;
     P_PointOnDivlineSide = P_PointOnDivlineSidePrecise;
 
     UDMF_LoadMap(lumpnum, &nodeformat, &gen_blockmap, &pad_reject);
   }
-  else if (mapformat == MFMT_Hexen)
+  else if (mapformat.format == MFMT_Hexen)
   {
     I_Error("Unsupported Hexen level format in %s", lumpname);
   }
@@ -1851,8 +1705,20 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     I_Error("Unknown level format in %s", lumpname);
   }
 
+  // XGL3/ZGL3 provide high-precision partition lines
+  if (nodeformat >= NFMT_XGL3)
+  {
+    R_PointOnSide = R_PointOnSidePrecise;
+  }
+  else
+  {
+    R_PointOnSide = R_PointOnSideClassic;
+  }
+
   if (nodeformat != NFMT_NANO)
+  {
     P_RemoveSlimeTrails();    // killough 10/98: remove slime trails from wad
+  }
 
   // [crispy] fix long wall wobble
   P_SegLengths();
@@ -1864,13 +1730,14 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   deathmatch_p = deathmatchstarts;
   P_MapStart();
 
-  if (mapformat == MFMT_Doom)
+  if (mapformat.format == MFMT_Doom)
   {
     P_LoadThings(lumpnum+ML_THINGS);
   }
-  else if (mapformat == MFMT_UDMF)
+  else if (mapformat.format == MFMT_UDMF)
   {
     UDMF_LoadThings();
+    UDMF_ClearMemory(); // done with internal UDMF representation
   }
 
   // if deathmatch, randomly spawn the active players

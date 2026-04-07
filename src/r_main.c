@@ -135,7 +135,7 @@ void (*colfunc)(void);                    // current column draw function
 //
 // killough 5/2/98: reformatted
 //
-int (*R_PointOnSide)(fixed_t x, fixed_t y, struct node_s *node);
+int (*R_PointOnSide)(fixed_t x, fixed_t y, struct node_s *node) = R_PointOnSideClassic;
 
 // Workaround for optimization bug in clang
 // fixes desync in competn/doom/fp2-3655.lmp and in dmnsns.wad dmn01m909.lmp
@@ -182,31 +182,8 @@ int R_PointOnSidePrecise(fixed_t x, fixed_t y, node_t *node)
 }
 
 // killough 5/2/98: reformatted
-int (*R_PointOnSegSide)(fixed_t x, fixed_t y, seg_t *line);
-
-int R_PointOnSegSideClassic(fixed_t x, fixed_t y, seg_t *line)
-{
-  fixed_t lx = line->v1->x;
-  fixed_t ly = line->v1->y;
-  fixed_t ldx = line->v2->x - lx;
-  fixed_t ldy = line->v2->y - ly;
-
-  if (!ldx)
-    return x <= lx ? ldy > 0 : ldy < 0;
-
-  if (!ldy)
-    return y <= ly ? ldx < 0 : ldx > 0;
-  
-  x -= lx;
-  y -= ly;
-        
-  // Try to quickly decide by looking at sign bits.
-  if ((ldy ^ ldx ^ x ^ y) < 0)
-    return (ldy ^ x) < 0;          // (left is negative)
-  return FixedMul(y, ldx>>FRACBITS) >= FixedMul(ldy>>FRACBITS, x);
-}
-
-int R_PointOnSegSidePrecise(fixed_t x, fixed_t y, seg_t *line)
+// [Woof!] rewritten to use only higher precision version
+int R_PointOnSegSide(fixed_t x, fixed_t y, seg_t *line)
 {
   fixed_t lx = line->v1->x;
   fixed_t ly = line->v1->y;
