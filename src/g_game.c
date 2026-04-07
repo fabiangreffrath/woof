@@ -4863,6 +4863,7 @@ boolean G_CheckDemoStatus(void)
       solonet = false;
       deathmatch = false;
       D_AdvanceDemo();
+      G_ResetRewind(true);
       return true;
     }
 
