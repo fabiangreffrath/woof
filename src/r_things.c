@@ -807,11 +807,15 @@ void R_NearbySprites (void)
   {
     mobj_t *thing = nearby_sprites[i];
     sector_t* sec = thing->subsector->sector;
+    sector_t tempsec;
+    int floorlightlevel, ceilinglightlevel;
+
+    R_FakeFlat(sec, &tempsec, &floorlightlevel, &ceilinglightlevel, false);
 
     // [FG] sprites in sector have already been projected
     if (sec->validcount != validcount)
     {
-      R_ProjectSprite(thing, 0);
+      R_ProjectSprite(thing, (floorlightlevel + ceilinglightlevel) / 2);
     }
   }
 
@@ -950,7 +954,7 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
                  ? (lightlevel_override >> LIGHTSEGSHIFT)
                  : (players[consoleplayer].mo->subsector->sector->lightlevel >> LIGHTSEGSHIFT);
 
-    lightnum = CLAMP(lightnum, 0, LIGHTLEVELS - 1);
+    lightnum = CLAMP(lightnum + extralight, 0, LIGHTLEVELS - 1);
     int* spritelightoffsets = &scalelightoffset[MAXLIGHTSCALE * lightnum];
 
     vis->colormap[0] = thiscolormap + spritelightoffsets[MAXLIGHTSCALE - 1];

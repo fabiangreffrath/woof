@@ -84,7 +84,7 @@ set(WOOF_SOURCES
     i_region.c             i_region.h
     i_richpresence.c       i_richpresence.h
     i_rumble.c             i_rumble.h
-    i_sndfile.c            i_sndfile.h
+                           i_sndfile.h
     i_sound.c              i_sound.h
     i_system.c             i_system.h
     i_timer.c              i_timer.h
@@ -225,13 +225,12 @@ target_link_libraries(
     PRIVATE SDL3::SDL3
             OpenAL::OpenAL
             libebur128::libebur128
-            SndFile::sndfile
             yyjson::yyjson
             pffft::pffft
             miniz::miniz
+            spng::spng
             netlib
             md5
-            spng
             sha1
             opl
             textscreen
@@ -264,6 +263,11 @@ endif()
 if(HAVE_ALSA)
     target_include_directories(woof PRIVATE ${ALSA_INCLUDE_DIR})
     target_link_libraries(woof PRIVATE ALSA::ALSA)
+endif()
+
+if(HAVE_SNDFILE)
+    target_sources(woof PRIVATE i_sndfile.c)
+    target_link_libraries(woof PRIVATE SndFile::sndfile)
 endif()
 
 if(HAVE_FLUIDSYNTH)
@@ -339,7 +343,7 @@ endif()
 # Base file
 add_dependencies(woof woof-base)
 
-if(MSVC)
+if(MSVC OR APPLE)
     add_custom_command(
         TARGET woof
         POST_BUILD
