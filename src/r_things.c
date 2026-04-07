@@ -954,7 +954,7 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
                  ? (lightlevel_override >> LIGHTSEGSHIFT)
                  : (players[consoleplayer].mo->subsector->sector->lightlevel >> LIGHTSEGSHIFT);
 
-    lightnum = CLAMP(lightnum, 0, LIGHTLEVELS - 1);
+    lightnum = CLAMP(lightnum + extralight, 0, LIGHTLEVELS - 1);
     int* spritelightoffsets = &scalelightoffset[MAXLIGHTSCALE * lightnum];
 
     vis->colormap[0] = thiscolormap + spritelightoffsets[MAXLIGHTSCALE - 1];
