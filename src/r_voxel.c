@@ -712,7 +712,7 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 				? (lightlevel_override >> LIGHTSEGSHIFT)
 				: (thing->subsector->sector->lightlevel >> LIGHTSEGSHIFT);
 
-		lightnum = CLAMP(lightnum, 0, LIGHTLEVELS - 1);
+		lightnum = CLAMP(lightnum + extralight, 0, LIGHTLEVELS - 1);
 		int* spritelightoffsets = &scalelightoffset[MAXLIGHTSCALE * lightnum];
 
 		vis->colormap[0] = thiscolormap + spritelightoffsets[index];
