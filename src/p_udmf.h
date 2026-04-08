@@ -20,7 +20,7 @@
 
 #include "p_extnodes.h"
 
-typedef enum UDMF_Lumps_t
+typedef enum UDMF_Lumps_e
 {
     UDMF_LABEL,
     UDMF_TEXTMAP,
