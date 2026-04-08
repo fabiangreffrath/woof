@@ -25,7 +25,7 @@
 #include "doomtype.h"
 #include "m_fixed.h"
 
-typedef struct mapformat
+typedef struct mapformat_s
 {
     enum
     {

@@ -34,7 +34,7 @@ typedef enum UDMF_Lumps_e
     UDMF_MAXLUMP,
 } UDMF_Lumps_t;
 
-typedef struct udmf_lumpnums_t
+typedef struct udmf_lumpnums_s
 {
     int znodes;
     int reject;
