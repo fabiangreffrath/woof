@@ -77,7 +77,7 @@ typedef struct
     short offset;
 } mapseg_t;
 
-// [FG] support maps DeePBSPV4 nodes
+// [FG] support maps with DeePBSPV4 nodes
 typedef PACKED_PREFIX struct
 {
     int v1;
@@ -667,7 +667,7 @@ void P_LoadNodes_DeePBSPV4(int lump)
     W_CacheLumpNum(lump, PU_CACHE);
 }
 
-// [FG] support ZDBSP nodes
+// [FG] support maps with ZDBSP nodes
 
 static void P_LoadSegs_XNOD(byte *data)
 {
