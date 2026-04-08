@@ -29,10 +29,10 @@ typedef struct mapformat_s
 {
     enum
     {
-        MFMT_Invalid,
-        MFMT_Doom,
-        MFMT_Hexen,
-        MFMT_UDMF,
+        MAP_Invalid,
+        MAP_Doom,
+        MAP_Hexen,
+        MAP_UDMF,
     } format;
     boolean built;
 } mapformat_t;

@@ -1681,7 +1681,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   oldleveltime = 0;
 
   // [FG] check nodes format
-  if (mapformat.format == MFMT_Doom)
+  if (mapformat.format == MAP_Doom)
   {
     P_PointOnLineSide = P_PointOnLineSideClassic;
     P_PointOnDivlineSide = P_PointOnDivlineSideClassic;
@@ -1689,14 +1689,14 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     bspformat = P_CheckBSPFormat_Doom(lumpnum);
     LoadDoomFormat(lumpnum, bspformat, &gen_blockmap, &pad_reject, mapformat.built);
   }
-  else if (mapformat.format == MFMT_UDMF)
+  else if (mapformat.format == MAP_UDMF)
   {
     P_PointOnLineSide = P_PointOnLineSidePrecise;
     P_PointOnDivlineSide = P_PointOnDivlineSidePrecise;
 
     UDMF_LoadMap(lumpnum, &bspformat, &gen_blockmap, &pad_reject);
   }
-  else if (mapformat.format == MFMT_Hexen)
+  else if (mapformat.format == MAP_Hexen)
   {
     I_Error("Unsupported Hexen level format in %s", lumpname);
   }
@@ -1730,11 +1730,11 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   deathmatch_p = deathmatchstarts;
   P_MapStart();
 
-  if (mapformat.format == MFMT_Doom)
+  if (mapformat.format == MAP_Doom)
   {
     P_LoadThings(lumpnum+ML_THINGS);
   }
-  else if (mapformat.format == MFMT_UDMF)
+  else if (mapformat.format == MAP_UDMF)
   {
     UDMF_LoadThings();
     UDMF_ClearMemory(); // done with internal UDMF representation

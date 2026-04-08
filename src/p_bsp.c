@@ -171,7 +171,7 @@ const char *const node_format_names[] = {
 mapformat_t P_CheckMapFormat(int lumpnum)
 {
     mapformat_t map = {
-        .format = MFMT_Invalid,
+        .format = MAP_Invalid,
         .built = false,
     };
 
@@ -188,15 +188,15 @@ mapformat_t P_CheckMapFormat(int lumpnum)
         && W_LumpExistsWithName(lumpnum + ML_BLOCKMAP, "BLOCKMAP"))
     {
         map.built = true;
-        map.format = MFMT_Doom;
+        map.format = MAP_Doom;
         if (W_LumpExistsWithName(lumpnum + ML_BEHAVIOR, "BEHAVIOR"))
         {
-            map.format = MFMT_Hexen;
+            map.format = MAP_Hexen;
         }
     }
 
     // Non built map
-    if (map.format == MFMT_Invalid
+    if (map.format == MAP_Invalid
         && W_LumpExistsWithName(lumpnum + MLX_THINGS, "THINGS")
         && W_LumpExistsWithName(lumpnum + MLX_LINEDEFS, "LINEDEFS")
         && W_LumpExistsWithName(lumpnum + MLX_SIDEDEFS, "SIDEDEFS")
@@ -204,17 +204,17 @@ mapformat_t P_CheckMapFormat(int lumpnum)
         && W_LumpExistsWithName(lumpnum + MLX_SECTORS, "SECTORS"))
     {
         map.built = false;
-        map.format = MFMT_Doom;
+        map.format = MAP_Doom;
         if (W_LumpExistsWithName(lumpnum + MLX_BEHAVIOR, "BEHAVIOR"))
         {
-            map.format = MFMT_Hexen;
+            map.format = MAP_Hexen;
         }
     }
 
     // BSP is checked afterwards
     if (W_LumpExistsWithName(lumpnum + ML_TEXTMAP, "TEXTMAP"))
     {
-        map.format = MFMT_UDMF;
+        map.format = MAP_UDMF;
         map.built = true;
     }
 
