@@ -220,7 +220,7 @@ mapformat_t P_CheckMapFormat(int lumpnum)
 
 // [FG] support extended nodes
 
-bspformat_t P_CheckDoomNodeFormat(int lumpnum)
+bspformat_t P_CheckBSPFormat_Doom(int lumpnum)
 {
     bspformat_t format = BSP_DOOMBSP;
     byte *lump_data = NULL;
@@ -330,7 +330,7 @@ bspformat_t P_CheckDoomNodeFormat(int lumpnum)
     return format;
 }
 
-bspformat_t P_CheckUDMFNodeFormat(int lumpnum)
+bspformat_t P_CheckBSPFormat_UDMF(int lumpnum)
 {
     bspformat_t format = BSP_NANO;
 

@@ -1554,7 +1554,7 @@ static boolean P_LoadReject(int lumpnum, int totallines)
     return ret;
 }
 
-static void LoadDoomFormat(int lumpnum, bspformat_t nodeformat,
+static void LoadDoomFormat(int lumpnum, bspformat_t bspformat,
                            boolean *gen_blockmap, boolean *pad_reject,
                            boolean fully_built)
 {
@@ -1587,19 +1587,19 @@ static void LoadDoomFormat(int lumpnum, bspformat_t nodeformat,
   *gen_blockmap = P_LoadBlockMap(blockmap); // killough 3/1/98
 
   // [FG] build nodes with NanoBSP
-  if (nodeformat == BSP_NANO)
+  if (bspformat == BSP_NANO)
   {
     BSP_BuildNodes();
   }
   // support all ZDoom extended node formats
-  else if (nodeformat >= BSP_XNOD && nodeformat <= BSP_ZGL3)
+  else if (bspformat >= BSP_XNOD && bspformat <= BSP_ZGL3)
   {
-    int znode_num = (nodeformat >= BSP_XNOD && nodeformat <= BSP_ZNOD)
+    int znode_num = (bspformat >= BSP_XNOD && bspformat <= BSP_ZNOD)
                   ? nodes
                   : ssectors;
-    P_LoadBSPTree_ZDBSP(znode_num, nodeformat);
+    P_LoadBSPTree_ZDBSP(znode_num, bspformat);
   }
-  else if (nodeformat == BSP_DEEPBSPV4)
+  else if (bspformat == BSP_DEEPBSPV4)
   {
     P_LoadSubsectors_DeePBSPV4(ssectors);
     P_LoadNodes_DeePBSPV4(nodes);
@@ -1629,7 +1629,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   int   i;
   char  lumpname[9];
   int   lumpnum;
-  bspformat_t nodeformat = BSP_NANO;
+  bspformat_t bspformat = BSP_NANO;
   boolean gen_blockmap = false, pad_reject = false;
 
   totalkills = totalitems = totalsecret = wminfo.maxfrags = 0;
@@ -1686,15 +1686,15 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     P_PointOnLineSide = P_PointOnLineSideClassic;
     P_PointOnDivlineSide = P_PointOnDivlineSideClassic;
 
-    nodeformat = P_CheckDoomNodeFormat(lumpnum);
-    LoadDoomFormat(lumpnum, nodeformat, &gen_blockmap, &pad_reject, mapformat.built);
+    bspformat = P_CheckBSPFormat_Doom(lumpnum);
+    LoadDoomFormat(lumpnum, bspformat, &gen_blockmap, &pad_reject, mapformat.built);
   }
   else if (mapformat.format == MFMT_UDMF)
   {
     P_PointOnLineSide = P_PointOnLineSidePrecise;
     P_PointOnDivlineSide = P_PointOnDivlineSidePrecise;
 
-    UDMF_LoadMap(lumpnum, &nodeformat, &gen_blockmap, &pad_reject);
+    UDMF_LoadMap(lumpnum, &bspformat, &gen_blockmap, &pad_reject);
   }
   else if (mapformat.format == MFMT_Hexen)
   {
@@ -1706,7 +1706,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   }
 
   // XGL3/ZGL3 provide high-precision partition lines
-  if (nodeformat >= BSP_XGL3)
+  if (bspformat >= BSP_XGL3)
   {
     R_PointOnSide = R_PointOnSidePrecise;
   }
@@ -1715,7 +1715,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     R_PointOnSide = R_PointOnSideClassic;
   }
 
-  if (nodeformat != BSP_NANO)
+  if (bspformat != BSP_NANO)
   {
     P_RemoveSlimeTrails();    // killough 10/98: remove slime trails from wad
   }
@@ -1777,7 +1777,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   I_Printf(VB_DEMO, "P_SetupLevel: %.8s (%s), Skill %d, %s%s%s, %s",
     lumpname, W_WadNameForLump(lumpnum),
     gameskill + 1,
-    node_format_names[nodeformat],
+    node_format_names[bspformat],
     gen_blockmap ? "+Blockmap" : "",
     pad_reject ? "+Reject" : "",
     G_GetCurrentComplevelName());

@@ -1412,7 +1412,7 @@ static boolean UDMF_LoadReject(int reject_num)
     return ret;
 }
 
-void UDMF_LoadMap(int lumpnum, bspformat_t *nodeformat, int *gen_blockmap,
+void UDMF_LoadMap(int lumpnum, bspformat_t *bsp, int *gen_blockmap,
                   int *pad_reject)
 {
     UDMF_Lumpnums_t lumps = UDMF_FindLumps(lumpnum);
@@ -1423,8 +1423,8 @@ void UDMF_LoadMap(int lumpnum, bspformat_t *nodeformat, int *gen_blockmap,
                 lumpinfo[lumpnum].name);
     }
 
-    *nodeformat = P_CheckUDMFNodeFormat(lumps.znodes);
-    if (*nodeformat == BSP_NANO)
+    *bsp = P_CheckBSPFormat_UDMF(lumps.znodes);
+    if (*bsp == BSP_NANO)
     {
         I_Error("Invalid format found on ZNODES lump for UDMF map: %s",
                 lumpinfo[lumpnum].name);
@@ -1444,7 +1444,7 @@ void UDMF_LoadMap(int lumpnum, bspformat_t *nodeformat, int *gen_blockmap,
     UDMF_LoadLineDefs_Post(); // <- this needs Sides Post Processing
 
     *gen_blockmap = UDMF_LoadBlockMap(lumps.blockmap);
-    P_LoadBSPTree_ZDBSP(lumps.znodes, *nodeformat);
+    P_LoadBSPTree_ZDBSP(lumps.znodes, *bsp);
     P_GroupLines();
     *pad_reject = UDMF_LoadReject(lumps.reject);
 }
