@@ -61,7 +61,7 @@ enum {
   ML_BLOCKMAP,          // LUT, motion clipping, walls/grid element
   ML_BEHAVIOR,          // Hexen-format, ACS byte code. Unsupported
 
-  ML_TEXTMAP = ML_LABEL + 1,
+  ML_TEXTMAP = ML_LABEL + 1, // UDMF map data
 };
 
 // Support uncompiled maps by building with NanoBSP
