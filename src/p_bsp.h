@@ -14,13 +14,12 @@
 //  GNU General Public License for more details.
 //
 // DESCRIPTION:
-//      support maps with NODES in uncompressed XNOD/XGLN or compressed
-//      ZNOD/ZGLN formats, or DeePBSP format
+//      support extended nodes
 //
 //-----------------------------------------------------------------------------
 
-#ifndef __P_EXTNODES__
-#define __P_EXTNODES__
+#ifndef __P_BSP__
+#define __P_BSP__
 
 #include "doomdata.h"
 
@@ -28,29 +27,32 @@ struct vertex_s;
 
 typedef enum
 {
-    NFMT_DOOM,
-    NFMT_DEEP,
-    NFMT_XNOD,
-    NFMT_ZNOD,
-    NFMT_XGLN,
-    NFMT_ZGLN,
-    NFMT_XGL2,
-    NFMT_ZGL2,
-    NFMT_XGL3,
-    NFMT_ZGL3,
-    NFMT_NANO,
-} nodeformat_t;
+    BSP_DOOMBSP,
+    BSP_DEEPBSPV4,
+    BSP_XNOD,
+    BSP_ZNOD,
+    BSP_XGLN,
+    BSP_ZGLN,
+    BSP_XGL2,
+    BSP_ZGL2,
+    BSP_XGL3,
+    BSP_ZGL3,
+    BSP_NANO,
+} bspformat_t;
 
 extern const char *const node_format_names[];
 
 extern mapformat_t P_CheckMapFormat(int lumpnum);
-extern nodeformat_t P_CheckDoomNodeFormat(int lumpnum);
-extern nodeformat_t P_CheckUDMFNodeFormat(int lumpnum);
+extern bspformat_t P_CheckBSPFormat_Doom(int lumpnum);
+extern bspformat_t P_CheckBSPFormat_UDMF(int lumpnum);
 extern int P_GetOffset(struct vertex_s *v1, struct vertex_s *v2);
 
-extern void P_LoadSegs_DEEP(int lump);
-extern void P_LoadSubsectors_DEEP(int lump);
-extern void P_LoadNodes_DEEP(int lump);
-extern void P_LoadNodes_ZDoom(int lump, nodeformat_t format);
+extern void P_LoadSegs(int lump);
+extern void P_LoadSubsectors(int lump);
+extern void P_LoadNodes(int lump);
+extern void P_LoadSegs_DeePBSPV4(int lump);
+extern void P_LoadSubsectors_DeePBSPV4(int lump);
+extern void P_LoadNodes_DeePBSPV4(int lump);
+extern void P_LoadBSPTree_ZDBSP(int lump, bspformat_t format);
 
 #endif

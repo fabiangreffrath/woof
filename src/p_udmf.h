@@ -18,23 +18,36 @@
 #ifndef __P_UDMF__
 #define __P_UDMF__
 
-#include "p_extnodes.h"
+#include "p_bsp.h"
 
-typedef enum
+typedef enum UDMF_Lumps_e
 {
     UDMF_LABEL,
     UDMF_TEXTMAP,
     UDMF_ZNODES,
     UDMF_BLOCKMAP,
     UDMF_REJECT,
-    UDMF_BEHAVIOR, // known of, but not supported
-    UDMF_DIALOGUE, //
-    UDMF_LIGHTMAP, //
+    UDMF_BEHAVIOR,
+    UDMF_DIALOGUE,
+    UDMF_LIGHTMAP,
     UDMF_ENDMAP,
+    UDMF_MAXLUMP,
 } UDMF_Lumps_t;
 
-extern void UDMF_LoadMap(int lumpnum, nodeformat_t *nodeformat,
+typedef struct udmf_lumpnums_s
+{
+    int znodes;
+    int reject;
+    int blockmap;
+    int behavior;
+    int dialogue;
+    int lightmap;
+} UDMF_Lumpnums_t;
+
+extern void UDMF_ClearMemory(void);
+extern void UDMF_LoadMap(int lumpnum, bspformat_t *nodeformat,
                          int *gen_blockmap, int *pad_reject);
 extern void UDMF_LoadThings(void);
+extern UDMF_Lumpnums_t UDMF_FindLumps(int lumpnum);
 
 #endif

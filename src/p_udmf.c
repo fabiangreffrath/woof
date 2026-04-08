@@ -29,7 +29,7 @@
 #include "m_misc.h"
 #include "m_scanner.h"
 #include "m_swap.h"
-#include "p_extnodes.h"
+#include "p_bsp.h"
 #include "p_mobj.h"
 #include "p_setup.h"
 #include "p_spec.h"
@@ -176,14 +176,6 @@ typedef struct
     int32_t scroll_floor_type, scroll_ceil_type;
 } UDMF_Sector_t;
 
-static char *const UDMF_Lumps[] = {
-    [UDMF_LABEL] = "-",           [UDMF_TEXTMAP] = "TEXTMAP",
-    [UDMF_ZNODES] = "ZNODES",     [UDMF_BLOCKMAP] = "BLOCKMAP",
-    [UDMF_REJECT] = "REJECT",     [UDMF_BEHAVIOR] = "BEHAVIOR",
-    [UDMF_DIALOGUE] = "DIALOGUE", [UDMF_LIGHTMAP] = "LIGHTMAP",
-    [UDMF_ENDMAP] = "ENDMAP",
-};
-
 static UDMF_Features_t udmf_flags = UDMF_BASE;
 
 static UDMF_Vertex_t *udmf_vertexes = NULL;
@@ -192,6 +184,61 @@ static UDMF_Sidedef_t *udmf_sidedefs = NULL;
 static UDMF_Sector_t *udmf_sectors = NULL;
 static UDMF_Thing_t *udmf_things = NULL;
 
+void UDMF_ClearMemory(void)
+{
+    array_free(udmf_vertexes);
+    array_free(udmf_linedefs);
+    array_free(udmf_sidedefs);
+    array_free(udmf_sectors);
+    array_free(udmf_things);
+}
+
+UDMF_Lumpnums_t UDMF_FindLumps(int lumpnum)
+{
+    UDMF_Lumpnums_t lumps = {
+        .znodes = -1,
+        .reject = -1,
+        .blockmap = -1,
+        .behavior = -1,
+        .dialogue = -1,
+        .lightmap = -1,
+    };
+
+    // skip label and TEXTMAP, test against all other lumps until ENDMAP
+    for (int i = ML_TEXTMAP + 1; i < UDMF_MAXLUMP; ++i)
+    {
+        int j = lumpnum + i;
+        if (W_LumpExistsWithName(j, "ENDMAP"))
+        {
+            break;
+        }
+        else if (W_LumpExistsWithName(j, "ZNODES"))
+        {
+            lumps.znodes = j;
+        }
+        else if (W_LumpExistsWithName(j, "REJECT"))
+        {
+            lumps.reject = j;
+        }
+        else if (W_LumpExistsWithName(j, "BLOCKMAP"))
+        {
+            lumps.blockmap = j;
+        }
+        else if (W_LumpExistsWithName(j, "BEHAVIOR"))
+        {
+            lumps.behavior = j;
+        }
+        else if (W_LumpExistsWithName(j, "DIALOGUE"))
+        {
+            lumps.dialogue = j;
+        }
+        else if (W_LumpExistsWithName(j, "LIGHTMAP"))
+        {
+            lumps.lightmap = j;
+        }
+    }
+    return lumps;
+}
 //
 // UDMF parsing utils
 //
@@ -904,8 +951,8 @@ static void UDMF_ParseThing(scanner_t *s)
 static void UDMF_ParseTextMap(int lumpnum)
 {
     scanner_t *s =
-        SC_Open("TEXTMAP", W_CacheLumpNum(lumpnum + UDMF_TEXTMAP, PU_CACHE),
-                W_LumpLength(lumpnum + UDMF_TEXTMAP));
+        SC_Open("TEXTMAP", W_CacheLumpNum(lumpnum + ML_TEXTMAP, PU_CACHE),
+                W_LumpLength(lumpnum + ML_TEXTMAP));
 
     while (SC_TokensLeft(s))
     {
@@ -1365,54 +1412,26 @@ static boolean UDMF_LoadReject(int reject_num)
     return ret;
 }
 
-void UDMF_LoadMap(int lumpnum, nodeformat_t *nodeformat, int *gen_blockmap,
+void UDMF_LoadMap(int lumpnum, bspformat_t *bsp, int *gen_blockmap,
                   int *pad_reject)
 {
-    int znodes_num = -1;
-    int reject_num = -1;
-    int blockmap_num = -1;
+    UDMF_Lumpnums_t lumps = UDMF_FindLumps(lumpnum);
 
-    // +2 skips label, and TEXTMAP
-    for (int i = lumpnum + 2; i < numlumps; ++i)
-    {
-        char *name = lumpinfo[i].name;
-        if (!strcasecmp(name, UDMF_Lumps[UDMF_ZNODES]))
-        {
-            znodes_num = i;
-        }
-        else if (!strcasecmp(name, UDMF_Lumps[UDMF_REJECT]))
-        {
-            reject_num = i;
-        }
-        else if (!strcasecmp(name, UDMF_Lumps[UDMF_BLOCKMAP]))
-        {
-            blockmap_num = i;
-        }
-        else if (!strcasecmp(name, UDMF_Lumps[UDMF_ENDMAP]))
-        {
-            break;
-        }
-    }
-
-    if (znodes_num < 0)
+    if (lumps.znodes < 0)
     {
         I_Error("Could not find ZNODES lump for UDMF map: %s.",
                 lumpinfo[lumpnum].name);
     }
 
-    *nodeformat = P_CheckUDMFNodeFormat(znodes_num);
-    if (*nodeformat == NFMT_NANO)
+    *bsp = P_CheckBSPFormat_UDMF(lumps.znodes);
+    if (*bsp == BSP_NANO)
     {
         I_Error("Invalid format found on ZNODES lump for UDMF map: %s",
                 lumpinfo[lumpnum].name);
     }
 
     // Clear everything
-    array_free(udmf_vertexes);
-    array_free(udmf_linedefs);
-    array_free(udmf_sidedefs);
-    array_free(udmf_sectors);
-    array_free(udmf_things);
+    UDMF_ClearMemory();
 
     UDMF_ParseTextMap(lumpnum);
 
@@ -1424,8 +1443,8 @@ void UDMF_LoadMap(int lumpnum, nodeformat_t *nodeformat, int *gen_blockmap,
     UDMF_LoadSideDefs_Post(); // <- this needs side_t::special
     UDMF_LoadLineDefs_Post(); // <- this needs Sides Post Processing
 
-    *gen_blockmap = UDMF_LoadBlockMap(blockmap_num);
-    P_LoadNodes_ZDoom(znodes_num, *nodeformat);
+    *gen_blockmap = UDMF_LoadBlockMap(lumps.blockmap);
+    P_LoadBSPTree_ZDBSP(lumps.znodes, *bsp);
     P_GroupLines();
-    *pad_reject = UDMF_LoadReject(reject_num);
+    *pad_reject = UDMF_LoadReject(lumps.reject);
 }

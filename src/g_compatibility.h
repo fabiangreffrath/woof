@@ -15,6 +15,8 @@
 //  DSDA Compatibility
 //
 
+#include "doomdata.h"
+
 void G_ParseCompDatabase(void);
 
-void G_ApplyLevelCompatibility(int lump);
+void G_ApplyLevelCompatibility(int lump, mapformat_t mapformat);
