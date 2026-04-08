@@ -192,10 +192,7 @@ typedef enum sector_flags_e
   SECF_ABS_LIGHT_CEIL  = (1u << 10),
 } sector_flags_t;
 
-// BSP node structure.
-
 // Indicate a leaf.
-#define NF_SUBSECTOR_VANILLA 0x8000
 #define NF_SUBSECTOR    0x80000000
  // [FG] extended nodes
 #define NO_INDEX_SHORT  ((unsigned short)-1)
