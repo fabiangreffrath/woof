@@ -65,7 +65,7 @@
 statenum_t *seenstate_tab = NULL;
 
 // Detect map Format currently being set up.
-mapformat_t mapformat = {};
+mapformat_t mapformat = {.format = MAP_Invalid, .built = false};
 
 //
 // MAP related Lookup tables.
