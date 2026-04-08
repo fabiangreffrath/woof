@@ -1560,17 +1560,17 @@ static void LoadDoomFormat(int lumpnum, bspformat_t nodeformat,
 {
 
   // Required data, level geometry
-  int vertexes = lumpnum + ML_VERTEXES;
-  int linedefs = lumpnum + ML_LINEDEFS;
-  int sidedefs = lumpnum + ML_SIDEDEFS;
-  int sectors = lumpnum + (fully_built ? ML_SECTORS : MLX_SECTORS);
+  const int vertexes = lumpnum + ML_VERTEXES;
+  const int linedefs = lumpnum + ML_LINEDEFS;
+  const int sidedefs = lumpnum + ML_SIDEDEFS;
+  const int sectors = lumpnum + (fully_built ? ML_SECTORS : MLX_SECTORS);
 
   // Optional data, pre-compiled data structures
-  int ssectors = lumpnum + ML_SSECTORS;
-  int nodes = lumpnum + ML_NODES;
-  int segs = lumpnum + ML_SEGS;
-  int blockmap = lumpnum + ML_BLOCKMAP;
-  int reject = lumpnum + ML_REJECT;
+  const int ssectors = lumpnum + ML_SSECTORS;
+  const int nodes = lumpnum + ML_NODES;
+  const int segs = lumpnum + ML_SEGS;
+  const int blockmap = lumpnum + ML_BLOCKMAP;
+  const int reject = lumpnum + ML_REJECT;
 
   // note: most of this ordering is important
 
