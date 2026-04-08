@@ -132,11 +132,11 @@ set(WOOF_SOURCES
     net_structrw.c         net_structrw.h
                            p_action.h
     p_ambient.c            p_ambient.h
+    p_bsp.c                p_bsp.h
     p_ceilng.c
     p_dirty.c              p_dirty.h
     p_doors.c
     p_enemy.c              p_enemy.h
-    p_extnodes.c           p_extnodes.h
     p_floor.c
     p_genlin.c
     p_inter.c              p_inter.h

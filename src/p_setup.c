@@ -41,7 +41,7 @@
 #include "m_swap.h"
 #include "nano_bsp.h"
 #include "p_enemy.h"
-#include "p_extnodes.h"
+#include "p_bsp.h"
 #include "p_map.h"
 #include "p_maputl.h"
 #include "p_mobj.h"
@@ -1587,19 +1587,19 @@ static void LoadDoomFormat(int lumpnum, bspformat_t nodeformat,
   *gen_blockmap = P_LoadBlockMap(blockmap); // killough 3/1/98
 
   // [FG] build nodes with NanoBSP
-  if (nodeformat == NFMT_NANO)
+  if (nodeformat == BSP_NANO)
   {
     BSP_BuildNodes();
   }
   // support all ZDoom extended node formats
-  else if (nodeformat >= NFMT_XNOD && nodeformat <= NFMT_ZGL3)
+  else if (nodeformat >= BSP_XNOD && nodeformat <= BSP_ZGL3)
   {
-    int znode_num = (nodeformat >= NFMT_XNOD && nodeformat <= NFMT_ZNOD)
+    int znode_num = (nodeformat >= BSP_XNOD && nodeformat <= BSP_ZNOD)
                   ? nodes
                   : ssectors;
     P_LoadBSPTree_ZDBSP(znode_num, nodeformat);
   }
-  else if (nodeformat == NFMT_DEEP)
+  else if (nodeformat == BSP_DEEPBSPV4)
   {
     P_LoadSubsectors_DeePBSPV4(ssectors);
     P_LoadNodes_DeePBSPV4(nodes);
@@ -1629,7 +1629,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   int   i;
   char  lumpname[9];
   int   lumpnum;
-  bspformat_t nodeformat = NFMT_NANO;
+  bspformat_t nodeformat = BSP_NANO;
   boolean gen_blockmap = false, pad_reject = false;
 
   totalkills = totalitems = totalsecret = wminfo.maxfrags = 0;
@@ -1706,7 +1706,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   }
 
   // XGL3/ZGL3 provide high-precision partition lines
-  if (nodeformat >= NFMT_XGL3)
+  if (nodeformat >= BSP_XGL3)
   {
     R_PointOnSide = R_PointOnSidePrecise;
   }
@@ -1715,7 +1715,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     R_PointOnSide = R_PointOnSideClassic;
   }
 
-  if (nodeformat != NFMT_NANO)
+  if (nodeformat != BSP_NANO)
   {
     P_RemoveSlimeTrails();    // killough 10/98: remove slime trails from wad
   }

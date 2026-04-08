@@ -18,7 +18,7 @@
 #ifndef __P_UDMF__
 #define __P_UDMF__
 
-#include "p_extnodes.h"
+#include "p_bsp.h"
 
 typedef enum UDMF_Lumps_e
 {

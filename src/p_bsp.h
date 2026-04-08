@@ -18,8 +18,8 @@
 //
 //-----------------------------------------------------------------------------
 
-#ifndef __P_EXTNODES__
-#define __P_EXTNODES__
+#ifndef __P_BSP__
+#define __P_BSP__
 
 #include "doomdata.h"
 
@@ -27,17 +27,17 @@ struct vertex_s;
 
 typedef enum
 {
-    NFMT_DOOM,
-    NFMT_DEEP,
-    NFMT_XNOD,
-    NFMT_ZNOD,
-    NFMT_XGLN,
-    NFMT_ZGLN,
-    NFMT_XGL2,
-    NFMT_ZGL2,
-    NFMT_XGL3,
-    NFMT_ZGL3,
-    NFMT_NANO,
+    BSP_DOOMBSP,
+    BSP_DEEPBSPV4,
+    BSP_XNOD,
+    BSP_ZNOD,
+    BSP_XGLN,
+    BSP_ZGLN,
+    BSP_XGL2,
+    BSP_ZGL2,
+    BSP_XGL3,
+    BSP_ZGL3,
+    BSP_NANO,
 } bspformat_t;
 
 extern const char *const node_format_names[];

@@ -29,7 +29,7 @@
 #include "m_misc.h"
 #include "m_scanner.h"
 #include "m_swap.h"
-#include "p_extnodes.h"
+#include "p_bsp.h"
 #include "p_mobj.h"
 #include "p_setup.h"
 #include "p_spec.h"
@@ -1424,7 +1424,7 @@ void UDMF_LoadMap(int lumpnum, bspformat_t *nodeformat, int *gen_blockmap,
     }
 
     *nodeformat = P_CheckUDMFNodeFormat(lumps.znodes);
-    if (*nodeformat == NFMT_NANO)
+    if (*nodeformat == BSP_NANO)
     {
         I_Error("Invalid format found on ZNODES lump for UDMF map: %s",
                 lumpinfo[lumpnum].name);

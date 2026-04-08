@@ -29,7 +29,7 @@
 #include "m_argv.h"
 #include "m_fixed.h"
 #include "m_swap.h"
-#include "p_extnodes.h"
+#include "p_bsp.h"
 #include "p_setup.h"
 #include "r_defs.h"
 #include "r_main.h"
@@ -157,10 +157,12 @@ typedef PACKED_PREFIX struct
 
 // logging in P_SetupLevel
 const char *const node_format_names[] = {
-    [NFMT_DOOM] = "DoomBSP", [NFMT_DEEP] = "DeepBSPV4", [NFMT_XNOD] = "XNOD",
-    [NFMT_ZNOD] = "ZNOD",    [NFMT_XGLN] = "XGLN",      [NFMT_ZGLN] = "ZGLN",
-    [NFMT_XGL2] = "XGL2",    [NFMT_ZGL2] = "ZGL2",      [NFMT_XGL3] = "XGL3",
-    [NFMT_ZGL3] = "ZGL3",    [NFMT_NANO] = "NanoBSP"};
+    [BSP_DOOMBSP] = "DoomBSP", [BSP_DEEPBSPV4] = "DeepBSPV4",
+    [BSP_XNOD] = "XNOD",       [BSP_ZNOD] = "ZNOD",
+    [BSP_XGLN] = "XGLN",       [BSP_ZGLN] = "ZGLN",
+    [BSP_XGL2] = "XGL2",       [BSP_ZGL2] = "ZGL2",
+    [BSP_XGL3] = "XGL3",       [BSP_ZGL3] = "ZGL3",
+    [BSP_NANO] = "NanoBSP"};
 
 // check for different supported and unsupported formats
 mapformat_t P_CheckMapFormat(int lumpnum)
@@ -220,7 +222,7 @@ mapformat_t P_CheckMapFormat(int lumpnum)
 
 bspformat_t P_CheckDoomNodeFormat(int lumpnum)
 {
-    bspformat_t format = NFMT_DOOM;
+    bspformat_t format = BSP_DOOMBSP;
     byte *lump_data = NULL;
     int size_subs = 0, size_nodes = 0;
 
@@ -232,7 +234,7 @@ bspformat_t P_CheckDoomNodeFormat(int lumpnum)
 
     if (M_CheckParm("-bsp"))
     {
-        return NFMT_NANO;
+        return BSP_NANO;
     }
 
     //!
@@ -251,32 +253,32 @@ bspformat_t P_CheckDoomNodeFormat(int lumpnum)
 
             if (!memcmp(lump_data, "XGLN", 4))
             {
-                format = NFMT_XGLN;
+                format = BSP_XGLN;
             }
             else if (!memcmp(lump_data, "ZGLN", 4))
             {
-                format = NFMT_ZGLN;
+                format = BSP_ZGLN;
             }
             else if (!memcmp(lump_data, "XGL2", 4))
             {
-                format = NFMT_XGL2;
+                format = BSP_XGL2;
             }
             else if (!memcmp(lump_data, "ZGL2", 4))
             {
-                format = NFMT_ZGL2;
+                format = BSP_ZGL2;
             }
             else if (!memcmp(lump_data, "XGL3", 4))
             {
-                format = NFMT_XGL3;
+                format = BSP_XGL3;
             }
             else if (!memcmp(lump_data, "ZGL3", 4))
             {
-                format = NFMT_ZGL3;
+                format = BSP_ZGL3;
             }
         }
         else
         {
-            format = NFMT_NANO;
+            format = BSP_NANO;
         }
     }
 
@@ -286,7 +288,7 @@ bspformat_t P_CheckDoomNodeFormat(int lumpnum)
         lump_data = NULL;
     }
 
-    if (format == NFMT_DOOM || format == NFMT_NANO)
+    if (format == BSP_DOOMBSP || format == BSP_NANO)
     {
         size_nodes = W_LumpLengthWithName(lumpnum + ML_NODES, "NODES");
 
@@ -296,27 +298,27 @@ bspformat_t P_CheckDoomNodeFormat(int lumpnum)
 
             if (!memcmp(lump_data, "xNd4\0\0\0\0", 8))
             {
-                format = NFMT_DEEP;
+                format = BSP_DEEPBSPV4;
             }
             else if (!memcmp(lump_data, "XNOD", 4))
             {
-                format = NFMT_XNOD;
+                format = BSP_XNOD;
             }
             else if (!memcmp(lump_data, "ZNOD", 4))
             {
-                format = NFMT_ZNOD;
+                format = BSP_ZNOD;
             }
         }
         else
         {
-            format = NFMT_NANO;
+            format = BSP_NANO;
         }
     }
 
     // [FG] no nodes for exactly one subsector
     if (size_subs == sizeof(mapsubsector_t) && size_nodes == 0)
     {
-        format = NFMT_DOOM;
+        format = BSP_DOOMBSP;
     }
 
     if (lump_data)
@@ -330,40 +332,40 @@ bspformat_t P_CheckDoomNodeFormat(int lumpnum)
 
 bspformat_t P_CheckUDMFNodeFormat(int lumpnum)
 {
-    bspformat_t format = NFMT_NANO;
+    bspformat_t format = BSP_NANO;
 
     byte *lump_data = W_CacheLumpNum(lumpnum, PU_STATIC);
     if (!memcmp(lump_data, "XNOD", 4))
     {
-        format = NFMT_XNOD;
+        format = BSP_XNOD;
     }
     else if (!memcmp(lump_data, "ZNOD", 4))
     {
-        format = NFMT_ZNOD;
+        format = BSP_ZNOD;
     }
     else if (!memcmp(lump_data, "XGLN", 4))
     {
-        format = NFMT_XGLN;
+        format = BSP_XGLN;
     }
     else if (!memcmp(lump_data, "ZGLN", 4))
     {
-        format = NFMT_ZGLN;
+        format = BSP_ZGLN;
     }
     else if (!memcmp(lump_data, "XGL2", 4))
     {
-        format = NFMT_XGL2;
+        format = BSP_XGL2;
     }
     else if (!memcmp(lump_data, "ZGL2", 4))
     {
-        format = NFMT_ZGL2;
+        format = BSP_ZGL2;
     }
     else if (!memcmp(lump_data, "XGL3", 4))
     {
-        format = NFMT_XGL3;
+        format = BSP_XGL3;
     }
     else if (!memcmp(lump_data, "ZGL3", 4))
     {
-        format = NFMT_ZGL3;
+        format = BSP_ZGL3;
     }
     Z_Free(lump_data);
     return format;
@@ -749,7 +751,7 @@ static void P_LoadSegs_XGL(byte *data, bspformat_t format)
             unsigned char side;
             seg_t *seg;
 
-            if (format == NFMT_XGLN || format == NFMT_ZGLN)
+            if (format == BSP_XGLN || format == BSP_ZGLN)
             {
                 v1 = LONG(mln->vertex);
                 // partner = LONG(mln->partner);
@@ -878,8 +880,8 @@ void P_LoadBSPTree_ZDBSP(int lump, bspformat_t format)
     data = W_CacheLumpNum(lump, PU_LEVEL);
 
     // 0. Uncompress nodes lump (or simply skip header)
-    boolean compressed = format == NFMT_ZNOD || format == NFMT_ZGLN
-                         || format == NFMT_ZGL2 || format == NFMT_ZGL3;
+    boolean compressed = format == BSP_ZNOD || format == BSP_ZGLN
+                         || format == BSP_ZGL2 || format == BSP_ZGL3;
 
     if (compressed)
     {
@@ -1024,18 +1026,18 @@ void P_LoadBSPTree_ZDBSP(int lump, bspformat_t format)
     segs = arena_alloc_num(world_arena, seg_t, numsegs);
     memset(segs, 0, sizeof(seg_t) * numsegs);
 
-    if (format == NFMT_XNOD || format == NFMT_ZNOD)
+    if (format == BSP_XNOD || format == BSP_ZNOD)
     {
         P_LoadSegs_XNOD(data);
         data += numsegs * sizeof(mapseg_xnod_t);
     }
-    else if (format == NFMT_XGLN || format == NFMT_ZGLN)
+    else if (format == BSP_XGLN || format == BSP_ZGLN)
     {
         P_LoadSegs_XGL(data, format);
         data += numsegs * sizeof(mapseg_xgln_t);
     }
-    else if (format == NFMT_XGL2 || format == NFMT_ZGL2 || format == NFMT_XGL3
-             || format == NFMT_ZGL3)
+    else if (format == BSP_XGL2 || format == BSP_ZGL2 || format == BSP_XGL3
+             || format == BSP_ZGL3)
     {
         P_LoadSegs_XGL(data, format);
         data += numsegs * sizeof(mapseg_xgl2_t);
@@ -1054,7 +1056,7 @@ void P_LoadBSPTree_ZDBSP(int lump, bspformat_t format)
         int j, k;
         node_t *no = nodes + i;
 
-        if (format == NFMT_XGL3 || format == NFMT_ZGL3)
+        if (format == BSP_XGL3 || format == BSP_ZGL3)
         {
             const mapnode_xgl3_t *mn3 = (const mapnode_xgl3_t *)data + i;
             no->x = LONG(mn3->x);
