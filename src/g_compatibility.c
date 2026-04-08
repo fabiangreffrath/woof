@@ -171,7 +171,7 @@ static void GetLevelCheckSum(int lump, md5_checksum_t *cksum, mapformat_t map)
 
     MD5Init(&md5);
 
-    int behavior = lump + (map.built ? ML_SECTORS : MLX_SECTORS);
+    int behavior = lump + (map.built ? ML_BEHAVIOR : MLX_BEHAVIOR);
 
     if (map.format == MFMT_UDMF)
     {
