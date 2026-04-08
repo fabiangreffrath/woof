@@ -34,8 +34,8 @@ II. Implementation Semantics
 II.A : Storage and Retrieval of Data
 ------------------------------------
 
-Any TEXTMAP lump in the "Woof" namespace must be encoded in UTF-8 compatible
-ASCII. Otherwise, no further changes from the version 1.1 base specification.
+Any TEXTMAP lump in the "Woof" namespace must be encoded in plain ASCII.
+Otherwise, no further changes from the version 1.1 base specification.
 
 -----------------------------------
 II.B : Storage Within Archive Files
