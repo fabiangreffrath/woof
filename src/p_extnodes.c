@@ -40,7 +40,7 @@
 // [FG] support maps with NODES in compressed ZDBSP formats
 #include "miniz.h"
 
-// [FG] support maps with NODES in DeePBSPV4 format
+// [FG] support maps DeePBSPV4 nodes
 
 #if defined(_MSC_VER)
   #pragma pack(push, 1)
@@ -72,8 +72,7 @@ typedef PACKED_PREFIX struct
     int firstseg;
 } PACKED_SUFFIX mapsubsector_deepbspv4_t;
 
-// [FG] support maps ZDBSP nodes
-
+// [FG] support maps with ZDBSP nodes
 typedef PACKED_PREFIX struct
 {
     unsigned int v1, v2;
