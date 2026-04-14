@@ -132,6 +132,7 @@ set(WOOF_SOURCES
     net_structrw.c         net_structrw.h
                            p_action.h
     p_ambient.c            p_ambient.h
+    p_blockmap.c
     p_bsp.c                p_bsp.h
     p_ceilng.c
     p_dirty.c              p_dirty.h
