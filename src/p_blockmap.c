@@ -1,4 +1,19 @@
-
+//
+//  Copyright (C) 1999 by
+//  id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman
+//  Copyright (C) 2026 by
+//  Guilherme Miranda
+//
+//  This program is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU General Public License
+//  as published by the Free Software Foundation; either version 2
+//  of the License, or (at your option) any later version.
+//
+//  This program is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU General Public License for more details.
+//
 
 #include "doomdata.h"
 #include "doomtype.h"
@@ -15,13 +30,14 @@
 
 #ifndef MBF_STRICT
 
-// jff 10/6/98
-// New code added to speed up calculation of internal blockmap
-// Algorithm is order of nlines*(ncols+nrows) not nlines*ncols*nrows
-//
-#define blkshift  7 /* places to shift rel position for cell num */
-#define blkmask   ((1 << blkshift) - 1) /* mask for rel position within cell */
-#define blkmargin 0                     /* size guardband around map used */
+  // jff 10/6/98
+  // New code added to speed up calculation of internal blockmap
+  // Algorithm is order of nlines*(ncols+nrows) not nlines*ncols*nrows
+  //
+  #define blkshift  7 /* places to shift rel position for cell num */
+  #define blkmask   ((1 << blkshift) - 1) /* mask for rel position within cell \
+                                           */
+  #define blkmargin 0                     /* size guardband around map used */
 
 // jff 10/8/98 use guardband>0
 // jff 10/12/98 0 ok with + 1 in rows,cols
@@ -108,11 +124,12 @@ static void P_CreateBlockMap(void)
 
     xorg = map_minx - blkmargin;
     yorg = map_miny - blkmargin;
-    ncols =
-        (map_maxx + blkmargin - xorg + 1 + blkmask) >> blkshift; // jff 10/12/98
-    nrows =
-        (map_maxy + blkmargin - yorg + 1 + blkmask) >> blkshift; //+1 needed for
-    NBlocks = ncols * nrows; // map exactly 1 cell
+    // jff 10/12/98
+    ncols = (map_maxx + blkmargin - xorg + 1 + blkmask) >> blkshift;
+    //+1 needed for
+    nrows = (map_maxy + blkmargin - yorg + 1 + blkmask) >> blkshift;
+    // map exactly 1 cell
+    NBlocks = ncols * nrows;
 
     // create the array of pointers on NBlocks to blocklists
     // also create an array of linelist counts on NBlocks
@@ -710,7 +727,7 @@ static void LoadBlockmap_XBM1(int lump, int bmap_size)
     bmapwidth = blockmaplump[2] = LONG(data[4]);
     bmapheight = blockmaplump[3] = LONG(data[5]);
 
-    for (int k = 6, i = 4; i < count; i++, k++)
+    for (int i = 4, k = 6; i < count; i++, k++)
     {
         blockmaplump[i] = LONG(data[k]);
     }
