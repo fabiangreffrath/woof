@@ -48,12 +48,7 @@ typedef struct mapformat_s
 extern mapformat_t mapformat;
 
 // Appended to node_format_names, hence the plus sign
-static const char *bmap_format_names[] =
-{
-  "",
-  "+XBM1",
-  "+BoomBlockmap",
-};
+extern const char *bmap_format_names[];
 
 //
 // Map level types.

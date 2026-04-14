@@ -28,16 +28,23 @@
 #include "z_zone.h"
 #include <limits.h>
 
+const char *bmap_format_names[] = {
+    "",
+    "+XBM1",
+    "+BoomBlockmap",
+};
+
 #ifndef MBF_STRICT
 
   // jff 10/6/98
   // New code added to speed up calculation of internal blockmap
   // Algorithm is order of nlines*(ncols+nrows) not nlines*ncols*nrows
   //
-  #define blkshift  7 /* places to shift rel position for cell num */
-  #define blkmask   ((1 << blkshift) - 1) /* mask for rel position within cell \
-                                           */
-  #define blkmargin 0                     /* size guardband around map used */
+  #define blkshift 7 /* places to shift rel position for cell num */
+  #define blkmask                                                \
+      ((1 << blkshift) - 1) /* mask for rel position within cell \
+                             */
+  #define blkmargin 0       /* size guardband around map used */
 
 // jff 10/8/98 use guardband>0
 // jff 10/12/98 0 ok with + 1 in rows,cols
