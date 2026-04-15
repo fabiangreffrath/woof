@@ -36,15 +36,17 @@ const char *bmap_format_names[] = {
 
 #ifndef MBF_STRICT
 
-  // jff 10/6/98
-  // New code added to speed up calculation of internal blockmap
-  // Algorithm is order of nlines*(ncols+nrows) not nlines*ncols*nrows
-  //
-  #define blkshift 7 /* places to shift rel position for cell num */
-  #define blkmask                                                \
-      ((1 << blkshift) - 1) /* mask for rel position within cell \
-                             */
-  #define blkmargin 0       /* size guardband around map used */
+// jff 10/6/98
+// New code added to speed up calculation of internal blockmap
+// Algorithm is order of nlines*(ncols+nrows) not nlines*ncols*nrows
+//
+
+/* places to shift rel position for cell num */
+#define blkshift 7
+/* mask for rel position within cell */
+#define blkmask  ((1 << blkshift) - 1)
+/* size guardband around map used */
+#define blkmargin 0
 
 // jff 10/8/98 use guardband>0
 // jff 10/12/98 0 ok with + 1 in rows,cols
@@ -397,7 +399,7 @@ static void P_CreateBlockMap(void)
     Z_Free(blockdone);
 }
 
-#else
+#else // MBF_STRICT
 
 //
 // killough 10/98:
@@ -613,12 +615,12 @@ static void P_CreateBlockMap(void)
     }
 }
 
-#endif
+#endif // MBF_STRICT
 
 // Check if there is at least one block in BLOCKMAP
 // which does not have 0 as the first item in the list
 
-void P_SetSkipBlockStart(void)
+static void P_SetSkipBlockStart(void)
 {
     int x, y;
 
