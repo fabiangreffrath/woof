@@ -48,8 +48,6 @@
 //
 
 static const int playpal_base_layer = 256 * 3;    // RGB triplets
-static const int tranmap_lump_length = 256 * 256; // Plain RAW graphic
-static const int default_tranmap_alpha = 66;      // Keep it simple, only do alpha of 66
 
 static char playpal_string[33];
 static char *tranmap_dir, *playpal_dir;

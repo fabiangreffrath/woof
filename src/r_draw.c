@@ -68,7 +68,7 @@ static pixel_t *background_buffer = NULL;
 // Source is the top of the column to scale.
 //
 
-lighttable_t *dc_colormap[2]; // [crispy] brightmaps
+const lighttable_t *dc_colormap[2]; // [crispy] brightmaps
 int dc_x;
 int dc_yl;
 int dc_yh;
@@ -114,7 +114,7 @@ void R_DrawColumn(void)
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
     const byte *source = dc_source;
-    lighttable_t *const *colormap = dc_colormap;
+    const lighttable_t *const *colormap = dc_colormap;
     const byte *brightmap = dc_brightmap;
     int heightmask = dc_texheight - 1;
 
@@ -205,7 +205,7 @@ void R_DrawTLColumn(void)
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
     const byte *source = dc_source;
-    lighttable_t *const *colormap = dc_colormap;
+    const lighttable_t *const *colormap = dc_colormap;
     const byte *brightmap = dc_brightmap;
     int heightmask = dc_texheight - 1;
 
@@ -807,7 +807,7 @@ void R_DrawTranslatedColumn(void)
 
     const byte *source = dc_source;
     const byte *translation = dc_translation;
-    lighttable_t *const *colormap = dc_colormap;
+    const lighttable_t *const *colormap = dc_colormap;
     const byte *brightmap = dc_brightmap;
     int heightmask = dc_texheight - 1;
 
@@ -917,7 +917,7 @@ int ds_y;
 int ds_x1;
 int ds_x2;
 
-lighttable_t *ds_colormap[2];
+const lighttable_t *ds_colormap[2];
 const byte *ds_brightmap;
 
 uint32_t ds_xfrac;
@@ -933,7 +933,7 @@ void R_DrawSpan(void)
     int count = ds_x2 - ds_x1 + 1;
     pixel_t *dest = ylookup[ds_y] + columnofs[ds_x1];
     const byte *source = ds_source;
-    lighttable_t *const *colormap = ds_colormap;
+    const lighttable_t *const *colormap = ds_colormap;
     const byte *brightmap = ds_brightmap;
 
     // SoM: we only need 6 bits for the integer part (0 thru 63) so the rest
