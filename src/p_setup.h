@@ -49,9 +49,12 @@ struct sector_s *GetSectorAtNullAddress(void);
 void P_DegenMobjThinker(struct mobj_s *mobj);
 void P_SegLengths(void);
 
-void P_CreateBlockMap(void);
-void P_SetSkipBlockStart(void);
-int P_GroupLines (void);
+
+bmap_format_t P_LoadBlockMap(int lump);
+
+int P_GroupLines(void);
+int P_LoadReject(int lumpnum, int totallines);
+
 void P_SectorInit(sector_t * const sector);
 void P_SidedefInit(side_t * const sidedef);
 void P_LinedefInit(line_t * const linedef);

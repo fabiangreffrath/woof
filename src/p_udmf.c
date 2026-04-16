@@ -1377,104 +1377,7 @@ void UDMF_LoadThings(void)
     }
 }
 
-static boolean UDMF_LoadBlockMap(int blockmap_num)
-{
-    long count;
-    boolean ret = true;
-
-    // [FG] always rebuild too short blockmaps
-    if (M_CheckParm("-blockmap")
-        || (count = W_LumpLengthWithName(blockmap_num, "BLOCKMAP") / 2)
-               >= 0x10000
-        || count < 4)
-    {
-        P_CreateBlockMap();
-    }
-    else
-    {
-        long i;
-        short *wadblockmaplump = W_CacheLumpNum(blockmap_num, PU_LEVEL);
-        blockmaplump = Z_Malloc(sizeof(*blockmaplump) * count, PU_LEVEL, 0);
-
-        // killough 3/1/98: Expand wad blockmap into larger internal one,
-        // by treating all offsets except -1 as unsigned and zero-extending
-        // them. This potentially doubles the size of blockmaps allowed,
-        // because Doom originally considered the offsets as always signed.
-
-        blockmaplump[0] = SHORT(wadblockmaplump[0]);
-        blockmaplump[1] = SHORT(wadblockmaplump[1]);
-        blockmaplump[2] = (long)(SHORT(wadblockmaplump[2]))&FRACMASK;
-        blockmaplump[3] = (long)(SHORT(wadblockmaplump[3]))&FRACMASK;
-
-        for (i = 4; i < count; i++)
-        {
-            short t = SHORT(wadblockmaplump[i]); // killough 3/1/98
-            blockmaplump[i] = t == -1 ? -1l : (long)t & FRACMASK;
-        }
-
-        Z_Free(wadblockmaplump);
-
-        bmaporgx = blockmaplump[0] << FRACBITS;
-        bmaporgy = blockmaplump[1] << FRACBITS;
-        bmapwidth = blockmaplump[2];
-        bmapheight = blockmaplump[3];
-
-        ret = false;
-
-        P_SetSkipBlockStart();
-    }
-
-    // clear out mobj chains
-    blocklinks_size = sizeof(*blocklinks) * bmapwidth * bmapheight;
-    blocklinks = M_ArenaAlloc(world_arena, blocklinks_size, alignof(mobj_t *));
-    memset(blocklinks, 0, blocklinks_size);
-    blockmap = blockmaplump + 4;
-
-    return ret;
-}
-
-static boolean UDMF_LoadReject(int reject_num)
-{
-    // Calculate the size that the REJECT lump *should* be.
-    int minlength = (numsectors * numsectors + 7) / 8;
-    int lumplen = W_LumpLengthWithName(reject_num, "REJECT");
-    boolean ret;
-
-    // If the lump meets the minimum length, it can be loaded directly.
-    // Otherwise, we need to allocate a buffer of the correct size
-    // and pad it with appropriate data.
-
-    if (lumplen >= minlength)
-    {
-        rejectmatrix = W_CacheLumpNum(reject_num, PU_LEVEL);
-        ret = false;
-    }
-    else
-    {
-        unsigned int padvalue = 0x00;
-
-        rejectmatrix = Z_Malloc(minlength, PU_LEVEL, (void **)&rejectmatrix);
-        if (reject_num >= 0)
-        {
-            W_ReadLumpSize(reject_num, rejectmatrix, minlength);
-        }
-
-        if (M_CheckParm("-reject_pad_with_ff"))
-        {
-            padvalue = 0xff;
-        }
-
-        memset(rejectmatrix + lumplen, padvalue, minlength - lumplen);
-
-        // No overflow emulation in UDMF
-
-        ret = true;
-    }
-
-    return ret;
-}
-
-void UDMF_LoadMap(int lumpnum, bspformat_t *bsp, int *gen_blockmap,
+void UDMF_LoadMap(int lumpnum, bspformat_t *bsp, bmap_format_t *gen_blockmap,
                   int *pad_reject)
 {
     UDMF_Lumpnums_t lumps = UDMF_FindLumps(lumpnum);
@@ -1505,8 +1408,7 @@ void UDMF_LoadMap(int lumpnum, bspformat_t *bsp, int *gen_blockmap,
     UDMF_LoadSideDefs_Post(); // <- this needs side_t::special
     UDMF_LoadLineDefs_Post(); // <- this needs Sides Post Processing
 
-    *gen_blockmap = UDMF_LoadBlockMap(lumps.blockmap);
+    *gen_blockmap = P_LoadBlockMap(lumps.blockmap);
     P_LoadBSPTree_ZDBSP(lumps.znodes, *bsp);
-    P_GroupLines();
-    *pad_reject = UDMF_LoadReject(lumps.reject);
+    *pad_reject = P_LoadReject(lumps.reject, P_GroupLines());
 }
