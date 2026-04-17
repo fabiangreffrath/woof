@@ -2039,13 +2039,7 @@ static void DrawBackground(const char *name)
 {
     if (st_refresh_background)
     {
-        static int old_st_height;
-
-        if (old_st_height < st_height)
-        {
-            old_st_height = st_height;
-            ST_InitRes();
-        }
+        ST_InitRes();
 
         V_UseBuffer(st_backing_screen, video.width);
 
@@ -2326,10 +2320,13 @@ void ST_Init(void)
 
 void ST_InitRes(void)
 {
-    if (!st_height)
+    static int old_st_height;
+
+    if (old_st_height >= st_height)
     {
         return;
     }
+    old_st_height = st_height;
 
     if (st_backing_screen)
     {
