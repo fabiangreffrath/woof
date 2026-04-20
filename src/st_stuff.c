@@ -2196,7 +2196,7 @@ static void DoPaletteStuff(player_t *player)
             // tune down a bit so the menu remains legible
             if (menuactive || paused || STRICTMODE(palette_changes == PAL_CHANGE_REDUCED))
             {
-                palette /= 2;
+                palette = MAX(palette / 2, 1);
             }
             palette += STARTREDPALS;
         }
@@ -2210,7 +2210,7 @@ static void DoPaletteStuff(player_t *player)
         }
         if (STRICTMODE(palette_changes == PAL_CHANGE_REDUCED))
         {
-            palette /= 2;
+            palette = MAX(palette / 2, 1);
         }
         palette += STARTBONUSPALS;
     }
