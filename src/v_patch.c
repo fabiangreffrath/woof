@@ -850,6 +850,7 @@ boolean V_LumpIsPatch(const int lump)
         return false;
     }
 
+    const patch_t *patch = V_CachePatchNum(lump, PU_CACHE);
     int size = V_LumpSize(lump);
 
     // minimum length of a valid Doom patch
@@ -857,8 +858,6 @@ boolean V_LumpIsPatch(const int lump)
     {
         return false;
     }
-
-    const patch_t *patch = V_CachePatchNum(lump, PU_CACHE);
 
     int width = SHORT(patch->width);
     int height = SHORT(patch->height);
