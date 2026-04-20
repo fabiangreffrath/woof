@@ -735,7 +735,7 @@ static const statsformatfunc_t StatsFormatFuncs[] = {
 };
 
 static char killchar = 'K';
-static char statscolor = '\x36'; // red
+static char statscolor = '0' + CR_RED;
 
 static void UpdateMonSec(sbe_widget_t *widget)
 {
@@ -1060,15 +1060,15 @@ void ST_InitWidgets(void)
     if (gamemission == pack_chex || gamemission == pack_chex3v)
     {
         killchar = 'F';
-        statscolor = '\x33'; // green
+        statscolor = '0' + CR_GREEN;
     }
     else if (gamemission == pack_hacx)
     {
-        statscolor = '\x3a'; // blue2
+        statscolor = '0' + CR_BLUE2;
     }
     else if (gamemission == pack_rekkr)
     {
-        statscolor = '\x35'; // gold
+        statscolor = '0' + CR_GOLD;
     }
 }
 
