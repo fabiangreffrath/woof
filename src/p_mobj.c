@@ -862,6 +862,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
   mobj->flags  = info->flags;
   mobj->flags2 = info->flags2;
   mobj->flags_extra = info->flags_extra;
+  mobj->tint = NO_INDEX;
 
   // killough 8/23/98: no friends, bouncers, or touchy things in old demos
   if (demo_version < DV_MBF)
@@ -1360,7 +1361,20 @@ spawnit:
       P_UpdateThinker(&mobj->thinker);     // transfer friendliness flag
     }
 
-  // UDMF thing height
+  // Spawn health
+  if (mthing->health != FRACUNIT)
+  {
+    if (mthing->health < 0)
+    {
+      mobj->health = FixedToInt(-mthing->health);
+    }
+    else
+    {
+      mobj->health = FixedMul(mobj->health, mthing->health);
+    }
+  }
+
+  // Vertical spawn position
   if (z == ONFLOORZ)
   {
     mobj->z += mthing->height;
@@ -1378,6 +1392,9 @@ spawnit:
   mobj->args[2] = mthing->args[2];
   mobj->args[3] = mthing->args[3];
   mobj->args[4] = mthing->args[4];
+
+  // Tinting
+  mobj->tint = mthing->tint;
 
   // Translucency
   mobj->tranmap = mthing->tranmap;

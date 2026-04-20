@@ -25,6 +25,14 @@
 #include "doomtype.h"
 #include "m_fixed.h"
 
+typedef enum bmap_format_e
+{
+  BMAP_DoomBlockmap,
+  BMAP_XBM1,
+  BMAP_BoomBuilder,
+} bmap_format_t;
+
+
 typedef struct mapformat_s
 {
     enum
@@ -38,6 +46,9 @@ typedef struct mapformat_s
 } mapformat_t;
 
 extern mapformat_t mapformat;
+
+// Appended to node_format_names, hence the plus sign
+extern const char *bmap_format_names[];
 
 //
 // Map level types.
@@ -219,6 +230,8 @@ typedef struct {
   int16_t angle;
   int16_t type;
   int32_t options;
+  fixed_t health;
+  int32_t tint;
   byte *tranmap;
 } mapthing_t;
 

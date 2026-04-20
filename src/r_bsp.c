@@ -163,7 +163,7 @@ int R_DoorClosed(void)
         frontsector->ceilingpic!=skyflatnum);
 }
 
-static const int16_t FloorLight(const sector_t *sec)
+inline static const int16_t FloorLight(const sector_t *sec)
 {
   const int16_t light = (sec->floorlightsec == -1)
                       ? sec->lightlevel
@@ -173,7 +173,7 @@ static const int16_t FloorLight(const sector_t *sec)
                                              : sec->lightfloor + light;
 }
 
-static const int16_t CeilingLight(const sector_t *sec)
+inline static const int16_t CeilingLight(const sector_t *sec)
 {
   const int16_t light = (sec->ceilinglightsec == -1)
                       ? sec->lightlevel
@@ -181,6 +181,20 @@ static const int16_t CeilingLight(const sector_t *sec)
 
   return (sec->flags & SECF_ABS_LIGHT_CEIL) ? sec->lightceiling
                                             : sec->lightceiling + light;
+}
+
+inline static const int16_t GetCeilingTint(const sector_t *sec)
+{
+  return (sec->tintceiling >= 0)     ? sec->tintceiling :
+         (sec->ceilinglightsec >= 0) ? sectors[sec->ceilinglightsec].tint
+                                     : sec->tint;
+}
+
+inline static const int16_t GetFloorTint(const sector_t *sec)
+{
+  return (sec->tintfloor >= 0)     ? sec->tintfloor :
+         (sec->floorlightsec >= 0) ? sectors[sec->floorlightsec].tint
+                                   : sec->tint;
 }
 
 //
@@ -505,6 +519,8 @@ static void R_AddLine (seg_t *line)
       && backsector->floorlightsec == frontsector->floorlightsec
       && backsector->ceilinglightsec == frontsector->ceilinglightsec
       && backsector->tint == frontsector->tint
+      && backsector->tintfloor == frontsector->tintfloor
+      && backsector->tintceiling == frontsector->tintceiling
       )
     return;
 
@@ -627,8 +643,6 @@ static void R_Subsector(int num)
   sector_t    tempsec;              // killough 3/7/98: deep water hack
   int         floorlightlevel;      // killough 3/16/98: set floor lightlevel
   int         ceilinglightlevel;    // killough 4/11/98
-  int         floor_tint = 0;
-  int         ceiling_tint = 0;
 
 #ifdef RANGECHECK
   if (num>=numsubsectors)
@@ -653,24 +667,6 @@ static void R_Subsector(int num)
   frontsector = R_FakeFlat(frontsector, &tempsec, &floorlightlevel,
                            &ceilinglightlevel, false);   // killough 4/11/98
 
-  if (frontsector->floorlightsec >= 0)
-  {
-    floor_tint = sectors[frontsector->floorlightsec].tint;
-  }
-  else
-  {
-    floor_tint = frontsector->tint;
-  }
-
-  if (frontsector->ceilinglightsec >= 0)
-  {
-    ceiling_tint = sectors[frontsector->ceilinglightsec].tint;
-  }
-  else
-  {
-    ceiling_tint = frontsector->tint;
-  }
-
   // killough 3/7/98: Add (x,y) offsets to flats, add deep water check
   // killough 3/16/98: add floorlightlevel
   // killough 10/98: add support for skies transferred from sidedefs
@@ -686,7 +682,7 @@ static void R_Subsector(int num)
                 frontsector->interp_floor_xoffs,       // killough 3/7/98
                 frontsector->interp_floor_yoffs,
                 frontsector->floor_rotation,
-                floor_tint
+                GetFloorTint(frontsector)
                 ) : NULL;
 
   ceilingplane = frontsector->interpceilingheight > viewz ||
@@ -701,7 +697,7 @@ static void R_Subsector(int num)
                 frontsector->interp_ceiling_xoffs,     // killough 3/7/98
                 frontsector->interp_ceiling_yoffs,
                 frontsector->ceiling_rotation,
-                ceiling_tint
+                GetCeilingTint(frontsector)
                 ) : NULL;
 
   // killough 9/18/98: Fix underwater slowdown, by passing real sector 

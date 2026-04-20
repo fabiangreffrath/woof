@@ -2223,6 +2223,13 @@ static void G_DoPlayDemo(void)
         demo_p += 256-G_GameOptionSize();
     }
 
+  if ((unsigned)skill > 5 || (unsigned)episode > 9 || (unsigned)map > 99)
+  {
+    I_Printf(VB_WARNING, "G_DoPlayDemo: Invalid demo %s.", defdemoname);
+    InvalidDemo();
+    return;
+  }
+
   if (demo_compatibility)  // only 4 players can exist in old demos
     {
       for (i=0; i<4; i++)  // intentionally hard-coded 4 -- killough
@@ -4826,7 +4833,7 @@ boolean G_CheckDemoStatus(void)
       unsigned realtics = endtime-starttime;
       I_MessageBox("Timed %u gametics in %u realtics = %-.1f frames per second",
                    (unsigned)gametic, realtics,
-                   (unsigned)gametic * (double)TICRATE / realtics);
+                   realtics ? (unsigned)gametic * (double)TICRATE / realtics : 0);
       I_SafeExit(0);
     }
 

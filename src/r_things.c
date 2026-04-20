@@ -25,6 +25,7 @@
 #include "deh_strings.h"
 #include "doomdef.h"
 #include "doomstat.h"
+#include "doomtype.h"
 #include "hu_crosshair.h" // [Alaux] Lock crosshair on target
 #include "i_printf.h"
 #include "i_system.h"
@@ -482,6 +483,15 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
   colfunc = R_DrawColumn;         // killough 3/14/98
 }
 
+inline const lighttable_t *const GetThingTint(const mobj_t *const mo,
+                                              const sector_t *const s)
+{
+  const int32_t tint = (mo->tint >= 0)         ? mo->tint
+                     : (s->floorlightsec >= 0) ? sectors[s->floorlightsec].tint
+                                               : s->tint;
+  return (tint >= 0) ? colormaps[tint] : fullcolormap;
+}
+
 //
 // R_ProjectSprite
 // Generates a vissprite for a thing if it might be visible.
@@ -660,15 +670,6 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
   iscale = FixedDiv(FRACUNIT, xscale);
   vis->color = thing->bloodcolor;
 
-  if (thing->subsector->sector->floorlightsec >= 0)
-  {
-    vis->tint = sectors[thing->subsector->sector->floorlightsec].tint;
-  }
-  else
-  {
-    vis->tint = thing->subsector->sector->tint;
-  }
-
   if (flip)
     {
       vis->startfrac = spritewidth[lump]-1;
@@ -684,7 +685,7 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
     vis->startfrac += vis->xiscale*(vis->x1-x1);
   vis->patch = lump;
 
-  lighttable_t *thiscolormap = vis->tint ? colormaps[vis->tint] : fullcolormap;
+  const lighttable_t * const thiscolormap = GetThingTint(thing, thing->subsector->sector);
 
   // get light level
   if (thing->flags & MF_SHADOW)
@@ -902,15 +903,6 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
   vis->x2 = x2 >= viewwidth ? viewwidth-1 : x2;
   vis->scale = pspritescale;
 
-  if (players[consoleplayer].mo->subsector->sector->floorlightsec >= 0)
-  {
-    vis->tint = sectors[players[consoleplayer].mo->subsector->sector->floorlightsec].tint;
-  }
-  else
-  {
-    vis->tint = players[consoleplayer].mo->subsector->sector->tint;
-  }
-
   if (flip)
     {
       vis->xiscale = -pspriteiscale;
@@ -927,7 +919,8 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
 
   vis->patch = lump;
 
-  lighttable_t *thiscolormap = vis->tint ? colormaps[vis->tint] : fullcolormap;
+  const lighttable_t * const thiscolormap =
+      GetThingTint(viewplayer->mo, viewplayer->mo->subsector->sector);
 
   // killough 7/11/98: beta psprites did not draw shadows
   if ((viewplayer->powers[pw_invisibility] > 4*32
@@ -952,7 +945,7 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
     // local light
     int lightnum = (demo_version >= DV_MBF)
                  ? (lightlevel_override >> LIGHTSEGSHIFT)
-                 : (players[consoleplayer].mo->subsector->sector->lightlevel >> LIGHTSEGSHIFT);
+                 : (viewplayer->mo->subsector->sector->lightlevel >> LIGHTSEGSHIFT);
 
     lightnum = CLAMP(lightnum + extralight, 0, LIGHTLEVELS - 1);
     int* spritelightoffsets = &scalelightoffset[MAXLIGHTSCALE * lightnum];

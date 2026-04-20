@@ -324,6 +324,9 @@ typedef struct mobj_s
     int32_t             special;
     int32_t             args[5];
 
+    // Tinting
+    int32_t             tint;
+
     // Translucency
     byte*               tranmap;
 

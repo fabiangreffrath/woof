@@ -93,6 +93,9 @@ typedef struct sector_s
   int validcount;        // if == validcount, already checked
   struct mobj_s *thinglist; // list of mobjs in sector
 
+  // TODO: convert from special, Eternity-style
+  int32_t flags;
+
   // killough 8/28/98: friction is a sector property, not an mobj property.
   // these fields used to be in mobj_t, but presented performance problems
   // when processed as mobj properties. Fix is to make them sector properties.
@@ -112,13 +115,28 @@ typedef struct sector_s
   fixed_t   floor_xoffs,   floor_yoffs;
   fixed_t ceiling_xoffs, ceiling_yoffs;
 
+  // rotated plane rendering
+  angle_t floor_rotation, ceiling_rotation;
+
   // killough 3/7/98: support flat heights drawn at another sector's heights
   int heightsec;    // other sector, or -1 if no other sector
 
   // killough 4/11/98: support for lightlevels coming from another sector
   int floorlightsec, ceilinglightsec;
 
-  int bottommap, midmap, topmap; // killough 4/4/98: dynamic colormaps
+  // support sector-independent light levels for each plane
+  int16_t lightfloor, lightceiling;
+
+  // killough 4/4/98: dynamic colormaps
+  // * depend on playerview position within the sector
+  // * `colormap` takes priority over the latter three
+  // * the latter three rely on the 242 heightsec transfer special
+  int32_t colormap, bottommap, midmap, topmap;
+
+  // sector tinting, uses colormap lumps as well
+  // * independent of player view
+  // * specific take priority over broad
+  int32_t tint, tintfloor, tintceiling;
 
   // killough 10/98: support skies coming from sidedefs. Allows scrolling
   // skies and other effects. No "level info" kind of lump is needed, 
@@ -169,15 +187,6 @@ typedef struct sector_s
   fixed_t interp_ceiling_yoffs;
   fixed_t old_ceiling_xoffs;
   fixed_t old_ceiling_yoffs;
-
-  // ID24 line specials
-  int tint;
-  angle_t floor_rotation;
-  angle_t ceiling_rotation;
-
-  // UDMF
-  int32_t flags;
-  int16_t lightfloor, lightceiling;
 } sector_t;
 
 //
@@ -201,7 +210,7 @@ typedef struct side_s
   short bottomtexture;
   short midtexture;
   sector_t* sector;      // Sector the SideDef is facing.
-
+  int32_t tint;          // colormap-based tinting
   sidedef_flags_t flags;
 
   // killough 4/4/98, 4/11/98: highest referencing special linedef's type,
@@ -246,19 +255,14 @@ typedef struct line_s
   int16_t special;       // Special action
   int16_t id;            // Tag -> id/arg0 split
   int32_t args[5];       // Hexen-style parameterized actions
-
-  // UDMF -- further extend to 32bit
   int32_t sidenum[2];    // Visual appearance: SideDefs.
-
   fixed_t bbox[4];       // A bounding box, for the linedef's extent
   slopetype_t slopetype; // To aid move clipping.
   sector_t *frontsector; // Front and back sector.
   sector_t *backsector; 
   int validcount;        // if == validcount, already checked
   void *specialdata;     // thinker_t for reversable actions
-
   const byte *tranmap;   // better translucency handling
-
   int firsttag,nexttag;  // killough 4/17/98: improves searches for tags.
 
   // ID24 line specials
@@ -419,13 +423,10 @@ typedef struct vissprite_s
   int mobjflags_extra; // Woof!
 
   // for color translation and shadow draw, maxbright frames as well
-  lighttable_t *colormap[2];
+  const lighttable_t *colormap[2];
    
   // killough 3/27/98: height sector for underwater/fake ceiling support
   int heightsec;
-
-  // ID24 per-sector colormap
-  int tint;
 
   // [FG] colored blood and gibs
   int color;
