@@ -181,7 +181,11 @@ static void ParseDeclarate(scanner_t *sc)
             SC_RequireKeyword(sc, "include");
             SC_MustGetToken(sc, TK_StringConst);
             const char *lump = SC_GetString(sc);
-            int lumpnum = W_CheckNumForName(lump);
+            int lumpnum = (W_CheckNumForName)(lump, ns_actors);
+            if (lumpnum < 0)
+            {
+                lumpnum = W_CheckNumForName(lump);
+            }
             if (lumpnum < 0)
             {
                 SC_Error(sc, "Lump '%s' is not found.", lump);
