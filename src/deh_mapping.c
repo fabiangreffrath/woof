@@ -62,7 +62,7 @@ static void *GetStructField(void *structptr, deh_mapping_t *mapping, deh_mapping
 //
 
 static boolean SetStringMapping(deh_mapping_t *mapping, deh_mapping_entry_t *entry,
-                                void *structptr, char *name, char *value)
+                                void *structptr, char *value)
 {
     char **location = GetStructField(structptr, mapping, entry);
     // Copy value into field:
@@ -90,7 +90,7 @@ boolean DEH_SetMapping(deh_context_t *context, deh_mapping_t *mapping,
 
     if (entry->is_string)
     {
-        return SetStringMapping(mapping, entry, structptr, name, value);
+        return SetStringMapping(mapping, entry, structptr, value);
     }
 
     if (entry->translate)
