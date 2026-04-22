@@ -124,9 +124,9 @@ boolean DEH_SetStringMapping(deh_context_t *context, deh_mapping_t *mapping, voi
         return false;
     }
 
-    void *location = GetStructField(structptr, mapping, entry);
+    char **location = GetStructField(structptr, mapping, entry);
     // Copy value into field:
-    M_StringCopy(location, value, entry->size);
+    *location = M_StringDuplicate(value);
     return true;
 }
 
