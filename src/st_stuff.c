@@ -1396,10 +1396,6 @@ static void ResetElem(sbarelem_t *elem, player_t *player)
             }
             break;
 
-        case sbe_widget:
-            elem->subtype.widget->duration_left = 0;
-            break;
-
         case sbe_string:
             {
                 sbe_string_t *string = elem->subtype.string;
