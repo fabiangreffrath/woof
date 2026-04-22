@@ -167,7 +167,7 @@ static void DEH_FrameParseLine(deh_context_t *context, char *line, int tag)
     }
 
     // set the appropriate field
-    DEH_SetMapping(context, &state_mapping, state, variable_name, ivalue);
+    DEH_SetMapping(context, &state_mapping, state, variable_name, ivalue, value);
 }
 
 static void DEH_FrameSHA1Sum(sha1_context_t *context)

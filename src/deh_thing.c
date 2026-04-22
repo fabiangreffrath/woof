@@ -321,20 +321,6 @@ static void DEH_ThingParseLine(deh_context_t *context, char *line, int tag)
             ivalue = PG_GROUPLESS;
         }
     }
-    else if (!strcasecmp(variable_name, "Obituary")
-            || !strcasecmp(variable_name, "Melee Obituary")
-            || !strcasecmp(variable_name, "Self Obituary"))
-    {
-        if (strlen(value) >= 1)
-        {
-            DEH_SetStringMapping(context, &thing_mapping, mobj, variable_name, value);
-        }
-        else
-        {
-            DEH_Warning(context, "%s is empty!", variable_name);
-        }
-        return;
-    }
     else if (!strcasecmp(variable_name, "Blood Color"))
     {
         deh_set_blood_color |= true;
@@ -345,7 +331,7 @@ static void DEH_ThingParseLine(deh_context_t *context, char *line, int tag)
     }
 
     // Set the field value
-    DEH_SetMapping(context, &thing_mapping, mobj, variable_name, ivalue);
+    DEH_SetMapping(context, &thing_mapping, mobj, variable_name, ivalue, value);
 }
 
 static void DEH_ThingSHA1Sum(sha1_context_t *context)

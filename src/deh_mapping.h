@@ -55,7 +55,7 @@
 
 #define DEH_MAPPING_STRING(deh_name, fieldname)               \
              {deh_name, &deh_mapping_base.fieldname,          \
-                 sizeof(deh_mapping_base.fieldname),          \
+                 0,                                           \
                  true},
 
 #define DEH_UNSUPPORTED_MAPPING(deh_name)                     \
@@ -96,8 +96,8 @@ struct deh_mapping_s
     deh_mapping_entry_t entries[MAX_MAPPING_ENTRIES];
 };
 
-boolean DEH_SetMapping(deh_context_t *context, deh_mapping_t *mapping, void *structptr, char *name, int value);
-boolean DEH_SetStringMapping(deh_context_t *context, deh_mapping_t *mapping, void *structptr, char *name, char *value);
+boolean DEH_SetMapping(deh_context_t *context, deh_mapping_t *mapping,
+                       void *structptr, char *name, int ivalue, char *value);
 void DEH_StructSHA1Sum(sha1_context_t *context, deh_mapping_t *mapping, void *structptr);
 
 #endif /* #ifndef DEH_MAPPING_H */
