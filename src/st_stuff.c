@@ -2039,13 +2039,7 @@ static void DrawBackground(const char *name)
 {
     if (st_refresh_background)
     {
-        static int old_st_height;
-
-        if (old_st_height < st_height)
-        {
-            old_st_height = st_height;
-            ST_InitRes();
-        }
+        ST_InitRes();
 
         V_UseBuffer(st_backing_screen, video.width);
 
@@ -2331,10 +2325,14 @@ void ST_Init(void)
 
 void ST_InitRes(void)
 {
-    if (!st_height)
+    static int old_st_size;
+    const int st_size = video.width * V_ScaleY(st_height);
+
+    if (old_st_size >= st_size)
     {
         return;
     }
+    old_st_size = st_size;
 
     if (st_backing_screen)
     {
@@ -2342,7 +2340,7 @@ void ST_InitRes(void)
     }
     // killough 11/98: allocate enough for hires
     st_backing_screen =
-        Z_Malloc(video.width * V_ScaleY(st_height) * sizeof(*st_backing_screen),
+        Z_Malloc(st_size * sizeof(*st_backing_screen),
                  PU_STATIC, 0);
 }
 
