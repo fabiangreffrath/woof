@@ -69,13 +69,6 @@ boolean DEH_SetMapping(deh_context_t *context, deh_mapping_t *mapping, void *str
         return false;
     }
 
-    // Sanity check:
-    if (entry->is_string)
-    {
-        DEH_Error(context, "Tried to set '%s' as integer (BUG)", name);
-        return false;
-    }
-
     if (entry->translate)
     {
         value = entry->translate(value);
@@ -102,31 +95,6 @@ boolean DEH_SetMapping(deh_context_t *context, deh_mapping_t *mapping, void *str
             return false;
     }
 
-    return true;
-}
-
-//
-// Set the value of a string field in a structure by name
-//
-
-boolean DEH_SetStringMapping(deh_context_t *context, deh_mapping_t *mapping, void *structptr, char *name, char *value)
-{
-    deh_mapping_entry_t *entry = GetMappingEntryByName(context, mapping, name);
-    if (entry == NULL)
-    {
-        return false;
-    }
-
-    // Sanity check:
-    if (!entry->is_string)
-    {
-        DEH_Error(context, "Tried to set '%s' as string (BUG)", name);
-        return false;
-    }
-
-    void *location = GetStructField(structptr, mapping, entry);
-    // Copy value into field:
-    M_StringCopy(location, value, entry->size);
     return true;
 }
 

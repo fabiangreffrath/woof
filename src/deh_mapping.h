@@ -35,31 +35,25 @@
 
 #define DEH_MAPPING(deh_name, fieldname)                      \
              {deh_name, &deh_mapping_base.fieldname,          \
-                 sizeof(deh_mapping_base.fieldname),          \
-                 false},
+                 sizeof(deh_mapping_base.fieldname)},
 
 #define DEH_MAPPING_STATE(deh_name, fieldname)                \
              {deh_name, &deh_mapping_base.fieldname,          \
                  sizeof(deh_mapping_base.fieldname),          \
-                 false, DSDH_StateTranslate},
+                 DSDH_StateTranslate},
 
 #define DEH_MAPPING_SOUND(deh_name, fieldname)                \
              {deh_name, &deh_mapping_base.fieldname,          \
                  sizeof(deh_mapping_base.fieldname),          \
-                 false, DSDH_SoundTranslate},
+                 DSDH_SoundTranslate},
 
 #define DEH_MAPPING_SPRITE(deh_name, fieldname)               \
              {deh_name, &deh_mapping_base.fieldname,          \
                  sizeof(deh_mapping_base.fieldname),          \
-                 false, DSDH_SpriteTranslate},
-
-#define DEH_MAPPING_STRING(deh_name, fieldname)               \
-             {deh_name, &deh_mapping_base.fieldname,          \
-                 sizeof(deh_mapping_base.fieldname),          \
-                 true},
+                 DSDH_SpriteTranslate},
 
 #define DEH_UNSUPPORTED_MAPPING(deh_name)                     \
-             {deh_name, NULL, -1, false},
+             {deh_name, NULL, -1},
 
 #define DEH_END_MAPPING                                       \
              {NULL, NULL, -1}                                 \
@@ -84,9 +78,6 @@ struct deh_mapping_entry_s
     // field size
     int size;
 
-    // if true, this is a string value.
-    boolean is_string;
-
     deh_translate_t translate;
 };
 
@@ -97,7 +88,6 @@ struct deh_mapping_s
 };
 
 boolean DEH_SetMapping(deh_context_t *context, deh_mapping_t *mapping, void *structptr, char *name, int value);
-boolean DEH_SetStringMapping(deh_context_t *context, deh_mapping_t *mapping, void *structptr, char *name, char *value);
 void DEH_StructSHA1Sum(sha1_context_t *context, deh_mapping_t *mapping, void *structptr);
 
 #endif /* #ifndef DEH_MAPPING_H */
