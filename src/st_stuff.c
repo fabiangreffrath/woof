@@ -2094,9 +2094,9 @@ static void DrawCenteredMessage(void)
     }
 }
 
-static void DrawStatusBar(void)
+void ST_SetSTHeight(void)
 {
-    if (!statusbar->fullscreenrender)
+    if (statusbar && !statusbar->fullscreenrender)
     {
         st_height = CLAMP(statusbar->height, 0, SCREENHEIGHT) & ~1;
     }
@@ -2104,6 +2104,11 @@ static void DrawStatusBar(void)
     {
         st_height = 0;
     }
+}
+
+static void DrawStatusBar(void)
+{
+    ST_SetSTHeight();
 
     if (st_height && (screenblocks <= 10 || automap_on))
     {
