@@ -18,6 +18,7 @@
 // name
 //
 
+#include <stdlib.h>
 #include "deh_mapping.h"
 #include "deh_io.h"
 #include "doomtype.h"
@@ -126,6 +127,10 @@ boolean DEH_SetStringMapping(deh_context_t *context, deh_mapping_t *mapping, voi
 
     char **location = GetStructField(structptr, mapping, entry);
     // Copy value into field:
+    if (*location)
+    {
+        free(*location);
+    }
     *location = M_StringDuplicate(value);
     return true;
 }
