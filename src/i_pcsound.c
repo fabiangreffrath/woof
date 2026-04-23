@@ -434,13 +434,13 @@ static boolean I_PCS_AdjustSoundParams(const mobj_t *listener,
     // volume calculation
     if (approx_dist < S_CLOSE_DIST)
     {
-        params->volume = snd_SfxVolume;
+        params->volume = cur_SfxVolume;
     }
     else
     {
         // distance effect
         params->volume =
-            snd_SfxVolume * (S_CLIPPING_DIST - approx_dist) / S_ATTENUATOR;
+            cur_SfxVolume * (S_CLIPPING_DIST - approx_dist) / S_ATTENUATOR;
     }
 
     return (params->volume > 0);
@@ -449,7 +449,7 @@ static boolean I_PCS_AdjustSoundParams(const mobj_t *listener,
 static void I_PCS_UpdateSoundParams(int channel, const sfxparams_t *params)
 {
     // adjust PC Speaker volume
-    alSourcef(callback_source, AL_GAIN, (float)snd_SfxVolume / 15);
+    alSourcef(callback_source, AL_GAIN, (float)cur_SfxVolume / 15);
 }
 
 static boolean I_PCS_StartSound(int channel, sfxinfo_t *sfx,

@@ -88,6 +88,8 @@ boolean snd_limiter;
 int snd_channels_per_sfx;
 int snd_volume_per_sfx;
 
+int cur_SfxVolume;
+
 //
 // StopChannel
 //
@@ -247,7 +249,7 @@ void I_SetSfxVolume(int volume)
     //  to the state variable used in
     //  the mixing.
 
-    snd_SfxVolume = volume;
+    cur_SfxVolume = volume;
 }
 
 // jff 1/21/98 moved music volume down into MUSIC API with the rest

@@ -809,6 +809,31 @@ void S_ResumeSound(void)
     I_ProcessSoundUpdates();
 }
 
+void S_MuteSound(void)
+{
+    if (nosfxparm)
+    {
+        return;
+    }
+
+    for (int cnum = 0; cnum < snd_channels; cnum++)
+    {
+        S_StopChannel(cnum);
+    }
+
+    I_SetSfxVolume(0);
+}
+
+void S_UnmuteSound(void)
+{
+    if (nosfxparm)
+    {
+        return;
+    }
+
+    I_SetSfxVolume(snd_SfxVolume);
+}
+
 //
 // Stop and resume music, during game PAUSE.
 //
@@ -943,6 +968,7 @@ void S_SetSfxVolume(int volume)
     }
 #endif
 
+    I_SetSfxVolume(volume);
     snd_SfxVolume = volume;
 }
 
