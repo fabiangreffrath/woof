@@ -73,8 +73,6 @@ extern boolean snd_limiter;
 extern int snd_channels_per_sfx;
 extern int snd_volume_per_sfx;
 
-extern int cur_SfxVolume;
-
 typedef struct sound_module_s
 {
     boolean (*InitSound)(void);
@@ -198,7 +196,6 @@ void I_SetMidiPlayer(void);
 
 // Volume.
 void I_SetMusicVolume(int volume);
-void I_SetSfxVolume(int volume);
 
 // PAUSE game handling.
 void I_PauseSong(void *handle);

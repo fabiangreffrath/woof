@@ -430,6 +430,8 @@ static float GetPitch(pitchrange_t pitch_range)
     }
 }
 
+static boolean mute_sfx_unfocused;
+
 #define StartSound(o, i, p, r) StartSoundEx((o), (i), (p), (r), NULL)
 
 static boolean StartSoundEx(const mobj_t *origin, int sfx_id,
@@ -441,7 +443,7 @@ static boolean StartSoundEx(const mobj_t *origin, int sfx_id,
     sfxinfo_t *sfx;
 
     // jff 1/22/98 return if sound is not enabled
-    if (nosfxparm)
+    if (nosfxparm || mute_sfx_unfocused)
     {
         return false;
     }
@@ -821,7 +823,7 @@ void S_MuteSound(void)
         S_StopChannel(cnum);
     }
 
-    I_SetSfxVolume(0);
+    mute_sfx_unfocused = true;
 }
 
 void S_UnmuteSound(void)
@@ -831,7 +833,7 @@ void S_UnmuteSound(void)
         return;
     }
 
-    I_SetSfxVolume(snd_SfxVolume);
+    mute_sfx_unfocused = false;
 }
 
 //
@@ -968,7 +970,6 @@ void S_SetSfxVolume(int volume)
     }
 #endif
 
-    I_SetSfxVolume(volume);
     snd_SfxVolume = volume;
 }
 

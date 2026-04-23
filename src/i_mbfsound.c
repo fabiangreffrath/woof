@@ -52,7 +52,7 @@ static boolean I_MBF_AdjustSoundParams(const mobj_t *listener,
     angle_t angle;
 
     // haleyjd 05/29/06: allow per-channel volume scaling
-    params->volume = cur_SfxVolume * params->volume_scale / 15;
+    params->volume = snd_SfxVolume * params->volume_scale / 15;
 
     if (params->volume < 1)
     {
