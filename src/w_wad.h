@@ -60,6 +60,7 @@ typedef PACKED_PREFIX struct
 typedef enum
 {
   ns_global,
+  ns_actors,
   ns_textures,
   ns_sprites,
   ns_flats,
