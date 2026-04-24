@@ -654,7 +654,7 @@ static bmap_format_t CheckBlockmapFormat(int lump, int lump_size)
     int vanilla_size = lump_size / sizeof(uint16_t);
 
     // Try extended formats
-    if (memcmp(data, "XBM1\0\0\0\0", 8) == 0)
+    if (lump_size >= 8 && memcmp(data, "XBM1\0\0\0\0", 8) == 0)
     {
         format = BMAP_XBM1;
     }
