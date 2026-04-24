@@ -342,7 +342,7 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
             I_UpdatePriority(true);
             if (mute_unfocused)
             {
-                S_ResumeSound();
+                S_UnmuteSound();
                 S_ResumeMusic();
             }
             break;
@@ -352,7 +352,7 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
             I_UpdatePriority(false);
             if (mute_unfocused)
             {
-                S_PauseSound();
+                S_MuteSound();
                 S_PauseMusic();
             }
             break;
