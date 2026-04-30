@@ -438,6 +438,32 @@ void R_InitLightTables (void)
       zlightoffset[lightlevel * MAXLIGHTZ + lightz] = level * 256;
     }
   }
+
+  // [Woof!] scalelight has been made independent of view size,
+  // so we initialize it here
+
+  int NumScaleLightEntries = LIGHTLEVELS * MAXLIGHTSCALE;
+  scalelightindex  = (int*)Z_Malloc(sizeof(int) * NumScaleLightEntries, PU_STATIC, NULL);
+  scalelightoffset = (int*)Z_Malloc(sizeof(int) * NumScaleLightEntries, PU_STATIC, NULL);
+
+  // Calculate the light levels to use
+  //  for each level / scale combination.
+  for (int lightlevel = 0; lightlevel < LIGHTLEVELS; lightlevel++)
+  {
+    int startmap = ((LIGHTLEVELS - 1 - lightlevel) * 2) * NUMCOLORMAPS / LIGHTLEVELS;
+    for (int lightscale = 0; lightscale < MAXLIGHTSCALE; lightscale++)
+    {
+      // killough 11/98:
+      int level = startmap - lightscale / DISTMAP;
+      level = CLAMP(level, 0, NUMCOLORMAPS - 1);
+
+      // killough 3/20/98: initialize multiple colormaps
+      // killough 4/4/98
+      // updated thanks to Rum-and-Raisin Doom
+      scalelightindex[lightlevel * MAXLIGHTSCALE + lightscale] = level;
+      scalelightoffset[lightlevel * MAXLIGHTSCALE + lightscale] = level * 256;
+    }
+  }
 }
 
 int R_GetLightIndex(fixed_t scale)
@@ -591,30 +617,6 @@ void R_ExecuteSetViewSize (void)
       // thing clipping
       screenheightarray[i] = viewheight;
     }
-
-  // Lightz calculated above
-  int NumScaleLightEntries = LIGHTLEVELS * MAXLIGHTSCALE;
-  scalelightindex  = (int*)Z_Malloc(sizeof(int) * NumScaleLightEntries, PU_STATIC, NULL);
-  scalelightoffset = (int*)Z_Malloc(sizeof(int) * NumScaleLightEntries, PU_STATIC, NULL);
-
-  // Calculate the light levels to use
-  //  for each level / scale combination.
-  for (int lightlevel = 0; lightlevel < LIGHTLEVELS; lightlevel++)
-  {
-    int startmap = ((LIGHTLEVELS - 1 - lightlevel) * 2) * NUMCOLORMAPS / LIGHTLEVELS;
-    for (int lightscale = 0; lightscale < MAXLIGHTSCALE; lightscale++)
-    {
-      // killough 11/98:
-      int level = startmap - lightscale / DISTMAP;
-      level = CLAMP(level, 0, NUMCOLORMAPS - 1);
-
-      // killough 3/20/98: initialize multiple colormaps
-      // killough 4/4/98
-      // updated thanks to Rum-and-Raisin Doom
-      scalelightindex[lightlevel * MAXLIGHTSCALE + lightscale] = level;
-      scalelightoffset[lightlevel * MAXLIGHTSCALE + lightscale] = level * 256;
-    }
-  }
 
   st_refresh_background = true;
 }
