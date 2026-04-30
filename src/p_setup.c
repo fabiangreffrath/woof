@@ -801,7 +801,7 @@ int P_GroupLines (void)
 
 void P_RemoveSlimeTrails(void)                // killough 10/98
 {
-  byte *hit = Z_Calloc(1, numvertexes, PU_STATIC, 0);         // Hitlist for vertices
+  byte *hit = Z_Calloc(numvertexes, sizeof(*hit), PU_STATIC, 0); // Hitlist for vertices
   int i;
   for (i=0; i<numsegs; i++)                   // Go through each seg
     {

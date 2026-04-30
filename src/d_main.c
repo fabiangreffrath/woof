@@ -927,7 +927,7 @@ void FindResponseFile (void)
           moreargs[index++] = myargv[k];
 
         firstargv = myargv[0];
-        myargv = calloc(sizeof(char *),MAXARGVS);
+        myargv = calloc(MAXARGVS,sizeof(char *));
         myargv[0] = firstargv;
 
         infile = file;
