@@ -1591,7 +1591,7 @@ static void CreateVideoBuffer(void)
     {
         free(I_VideoBuffer);
     }
-    I_VideoBuffer = calloc(sizeof(pixel_t), video.width * video.height);
+    I_VideoBuffer = calloc(video.width * video.height, sizeof(pixel_t));
     V_RestoreBuffer();
 
     Z_FreeTag(PU_RENDERER);

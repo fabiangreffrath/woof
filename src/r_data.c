@@ -240,7 +240,8 @@ static void R_GenerateComposite(int texnum)
   unsigned *colofs2 = texturecolumnofs2[texnum];
   int i = texture->patchcount;
   // killough 4/9/98: marks to identify transparent regions in merged textures
-  byte *marks = Z_Calloc(texture->width, texture->height, PU_STATIC, 0), *source;
+  byte *marks = Z_Calloc(texture->width * texture->height, sizeof(*marks), PU_STATIC, 0),
+       *source;
 
   if (!block)
   {
@@ -358,7 +359,7 @@ static void R_GenerateLookup(int texnum, int *const errors)
 
   struct {
     unsigned patches, posts;
-  } *count = Z_Calloc(sizeof *count, texture->width, PU_STATIC, 0);
+  } *count = Z_Calloc(texture->width, sizeof(*count), PU_STATIC, 0);
 
   // killough 12/98: First count the number of patches per column.
 
