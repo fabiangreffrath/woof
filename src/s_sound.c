@@ -816,11 +816,6 @@ void S_MuteSound(void)
         return;
     }
 
-    for (int cnum = 0; cnum < snd_channels; cnum++)
-    {
-        S_StopChannel(cnum);
-    }
-
     I_SetSfxVolume(0);
 }
 
