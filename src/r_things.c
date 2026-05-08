@@ -721,8 +721,12 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
                        : dc_colormap[0];
   }
 
+  if (vis->scale < FRACUNIT)
+  {
+    vis->tranmap = NULL;
+  }
   // ID24 per-state tranmap
-  if (thing->state && thing->state->tranmap)
+  else if (thing->state && thing->state->tranmap)
   {
     vis->tranmap = thing->state->tranmap;
   }
