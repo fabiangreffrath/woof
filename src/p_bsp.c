@@ -481,7 +481,6 @@ void P_LoadSegs(int lump)
 
     numsegs = W_LumpLength(lump) / sizeof(mapseg_t);
     segs = arena_alloc_num(world_arena, seg_t, numsegs);
-    memset(segs, 0, numsegs * sizeof(seg_t));
     data = W_CacheLumpNum(lump, PU_STATIC);
 
     for (int i = 0; i < numsegs; i++)
@@ -547,7 +546,6 @@ void P_LoadSegs_DeePBSPV4(int lump)
 
     numsegs = W_LumpLength(lump) / sizeof(mapseg_deepbspv4_t);
     segs = arena_alloc_num(world_arena, seg_t, numsegs);
-    memset(segs, 0, numsegs * sizeof(seg_t));
     data = W_CacheLumpNum(lump, PU_STATIC);
 
     for (int i = 0; i < numsegs; i++)
@@ -1027,7 +1025,6 @@ void P_LoadBSPTree_ZDBSP(int lump, bspformat_t format)
 
     numsegs = numSegs;
     segs = arena_alloc_num(world_arena, seg_t, numsegs);
-    memset(segs, 0, sizeof(seg_t) * numsegs);
 
     if (format == BSP_XNOD || format == BSP_ZNOD)
     {
