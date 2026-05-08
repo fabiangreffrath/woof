@@ -38,6 +38,7 @@ void arena_free(arena_t *arena, void *ptr);
 
 arena_t *M_ArenaInit(int reserve, int commit);
 void M_ArenaClear(arena_t *arena);
+void M_ArenaClearZero(arena_t *arena);
 
 typedef struct arena_copy_s arena_copy_t;
 

@@ -184,6 +184,13 @@ void M_ArenaClear(arena_t *arena)
     arena->hashmap = hashmap_init(1024, sizeof(hashmap_value_t));
 }
 
+void M_ArenaClearZero(arena_t *arena)
+{
+    M_ArenaClear(arena);
+
+    memset(arena->beg, 0, arena->end - arena->beg);
+}
+
 struct arena_copy_s
 {
     char *buffer;
