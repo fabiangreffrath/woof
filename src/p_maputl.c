@@ -31,6 +31,7 @@
 #include "p_maputl.h"
 #include "p_mobj.h"
 #include "p_setup.h"
+#include "p_tick.h"
 #include "r_defs.h"
 #include "r_main.h"
 #include "r_state.h"
@@ -281,13 +282,24 @@ void P_UnsetThingPosition (mobj_t *thing)
 	bnext->bprev = bprev;
     }
 
-  if (thing->type == MT_TELEPORTMAN)
+    if (thing->type == MT_TELEPORTMAN)
     {
-      sector_t *const sector = thing->subsector->sector;
-      if (sector->teleport == thing)
-      {
-        sector->teleport = NULL;
-      }
+        sector_t *const sector = thing->subsector->sector;
+        if (sector->teleport == thing)
+        {
+            sector->teleport = NULL;
+            for (thinker_t *th = thinkercap.next; th != &thinkercap;
+                 th = th->next)
+            {
+                if (th->function.p1 == P_MobjThinker
+                    && (thing = (mobj_t *)th)->type == MT_TELEPORTMAN
+                    && thing->subsector->sector == sector)
+                {
+                    sector->teleport = thing;
+                    break;
+                }
+            }
+        }
     }
 }
 
@@ -358,13 +370,13 @@ void P_SetThingPosition(mobj_t *thing)
         thing->bnext = NULL, thing->bprev = NULL;
     }
 
-  if (thing->type == MT_TELEPORTMAN)
+    if (thing->type == MT_TELEPORTMAN)
     {
-      sector_t *const sector = ss->sector;
-      if (sector->teleport == NULL)
-      {
-        sector->teleport = thing;
-      }
+        sector_t *const sector = ss->sector;
+        if (sector->teleport == NULL)
+        {
+            sector->teleport = thing;
+        }
     }
 }
 
