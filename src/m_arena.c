@@ -61,7 +61,9 @@ void *M_ArenaAlloc(arena_t *arena, int size, int align)
         {
             if (array_size(block->ptrs))
             {
-                return array_pop(block->ptrs);
+                void *ptr = array_pop(block->ptrs);
+                memset(ptr, 0, size);
+                return ptr;
             }
             else
             {
