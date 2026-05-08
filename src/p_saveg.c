@@ -1082,6 +1082,7 @@ void P_UnArchiveWorld(void)
         sec->floordata = 0;
         sec->lightingdata = 0;
         sec->soundtarget = 0;
+        sec->teleport = NULL;
 
         // [crispy] add overflow guard for the flattranslation[] array
         if (floorpic >= 0 && floorpic < numflats

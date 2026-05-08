@@ -280,6 +280,15 @@ void P_UnsetThingPosition (mobj_t *thing)
       if (bprev && (*bprev = bnext = thing->bnext))  // unlink from block map
 	bnext->bprev = bprev;
     }
+
+  if (thing->type == MT_TELEPORTMAN)
+    {
+      sector_t *const sector = thing->subsector->sector;
+      if (sector->teleport == thing)
+      {
+        sector->teleport = NULL;
+      }
+    }
 }
 
 //
@@ -347,6 +356,15 @@ void P_SetThingPosition(mobj_t *thing)
         }
       else        // thing is off the map
         thing->bnext = NULL, thing->bprev = NULL;
+    }
+
+  if (thing->type == MT_TELEPORTMAN)
+    {
+      sector_t *const sector = ss->sector;
+      if (sector->teleport == NULL)
+      {
+        sector->teleport = thing;
+      }
     }
 }
 

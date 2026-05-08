@@ -46,7 +46,6 @@
 
 int EV_Teleport(line_t *line, int side, mobj_t *thing)
 {
-  thinker_t *thinker;
   mobj_t    *m;
   int       i;
 
@@ -60,10 +59,7 @@ int EV_Teleport(line_t *line, int side, mobj_t *thing)
   // P_FindSectorFromLineTag instead of simple linear search.
 
   for (i = -1; (i = P_FindSectorFromLineTag(line, i)) >= 0;)
-    for (thinker=thinkercap.next; thinker!=&thinkercap; thinker=thinker->next)
-      if (thinker->function.p1 == P_MobjThinker &&
-          (m = (mobj_t *) thinker)->type == MT_TELEPORTMAN  &&
-            m->subsector->sector-sectors == i)
+    if ((m = sectors[i].teleport) != NULL)
         {
           fixed_t oldx = thing->x, oldy = thing->y, oldz = thing->z;
           player_t *player = thing->player;
@@ -123,7 +119,6 @@ int EV_SilentTeleport(line_t *line, int side, mobj_t *thing)
 {
   int       i;
   mobj_t    *m;
-  thinker_t *th;
 
   // don't teleport missiles
   // Don't teleport if hit back of line,
@@ -133,10 +128,7 @@ int EV_SilentTeleport(line_t *line, int side, mobj_t *thing)
     return 0;
 
   for (i = -1; (i = P_FindSectorFromLineTag(line, i)) >= 0;)
-    for (th = thinkercap.next; th != &thinkercap; th = th->next)
-      if (th->function.p1 == P_MobjThinker &&
-          (m = (mobj_t *) th)->type == MT_TELEPORTMAN  &&
-          m->subsector->sector-sectors == i)
+    if ((m = sectors[i].teleport) != NULL)
         {
           // Height of thing above ground, in case of mid-air teleports:
           fixed_t z = thing->z - thing->floorz;
