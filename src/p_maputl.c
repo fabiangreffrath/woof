@@ -301,11 +301,12 @@ void P_UnsetThingPosition (mobj_t *thing)
             if (*telept == thing)
             {
                 array_delete(sector->telept, (int)(telept - sector->telept));
+                break;
             }
-            if (array_size(sector->telept) == 0)
-            {
-                array_free(sector->telept);
-            }
+        }
+        if (array_size(sector->telept) == 0)
+        {
+            array_free(sector->telept);
         }
     }
 }
