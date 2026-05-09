@@ -290,6 +290,11 @@ void P_UnsetThingPosition (mobj_t *thing)
     if (thing->type == MT_TELEPORTMAN)
     {
         sector_t *const sector = thing->subsector->sector;
+        if (sector->telept == NULL)
+        {
+            return;
+        }
+
         mobj_t **telept;
         array_foreach(telept, sector->telept)
         {
