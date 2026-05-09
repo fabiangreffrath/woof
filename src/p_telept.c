@@ -30,7 +30,6 @@
 #include "p_maputl.h"
 #include "p_mobj.h"
 #include "p_spec.h"
-#include "p_tick.h"
 #include "p_user.h"
 #include "r_defs.h"
 #include "r_main.h"
@@ -59,7 +58,7 @@ int EV_Teleport(line_t *line, int side, mobj_t *thing)
   // P_FindSectorFromLineTag instead of simple linear search.
 
   for (i = -1; (i = P_FindSectorFromLineTag(line, i)) >= 0;)
-    if ((m = sectors[i].teleport) != NULL)
+    if (sectors[i].telept && (m = *sectors[i].telept))
         {
           fixed_t oldx = thing->x, oldy = thing->y, oldz = thing->z;
           player_t *player = thing->player;
@@ -128,7 +127,7 @@ int EV_SilentTeleport(line_t *line, int side, mobj_t *thing)
     return 0;
 
   for (i = -1; (i = P_FindSectorFromLineTag(line, i)) >= 0;)
-    if ((m = sectors[i].teleport) != NULL)
+    if (sectors[i].telept && (m = *sectors[i].telept))
         {
           // Height of thing above ground, in case of mid-air teleports:
           fixed_t z = thing->z - thing->floorz;

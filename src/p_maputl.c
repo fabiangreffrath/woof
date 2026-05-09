@@ -31,7 +31,6 @@
 #include "p_maputl.h"
 #include "p_mobj.h"
 #include "p_setup.h"
-#include "p_tick.h"
 #include "r_defs.h"
 #include "r_main.h"
 #include "r_state.h"
@@ -234,6 +233,12 @@ void P_LineOpening(line_t *linedef)
 // these structures need to be updated.
 //
 
+#define M_ARRAY_INIT_CAPACITY 2
+#define M_ARRAY_MALLOC(size) Z_Malloc(size, PU_LEVEL, NULL)
+#define M_ARRAY_REALLOC(ptr, size) Z_Realloc(ptr, size, PU_LEVEL, NULL)
+#define M_ARRAY_FREE(ptr) Z_Free(ptr)
+#include "m_array.h"
+
 void P_UnsetThingPosition (mobj_t *thing)
 {
   if (!(thing->flags & MF_NOSECTOR))
@@ -285,19 +290,16 @@ void P_UnsetThingPosition (mobj_t *thing)
     if (thing->type == MT_TELEPORTMAN)
     {
         sector_t *const sector = thing->subsector->sector;
-        if (sector->teleport == thing)
+        mobj_t **telept;
+        array_foreach(telept, sector->telept)
         {
-            sector->teleport = NULL;
-            for (thinker_t *th = thinkercap.next; th != &thinkercap;
-                 th = th->next)
+            if (*telept == thing)
             {
-                if (th->function.p1 == P_MobjThinker
-                    && (thing = (mobj_t *)th)->type == MT_TELEPORTMAN
-                    && thing->subsector->sector == sector)
-                {
-                    sector->teleport = thing;
-                    break;
-                }
+                array_delete(sector->telept, (int)(telept - sector->telept));
+            }
+            if (array_size(sector->telept) == 0)
+            {
+                array_free(sector->telept);
             }
         }
     }
@@ -372,11 +374,7 @@ void P_SetThingPosition(mobj_t *thing)
 
     if (thing->type == MT_TELEPORTMAN)
     {
-        sector_t *const sector = ss->sector;
-        if (sector->teleport == NULL)
-        {
-            sector->teleport = thing;
-        }
+        array_push(ss->sector->telept, thing);
     }
 }
 

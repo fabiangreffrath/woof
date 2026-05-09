@@ -269,7 +269,7 @@ void P_SectorInit(sector_t * const sector)
   sector->oldceilgametic = sector->oldfloorgametic = -1;
   sector->old_ceil_offs_gametic = sector->old_floor_offs_gametic = -1;
 
-  sector->teleport = NULL;
+  sector->telept = NULL;
 }
 
 
