@@ -212,7 +212,6 @@ void P_LoadSectors (int lump)
 
   numsectors = W_LumpLength (lump) / sizeof(mapsector_t);
   sectors = arena_alloc_num(world_arena, sector_t, numsectors);
-  memset (sectors, 0, numsectors*sizeof(sector_t));
   data = W_CacheLumpNum (lump,PU_STATIC);
 
   for (i=0; i<numsectors; i++)
@@ -354,7 +353,6 @@ void P_LoadLineDefs (int lump)
 
   numlines = W_LumpLength (lump) / sizeof(maplinedef_t);
   lines = arena_alloc_num(world_arena, line_t, numlines);
-  memset (lines, 0, numlines*sizeof(line_t));
   data = W_CacheLumpNum (lump,PU_STATIC);
 
   for (i=0; i<numlines; i++)
@@ -619,7 +617,6 @@ void P_LoadSideDefs (int lump)
 {
   numsides = W_LumpLength(lump) / sizeof(mapsidedef_t);
   sides = arena_alloc_num(world_arena, side_t, numsides);
-  memset(sides, 0, numsides*sizeof(side_t));
 }
 
 // killough 4/4/98: delay using texture names until

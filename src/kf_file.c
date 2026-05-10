@@ -1553,56 +1553,56 @@ static void PrepareUnArchiveThinkers(void)
         {
             case tc_mobj:
             case tc_mobj_del:
-                pointer.p.mobj = arena_calloc(thinkers_arena, mobj_t);
+                pointer.p.mobj = arena_alloc(thinkers_arena, mobj_t);
                 break;
             case tc_ceiling:
             case tc_ceiling_del:
-                pointer.p.ceiling = arena_calloc(thinkers_arena, ceiling_t);
+                pointer.p.ceiling = arena_alloc(thinkers_arena, ceiling_t);
                 break;
             case tc_door:
             case tc_door_del:
-                pointer.p.door = arena_calloc(thinkers_arena, vldoor_t);
+                pointer.p.door = arena_alloc(thinkers_arena, vldoor_t);
                 break;
             case tc_floor:
             case tc_floor_del:
-                pointer.p.floor = arena_calloc(thinkers_arena, floormove_t);
+                pointer.p.floor = arena_alloc(thinkers_arena, floormove_t);
                 break;
             case tc_plat:
             case tc_plat_del:
-                pointer.p.plat = arena_calloc(thinkers_arena, plat_t);
+                pointer.p.plat = arena_alloc(thinkers_arena, plat_t);
                 break;
             case tc_flash:
-                pointer.p.flash = arena_calloc(thinkers_arena, lightflash_t);
+                pointer.p.flash = arena_alloc(thinkers_arena, lightflash_t);
                 break;
             case tc_strobe:
-                pointer.p.strobe = arena_calloc(thinkers_arena, strobe_t);
+                pointer.p.strobe = arena_alloc(thinkers_arena, strobe_t);
                 break;
             case tc_glow:
-                pointer.p.glow = arena_calloc(thinkers_arena, glow_t);
+                pointer.p.glow = arena_alloc(thinkers_arena, glow_t);
                 break;
             case tc_elevator:
             case tc_elevator_del:
-                pointer.p.elevator = arena_calloc(thinkers_arena, elevator_t);
+                pointer.p.elevator = arena_alloc(thinkers_arena, elevator_t);
                 break;
             case tc_scroll:
             case tc_param_scroll_floor:
             case tc_param_scroll_ceiling:
-                pointer.p.scroll = arena_calloc(thinkers_arena, scroll_t);
+                pointer.p.scroll = arena_alloc(thinkers_arena, scroll_t);
                 break;
             case tc_pusher:
-                pointer.p.pusher = arena_calloc(thinkers_arena, pusher_t);
+                pointer.p.pusher = arena_alloc(thinkers_arena, pusher_t);
                 break;
             case tc_flicker:
-                pointer.p.flicker = arena_calloc(thinkers_arena, fireflicker_t);
+                pointer.p.flicker = arena_alloc(thinkers_arena, fireflicker_t);
                 break;
             case tc_friction:
-                pointer.p.friction = arena_calloc(thinkers_arena, friction_t);
+                pointer.p.friction = arena_alloc(thinkers_arena, friction_t);
                 break;
             case tc_ambient:
-                pointer.p.ambient = arena_calloc(thinkers_arena, ambient_t);
+                pointer.p.ambient = arena_alloc(thinkers_arena, ambient_t);
                 break;
             case tc_none:
-                pointer.p.thinker = arena_calloc(thinkers_arena, thinker_t);
+                pointer.p.thinker = arena_alloc(thinkers_arena, thinker_t);
                 break;
             default:
                 I_Error("Unknown class: %d", pointer.tc);
@@ -1702,7 +1702,7 @@ static void PrepareUnArchiveMSecNodes(void)
     array_resize(msecnode_pointers, count);
     for (int i = 0; i < count; ++i)
     {
-        msecnode_t *node = arena_calloc(msecnodes_arena, msecnode_t);
+        msecnode_t *node = arena_alloc(msecnodes_arena, msecnode_t);
         msecnode_pointers[i] = (uintptr_t)node;
     }
 }
@@ -1816,7 +1816,7 @@ static void PrepareUnArchiveCeilingList(void)
     array_resize(ceilinglist_pointers, count);
     for (int i = 0; i < count; ++i)
     {
-        ceilinglist_t *cl = arena_calloc(activeceilings_arena, ceilinglist_t);
+        ceilinglist_t *cl = arena_alloc(activeceilings_arena, ceilinglist_t);
         ceilinglist_pointers[i] = (uintptr_t)cl;
     }
 }
@@ -1865,7 +1865,7 @@ static void PrepareUnArchivePlatList(void)
     array_resize(platlist_pointers, count);
     for (int i = 0; i < count; ++i)
     {
-        platlist_t *pl = arena_calloc(activeplats_arena, platlist_t);
+        platlist_t *pl = arena_alloc(activeplats_arena, platlist_t);
         platlist_pointers[i] = (uintptr_t)pl;
     }
 }

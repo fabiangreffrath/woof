@@ -1050,7 +1050,6 @@ static void UDMF_LoadVertexes(void)
 {
     numvertexes = array_size(udmf_vertexes);
     vertexes = arena_alloc_num(world_arena, vertex_t, numvertexes);
-    memset(vertexes, 0, numvertexes * sizeof(vertex_t));
 
     for (int i = 0; i < numvertexes; i++)
     {
@@ -1066,7 +1065,6 @@ static void UDMF_LoadSectors(void)
 {
     numsectors = array_size(udmf_sectors);
     sectors = arena_alloc_num(world_arena, sector_t, numsectors);
-    memset(sectors, 0, numsectors * sizeof(sector_t));
 
     for (int i = 0; i < numsectors; i++)
     {
@@ -1135,7 +1133,6 @@ static void UDMF_LoadSideDefs(void)
 {
     numsides = array_size(udmf_sidedefs);
     sides = arena_alloc_num(world_arena, side_t, numsides);
-    memset(sides, 0, numsides * sizeof(side_t));
 
     for (int i = 0; i < numsides; i++)
     {
@@ -1194,7 +1191,6 @@ static void UDMF_LoadLineDefs(void)
 {
     numlines = array_size(udmf_linedefs);
     lines = arena_alloc_num(world_arena, line_t, numlines);
-    memset(lines, 0, numlines * sizeof(line_t));
 
     for (int i = 0; i < numlines; i++)
     {

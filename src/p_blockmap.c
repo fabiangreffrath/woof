@@ -725,7 +725,7 @@ static void LoadBlockmap_DoomBlockmap(int lump, int bmap_size)
 static void LoadBlockmap_XBM1(int lump, int bmap_size)
 {
     int32_t *data = W_CacheLumpNum(lump, PU_STATIC);
-    int count = bmap_size / sizeof(uint32_t);
+    int count = (bmap_size - 8) / sizeof(uint32_t);
     blockmaplump = Z_Malloc(sizeof(*blockmaplump) * count, PU_LEVEL, 0);
 
     // skip prefix header
