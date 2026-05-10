@@ -1343,6 +1343,7 @@ static void ArchiveWorld(void)
         writep_thinker(sector->ceilingdata);
         ArchiveThingList(sector);
         writep_msecnode(sector->touching_thinglist);
+        writep_mobj(sector->telept);
     }
 
     const line_t *line;
@@ -1399,6 +1400,7 @@ static void UnArchiveWorld(void)
         sector->ceilingdata = readp_thinker();
         UnArchiveThingList(sector);
         sector->touching_thinglist = readp_msecnode();
+        sector->telept = readp_mobj();
     }
 
     line_t *line;

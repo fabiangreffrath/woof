@@ -31,6 +31,7 @@
 #include "p_maputl.h"
 #include "p_mobj.h"
 #include "p_setup.h"
+#include "p_tick.h"
 #include "r_defs.h"
 #include "r_main.h"
 #include "r_state.h"
@@ -233,11 +234,31 @@ void P_LineOpening(line_t *linedef)
 // these structures need to be updated.
 //
 
-#define M_ARRAY_INIT_CAPACITY 2
-#define M_ARRAY_MALLOC(size) Z_Malloc(size, PU_LEVEL, NULL)
-#define M_ARRAY_REALLOC(ptr, size) Z_Realloc(ptr, size, PU_LEVEL, NULL)
-#define M_ARRAY_FREE(ptr) Z_Free(ptr)
-#include "m_array.h"
+static void P_AddTeleptToSector(sector_t *sector, mobj_t *telept)
+{
+    if (!sector || sector->telept)
+    {
+        return;
+    }
+
+    if (telept)
+    {
+        sector->telept = telept;
+        return;
+    }
+
+    for (thinker_t *th = thinkercap.next; th != &thinkercap;
+         th = th->next)
+    {
+        if (th->function.p1 == P_MobjThinker
+            && (telept = (mobj_t *)th)->type == MT_TELEPORTMAN
+            && telept->subsector->sector == sector)
+        {
+            sector->telept = telept;
+            break;
+        }
+    }
+}
 
 void P_UnsetThingPosition (mobj_t *thing)
 {
@@ -290,23 +311,10 @@ void P_UnsetThingPosition (mobj_t *thing)
     if (thing->type == MT_TELEPORTMAN)
     {
         sector_t *const sector = thing->subsector->sector;
-        if (sector->telept == NULL)
+        if (sector->telept == thing)
         {
-            return;
-        }
-
-        mobj_t **telept;
-        array_foreach(telept, sector->telept)
-        {
-            if (*telept == thing)
-            {
-                array_delete(sector->telept, (int)(telept - sector->telept));
-                break;
-            }
-        }
-        if (array_size(sector->telept) == 0)
-        {
-            array_free(sector->telept);
+            sector->telept = NULL;
+            P_AddTeleptToSector(sector, NULL);
         }
     }
 }
@@ -380,7 +388,7 @@ void P_SetThingPosition(mobj_t *thing)
 
     if (thing->type == MT_TELEPORTMAN)
     {
-        array_push(ss->sector->telept, thing);
+        P_AddTeleptToSector(ss->sector, thing);
     }
 }
 
