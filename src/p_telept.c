@@ -30,6 +30,7 @@
 #include "p_maputl.h"
 #include "p_mobj.h"
 #include "p_spec.h"
+#include "p_tick.h"
 #include "p_user.h"
 #include "r_defs.h"
 #include "r_main.h"
@@ -42,6 +43,29 @@
 // TELEPORTATION
 //
 // killough 5/3/98: reformatted, cleaned up
+
+static mobj_t *P_TeleptFromSector(int i)
+{
+    if (sectors[i].telept)
+    {
+        return sectors[i].telept;
+    }
+
+    for (thinker_t *thinker = thinkercap.next; thinker != &thinkercap;
+         thinker = thinker->next)
+    {
+        mobj_t *m;
+        if (thinker->function.p1 == P_MobjThinker
+            && (m = (mobj_t *)thinker)->type == MT_TELEPORTMAN
+            && m->subsector->sector - sectors == i)
+        {
+            sectors[i].telept = m;
+            break;
+        }
+    }
+
+    return sectors[i].telept;
+}
 
 int EV_Teleport(line_t *line, int side, mobj_t *thing)
 {
@@ -58,7 +82,7 @@ int EV_Teleport(line_t *line, int side, mobj_t *thing)
   // P_FindSectorFromLineTag instead of simple linear search.
 
   for (i = -1; (i = P_FindSectorFromLineTag(line, i)) >= 0;)
-    if ((m = sectors[i].telept) != NULL)
+    if ((m = P_TeleptFromSector(i)) != NULL)
         {
           fixed_t oldx = thing->x, oldy = thing->y, oldz = thing->z;
           player_t *player = thing->player;
@@ -127,7 +151,7 @@ int EV_SilentTeleport(line_t *line, int side, mobj_t *thing)
     return 0;
 
   for (i = -1; (i = P_FindSectorFromLineTag(line, i)) >= 0;)
-    if ((m = sectors[i].telept) != NULL)
+    if ((m = P_TeleptFromSector(i)) != NULL)
         {
           // Height of thing above ground, in case of mid-air teleports:
           fixed_t z = thing->z - thing->floorz;

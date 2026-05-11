@@ -31,7 +31,6 @@
 #include "p_maputl.h"
 #include "p_mobj.h"
 #include "p_setup.h"
-#include "p_tick.h"
 #include "r_defs.h"
 #include "r_main.h"
 #include "r_state.h"
@@ -234,32 +233,6 @@ void P_LineOpening(line_t *linedef)
 // these structures need to be updated.
 //
 
-static void P_AddTeleptToSector(sector_t *sector, mobj_t *telept)
-{
-    if (!sector || sector->telept)
-    {
-        return;
-    }
-
-    if (telept)
-    {
-        sector->telept = telept;
-        return;
-    }
-
-    for (thinker_t *th = thinkercap.next; th != &thinkercap;
-         th = th->next)
-    {
-        if (th->function.p1 == P_MobjThinker
-            && (telept = (mobj_t *)th)->type == MT_TELEPORTMAN
-            && telept->subsector->sector == sector)
-        {
-            sector->telept = telept;
-            break;
-        }
-    }
-}
-
 void P_UnsetThingPosition (mobj_t *thing)
 {
   if (!(thing->flags & MF_NOSECTOR))
@@ -310,12 +283,7 @@ void P_UnsetThingPosition (mobj_t *thing)
 
     if (thing->type == MT_TELEPORTMAN)
     {
-        sector_t *const sector = thing->subsector->sector;
-        if (sector->telept == thing)
-        {
-            sector->telept = NULL;
-            P_AddTeleptToSector(sector, NULL);
-        }
+        thing->subsector->sector->telept = NULL;
     }
 }
 
@@ -388,7 +356,7 @@ void P_SetThingPosition(mobj_t *thing)
 
     if (thing->type == MT_TELEPORTMAN)
     {
-        P_AddTeleptToSector(ss->sector, thing);
+        ss->sector->telept = NULL;
     }
 }
 
