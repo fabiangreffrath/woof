@@ -187,8 +187,6 @@ typedef struct sector_s
   fixed_t interp_ceiling_yoffs;
   fixed_t old_ceiling_xoffs;
   fixed_t old_ceiling_yoffs;
-
-  struct mobj_s *telept;
 } sector_t;
 
 //

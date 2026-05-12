@@ -267,8 +267,6 @@ void P_SectorInit(sector_t * const sector)
   // [FG] inhibit sector interpolation during the 0th gametic
   sector->oldceilgametic = sector->oldfloorgametic = -1;
   sector->old_ceil_offs_gametic = sector->old_floor_offs_gametic = -1;
-
-  sector->telept = NULL;
 }
 
 

@@ -219,8 +219,7 @@ static void ArchiveWorld(void)
                sector->floordata,
                sector->ceilingdata,
                sector->thinglist,
-               sector->touching_thinglist,
-               sector->telept);
+               sector->touching_thinglist);
     }
 
     const line_t *line;
@@ -280,7 +279,6 @@ static void UnArchiveWorld(void)
         sector->ceilingdata = readp();
         sector->thinglist = readp();
         sector->touching_thinglist = readp();
-        sector->telept = readp();
     }
 
     line_t *line;

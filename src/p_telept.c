@@ -38,17 +38,44 @@
 #include "s_sound.h"
 #include "sounds.h"
 #include "tables.h"
+#include "z_zone.h"
 
 //
 // TELEPORTATION
 //
 // killough 5/3/98: reformatted, cleaned up
 
+static mobj_t **sectors_telept;
+
+static void P_InitTeleptFromSector(void)
+{
+    if (sectors_telept == NULL)
+    {
+        sectors_telept = Z_Calloc(numsectors, sizeof(*sectors_telept), PU_LEVEL,
+                                  (void **)&sectors_telept);
+    }
+}
+
+void P_SetTeleptForSector(int i, mobj_t *thing)
+{
+    if (sectors_telept == NULL)
+    {
+        P_InitTeleptFromSector();
+    }
+
+    sectors_telept[i] = thing;
+}
+
 static mobj_t *P_TeleptFromSector(int i)
 {
-    if (sectors[i].telept)
+    if (sectors_telept == NULL)
     {
-        return sectors[i].telept;
+        P_InitTeleptFromSector();
+    }
+
+    if (sectors_telept[i])
+    {
+        return sectors_telept[i];
     }
 
     for (thinker_t *thinker = thinkercap.next; thinker != &thinkercap;
@@ -59,12 +86,12 @@ static mobj_t *P_TeleptFromSector(int i)
             && (m = (mobj_t *)thinker)->type == MT_TELEPORTMAN
             && m->subsector->sector - sectors == i)
         {
-            sectors[i].telept = m;
+            sectors_telept[i] = m;
             break;
         }
     }
 
-    return sectors[i].telept;
+    return sectors_telept[i];
 }
 
 int EV_Teleport(line_t *line, int side, mobj_t *thing)
