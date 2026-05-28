@@ -293,3 +293,60 @@ boolean JS_ObjectNext(json_obj_iter_t *iter, json_t **key, json_t **value)
     *value = yyjson_obj_iter_get_val(*key);
     return true;
 }
+
+// Write API
+
+json_mut_doc_t *JS_NewDoc(void)
+{
+    return yyjson_mut_doc_new(NULL);
+}
+
+void JS_FreeDoc(json_mut_doc_t *doc)
+{
+    yyjson_mut_doc_free(doc);
+}
+
+json_mut_t *JS_NewObject(json_mut_doc_t *doc)
+{
+    return yyjson_mut_obj(doc);
+}
+
+json_mut_t *JS_NewArray(json_mut_doc_t *doc)
+{
+    return yyjson_mut_arr(doc);
+}
+
+void JS_SetRoot(json_mut_doc_t *doc, json_mut_t *root)
+{
+    yyjson_mut_doc_set_root(doc, root);
+}
+
+void JS_SetInt(json_mut_doc_t *doc, json_mut_t *obj,
+               const char *key, int val)
+{
+    yyjson_mut_obj_add_int(doc, obj, key, val);
+}
+
+void JS_SetObject(json_mut_doc_t *doc, json_mut_t *parent,
+                  const char *key, json_mut_t *child)
+{
+    yyjson_mut_obj_add_val(doc, parent, key, child);
+}
+
+void JS_SetArray(json_mut_doc_t *doc, json_mut_t *parent,
+                 const char *key, json_mut_t *arr)
+{
+    yyjson_mut_obj_add_val(doc, parent, key, arr);
+}
+
+void JS_ArrayAddInt(json_mut_doc_t *doc, json_mut_t *arr, int val)
+{
+    yyjson_mut_arr_add_int(doc, arr, val);
+}
+
+void JS_ArrayAddObject(json_mut_doc_t *doc, json_mut_t *arr, json_mut_t *obj)
+{
+    (void)doc;
+    yyjson_mut_arr_add_val(arr, obj);
+}
+

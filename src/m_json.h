@@ -17,10 +17,10 @@
 #include "doomtype.h"
 #include "m_misc.h"
 
-typedef struct yyjson_val json_t;
-
+typedef struct yyjson_val     json_t;
+typedef struct yyjson_mut_val json_mut_t;
+typedef struct yyjson_mut_doc json_mut_doc_t;
 typedef struct yyjson_arr_iter json_arr_iter_t;
-
 typedef struct yyjson_obj_iter json_obj_iter_t;
 
 boolean JS_GetVersion(json_t *json, version_t *version);
@@ -58,5 +58,24 @@ json_t *JS_ArrayNext(json_arr_iter_t *iter);
 
 json_obj_iter_t *JS_ObjectIterator(json_t *json);
 boolean JS_ObjectNext(json_obj_iter_t *iter, json_t **key, json_t **value);
+
+// Write API
+
+json_mut_doc_t *JS_NewDoc(void);
+void            JS_FreeDoc(json_mut_doc_t *doc);
+
+json_mut_t *JS_NewObject(json_mut_doc_t *doc);
+json_mut_t *JS_NewArray(json_mut_doc_t *doc);
+void        JS_SetRoot(json_mut_doc_t *doc, json_mut_t *root);
+
+void JS_SetInt(json_mut_doc_t *doc, json_mut_t *obj,
+               const char *key, int val);
+void JS_SetObject(json_mut_doc_t *doc, json_mut_t *parent,
+                  const char *key, json_mut_t *child);
+void JS_SetArray(json_mut_doc_t *doc, json_mut_t *parent,
+                 const char *key, json_mut_t *arr);
+
+void JS_ArrayAddInt(json_mut_doc_t *doc, json_mut_t *arr, int val);
+void JS_ArrayAddObject(json_mut_doc_t *doc, json_mut_t *arr, json_mut_t *obj);
 
 #endif
