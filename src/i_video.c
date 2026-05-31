@@ -601,8 +601,10 @@ static void UpdateMouseMenu(void)
         ev.data1.i = EV_RESIZE_VIEWPORT;
     }
 
-    x = clampf((x - rect.x) / rect.w, 0.0f, 1.0f) * video.unscaledw;
-    y = clampf((y - rect.y) / rect.h, 0.0f, 1.0f) * SCREENHEIGHT;
+    const float scale = SDL_GetWindowPixelDensity(screen);
+
+    x = clampf((x * scale - rect.x) / rect.w, 0.0f, 1.0f) * video.unscaledw;
+    y = clampf((y * scale - rect.y) / rect.h, 0.0f, 1.0f) * SCREENHEIGHT;
 
     static float oldx, oldy;
     if (x != oldx || y != oldy)
@@ -1591,7 +1593,7 @@ static void CreateVideoBuffer(void)
     {
         free(I_VideoBuffer);
     }
-    I_VideoBuffer = calloc(sizeof(pixel_t), video.width * video.height);
+    I_VideoBuffer = calloc(video.width * video.height, sizeof(pixel_t));
     V_RestoreBuffer();
 
     Z_FreeTag(PU_RENDERER);

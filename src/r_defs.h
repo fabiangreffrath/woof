@@ -494,8 +494,8 @@ typedef struct visplane_s
   fixed_t height;
   fixed_t xoffs, yoffs;         // killough 2/28/98: Support scrolling flats
   angle_t rotation;
-  unsigned short *bottom;
   int tint; // ID24 per-sector colormap
+  unsigned short *bottom;
   unsigned short pad1;          // leave pads for [minx-1]/[maxx+1]
   unsigned short top[3];
 } visplane_t;

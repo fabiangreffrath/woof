@@ -96,7 +96,7 @@ static void UpdateMessage(sbe_widget_t *widget, player_t *player)
     static boolean overwrite = true;
     static boolean messages_enabled = true;
 
-    if (messages_enabled)
+    if (messages_enabled || message_string[0])
     {
         if (message_string[0])
         {
@@ -393,8 +393,6 @@ boolean ST_MessagesResponder(event_t *ev)
         return false;
     }
 
-    static char lastmessage[HU_MAXLINELENGTH + 1];
-
     boolean eatkey = false;
     static boolean shiftdown = false;
     static boolean altdown = false;
@@ -454,13 +452,14 @@ boolean ST_MessagesResponder(event_t *ev)
                 {
                     if (p == consoleplayer)
                     {
-                        displaymsg("%s",
-                                   ++num_nobrainers < 3 ? HUSTR_TALKTOSELF1
-                                   : num_nobrainers < 6 ? HUSTR_TALKTOSELF2
-                                   : num_nobrainers < 9 ? HUSTR_TALKTOSELF3
-                                   : num_nobrainers < 32
-                                       ? HUSTR_TALKTOSELF4
-                                       : HUSTR_TALKTOSELF5);
+                        M_StringCopy(message_string,
+                                     ++num_nobrainers < 3 ? HUSTR_TALKTOSELF1
+                                     : num_nobrainers < 6 ? HUSTR_TALKTOSELF2
+                                     : num_nobrainers < 9 ? HUSTR_TALKTOSELF3
+                                     : num_nobrainers < 32
+                                         ? HUSTR_TALKTOSELF4
+                                         : HUSTR_TALKTOSELF5,
+                                     sizeof(message_string));
                     }
                     else if (playeringame[p])
                     {
@@ -502,8 +501,8 @@ boolean ST_MessagesResponder(event_t *ev)
 
             // leave chat mode and notify that it was sent
             chat_on = false;
-            M_StringCopy(lastmessage, chat_macros[ch], sizeof(lastmessage));
-            displaymsg("%s", lastmessage);
+            M_StringCopy(message_string, chat_macros[ch],
+                         sizeof(message_string));
             eatkey = true;
         }
         else
@@ -523,9 +522,8 @@ boolean ST_MessagesResponder(event_t *ev)
                 chat_on = false;
                 if (chatline.pos)
                 {
-                    M_StringCopy(lastmessage, chatline.string,
-                                 sizeof(lastmessage));
-                    displaymsg("%s", lastmessage);
+                    M_StringCopy(message_string, chatline.string,
+                                 sizeof(message_string));
                 }
             }
             else if (ch == KEY_ESCAPE) // phares

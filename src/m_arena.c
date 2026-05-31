@@ -61,7 +61,9 @@ void *M_ArenaAlloc(arena_t *arena, int size, int align)
         {
             if (array_size(block->ptrs))
             {
-                return array_pop(block->ptrs);
+                void *ptr = array_pop(block->ptrs);
+                memset(ptr, 0, size);
+                return ptr;
             }
             else
             {
@@ -110,13 +112,8 @@ void *M_ArenaAlloc(arena_t *arena, int size, int align)
     };
     hashmap_put(arena->hashmap, (uintptr_t)ptr, &value);
 
-    return ptr;
-}
-
-void *M_ArenaCalloc(arena_t *arena, int size, int align)
-{
-    void *ptr = M_ArenaAlloc(arena, size, align);
     memset(ptr, 0, size);
+
     return ptr;
 }
 

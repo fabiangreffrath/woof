@@ -851,8 +851,6 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
   mobjinfo_t *info = &mobjinfo[type];
   state_t    *st;
 
-  memset(mobj, 0, sizeof *mobj);
-
   mobj->type = type;
   mobj->info = info;
   mobj->x = x;
