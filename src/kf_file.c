@@ -40,6 +40,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
+// temp
+#include "yyjson.h"
+#include <stdio.h>
+
 static json_mut_doc_t *doc;
 
 inline static void write8_internal(const int8_t data[], int count)
@@ -860,7 +864,7 @@ static void read_vldoor_t(vldoor_t *str, thinker_class_t tc)
     str->lighttag = read32();
 }
 
-static json_mut_t * write_vldoor_t(vldoor_t *str)
+static json_mut_t *write_vldoor_t(vldoor_t *str)
 {
     json_mut_t *obj = JS_NewObject(doc);
 
@@ -1325,36 +1329,49 @@ static void read_partial_side_t(partial_side_t *str)
     str->midtexture = read16();
 }
 
-static void write_partial_side_t(partial_side_t *str)
+static json_mut_t *write_partial_side_t(partial_side_t *str)
 {
-    write32(str->textureoffset);
-    write32(str->rowoffset);
-    write16(str->toptexture);
-    write16(str->bottomtexture);
-    write16(str->midtexture);
+    json_mut_t *obj = JS_NewObject(doc);
+
+    JS_SetInt(doc, obj, "textureoffset", str->textureoffset);
+    JS_SetInt(doc, obj, "rowoffset", str->rowoffset);
+    JS_SetInt(doc, obj, "toptexture", str->toptexture);
+    JS_SetInt(doc, obj, "bottomtexture", str->bottomtexture);
+    JS_SetInt(doc, obj, "midtexture", str->midtexture);
+
+    return obj;
 }
 
 //
 // World
 //
 
-static void ArchiveDirty(void)
+static void ArchiveDirty(json_mut_t *root)
 {
-    int count = array_size(dirty_lines);
-    write32(count);
+    json_mut_t *lines_arr = JS_NewArray(doc);
     array_foreach_type(dl, dirty_lines, dirty_line_t)
     {
-        write32(dl->line - lines);
-        write16(dl->clean_line.special);
-    }
+        json_mut_t *line_obj = JS_NewObject(doc);
 
-    count = array_size(dirty_sides);
-    write32(count);
+        JS_SetIdx(doc, line_obj, "line", dl->line, lines);
+        JS_SetInt(doc, line_obj, "special", dl->clean_line.special);
+
+        JS_ArrayAddObject(doc, lines_arr, line_obj);
+    }
+    JS_SetArray(doc, root, "dirty_lines", lines_arr);
+
+    json_mut_t *sides_arr = JS_NewArray(doc);
     array_foreach_type(ds, dirty_sides, dirty_side_t)
     {
-        write32(ds->side - sides);
-        write_partial_side_t(&ds->clean_side);
+        json_mut_t *side_obj = JS_NewObject(doc);
+
+        JS_SetIdx(doc, side_obj, "side", ds->side, sides);
+        json_mut_t *partial_side = write_partial_side_t(&ds->clean_side);
+        JS_SetObject(doc, side_obj, "partial_side", partial_side);
+
+        JS_ArrayAddObject(doc, sides_arr, side_obj);
     }
+    JS_SetArray(doc, root, "dirty_sides", sides_arr);
 }
 
 static void UnArchiveDirty(void)
@@ -1388,18 +1405,16 @@ static void UnArchiveDirty(void)
     }
 }
 
-inline static void ArchiveThingList(const sector_t *sector)
+inline static json_mut_t *ArchiveThingList(const sector_t *sector)
 {
-    int count = 0;
+    json_mut_t *thinglist_arr = JS_NewArray(doc);
+
     for (mobj_t *mobj = sector->thinglist; mobj; mobj = mobj->snext)
     {
-        ++count;
+        JS_ArrayAddInt(doc, thinglist_arr, writep_mobj(mobj));
     }
-    write32(count);
-    for (mobj_t *mobj = sector->thinglist; mobj; mobj = mobj->snext)
-    {
-        writep_mobj(mobj);
-    }
+
+    return thinglist_arr;
 }
 
 inline static void UnArchiveThingList(sector_t *sector)
@@ -1423,61 +1438,79 @@ inline static void UnArchiveThingList(sector_t *sector)
     }
 }
 
-static void ArchiveWorld(void)
+static void ArchiveWorld(json_mut_t *root)
 {
     int i;
     const sector_t *sector;
 
     // do sectors
+    json_mut_t *sectors_arr = JS_NewArray(doc);
     for (i = 0, sector = sectors; i < numsectors; i++, sector++)
     {
-        // killough 10/98: save full floor & ceiling heights, including fraction
-        write32(sector->floorheight,
-                sector->ceilingheight,
-                sector->floor_xoffs,
-                sector->floor_yoffs,
-                sector->ceiling_xoffs,
-                sector->ceiling_yoffs,
-                sector->floor_rotation,
-                sector->ceiling_rotation,
-                sector->tint);
+        json_mut_t *sector_obj = JS_NewObject(doc);
 
-        write16(sector->floorpic,
-                sector->ceilingpic,
-                sector->lightlevel,
-                sector->special, // needed?   yes -- transfer types
-                sector->tag);    // needed?   need them -- killough 
+        // killough 10/98: save full floor & ceiling heights, including fraction
+        JS_SetInt(doc, sector_obj, "floorheight", sector->floorheight);
+        JS_SetInt(doc, sector_obj, "ceilingheight", sector->ceilingheight);
+        JS_SetInt(doc, sector_obj, "floor_xoffs", sector->floor_xoffs);
+        JS_SetInt(doc, sector_obj, "floor_yoffs", sector->floor_yoffs);
+        JS_SetInt(doc, sector_obj, "ceiling_xoffs", sector->ceiling_xoffs);
+        JS_SetInt(doc, sector_obj, "ceiling_yoffs", sector->ceiling_yoffs);
+        JS_SetInt(doc, sector_obj, "floor_rotation", sector->floor_rotation);
+        JS_SetInt(doc, sector_obj, "ceiling_rotation", sector->ceiling_rotation);
+        JS_SetInt(doc, sector_obj, "tint", sector->tint);
+
+        JS_SetInt(doc, sector_obj, "floorpic", sector->floorpic);
+        JS_SetInt(doc, sector_obj, "ceilingpic", sector->ceilingpic);
+        JS_SetInt(doc, sector_obj, "lightlevel", sector->lightlevel);
+        JS_SetInt(doc, sector_obj, "special", sector->special); // needed?   yes -- transfer types
+        JS_SetInt(doc, sector_obj, "tag", sector->tag);         // needed?   need them -- killough 
 
         // Woof!
-        writep_mobj(sector->soundtarget);
-        writep_thinker(sector->floordata);
-        writep_thinker(sector->ceilingdata);
-        ArchiveThingList(sector);
-        writep_msecnode(sector->touching_thinglist);
+        JS_SetInt(doc, sector_obj, "soundtarget", writep_mobj(sector->soundtarget));
+        JS_SetInt(doc, sector_obj, "floordata", writep_thinker(sector->floordata));
+        JS_SetInt(doc, sector_obj, "ceilingdata", writep_thinker(sector->ceilingdata));
+
+        json_mut_t *thinglist = ArchiveThingList(sector);
+        JS_SetArray(doc, sector_obj, "thinglist", thinglist);
+
+        JS_SetInt(doc, sector_obj, "touching_thinglist", writep_msecnode(sector->touching_thinglist));
+
+        JS_ArrayAddObject(doc, sectors_arr, sector_obj);
     }
+    JS_SetArray(doc, root, "sectors", sectors_arr);
 
     const line_t *line;
 
+    json_mut_t *lines_arr = JS_NewArray(doc);
     for (i = 0, line = lines; i < numlines; i++, line++)
     {
-        write16(line->flags);
-        write16(line->special);
+        json_mut_t *line_obj = JS_NewObject(doc);
 
+        JS_SetInt(doc, line_obj, "flags", line->flags);
+        JS_SetInt(doc, line_obj, "special", line->special);
+
+        json_mut_t *sides_arr = JS_NewArray(doc);
         for (int j = 0; j < 2; j++)
         {
+            json_mut_t *side_obj = JS_NewObject(doc);
             if (line->sidenum[j] != NO_INDEX)
             {
                 side_t *side = &sides[line->sidenum[j]];
 
-                write32(side->textureoffset,
-                        side->rowoffset);
+                JS_SetInt(doc, side_obj, "textureoffset", side->textureoffset);
+                JS_SetInt(doc, side_obj, "rowoffset", side->rowoffset);
 
-                write16(side->toptexture,
-                        side->bottomtexture,
-                        side->midtexture);
+                JS_SetInt(doc, side_obj, "toptexture", side->toptexture);
+                JS_SetInt(doc, side_obj, "bottomtexture", side->bottomtexture);
+                JS_SetInt(doc, side_obj, "midtexture", side->midtexture);
             }
+            JS_ArrayAddObject(doc, sides_arr, side_obj);
         }
+        JS_ArrayAddObject(doc, lines_arr, line_obj);
+        JS_ArrayAddObject(doc, lines_arr, sides_arr);
     }
+    JS_SetArray(doc, root, "lines", lines_arr);
 }
 
 static void UnArchiveWorld(void)
@@ -2109,23 +2142,26 @@ void P_ArchiveKeyframe(void)
 
     PrepareArchiveThinkers();
 
-    json_mut_t *js_thinkercap = write_thinker_t(&thinkercap);
-    JS_SetObject(doc, root, "thinkercap", js_thinkercap);
+    json_mut_t *thinkercap_obj = write_thinker_t(&thinkercap);
+    JS_SetObject(doc, root, "thinkercap", thinkercap_obj);
 
-    json_mut_t *js_thinkerclasscaps = JS_NewArray(doc);
+    json_mut_t *thinkerclasscaps_obj = JS_NewArray(doc);
     for (int i = 0; i < NUMTHCLASS; ++i)
     {
-        json_mut_t *js_thinkerclasscap = write_thinker_t(&thinkerclasscap[i]);
-        JS_ArrayAddObject(doc, js_thinkerclasscaps, js_thinkerclasscap);
+        json_mut_t *thinkerclasscap_obj = write_thinker_t(&thinkerclasscap[i]);
+        JS_ArrayAddObject(doc, thinkerclasscaps_obj, thinkerclasscap_obj);
     }
-    JS_SetArray(doc, root, "thinkerclasscaps", js_thinkerclasscaps);
+    JS_SetArray(doc, root, "thinkerclasscaps", thinkerclasscaps_obj);
 
     PrepareArchiveMSecNodes();
     JS_SetInt(doc, root, "headsecnode", writep_msecnode(headsecnode));
- 
-    ArchiveDirty();
 
-    ArchiveWorld();
+    ArchiveDirty(root);
+
+    ArchiveWorld(root);
+
+    puts(yyjson_mut_write(doc, YYJSON_WRITE_PRETTY, NULL));
+    return;
 
     // p_map.h
     write32(floatok,
