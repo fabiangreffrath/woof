@@ -88,8 +88,6 @@ boolean snd_limiter;
 int snd_channels_per_sfx;
 int snd_volume_per_sfx;
 
-int cur_SfxVolume;
-
 //
 // StopChannel
 //
@@ -249,7 +247,7 @@ void I_SetSfxVolume(int volume)
     //  to the state variable used in
     //  the mixing.
 
-    cur_SfxVolume = volume;
+    snd_SfxVolume = volume;
 }
 
 // jff 1/21/98 moved music volume down into MUSIC API with the rest
@@ -399,6 +397,26 @@ void I_ResumeSound(int channel)
     {
         sound_module->ResumeSound(channel);
     }
+}
+
+void I_MuteSound(void)
+{
+    if (!snd_init || !sound_module->MuteSound)
+    {
+        return;
+    }
+
+    sound_module->MuteSound();
+}
+
+void I_UnmuteSound(void)
+{
+    if (!snd_init || !sound_module->UnmuteSound)
+    {
+        return;
+    }
+
+    sound_module->UnmuteSound();
 }
 
 //

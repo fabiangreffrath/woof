@@ -235,7 +235,7 @@ static boolean CalcVolumePriority(double dist, sfxparams_t *params)
 static boolean I_3D_AdjustSoundParams(const mobj_t *listener,
                                       const mobj_t *source, sfxparams_t *params)
 {
-    params->volume = cur_SfxVolume * params->volume_scale / 15;
+    params->volume = snd_SfxVolume * params->volume_scale / 15;
 
     if (params->volume < 1)
     {
@@ -335,6 +335,8 @@ const sound_module_t sound_3d_module = {
     I_OAL_StopSound,
     I_OAL_PauseSound,
     I_OAL_ResumeSound,
+    I_OAL_MuteSound,
+    I_OAL_UnmuteSound,
     I_OAL_SoundIsPlaying,
     I_OAL_SoundIsPaused,
     I_OAL_ShutdownSound,

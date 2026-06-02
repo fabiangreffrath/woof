@@ -834,6 +834,26 @@ void I_OAL_ResumeSound(int channel)
     }
 }
 
+void I_OAL_MuteSound(void)
+{
+    if (!oal)
+    {
+        return;
+    }
+
+    alListenerf(AL_GAIN, (ALfloat) 0.0f);
+}
+
+void I_OAL_UnmuteSound(void)
+{
+    if (!oal)
+    {
+        return;
+    }
+
+    alListenerf(AL_GAIN, (ALfloat) 1.0f);
+}
+
 boolean I_OAL_SoundIsPlaying(int channel)
 {
     ALint state;

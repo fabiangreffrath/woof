@@ -816,7 +816,7 @@ void S_MuteSound(void)
         return;
     }
 
-    I_SetSfxVolume(0);
+    I_MuteSound();
 }
 
 void S_UnmuteSound(void)
@@ -826,7 +826,7 @@ void S_UnmuteSound(void)
         return;
     }
 
-    I_SetSfxVolume(snd_SfxVolume);
+    I_UnmuteSound();
 }
 
 //
@@ -963,7 +963,6 @@ void S_SetSfxVolume(int volume)
     }
 #endif
 
-    I_SetSfxVolume(volume);
     snd_SfxVolume = volume;
 }
 
