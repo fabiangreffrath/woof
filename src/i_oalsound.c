@@ -834,6 +834,29 @@ void I_OAL_ResumeSound(int channel)
     }
 }
 
+static ALfloat listener_gain = 1.0f;
+
+void I_OAL_MuteSound(void)
+{
+    if (!oal)
+    {
+        return;
+    }
+
+    alGetListenerf(AL_GAIN, &listener_gain);
+    alListenerf(AL_GAIN, (ALfloat) 0.0f);
+}
+
+void I_OAL_UnmuteSound(void)
+{
+    if (!oal)
+    {
+        return;
+    }
+
+    alListenerf(AL_GAIN, listener_gain);
+}
+
 boolean I_OAL_SoundIsPlaying(int channel)
 {
     ALint state;

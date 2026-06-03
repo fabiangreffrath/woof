@@ -191,6 +191,8 @@ const sound_module_t sound_mbf_module =
     I_OAL_StopSound,
     I_OAL_PauseSound,
     I_OAL_ResumeSound,
+    I_OAL_MuteSound,
+    I_OAL_UnmuteSound,
     I_OAL_SoundIsPlaying,
     I_OAL_SoundIsPaused,
     I_OAL_ShutdownSound,
