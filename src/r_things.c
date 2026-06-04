@@ -632,6 +632,11 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
   if (x2 < 0)
     return;
 
+  // [Alaux] x2 can sometimes be less than x1,
+  // creating a vissprite that's ultimately not drawn
+  if (x2 < x1)
+    return;
+
   gzt = interpz + spritetopoffset[lump];
 
   // killough 4/9/98: clip things which are out of view due to height
