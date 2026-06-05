@@ -625,11 +625,16 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
   if (x1 > viewwidth)
     return;
 
+  // [Alaux] Calculate this early
+  // to check if the right edge of the sprite goes past the left one
+  const int vx1 = x1 < 0 ? 0 : x1;
+
   tx +=  spritewidth[lump];
   x2 = ((centerxfrac + FixedMul64(tx,xscale)) >> FRACBITS) - 1;
 
     // off the left side
-  if (x2 < 0)
+    // [Alaux] Or past the left edge of the sprite
+  if (x2 < vx1)
     return;
 
   gzt = interpz + spritetopoffset[lump];
@@ -676,7 +681,7 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
   vis->gz = interpz;
   vis->gzt = gzt;                          // killough 3/27/98
   vis->texturemid = gzt - viewz;
-  vis->x1 = x1 < 0 ? 0 : x1;
+  vis->x1 = vx1;
   vis->x2 = x2 >= viewwidth ? viewwidth-1 : x2;
   iscale = FixedDiv(FRACUNIT, xscale);
   vis->color = thing->bloodcolor;
