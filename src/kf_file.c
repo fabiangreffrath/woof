@@ -45,6 +45,7 @@
 #include <stdio.h>
 
 static json_mut_doc_t *doc;
+static json_mut_t *root;
 
 inline static void write8_internal(const int8_t data[], int count)
 {
@@ -215,11 +216,12 @@ static uintptr_t *platlist_pointers;
         write32(index);                                  \
     } while (0)
 
-static void JS_SetIdx(json_mut_doc_t *doc, json_mut_t *obj,
-                        const char *key, void *ptr, void *base)
-{
-    JS_SetInt(doc, obj, key, ptr ? (int)(ptr - base) : null_index);
-}
+#define JS_SETIDX(doc, obj, key, ptr, base)              \
+    do                                                   \
+    {                                                    \
+        JS_SetInt(doc, obj, key,                         \
+                  ptr ? (int)(ptr - base) : null_index); \
+    } while (0)
 
 inline static thinker_t *readp_thinker_index(int index)
 {
@@ -537,7 +539,7 @@ static json_mut_t *write_mobj_t(mobj_t *str)
     // str->bnext;
     // str->bprev;
 
-    JS_SetIdx(doc, obj, "subsector", str->subsector, subsectors);
+    JS_SETIDX(doc, obj, "subsector", str->subsector, subsectors);
     JS_SetInt(doc, obj, "floorz", str->floorz);
     JS_SetInt(doc, obj, "ceilingz", str->ceilingz);
     JS_SetInt(doc, obj, "dropoffz", str->dropoffz);
@@ -548,9 +550,9 @@ static json_mut_t *write_mobj_t(mobj_t *str)
     JS_SetInt(doc, obj, "momz", str->momz);
     JS_SetInt(doc, obj, "validcount", str->validcount);
     JS_SetInt(doc, obj, "type", str->type);
-    JS_SetIdx(doc, obj, "info", str->info, mobjinfo);
+    JS_SETIDX(doc, obj, "info", str->info, mobjinfo);
     JS_SetInt(doc, obj, "tics", str->tics);
-    JS_SetIdx(doc, obj, "state", str->state, states);
+    JS_SETIDX(doc, obj, "state", str->state, states);
     JS_SetInt(doc, obj, "flags", str->flags);
     JS_SetInt(doc, obj, "flags2", str->flags2);
     JS_SetInt(doc, obj, "flags_extra", str->flags_extra);
@@ -572,7 +574,7 @@ static json_mut_t *write_mobj_t(mobj_t *str)
     JS_SetInt(doc, obj, "threshold", str->threshold);
     JS_SetInt(doc, obj, "pursuecount", str->pursuecount);
     JS_SetInt(doc, obj, "gear", str->gear);
-    JS_SetIdx(doc, obj, "player", str->player, players);
+    JS_SETIDX(doc, obj, "player", str->player, players);
     JS_SetInt(doc, obj, "lastlook", str->lastlook);
 
     json_mut_t *spawnpoint = write_mapthing_t(&str->spawnpoint);
@@ -833,7 +835,7 @@ static json_mut_t *write_ceiling_t(ceiling_t *str)
     JS_SetObject(doc, obj, "thinker", thinker);
 
     JS_SetInt(doc, obj, "type", str->type);
-    JS_SetIdx(doc, obj, "sector", str->sector, sectors);
+    JS_SETIDX(doc, obj, "sector", str->sector, sectors);
     JS_SetInt(doc, obj, "bottomheight", str->bottomheight);
     JS_SetInt(doc, obj, "topheight", str->topheight);
     JS_SetInt(doc, obj, "speed", str->speed);
@@ -872,13 +874,13 @@ static json_mut_t *write_vldoor_t(vldoor_t *str)
     JS_SetObject(doc, obj, "thinker", thinker);
 
     JS_SetInt(doc, obj, "type", str->type);
-    JS_SetIdx(doc, obj, "sector", str->sector, sectors);
+    JS_SETIDX(doc, obj, "sector", str->sector, sectors);
     JS_SetInt(doc, obj, "topheight", str->topheight);
     JS_SetInt(doc, obj, "speed", str->speed);
     JS_SetInt(doc, obj, "direction", str->direction);
     JS_SetInt(doc, obj, "topwait", str->topwait);
     JS_SetInt(doc, obj, "topcountdown", str->topcountdown);
-    JS_SetIdx(doc, obj, "line", str->line, lines);
+    JS_SETIDX(doc, obj, "line", str->line, lines);
     JS_SetInt(doc, obj, "lighttag", str->lighttag);
 
     return obj;
@@ -907,7 +909,7 @@ static json_mut_t *write_floormove_t(floormove_t *str)
 
     JS_SetInt(doc, obj, "type", str->type);
     JS_SetInt(doc, obj, "crush", str->crush);
-    JS_SetIdx(doc, obj, "sector", str->sector, sectors);
+    JS_SETIDX(doc, obj, "sector", str->sector, sectors);
     JS_SetInt(doc, obj, "direction", str->direction);
     JS_SetInt(doc, obj, "newspecial", str->newspecial);
     JS_SetInt(doc, obj, "oldspecial", str->oldspecial);
@@ -942,7 +944,7 @@ static json_mut_t *write_plat_t(plat_t *str)
     json_mut_t *thinker = write_thinker_t(&str->thinker);
     JS_SetObject(doc, obj, "thinker", thinker);
 
-    JS_SetIdx(doc, obj, "sector", str->sector, sectors);
+    JS_SETIDX(doc, obj, "sector", str->sector, sectors);
     JS_SetInt(doc, obj, "speed", str->speed);
     JS_SetInt(doc, obj, "low", str->low);
     JS_SetInt(doc, obj, "high", str->high);
@@ -976,7 +978,7 @@ static json_mut_t *write_lightflash_t(lightflash_t *str)
     json_mut_t *thinker = write_thinker_t(&str->thinker);
     JS_SetObject(doc, obj, "thinker", thinker);
 
-    JS_SetIdx(doc, obj, "sector", str->sector, sectors);
+    JS_SETIDX(doc, obj, "sector", str->sector, sectors);
     JS_SetInt(doc, obj, "count", str->count);
     JS_SetInt(doc, obj, "maxlight", str->maxlight);
     JS_SetInt(doc, obj, "minlight", str->minlight);
@@ -1004,7 +1006,7 @@ static json_mut_t *write_strobe_t(strobe_t *str)
     json_mut_t *thinker = write_thinker_t(&str->thinker);
     JS_SetObject(doc, obj, "thinker", thinker);
 
-    JS_SetIdx(doc, obj, "sector", str->sector, sectors);
+    JS_SETIDX(doc, obj, "sector", str->sector, sectors);
     JS_SetInt(doc, obj, "count", str->count);
     JS_SetInt(doc, obj, "minlight", str->minlight);
     JS_SetInt(doc, obj, "maxlight", str->maxlight);
@@ -1030,7 +1032,7 @@ static json_mut_t *write_glow_t(glow_t *str)
     json_mut_t *thinker = write_thinker_t(&str->thinker);
     JS_SetObject(doc, obj, "thinker", thinker);
 
-    JS_SetIdx(doc, obj, "sector", str->sector, sectors);
+    JS_SETIDX(doc, obj, "sector", str->sector, sectors);
     JS_SetInt(doc, obj, "minlight", str->minlight);
     JS_SetInt(doc, obj, "maxlight", str->maxlight);
     JS_SetInt(doc, obj, "direction", str->direction);
@@ -1054,7 +1056,7 @@ static json_mut_t *write_fireflicker_t(fireflicker_t *str)
     json_mut_t *thinker = write_thinker_t(&str->thinker);
     JS_SetObject(doc, obj, "thinker", thinker);
 
-    JS_SetIdx(doc, obj, "sector", str->sector, sectors);
+    JS_SETIDX(doc, obj, "sector", str->sector, sectors);
     JS_SetInt(doc, obj, "count", str->count);
     JS_SetInt(doc, obj, "maxlight", str->maxlight);
     JS_SetInt(doc, obj, "minlight", str->minlight);
@@ -1081,7 +1083,7 @@ static json_mut_t *write_elevator_t(elevator_t *str)
     JS_SetObject(doc, obj, "thinker", thinker);
 
     JS_SetInt(doc, obj, "type", str->type);
-    JS_SetIdx(doc, obj, "sector", str->sector, sectors);
+    JS_SETIDX(doc, obj, "sector", str->sector, sectors);
     JS_SetInt(doc, obj, "direction", str->direction);
     JS_SetInt(doc, obj, "floordestheight", str->floordestheight);
     JS_SetInt(doc, obj, "ceilingdestheight", str->ceilingdestheight);
@@ -1346,14 +1348,14 @@ static json_mut_t *write_partial_side_t(partial_side_t *str)
 // World
 //
 
-static void ArchiveDirty(json_mut_t *root)
+static void ArchiveDirty(void)
 {
     json_mut_t *lines_arr = JS_NewArray(doc);
     array_foreach_type(dl, dirty_lines, dirty_line_t)
     {
         json_mut_t *line_obj = JS_NewObject(doc);
 
-        JS_SetIdx(doc, line_obj, "line", dl->line, lines);
+        JS_SETIDX(doc, line_obj, "line", dl->line, lines);
         JS_SetInt(doc, line_obj, "special", dl->clean_line.special);
 
         JS_ArrayAddObject(doc, lines_arr, line_obj);
@@ -1365,7 +1367,7 @@ static void ArchiveDirty(json_mut_t *root)
     {
         json_mut_t *side_obj = JS_NewObject(doc);
 
-        JS_SetIdx(doc, side_obj, "side", ds->side, sides);
+        JS_SETIDX(doc, side_obj, "side", ds->side, sides);
         json_mut_t *partial_side = write_partial_side_t(&ds->clean_side);
         JS_SetObject(doc, side_obj, "partial_side", partial_side);
 
@@ -1438,7 +1440,7 @@ inline static void UnArchiveThingList(sector_t *sector)
     }
 }
 
-static void ArchiveWorld(json_mut_t *root)
+static void ArchiveWorld(void)
 {
     int i;
     const sector_t *sector;
@@ -2137,7 +2139,7 @@ static void EndUnArchive(void)
 void P_ArchiveKeyframe(void)
 {
     doc = JS_NewDoc();
-    json_mut_t *root = JS_NewObject(doc);
+    root = JS_NewObject(doc);
     JS_SetRoot(doc, root);
 
     PrepareArchiveThinkers();
@@ -2156,9 +2158,9 @@ void P_ArchiveKeyframe(void)
     PrepareArchiveMSecNodes();
     JS_SetInt(doc, root, "headsecnode", writep_msecnode(headsecnode));
 
-    ArchiveDirty(root);
+    ArchiveDirty();
 
-    ArchiveWorld(root);
+    ArchiveWorld();
 
     puts(yyjson_mut_write(doc, YYJSON_WRITE_PRETTY, NULL));
     return;
