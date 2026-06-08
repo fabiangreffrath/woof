@@ -2147,13 +2147,13 @@ void P_ArchiveKeyframe(void)
     json_mut_t *thinkercap_obj = write_thinker_t(&thinkercap);
     JS_SetObject(doc, root, "thinkercap", thinkercap_obj);
 
-    json_mut_t *thinkerclasscaps_obj = JS_NewArray(doc);
+    json_mut_t *thinkerclasscaps_arr = JS_NewArray(doc);
     for (int i = 0; i < NUMTHCLASS; ++i)
     {
         json_mut_t *thinkerclasscap_obj = write_thinker_t(&thinkerclasscap[i]);
-        JS_ArrayAddObject(doc, thinkerclasscaps_obj, thinkerclasscap_obj);
+        JS_ArrayAddObject(doc, thinkerclasscaps_arr, thinkerclasscap_obj);
     }
-    JS_SetArray(doc, root, "thinkerclasscaps", thinkerclasscaps_obj);
+    JS_SetArray(doc, root, "thinkerclasscaps", thinkerclasscaps_arr);
 
     PrepareArchiveMSecNodes();
     JS_SetInt(doc, root, "headsecnode", writep_msecnode(headsecnode));
