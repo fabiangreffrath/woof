@@ -3084,7 +3084,8 @@ void G_Ticker(void)
 	      memcpy(cmd, &netcmds[i], sizeof *cmd);
 
 	      // catch BT_JOIN before G_ReadDemoTiccmd overwrites it
-	      if (demoplayback && cmd->buttons & BT_JOIN)
+	      if (demoplayback &&
+	          !(cmd->buttons & BT_CHANGE) && cmd->buttons & BT_JOIN)
 		G_JoinDemo();
 
 	      // catch BTS_RELOAD for demo playback restart

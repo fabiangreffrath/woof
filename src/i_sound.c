@@ -399,6 +399,26 @@ void I_ResumeSound(int channel)
     }
 }
 
+void I_MuteSound(void)
+{
+    if (!snd_init || !sound_module->MuteSound)
+    {
+        return;
+    }
+
+    sound_module->MuteSound();
+}
+
+void I_UnmuteSound(void)
+{
+    if (!snd_init || !sound_module->UnmuteSound)
+    {
+        return;
+    }
+
+    sound_module->UnmuteSound();
+}
+
 //
 // I_SoundIsPlaying
 //
