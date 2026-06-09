@@ -1314,12 +1314,16 @@ static void read_divline_t(divline_t *str)
     str->dy = read32();
 }
 
-static void write_divline_t(divline_t *str)
+static json_mut_t *write_divline_t(divline_t *str)
 {
-    write32(str->x);
-    write32(str->y);
-    write32(str->dx);
-    write32(str->dy);
+    json_mut_t *obj = JS_NewObject(doc);
+
+    JS_SetInt(doc, obj, "x", str->x);
+    JS_SetInt(doc, obj, "y", str->y);
+    JS_SetInt(doc, obj, "dx", str->dx);
+    JS_SetInt(doc, obj, "dy", str->dy);
+
+    return obj;
 }
 
 static void read_partial_side_t(partial_side_t *str)
@@ -2162,34 +2166,35 @@ void P_ArchiveKeyframe(void)
 
     ArchiveWorld();
 
-    puts(yyjson_mut_write(doc, YYJSON_WRITE_PRETTY, NULL));
-    return;
-
     // p_map.h
-    write32(floatok,
-            felldown,
-            tmfloorz,
-            tmceilingz,
-            hangsolid);
+    JS_SetInt(doc, root, "floatok", floatok);
+    JS_SetInt(doc, root, "felldown", felldown);
+    JS_SetInt(doc, root, "tmfloorz", tmfloorz);
+    JS_SetInt(doc, root, "tmceilingz", tmceilingz);
+    JS_SetInt(doc, root, "hangsolid", hangsolid);
 
-    writep_index(ceilingline, lines);
-    writep_index(floorline, lines);
-    writep_mobj(linetarget);
-    writep_msecnode(sector_list);
-    writep_index(blockline, lines);
+    JS_SETIDX(doc, root, "ceilingline", ceilingline, lines);
+    JS_SETIDX(doc, root, "floorline", floorline, lines);
+    JS_SetInt(doc, root, "linetarget", writep_mobj(linetarget));
+    JS_SetInt(doc, root, "sector_list", writep_msecnode(sector_list));
+    JS_SETIDX(doc, root, "blockline", blockline, lines);
 
+    json_mut_t *tmbbox_arr = JS_NewArray(doc);
     for (int i = 0; i < arrlen(tmbbox); ++i)
-    {
-        write32(tmbbox[i]);
-    }
+        JS_ArrayAddInt(doc, tmbbox_arr, tmbbox[i]);
+    JS_SetArray(doc, root, "tmbbox", tmbbox_arr);
 
     // p_maputil.h
-    write32(opentop,
-            openbottom,
-            openrange,
-            lowfloor);
+    JS_SetInt(doc, root, "opentop", opentop);
+    JS_SetInt(doc, root, "openbottom", openbottom);
+    JS_SetInt(doc, root, "openrange", openrange);
+    JS_SetInt(doc, root, "lowfloor", lowfloor);
 
-    write_divline_t(&trace);
+    json_mut_t *trace_obj = write_divline_t(&trace);
+    JS_SetObject(doc, root, "trace", trace_obj);
+
+    puts(yyjson_mut_write(doc, YYJSON_WRITE_PRETTY, NULL));
+    return;
 
     // p_setup.h
     ArchiveBlocklinks();
