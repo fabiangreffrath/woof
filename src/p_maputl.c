@@ -283,7 +283,7 @@ void P_UnsetThingPosition (mobj_t *thing)
 
     if (thing->type == MT_TELEPORTMAN)
     {
-        P_SetTeleptForSector(thing->subsector->sector - sectors, NULL);
+        P_ResetTeleptFromSector(thing->subsector->sector - sectors);
     }
 }
 
@@ -356,7 +356,7 @@ void P_SetThingPosition(mobj_t *thing)
 
     if (thing->type == MT_TELEPORTMAN)
     {
-        P_SetTeleptForSector(ss->sector - sectors, NULL);
+        P_ResetTeleptFromSector(ss->sector - sectors);
     }
 }
 

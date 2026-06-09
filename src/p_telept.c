@@ -56,14 +56,14 @@ static void P_InitTeleptFromSector(void)
     }
 }
 
-void P_SetTeleptForSector(int i, mobj_t *thing)
+void P_ResetTeleptFromSector(int i)
 {
     if (sectors_telept == NULL)
     {
         P_InitTeleptFromSector();
     }
 
-    sectors_telept[i] = thing;
+    sectors_telept[i] = NULL;
 }
 
 static mobj_t *P_TeleptFromSector(int i)
