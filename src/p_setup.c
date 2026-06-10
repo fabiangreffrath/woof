@@ -245,7 +245,7 @@ void P_SectorInit(sector_t * const sector)
   sector->floorlightsec = -1;   // sector used to get floor lighting
   sector->ceilinglightsec = -1; // sector used to get ceiling lighting:
 
-  sector->colormap = sector->tint = sector->tintfloor = sector->tintceiling = -1;
+  sector->tint = sector->tintfloor = sector->tintceiling = -1;
 
   // killough 8/28/98: initialize all sectors to normal friction first
   sector->friction = ORIG_FRICTION;
