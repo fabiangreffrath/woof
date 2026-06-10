@@ -21,6 +21,7 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
+#include "dsdh_main.h"
 #include "f_finale.h"
 #include "m_array.h"
 #include "m_misc.h"
@@ -526,6 +527,7 @@ static void ParseStandardProperty(scanner_t *s, mapentry_t *mape)
                 || special == 2071 || special == 2072 || special == 2073
                 || special == 2074)
             {
+                type = DSDH_ThingTranslate(type);
                 bossaction_t bossaction = {type, special, tag};
                 array_push(mape->bossactions, bossaction);
             }

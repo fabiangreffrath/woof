@@ -121,12 +121,12 @@ static int maxframe;
 
 void R_InitSpritesRes(void)
 {
-  xtoviewangle = Z_Calloc(1, (video.width + 1) * sizeof(*xtoviewangle), PU_RENDERER, NULL);
-  linearskyangle = Z_Calloc(1, (video.width + 1) * sizeof(*linearskyangle), PU_RENDERER, NULL);
-  negonearray = Z_Calloc(1, video.width * sizeof(*negonearray), PU_RENDERER, NULL);
-  screenheightarray = Z_Calloc(1, video.width * sizeof(*screenheightarray), PU_RENDERER, NULL);
+  xtoviewangle = Z_Calloc(video.width + 1, sizeof(*xtoviewangle), PU_RENDERER, NULL);
+  linearskyangle = Z_Calloc(video.width + 1, sizeof(*linearskyangle), PU_RENDERER, NULL);
+  negonearray = Z_Calloc(video.width, sizeof(*negonearray), PU_RENDERER, NULL);
+  screenheightarray = Z_Calloc(video.width, sizeof(*screenheightarray), PU_RENDERER, NULL);
 
-  clipbot = Z_Calloc(1, 2 * video.width * sizeof(*clipbot), PU_RENDERER, NULL);
+  clipbot = Z_Calloc(2 * video.width, sizeof(*clipbot), PU_RENDERER, NULL);
   cliptop = clipbot + video.width;
 }
 
@@ -436,30 +436,41 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
   // mixed with translucent/non-translucent 2s normals
 
   if (!dc_colormap[0])   // NULL colormap = shadow draw
+  {
     colfunc = R_DrawFuzzColumn;    // killough 3/14/98
+  }
   else
+  {
     // [FG] colored blood and gibs
     if (vis->mobjflags_extra & MFX_COLOREDBLOOD)
-      {
-        colfunc = R_DrawTranslatedColumn;
-        dc_translation = red2col[vis->color];
-      }
-  else
-    if (vis->mobjflags & MF_TRANSLATION)
-      {
-        colfunc = R_DrawTranslatedColumn;
-        dc_translation = translationtables - 256 +
-          ((vis->mobjflags & MF_TRANSLATION) >> (MF_TRANSSHIFT-8) );
-      }
+    {
+      dc_translation = red2col[vis->color];
+    }
+    else if (vis->mobjflags & MF_TRANSLATION)
+    {
+      dc_translation = translationtables - 256 +
+        ((vis->mobjflags & MF_TRANSLATION) >> (MF_TRANSSHIFT-8) );
+    }
     else
-      if (translucency && !(strictmode && demo_compatibility)
-          && vis->tranmap) // phares // ID24
-        {
-          colfunc = R_DrawTLColumn; // killough 4/11/98
-          tranmap = vis->tranmap;   // ID24
-        }
-      else
-        colfunc = R_DrawColumn;         // killough 3/14/98, 4/11/98
+    {
+      dc_translation = NULL;
+    }
+
+    if (translucency && !(strictmode && demo_compatibility)
+        && vis->tranmap) // phares // ID24
+    {
+      tranmap = vis->tranmap;   // ID24
+    }
+    else
+    {
+      tranmap = NULL;
+    }
+
+    colfunc = (dc_translation && tranmap) ? R_DrawTRTLColumn
+            : (dc_translation)            ? R_DrawTranslatedColumn
+            : (tranmap)                   ? R_DrawTLColumn
+            :                               R_DrawColumn;
+  }
 
   dc_iscale = abs(vis->xiscale);
   dc_texturemid = vis->texturemid;
@@ -614,11 +625,16 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
   if (x1 > viewwidth)
     return;
 
+  // [Alaux] Calculate this early
+  // to check if the right edge of the sprite goes past the left one
+  const int vx1 = x1 < 0 ? 0 : x1;
+
   tx +=  spritewidth[lump];
   x2 = ((centerxfrac + FixedMul64(tx,xscale)) >> FRACBITS) - 1;
 
     // off the left side
-  if (x2 < 0)
+    // [Alaux] Or past the left edge of the sprite
+  if (x2 < vx1)
     return;
 
   gzt = interpz + spritetopoffset[lump];
@@ -665,7 +681,7 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
   vis->gz = interpz;
   vis->gzt = gzt;                          // killough 3/27/98
   vis->texturemid = gzt - viewz;
-  vis->x1 = x1 < 0 ? 0 : x1;
+  vis->x1 = vx1;
   vis->x2 = x2 >= viewwidth ? viewwidth-1 : x2;
   iscale = FixedDiv(FRACUNIT, xscale);
   vis->color = thing->bloodcolor;

@@ -809,6 +809,26 @@ void S_ResumeSound(void)
     I_ProcessSoundUpdates();
 }
 
+void S_MuteSound(void)
+{
+    if (nosfxparm)
+    {
+        return;
+    }
+
+    I_MuteSound();
+}
+
+void S_UnmuteSound(void)
+{
+    if (nosfxparm)
+    {
+        return;
+    }
+
+    I_UnmuteSound();
+}
+
 //
 // Stop and resume music, during game PAUSE.
 //

@@ -474,7 +474,7 @@ static void P_CreateBlockMap(void)
         // size of blockmap
         unsigned tot = bmapwidth * bmapheight;
         // array of blocklists
-        bmap_t *bmap = Z_Calloc(sizeof *bmap, tot, PU_STATIC, 0);
+        bmap_t *bmap = Z_Calloc(tot, sizeof(*bmap), PU_STATIC, 0);
 
         for (i = 0; i < numlines; i++)
         {
@@ -725,7 +725,7 @@ static void LoadBlockmap_DoomBlockmap(int lump, int bmap_size)
 static void LoadBlockmap_XBM1(int lump, int bmap_size)
 {
     int32_t *data = W_CacheLumpNum(lump, PU_STATIC);
-    int count = bmap_size / sizeof(uint32_t);
+    int count = (bmap_size - 8) / sizeof(uint32_t);
     blockmaplump = Z_Malloc(sizeof(*blockmaplump) * count, PU_LEVEL, 0);
 
     // skip prefix header

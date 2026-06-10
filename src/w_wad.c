@@ -464,7 +464,7 @@ void W_InitMultipleFiles(void)
   W_CoalesceMarkedResource("HI_START", "HI_END", ns_hires);
 
   // set up caching
-  lumpcache = Z_Calloc(sizeof *lumpcache, numlumps, PU_STATIC, 0); // killough
+  lumpcache = Z_Calloc(numlumps, sizeof(*lumpcache), PU_STATIC, 0); // killough
 
   if (!lumpcache)
     I_Error ("Couldn't allocate lumpcache");

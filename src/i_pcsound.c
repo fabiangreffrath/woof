@@ -522,6 +522,8 @@ const sound_module_t sound_pcs_module =
     I_PCS_StopSound,
     NULL,
     NULL,
+    I_OAL_MuteSound,
+    I_OAL_UnmuteSound,
     I_PCS_SoundIsPlaying,
     NULL,
     I_PCS_ShutdownSound,
