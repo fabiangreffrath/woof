@@ -1,6 +1,7 @@
 **New Features and Improvements**
 
-* TO-DO
+* Support for rendering of translucent translated sprites (enables e.g. translucent colored blood)
+* Optimized rendering of very small and/or distant sprites
 
 **Bug Fixes**
 
