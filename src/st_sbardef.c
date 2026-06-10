@@ -492,8 +492,18 @@ static void LoadHUDFont(hudfont_t *out)
             continue;
         }
         out->characters[i] = V_CachePatchNum(found, PU_STATIC);
-        maxwidth = MAX(maxwidth, SHORT(out->characters[i]->width));
-        maxheight = MAX(maxheight, SHORT(out->characters[i]->height));
+
+        const short width = SHORT(out->characters[i]->width);
+        if (width <= 8 * SPACEWIDTH)
+        {
+            maxwidth = MAX(maxwidth, width);
+        }
+
+        const short height = SHORT(out->characters[i]->height);
+        if (height <= ST_HEIGHT)
+        {
+            maxheight = MAX(maxheight, height);
+        }
     }
 
     out->maxheight = maxheight;
