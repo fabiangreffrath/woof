@@ -2170,6 +2170,7 @@ void MN_ClearMenus(void)
     menuactive = 0;
     mouse_active_thermo = false;
     options_active = false;
+    customskill_active = false;
     print_warning_about_changes = 0; // killough 8/15/98
     default_verify = 0;              // killough 10/98
 
