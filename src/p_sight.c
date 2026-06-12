@@ -51,7 +51,7 @@ typedef struct {
 // killough 4/19/98: made static, cleaned up
 // killough 12/98: made external
 
-int P_DivlineSide(fixed_t x, fixed_t y, const divline_t *node)
+static int DivlineSide(fixed_t x, fixed_t y, const divline_t *node)
 {
   fixed_t left = 0, right = 0; // [FG] initialize
   return
@@ -60,6 +60,58 @@ int P_DivlineSide(fixed_t x, fixed_t y, const divline_t *node)
     (right = ((y - node->y) >> FRACBITS) * (node->dx >> FRACBITS)) <
     (left  = ((x - node->x) >> FRACBITS) * (node->dy >> FRACBITS)) ? 0 :
     right == left ? 2 : 1;
+}
+
+static int DivlineCrossed(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2,
+                          divline_t *node)
+{
+    if (!node->dx)
+    {
+        if (x1 == node->x)
+        {
+            return (x2 == node->x);
+        }
+        if (x1 < node->x)
+        {
+            return (x2 < node->x);
+        }
+        return (x2 > node->x);
+    }
+
+    if (!node->dy)
+    {
+        if ((mbf21 ? y1 : x1) == node->y)
+        {
+            return (x2 == node->y);
+        }
+        if (y1 < node->y)
+        {
+            return (y2 < node->y);
+        }
+        return (y2 > node->y);
+    }
+
+    {
+        fixed_t node_dx = (node->dx >> FRACBITS);
+        fixed_t node_dy = (node->dy >> FRACBITS);
+
+        fixed_t left1 = node_dy * ((x1 - node->x) >> FRACBITS);
+        fixed_t right1 = ((y1 - node->y) >> FRACBITS) * node_dx;
+        fixed_t left2 = node_dy * ((x2 - node->x) >> FRACBITS);
+        fixed_t right2 = ((y2 - node->y) >> FRACBITS) * node_dx;
+
+        if (right1 < left1)
+        {
+            return (right2 < left2);
+        }
+
+        if (left1 == right1)
+        {
+            return (left2 == right2);
+        }
+
+        return (right2 > left2);
+    }
 }
 
 //
@@ -86,31 +138,20 @@ static fixed_t P_InterceptVector2(const divline_t *v2, const divline_t *v1)
 
 static boolean P_CrossSubsector(int num, register los_t *los)
 {
-  seg_t *seg = segs + subsectors[num].firstline;
-  int count;
+  ssline_t *ssline = &sslines[sslines_indexes[num]];
+  const ssline_t *ssline_last = &sslines[sslines_indexes[num + 1]];
 
 #ifdef RANGECHECK
   if (num >= numsubsectors)
     I_Error("ss %i with numss = %i", num, numsubsectors);
 #endif
 
-  for (count = subsectors[num].numlines; --count >= 0; seg++)  // check lines
+  for (; ssline < ssline_last; ssline++)
     {
-      line_t *line = seg->linedef;
       divline_t divl;
       fixed_t opentop, openbottom;
       const sector_t *front, *back;
-      const vertex_t *v1,*v2;
       fixed_t frac;
-
-      if (!line) // figgi -- skip minisegs
-        continue;
-
-      // allready checked other side?
-      if (line->validcount == validcount)
-        continue;
-
-      line->validcount = validcount;
 
       // OPTIMIZE: killough 4/20/98: Added quick bounding-box rejection test
 
@@ -118,36 +159,46 @@ static boolean P_CrossSubsector(int num, register los_t *los)
       // http://prboom.sourceforge.net/mbf-bugs.html
       if (!demo_compatibility)
       {
-      if (line->bbox[BOXLEFT  ] > los->bbox[BOXRIGHT ] ||
-          line->bbox[BOXRIGHT ] < los->bbox[BOXLEFT  ] ||
-          line->bbox[BOXBOTTOM] > los->bbox[BOXTOP   ] ||
-          line->bbox[BOXTOP]    < los->bbox[BOXBOTTOM])
+      if (ssline->bbox[BOXLEFT  ] > los->bbox[BOXRIGHT ] ||
+          ssline->bbox[BOXRIGHT ] < los->bbox[BOXLEFT  ] ||
+          ssline->bbox[BOXBOTTOM] > los->bbox[BOXTOP   ] ||
+          ssline->bbox[BOXTOP]    < los->bbox[BOXBOTTOM])
+      {
+          ssline->linedef->validcount = validcount;
           continue;
       }
-
-      v1 = line->v1;
-      v2 = line->v2;
+      }
 
       // line isn't crossed?
-      if (P_DivlineSide(v1->x, v1->y, &los->strace) ==
-          P_DivlineSide(v2->x, v2->y, &los->strace))
+      if (DivlineCrossed(ssline->x1, ssline->y1, ssline->x2, ssline->y2, &los->strace))
+      {
+        ssline->linedef->validcount = validcount;
         continue;
+      }
 
-      divl.dx = v2->x - (divl.x = v1->x);
-      divl.dy = v2->y - (divl.y = v1->y);
+      divl.dx = ssline->x2 - (divl.x = ssline->x1);
+      divl.dy = ssline->y2 - (divl.y = ssline->y1);
 
       // line isn't crossed?
-      if (P_DivlineSide(los->strace.x, los->strace.y, &divl) ==
-          P_DivlineSide(los->t2x, los->t2y, &divl))
+      if (DivlineCrossed(los->strace.x, los->strace.y, los->t2x, los->t2y, &divl))
+      {
+        ssline->linedef->validcount = validcount;
         continue;
+      }
+
+      // allready checked other side?
+      if (ssline->linedef->validcount == validcount)
+        continue;
+
+      ssline->linedef->validcount = validcount;
 
       // stop because it is not two sided anyway
-      if (!(line->flags & ML_TWOSIDED))
+      if (!(ssline->linedef->flags & ML_TWOSIDED))
         return false;
 
       // crosses a two sided line
-      front = seg->frontsector;
-      back = seg->backsector;
+      front = ssline->seg->frontsector;
+      back = ssline->seg->backsector;
 
       // missed back side on two-sided lines.
       if (demo_compatibility && !back)
@@ -162,12 +213,10 @@ static boolean P_CrossSubsector(int num, register los_t *los)
 
       // possible occluder
       // because of ceiling height differences
-      opentop = front->ceilingheight < back->ceilingheight ?
-        front->ceilingheight : back->ceilingheight ;
+      opentop = MIN(front->ceilingheight, back->ceilingheight);
 
       // because of floor height differences
-      openbottom = front->floorheight > back->floorheight ?
-        front->floorheight : back->floorheight ;
+      openbottom = MAX(front->floorheight, back->floorheight);
 
       // quick test for totally closed doors
       if (openbottom >= opentop)
@@ -208,8 +257,8 @@ static boolean P_CrossBSPNode(int bspnum, register los_t *los)
   while (!(bspnum & NF_SUBSECTOR))
     {
       register const node_t *bsp = nodes + bspnum;
-      int side = P_DivlineSide(los->strace.x,los->strace.y,(divline_t *)bsp)&1;
-      if (side == P_DivlineSide(los->t2x, los->t2y, (divline_t *) bsp))
+      int side = DivlineSide(los->strace.x,los->strace.y,(divline_t *)bsp)&1;
+      if (side == DivlineSide(los->t2x, los->t2y, (divline_t *) bsp))
          bspnum = bsp->children[side]; // doesn't touch the other side
       else         // the partition plane is crossed here
         if (!P_CrossBSPNode(bsp->children[side], los))
