@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include "doomdata.h"
+#include "doomstat.h"
 #include "doomtype.h"
 #include "i_printf.h"
 #include "i_system.h"
@@ -487,17 +488,24 @@ void P_LoadSegs(int lump)
     {
         seg_t *li = segs + i;
         mapseg_t *ml = (mapseg_t *)data + i;
-
+        unsigned int v1, v2;
         int side, linedef;
         line_t *ldef;
 
         // [FG] extended nodes
-        li->v1 = &vertexes[(unsigned short)SHORT(ml->v1)];
-        li->v2 = &vertexes[(unsigned short)SHORT(ml->v2)];
+        v1 = (unsigned short)SHORT(ml->v1);
+        v2 = (unsigned short)SHORT(ml->v2);
 
-        li->angle = IntToFixed(SHORT(ml->angle));
-        li->offset = IntToFixed(SHORT(ml->offset));
+        li->angle = (SHORT(ml->angle)) << 16;
         linedef = (unsigned short)SHORT(ml->linedef); // [FG] extended nodes
+
+        // Andrey Budko: check for wrong indexes
+        if ((unsigned)linedef >= (unsigned)numlines)
+        {
+            I_Error("seg %d references a non-existent linedef %d", i,
+                    (unsigned)linedef);
+        }
+
         ldef = &lines[linedef];
         li->linedef = ldef;
         side = SHORT(ml->side);
@@ -511,9 +519,20 @@ void P_LoadSegs(int lump)
         }
 
         li->sidedef = &sides[ldef->sidenum[side]];
-        li->frontsector = sides[ldef->sidenum[side]].sector;
-        // [FG] recalculate
-        li->offset = P_GetOffset(li->v1, (ml->side ? ldef->v2 : ldef->v1));
+
+        /* cph 2006/09/30 - our frontsector can be the second side of the
+         * linedef, so must check for NO_INDEX in case we are incorrectly
+         * referencing the back of a 1S line */
+        if (ldef->sidenum[side] != NO_INDEX)
+        {
+            li->frontsector = sides[ldef->sidenum[side]].sector;
+        }
+        else
+        {
+            li->frontsector = 0;
+            I_Printf(VB_DEBUG, "%s: front of seg %i has no sidedef", __func__,
+                     i);
+        }
 
         if (ldef->flags & ML_TWOSIDED)
         {
@@ -533,6 +552,54 @@ void P_LoadSegs(int lump)
         {
             li->backsector = 0;
         }
+
+        // Andrey Budko
+        // check and fix wrong references to non-existent vertexes
+        // see e1m9 @ NIVELES.WAD
+        // http://www.doomworld.com/idgames/index.php?id=12647
+        if (v1 >= numvertexes || v2 >= numvertexes)
+        {
+            if (v1 >= numvertexes)
+            {
+                I_Printf(VB_WARNING,
+                         "%s: compatibility loss - seg %d "
+                         "references a non-existent vertex %d.",
+                         __func__, i, v1);
+            }
+
+            if (v2 >= numvertexes)
+            {
+                I_Printf(VB_WARNING,
+                         "%s: compatibility loss - seg %d "
+                         "references a non-existent vertex %d.",
+                         __func__, i, v2);
+            }
+
+            if (demorecording)
+            {
+                I_Error("Demo recording on levels with invalid "
+                        "nodes is not allowed.");
+            }
+
+            if (li->sidedef == &sides[li->linedef->sidenum[0]])
+            {
+                li->v1 = lines[ml->linedef].v1;
+                li->v2 = lines[ml->linedef].v2;
+            }
+            else
+            {
+                li->v1 = lines[ml->linedef].v2;
+                li->v2 = lines[ml->linedef].v1;
+            }
+        }
+        else
+        {
+            li->v1 = &vertexes[v1];
+            li->v2 = &vertexes[v2];
+        }
+
+        // [FG] recalculate
+        li->offset = P_GetOffset(li->v1, (ml->side ? ldef->v2 : ldef->v1));
     }
 
     Z_Free(data);
@@ -554,20 +621,23 @@ void P_LoadSegs_DeePBSPV4(int lump)
         mapseg_deepbspv4_t *ml = (mapseg_deepbspv4_t *)data + i;
         int side, linedef;
         line_t *ldef;
-        int vn1, vn2;
+        int v1, v2;
 
         // [MB] 2020-04-22: Fix endianess for DeePBSPV4 nodes
-        vn1 = LONG(ml->v1);
-        vn2 = LONG(ml->v2);
+        v1 = LONG(ml->v1);
+        v2 = LONG(ml->v2);
 
-        // [FG] extended nodes
-        li->v1 = &vertexes[vn1];
-        li->v2 = &vertexes[vn2];
-
-        li->angle = (SHORT(ml->angle)) << 16;
-        li->offset = (SHORT(ml->offset)) << 16;
+        li->angle = IntToFixed(SHORT(ml->angle));
 
         linedef = (unsigned short)SHORT(ml->linedef); // [FG] extended nodes
+
+        // Andrey Budko: check for wrong indexes
+        if ((unsigned)linedef >= (unsigned)numlines)
+        {
+            I_Error("seg %d references a non-existent linedef %d", i,
+                    (unsigned)linedef);
+        }
+
         ldef = &lines[linedef];
         li->linedef = ldef;
 
@@ -579,29 +649,77 @@ void P_LoadSegs_DeePBSPV4(int lump)
         }
 
         li->sidedef = &sides[ldef->sidenum[side]];
-        li->frontsector = sides[ldef->sidenum[side]].sector;
 
-        // [FG] recalculate
-        li->offset = P_GetOffset(li->v1, (ml->side ? ldef->v2 : ldef->v1));
-
-        if (ldef->flags & ML_TWOSIDED)
+        /* cph 2006/09/30 - our frontsector can be the second side of the
+         * linedef, so must check for NO_INDEX in case we are incorrectly
+         * referencing the back of a 1S line */
+        if (ldef->sidenum[side] != NO_INDEX)
         {
-            int sidenum = ldef->sidenum[side ^ 1];
+            li->frontsector = sides[ldef->sidenum[side]].sector;
+        }
+        else
+        {
+            li->frontsector = 0;
+            I_Printf(VB_DEBUG, "%s: front of seg %i has no sidedef", __func__,
+                     i);
+        }
 
-            if (sidenum == NO_INDEX)
-            {
-                // this is wrong
-                li->backsector = GetSectorAtNullAddress();
-            }
-            else
-            {
-                li->backsector = sides[sidenum].sector;
-            }
+        if (ldef->flags & ML_TWOSIDED && ldef->sidenum[side ^ 1] != NO_INDEX)
+        {
+            li->backsector = sides[ldef->sidenum[side ^ 1]].sector;
         }
         else
         {
             li->backsector = 0;
         }
+
+        // Andrey Budko
+        // check and fix wrong references to non-existent vertexes
+        // see e1m9 @ NIVELES.WAD
+        // http://www.doomworld.com/idgames/index.php?id=12647
+        if (v1 >= numvertexes || v2 >= numvertexes)
+        {
+            if (v1 >= numvertexes)
+            {
+                I_Printf(VB_WARNING,
+                         "%s: compatibility loss - seg %d "
+                         "references a non-existent vertex %d.",
+                         __func__, i, v1);
+            }
+
+            if (v2 >= numvertexes)
+            {
+                I_Printf(VB_WARNING,
+                         "%s: compatibility loss - seg %d "
+                         "references a non-existent vertex %d.",
+                         __func__, i, v2);
+            }
+
+            if (demorecording)
+            {
+                I_Error("Demo recording on levels with invalid "
+                        "nodes is not allowed.");
+            }
+
+            if (li->sidedef == &sides[li->linedef->sidenum[0]])
+            {
+                li->v1 = lines[ml->linedef].v1;
+                li->v2 = lines[ml->linedef].v2;
+            }
+            else
+            {
+                li->v1 = lines[ml->linedef].v2;
+                li->v2 = lines[ml->linedef].v1;
+            }
+        }
+        else
+        {
+            li->v1 = &vertexes[v1];
+            li->v2 = &vertexes[v2];
+        }
+
+        // [FG] recalculate
+        li->offset = P_GetOffset(li->v1, (ml->side ? ldef->v2 : ldef->v1));
     }
 
     Z_Free(data);
@@ -689,6 +807,13 @@ static void P_LoadSegs_XNOD(byte *data)
         li->v2 = &vertexes[v2];
 
         linedef = (unsigned short)SHORT(ml->linedef);
+        // Andrey Budko: check for wrong indexes
+        if ((unsigned)linedef >= (unsigned)numlines)
+        {
+            I_Error("seg %d references a non-existent linedef %d", i,
+                    (unsigned)linedef);
+        }
+
         ldef = &lines[linedef];
         li->linedef = ldef;
         side = ml->side;
@@ -708,26 +833,28 @@ static void P_LoadSegs_XNOD(byte *data)
         }
 
         li->sidedef = &sides[ldef->sidenum[side]];
-        li->frontsector = sides[ldef->sidenum[side]].sector;
+
+        /* cph 2006/09/30 - our frontsector can be the second side of the
+         * linedef, so must check for NO_INDEX in case we are incorrectly
+         * referencing the back of a 1S line */
+        if (ldef->sidenum[side] != NO_INDEX)
+        {
+            li->frontsector = sides[ldef->sidenum[side]].sector;
+        }
+        else
+        {
+            li->frontsector = 0;
+            I_Printf(VB_DEBUG, "%s: front of seg %i has no sidedef\n", __func__,
+                     i);
+        }
 
         // seg angle and offset are not included
-        li->angle = R_PointToAngle2(segs[i].v1->x, segs[i].v1->y, segs[i].v2->x,
-                                    segs[i].v2->y);
+        li->angle = R_PointToAngle2(li->v1->x, li->v1->y, li->v2->x, li->v2->y);
         li->offset = P_GetOffset(li->v1, (ml->side ? ldef->v2 : ldef->v1));
 
-        if (ldef->flags & ML_TWOSIDED)
+        if (ldef->flags & ML_TWOSIDED && ldef->sidenum[side ^ 1] != NO_INDEX)
         {
-            int sidenum = ldef->sidenum[side ^ 1];
-
-            if (sidenum == NO_INDEX)
-            {
-                // this is wrong
-                li->backsector = GetSectorAtNullAddress();
-            }
-            else
-            {
-                li->backsector = sides[sidenum].sector;
-            }
+            li->backsector = sides[ldef->sidenum[side ^ 1]].sector;
         }
         else
         {
@@ -820,13 +947,12 @@ static void P_LoadSegs_XGL(byte *data, bspformat_t format)
                 else
                 {
                     seg->frontsector = 0;
-                    I_Printf(
-                        VB_WARNING,
-                        "P_LoadSegs_XGLN: front of seg %d, %d has no sidedef",
-                        i, j);
+                    I_Printf(VB_WARNING,
+                             "%s: front of seg %d, %d has no sidedef", __func__,
+                             i, j);
                 }
 
-                if ((ldef->flags & ML_TWOSIDED)
+                if (ldef->flags & ML_TWOSIDED
                     && (ldef->sidenum[side ^ 1] != NO_INDEX))
                 {
                     seg->backsector = sides[ldef->sidenum[side ^ 1]].sector;
@@ -853,9 +979,7 @@ static void P_LoadSegs_XGL(byte *data, bspformat_t format)
         // Need all vertices to be defined before setting angles
         for (j = 0; j < subsectors[i].numlines; ++j)
         {
-            seg_t *seg;
-
-            seg = &segs[subsectors[i].firstline + j];
+            seg_t *seg = &segs[subsectors[i].firstline + j];
 
             if (seg->linedef)
             {
