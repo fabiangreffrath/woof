@@ -45,6 +45,7 @@ extern const char *const node_format_names[];
 extern mapformat_t P_CheckMapFormat(int lumpnum);
 extern bspformat_t P_CheckBSPFormat_Doom(int lumpnum);
 extern bspformat_t P_CheckBSPFormat_UDMF(int lumpnum);
+extern void P_InitSubsectorLines(void);
 extern int P_GetOffset(struct vertex_s *v1, struct vertex_s *v2);
 
 extern void P_LoadSegs(int lump);
