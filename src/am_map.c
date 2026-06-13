@@ -25,6 +25,7 @@
 #include "d_event.h"
 #include "d_player.h"
 #include "deh_strings.h"
+#include "doomdata.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
@@ -88,6 +89,14 @@ enum {
   MAP_KEYED_DOOR_COLOR,
   MAP_KEYED_DOOR_FLASH
 };
+
+static int key_color_R;
+static int key_color_B;
+static int key_color_Y;
+static int door_color_R;
+static int door_color_B;
+static int door_color_Y;
+static int door_color_misc;
 
 static int map_keyed_door; // keyed doors are colored or flashing
 
@@ -1786,36 +1795,58 @@ static void AM_drawGrid(int color)
 //
 // jff 4/3/98 add routine to get color of generalized keyed door
 //
-static int AM_DoorColor(int type)
+typedef enum DoorType_e
 {
-  if (map_keyed_door == MAP_KEYED_DOOR_OFF)
-  {
-    return -1;
-  }
+    DoorType_None = -1,
+    DoorType_Red,
+    DoorType_Blue,
+    DoorType_Yellow,
+    DoorType_Multiple
+} DoorType_t;
 
-  if (GenLockedBase <= type && type< GenDoorBase)
-  {
-    type -= GenLockedBase;
-    type = (type & LockedKey) >> LockedKeyShift;
-    if (!type || type==7)
-      return 3;  //any or all keys
-    else return (type-1)%3;
-  }
-  switch (type)  // closed keyed door
-  {
-    case 26: case 32: case 99: case 133:
-      /*bluekey*/
-      return 1;
-    case 27: case 34: case 136: case 137:
-      /*yellowkey*/
-      return 2;
-    case 28: case 33: case 134: case 135:
-      /*redkey*/
-      return 0;
-    default:
-      return -1; //not a keyed door
-  }
-  return -1;     //not a keyed door
+static int DoorType(const line_t *line)
+{
+    if (map_keyed_door == MAP_KEYED_DOOR_OFF)
+    {
+        return DoorType_None;
+    }
+
+    int special = lines->special;
+
+    if (GenLockedBase <= special && special < GenDoorBase)
+    {
+        special -= GenLockedBase;
+        special = (special & LockedKey) >> LockedKeyShift;
+        if (!special || special == 7)
+        {
+            return DoorType_Multiple;
+        }
+        else
+        {
+            return (special - 1) % 3;
+        }
+    }
+
+    switch (special)
+    {
+        case 26:
+        case 32:
+        case 99:
+        case 133:
+            return DoorType_Blue;
+        case 27:
+        case 34:
+        case 136:
+        case 137:
+            return DoorType_Yellow;
+        case 28:
+        case 33:
+        case 134:
+        case 135:
+            return DoorType_Red;
+        default:
+            return DoorType_None;
+    }
 }
 
 //
@@ -1846,217 +1877,257 @@ typedef struct
 
 static am_line_t *lines_1S = NULL;
 
-static void AM_drawWalls(void)
+static boolean DrawHiddenSecrets(void)
 {
-  int i;
-  static mline_t l;
+  return !!cur_mapcolor_secr && !map_secret_after;
+}
 
-  const boolean keyed_door_flash = (map_keyed_door == MAP_KEYED_DOOR_FLASH) && (leveltime & 16);
+static boolean DrawRevealedSecrets(void)
+{
+  return !!cur_mapcolor_revsecr;
+}
 
-  // draw the unclipped visible portions of all lines
-  for (i=0;i<numlines;i++)
-  {
-    l.a.x = lines[i].v1->x >> FRACTOMAPBITS;
-    l.a.y = lines[i].v1->y >> FRACTOMAPBITS;
-    l.b.x = lines[i].v2->x >> FRACTOMAPBITS;
-    l.b.y = lines[i].v2->y >> FRACTOMAPBITS;
-    AM_transformPoint(&l.a);
-    AM_transformPoint(&l.b);
-    // if line has been seen or IDDT has been used
-    if (ddt_cheating || (lines[i].flags & ML_MAPPED))
+static amls_t LineStyle(line_t *line)
+{
+    sector_t *back = line->backsector;
+    sector_t *front = line->frontsector;
+    uint32_t secret = line->flags & ML_SECRET;
+    uint32_t mapped = line->flags & ML_MAPPED;
+    uint32_t dontdraw = line->flags & ML_DONTDRAW;
+
+    switch (line->amls)
     {
-      if ((lines[i].flags & ML_DONTDRAW) && !ddt_cheating)
-        continue;
-      {
-        /* cph - show keyed doors and lines */
-        const int amd = AM_DoorColor(lines[i].special);
-        if ((cur_mapcolor_bdor || cur_mapcolor_ydor || cur_mapcolor_rdor) &&
-            !(lines[i].flags & ML_SECRET) &&    /* non-secret */
-            (amd != -1)
-        )
+        case amls_Default:
+            break;
+
+        // These styles have no corresponding colors
+        case amls_ExtraFloor:
+        case amls_Portal:
+        case amls_Special:
+            return (!back) ? amls_OneSided : amls_TwoSided;
+
+        default:
+            return line->amls;
+    }
+
+    // if line has been seen or IDDT has been used
+    if (ddt_cheating || (mapped))
+    {
+        if (dontdraw && !ddt_cheating)
         {
+            return amls_Invisible;
+        }
+
+        if ((cur_mapcolor_bdor || cur_mapcolor_ydor || cur_mapcolor_rdor)
+            && !(secret) && DoorType(line) != DoorType_None)
+        {
+            return amls_Locked;
+        }
+
+        if (cur_mapcolor_exit && P_IsExitLine(line))
+        {
+            return amls_InterTeleport;
+        }
+
+        if (cur_mapcolor_exit && P_IsDeathExit(front))
+        {
+            return amls_InterTeleport;
+        }
+
+        if (!back) // 1-sided
+        {
+            if (DrawHiddenSecrets() && P_IsSecret(front))
+            {
+                return amls_Secret;
+            }
+            else if (DrawRevealedSecrets() && P_RevealedSecret(front))
+            {
+                return amls_RevealedSecret;
+            }
+            else
+            {
+                return amls_OneSided;
+            }
+        }
+        else // 2-sided
+        {
+            if (cur_mapcolor_tele && !secret && P_IsTeleportLine(line))
+            {
+                return amls_IntraTeleport;
+            }
+            else if (secret)
+            {
+                return amls_OneSided;
+            }
+            else if (cur_mapcolor_clsd && !secret
+                     && ((back->floorheight == back->ceilingheight)
+                         || (front->floorheight == front->ceilingheight)))
+            {
+                return amls_ClosedDoor;
+            }
+            else if (DrawHiddenSecrets()
+                     && (P_IsSecret(front) || P_IsSecret(back)))
+            {
+                return amls_Secret;
+            }
+            else if (DrawRevealedSecrets()
+                     && (P_RevealedSecret(front) || P_RevealedSecret(back)))
+            {
+                return amls_RevealedSecret;
+            }
+            else if (cur_mapcolor_exit
+                     && (P_IsDeathExit(front) || P_IsDeathExit(back)))
+            {
+                return amls_InterTeleport;
+            }
+            else if (back->floorheight != front->floorheight)
+            {
+                return amls_FloorDiff;
+            }
+            else if (back->ceilingheight != front->ceilingheight)
+            {
+                return amls_CeilingDiff;
+            }
+            else if (cur_mapcolor_flat && ddt_cheating)
+            {
+                return amls_TwoSided;
+            }
+        }
+    }
+    else if (plr->powers[pw_allmap])
+    {
+        if (dontdraw)
+        {
+            return amls_Invisible;
+        }
+        if (cur_mapcolor_flat // line with no floor/ceiling changes
+            || !back          //
+            || back->floorheight != front->floorheight
+            || back->ceilingheight != front->ceilingheight)
+        {
+            return amls_UnexploredSecret;
+        }
+    }
+
+    return amls_Invisible;
+}
+
+static int ColorForStyle(line_t *line, amls_t style, boolean keyed_door_flash)
+{
+    switch (style)
+    {
+        case amls_Locked:
             if (keyed_door_flash)
             {
-               AM_drawMline(&l, cur_mapcolor_grid);
+                return cur_mapcolor_grid;
+                break;
             }
-            else switch (amd) // closed keyed door
+
+            switch (DoorType(line))
             {
-              case 1:
-                /*bluekey*/
-                AM_drawMline(&l,
-                  cur_mapcolor_bdor? cur_mapcolor_bdor : cur_mapcolor_cchg);
-                break;
-              case 2:
-                /*yellowkey*/
-                AM_drawMline(&l,
-                  cur_mapcolor_ydor? cur_mapcolor_ydor : cur_mapcolor_cchg);
-                break;
-              case 0:
-                /*redkey*/
-                AM_drawMline(&l,
-                  cur_mapcolor_rdor? cur_mapcolor_rdor : cur_mapcolor_cchg);
-                break;
-              case 3:
-                /*any or all*/
-                AM_drawMline(&l,
-                  cur_mapcolor_clsd? cur_mapcolor_clsd : cur_mapcolor_cchg);
-                break;
+                case DoorType_Red:
+                    return door_color_R;
+                    break;
+                case DoorType_Blue:
+                    return door_color_B;
+                    break;
+                case DoorType_Yellow:
+                    return door_color_Y;
+                    break;
+                default:
+                    return door_color_misc;
+                    break;
             }
+
+        case amls_IntraTeleport:
+            return cur_mapcolor_exit;
+            break;
+
+        case amls_OneSided:
+            return cur_mapcolor_wall;
+            break;
+
+        case amls_Secret:
+        case amls_UnexploredSecret:
+            return cur_mapcolor_secr;
+            break;
+
+        case amls_RevealedSecret:
+            return cur_mapcolor_revsecr;
+            break;
+
+        case amls_InterTeleport:
+            return cur_mapcolor_tele;
+            break;
+
+        case amls_ClosedDoor:
+            return cur_mapcolor_clsd;
+            break;
+
+        case amls_FloorDiff:
+            return cur_mapcolor_fchg;
+            break;
+
+        case amls_CeilingDiff:
+            return cur_mapcolor_cchg;
+            break;
+
+        case amls_TwoSided:
+            return cur_mapcolor_flat;
+            break;
+
+        case amls_NotSeen:
+            return cur_mapcolor_unsn;
+            break;
+
+        default:
+            return NO_INDEX;
+            break;
+    }
+}
+
+static void AM_drawWalls(void)
+{
+    static mline_t l;
+
+    const boolean keyed_door_flash =
+        (map_keyed_door == MAP_KEYED_DOOR_FLASH) && (leveltime & 16);
+
+    // draw the unclipped visible portions of all lines
+    for (int i = 0; i < numlines; i++)
+    {
+        line_t *line = &lines[i];
+        boolean one_sided = !(line->flags & ML_TWOSIDED);
+        amls_t style = LineStyle(line);
+        int color = ColorForStyle(line, style, keyed_door_flash);
+
+        if (style == amls_Invisible)
+        {
             continue;
         }
-      }
-      if //jff 4/23/98 add exit lines to automap
-      (
-        cur_mapcolor_exit &&
-        (
-          lines[i].special==11 ||
-          lines[i].special==52 ||
-          lines[i].special==197 ||
-          lines[i].special==51  ||
-          lines[i].special==124 ||
-          lines[i].special==198
-        )
-      )
-      {
-        AM_drawMline(&l, keyed_door_flash ? cur_mapcolor_grid : cur_mapcolor_exit); // exit line
-        continue;
-      }
 
-      if (!lines[i].backsector)
-      {
-        if (cur_mapcolor_exit && P_IsDeathExit(lines[i].frontsector))
+        l.a.x = line->v1->x >> FRACTOMAPBITS;
+        l.a.y = line->v1->y >> FRACTOMAPBITS;
+        l.b.x = line->v2->x >> FRACTOMAPBITS;
+        l.b.y = line->v2->y >> FRACTOMAPBITS;
+        AM_transformPoint(&l.a);
+        AM_transformPoint(&l.b);
+
+        if (one_sided)
         {
-          array_push(lines_1S, ((am_line_t){l, keyed_door_flash ? cur_mapcolor_grid : cur_mapcolor_exit}));
+            array_push(lines_1S, ((am_line_t){l, color}));
         }
-        // jff 1/10/98 add new color for 1S secret sector boundary
-        else if (cur_mapcolor_secr && //jff 4/3/98 0 is disable
-            (
-             !map_secret_after &&
-             P_IsSecret(lines[i].frontsector)
-            )
-          )
+        else
         {
-          // line bounding secret sector
-          array_push(lines_1S, ((am_line_t){l, cur_mapcolor_secr}));
+            AM_drawMline(&l, color);
         }
-        else if (cur_mapcolor_revsecr &&
-            (
-             P_WasSecret(lines[i].frontsector) &&
-             !P_IsSecret(lines[i].frontsector)
-            )
-          )
-        {
-          // line bounding revealed secret sector
-          array_push(lines_1S, ((am_line_t){l, cur_mapcolor_revsecr}));
-        }
-        else                               //jff 2/16/98 fixed bug
-        {
-          // special was cleared
-          array_push(lines_1S, ((am_line_t){l, cur_mapcolor_wall}));
-        }
-      }
-      else
-      {
-        // jff 1/10/98 add color change for all teleporter types
-        if
-        (
-            cur_mapcolor_tele && !(lines[i].flags & ML_SECRET) &&
-            (lines[i].special == 39 || lines[i].special == 97 /* ||
-            lines[i].special == 125 || lines[i].special == 126 */ )
-        )
-        { // teleporters
-          AM_drawMline(&l, cur_mapcolor_tele);
-        }
-        else if (lines[i].flags & ML_SECRET)    // secret door
-        {
-          AM_drawMline(&l, cur_mapcolor_wall);      // wall color
-        }
-        else if
-        (
-            cur_mapcolor_clsd &&
-            !(lines[i].flags & ML_SECRET) &&    // non-secret closed door
-            ((lines[i].backsector->floorheight==lines[i].backsector->ceilingheight) ||
-            (lines[i].frontsector->floorheight==lines[i].frontsector->ceilingheight))
-        )
-        {
-          AM_drawMline(&l, cur_mapcolor_clsd);      // non-secret closed door
-        } //jff 1/6/98 show secret sector 2S lines
-        else if (cur_mapcolor_exit &&
-            (P_IsDeathExit(lines[i].frontsector) ||
-             P_IsDeathExit(lines[i].backsector))
-        )
-        {
-          AM_drawMline(&l, keyed_door_flash ? cur_mapcolor_grid : cur_mapcolor_exit);
-        }
-        else if
-        (
-            cur_mapcolor_secr && //jff 2/16/98 fixed bug
-            (                    // special was cleared after getting it
-              !map_secret_after &&
-               (
-                P_IsSecret(lines[i].frontsector) ||
-                P_IsSecret(lines[i].backsector)
-               )
-            )
-        )
-        {
-          AM_drawMline(&l, cur_mapcolor_secr); // line bounding secret sector
-        } //jff 1/6/98 end secret sector line change
-        else if
-        (
-            cur_mapcolor_revsecr &&
-            (
-              (P_WasSecret(lines[i].frontsector)
-               && !P_IsSecret(lines[i].frontsector)) ||
-              (P_WasSecret(lines[i].backsector)
-               && !P_IsSecret(lines[i].backsector))
-            )
-        )
-        {
-          AM_drawMline(&l, cur_mapcolor_revsecr); // line bounding revealed secret sector
-        }
-        else if (lines[i].backsector->floorheight !=
-                  lines[i].frontsector->floorheight)
-        {
-          AM_drawMline(&l, cur_mapcolor_fchg); // floor level change
-        }
-        else if (lines[i].backsector->ceilingheight !=
-                  lines[i].frontsector->ceilingheight)
-        {
-          AM_drawMline(&l, cur_mapcolor_cchg); // ceiling level change
-        }
-        else if (cur_mapcolor_flat && ddt_cheating)
-        { 
-          AM_drawMline(&l, cur_mapcolor_flat); //2S lines that appear only in IDDT
-        }
-      }
-    } // now draw the lines only visible because the player has computermap
-    else if (plr->powers[pw_allmap]) // computermap visible lines
-    {
-      if (!(lines[i].flags & ML_DONTDRAW)) // invisible flag lines do not show
-      {
-        if
-        (
-          cur_mapcolor_flat
-          ||
-          !lines[i].backsector
-          ||
-          lines[i].backsector->floorheight
-          != lines[i].frontsector->floorheight
-          ||
-          lines[i].backsector->ceilingheight
-          != lines[i].frontsector->ceilingheight
-        )
-          AM_drawMline(&l, cur_mapcolor_unsn);
-      }
     }
-  }
 
-  for (int i = 0; i < array_size(lines_1S); ++i)
-  {
-    AM_drawMline(&lines_1S[i].l, lines_1S[i].color);
-  }
-  array_clear(lines_1S);
+    for (int i = 0; i < array_size(lines_1S); ++i)
+    {
+        AM_drawMline(&lines_1S[i].l, lines_1S[i].color);
+    }
+    array_clear(lines_1S);
 }
 
 //
@@ -2347,7 +2418,7 @@ static void AM_drawThings
       AM_transformPoint(&pt);
 
       //jff 1/5/98 case over doomednum of thing being drawn
-      if (cur_mapcolor_rkey || cur_mapcolor_ykey || cur_mapcolor_bkey)
+      if (key_color_R || key_color_B || key_color_Y)
       {
         switch(t->info->doomednum)
         {
@@ -2359,7 +2430,7 @@ static void AM_drawThings
               array_size(amdef->key),
               16<<MAPBITS,
               t->angle,
-              cur_mapcolor_rkey!=-1? cur_mapcolor_rkey : cur_mapcolor_sprt,
+              key_color_R,
               pt.x,
               pt.y
             );
@@ -2372,7 +2443,7 @@ static void AM_drawThings
               array_size(amdef->key),
               16<<MAPBITS,
               t->angle,
-              cur_mapcolor_ykey!=-1? cur_mapcolor_ykey : cur_mapcolor_sprt,
+              key_color_Y,
               pt.x,
               pt.y
             );
@@ -2385,7 +2456,7 @@ static void AM_drawThings
               array_size(amdef->key),
               16<<MAPBITS,
               t->angle,
-              cur_mapcolor_bkey!=-1? cur_mapcolor_bkey : cur_mapcolor_sprt,
+              key_color_B,
               pt.x,
               pt.y
             );
@@ -2661,6 +2732,15 @@ void AM_ApplyColors(boolean force)
             *mapcolors[i].cur_var = I_GetNearestColor(playpal, r, g, b);
         }
     }
+
+    key_color_R = cur_mapcolor_rkey ? cur_mapcolor_rkey : cur_mapcolor_sprt;
+    key_color_B = cur_mapcolor_bkey ? cur_mapcolor_bkey : cur_mapcolor_sprt;
+    key_color_Y = cur_mapcolor_ykey ? cur_mapcolor_ykey : cur_mapcolor_sprt;
+
+    door_color_R = cur_mapcolor_rdor ? cur_mapcolor_rdor : cur_mapcolor_cchg;
+    door_color_B = cur_mapcolor_bdor ? cur_mapcolor_bdor : cur_mapcolor_cchg;
+    door_color_Y = cur_mapcolor_ydor ? cur_mapcolor_ydor : cur_mapcolor_cchg;
+    door_color_misc = cur_mapcolor_clsd ? cur_mapcolor_clsd : cur_mapcolor_cchg;
 
     Z_ChangeTag(playpal, PU_CACHE);
     Z_ChangeTag(iwad_playpal, PU_CACHE);

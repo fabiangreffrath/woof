@@ -246,6 +246,33 @@ typedef enum
   ST_NEGATIVE
 } slopetype_t;
 
+// Automap drawing
+typedef enum amls_e
+{
+    amls_Default,
+    amls_OneSided,
+    amls_TwoSided,
+    amls_FloorDiff,
+    amls_CeilingDiff,
+    amls_ExtraFloor,
+    amls_Special,
+    amls_Secret,
+    amls_NotSeen,
+    amls_Locked,
+    amls_IntraTeleport,
+    amls_InterTeleport,
+    amls_UnexploredSecret,
+    amls_Portal,
+
+    amls_InterTeleportSecret,
+    amls_Invisible,
+    amls_RevealedSecret,
+    amls_ClosedDoor,
+
+    AMLS_COUNT = amls_Portal + 1,
+    AMLS_COUNT_EXT = amls_ClosedDoor + 1,
+} amls_t;
+
 typedef struct line_s
 {
   vertex_t *v1, *v2;     // Vertices, from v1 to v2.
@@ -264,6 +291,7 @@ typedef struct line_s
   void *specialdata;     // thinker_t for reversable actions
   const byte *tranmap;   // better translucency handling
   int firsttag,nexttag;  // killough 4/17/98: improves searches for tags.
+  amls_t amls;           // custom automap drawing
 
   // ID24 line specials
   angle_t angle;
