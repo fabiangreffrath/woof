@@ -1811,7 +1811,7 @@ static int DoorType(const line_t *line)
         return DoorType_None;
     }
 
-    int special = lines->special;
+    int special = line->special;
 
     if (GenLockedBase <= special && special < GenDoorBase)
     {
@@ -1877,20 +1877,20 @@ typedef struct
 
 static am_line_t *lines_1S = NULL;
 
-static boolean DrawHiddenSecrets(void)
+static boolean HiddenSecrets(void)
 {
     return !!cur_mapcolor_secr && !map_secret_after;
 }
 
-static boolean DrawRevealedSecrets(void)
+static boolean RevealedSecrets(void)
 {
     return !!cur_mapcolor_revsecr;
 }
 
 static amls_t LineStyle(line_t *line)
 {
-    sector_t *back = line->backsector;
-    sector_t *front = line->frontsector;
+    sector_t *b = line->backsector;
+    sector_t *f = line->frontsector;
     uint32_t secret = line->flags & ML_SECRET;
     uint32_t mapped = line->flags & ML_MAPPED;
     uint32_t dontdraw = line->flags & ML_DONTDRAW;
@@ -1904,7 +1904,7 @@ static amls_t LineStyle(line_t *line)
         case amls_ExtraFloor:
         case amls_Portal:
         case amls_Special:
-            return (!back) ? amls_OneSided : amls_TwoSided;
+            return (!b) ? amls_OneSided : amls_TwoSided;
 
         default:
             return line->amls;
@@ -1918,8 +1918,7 @@ static amls_t LineStyle(line_t *line)
             return amls_Invisible;
         }
 
-        if ((door_color_R || door_color_B || door_color_Y) && !secret
-            && DoorType(line) != DoorType_None)
+        if (!secret && DoorType(line) != DoorType_None)
         {
             return amls_Locked;
         }
@@ -1929,18 +1928,18 @@ static amls_t LineStyle(line_t *line)
             return amls_InterTeleport;
         }
 
-        if (cur_mapcolor_exit && P_IsDeathExit(front))
+        if (cur_mapcolor_exit && P_IsDeathExit(f))
         {
             return amls_InterTeleport;
         }
 
-        if (!back) // 1-sided
+        if (!b) // 1-sided
         {
-            if (DrawHiddenSecrets() && P_IsSecret(front))
+            if (HiddenSecrets() && P_IsSecret(f))
             {
                 return amls_Secret;
             }
-            else if (DrawRevealedSecrets() && P_RevealedSecret(front))
+            else if (RevealedSecrets() && P_RevealedSecret(f))
             {
                 return amls_RevealedSecret;
             }
@@ -1960,31 +1959,30 @@ static amls_t LineStyle(line_t *line)
                 return amls_OneSided;
             }
             else if (cur_mapcolor_clsd && !secret
-                     && ((back->floorheight == back->ceilingheight)
-                         || (front->floorheight == front->ceilingheight)))
+                     && ((b->floorheight == b->ceilingheight)
+                         || (f->floorheight == f->ceilingheight)))
             {
                 return amls_ClosedDoor;
             }
-            else if (DrawHiddenSecrets()
-                     && (P_IsSecret(front) || P_IsSecret(back)))
+            else if (HiddenSecrets() && (P_IsSecret(f) || P_IsSecret(b)))
             {
                 return amls_Secret;
             }
-            else if (DrawRevealedSecrets()
-                     && (P_RevealedSecret(front) || P_RevealedSecret(back)))
+            else if (RevealedSecrets()
+                     && (P_RevealedSecret(f) || P_RevealedSecret(b)))
             {
                 return amls_RevealedSecret;
             }
             else if (cur_mapcolor_exit
-                     && (P_IsDeathExit(front) || P_IsDeathExit(back)))
+                     && (P_IsDeathExit(f) || P_IsDeathExit(b)))
             {
                 return amls_InterTeleport;
             }
-            else if (back->floorheight != front->floorheight)
+            else if (b->floorheight != f->floorheight)
             {
                 return amls_FloorDiff;
             }
-            else if (back->ceilingheight != front->ceilingheight)
+            else if (b->ceilingheight != f->ceilingheight)
             {
                 return amls_CeilingDiff;
             }
@@ -2001,9 +1999,9 @@ static amls_t LineStyle(line_t *line)
             return amls_Invisible;
         }
         if (cur_mapcolor_flat // line with no floor/ceiling changes
-            || !back          //
-            || back->floorheight != front->floorheight
-            || back->ceilingheight != front->ceilingheight)
+            || !b             //
+            || b->floorheight != f->floorheight
+            || b->ceilingheight != f->ceilingheight)
         {
             return amls_NotSeen;
         }
@@ -2012,12 +2010,12 @@ static amls_t LineStyle(line_t *line)
     return amls_Invisible;
 }
 
-static int ColorForStyle(line_t *line, amls_t style, boolean keyed_door_flash)
+static int ColorForStyle(line_t *line, amls_t style)
 {
     switch (style)
     {
         case amls_Locked:
-            if (keyed_door_flash)
+            if ((map_keyed_door == MAP_KEYED_DOOR_FLASH) && (leveltime & 16))
             {
                 return cur_mapcolor_grid;
                 break;
@@ -2090,16 +2088,13 @@ static void AM_drawWalls(void)
 {
     static mline_t l;
 
-    const boolean keyed_door_flash =
-        (map_keyed_door == MAP_KEYED_DOOR_FLASH) && (leveltime & 16);
-
     // draw the unclipped visible portions of all lines
     for (int i = 0; i < numlines; i++)
     {
         line_t *line = &lines[i];
         boolean one_sided = !(line->flags & ML_TWOSIDED);
         amls_t style = LineStyle(line);
-        int color = ColorForStyle(line, style, keyed_door_flash);
+        int color = ColorForStyle(line, style);
 
         if (style == amls_Invisible)
         {
