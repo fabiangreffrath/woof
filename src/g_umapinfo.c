@@ -445,7 +445,7 @@ static void ParseStandardProperty(scanner_t *s, mapentry_t *mape)
     else if (!strcasecmp(prop, "partime"))
     {
         SC_MustGetToken(s, TK_IntConst);
-        mape->partime = SC_GetNumber(s);
+        mape->partime = SC_GetNumber(s) * TICRATE;
     }
     else if (!strcasecmp(prop, "intertext"))
     {
