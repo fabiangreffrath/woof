@@ -421,8 +421,7 @@ void P_LinedefInit(line_t * const linedef)
   }
 
   /* calculate sound origin of line to be its midpoint */
-  //e6y: fix sound origin for large levels
-  // no need for comp_sound test, these are only used when comp_sound = 0
+  // Andrey Budko: fix sound origin for large levels
   linedef->soundorg.x = linedef->bbox[BOXLEFT] / 2 + linedef->bbox[BOXRIGHT] / 2;
   linedef->soundorg.y = linedef->bbox[BOXTOP] / 2 + linedef->bbox[BOXBOTTOM] / 2;
 }

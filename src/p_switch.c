@@ -143,7 +143,6 @@ void P_StartButton
       buttonlist[i].where = w;
       buttonlist[i].btexture = texture;
       buttonlist[i].btimer = time;
-      buttonlist[i].soundorg = &line->frontsector->soundorg;
       return;
     }
     
@@ -211,22 +210,14 @@ void P_ChangeSwitchTexture(line_t *line, int useAgain)
     dirty_side(s);
     *texture = switchlist[i^1];
 
-    degenmobj_t *soundorg =
-        (demo_version >= DV_MBF21)
-            /* use the sound origin of the linedef (its midpoint)
-             * unless in a compatibility mode */
-            ? &line->soundorg
-            /* usually NULL, unless there is another button already pressed in,
-             * in which case it's the sound origin of that button press... */
-            : buttonlist->soundorg;
-
-    S_StartSound((mobj_t *)soundorg, sound);
+    S_StartSound((mobj_t *)&line->soundorg, sound);
 
     if (useAgain)
     {
         P_StartButton(line, position, switchlist[i], BUTTONTIME);
     }
 }
+
 
 //
 // P_UseSpecialLine

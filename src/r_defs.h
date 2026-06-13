@@ -64,7 +64,7 @@ typedef struct vertex_s
 } vertex_t;
 
 // Each sector has a degenmobj_t in its center for sound origin purposes.
-typedef struct degenmobj_s
+typedef struct
 {
   thinker_t thinker;  // not used for anything
   fixed_t x, y, z;
@@ -250,6 +250,7 @@ typedef struct line_s
 {
   vertex_t *v1, *v2;     // Vertices, from v1 to v2.
   fixed_t dx, dy;        // Precalculated v2 - v1 for side checking.
+  // [FG] extended nodes
   uint16_t flags;        // Animation related.
   int16_t special;       // Special action
   int16_t id;            // Tag -> id/arg0 split

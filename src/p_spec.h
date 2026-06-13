@@ -534,7 +534,6 @@ typedef struct
   bwhere_e where;
   int   btexture;
   int   btimer;
-  struct degenmobj_s *soundorg;
 } button_t;
 
 void P_StartButton(struct line_s *line, bwhere_e w, int texture, int time);
