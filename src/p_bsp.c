@@ -162,6 +162,7 @@ typedef PACKED_PREFIX struct
 
 void P_CheckBSPFormat_Binary(map_t *map)
 {
+    map->bsp_format = BSP_DOOMBSP;
     int size_subs = 0, size_nodes = 0;
 
     //!
@@ -184,7 +185,7 @@ void P_CheckBSPFormat_Binary(map_t *map)
 
     if (!M_CheckParm("-force_old_zdoom_nodes"))
     {
-       size_subs = W_LumpLengthWithName(map->ssectors, "SSECTORS");
+        size_subs = W_LumpLengthWithName(map->ssectors, "SSECTORS");
 
         if (size_subs >= sizeof(mapsubsector_t))
         {
@@ -228,7 +229,6 @@ void P_CheckBSPFormat_Binary(map_t *map)
             map->bsp_format = BSP_NANO;
         }
     }
-
 
     if (map->bsp_format == BSP_DOOMBSP || map->bsp_format == BSP_NANO)
     {

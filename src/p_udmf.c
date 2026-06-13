@@ -1380,7 +1380,6 @@ void UDMF_LoadMap(map_t *map)
                 lumpinfo[map->label].name);
     }
 
-    P_CheckBSPFormat_UDMF(map);
     if (map->bsp_format == BSP_NANO)
     {
         I_Error("Invalid format found on ZNODES lump for UDMF map: %s",

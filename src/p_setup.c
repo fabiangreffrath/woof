@@ -1008,9 +1008,6 @@ boolean P_LoadReject(int lumpnum, int totallines)
 
 static void LoadMap(map_t *map)
 {
-  // [FG] check nodes format
-  P_CheckBSPFormat_Binary(map);
-
   // note: most of this ordering is important
 
   // killough 3/1/98: P_LoadBlockMap call moved down to below
@@ -1110,6 +1107,10 @@ static void CheckMapFormat(int lumpnum, map_t *map)
         map->sectors = lumpnum + ML_SECTORS;
         map->reject = lumpnum + ML_REJECT;
         map->blockmap = lumpnum + ML_BLOCKMAP;
+
+        // [FG] check nodes format
+        P_CheckBSPFormat_Binary(map);
+
         if (W_LumpExistsWithName(lumpnum + ML_BEHAVIOR, "BEHAVIOR"))
         {
             map->map_format = MAP_HEXEN;
@@ -1133,6 +1134,9 @@ static void CheckMapFormat(int lumpnum, map_t *map)
         map->sidedefs = lumpnum + MLX_SIDEDEFS;
         map->vertexes = lumpnum + MLX_VERTEXES;
         map->sectors = lumpnum + MLX_SECTORS;
+
+        map->bsp_format = BSP_NANO;
+
         if (W_LumpExistsWithName(lumpnum + MLX_BEHAVIOR, "BEHAVIOR"))
         {
             map->map_format = MAP_HEXEN;
@@ -1141,12 +1145,15 @@ static void CheckMapFormat(int lumpnum, map_t *map)
         }
     }
 
-    // BSP is checked afterwards
     if (W_LumpExistsWithName(lumpnum + ML_TEXTMAP, "TEXTMAP"))
     {
         map->map_format = MAP_UDMF;
         map->built = true;
         map->textmap = lumpnum + ML_TEXTMAP;
+
+        // [FG] check nodes format
+        P_CheckBSPFormat_UDMF(map);
+
         // skip label and TEXTMAP, test against all other lumps until ENDMAP
         for (int i = ML_TEXTMAP + 1; i < ML_MAPLUMPCOUNT; ++i)
         {
@@ -1238,7 +1245,6 @@ void P_SetupLevel(int episode, int map_num, skill_t skill)
 
   switch (map.map_format)
   {
-    I_Error("Unknown level format in %s", lumpname);
     case MAP_DOOM:
       // the original implementation used only low precision math
       P_PointOnLineSide = P_PointOnLineSide_Classic;
