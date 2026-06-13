@@ -1907,15 +1907,7 @@ static void AM_drawWalls(void)
       }
       if //jff 4/23/98 add exit lines to automap
       (
-        cur_mapcolor_exit &&
-        (
-          lines[i].special==11 ||
-          lines[i].special==52 ||
-          lines[i].special==197 ||
-          lines[i].special==51  ||
-          lines[i].special==124 ||
-          lines[i].special==198
-        )
+        cur_mapcolor_exit && P_IsExitLine(&lines[i])
       )
       {
         AM_drawMline(&l, keyed_door_flash ? cur_mapcolor_grid : cur_mapcolor_exit); // exit line

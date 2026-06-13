@@ -1056,6 +1056,15 @@ boolean P_IsDeathExit(sector_t *sector)
   return false;
 }
 
+boolean P_IsExitLine(line_t * line)
+{
+  int special = line->special;
+
+  return special == 11  || special == 51 ||
+         special == 52  || special == 124 ||
+         special == 197 || special == 198;
+}
+
 //
 // P_IsSecret()
 //

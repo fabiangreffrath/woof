@@ -64,7 +64,7 @@ typedef struct vertex_s
 } vertex_t;
 
 // Each sector has a degenmobj_t in its center for sound origin purposes.
-typedef struct
+typedef struct degenmobj_s
 {
   thinker_t thinker;  // not used for anything
   fixed_t x, y, z;
@@ -250,7 +250,6 @@ typedef struct line_s
 {
   vertex_t *v1, *v2;     // Vertices, from v1 to v2.
   fixed_t dx, dy;        // Precalculated v2 - v1 for side checking.
-  // [FG] extended nodes
   uint16_t flags;        // Animation related.
   int16_t special;       // Special action
   int16_t id;            // Tag -> id/arg0 split
@@ -262,6 +261,7 @@ typedef struct line_s
   sector_t *backsector; 
   int validcount;        // if == validcount, already checked
   void *specialdata;     // thinker_t for reversable actions
+  degenmobj_t soundorg;  // sound origin for switches/buttons
   const byte *tranmap;   // better translucency handling
   int firsttag,nexttag;  // killough 4/17/98: improves searches for tags.
 
