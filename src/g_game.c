@@ -1689,6 +1689,13 @@ static void G_DoCompleted(void)
   umapinfo_partimes = false;
 
   int behaviour = MI_PrepareIntermission(&wminfo);
+
+  // [FG] -statdump implementation from Chocolate Doom
+  if (gamemode == commercial || gamemap != 8)
+  {
+    StatCopy(&wminfo);
+  }
+
   if (behaviour & DC_Victory)
   {
     gameaction = ga_victory;
@@ -1721,12 +1728,6 @@ static void G_DoCompleted(void)
   gamestate = GS_INTERMISSION;
   viewactive = false;
   automapactive = false;
-
-  // [FG] -statdump implementation from Chocolate Doom
-  if (gamemode == commercial || gamemap != 8)
-  {
-    StatCopy(&wminfo);
-  }
 
   for (int i = 0; i < MAXPLAYERS; ++i)
   {
