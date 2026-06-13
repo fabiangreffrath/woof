@@ -1141,19 +1141,9 @@ void S_StopMusic(void)
 //  determines music if any, changes music.
 //
 
-static inline int WRAP(int i, int w)
-{
-    while (i < 0)
-    {
-        i += w;
-    }
-
-    return i % w;
-}
-
 void S_Start(void)
 {
-    int cnum, mnum;
+    int cnum;
 
     // kill all playing sounds at start of level
     //  (trust me - a good idea)
