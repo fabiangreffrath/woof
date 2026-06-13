@@ -170,7 +170,7 @@ static void GetLevelCheckSum(map_t* map, md5_checksum_t *cksum)
 
     MD5Init(&md5);
 
-    if (map.format == MAP_UDMF)
+    if (map->map_format == MAP_UDMF)
     {
         MD5UpdateLump(map->textmap, &md5);
     }

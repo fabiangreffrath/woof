@@ -1008,6 +1008,9 @@ boolean P_LoadReject(int lumpnum, int totallines)
 
 static void LoadMap(map_t *map)
 {
+  // [FG] check nodes format
+  P_CheckBSPFormat_Binary(map);
+
   // note: most of this ordering is important
 
   // killough 3/1/98: P_LoadBlockMap call moved down to below
@@ -1058,7 +1061,7 @@ static void LoadMap(map_t *map)
 boolean playback_nextlevel = false;
 
 // check for different supported and unsupported formats
-static void P_CheckMapFormat(int lumpnum, map_t *map)
+static void CheckMapFormat(int lumpnum, map_t *map)
 {
     map->map_format = MAP_NONE;
     map->bsp_format = BSP_NANO;
@@ -1227,7 +1230,7 @@ void P_SetupLevel(int episode, int map_num, skill_t skill)
 
   lumpnum = W_GetNumForName(lumpname);
 
-  P_CheckMapFormat(lumpnum, &map);
+  CheckMapFormat(lumpnum, &map);
   G_ApplyLevelCompatibility(&map);
 
   leveltime = 0;
@@ -1343,7 +1346,7 @@ void P_SetupLevel(int episode, int map_num, skill_t skill)
   I_Printf(VB_DEMO, "P_SetupLevel: %.8s (%s), Skill %d, %s (%s%s%s), %s",
     lumpname, W_WadNameForLump(lumpnum),
     gameskill + 1,
-    bmap_names[map.map_format],
+    map_names[map.map_format],
     bsp_names[map.bsp_format],
     bmap_names[map.bmap_format],
     map.reject_built ? "+Reject" : "",
