@@ -1879,12 +1879,12 @@ static am_line_t *lines_1S = NULL;
 
 static boolean DrawHiddenSecrets(void)
 {
-  return !!cur_mapcolor_secr && !map_secret_after;
+    return !!cur_mapcolor_secr && !map_secret_after;
 }
 
 static boolean DrawRevealedSecrets(void)
 {
-  return !!cur_mapcolor_revsecr;
+    return !!cur_mapcolor_revsecr;
 }
 
 static amls_t LineStyle(line_t *line)
@@ -1911,15 +1911,15 @@ static amls_t LineStyle(line_t *line)
     }
 
     // if line has been seen or IDDT has been used
-    if (ddt_cheating || (mapped))
+    if (ddt_cheating || mapped)
     {
         if (dontdraw && !ddt_cheating)
         {
             return amls_Invisible;
         }
 
-        if ((cur_mapcolor_bdor || cur_mapcolor_ydor || cur_mapcolor_rdor)
-            && !(secret) && DoorType(line) != DoorType_None)
+        if ((door_color_R || door_color_B || door_color_Y) && !secret
+            && DoorType(line) != DoorType_None)
         {
             return amls_Locked;
         }
@@ -2005,7 +2005,7 @@ static amls_t LineStyle(line_t *line)
             || back->floorheight != front->floorheight
             || back->ceilingheight != front->ceilingheight)
         {
-            return amls_UnexploredSecret;
+            return amls_NotSeen;
         }
     }
 
