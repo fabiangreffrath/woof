@@ -545,7 +545,7 @@ static void UDMF_ParseLinedef(scanner_t *s)
         {
             UDMF_ScanLumpName(s, line.tranmap);
         }
-        else if (PROP(alpha, UDMF_LINE_STYLE))
+        else if (PROP(automapstyle, UDMF_LINE_STYLE))
         {
             line.amls = UDMF_ScanInt(s);
         }
