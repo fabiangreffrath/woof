@@ -419,6 +419,11 @@ void P_LinedefInit(line_t * const linedef)
     linedef->bbox[BOXBOTTOM] = v2.y;
     linedef->bbox[BOXTOP] = v1.y;
   }
+
+  /* calculate sound origin of line to be its midpoint */
+  // Andrey Budko: fix sound origin for large levels
+  linedef->soundorg.x = linedef->bbox[BOXLEFT] / 2 + linedef->bbox[BOXRIGHT] / 2;
+  linedef->soundorg.y = linedef->bbox[BOXTOP] / 2 + linedef->bbox[BOXBOTTOM] / 2;
 }
 
 // killough 4/4/98: delay using sidedefs until they are loaded

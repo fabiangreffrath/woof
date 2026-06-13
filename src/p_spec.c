@@ -1056,6 +1056,18 @@ boolean P_IsDeathExit(sector_t *sector)
   return false;
 }
 
+boolean P_IsExitLine(line_t * line)
+{
+  int special = line->special;
+
+  return special == 11  || special == 51 ||
+         special == 52  || special == 124 ||
+         special == 197 || special == 198 ||
+         special == 2069 || special == 2070 ||
+         special == 2071 || special == 2072 ||
+         special == 2073 || special == 2074;
+}
+
 //
 // P_IsSecret()
 //
@@ -2611,7 +2623,7 @@ void P_UpdateSpecials (void)
                   buttonlist[i].btexture;
                 break;
               }
-            S_StartSound((mobj_t *)&buttonlist[i].soundorg,sfx_swtchn);
+            S_StartSound((mobj_t *)&buttonlist[i].line->soundorg, sfx_swtchn);
             memset(&buttonlist[i],0,sizeof(button_t));
           }
       }
