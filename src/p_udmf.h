@@ -45,9 +45,8 @@ typedef struct udmf_lumpnums_s
 } UDMF_Lumpnums_t;
 
 extern void UDMF_ClearMemory(void);
-extern void UDMF_LoadMap(int lumpnum, bspformat_t *nodeformat,
-                         bmap_format_t *gen_blockmap, int *pad_reject);
-extern void UDMF_LoadThings(void);
+extern void UDMF_LoadMap(map_t *data);
+extern void P_LoadThings_UDMF(void);
 extern UDMF_Lumpnums_t UDMF_FindLumps(int lumpnum);
 
 #endif

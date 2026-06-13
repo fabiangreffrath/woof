@@ -65,7 +65,30 @@
 statenum_t *seenstate_tab = NULL;
 
 // Detect map Format currently being set up.
-mapformat_t mapformat = {.format = MAP_Invalid, .built = false};
+// Different map formats
+static const char *const map_names[] = {
+    [MAP_NONE] = "Invalid",
+    [MAP_DOOM] = "Doom",
+    [MAP_HEXEN] = "Hexen",
+    [MAP_UDMF] = "UDMF",
+};
+
+static const char *const bsp_names[] = {
+    [BSP_DOOMBSP] = "DoomBSP", [BSP_DEEPBSPV4] = "DeepBSPV4",
+    [BSP_XNOD] = "XNOD",       [BSP_ZNOD] = "ZNOD",
+    [BSP_XGLN] = "XGLN",       [BSP_ZGLN] = "ZGLN",
+    [BSP_XGL2] = "XGL2",       [BSP_ZGL2] = "ZGL2",
+    [BSP_XGL3] = "XGL3",       [BSP_ZGL3] = "ZGL3",
+    [BSP_NANO] = "NanoBSP"};
+
+// Appended to node_format_names, hence the plus sign
+static const char *const bmap_names[] = {
+    [BMAP_DoomBlockmap] = "",
+    [BMAP_XBM1] = "+XBM1",
+    [BMAP_BoomBuilder] = "+BoomBlockmap",
+};
+
+map_t map = {0};
 
 //
 // MAP related Lookup tables.
@@ -983,66 +1006,47 @@ boolean P_LoadReject(int lumpnum, int totallines)
     return ret;
 }
 
-static void LoadDoomFormat(int lumpnum, bspformat_t bspformat,
-                           bmap_format_t *gen_blockmap, boolean *pad_reject,
-                           boolean fully_built)
+static void LoadMap(map_t *map)
 {
-
-  // Required data, level geometry
-  const int vertexes = lumpnum + ML_VERTEXES;
-  const int linedefs = lumpnum + ML_LINEDEFS;
-  const int sidedefs = lumpnum + ML_SIDEDEFS;
-  const int sectors = lumpnum + (fully_built ? ML_SECTORS : MLX_SECTORS);
-
-  // Optional data, pre-compiled data structures
-  const int ssectors = lumpnum + ML_SSECTORS;
-  const int nodes = lumpnum + ML_NODES;
-  const int segs = lumpnum + ML_SEGS;
-  const int blockmap = lumpnum + ML_BLOCKMAP;
-  const int reject = lumpnum + ML_REJECT;
-
   // note: most of this ordering is important
 
   // killough 3/1/98: P_LoadBlockMap call moved down to below
   // killough 4/4/98: split load of sidedefs into two parts,
   // to allow texture names to be used in special linedefs
 
-  P_LoadVertexes (vertexes);
-  P_LoadSectors  (sectors);
-  P_LoadSideDefs (sidedefs);                // killough 4/4/98
-  P_LoadLineDefs (linedefs);                //       |
-  P_LoadSideDefs2(sidedefs);                //       |
-  P_LoadLineDefs2(linedefs);                // killough 4/4/98
-  *gen_blockmap = P_LoadBlockMap(blockmap); // killough 3/1/98
+  P_LoadVertexes (map->vertexes);
+  P_LoadSectors  (map->sectors);
+  P_LoadSideDefs (map->sidedefs);                // killough 4/4/98
+  P_LoadLineDefs (map->linedefs);                //       |
+  P_LoadSideDefs2(map->sidedefs);                //       |
+  P_LoadLineDefs2(map->linedefs);                // killough 4/4/98
+  map->bmap_format = P_LoadBlockMap(map->blockmap); // killough 3/1/98
 
   // [FG] build nodes with NanoBSP
-  if (bspformat == BSP_NANO)
+  if (map->bsp_format == BSP_NANO)
   {
     BSP_BuildNodes();
   }
   // support all ZDoom extended node formats
-  else if (bspformat >= BSP_XNOD && bspformat <= BSP_ZGL3)
+  else if (map->bsp_format >= BSP_XNOD && map->bsp_format <= BSP_ZGL3)
   {
-    int znode_num = (bspformat >= BSP_XNOD && bspformat <= BSP_ZNOD)
-                  ? nodes
-                  : ssectors;
-    P_LoadBSPTree_ZDBSP(znode_num, bspformat);
+    P_LoadBSPTree_ZDBSP(map->znodes, map->bsp_format);
   }
-  else if (bspformat == BSP_DEEPBSPV4)
+  else if (map->bsp_format == BSP_DEEPBSPV4)
   {
-    P_LoadSubsectors_DeePBSPV4(ssectors);
-    P_LoadNodes_DeePBSPV4(nodes);
-    P_LoadSegs_DeePBSPV4(segs);
+    P_LoadSubsectors_DeePBSPV4(map->ssectors);
+    P_LoadNodes_DeePBSPV4(map->nodes);
+    P_LoadSegs_DeePBSPV4(map->segs);
   }
   else
   {
-    P_LoadSubsectors(ssectors);
-    P_LoadNodes(nodes);
-    P_LoadSegs(segs);
+    P_LoadSubsectors(map->ssectors);
+    P_LoadNodes(map->nodes);
+    P_LoadSegs(map->segs);
   }
 
   // [FG] pad the REJECT table when the lump is too small
-  *pad_reject = P_LoadReject(reject, P_GroupLines());
+  map->reject_built = P_LoadReject(map->reject, P_GroupLines());
 }
 
 //
@@ -1053,19 +1057,148 @@ static void LoadDoomFormat(int lumpnum, bspformat_t bspformat,
 // fast-forward demo to the next map
 boolean playback_nextlevel = false;
 
-void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
+// check for different supported and unsupported formats
+static void CheckMapFormat(int lumpnum, map_t *map)
 {
-  int   i;
+    map->map_format = MAP_NONE;
+    map->bsp_format = BSP_NANO;
+    map->bmap_format = BMAP_BoomBuilder;
+    map->built = false;
+    map->param = false;
+
+    map->label = lumpnum;
+    map->vertexes = NO_INDEX;
+    map->linedefs = NO_INDEX;
+    map->sidedefs = NO_INDEX;
+    map->sectors = NO_INDEX;
+    map->things = NO_INDEX;
+    map->textmap = NO_INDEX;
+    map->nodes = NO_INDEX;
+    map->ssectors = NO_INDEX;
+    map->segs = NO_INDEX;
+    map->znodes = NO_INDEX;
+    map->blockmap = NO_INDEX;
+    map->reject = NO_INDEX;
+    map->behavior = NO_INDEX;
+    map->dialogue = NO_INDEX;
+    map->lightmap = NO_INDEX;
+
+    // Fully built map
+    if (W_LumpExistsWithName(lumpnum + ML_THINGS, "THINGS")
+        && W_LumpExistsWithName(lumpnum + ML_LINEDEFS, "LINEDEFS")
+        && W_LumpExistsWithName(lumpnum + ML_SIDEDEFS, "SIDEDEFS")
+        && W_LumpExistsWithName(lumpnum + ML_VERTEXES, "VERTEXES")
+        && W_LumpExistsWithName(lumpnum + ML_SEGS, "SEGS")
+        && W_LumpExistsWithName(lumpnum + ML_SSECTORS, "SSECTORS")
+        && W_LumpExistsWithName(lumpnum + ML_NODES, "NODES")
+        && W_LumpExistsWithName(lumpnum + ML_SECTORS, "SECTORS")
+        && W_LumpExistsWithName(lumpnum + ML_REJECT, "REJECT")
+        && W_LumpExistsWithName(lumpnum + ML_BLOCKMAP, "BLOCKMAP"))
+    {
+        map->map_format = MAP_DOOM;
+        map->built = true;
+        map->things = lumpnum + ML_THINGS;
+        map->linedefs = lumpnum + ML_LINEDEFS;
+        map->sidedefs = lumpnum + ML_SIDEDEFS;
+        map->vertexes = lumpnum + ML_VERTEXES;
+        map->segs = lumpnum + ML_SEGS;
+        map->ssectors = lumpnum + ML_SSECTORS;
+        map->nodes = lumpnum + ML_NODES;
+        map->sectors = lumpnum + ML_SECTORS;
+        map->reject = lumpnum + ML_REJECT;
+        map->blockmap = lumpnum + ML_BLOCKMAP;
+
+        // [FG] check nodes format
+        P_CheckBSPFormat_Binary(map);
+
+        if (W_LumpExistsWithName(lumpnum + ML_BEHAVIOR, "BEHAVIOR"))
+        {
+            map->map_format = MAP_HEXEN;
+            map->param = true;
+            map->behavior = lumpnum + ML_BEHAVIOR;
+        }
+    }
+
+    // Non built map
+    if (map->map_format == MAP_NONE
+        && W_LumpExistsWithName(lumpnum + MLX_THINGS, "THINGS")
+        && W_LumpExistsWithName(lumpnum + MLX_LINEDEFS, "LINEDEFS")
+        && W_LumpExistsWithName(lumpnum + MLX_SIDEDEFS, "SIDEDEFS")
+        && W_LumpExistsWithName(lumpnum + MLX_VERTEXES, "VERTEXES")
+        && W_LumpExistsWithName(lumpnum + MLX_SECTORS, "SECTORS"))
+    {
+        map->map_format = MAP_DOOM;
+        map->built = false;
+        map->things = lumpnum + MLX_THINGS;
+        map->linedefs = lumpnum + MLX_LINEDEFS;
+        map->sidedefs = lumpnum + MLX_SIDEDEFS;
+        map->vertexes = lumpnum + MLX_VERTEXES;
+        map->sectors = lumpnum + MLX_SECTORS;
+
+        map->bsp_format = BSP_NANO;
+
+        if (W_LumpExistsWithName(lumpnum + MLX_BEHAVIOR, "BEHAVIOR"))
+        {
+            map->map_format = MAP_HEXEN;
+            map->param = true;
+            map->behavior = lumpnum + MLX_BEHAVIOR;
+        }
+    }
+
+    if (W_LumpExistsWithName(lumpnum + ML_TEXTMAP, "TEXTMAP"))
+    {
+        map->map_format = MAP_UDMF;
+        map->built = true;
+        map->textmap = lumpnum + ML_TEXTMAP;
+
+        // [FG] check nodes format
+        P_CheckBSPFormat_UDMF(map);
+
+        // skip label and TEXTMAP, test against all other lumps until ENDMAP
+        for (int i = ML_TEXTMAP + 1; i < ML_MAPLUMPCOUNT; ++i)
+        {
+            int j = lumpnum + i;
+            if (W_LumpExistsWithName(j, "ENDMAP"))
+            {
+                break;
+            }
+            else if (W_LumpExistsWithName(j, "ZNODES"))
+            {
+                map->znodes = j;
+            }
+            else if (W_LumpExistsWithName(j, "REJECT"))
+            {
+                map->reject = j;
+            }
+            else if (W_LumpExistsWithName(j, "BLOCKMAP"))
+            {
+                map->blockmap = j;
+            }
+            else if (W_LumpExistsWithName(j, "BEHAVIOR"))
+            {
+                map->behavior = j;
+            }
+            else if (W_LumpExistsWithName(j, "DIALOGUE"))
+            {
+                map->dialogue = j;
+            }
+            else if (W_LumpExistsWithName(j, "LIGHTMAP"))
+            {
+                map->lightmap = j;
+            }
+        }
+    }
+}
+
+void P_SetupLevel(int episode, int map_num, skill_t skill)
+{
   char  lumpname[9];
   int   lumpnum;
-  bspformat_t bspformat = BSP_NANO;
-  bmap_format_t bmapformat = BMAP_BoomBuilder;
-  boolean pad_reject = false;
 
   totalkills = totalitems = totalsecret = wminfo.maxfrags = 0;
   max_kill_requirement = 0;
   wminfo.partime = 180;
-  for (i=0; i<MAXPLAYERS; i++)
+  for (int i = 0; i<MAXPLAYERS; i++)
   {
     players[i].killcount = players[i].secretcount = players[i].itemcount = 0;
     players[i].maxkilldiscount = 0;
@@ -1075,7 +1208,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   players[consoleplayer].viewz = 1;
 
   // [FG] fast-forward demo to the desired map
-  if (playback_warp == map || playback_nextlevel)
+  if (playback_warp == map_num || playback_nextlevel)
   {
     if (!playback_skiptics)
       G_EnableWarp(false);
@@ -1100,43 +1233,40 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   //    W_Reload ();     killough 1/31/98: W_Reload obsolete
 
   // find map name
-  M_CopyLumpName(lumpname, MapName(episode, map));
+  M_CopyLumpName(lumpname, MapName(episode, map_num));
 
   lumpnum = W_GetNumForName(lumpname);
 
-  mapformat = P_CheckMapFormat(lumpnum);
-  G_ApplyLevelCompatibility(lumpnum, mapformat);
+  CheckMapFormat(lumpnum, &map);
+  G_ApplyLevelCompatibility(&map);
 
   leveltime = 0;
   oldleveltime = 0;
 
-  // [FG] check nodes format
-  if (mapformat.format == MAP_Doom)
+  switch (map.map_format)
   {
-    P_PointOnLineSide = P_PointOnLineSideClassic;
-    P_PointOnDivlineSide = P_PointOnDivlineSideClassic;
-
-    bspformat = P_CheckBSPFormat_Doom(lumpnum);
-    LoadDoomFormat(lumpnum, bspformat, &bmapformat, &pad_reject, mapformat.built);
-  }
-  else if (mapformat.format == MAP_UDMF)
-  {
-    P_PointOnLineSide = P_PointOnLineSidePrecise;
-    P_PointOnDivlineSide = P_PointOnDivlineSidePrecise;
-
-    UDMF_LoadMap(lumpnum, &bspformat, &bmapformat, &pad_reject);
-  }
-  else if (mapformat.format == MAP_Hexen)
-  {
-    I_Error("Unsupported Hexen level format in %s", lumpname);
-  }
-  else
-  {
-    I_Error("Unknown level format in %s", lumpname);
+    case MAP_DOOM:
+      // the original implementation used only low precision math
+      P_PointOnLineSide = P_PointOnLineSide_Classic;
+      P_PointOnDivlineSide = P_PointOnDivlineSide_Classic;
+      LoadMap(&map);
+      break;
+    case MAP_HEXEN:
+      I_Error("Unsupported Hexen level format in %s", lumpname);
+      break;
+    case MAP_UDMF:
+      // udmf requires higher precision math
+      P_PointOnLineSide = P_PointOnLineSide_Precise;
+      P_PointOnDivlineSide = P_PointOnDivlineSide_Precise;
+      UDMF_LoadMap(&map);
+      break;
+    case MAP_NONE:
+      I_Error("Unknown level format in %s", lumpname);
+      break;
   }
 
   // XGL3/ZGL3 provide high-precision partition lines
-  if (bspformat >= BSP_XGL3)
+  if (map.bsp_format >= BSP_XGL3)
   {
     R_PointOnSide = R_PointOnSidePrecise;
   }
@@ -1145,7 +1275,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     R_PointOnSide = R_PointOnSideClassic;
   }
 
-  if (bspformat != BSP_NANO)
+  if (map.bsp_format != BSP_NANO)
   {
     P_RemoveSlimeTrails();    // killough 10/98: remove slime trails from wad
   }
@@ -1160,24 +1290,39 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   deathmatch_p = deathmatchstarts;
   P_MapStart();
 
-  if (mapformat.format == MAP_Doom)
+  switch (map.map_format)
   {
-    P_LoadThings(lumpnum+ML_THINGS);
-  }
-  else if (mapformat.format == MAP_UDMF)
-  {
-    UDMF_LoadThings();
-    UDMF_ClearMemory(); // done with internal UDMF representation
+    case MAP_DOOM:
+      P_LoadThings(map.things);
+      break;
+    case MAP_HEXEN:
+      I_Error("Tried to spawn things on invalid map format");
+      break;
+    case MAP_UDMF:
+      P_LoadThings_UDMF();
+      UDMF_ClearMemory(); // done with internal UDMF representation
+      break;
+    case MAP_NONE:
+      I_Error("Tried to spawn things on invalid map format");
+      break;
   }
 
   // if deathmatch, randomly spawn the active players
   if (deathmatch)
-    for (i=0; i<MAXPLAYERS; i++)
+  {
+    for (int i = 0; i < MAXPLAYERS; i++)
       if (playeringame[i])
         {
           players[i].mo = NULL;
           G_DeathMatchSpawnPlayer(i);
         }
+  }
+  else // if !deathmatch, check all necessary player starts actually exist
+  {
+    for (int i = 0; i < MAXPLAYERS; i++)
+      if (playeringame[i] && !players[i].mo)
+        I_Error("missing player %d start", i + 1);
+  }
 
   // killough 3/26/98: Spawn icon landings:
   if (gamemode==commercial)
@@ -1204,12 +1349,13 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     R_PrecacheLevel();
 
   // [FG] log level setup
-  I_Printf(VB_DEMO, "P_SetupLevel: %.8s (%s), Skill %d, %s%s%s, %s",
+  I_Printf(VB_DEMO, "P_SetupLevel: %.8s (%s), Skill %d, %s (%s%s%s), %s",
     lumpname, W_WadNameForLump(lumpnum),
     gameskill + 1,
-    node_format_names[bspformat],
-    bmap_format_names[bmapformat],
-    pad_reject ? "+Reject" : "",
+    map_names[map.map_format],
+    bsp_names[map.bsp_format],
+    bmap_names[map.bmap_format],
+    map.reject_built ? "+Reject" : "",
     G_GetCurrentComplevelName());
 }
 
