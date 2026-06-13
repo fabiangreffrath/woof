@@ -708,7 +708,7 @@ static boolean FileContainsMaps(const char *filename)
 {
     for (int i = 0; i < array_size(umapinfo); ++i)
     {
-        if (CheckMapLump(umapinfo[i].mapname, filename))
+        if (CheckMapLump(umapinfo[i].lumpname, filename))
         {
             return true;
         }

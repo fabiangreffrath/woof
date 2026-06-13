@@ -371,9 +371,9 @@ static void cheat_mus(char *buf)
   
   // First check if we have a mapinfo entry for the requested level.
   if (gamemode == commercial)
-    entry = G_LookupMapinfo(1, 10*(buf[0]-'0') + (buf[1]-'0'));
+    entry = MI_MapEntry(1, 10*(buf[0]-'0') + (buf[1]-'0'));
   else
-    entry = G_LookupMapinfo(buf[0]-'0', buf[1]-'0');
+    entry = MI_MapEntry(buf[0]-'0', buf[1]-'0');
 
   if (entry && entry->music[0])
   {
@@ -649,7 +649,7 @@ static void cheat_clev(char *buf)
 
   // First check if we have a mapinfo entry for the requested level.
   // If this is present the remaining checks should be skipped.
-  entry = G_LookupMapinfo(epsd, map);
+  entry = MI_MapEntry(epsd, map);
   if (!entry)
   {
     char *next;
@@ -893,82 +893,7 @@ static void cheat_spechits(void)
     plyr->cards[i] = origcards[i];
   }
 
-  if (gamemapinfo && array_size(gamemapinfo->bossactions))
-  {
-    thinker_t *th;
-
-    for (th = thinkercap.next ; th != &thinkercap ; th = th->next)
-    {
-      if (th->function.p1 == P_MobjThinker)
-      {
-        mobj_t *mo = (mobj_t *) th;
-
-        bossaction_t *bossaction;
-        array_foreach(bossaction, gamemapinfo->bossactions)
-        {
-          if (bossaction->type == mo->type)
-          {
-            dummy = *lines;
-            dummy.special = (short)bossaction->special;
-            dummy.args[0] = (short)bossaction->tag;
-            // use special semantics for line activation to block problem types.
-            if (!P_UseSpecialLine(mo, &dummy, 0, true))
-              P_CrossSpecialLine(&dummy, 0, mo, true);
-
-            speciallines++;
-
-            if (dummy.args[0] == 666)
-              trigger_keen = false;
-          }
-        }
-      }
-    }
-  }
-  else
-  {
-    // [crispy] trigger tag 666/667 events
-    if (gamemode == commercial)
-    {
-      if (gamemap == 7)
-      {
-        // Mancubi
-        dummy.args[0] = 666;
-        speciallines += EV_DoFloor(&dummy, lowerFloorToLowest);
-        trigger_keen = false;
-
-        // Arachnotrons
-        dummy.args[0] = 667;
-        speciallines += EV_DoFloor(&dummy, raiseToTexture);
-      }
-    }
-    else
-    {
-      if (gameepisode == 1)
-      {
-        // Barons of Hell
-        dummy.args[0] = 666;
-        speciallines += EV_DoFloor(&dummy, lowerFloorToLowest);
-        trigger_keen = false;
-      }
-      else if (gameepisode == 4)
-      {
-        if (gamemap == 6)
-        {
-          // Cyberdemons
-          dummy.args[0] = 666;
-          speciallines += EV_DoDoor(&dummy, blazeOpen);
-          trigger_keen = false;
-        }
-        else if (gamemap == 8)
-        {
-          // Spider Masterminds
-          dummy.args[0] = 666;
-          speciallines += EV_DoFloor(&dummy, lowerFloorToLowest);
-          trigger_keen = false;
-        }
-      }
-    }
-  }
+  MI_Spechits(&dummy, &speciallines, &trigger_keen);
 
   // Keens (no matter which level they are on)
   if (trigger_keen)
