@@ -1141,19 +1141,9 @@ void S_StopMusic(void)
 //  determines music if any, changes music.
 //
 
-static inline int WRAP(int i, int w)
-{
-    while (i < 0)
-    {
-        i += w;
-    }
-
-    return i % w;
-}
-
 void S_Start(void)
 {
-    int cnum, mnum;
+    int cnum;
 
     // kill all playing sounds at start of level
     //  (trust me - a good idea)
@@ -1177,37 +1167,7 @@ void S_Start(void)
     // start new music for the level
     mus_paused = 0;
 
-    if (gamemapinfo && gamemapinfo->music[0])
-    {
-        int muslump = W_CheckNumForName(gamemapinfo->music);
-        if (muslump >= 0)
-        {
-            S_ChangeMusInfoMusic(muslump, true);
-            return;
-        }
-        // If the mapinfo defined music cannot be found, try the default for the
-        // given map.
-    }
-
-    if (idmusnum != -1)
-    {
-        mnum = idmusnum; // jff 3/17/98 reload IDMUS music if not -1
-    }
-    else
-    {
-        if (gamemode == commercial)
-        {
-            mnum = mus_runnin + WRAP(gamemap - 1, NUMMUSIC - mus_runnin);
-        }
-        else
-        {
-            mnum = mus_e1m1
-                   + WRAP((gameepisode - 1) * 9 + gamemap - 1,
-                          mus_runnin - mus_e1m1);
-        }
-    }
-
-    S_ChangeMusic(mnum, true);
+    MI_ChangeMusic();
 }
 
 //

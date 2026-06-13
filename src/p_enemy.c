@@ -2299,69 +2299,8 @@ void A_BossDeath(mobj_t *mo)
   line_t    junk;
   int       i;
 
-  if (gamemapinfo && gamemapinfo->flags & MapInfo_BossActionClear)
+  if (MI_BossAction(mo, &junk, &th))
   {
-      return;
-  }
-
-  if (gamemapinfo && array_size(gamemapinfo->bossactions))
-  {
-      // make sure there is a player alive for victory
-      for (i = 0; i < MAXPLAYERS; i++)
-      {
-          if (playeringame[i] && players[i].health > 0)
-          {
-              break;
-          }
-      }
-      if (i == MAXPLAYERS)
-      {
-          return; // no one left alive, so do not end game
-      }
-
-      bossaction_t *bossaction;
-      array_foreach(bossaction, gamemapinfo->bossactions)
-      {
-          if (bossaction->type == mo->type)
-          {
-              break;
-          }
-      }
-      if (bossaction == array_end(gamemapinfo->bossactions))
-      {
-          return; // no matches found
-      }
-
-      // scan the remaining thinkers to see
-      // if all bosses are dead
-      for (th = thinkercap.next; th != &thinkercap; th = th->next)
-      {
-          if (th->function.p1 == P_MobjThinker)
-          {
-              mobj_t *mo2 = (mobj_t *)th;
-              if (mo2 != mo && mo2->type == mo->type && mo2->health > 0)
-              {
-                  return; // other boss not dead
-              }
-          }
-      }
-
-      array_foreach(bossaction, gamemapinfo->bossactions)
-      {
-          if (bossaction->type == mo->type)
-          {
-              junk = *lines;
-              junk.special = (short)bossaction->special;
-              junk.args[0] = (short)bossaction->tag;
-              // use special semantics for line activation to block problem
-              // types.
-              if (!P_UseSpecialLine(mo, &junk, 0, true))
-              {
-                  P_CrossSpecialLine(&junk, 0, mo, true);
-              }
-          }
-      }
-
       return;
   }
 
@@ -2505,6 +2444,43 @@ void A_BossDeath(mobj_t *mo)
         }
     }
   G_ExitLevel();
+}
+
+boolean P_CheckBossDeath(mobj_t *mo)
+{
+    int i;
+    thinker_t *th;
+
+    // make sure there is a player alive for victory
+    for (i = 0; i < MAXPLAYERS; i++)
+    {
+        if (playeringame[i] && players[i].health > 0)
+        {
+            break;
+        }
+    }
+
+    if (i == MAXPLAYERS)
+    {
+        return false; // no one left alive, so do not end game
+    }
+
+    // scan the remaining thinkers to see
+    // if all bosses are dead
+    for (th = thinkercap.next; th != &thinkercap; th = th->next)
+    {
+        if (th->function.p1 == P_MobjThinker)
+        {
+            mobj_t *mo2 = (mobj_t *)th;
+
+            if (mo2 != mo && mo2->type == mo->type && mo2->health > 0)
+            {
+                return false; // other boss not dead
+            }
+        }
+    }
+
+    return true;
 }
 
 void A_Hoof (mobj_t* mo)

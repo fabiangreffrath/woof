@@ -562,7 +562,7 @@ void ST_ResetTitle(void)
     char string[120];
     string[0] = '\0';
 
-    const char *s = G_GetLevelTitle();
+    const char *s = MI_GetLevelTitle();
 
     char *n;
 
@@ -582,21 +582,7 @@ void ST_ResetTitle(void)
     author_string[0] = '\0';
     if (hud_map_announce && leveltime == 0)
     {
-        if (gamemapinfo && gamemapinfo->author)
-        {
-            M_snprintf(announce_string, sizeof(announce_string), "%s by %s",
-                       string, gamemapinfo->author);
-            if (MN_StringWidth(announce_string) > SCREENWIDTH) 
-            {
-                M_StringCopy(announce_string, string, sizeof(announce_string));
-                M_snprintf(author_string, sizeof(author_string), "by %s",
-                           gamemapinfo->author);
-            }
-        }
-        else
-        {
-            M_StringCopy(announce_string, string, sizeof(announce_string));
-        }
+        MI_MapAnnouncement(announce_string, author_string, string, sizeof(string));
     }
 }
 

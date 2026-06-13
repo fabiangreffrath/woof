@@ -921,44 +921,7 @@ static void G_DoLoadLevel(void)
 
   R_ClearLevelskies();
 
-  int skytexture;
-  if (gamemapinfo && gamemapinfo->skytexture[0])
-  {
-    skytexture = R_TextureNumForName(gamemapinfo->skytexture);
-  }
-  else
-  // DOOM determines the sky texture to be used
-  // depending on the current episode, and the game version.
-  if (gamemode == commercial)
-    // || gamemode == pack_tnt   //jff 3/27/98 sorry guys pack_tnt,pack_plut
-    // || gamemode == pack_plut) //aren't gamemodes, this was matching retail
-    {
-      skytexture = R_TextureNumForName ("SKY3");
-      if (gamemap < 12)
-        skytexture = R_TextureNumForName ("SKY1");
-      else
-        if (gamemap < 21)
-          skytexture = R_TextureNumForName ("SKY2");
-    }
-  else //jff 3/27/98 and lets not forget about DOOM and Ultimate DOOM huh?
-    switch (gameepisode)
-      {
-      default:
-      case 1:
-        skytexture = R_TextureNumForName ("SKY1");
-        break;
-      case 2:
-	// killough 10/98: beta version had different sky orderings
-        skytexture = R_TextureNumForName (beta_emulation ? "SKY1" : "SKY2");
-        break;
-      case 3:
-        skytexture = R_TextureNumForName ("SKY3");
-        break;
-      case 4: // Special Edition sky
-        skytexture = R_TextureNumForName ("SKY4");
-        break;
-      }//jff 3/27/98 end sky setting fix
-
+  int skytexture = MI_SkyTexture();
   R_AddLevelsky(skytexture);
 
   levelstarttic = gametic;        // for time calculation
@@ -1012,7 +975,7 @@ static void G_DoLoadLevel(void)
   MN_UpdateFreeLook();
   HU_UpdateTurnFormat();
 
-  I_UpdateDiscordPresence(G_GetLevelTitle(), gamedescription);
+  I_UpdateDiscordPresence(MI_GetLevelTitle(), gamedescription);
 
   // [Woof!] Do not reset chosen player view across levels in multiplayer
   // demo playback. However, it must be reset when starting a new game.
@@ -1085,70 +1048,8 @@ static void G_ReloadLevel(void)
 // adapted from prboom-plus/src/e6y.c:369-449
 int G_GotoNextLevel(int *pEpi, int *pMap)
 {
-  byte doom_next[4][9] = {
-    {12, 13, 19, 15, 16, 17, 18, 21, 14},
-    {22, 23, 24, 25, 29, 27, 28, 31, 26},
-    {32, 33, 34, 35, 36, 39, 38, 41, 37},
-    {42, 49, 44, 45, 46, 47, 48, -1, 43}
-  };
-  byte doom2_next[32] = {
-     2,  3,  4,  5,  6,  7,  8,  9, 10, 11,
-    12, 13, 14, 15, 31, 17, 18, 19, 20, 21,
-    22, 23, 24, 25, 26, 27, 28, 29, 30, -1,
-    32, 16
-  };
-
   int epsd = -1, map = -1;
-
-  if (gamemapinfo)
-  {
-    const char *next = NULL;
-
-    if (gamemapinfo->nextsecret[0])
-      next = gamemapinfo->nextsecret;
-    else if (gamemapinfo->nextmap[0])
-      next = gamemapinfo->nextmap;
-
-    if (next)
-      G_ValidateMapName(next, &epsd, &map);
-  }
-  else
-  {
-    // secret level
-    doom2_next[14] = (haswolflevels ? 31 : 16);
-
-    // shareware doom has only episode 1
-    doom_next[0][7] = (gamemode == shareware ? -1 : 21);
-
-    doom_next[2][7] = (gamemode == registered ? -1 : 41);
-
-    //doom2_next and doom_next are 0 based, unlike gameepisode and gamemap
-    epsd = gameepisode - 1;
-    map = gamemap - 1;
-
-    if (gamemode == commercial)
-    {
-      epsd = 1;
-      if (map >= 0 && map <= 31)
-        map = doom2_next[map];
-      else
-        map = gamemap + 1;
-    }
-    else
-    {
-      if (epsd >= 0 && epsd <= 3 && map >= 0 && map <= 8)
-      {
-        int next = doom_next[epsd][map];
-        epsd = next / 10;
-        map = next % 10;
-      }
-      else
-      {
-        epsd = gameepisode;
-        map = gamemap + 1;
-      }
-    }
-  }
+  MI_NextMap(&epsd, &map);
 
   // [FG] report next level without changing
   if (pEpi || pMap)
@@ -1200,7 +1101,7 @@ int G_GotoPrevLevel(void)
         while ((gamemap = (gamemap + 99) % 100) != cur_map)
         {
             int next_epsd, next_map;
-            gamemapinfo = G_LookupMapinfo(gameepisode, gamemap);
+            gamemapinfo = MI_MapEntry(gameepisode, gamemap);
             G_GotoNextLevel(&next_epsd, &next_map);
 
             // do not let linear and UMAPINFO maps cross
@@ -1780,152 +1681,28 @@ static void G_DoCompleted(void)
   if (automapactive)
     AM_Stop();
 
-  wminfo.nextep = wminfo.epsd = gameepisode -1;
-  wminfo.last = gamemap -1;
+  wminfo.nextep = wminfo.epsd = gameepisode - 1;
+  wminfo.last = gamemap - 1;
 
-  wminfo.lastmapinfo = gamemapinfo;
-  wminfo.nextmapinfo = NULL;
+  MI_UpdateLastMapInfo(&wminfo);
+
   umapinfo_partimes = false;
-  if (gamemapinfo)
+
+  int behaviour = MI_PrepareIntermission(&wminfo);
+
+  // [FG] -statdump implementation from Chocolate Doom
+  if (gamemode == commercial || gamemap != 8)
   {
-    const char *next = NULL;
-    boolean intermission = false;
-
-    if (gamemapinfo->flags & MapInfo_EndGame)
-    {
-      if (gamemapinfo->flags & MapInfo_NoIntermission)
-      {
-        gameaction = ga_victory;
-        return;
-      }
-      else
-      {
-        intermission = true;
-      }
-    }
-
-    if (secretexit && gamemapinfo->nextsecret[0])
-      next = gamemapinfo->nextsecret;
-    else if (gamemapinfo->nextmap[0])
-      next = gamemapinfo->nextmap;
-
-    if (next)
-    {
-      G_ValidateMapName(next, &wminfo.nextep, &wminfo.next);
-      wminfo.nextep--;
-      wminfo.next--;
-      // episode change
-      if (wminfo.nextep != wminfo.epsd)
-      {
-        for (i = 0; i < MAXPLAYERS; i++)
-          players[i].didsecret = false;
-      }
-    }
-
-    if (next || intermission)
-    {
-      wminfo.didsecret = players[consoleplayer].didsecret;
-      wminfo.partime = gamemapinfo->partime * TICRATE;
-      if (wminfo.partime > 0)
-        umapinfo_partimes = true;
-      goto frommapinfo;	// skip past the default setup.
-    }
+    StatCopy(&wminfo);
   }
 
-  if (gamemode != commercial) // kilough 2/7/98
-    switch(gamemap)
-      {
-      case 8:
-        gameaction = ga_victory;
-        return;
-      case 9:
-        for (i=0 ; i<MAXPLAYERS ; i++)
-          players[i].didsecret = true;
-        break;
-      }
-
-  wminfo.didsecret = players[consoleplayer].didsecret;
-
-  // wminfo.next is 0 biased, unlike gamemap
-  if (gamemode == commercial)
-    {
-      if (secretexit)
-        switch(gamemap)
-          {
-          case 15:
-            wminfo.next = 30; break;
-          case 31:
-            wminfo.next = 31; break;
-          }
-      else
-        switch(gamemap)
-          {
-          case 31:
-          case 32:
-            wminfo.next = 15; break;
-          default:
-            wminfo.next = gamemap;
-          }
-    }
-  else
-    {
-      if (secretexit)
-        wminfo.next = 8;  // go to secret level
-      else
-        if (gamemap == 9)
-          {
-            // returning from secret level
-            switch (gameepisode)
-              {
-              case 1:
-                wminfo.next = 3;
-                break;
-              case 2:
-                wminfo.next = 5;
-                break;
-              case 3:
-                wminfo.next = 6;
-                break;
-              case 4:
-                wminfo.next = 2;
-                break;
-              }
-          }
-        else
-          wminfo.next = gamemap;          // go to next level
-    }
-
-  if (gamemode == commercial)
+  if (behaviour & DC_Victory)
   {
-    // MAP33 reads its par time from beyond the cpars[] array.
-    if (demo_compatibility && gamemap == 33)
-    {
-      int cpars32;
-
-      memcpy(&cpars32, DEH_String(GAMMALVL0), sizeof(int));
-      wminfo.partime = TICRATE*LONG(cpars32);
-    }
-    else if (gamemap >= 1 && gamemap <= 34)
-    {
-      wminfo.partime = TICRATE * bex_cpars[gamemap - 1];
-    }
-  }
-  else
-  {
-    // Doom Episode 4 doesn't have a par time, so this overflows into the cpars[] array.
-    if (demo_compatibility && gameepisode == 4 && gamemap >= 1 && gamemap <= 9)
-    {
-      wminfo.partime = TICRATE * bex_cpars[gamemap - 1];
-    }
-    else if (gameepisode >= 1 && gameepisode <= 6 && gamemap >= 1 && gamemap <= 9)
-    {
-      wminfo.partime = TICRATE * bex_pars[gameepisode - 1][gamemap - 1];
-    }
+    gameaction = ga_victory;
+    return;
   }
 
-frommapinfo:
-  
-  wminfo.nextmapinfo = G_LookupMapinfo(wminfo.nextep+1, wminfo.next+1);
+  MI_UpdateNextMapInfo(&wminfo);
 
   wminfo.maxkills = totalkills;
   wminfo.maxitems = totalitems;
@@ -1951,12 +1728,6 @@ frommapinfo:
   gamestate = GS_INTERMISSION;
   viewactive = false;
   automapactive = false;
-
-  // [FG] -statdump implementation from Chocolate Doom
-  if (gamemode == commercial || gamemap != 8)
-  {
-    StatCopy(&wminfo);
-  }
 
   for (int i = 0; i < MAXPLAYERS; ++i)
   {
@@ -1989,9 +1760,7 @@ static void G_DoWorldDone(void)
 
   idmusnum = -1;             //jff 3/17/98 allow new level's music to be loaded
   gamestate = GS_LEVEL;
-  gameepisode = wminfo.nextep + 1;
-  gamemap = wminfo.next+1;
-  gamemapinfo = G_LookupMapinfo(gameepisode, gamemap);
+  MI_UpdateGameMap(wminfo.nextep + 1, wminfo.next + 1);
   G_ResetRewind(false);
   G_DoLoadLevel();
   gameaction = ga_nothing;
@@ -2733,7 +2502,7 @@ static boolean DoLoadGame(boolean do_load_autosave)
   gameskill = tmp_skill;
   gameepisode = tmp_episode;
   gamemap = tmp_map;
-  gamemapinfo = G_LookupMapinfo(gameepisode, gamemap);
+  gamemapinfo = MI_MapEntry(gameepisode, gamemap);
 
   for (int i = 0; i < MAXPLAYERS; i++)
   {
@@ -3483,64 +3252,19 @@ void G_WorldDone(void)
   if (secretexit)
     players[consoleplayer].didsecret = true;
 
-  if (gamemapinfo)
-  {
-      if (gamemapinfo->flags & MapInfo_InterTextClear
-          && gamemapinfo->flags & MapInfo_EndGame)
-      {
-          I_Printf(VB_DEBUG,
-              "UMAPINFO: 'intertext = clear' with one of the end game keys.");
-      }
+  int behavior = MI_PrepareFinale();
 
-      if (secretexit)
-      {
-          if (gamemapinfo->flags & MapInfo_InterTextSecretClear)
-          {
-              return;
-          }
-          if (gamemapinfo->intertextsecret)
-          {
-              F_StartFinale();
-              return;
-          }
-      }
-      else
-      {
-          if (gamemapinfo->flags & MapInfo_EndGame)
-          {
-              // game ends without a status screen.
-              gameaction = ga_victory;
-              return;
-          }
-          else if (gamemapinfo->flags & MapInfo_InterTextClear)
-          {
-              return;
-          }
-          else if (gamemapinfo->intertext)
-          {
-              F_StartFinale();
-              return;
-          }
-      }
-      // if nothing applied, use the defaults.
+  if (behavior & WD_Victory)
+  {
+    gameaction = ga_victory;
+    return;
   }
 
-  if (gamemode == commercial)
-    {
-      switch (gamemap)
-        {
-        case 15:
-        case 31:
-          if (!secretexit)
-            break;
-        case 6:
-        case 11:
-        case 20:
-        case 30:
-          F_StartFinale();
-          break;
-        }
-    }
+  if (behavior & WD_StartFinale)
+  {
+    F_StartFinale();
+    return;
+  }
 }
 
 static skill_t d_skill;
@@ -4178,7 +3902,7 @@ void G_InitNew(skill_t skill, int episode, int map)
   gameepisode = episode;
   gamemap = map;
   gameskill = skill;
-  gamemapinfo = G_LookupMapinfo(gameepisode, gamemap);
+  gamemapinfo = MI_MapEntry(gameepisode, gamemap);
 
   // [FG] total time for all completed levels
   totalleveltimes = 0;
@@ -4204,7 +3928,7 @@ void G_SimplifiedInitNew(int episode, int map)
 {
   gameepisode = episode;
   gamemap = map;
-  gamemapinfo = G_LookupMapinfo(episode, gamemap);
+  gamemapinfo = MI_MapEntry(episode, gamemap);
 
   AM_clearMarks();
 
@@ -4913,78 +4637,6 @@ void G_CheckDemoRecordingStatus(void)
     {
         G_CheckDemoStatus();
     }
-}
-
-static boolean IsVanillaMap(int e, int m)
-{
-    if (gamemode == commercial)
-    {
-        return (e == 1 && m > 0 && m <= 32);
-    }
-    else
-    {
-        return (e > 0 && e <= 4 && m > 0 && m <= 9);
-    }
-}
-
-static inline const char * GetVanillaMapname()
-{
-    return (gamemode != commercial) ? mapnames[(gameepisode - 1) * 9 + gamemap - 1] :
-          (gamemission == pack_tnt) ? mapnamest[gamemap - 1] :
-         (gamemission == pack_plut) ? mapnamesp[gamemap - 1] :
-                                      mapnames2[gamemap - 1];
-}
-
-static inline const char * GetVanillaMapnameOverflow()
-{
-    return (gamemission == doom2) ? mapnamesp[gamemap - 33] :
-       (gamemission == pack_plut) ? mapnamest[gamemap - 33] : "";
-}
-
-const char *G_GetLevelTitle(void)
-{
-    const char *result = "";
-
-    if (gamemapinfo && gamemapinfo->levelname)
-    {
-        if (!(gamemapinfo->flags & MapInfo_LabelClear))
-        {
-            static char *string;
-            if (string)
-            {
-                free(string);
-            }
-            string = M_StringJoin(gamemapinfo->label ? gamemapinfo->label
-                                                     : gamemapinfo->mapname,
-                                  ": ", gamemapinfo->levelname);
-            result = string;
-        }
-        else
-        {
-            result = gamemapinfo->levelname;
-        }
-    }
-    else if (gamestate == GS_LEVEL)
-    {
-        if (IsVanillaMap(gameepisode, gamemap))
-        {
-            result = DEH_String(GetVanillaMapname());
-        }
-        // WADs like pl2.wad have a MAP33, and rely on the layout in the
-        // Vanilla executable, where it is possible to overflow the end of one
-        // array into the next.
-        else if (gamemode == commercial && gamemap >= 33 && gamemap <= 35)
-        {
-            result = DEH_String(GetVanillaMapnameOverflow());
-        }
-        else
-        {
-            // initialize the map title widget with the generic map lump name
-            result = MapName(gameepisode, gamemap);
-        }
-    }
-
-    return result;
 }
 
 // killough 1/22/98: this is a "Doom printf" for messages. I've gotten
