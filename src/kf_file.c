@@ -561,10 +561,10 @@ static json_mut_t *write_mobj_t(mobj_t *str)
     JS_SetInt(doc, obj, "id", str->id);
     JS_SetInt(doc, obj, "special", str->special);
 
-    json_mut_t *args = JS_NewArray(doc);
+    json_mut_t *args_arr = JS_NewArray(doc);
     for (int i = 0; i < 5; ++i)
-        JS_ArrayAddInt(doc, args, str->args[i]);
-    JS_SetArray(doc, obj, "args", args);
+        JS_ArrayAddInt(doc, args_arr, str->args[i]);
+    JS_SetArray(doc, obj, "args", args_arr);
 
     JS_SetInt(doc, obj, "movedir", str->movedir);
     JS_SetInt(doc, obj, "movecount", str->movecount);
@@ -1837,12 +1837,6 @@ static void UnArchiveThinkers(void)
 // MSecNodes
 //
 
-static int PrepareArchiveMSecNodes(void)
-{
-    int count = M_ArenaTableSize(msecnodes_arena);
-    return  count;
-}
-
 static void ArchiveMSecNodes(void)
 {
     uintptr_t *table = M_ArenaTable(msecnodes_arena);
@@ -1948,12 +1942,6 @@ static void UnArchiveBlocklinks(void)
 // CeilingList
 //
 
-static void PrepareArchiveCeilingList(void)
-{
-    int count = M_ArenaTableSize(activeceilings_arena);
-    write32(count);
-}
-
 static void ArchiveCeilingList(void)
 {
     uintptr_t *table = M_ArenaTable(activeceilings_arena);
@@ -1996,12 +1984,6 @@ static void UnArchiveCeilingList(void)
 //
 // PlatList
 //
-
-static void PrepareArchivePlatList(void)
-{
-    int count = M_ArenaTableSize(activeplats_arena);
-    write32(count);
-}
 
 static void ArchivePlatList(void)
 {
@@ -2157,7 +2139,6 @@ void P_ArchiveKeyframe(void)
     }
     JS_SetArray(doc, root, "thinkerclasscaps", thinkerclasscaps_arr);
 
-    PrepareArchiveMSecNodes();
     JS_SetInt(doc, root, "headsecnode", writep_msecnode(headsecnode));
 
     ArchiveDirty();
@@ -2194,14 +2175,11 @@ void P_ArchiveKeyframe(void)
     // p_setup.h
     ArchiveBlocklinks();
 
+    // p_spec.h
+    ArchivePlayers();
+
     puts(yyjson_mut_write(doc, YYJSON_WRITE_PRETTY, NULL));
     return;
-
-    // p_spec.h
-    PrepareArchiveCeilingList();
-    PrepareArchivePlatList();
-
-    ArchivePlayers();
 
     ArchiveThinkers();
 
