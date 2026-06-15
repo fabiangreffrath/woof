@@ -25,6 +25,29 @@
 #include "doomtype.h"
 #include "m_fixed.h"
 
+typedef enum mapformat_e
+{
+    MAP_NONE,
+    MAP_DOOM,
+    MAP_HEXEN,
+    MAP_UDMF,
+} map_format_t;
+
+typedef enum bspformat_e
+{
+    BSP_DOOMBSP,
+    BSP_DEEPBSPV4,
+    BSP_XNOD,
+    BSP_ZNOD,
+    BSP_XGLN,
+    BSP_ZGLN,
+    BSP_XGL2,
+    BSP_ZGL2,
+    BSP_XGL3,
+    BSP_ZGL3,
+    BSP_NANO,
+} bsp_format_t;
+
 typedef enum bmap_format_e
 {
   BMAP_DoomBlockmap,
@@ -32,23 +55,38 @@ typedef enum bmap_format_e
   BMAP_BoomBuilder,
 } bmap_format_t;
 
-
-typedef struct mapformat_s
+typedef struct map_s
 {
-    enum
-    {
-        MAP_Invalid,
-        MAP_Doom,
-        MAP_Hexen,
-        MAP_UDMF,
-    } format;
+    // Format used by the lumps
+    map_format_t map_format;
+    bsp_format_t bsp_format;
+    bmap_format_t bmap_format;
+    // Is map using the parameterized line special system?
+    boolean param;
+    // Is the map actually compiled by a BSP tree builder?
+    // To be more specific, does the map have the expected compiled lumps
+    // even if said compiled lumps are empty?
     boolean built;
-} mapformat_t;
-
-extern mapformat_t mapformat;
-
-// Appended to node_format_names, hence the plus sign
-extern const char *bmap_format_names[];
+    // Is the reject matrix compiled correctly?
+    boolean reject_built;
+    // Level components
+    int label;
+    int vertexes;
+    int linedefs;
+    int sidedefs;
+    int sectors;
+    int things;
+    int textmap;
+    int nodes;
+    int ssectors;
+    int segs;
+    int znodes;
+    int blockmap;
+    int reject;
+    int behavior;
+    int dialogue;
+    int lightmap;
+} map_t;
 
 //
 // Map level types.
@@ -70,9 +108,16 @@ enum {
   ML_SECTORS,           // Sectors, from editing
   ML_REJECT,            // LUT, sector-sector visibility
   ML_BLOCKMAP,          // LUT, motion clipping, walls/grid element
-  ML_BEHAVIOR,          // Hexen-format, ACS byte code. Unsupported
+  ML_BEHAVIOR,          // Hexen-format, ACS byte code.
+  ML_SCRIPTS,           // Hexen-format, ZDoom extension, ACS source code.
 
   ML_TEXTMAP = ML_LABEL + 1, // UDMF map data
+  ML_ZNODES,                 // ZDBSP-format BSP tree
+  ML_DIALOGUE,               // USDF npc conversations
+  ML_LIGHTMAP,               // Baked lighting, hardware-rendered
+  ML_ENDMAP,                 // End-of-list marker
+
+  ML_MAPLUMPCOUNT = ML_SCRIPTS + ML_ENDMAP,
 };
 
 // Support uncompiled maps by building with NanoBSP

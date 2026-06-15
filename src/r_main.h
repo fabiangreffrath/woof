@@ -106,8 +106,8 @@ extern void (*colfunc)(void);
 //
 
 extern int (*R_PointOnSide)(fixed_t x, fixed_t y, struct node_s *node);
-int R_PointOnSideClassic(fixed_t x, fixed_t y, struct node_s *node);
-int R_PointOnSidePrecise(fixed_t x, fixed_t y, struct node_s *node);
+int R_PointOnSide_Classic(fixed_t x, fixed_t y, struct node_s *node);
+int R_PointOnSide_Precise(fixed_t x, fixed_t y, struct node_s *node);
 int R_PointOnSegSide(fixed_t x, fixed_t y, struct seg_s *line);
 angle_t R_PointToAngle(fixed_t x, fixed_t y);
 angle_t R_PointToAngle2(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2);
