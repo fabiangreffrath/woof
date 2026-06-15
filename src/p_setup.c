@@ -116,6 +116,9 @@ line_t   *lines;
 int      numsides;
 side_t   *sides;
 
+int      *sslines_indexes;
+ssline_t *sslines;
+
 arena_t *world_arena;
 
 // BLOCKMAP
@@ -1264,6 +1267,9 @@ void P_SetupLevel(int episode, int map_num, skill_t skill)
       I_Error("Unknown level format in %s", lumpname);
       break;
   }
+
+  // P_CrossSubsector optimization
+  P_InitSubsectorLines();
 
   // XGL3/ZGL3 provide high-precision partition lines
   if (map.bsp_format >= BSP_XGL3)
