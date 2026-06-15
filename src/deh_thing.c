@@ -288,7 +288,8 @@ static void DEH_ThingParseLine(deh_context_t *context, char *line, int tag)
     {
         if (ivalue < 0)
         {
-            I_Error("Dropped item must be >= 0 (check your dehacked)");
+            DEH_Debug(context, "Dropped item should be >= 0 (check your dehacked)");
+            ivalue = 0;
         }
         ivalue += MT_NULL; // DeHackEd is off-by-one
         ivalue = DSDH_ThingTranslate(ivalue);
