@@ -66,14 +66,14 @@ statenum_t *seenstate_tab = NULL;
 
 // Detect map Format currently being set up.
 // Different map formats
-static const char *const map_names[] = {
+static const char *const map_format_names[] = {
     [MAP_NONE] = "Invalid",
     [MAP_DOOM] = "Doom",
     [MAP_HEXEN] = "Hexen",
     [MAP_UDMF] = "UDMF",
 };
 
-static const char *const bsp_names[] = {
+static const char *const bsp_format_names[] = {
     [BSP_DOOMBSP] = "DoomBSP", [BSP_DEEPBSPV4] = "DeepBSPV4",
     [BSP_XNOD] = "XNOD",       [BSP_ZNOD] = "ZNOD",
     [BSP_XGLN] = "XGLN",       [BSP_ZGLN] = "ZGLN",
@@ -82,7 +82,7 @@ static const char *const bsp_names[] = {
     [BSP_NANO] = "NanoBSP"};
 
 // Appended to node_format_names, hence the plus sign
-static const char *const bmap_names[] = {
+static const char *const bmap_format_names[] = {
     [BMAP_DoomBlockmap] = "",
     [BMAP_XBM1] = "+XBM1",
     [BMAP_BoomBuilder] = "+BoomBlockmap",
@@ -1198,7 +1198,7 @@ void P_SetupLevel(int episode, int map_num, skill_t skill)
   totalkills = totalitems = totalsecret = wminfo.maxfrags = 0;
   max_kill_requirement = 0;
   wminfo.partime = 180;
-  for (int i = 0; i<MAXPLAYERS; i++)
+  for (int i = 0; i < MAXPLAYERS; i++)
   {
     players[i].killcount = players[i].secretcount = players[i].itemcount = 0;
     players[i].maxkilldiscount = 0;
@@ -1268,11 +1268,11 @@ void P_SetupLevel(int episode, int map_num, skill_t skill)
   // XGL3/ZGL3 provide high-precision partition lines
   if (map.bsp_format >= BSP_XGL3)
   {
-    R_PointOnSide = R_PointOnSidePrecise;
+    R_PointOnSide = R_PointOnSide_Precise;
   }
   else
   {
-    R_PointOnSide = R_PointOnSideClassic;
+    R_PointOnSide = R_PointOnSide_Classic;
   }
 
   if (map.bsp_format != BSP_NANO)
@@ -1352,9 +1352,9 @@ void P_SetupLevel(int episode, int map_num, skill_t skill)
   I_Printf(VB_DEMO, "P_SetupLevel: %.8s (%s), Skill %d, %s (%s%s%s), %s",
     lumpname, W_WadNameForLump(lumpnum),
     gameskill + 1,
-    map_names[map.map_format],
-    bsp_names[map.bsp_format],
-    bmap_names[map.bmap_format],
+    map_format_names[map.map_format],
+    bsp_format_names[map.bsp_format],
+    bmap_format_names[map.bmap_format],
     map.reject_built ? "+Reject" : "",
     G_GetCurrentComplevelName());
 }

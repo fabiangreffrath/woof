@@ -207,52 +207,6 @@ void UDMF_ClearMemory(void)
     array_free(udmf_things);
 }
 
-UDMF_Lumpnums_t UDMF_FindLumps(int lumpnum)
-{
-    UDMF_Lumpnums_t lumps = {
-        .znodes = -1,
-        .reject = -1,
-        .blockmap = -1,
-        .behavior = -1,
-        .dialogue = -1,
-        .lightmap = -1,
-    };
-
-    // skip label and TEXTMAP, test against all other lumps until ENDMAP
-    for (int i = ML_TEXTMAP + 1; i < UDMF_MAXLUMP; ++i)
-    {
-        int j = lumpnum + i;
-        if (W_LumpExistsWithName(j, "ENDMAP"))
-        {
-            break;
-        }
-        else if (W_LumpExistsWithName(j, "ZNODES"))
-        {
-            lumps.znodes = j;
-        }
-        else if (W_LumpExistsWithName(j, "REJECT"))
-        {
-            lumps.reject = j;
-        }
-        else if (W_LumpExistsWithName(j, "BLOCKMAP"))
-        {
-            lumps.blockmap = j;
-        }
-        else if (W_LumpExistsWithName(j, "BEHAVIOR"))
-        {
-            lumps.behavior = j;
-        }
-        else if (W_LumpExistsWithName(j, "DIALOGUE"))
-        {
-            lumps.dialogue = j;
-        }
-        else if (W_LumpExistsWithName(j, "LIGHTMAP"))
-        {
-            lumps.lightmap = j;
-        }
-    }
-    return lumps;
-}
 //
 // UDMF parsing utils
 //
