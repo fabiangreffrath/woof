@@ -62,58 +62,6 @@ static int DivlineSide(fixed_t x, fixed_t y, const divline_t *node)
     right == left ? 2 : 1;
 }
 
-static int DivlineCrossed(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2,
-                          divline_t *node)
-{
-    if (!node->dx)
-    {
-        if (x1 == node->x)
-        {
-            return (x2 == node->x);
-        }
-        if (x1 < node->x)
-        {
-            return (x2 < node->x);
-        }
-        return (x2 > node->x);
-    }
-
-    if (!node->dy)
-    {
-        if ((mbf21 ? y1 : x1) == node->y)
-        {
-            return (x2 == node->y);
-        }
-        if (y1 < node->y)
-        {
-            return (y2 < node->y);
-        }
-        return (y2 > node->y);
-    }
-
-    {
-        fixed_t node_dx = (node->dx >> FRACBITS);
-        fixed_t node_dy = (node->dy >> FRACBITS);
-
-        fixed_t left1 = node_dy * ((x1 - node->x) >> FRACBITS);
-        fixed_t right1 = ((y1 - node->y) >> FRACBITS) * node_dx;
-        fixed_t left2 = node_dy * ((x2 - node->x) >> FRACBITS);
-        fixed_t right2 = ((y2 - node->y) >> FRACBITS) * node_dx;
-
-        if (right1 < left1)
-        {
-            return (right2 < left2);
-        }
-
-        if (left1 == right1)
-        {
-            return (left2 == right2);
-        }
-
-        return (right2 > left2);
-    }
-}
-
 //
 // P_InterceptVector2
 // Returns the fractional intercept point
@@ -170,7 +118,8 @@ static boolean P_CrossSubsector(int num, register los_t *los)
       }
 
       // line isn't crossed?
-      if (DivlineCrossed(ssline->x1, ssline->y1, ssline->x2, ssline->y2, &los->strace))
+      if (DivlineSide(ssline->x1, ssline->y1, &los->strace)
+          == DivlineSide(ssline->x2, ssline->y2, &los->strace))
       {
         ssline->linedef->validcount = validcount;
         continue;
@@ -180,7 +129,8 @@ static boolean P_CrossSubsector(int num, register los_t *los)
       divl.dy = ssline->y2 - (divl.y = ssline->y1);
 
       // line isn't crossed?
-      if (DivlineCrossed(los->strace.x, los->strace.y, los->t2x, los->t2y, &divl))
+      if (DivlineSide(los->strace.x, los->strace.y, &divl)
+          == DivlineSide(los->t2x, los->t2y, &divl))
       {
         ssline->linedef->validcount = validcount;
         continue;
