@@ -496,7 +496,7 @@ void P_LoadSegs(int lump)
         v1 = (unsigned short)SHORT(ml->v1);
         v2 = (unsigned short)SHORT(ml->v2);
 
-        li->angle = (SHORT(ml->angle)) << 16;
+        li->angle = IntToFixed(SHORT(ml->angle));
         linedef = (unsigned short)SHORT(ml->linedef); // [FG] extended nodes
 
         // Andrey Budko: check for wrong indexes
