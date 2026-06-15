@@ -1007,7 +1007,7 @@ static void G_DoLoadLevel(void)
 
   P_ClearDirtyArrays();
 
-  P_SetupLevel (gameepisode, gamemap, 0, gameskill);
+  P_SetupLevel(gameepisode, gamemap, gameskill);
 
   MN_UpdateFreeLook();
   HU_UpdateTurnFormat();

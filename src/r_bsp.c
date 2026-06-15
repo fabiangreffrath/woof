@@ -739,7 +739,7 @@ void R_RenderBSPNode(int bspnum)
 
       // Decide which side the view point is on.
       // [Woof!] always use precise version for rendering
-      int side = R_PointOnSidePrecise(viewx, viewy, bsp);
+      int side = R_PointOnSide_Precise(viewx, viewy, bsp);
 
       // Recursively divide front space.
       R_RenderBSPNode(bsp->children[side]);
