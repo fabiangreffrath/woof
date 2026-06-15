@@ -135,14 +135,14 @@ void (*colfunc)(void);                    // current column draw function
 //
 // killough 5/2/98: reformatted
 //
-int (*R_PointOnSide)(fixed_t x, fixed_t y, struct node_s *node) = R_PointOnSideClassic;
+int (*R_PointOnSide)(fixed_t x, fixed_t y, struct node_s *node) = R_PointOnSide_Classic;
 
 // Workaround for optimization bug in clang
 // fixes desync in competn/doom/fp2-3655.lmp and in dmnsns.wad dmn01m909.lmp
 #if defined(__clang__)
-int R_PointOnSideClassic(volatile fixed_t x, volatile fixed_t y, node_t *node)
+int R_PointOnSide_Classic(volatile fixed_t x, volatile fixed_t y, node_t *node)
 #else
-int R_PointOnSideClassic(fixed_t x, fixed_t y, node_t *node)
+int R_PointOnSide_Classic(fixed_t x, fixed_t y, node_t *node)
 #endif
 {
   if (!node->dx)
@@ -161,9 +161,9 @@ int R_PointOnSideClassic(fixed_t x, fixed_t y, node_t *node)
 }
 
 #if defined(__clang__)
-int R_PointOnSidePrecise(volatile fixed_t x, volatile fixed_t y, node_t *node)
+int R_PointOnSide_Precise(volatile fixed_t x, volatile fixed_t y, node_t *node)
 #else
-int R_PointOnSidePrecise(fixed_t x, fixed_t y, node_t *node)
+int R_PointOnSide_Precise(fixed_t x, fixed_t y, node_t *node)
 #endif
 {
    if(!node->dx)

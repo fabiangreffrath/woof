@@ -19,4 +19,4 @@
 
 void G_ParseCompDatabase(void);
 
-void G_ApplyLevelCompatibility(int lump, mapformat_t mapformat);
+void G_ApplyLevelCompatibility(map_t* map);
