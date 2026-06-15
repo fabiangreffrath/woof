@@ -25,6 +25,7 @@
 
 struct vertex_s;
 
+extern void P_InitSubsectorLines(void);
 extern void P_CheckBSPFormat_Binary(map_t *map);
 extern void P_CheckBSPFormat_UDMF(map_t *map);
 extern int P_GetOffset(struct vertex_s *v1, struct vertex_s *v2);
