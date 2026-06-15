@@ -1513,8 +1513,8 @@ static void ArchiveWorld(void)
             }
             JS_ArrayAddObject(doc, sides_arr, side_obj);
         }
+        JS_SetArray(doc, line_obj, "sides", sides_arr);
         JS_ArrayAddObject(doc, lines_arr, line_obj);
-        JS_ArrayAddObject(doc, lines_arr, sides_arr);
     }
     JS_SetArray(doc, root, "lines", lines_arr);
 }
@@ -1907,19 +1907,17 @@ static void UnArchivePlayers(void)
 static void ArchiveBlocklinks(void)
 {
     int blocklinks_count = bmapwidth * bmapheight;
+    json_mut_t *bmap_arr = JS_NewArray(doc);
     for (int i = 0; i < blocklinks_count; ++i)
     {
-        int count = 0;
+        json_mut_t *blocklinks_arr = JS_NewArray(doc);
         for (mobj_t *mobj = blocklinks[i]; mobj; mobj = mobj->bnext)
         {
-            ++count;
+            JS_ArrayAddInt(doc, blocklinks_arr, writep_mobj(mobj));
         }
-        write32(count);
-        for (mobj_t *mobj = blocklinks[i]; mobj; mobj = mobj->bnext)
-        {
-            writep_mobj(mobj);
-        }
+        JS_ArrayAddObject(doc, bmap_arr, blocklinks_arr);
     }
+    JS_SetArray(doc, root, "blocklinks", bmap_arr);
 }
 
 static void UnArchiveBlocklinks(void)
@@ -2193,11 +2191,11 @@ void P_ArchiveKeyframe(void)
     json_mut_t *trace_obj = write_divline_t(&trace);
     JS_SetObject(doc, root, "trace", trace_obj);
 
-    puts(yyjson_mut_write(doc, YYJSON_WRITE_PRETTY, NULL));
-    return;
-
     // p_setup.h
     ArchiveBlocklinks();
+
+    puts(yyjson_mut_write(doc, YYJSON_WRITE_PRETTY, NULL));
+    return;
 
     // p_spec.h
     PrepareArchiveCeilingList();
