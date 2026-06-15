@@ -254,7 +254,7 @@ static void DEH_ThingParseLine(deh_context_t *context, char *line, int tag)
 
     int thing_number = tag;
 
-    mobjinfo_t *mobj = &mobjinfo[thing_number];
+    mobjinfo_t *const mobj = &mobjinfo[thing_number];
 
     // Parse the assignment
     char *variable_name, *value;
@@ -288,11 +288,11 @@ static void DEH_ThingParseLine(deh_context_t *context, char *line, int tag)
     {
         if (ivalue < 0)
         {
-            I_Error("Dropped item must be >= 0 (check your dehacked)");
+            DEH_Debug(context, "Dropped item should be >= 0 (check your dehacked)");
+            ivalue = 0;
         }
         ivalue += MT_NULL; // DeHackEd is off-by-one
         ivalue = DSDH_ThingTranslate(ivalue);
-        mobj = &mobjinfo[thing_number];
     }
     else if (!strcasecmp(variable_name, "Infighting group"))
     {
