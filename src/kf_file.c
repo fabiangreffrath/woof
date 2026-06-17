@@ -216,7 +216,7 @@ static uintptr_t *platlist_pointers;
         write32(index);                                  \
     } while (0)
 
-#define JS_SETIDX(doc, obj, key, ptr, base)              \
+#define JS_SetIdx(doc, obj, key, ptr, base)              \
     do                                                   \
     {                                                    \
         JS_SetInt(doc, obj, key,                         \
@@ -539,7 +539,7 @@ static json_mut_t *write_mobj_t(mobj_t *str)
     // str->bnext;
     // str->bprev;
 
-    JS_SETIDX(doc, obj, "subsector", str->subsector, subsectors);
+    JS_SetIdx(doc, obj, "subsector", str->subsector, subsectors);
     JS_SetInt(doc, obj, "floorz", str->floorz);
     JS_SetInt(doc, obj, "ceilingz", str->ceilingz);
     JS_SetInt(doc, obj, "dropoffz", str->dropoffz);
@@ -550,9 +550,9 @@ static json_mut_t *write_mobj_t(mobj_t *str)
     JS_SetInt(doc, obj, "momz", str->momz);
     JS_SetInt(doc, obj, "validcount", str->validcount);
     JS_SetInt(doc, obj, "type", str->type);
-    JS_SETIDX(doc, obj, "info", str->info, mobjinfo);
+    JS_SetIdx(doc, obj, "info", str->info, mobjinfo);
     JS_SetInt(doc, obj, "tics", str->tics);
-    JS_SETIDX(doc, obj, "state", str->state, states);
+    JS_SetIdx(doc, obj, "state", str->state, states);
     JS_SetInt(doc, obj, "flags", str->flags);
     JS_SetInt(doc, obj, "flags2", str->flags2);
     JS_SetInt(doc, obj, "flags_extra", str->flags_extra);
@@ -574,7 +574,7 @@ static json_mut_t *write_mobj_t(mobj_t *str)
     JS_SetInt(doc, obj, "threshold", str->threshold);
     JS_SetInt(doc, obj, "pursuecount", str->pursuecount);
     JS_SetInt(doc, obj, "gear", str->gear);
-    JS_SETIDX(doc, obj, "player", str->player, players);
+    JS_SetIdx(doc, obj, "player", str->player, players);
     JS_SetInt(doc, obj, "lastlook", str->lastlook);
 
     json_mut_t *spawnpoint = write_mapthing_t(&str->spawnpoint);
@@ -607,14 +607,18 @@ static void read_ticcmd_t(ticcmd_t *str)
     str->buttons = read8();
 }
 
-static void write_ticcmd_t(ticcmd_t *str)
+static json_mut_t *write_ticcmd_t(ticcmd_t *str)
 {
-    write8(str->forwardmove);
-    write8(str->sidemove);
-    write16(str->angleturn);
-    write16(str->consistancy);
-    write8(str->chatchar);
-    write8(str->buttons);
+    json_mut_t *obj = JS_NewObject(doc);
+
+    JS_SetInt(doc, obj, "forwardmove", str->forwardmove);
+    JS_SetInt(doc, obj, "sidemove", str->sidemove);
+    JS_SetInt(doc, obj, "angleturn", str->angleturn);
+    JS_SetInt(doc, obj, "consistancy", str->consistancy);
+    JS_SetInt(doc, obj, "chatchar", str->chatchar);
+    JS_SetInt(doc, obj, "buttons", str->buttons);
+
+    return obj;
 }
 
 static void read_pspdef_t(pspdef_t *str)
@@ -631,18 +635,22 @@ static void read_pspdef_t(pspdef_t *str)
     str->syf = read32();
 }
 
-static void write_pspdef_t(pspdef_t *str)
+static json_mut_t *write_pspdef_t(pspdef_t *str)
 {
-    writep_index(str->state, states);
-    write32(str->tics);
-    write32(str->sx);
-    write32(str->sy);
-    write32(str->sx2);
-    write32(str->sy2);
-    write32(str->oldsx2);
-    write32(str->oldsy2);
-    write32(str->sxf);
-    write32(str->syf);
+    json_mut_t *obj = JS_NewObject(doc);
+
+    JS_SetIdx(doc, obj, "state", str->state, states);
+    JS_SetInt(doc, obj, "tics", str->tics);
+    JS_SetInt(doc, obj, "sx", str->sx);
+    JS_SetInt(doc, obj, "sy", str->sy);
+    JS_SetInt(doc, obj, "sx2", str->sx2);
+    JS_SetInt(doc, obj, "sy2", str->sy2);
+    JS_SetInt(doc, obj, "oldsx2", str->oldsx2);
+    JS_SetInt(doc, obj, "oldsy2", str->oldsy2);
+    JS_SetInt(doc, obj, "sxf", str->sxf);
+    JS_SetInt(doc, obj, "syf", str->syf);
+
+    return obj;
 }
 
 static void read_player_t(player_t *str)
@@ -728,84 +736,121 @@ static void read_player_t(player_t *str)
     str->switching = read_enum();
 }
 
-static void write_player_t(player_t *str)
+static json_mut_t *write_player_t(player_t *str)
 {
-    writep_mobj(str->mo);
-    write_enum(str->playerstate);
-    write_ticcmd_t(&str->cmd);
-    write32(str->viewz);
-    write32(str->viewheight);
-    write32(str->deltaviewheight);
-    write32(str->bob);
-    write32(str->momx);
-    write32(str->momy);
-    write32(str->health);
-    write32(str->armorpoints);
-    write32(str->armortype);
+    json_mut_t *obj = JS_NewObject(doc);
+
+    JS_SetInt(doc, obj, "mo", writep_mobj(str->mo));
+    JS_SetInt(doc, obj, "playerstate", str->playerstate);
+
+    json_mut_t *cmd_obj = write_ticcmd_t(&str->cmd);
+    JS_SetObject(doc, obj, "ticcmd", cmd_obj);
+
+    JS_SetInt(doc, obj, "viewz", str->viewz);
+    JS_SetInt(doc, obj, "viewheight", str->viewheight);
+    JS_SetInt(doc, obj, "deltaviewheight", str->deltaviewheight);
+    JS_SetInt(doc, obj, "bob", str->bob);
+    JS_SetInt(doc, obj, "momx", str->momx);
+    JS_SetInt(doc, obj, "momy", str->momy);
+    JS_SetInt(doc, obj, "health", str->health);
+    JS_SetInt(doc, obj, "armorpoints", str->armorpoints);
+    JS_SetInt(doc, obj, "armortype", str->armortype);
+
+    json_mut_t *powers_arr = JS_NewArray(doc);
     for (int i = 0; i < NUMPOWERS; ++i)
     {
-        write32(str->powers[i]);
+        JS_ArrayAddInt(doc, powers_arr, str->powers[i]);
     }
+    JS_SetArray(doc, obj, "powers", powers_arr);
+
+    json_mut_t *cards_arr = JS_NewArray(doc);
     for (int i = 0; i < NUMCARDS; ++i)
     {
-        write32(str->cards[i]);
+        JS_ArrayAddInt(doc, cards_arr, str->cards[i]);
     }
-    write32(str->backpack);
+    JS_SetArray(doc, obj, "cards", cards_arr);
+
+    JS_SetInt(doc, obj, "backpack", str->backpack);
+
+    json_mut_t *frags_arr = JS_NewArray(doc);
     for (int i = 0; i < MAXPLAYERS; ++i)
     {
-        write32(str->frags[i]);
+        JS_ArrayAddInt(doc, frags_arr, str->frags[i]);
     }
-    write_enum(str->readyweapon);
-    write_enum(str->pendingweapon);
+    JS_SetArray(doc, obj, "frags", frags_arr);
+
+    JS_SetInt(doc, obj, "readyweapon", str->readyweapon);
+    JS_SetInt(doc, obj, "pendingweapon", str->pendingweapon);
+
+    json_mut_t *weaponowned_arr = JS_NewArray(doc);
     for (int i = 0; i < NUMWEAPONS; ++i)
     {
-        write32(str->weaponowned[i]);
+        JS_ArrayAddInt(doc, weaponowned_arr, str->weaponowned[i]);
     }
+    JS_SetArray(doc, obj, "weaponowned", weaponowned_arr);
+
+    json_mut_t *ammo_arr = JS_NewArray(doc);
     for (int i = 0; i < NUMAMMO; ++i)
     {
-        write32(str->ammo[i]);
+        JS_ArrayAddInt(doc, ammo_arr, str->ammo[i]);
     }
+    JS_SetArray(doc, obj, "ammo", ammo_arr);
+
+    json_mut_t *maxammo_arr = JS_NewArray(doc);
     for (int i = 0; i < NUMAMMO; ++i)
     {
-        write32(str->maxammo[i]);
+        JS_ArrayAddInt(doc, maxammo_arr, str->maxammo[i]);
     }
-    write32(str->attackdown);
-    write32(str->usedown);
-    write32(str->cheats);
-    write32(str->refire);
-    write32(str->killcount);
-    write32(str->itemcount);
-    write32(str->secretcount);
+    JS_SetArray(doc, obj, "maxammo", maxammo_arr);
+
+    JS_SetInt(doc, obj, "attackdown", str->attackdown);
+    JS_SetInt(doc, obj, "usedown", str->usedown);
+    JS_SetInt(doc, obj, "cheats", str->cheats);
+    JS_SetInt(doc, obj, "refire", str->refire);
+    JS_SetInt(doc, obj, "killcount", str->killcount);
+    JS_SetInt(doc, obj, "itemcount", str->itemcount);
+    JS_SetInt(doc, obj, "secretcount", str->secretcount);
     // TODO
     // str->message;
-    write32(str->damagecount);
-    write32(str->bonuscount);
-    writep_mobj(str->attacker);
-    write32(str->extralight);
-    write32(str->fixedcolormap);
-    write32(str->colormap);
+    JS_SetInt(doc, obj, "damagecount", str->damagecount);
+    JS_SetInt(doc, obj, "bonuscount", str->bonuscount);
+    JS_SetInt(doc, obj, "attacker", writep_mobj(str->attacker));
+    JS_SetInt(doc, obj, "extralight", str->extralight);
+    JS_SetInt(doc, obj, "fixedcolormap", str->fixedcolormap);
+    JS_SetInt(doc, obj, "colormap", str->colormap);
+
+    json_mut_t *psprites_arr = JS_NewArray(doc);
     for (int i = 0; i < NUMPSPRITES; ++i)
     {
-        write_pspdef_t(&str->psprites[i]);
+        json_mut_t *pspsprite_obj = write_pspdef_t(&str->psprites[i]);
+        JS_ArrayAddObject(doc, psprites_arr, pspsprite_obj);
     }
-    write32(str->didsecret);
-    write32(str->oldviewz);
-    write32(str->pitch);
-    write32(str->oldpitch);
-    write32(str->slope);
-    write32(str->maxkilldiscount);
+    JS_SetArray(doc, obj, "psprites", psprites_arr);
 
-    write32(str->num_visitedlevels);
+    JS_SetInt(doc, obj, "didsecret", str->didsecret);
+    JS_SetInt(doc, obj, "oldviewz", str->oldviewz);
+    JS_SetInt(doc, obj, "pitch", str->pitch);
+    JS_SetInt(doc, obj, "oldpitch", str->oldpitch);
+    JS_SetInt(doc, obj, "slope", str->slope);
+    JS_SetInt(doc, obj, "maxkilldiscount", str->maxkilldiscount);
+
+    json_mut_t *visitedlevels_arr = JS_NewArray(doc);
     level_t *level;
     array_foreach(level, str->visitedlevels)
     {
-        write32(level->episode);
-        write32(level->map);
+        json_mut_t *visitedlevel_obj = JS_NewArray(doc);
+
+        JS_SetInt(doc, visitedlevel_obj, "episode", level->episode);
+        JS_SetInt(doc, visitedlevel_obj, "map", level->map);
+
+        JS_ArrayAddObject(doc, visitedlevels_arr, visitedlevel_obj);
     }
 
-    write_enum(str->lastweapon);
-    write_enum(str->nextweapon);
-    write_enum(str->switching);
+    JS_SetInt(doc, obj, "lastweapon", str->lastweapon);
+    JS_SetInt(doc, obj, "nextweapon", str->nextweapon);
+    JS_SetInt(doc, obj, "switching", str->switching);
+
+    return obj;
 }
 
 static void read_ceiling_t(ceiling_t *str, thinker_class_t tc)
@@ -835,7 +880,7 @@ static json_mut_t *write_ceiling_t(ceiling_t *str)
     JS_SetObject(doc, obj, "thinker", thinker);
 
     JS_SetInt(doc, obj, "type", str->type);
-    JS_SETIDX(doc, obj, "sector", str->sector, sectors);
+    JS_SetIdx(doc, obj, "sector", str->sector, sectors);
     JS_SetInt(doc, obj, "bottomheight", str->bottomheight);
     JS_SetInt(doc, obj, "topheight", str->topheight);
     JS_SetInt(doc, obj, "speed", str->speed);
@@ -874,13 +919,13 @@ static json_mut_t *write_vldoor_t(vldoor_t *str)
     JS_SetObject(doc, obj, "thinker", thinker);
 
     JS_SetInt(doc, obj, "type", str->type);
-    JS_SETIDX(doc, obj, "sector", str->sector, sectors);
+    JS_SetIdx(doc, obj, "sector", str->sector, sectors);
     JS_SetInt(doc, obj, "topheight", str->topheight);
     JS_SetInt(doc, obj, "speed", str->speed);
     JS_SetInt(doc, obj, "direction", str->direction);
     JS_SetInt(doc, obj, "topwait", str->topwait);
     JS_SetInt(doc, obj, "topcountdown", str->topcountdown);
-    JS_SETIDX(doc, obj, "line", str->line, lines);
+    JS_SetIdx(doc, obj, "line", str->line, lines);
     JS_SetInt(doc, obj, "lighttag", str->lighttag);
 
     return obj;
@@ -909,7 +954,7 @@ static json_mut_t *write_floormove_t(floormove_t *str)
 
     JS_SetInt(doc, obj, "type", str->type);
     JS_SetInt(doc, obj, "crush", str->crush);
-    JS_SETIDX(doc, obj, "sector", str->sector, sectors);
+    JS_SetIdx(doc, obj, "sector", str->sector, sectors);
     JS_SetInt(doc, obj, "direction", str->direction);
     JS_SetInt(doc, obj, "newspecial", str->newspecial);
     JS_SetInt(doc, obj, "oldspecial", str->oldspecial);
@@ -944,7 +989,7 @@ static json_mut_t *write_plat_t(plat_t *str)
     json_mut_t *thinker = write_thinker_t(&str->thinker);
     JS_SetObject(doc, obj, "thinker", thinker);
 
-    JS_SETIDX(doc, obj, "sector", str->sector, sectors);
+    JS_SetIdx(doc, obj, "sector", str->sector, sectors);
     JS_SetInt(doc, obj, "speed", str->speed);
     JS_SetInt(doc, obj, "low", str->low);
     JS_SetInt(doc, obj, "high", str->high);
@@ -978,7 +1023,7 @@ static json_mut_t *write_lightflash_t(lightflash_t *str)
     json_mut_t *thinker = write_thinker_t(&str->thinker);
     JS_SetObject(doc, obj, "thinker", thinker);
 
-    JS_SETIDX(doc, obj, "sector", str->sector, sectors);
+    JS_SetIdx(doc, obj, "sector", str->sector, sectors);
     JS_SetInt(doc, obj, "count", str->count);
     JS_SetInt(doc, obj, "maxlight", str->maxlight);
     JS_SetInt(doc, obj, "minlight", str->minlight);
@@ -1006,7 +1051,7 @@ static json_mut_t *write_strobe_t(strobe_t *str)
     json_mut_t *thinker = write_thinker_t(&str->thinker);
     JS_SetObject(doc, obj, "thinker", thinker);
 
-    JS_SETIDX(doc, obj, "sector", str->sector, sectors);
+    JS_SetIdx(doc, obj, "sector", str->sector, sectors);
     JS_SetInt(doc, obj, "count", str->count);
     JS_SetInt(doc, obj, "minlight", str->minlight);
     JS_SetInt(doc, obj, "maxlight", str->maxlight);
@@ -1032,7 +1077,7 @@ static json_mut_t *write_glow_t(glow_t *str)
     json_mut_t *thinker = write_thinker_t(&str->thinker);
     JS_SetObject(doc, obj, "thinker", thinker);
 
-    JS_SETIDX(doc, obj, "sector", str->sector, sectors);
+    JS_SetIdx(doc, obj, "sector", str->sector, sectors);
     JS_SetInt(doc, obj, "minlight", str->minlight);
     JS_SetInt(doc, obj, "maxlight", str->maxlight);
     JS_SetInt(doc, obj, "direction", str->direction);
@@ -1056,7 +1101,7 @@ static json_mut_t *write_fireflicker_t(fireflicker_t *str)
     json_mut_t *thinker = write_thinker_t(&str->thinker);
     JS_SetObject(doc, obj, "thinker", thinker);
 
-    JS_SETIDX(doc, obj, "sector", str->sector, sectors);
+    JS_SetIdx(doc, obj, "sector", str->sector, sectors);
     JS_SetInt(doc, obj, "count", str->count);
     JS_SetInt(doc, obj, "maxlight", str->maxlight);
     JS_SetInt(doc, obj, "minlight", str->minlight);
@@ -1083,7 +1128,7 @@ static json_mut_t *write_elevator_t(elevator_t *str)
     JS_SetObject(doc, obj, "thinker", thinker);
 
     JS_SetInt(doc, obj, "type", str->type);
-    JS_SETIDX(doc, obj, "sector", str->sector, sectors);
+    JS_SetIdx(doc, obj, "sector", str->sector, sectors);
     JS_SetInt(doc, obj, "direction", str->direction);
     JS_SetInt(doc, obj, "floordestheight", str->floordestheight);
     JS_SetInt(doc, obj, "ceilingdestheight", str->ceilingdestheight);
@@ -1295,15 +1340,19 @@ static void read_msecnode_t(msecnode_t *str)
     str->visited = read32();
 }
 
-static void write_msecnode_t(msecnode_t *str)
+static json_mut_t *write_msecnode_t(msecnode_t *str)
 {
-    writep_index(str->m_sector, sectors);
-    writep_mobj(str->m_thing);
-    writep_msecnode(str->m_tprev);
-    writep_msecnode(str->m_tnext);
-    writep_msecnode(str->m_sprev);
-    writep_msecnode(str->m_snext);
-    write32(str->visited);
+    json_mut_t *obj = JS_NewObject(doc);
+
+    JS_SetIdx(doc, obj, "sector", str->m_sector, sectors);
+    JS_SetInt(doc, obj, "m_thing", writep_mobj(str->m_thing));
+    JS_SetInt(doc, obj, "m_tprev", writep_msecnode(str->m_tprev));
+    JS_SetInt(doc, obj, "m_tnext", writep_msecnode(str->m_tnext));
+    JS_SetInt(doc, obj, "m_sprev", writep_msecnode(str->m_sprev));
+    JS_SetInt(doc, obj, "m_snext", writep_msecnode(str->m_snext));
+    JS_SetInt(doc, obj, "visited", str->visited);
+
+    return obj;
 }
 
 static void read_divline_t(divline_t *str)
@@ -1359,7 +1408,7 @@ static void ArchiveDirty(void)
     {
         json_mut_t *line_obj = JS_NewObject(doc);
 
-        JS_SETIDX(doc, line_obj, "line", dl->line, lines);
+        JS_SetIdx(doc, line_obj, "line", dl->line, lines);
         JS_SetInt(doc, line_obj, "special", dl->clean_line.special);
 
         JS_ArrayAddObject(doc, lines_arr, line_obj);
@@ -1371,7 +1420,7 @@ static void ArchiveDirty(void)
     {
         json_mut_t *side_obj = JS_NewObject(doc);
 
-        JS_SETIDX(doc, side_obj, "side", ds->side, sides);
+        JS_SetIdx(doc, side_obj, "side", ds->side, sides);
         json_mut_t *partial_side = write_partial_side_t(&ds->clean_side);
         JS_SetObject(doc, side_obj, "partial_side", partial_side);
 
@@ -1839,13 +1888,18 @@ static void UnArchiveThinkers(void)
 
 static void ArchiveMSecNodes(void)
 {
+    json_mut_t *msecnodes_arr = JS_NewArray(doc);
+
     uintptr_t *table = M_ArenaTable(msecnodes_arena);
     int count = M_ArenaTableSize(msecnodes_arena);
     for (int i = 0; i < count; ++i)
     {
-        write_msecnode_t((msecnode_t *)table[i]);
+        json_mut_t *msecnode_obj = write_msecnode_t((msecnode_t *)table[i]);
+        JS_ArrayAddObject(doc, msecnodes_arr, msecnode_obj);
     }
     free(table);
+
+    JS_SetArray(doc, root, "msecnodes", msecnodes_arr);
 }
 
 static void PrepareUnArchiveMSecNodes(void)
@@ -1874,13 +1928,17 @@ static void UnArchiveMSecNodes(void)
 
 static void ArchivePlayers(void)
 {
+    json_mut_t *players_arr = JS_NewArray(doc);
     for (int i = 0; i < MAXPLAYERS; i++)
     {
+        json_mut_t *player_obj = JS_NewObject(doc);
         if (playeringame[i])
         {
-            write_player_t(&players[i]);
+            player_obj = write_player_t(&players[i]);
         }
+        JS_ArrayAddObject(doc, players_arr, player_obj);
     }
+    JS_SetArray(doc, root, "players", players_arr);
 }
 
 static void UnArchivePlayers(void)
@@ -2152,11 +2210,11 @@ void P_ArchiveKeyframe(void)
     JS_SetInt(doc, root, "tmceilingz", tmceilingz);
     JS_SetInt(doc, root, "hangsolid", hangsolid);
 
-    JS_SETIDX(doc, root, "ceilingline", ceilingline, lines);
-    JS_SETIDX(doc, root, "floorline", floorline, lines);
+    JS_SetIdx(doc, root, "ceilingline", ceilingline, lines);
+    JS_SetIdx(doc, root, "floorline", floorline, lines);
     JS_SetInt(doc, root, "linetarget", writep_mobj(linetarget));
     JS_SetInt(doc, root, "sector_list", writep_msecnode(sector_list));
-    JS_SETIDX(doc, root, "blockline", blockline, lines);
+    JS_SetIdx(doc, root, "blockline", blockline, lines);
 
     json_mut_t *tmbbox_arr = JS_NewArray(doc);
     for (int i = 0; i < arrlen(tmbbox); ++i)
@@ -2178,12 +2236,13 @@ void P_ArchiveKeyframe(void)
     // p_spec.h
     ArchivePlayers();
 
-    puts(yyjson_mut_write(doc, YYJSON_WRITE_PRETTY, NULL));
-    return;
-
-    ArchiveThinkers();
+    json_mut_t *thinker_arr = ArchiveThinkers();
+    JS_SetObject(doc, root, "thinkers", thinker_arr);
 
     ArchiveMSecNodes();
+
+    puts(yyjson_mut_write(doc, YYJSON_WRITE_PRETTY, NULL));
+    return;
 
     writep_activeceilings(activeceilings);
     ArchiveCeilingList();
