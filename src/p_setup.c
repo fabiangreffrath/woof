@@ -1159,9 +1159,6 @@ static void CheckMapFormat(int lumpnum, map_t *map)
         map->built = true;
         map->textmap = lumpnum + ML_TEXTMAP;
 
-        // [FG] check nodes format
-        P_CheckBSPFormat_UDMF(map);
-
         // skip label and TEXTMAP, test against all other lumps until ENDMAP
         for (int i = ML_TEXTMAP + 1; i < ML_MAPLUMPCOUNT; ++i)
         {
@@ -1195,6 +1192,9 @@ static void CheckMapFormat(int lumpnum, map_t *map)
                 map->lightmap = j;
             }
         }
+
+        // [FG] check nodes format
+        P_CheckBSPFormat_UDMF(map);
     }
 }
 
