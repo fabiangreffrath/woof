@@ -256,7 +256,8 @@ License: [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/)
 Files: `opl/*`  
 Copyright:  
  © 2005-2014 Simon Howard;  
- © 2013-2018 Alexey Khokholov (Nuke.YKT).  
+ © 2013-2018 Alexey Khokholov (Nuke.YKT);  
+ © 2026 Tony Gies.  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
 Files: `soundfonts/TimGM6mb.sf2`  
