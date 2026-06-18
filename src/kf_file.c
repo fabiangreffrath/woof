@@ -845,6 +845,7 @@ static json_mut_t *write_player_t(player_t *str)
 
         JS_ArrayAddObject(doc, visitedlevels_arr, visitedlevel_obj);
     }
+    JS_SetArray(doc, obj, "visitedlevels", visitedlevels_arr);
 
     JS_SetInt(doc, obj, "lastweapon", str->lastweapon);
     JS_SetInt(doc, obj, "nextweapon", str->nextweapon);
@@ -1302,14 +1303,21 @@ static void read_rng_t(rng_t *str)
     str->prndindex = read32();
 }
 
-static void write_rng_t(rng_t *str)
+static json_mut_t *write_rng_t(rng_t *str)
 {
+    json_mut_t *obj = JS_NewObject(doc);
+
+    json_mut_t *seed_arr = JS_NewArray(doc);
     for (int i = 0; i < NUMPRCLASS; ++i)
     {
-        write32(str->seed[i]);
+        JS_ArrayAddInt(doc, seed_arr, str->seed[i]);
     }
-    write32(str->rndindex);
-    write32(str->prndindex);
+    JS_SetArray(doc, obj, "seeds", seed_arr);
+
+    JS_SetInt(doc, obj, "rndindex", str->rndindex);
+    JS_SetInt(doc, obj, "prndindex", str->prndindex);
+
+    return obj;
 }
 
 static void read_button_t(button_t *str)
@@ -1320,12 +1328,16 @@ static void read_button_t(button_t *str)
     str->btimer = read32();
 }
 
-static void write_button_t(button_t *str)
+static json_mut_t *write_button_t(button_t *str)
 {
-    writep_index(str->line, lines);
-    write_enum(str->where);
-    write32(str->btexture);
-    write32(str->btimer);
+    json_mut_t *obj = JS_NewObject(doc);
+
+    JS_SetIdx(doc, obj, "line", str->line, lines);
+    JS_SetInt(doc, obj, "where", str->where);
+    JS_SetInt(doc, obj, "btexture", str->btexture);
+    JS_SetInt(doc, obj, "btimer", str->btimer);
+
+    return obj;
 }
 
 
@@ -1672,7 +1684,7 @@ static void PrepareArchiveThinkers(void)
     free(table);
 }
 
-static json_mut_t *ArchiveThinkers(void)
+static void ArchiveThinkers(void)
 {
     json_mut_t *arr = JS_NewArray(doc);
 
@@ -1746,7 +1758,7 @@ static json_mut_t *ArchiveThinkers(void)
         }
     }
 
-    return arr;
+    JS_SetObject(doc, root, "thinkers", arr);
 }
 
 static void PrepareUnArchiveThinkers(void)
@@ -1929,6 +1941,7 @@ static void UnArchiveMSecNodes(void)
 static void ArchivePlayers(void)
 {
     json_mut_t *players_arr = JS_NewArray(doc);
+
     for (int i = 0; i < MAXPLAYERS; i++)
     {
         json_mut_t *player_obj = JS_NewObject(doc);
@@ -1938,6 +1951,7 @@ static void ArchivePlayers(void)
         }
         JS_ArrayAddObject(doc, players_arr, player_obj);
     }
+
     JS_SetArray(doc, root, "players", players_arr);
 }
 
@@ -1958,8 +1972,9 @@ static void UnArchivePlayers(void)
 
 static void ArchiveBlocklinks(void)
 {
-    int blocklinks_count = bmapwidth * bmapheight;
     json_mut_t *bmap_arr = JS_NewArray(doc);
+
+    int blocklinks_count = bmapwidth * bmapheight;
     for (int i = 0; i < blocklinks_count; ++i)
     {
         json_mut_t *blocklinks_arr = JS_NewArray(doc);
@@ -1969,6 +1984,7 @@ static void ArchiveBlocklinks(void)
         }
         JS_ArrayAddObject(doc, bmap_arr, blocklinks_arr);
     }
+
     JS_SetArray(doc, root, "blocklinks", bmap_arr);
 }
 
@@ -2002,14 +2018,18 @@ static void UnArchiveBlocklinks(void)
 
 static void ArchiveCeilingList(void)
 {
+    json_mut_t *ceilinglist_arr = JS_NewArray(doc);
+
     uintptr_t *table = M_ArenaTable(activeceilings_arena);
     int count = M_ArenaTableSize(activeceilings_arena);
     for (int i = 0; i < count; ++i)
     {
         ceilinglist_t *cl = (ceilinglist_t *)table[i];
-        writep_thinker(&cl->ceiling->thinker);
+        JS_ArrayAddInt(doc, ceilinglist_arr, writep_thinker(&cl->ceiling->thinker));
     }
     free(table);
+
+    JS_SetArray(doc, root, "ceilinglist", ceilinglist_arr);
 }
 
 static void PrepareUnArchiveCeilingList(void)
@@ -2045,14 +2065,18 @@ static void UnArchiveCeilingList(void)
 
 static void ArchivePlatList(void)
 {
+    json_mut_t *platlist_arr = JS_NewArray(doc);
+
     uintptr_t *table = M_ArenaTable(activeplats_arena);
     int count = M_ArenaTableSize(activeplats_arena);
     for (int i = 0; i < count; ++i)
     {
         platlist_t *cl = (platlist_t *)table[i];
-        writep_thinker(&cl->plat->thinker);
+        JS_ArrayAddInt(doc, platlist_arr, writep_thinker(&cl->plat->thinker));
     }
     free(table);
+
+    JS_SetArray(doc, root, "platlist", platlist_arr);
 }
 
 static void PrepareUnArchivePlatList(void)
@@ -2088,10 +2112,15 @@ static void UnArchivePlatList(void)
 
 static void ArchiveButtons(void)
 {
+    json_mut_t *buttonlists_arr = JS_NewArray(doc);
+
     for (int i = 0; i < MAXBUTTONS; i++)
     {
-        write_button_t(&buttonlist[i]);
+        json_mut_t *buttonlist_obj = write_button_t(&buttonlist[i]);
+        JS_ArrayAddObject(doc, buttonlists_arr, buttonlist_obj);
     }
+
+    JS_SetArray(doc, root, "buttonlist", buttonlists_arr);
 }
 
 static void UnArchiveButtons(void)
@@ -2108,21 +2137,29 @@ static void UnArchiveButtons(void)
 
 static void ArchiveAutoMap(void)
 {
-    write32(automapactive,
-            viewactive,
-            followplayer,
-            automap_grid);
+    json_mut_t *automap_obj = JS_NewObject(doc);
 
-    write32(markpointnum);
+    JS_SetInt(doc, automap_obj, "automapactive", automapactive);
+    JS_SetInt(doc, automap_obj, "viewactive", viewactive);
+    JS_SetInt(doc, automap_obj, "followplayer", followplayer);
+    JS_SetInt(doc, automap_obj, "automap_grid", automap_grid);
 
+    json_mut_t *markpoints_arr = JS_NewArray(doc);
     if (markpointnum)
     {
         for (int i = 0; i < markpointnum; ++i)
         {
-            write64(markpoints[i].x);
-            write64(markpoints[i].y);
+            json_mut_t *markpoint_arr = JS_NewArray(doc);
+
+            JS_ArrayAddInt(doc, markpoint_arr, markpoints[i].x);
+            JS_ArrayAddInt(doc, markpoint_arr, markpoints[i].y);
+
+            JS_ArrayAddObject(doc, markpoints_arr, markpoint_arr);
         }
     }
+    JS_SetArray(doc, automap_obj, "markpoints", markpoints_arr);
+
+    JS_SetObject(doc, root, "automap", automap_obj);
 }
 
 static void UnArchiveAutoMap(void)
@@ -2236,25 +2273,26 @@ void P_ArchiveKeyframe(void)
     // p_spec.h
     ArchivePlayers();
 
-    json_mut_t *thinker_arr = ArchiveThinkers();
-    JS_SetObject(doc, root, "thinkers", thinker_arr);
+    ArchiveThinkers();
 
     ArchiveMSecNodes();
 
-    puts(yyjson_mut_write(doc, YYJSON_WRITE_PRETTY, NULL));
-    return;
-
-    writep_activeceilings(activeceilings);
+    JS_SetInt(doc, root, "activeceilings", writep_activeceilings(activeceilings));
     ArchiveCeilingList();
-    writep_activeplats(activeplats);
+    JS_SetInt(doc, root, "activeplats", writep_activeplats(activeplats));
     ArchivePlatList();
 
-    write_rng_t(&rng);
+    json_mut_t *rng_obj = write_rng_t(&rng);
+    JS_SetObject(doc, root, "rng", rng_obj);
+
     ArchiveButtons();
 
     ArchiveAutoMap();
 
     EndArchive();
+
+    puts(yyjson_mut_write(doc, YYJSON_WRITE_PRETTY, NULL));
+    return;
 }
 
 void P_UnArchiveKeyframe(void)
