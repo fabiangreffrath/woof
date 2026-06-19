@@ -33,6 +33,7 @@
 #include "p_setup.h"
 #include "p_spec.h"
 #include "r_data.h"
+#include "r_defs.h"
 #include "r_state.h"
 #include "r_tranmap.h"
 #include "tables.h"
@@ -62,21 +63,22 @@ typedef enum
     UDMF_LINE_3DMIDTEX = (1u << 11), // EE's 3D middle texture
     UDMF_LINE_ALPHA    = (1u << 12), // opacity percentage
     UDMF_LINE_TRANMAP  = (1u << 13), // ditto, also customizable LUT
+    UDMF_LINE_STYLE    = (1u << 14), // custom automap style
 
-    UDMF_SIDE_OFFSET   = (1u << 14), // texture X/Y alignment
-    UDMF_SIDE_SCROLL   = (1u << 15), // texture scrolling property
-    UDMF_SIDE_LIGHT    = (1u << 16), // independent light levels
-    UDMF_SIDE_TINT     = (1u << 17), // view-agnostic colormap for the given sidedef
+    UDMF_SIDE_OFFSET   = (1u << 15), // texture X/Y alignment
+    UDMF_SIDE_SCROLL   = (1u << 16), // texture scrolling property
+    UDMF_SIDE_LIGHT    = (1u << 17), // independent light levels
+    UDMF_SIDE_TINT     = (1u << 18), // view-agnostic colormap for the given sidedef
 
-    UDMF_SEC_ANGLE     = (1u << 18), // plane rotation
-    UDMF_SEC_OFFSET    = (1u << 19), // plane X/Y alignment
-    UDMF_SEC_EE_SCROLL = (1u << 20), // EE's original plane scrolling property
-    UDMF_SEC_SCROLL    = (1u << 21), // DSDA's later plane scrolling property
-    UDMF_SEC_LIGHT     = (1u << 22), // independent light levels
-    UDMF_SEC_GRAVITY   = (1u << 23), // WIP
-    UDMF_SEC_COLORMAP  = (1u << 24), // viewplayer's colormap on this given frame
-    UDMF_SEC_TINT      = (1u << 25), // view-agnostic colormap for the given sector
-    UDMF_SEC_SILENCE   = (1u << 26), // WIP
+    UDMF_SEC_ANGLE     = (1u << 19), // plane rotation
+    UDMF_SEC_OFFSET    = (1u << 20), // plane X/Y alignment
+    UDMF_SEC_EE_SCROLL = (1u << 21), // EE's original plane scrolling property
+    UDMF_SEC_SCROLL    = (1u << 22), // DSDA's later plane scrolling property
+    UDMF_SEC_LIGHT     = (1u << 23), // independent light levels
+    UDMF_SEC_GRAVITY   = (1u << 24), // WIP
+    UDMF_SEC_COLORMAP  = (1u << 25), // viewplayer's colormap on this given frame
+    UDMF_SEC_TINT      = (1u << 26), // view-agnostic colormap for the given sector
+    UDMF_SEC_SILENCE   = (1u << 27), // WIP
 
     // Compatibility
     UDMF_COMP_NO_ARG0  = (1u << 31),
@@ -121,6 +123,7 @@ typedef struct
     // Extensions
     char tranmap[9];
     double alpha;
+    amls_t amls;
 } UDMF_Linedef_t;
 
 // Important note about line tag/id/arg0, in the Doom/Heretic/Strife namespaces:
@@ -495,6 +498,10 @@ static void UDMF_ParseLinedef(scanner_t *s)
         else if (PROP(tranmap, UDMF_LINE_TRANMAP))
         {
             UDMF_ScanLumpName(s, line.tranmap);
+        }
+        else if (PROP(automapstyle, UDMF_LINE_STYLE))
+        {
+            line.amls = UDMF_ScanInt(s);
         }
         else
         {
@@ -1160,6 +1167,13 @@ static void UDMF_LoadLineDefs(void)
         lines[i].args[2] = udmf_linedefs[i].args[2];
         lines[i].args[3] = udmf_linedefs[i].args[3];
         lines[i].args[4] = udmf_linedefs[i].args[4];
+
+        // Custom automap line style
+        lines[i].amls = udmf_linedefs[i].amls;
+        if (lines[i].amls < amls_Default || lines[i].amls >= AMLS_COUNT)
+        {
+            lines[i].amls = amls_Default;
+        }
 
         // Woof! currently does not support parameterized line specials
         if (udmf_flags & UDMF_LINE_PARAM)

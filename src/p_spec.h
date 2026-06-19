@@ -851,9 +851,13 @@ boolean P_IsDeathExit(struct sector_s *sec);
 
 boolean P_IsExitLine(struct line_s * line);
 
+boolean P_IsTeleportLine(struct line_s *line);
+
 boolean P_IsSecret(struct sector_s *sec);
 
 boolean P_WasSecret(struct sector_s *sec);
+
+boolean P_RevealedSecret(struct sector_s *sec);
 
 void P_ChangeSwitchTexture(struct line_s *line, int useAgain);
 
