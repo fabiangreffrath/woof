@@ -281,3 +281,23 @@ jobs:
         with:
           allowUpdates: true
           artifacts: build/*.zsync
+
+      - name: Update Nightly Tag
+        if: ${{ !contains(github.ref, 'tags') && github.ref == 'refs/heads/main' }}
+        run: |
+          git tag -d nightly || true
+          git push origin :refs/tags/nightly || true
+          git tag nightly HEAD
+          git push origin nightly
+
+      - name: Nightly Pre-Release
+        if: ${{ !contains(github.ref, 'tags') && github.ref == 'refs/heads/main' }}
+        uses: ncipollo/release-action@v1
+        with:
+          name: "[Nightly] Woof! ${{ env.VERSION }}"
+          bodyFile: CHANGELOG.md
+          tag: nightly
+          commit: master
+          prerelease: true
+          allowUpdates: true
+          artifacts: ${{ matrix.config.artifact-path }}
