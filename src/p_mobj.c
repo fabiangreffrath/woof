@@ -1503,9 +1503,6 @@ void P_RemoveThingTID(mobj_t *mo)
 // once the end of the chain is hit. Calling it again at that point
 // would restart the search from the base of the chain.
 //
-// The last parameter only applies when this is called from a
-// Small native function, and can be left null otherwise.
-//
 // haleyjd 06/10/06: eliminated infinite loop for TID_TRIGGER
 //
 mobj_t *P_FindMobjFromTID(int tid, mobj_t *rover, mobj_t *trigger)
@@ -1539,7 +1536,7 @@ mobj_t *P_FindMobjFromTID(int tid, mobj_t *rover, mobj_t *trigger)
                 return !rover && playeringame[pnum] ? players[pnum].mo : NULL;
             }
 
-        default: //
+        default:
             return NULL;
     }
 }
