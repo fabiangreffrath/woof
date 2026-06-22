@@ -1236,6 +1236,8 @@ void P_SetupLevel(int episode, int map_num, skill_t skill)
   Z_FreeTag(PU_CACHE);
 
   P_InitThinkers();
+  // haleyjd 02/02/04 -- clear the TID hash table
+  P_InitTIDHash();
 
   // if working with a devlopment map, reload it
   //    W_Reload ();     killough 1/31/98: W_Reload obsolete

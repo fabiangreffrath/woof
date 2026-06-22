@@ -87,7 +87,7 @@ typedef enum
 typedef struct
 {
     // Base spec
-    int32_t id;
+    int32_t tid;
     int32_t type;
     double x, y;
     double height;
@@ -844,7 +844,7 @@ static void UDMF_ParseThing(scanner_t *s)
         }
         else if (PROP(id, UDMF_THING_PARAM))
         {
-            thing.id = UDMF_ScanInt(s);
+            thing.tid = UDMF_ScanInt(s);
         }
         else if (BASE_PROP(x))
         {
@@ -1310,7 +1310,7 @@ void P_LoadThings_UDMF(void)
         mt.type = udmf_things[i].type;
         mt.options = udmf_things[i].options;
 
-        mt.id = udmf_things[i].id;
+        mt.tid = udmf_things[i].tid;
         mt.special = udmf_things[i].special;
         mt.args[0] = udmf_things[i].args[0];
         mt.args[1] = udmf_things[i].args[1];

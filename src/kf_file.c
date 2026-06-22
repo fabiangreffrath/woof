@@ -458,7 +458,7 @@ static void read_mobj_t(mobj_t *str, thinker_class_t tc)
     str->flags_extra = read32();
     str->intflags = read32();
     str->health = read32();
-    str->id = read32();
+    str->tid = read32();
     str->special = read32();
     str->args[0] = read32();
     str->args[1] = read32();
@@ -532,7 +532,7 @@ static void write_mobj_t(mobj_t *str)
     write32(str->flags_extra);
     write32(str->intflags);
     write32(str->health);
-    write32(str->id);
+    write32(str->tid);
     write32(str->special);
     write32(str->args[0]);
     write32(str->args[1]);
@@ -1619,6 +1619,7 @@ static void UnArchiveThinkers(void)
             case tc_mobj:
             case tc_mobj_del:
                 read_mobj_t(pointer->p.mobj, pointer->tc);
+                P_AddThingTID(pointer->p.mobj, pointer->p.mobj->tid);
                 break;
             case tc_ceiling:
             case tc_ceiling_del:

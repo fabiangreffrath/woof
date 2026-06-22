@@ -969,6 +969,9 @@ void P_RemoveMobj (mobj_t *mobj)
 	iquetail = (iquetail+1)&(ITEMQUESIZE-1);
     }
 
+  // haleyjd 02/02/04: remove from tid hash
+  P_RemoveThingTID(mobj);
+
   // unlink from sector and block lists
 
   P_UnsetThingPosition (mobj);
@@ -1382,14 +1385,14 @@ spawnit:
     mobj->z -= mthing->height;
   }
 
+  // haleyjd 10/03/05: Hexen-style TID
+  P_AddThingTID(mobj, mthing->tid);
+
+  // haleyjd 10/03/05: Hexen-style args
+  memcpy(mobj->args, mthing->args, 5 * sizeof(int32_t));
+
   // Action specials
-  mobj->id = mthing->id;
   mobj->special = mthing->special;
-  mobj->args[0] = mthing->args[0];
-  mobj->args[1] = mthing->args[1];
-  mobj->args[2] = mthing->args[2];
-  mobj->args[3] = mthing->args[3];
-  mobj->args[4] = mthing->args[4];
 
   // Tinting
   mobj->tint = mthing->tint;
@@ -1412,6 +1415,130 @@ spawnit:
   {
       P_AddAmbientSoundThinker(mobj);
   }
+}
+
+//
+// haleyjd 02/02/04: Thing IDs (aka TIDs)
+//
+
+#define TIDCHAINS 131
+
+// TID hash chains
+static mobj_t *tidhash[TIDCHAINS];
+
+//
+// P_InitTIDHash
+//
+// Initializes the tid hash table.
+//
+void P_InitTIDHash(void)
+{
+    memset(tidhash, 0, TIDCHAINS * sizeof(mobj_t *));
+}
+
+//
+// P_AddThingTID
+//
+// Adds a thing to the tid hash table
+//
+void P_AddThingTID(mobj_t *mo, int tid)
+{
+    // zero is no tid, and negative tids are reserved to
+    // have special meanings
+    if (tid <= 0)
+    {
+        mo->tid = 0;
+        mo->tid_next = NULL;
+        mo->tid_prevn = NULL;
+    }
+    else
+    {
+        int key = tid % TIDCHAINS;
+
+        mo->tid = (uint16_t)tid;
+
+        // insert at head of chain
+        mo->tid_next = tidhash[key];
+        mo->tid_prevn = &tidhash[key];
+        tidhash[key] = mo;
+
+        // connect to any existing things in chain
+        if (mo->tid_next)
+        {
+            mo->tid_next->tid_prevn = &(mo->tid_next);
+        }
+    }
+}
+
+//
+// P_RemoveThingTID
+//
+// Removes the given thing from the tid hash table if it is
+// in it already.
+//
+void P_RemoveThingTID(mobj_t *mo)
+{
+    if (mo->tid > 0 && mo->tid_prevn)
+    {
+        // set previous thing's next field to this thing's next thing
+        *(mo->tid_prevn) = mo->tid_next;
+
+        // set next thing's prev field to this thing's prev field
+        if (mo->tid_next)
+        {
+            mo->tid_next->tid_prevn = mo->tid_prevn;
+        }
+    }
+
+    // clear tid
+    mo->tid = 0;
+}
+
+//
+// P_FindMobjFromTID
+//
+// Like line and sector tag search functions, this function will
+// keep returning the next object with the same tid when called
+// repeatedly with the previous call's return value. Returns NULL
+// once the end of the chain is hit. Calling it again at that point
+// would restart the search from the base of the chain.
+//
+// haleyjd 06/10/06: eliminated infinite loop for TID_TRIGGER
+//
+mobj_t *P_FindMobjFromTID(int tid, mobj_t *rover, mobj_t *trigger)
+{
+    // Normal TIDs
+    if (tid > 0)
+    {
+        rover = rover ? rover->tid_next : tidhash[tid % TIDCHAINS];
+
+        while (rover && rover->tid != tid)
+        {
+            rover = rover->tid_next;
+        }
+
+        return rover;
+    }
+
+    // Reserved TIDs
+    switch (tid)
+    {
+        case 0: // script trigger object (may be NULL, which is fine)
+            return !rover ? trigger : NULL;
+
+        case -1: // players are -1 through -4
+        case -2:
+        case -3:
+        case -4:
+            {
+                int pnum = -tid - 1;
+
+                return !rover && playeringame[pnum] ? players[pnum].mo : NULL;
+            }
+
+        default:
+            return NULL;
+    }
 }
 
 //
