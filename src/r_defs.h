@@ -289,7 +289,6 @@ typedef struct line_s
   sector_t *backsector; 
   int validcount;        // if == validcount, already checked
   void *specialdata;     // thinker_t for reversable actions
-  degenmobj_t soundorg;  // sound origin for switches/buttons
   const byte *tranmap;   // better translucency handling
   int firsttag,nexttag;  // killough 4/17/98: improves searches for tags.
   amls_t amls;           // custom automap drawing
