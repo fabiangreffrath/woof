@@ -450,6 +450,7 @@ void P_LinedefInit(line_t * const linedef)
   // Andrey Budko: fix sound origin for large levels
   linedef->soundorg.x = linedef->bbox[BOXLEFT] / 2 + linedef->bbox[BOXRIGHT] / 2;
   linedef->soundorg.y = linedef->bbox[BOXTOP] / 2 + linedef->bbox[BOXBOTTOM] / 2;
+  linedef->soundorg.thinker.function.p1 = P_DegenMobjThinker;
 }
 
 // killough 4/4/98: delay using sidedefs until they are loaded
