@@ -143,7 +143,6 @@ void P_StartButton
       buttonlist[i].where = w;
       buttonlist[i].btexture = texture;
       buttonlist[i].btimer = time;
-      buttonlist[i].soundorg = (mobj_t *)&line->frontsector->soundorg;
       return;
     }
     
@@ -211,7 +210,7 @@ void P_ChangeSwitchTexture(line_t *line, int useAgain)
     dirty_side(s);
     *texture = switchlist[i^1];
 
-    S_StartSound(buttonlist->soundorg, sound);
+    S_StartSound((mobj_t *)&line->soundorg, sound);
 
     if (useAgain)
     {
