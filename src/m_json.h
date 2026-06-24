@@ -78,4 +78,6 @@ void JS_SetArray(json_mut_doc_t *doc, json_mut_t *parent,
 void JS_ArrayAddInt(json_mut_doc_t *doc, json_mut_t *arr, int val);
 void JS_ArrayAddObject(json_mut_doc_t *doc, json_mut_t *arr, json_mut_t *obj);
 
+char *JS_DocWriteString(json_mut_doc_t *doc, size_t *len);
+
 #endif

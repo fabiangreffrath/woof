@@ -350,3 +350,7 @@ void JS_ArrayAddObject(json_mut_doc_t *doc, json_mut_t *arr, json_mut_t *obj)
     yyjson_mut_arr_add_val(arr, obj);
 }
 
+char *JS_DocWriteString(json_mut_doc_t *doc, size_t *len)
+{
+    return yyjson_mut_write(doc, 0, len);
+}

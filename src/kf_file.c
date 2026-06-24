@@ -2233,11 +2233,9 @@ void P_ArchiveKeyframe(void)
         JS_ArrayAddObject(doc, thinkerclasscaps_arr, thinkerclasscap_obj);
     }
     JS_SetArray(doc, root, "thinkerclasscaps", thinkerclasscaps_arr);
-
     JS_SetInt(doc, root, "headsecnode", writep_msecnode(headsecnode));
 
     ArchiveDirty();
-
     ArchiveWorld();
 
     // p_map.h
@@ -2272,9 +2270,7 @@ void P_ArchiveKeyframe(void)
 
     // p_spec.h
     ArchivePlayers();
-
     ArchiveThinkers();
-
     ArchiveMSecNodes();
 
     JS_SetInt(doc, root, "activeceilings", writep_activeceilings(activeceilings));
@@ -2286,13 +2282,20 @@ void P_ArchiveKeyframe(void)
     JS_SetObject(doc, root, "rng", rng_obj);
 
     ArchiveButtons();
-
     ArchiveAutoMap();
 
     EndArchive();
 
-    puts(yyjson_mut_write(doc, YYJSON_WRITE_PRETTY, NULL));
-    return;
+    size_t json_len;
+    char *json_str = JS_DocWriteString(doc, &json_len);
+    JS_FreeDoc(doc);
+
+    json_len += 1;
+    saveg_grow(json_len);
+    M_StringCopy((char *)save_p, json_str, json_len);
+    free(json_str);
+
+    save_p += json_len;
 }
 
 void P_UnArchiveKeyframe(void)
