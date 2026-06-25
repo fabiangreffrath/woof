@@ -484,6 +484,16 @@ static void I_OAL_PauseSong(void *handle)
         return;
     }
 
+    // Grant some time to set the source state to AL_PLAYING after calling
+    // alSourcePlay(). alSourcePause() applied to an AL_INITIAL source is a
+    // NOP.
+    ALint state = AL_INITIAL;
+    do
+    {
+        SDL_Delay(1);
+        alGetSourcei(player.source, AL_SOURCE_STATE, &state);
+    } while (state == AL_INITIAL);
+
     alSourcePause(player.source);
 }
 
