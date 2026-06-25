@@ -229,6 +229,8 @@ static void ArchiveWorld(void)
     for (i = 0; i < size; ++i)
     {
         line = dirty_lines[i].line;
+        write32(line - lines);
+
         write16(line->special);
     }
 
@@ -239,6 +241,7 @@ static void ArchiveWorld(void)
     for (i = 0; i < size; ++i)
     {
         side = dirty_sides[i].side;
+        write32(side - sides);
 
         write16(side->toptexture,
                 side->bottomtexture,
@@ -281,41 +284,34 @@ static void UnArchiveWorld(void)
         sector->touching_thinglist = readp();
     }
 
-    line_t *line;
-
-    int oldsize = read32();
-    int size = array_size(dirty_lines);
-    for (i = 0; i < size; ++i)
+    int count = read32();
+    int oldcount = array_size(dirty_lines);
+    for (i = count; i < oldcount; ++i)
     {
-        line = dirty_lines[i].line;
-        if (i < oldsize)
-        {
-            line->special = read16();
-        }
-        else
-        {
-            P_CleanLine(&dirty_lines[i]);
-        }
+        P_CleanLine(&dirty_lines[i]);
+    }
+    array_resize(dirty_lines, count);
+    for (i = 0; i < count; ++i)
+    {
+        line_t *line = dirty_lines[i].line = lines + read32();
+        line->special = read16();
     }
 
-    side_t *side;
-    oldsize = read32();
-    size = array_size(dirty_sides);
-    for (i = 0; i < size; ++i)
+    count = read32();
+    oldcount = array_size(dirty_sides);
+    for (i = count; i < oldcount; ++i)
     {
-        side = dirty_sides[i].side;
-        if (i < oldsize)
-        {
-            side->toptexture = read16();
-            side->bottomtexture = read16();
-            side->midtexture = read16();    
-            side->textureoffset = read32();
-            side->rowoffset = read32(); 
-        }
-        else
-        {
-            P_CleanSide(&dirty_sides[i]);
-        }
+        P_CleanSide(&dirty_sides[i]);
+    }
+    array_resize(dirty_sides, count);
+    for (i = 0; i < count; ++i)
+    {
+        side_t *side = dirty_sides[i].side = sides + read32();
+        side->toptexture = read16();
+        side->bottomtexture = read16();
+        side->midtexture = read16();
+        side->textureoffset = read32();
+        side->rowoffset = read32();
     }
 }
 
