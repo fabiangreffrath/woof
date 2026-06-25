@@ -2217,6 +2217,11 @@ static void EndUnArchive(void)
 
 void P_ArchiveKeyframe(void)
 {
+    if (doc || root)
+    {
+        I_Error("recursive call detected");
+    }
+
     doc = JS_NewDoc();
     root = JS_NewObject(doc);
     JS_SetRoot(doc, root);
@@ -2289,8 +2294,10 @@ void P_ArchiveKeyframe(void)
     size_t json_len;
     char *json_str = JS_DocWriteString(doc, &json_len);
     JS_FreeDoc(doc);
+    root = NULL;
+    doc = NULL;
 
-    json_len += 1;
+    json_len += 1; // include null-terminator
     saveg_grow(json_len);
     M_StringCopy((char *)save_p, json_str, json_len);
     free(json_str);
