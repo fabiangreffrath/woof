@@ -26,10 +26,11 @@
 
 typedef enum wipefx_e
 {
-  wipe_None,      // no effect
-  wipe_Melt,      // weird screen melt
-  wipe_Crossfade, // transparency-based fade through
-  wipe_Fizzle,    // random pixels disapear
+  wipe_Invalid = -1, // falls back on user setting
+  wipe_None,         // no effect
+  wipe_Melt,         // weird screen melt
+  wipe_Crossfade,    // transparency-based fade through
+  wipe_Fizzle,       // random pixels disapear
 
   wipe_NUMWIPES,
 } wipefx_t;
