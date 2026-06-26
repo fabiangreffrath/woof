@@ -250,7 +250,7 @@ void G_BindRewindVariables(void)
     BIND_NUM(rewind_depth, 60, 10, 1000,
         "Number of rewind key frames to be stored");
     BIND_NUM(rewind_timeout, 10, 0, 25,
-        "Time to store a key frame, in milliseconds; if exceeded, storing "
+        "Time to store a key frame [ms]; if exceeded, storing "
         "will stop (0 = No limit)");
     BIND_BOOL(rewind_auto, true, "Enable storing rewind key frames");
 }

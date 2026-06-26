@@ -1,0 +1,143 @@
+metadata { type "declarate" version "1.0.0" }
+
+//===========================================================================
+//
+// Baron of Hell
+//
+//===========================================================================
+
+sound BaronSight  { prefix lump "BRSSIT" }
+sound BaronActive { prefix lump "DMACT" }
+sound BaronPain   { prefix lump "DMPAIN" }
+sound BaronMelee  { prefix lump "CLAW" }
+sound BaronDeath  { prefix lump "BRSDTH" }
+sound BaronAttack { prefix lump "FIRSHT" }
+sound BaronShotx  { prefix lump "FIRXPL" }
+
+thing BaronOfHell 3003 native
+{
+    Health 1000
+    Radius 24
+    Height 64
+    Mass 1000
+    Speed 8
+    PainChance 50
+    MONSTER
+    +E1M8BOSS
+    SeeSound BaronSight
+    PainSound BaronPain
+    DeathSound BaronDeath
+    ActiveSound BaronActive
+    Obituary "%o was bruised by a Baron of Hell."
+    HitObituary "%o was ripped open by a Baron of Hell."
+    States
+    {
+    Spawn:
+        BOSS AB 10 A_Look
+        Loop
+    See:
+        BOSS AABBCCDD 3 A_Chase
+        Loop
+    Melee:
+    Missile:
+        BOSS EF 8 A_FaceTarget
+        BOSS G 8 A_BruisAttack
+        Goto See
+    Pain:
+        BOSS H  2
+        BOSS H  2 A_Pain
+        Goto See
+    Death:
+        BOSS I  8
+        BOSS J  8 A_Scream
+        BOSS K  8
+        BOSS L  8 A_Fall
+        BOSS MN 8
+        BOSS O -1 A_BossDeath
+        Stop
+    Raise:
+        BOSS O 8
+        BOSS NMLKJI  8
+        Goto See
+    }
+}
+
+//===========================================================================
+//
+// Hell Knight
+//
+//===========================================================================
+
+sound KnightSight  { prefix lump "kntsit" }
+sound KnightActive { prefix lump "dmact" }
+sound KnightPain   { prefix lump "dmpain" }
+sound KnightDeath  { prefix lump "kntdth" }
+
+thing HellKnight : BaronOfHell 69 native
+{
+    Health 500
+    SeeSound KnightSight
+    ActiveSound KnightActive
+    PainSound KnightPain
+    DeathSound KnightDeath
+    HitObituary "%o was gutted by a Hell Knight."
+    Obituary "%o was splayed by a Hell Knight."
+    States
+    {
+    Spawn:
+        BOS2 AB 10 A_Look
+        Loop
+    See:
+        BOS2 AABBCCDD 3 A_Chase
+        Loop
+    Melee:
+    Missile:
+        BOS2 EF 8 A_FaceTarget
+        BOS2 G 8 A_BruisAttack
+        Goto See
+    Pain:
+        BOS2 H  2
+        BOS2 H  2 A_Pain
+        Goto See
+    Death:
+        BOS2 I  8
+        BOS2 J  8 A_Scream
+        BOS2 K  8
+        BOS2 L  8 A_Fall
+        BOS2 MN 8
+        BOS2 O -1
+        Stop
+    Raise:
+        BOS2 O 8
+        BOS2 NMLKJI  8
+        Goto See
+    }
+}
+
+//===========================================================================
+//
+// Baron slime ball
+//
+//===========================================================================
+
+thing BaronBall native
+{
+    Radius 6
+    Height 16
+    Speed 15
+    AltSpeed 20
+    Damage 8
+    PROJECTILE
+    //RenderStyle "Add"
+    SeeSound BaronAttack
+    DeathSound BaronShotx
+    States
+    {
+    Spawn:
+        BAL7 AB 4 BRIGHT
+        Loop
+    Death:
+        BAL7 CDE 6 BRIGHT
+        Stop
+    }
+}

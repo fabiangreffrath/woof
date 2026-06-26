@@ -20,6 +20,8 @@
 #ifndef __W_WAD__
 #define __W_WAD__
 
+#include <stdio.h>
+
 #include "doomtype.h"
 #include "z_zone.h"
 
@@ -74,7 +76,7 @@ typedef struct
     {
         archive_t *archive;
         const char *base_path;
-        int descriptor;
+        FILE *descriptor;
     } p1;
 
     union

@@ -29,6 +29,9 @@ extern const byte *tranmap;
 extern const byte *main_tranmap;
 extern const byte *main_addimap;
 
+static const int tranmap_lump_length = 256 * 256;
+static const int default_tranmap_alpha = 66;
+
 // killough 3/6/98: translucency initialization
 void R_InitTranMap(void);
 byte *R_NormalTranMap(int alpha, boolean force);

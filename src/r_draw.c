@@ -68,7 +68,7 @@ static pixel_t *background_buffer = NULL;
 // Source is the top of the column to scale.
 //
 
-lighttable_t *dc_colormap[2]; // [crispy] brightmaps
+const lighttable_t *dc_colormap[2]; // [crispy] brightmaps
 int dc_x;
 int dc_yl;
 int dc_yh;
@@ -114,7 +114,7 @@ void R_DrawColumn(void)
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
     const byte *source = dc_source;
-    lighttable_t *const *colormap = dc_colormap;
+    const lighttable_t *const *colormap = dc_colormap;
     const byte *brightmap = dc_brightmap;
     int heightmask = dc_texheight - 1;
 
@@ -205,7 +205,7 @@ void R_DrawTLColumn(void)
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
     const byte *source = dc_source;
-    lighttable_t *const *colormap = dc_colormap;
+    const lighttable_t *const *colormap = dc_colormap;
     const byte *brightmap = dc_brightmap;
     int heightmask = dc_texheight - 1;
 
@@ -807,7 +807,7 @@ void R_DrawTranslatedColumn(void)
 
     const byte *source = dc_source;
     const byte *translation = dc_translation;
-    lighttable_t *const *colormap = dc_colormap;
+    const lighttable_t *const *colormap = dc_colormap;
     const byte *brightmap = dc_brightmap;
     int heightmask = dc_texheight - 1;
 
@@ -900,6 +900,91 @@ void R_InitTranslationTables(void)
     }
 }
 
+void R_DrawTRTLColumn(void)
+{
+    int count = dc_yh - dc_yl + 1;
+    if (count <= 0)
+    {
+        return;
+    }
+
+#ifdef RANGECHECK
+    if ((unsigned)dc_x >= video.width || dc_yl < 0 || dc_yh >= video.height)
+    {
+        I_Error("%i to %i at %i", dc_yl, dc_yh, dc_x);
+    }
+#endif
+
+    pixel_t *dest = ylookup[dc_yl] + columnofs[dc_x];
+    const fixed_t fracstep = dc_iscale;
+    fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
+
+    const byte *source = dc_source;
+    const byte *translation = dc_translation;
+    const lighttable_t *const *colormap = dc_colormap;
+    const byte *brightmap = dc_brightmap;
+    int heightmask = dc_texheight - 1;
+
+    byte src;
+
+    #define SRCPIXEL \
+      tranmap[(*dest << 8) + colormap[brightmap[src]][translation[src]]]
+
+    if (dc_texheight & heightmask)
+    {
+        heightmask++;
+        heightmask <<= 16;
+        if (frac < 0)
+        {
+            while ((frac += heightmask) < 0)
+                ;
+        }
+        else
+        {
+            while (frac >= heightmask)
+            {
+                frac -= heightmask;
+            }
+        }
+
+        do
+        {
+            src = source[frac >> 16];
+            *dest = SRCPIXEL;
+            dest += linesize;
+            if ((frac += fracstep) >= heightmask)
+            {
+                frac -= heightmask;
+            }
+            if (frac < 0)
+            {
+                frac += heightmask;
+            }
+        } while (--count);
+    }
+    else
+    {
+        while ((count -= 2) >= 0)
+        {
+            src = source[(frac >> FRACBITS) & heightmask];
+            *dest = SRCPIXEL;
+            dest += linesize;
+            frac += fracstep;
+            src = source[(frac >> FRACBITS) & heightmask];
+            *dest = SRCPIXEL;
+            dest += linesize;
+            frac += fracstep;
+        }
+        if (count & 1)
+        {
+            src = source[(frac >> FRACBITS) & heightmask];
+            *dest = SRCPIXEL;
+        }
+    }
+
+    #undef SRCPIXEL
+}
+
 //
 // R_DrawSpan 
 // With DOOM style restrictions on view orientation,
@@ -917,7 +1002,7 @@ int ds_y;
 int ds_x1;
 int ds_x2;
 
-lighttable_t *ds_colormap[2];
+const lighttable_t *ds_colormap[2];
 const byte *ds_brightmap;
 
 uint32_t ds_xfrac;
@@ -933,7 +1018,7 @@ void R_DrawSpan(void)
     int count = ds_x2 - ds_x1 + 1;
     pixel_t *dest = ylookup[ds_y] + columnofs[ds_x1];
     const byte *source = ds_source;
-    lighttable_t *const *colormap = ds_colormap;
+    const lighttable_t *const *colormap = ds_colormap;
     const byte *brightmap = ds_brightmap;
 
     // SoM: we only need 6 bits for the integer part (0 thru 63) so the rest
@@ -993,7 +1078,7 @@ void R_InitBufferRes(void)
 {
     columnofs = Z_Malloc(video.width * sizeof(*columnofs), PU_RENDERER, NULL);
     ylookup = Z_Malloc(video.height * sizeof(*ylookup), PU_RENDERER, NULL);
-    solidcol = Z_Calloc(1, video.width * sizeof(*solidcol), PU_RENDERER, NULL);
+    solidcol = Z_Calloc(video.width, sizeof(*solidcol), PU_RENDERER, NULL);
 }
 
 //
@@ -1096,7 +1181,7 @@ void R_FillBackScreen(void)
             Z_Malloc(size * sizeof(*background_buffer), PU_STATIC, NULL);
     }
 
-    V_UseBuffer(background_buffer);
+    V_UseBuffer(background_buffer, video.width);
 
     V_DrawBackground(gamemode == commercial ? "GRNROCK" : "FLOOR7_2");
 

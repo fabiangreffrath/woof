@@ -1048,7 +1048,7 @@ static void M_LoadSelect(int choice)
     name = G_SaveGameName(slot);
     saveg_compat = saveg_woof510;
 
-    if (M_access(name, F_OK) != 0)
+    if (!M_FileExistsNotDir(name))
     {
         if (name)
         {
@@ -1798,11 +1798,11 @@ static void M_ChangeMessages(int choice)
 
     if (!show_messages)
     {
-        displaymsg(DEH_String(MSGOFF));
+        displaymsg("%s", DEH_String(MSGOFF));
     }
     else
     {
-        displaymsg(DEH_String(MSGON));
+        displaymsg("%s", DEH_String(MSGON));
     }
 }
 
@@ -1817,19 +1817,20 @@ static void M_ChangeMessages(int choice)
 
 static void M_SizeDisplay(int choice)
 {
-    switch (choice)
+    if (choice == 0 && screenblocks > 3)
     {
-        case 0:
-            screenblocks--;
-            break;
-        case 1:
-            screenblocks++;
-            break;
-        default:
-            break;
+        screenblocks--;
     }
-    screenblocks = CLAMP(screenblocks, 3, maxscreenblocks);
+    else if (choice == 1 && screenblocks < maxscreenblocks)
+    {
+        screenblocks++;
+    }
+    else
+    {
+        return;
+    }
     R_SetViewSize(screenblocks /*, detailLevel obsolete -- killough */);
+    M_StartSound(sfx_stnmov);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -2169,6 +2170,7 @@ void MN_ClearMenus(void)
     menuactive = 0;
     mouse_active_thermo = false;
     options_active = false;
+    customskill_active = false;
     print_warning_about_changes = 0; // killough 8/15/98
     default_verify = 0;              // killough 10/98
 
@@ -2588,7 +2590,6 @@ boolean M_ShortcutResponder(const event_t *ev)
             return false;
         }
         M_SizeDisplay(0);
-        M_StartSound(sfx_stnmov);
         return true;
     }
 
@@ -2599,7 +2600,6 @@ boolean M_ShortcutResponder(const event_t *ev)
             return false;
         }
         M_SizeDisplay(1);
-        M_StartSound(sfx_stnmov);
         return true;
     }
 

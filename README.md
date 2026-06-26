@@ -10,7 +10,7 @@
 [![Downloads (latest)](https://img.shields.io/github/downloads/fabiangreffrath/woof/latest/total.svg)](https://github.com/fabiangreffrath/woof/releases/latest)
 [![Commits](https://img.shields.io/github/commits-since/fabiangreffrath/woof/latest.svg)](https://github.com/fabiangreffrath/woof/commits/master)
 [![Last Commit](https://img.shields.io/github/last-commit/fabiangreffrath/woof.svg)](https://github.com/fabiangreffrath/woof/commits/master)
-[![Build Status](https://github.com/fabiangreffrath/woof/actions/workflows/main.yml/badge.svg)](https://github.com/fabiangreffrath/woof/actions/workflows/main.yml)
+[![Build Status](https://github.com/fabiangreffrath/woof/actions/workflows/build.yml/badge.svg)](https://github.com/fabiangreffrath/woof/actions/workflows/main.yml)
 
 Woof! is a continuation of Lee Killough's Doom source port MBF targeted at modern systems.
 
@@ -118,11 +118,12 @@ The following build system and libraries need to be installed:
  * [CMake](https://cmake.org) (>= 3.15)
  * [SDL3](https://github.com/libsdl-org/SDL) (>= 3.4.0)
  * [openal-soft](https://github.com/kcat/openal-soft) (>= 1.22.0 for PC Speaker emulation)
- * [libsndfile](https://github.com/libsndfile/libsndfile) (>= 1.1.0 for MPEG support)
- * [libebur128](https://github.com/jiixyj/libebur128) (>= 1.2.0)
+ * [libsndfile](https://github.com/libsndfile/libsndfile) (>= 1.1.0 for MPEG support, optional)
  * [yyjson](https://github.com/ibireme/yyjson) (>= 0.10.0, optional)
  * [fluidsynth](https://github.com/FluidSynth/fluidsynth) (>= 2.2.0, optional)
+ * [libebur128](https://github.com/jiixyj/libebur128) (optional)
  * [libxmp](https://github.com/libxmp/libxmp) (optional)
+ * [libspng](https://github.com/randy408/libspng) (optional)
  * [discord-rpc](https://github.com/discord/discord-rpc) (optional)
  
 Usually your distribution should have the corresponding packages in its repositories. If "development" ("dev") versions of these libraries are available, make sure to install them.
@@ -255,7 +256,8 @@ License: [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/)
 Files: `opl/*`  
 Copyright:  
  © 2005-2014 Simon Howard;  
- © 2013-2018 Alexey Khokholov (Nuke.YKT).  
+ © 2013-2018 Alexey Khokholov (Nuke.YKT);  
+ © 2026 Tony Gies.  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
 Files: `soundfonts/TimGM6mb.sf2`  
@@ -281,6 +283,11 @@ Copyright:
  © 1997-2025 Sam Lantinga;  
  © 2012 Simeon Maxein.  
 License: [zlib](https://opensource.org/license/zlib)
+
+Files: `third-party/libebur128/*`  
+Copyright:  
+ © 2011 Jan Kokemüller.  
+License: [MIT](https://opensource.org/licenses/MIT)
 
 Files: `third-party/md5/*`  
 License: public-domain

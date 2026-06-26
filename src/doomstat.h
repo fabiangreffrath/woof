@@ -232,11 +232,6 @@ extern int snd_MusicVolume;    // maximum volume for music
 // Status flags for refresh.
 //
 
-// Depending on view size - no status bar?
-// Note that there is no way to disable the
-//  status bar explicitely.
-extern  boolean statusbaractive;
-
 extern  boolean automapactive; // In AutoMap mode?
 
 typedef enum
@@ -462,7 +457,7 @@ typedef enum {
 void doomprintf(player_t *player, msg_category_t category,
               const char *, ...) PRINTF_ATTR(3, 4);
 #define displaymsg(...) doomprintf(NULL, MESSAGES_NONE, __VA_ARGS__)
-#define pickupmsg(player, ...) doomprintf(player, MESSAGES_PICKUP, __VA_ARGS__)
+#define pickupmsg(player, ...) doomprintf(player, MESSAGES_PICKUP, "%s", __VA_ARGS__)
 #define togglemsg(...) doomprintf(NULL, MESSAGES_TOGGLE, __VA_ARGS__)
 
 #endif

@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 3.15...4.0)
 
+option(WITH_SNDFILE "Use libsndfile if available" ON)
+if(WITH_SNDFILE)
+    list(APPEND VCPKG_MANIFEST_FEATURES "libsndfile")
+endif()
+
 option(WITH_FLUIDSYNTH "Use FluidSynth if available" ON)
 if(WITH_FLUIDSYNTH)
     list(APPEND VCPKG_MANIFEST_FEATURES "fluidsynth")
@@ -95,21 +100,14 @@ check_symbol_exists(strncasecmp "strings.h" HAVE_DECL_STRNCASECMP)
 check_symbol_exists(getpwuid "unistd.h;sys/types.h;pwd.h" HAVE_GETPWUID)
 check_c_source_compiles(
     "
-    #include <immintrin.h>
+    typedef float quat __attribute__((ext_vector_type(4)));
     int main(void)
     {
-        int tmp = _div64(4, 2, NULL);
-        return 0;
-    }
-    "
-    HAVE__DIV64
-)
-check_c_source_compiles(
-    "
-    typedef float vec __attribute__((ext_vector_type(4)));
-    int main(void)
-    {
-        vec a = (vec){0, 1, 2, 3};
+        quat a;
+        a.x = 0;
+        a.y = 1;
+        a.z = 2;
+        a.w = 3;
         return 0;
     }
     "
@@ -121,8 +119,6 @@ set(CMAKE_FIND_FRAMEWORK NEVER)
 # Library requirements.
 find_package(SDL3 3.4.0 REQUIRED)
 find_package(OpenAL REQUIRED)
-find_package(libebur128 REQUIRED)
-find_package(SndFile 1.0.29 REQUIRED)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     find_package(ALSA REQUIRED)
 endif()
@@ -139,10 +135,29 @@ if(SndFile_VERSION VERSION_GREATER_EQUAL "1.1.0")
    set(HAVE_SNDFILE_MPEG TRUE)
 endif()
 
+find_package(libebur128 QUIET)
 find_package(pffft QUIET)
 find_package(miniz QUIET)
+include(CMakeFindDependencyMacro) # spng config bug
+find_package(spng QUIET)
 find_package(yyjson QUIET)
 find_path(MINIMP3_INCLUDE_DIRS "minimp3/minimp3.h" NO_CACHE)
+
+if(spng_FOUND)
+    if(NOT TARGET spng::spng)
+        add_library(spng::spng ALIAS spng::spng_static)
+    endif()
+endif()
+
+if(WITH_SNDFILE)
+    find_package(SndFile 1.0.29)
+    if(SndFile_FOUND)
+        set(HAVE_SNDFILE TRUE)
+        if(SndFile_VERSION VERSION_GREATER_EQUAL "1.1.0")
+            set(HAVE_SNDFILE_MPEG TRUE)
+        endif()
+    endif()
+endif()
 
 if(WITH_FLUIDSYNTH)
     find_package(FluidSynth)

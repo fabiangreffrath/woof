@@ -1,0 +1,94 @@
+metadata { type "declarate" version "1.0.0" }
+
+//===========================================================================
+//
+// Mancubus
+//
+//===========================================================================
+
+sound FatsoSight     { prefix lump "MANSIT" }
+sound FatsoActive    { prefix lump "POSACT" }
+sound FatsoPain      { prefix lump "MNPAIN" }
+sound FatsoRaiseguns { prefix lump "MANATK" }
+sound FatsoDeath     { prefix lump "MANDTH" }
+sound FatsoAttack    { prefix lump "FIRSHT" }
+sound FatsoShotx     { prefix lump "FIRXPL" }
+
+thing Fatso 67 native
+{
+    Health 600
+    Radius 48
+    Height 64
+    Mass 1000
+    Speed 8
+    PainChance 80
+    MONSTER
+    +MAP07BOSS1
+    SeeSound FatsoSight
+    PainSound FatsoPain
+    DeathSound FatsoDeath
+    ActiveSound FatsoActive
+    Obituary "%o was squashed by a mancubus."
+    States
+    {
+    Spawn:
+        FATT AB 15 A_Look
+        Loop
+    See:
+        FATT AABBCCDDEEFF 4 A_Chase
+        Loop
+    Missile:
+        FATT G 20 A_FatRaise
+        FATT H 10 BRIGHT A_FatAttack1
+        FATT IG 5 A_FaceTarget
+        FATT H 10 BRIGHT A_FatAttack2
+        FATT IG 5 A_FaceTarget
+        FATT H 10 BRIGHT A_FatAttack3
+        FATT IG 5 A_FaceTarget
+        Goto See
+    Pain:
+        FATT J 3
+        FATT J 3 A_Pain
+        Goto See
+    Death:
+        FATT K 6
+        FATT L 6 A_Scream
+        FATT M 6 A_Fall
+        FATT NOPQRS 6
+        FATT T -1 A_BossDeath
+         Stop
+     Raise:
+        FATT R 5
+        FATT QPONMLK 5
+        Goto See
+    }
+}
+
+//===========================================================================
+//
+// Mancubus fireball
+//
+//===========================================================================
+
+thing FatShot native
+{
+    Radius 6
+    Height 8
+    Speed 20
+    Damage 8
+    PROJECTILE
+    //RenderStyle "Add"
+    SeeSound FatsoAttack
+    DeathSound FatsoShotx
+    States
+    {
+    Spawn:
+        MANF AB 4 BRIGHT
+        Loop
+    Death:
+        MISL B 8 BRIGHT
+        MISL C 6 BRIGHT
+        MISL D 4 BRIGHT
+        Stop
+    }
+}

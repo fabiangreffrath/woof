@@ -1,0 +1,267 @@
+===============================================================================
+Universal Doom Map Format, Woof namespace specification version 0.1
+
+Based on the original UDMF base specification by James "Quasar" Haley, et al
+
+    Copyright (c) 2009 James Haley.
+    Copyright (c) 2025 Guilherme Miranda.
+    Permission is granted to copy, distribute and/or modify this document
+    under the terms of the GNU Free Documentation License, Version 1.2
+    or any later version published by the Free Software Foundation;
+    with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+
+===============================================================================
+
+
+=======================================
+Preface
+=======================================
+
+This specification defines the "Woof" UDMF namespace for maps which exclusively
+target the eponymous source port.
+
+=======================================
+I. Grammar / Syntax
+=======================================
+
+No changes have been made since the v1.1 version of the base specification.
+
+=======================================
+II. Implementation Semantics
+=======================================
+
+------------------------------------
+II.A : Storage and Retrieval of Data
+------------------------------------
+
+Any TEXTMAP lump in the "Woof" namespace must be encoded in plain ASCII.
+Otherwise, no further changes from the version 1.1 base specification.
+
+-----------------------------------
+II.B : Storage Within Archive Files
+-----------------------------------
+
+(HEADER) = Map name, strictly follows MAPxy or ExMy style.
+TEXTMAP  = Single UDMF lump containing all data for the map.
+ZNODES   = Required. BSP tree in any ZDoom node format. XNOD, etc.
+BLOCKMAP = Optional.
+REJECT   = Optional. Highly recommended.
+BEHAVIOR = Unsupported.
+DIALOGUE = Unsupported.
+LIGHTMAP = Unsupported.
+ENDMAP   = Required closing lump.
+
+For the purposes of demo-accuracy this namespace requires support for the
+ZNODES lump. The loading process will give a fatal error out if the lump is
+not found. 
+
+While BLOCKMAP and REJECT will be read if available, they will be generated
+(or padded) internally if invalid or missing, following the PrBoom+ demo
+compatible algorithms. It is recommended to include REJECT to improve the
+performance of line-of-sight checks, specially in medium to large maps, or maps
+with many monsters in closets.
+
+The BEHAVIOR lump (compiled ACS bytecode) is not currently supported.
+
+--------------------------------
+II.C : Implementation Dependence
+--------------------------------
+
+The "Woof" namespace uses only the of classic (Doom-style) line actions.
+Parameterized (Hexen-style) line actions are not supported.
+
+=======================================
+III. Standardized Fields
+=======================================
+
+All boolean fields take the keyword values true and false.
+
+  vertex
+  {
+    x = <float>; // X coordinate. No valid default.
+    y = <float>; // Y coordinate. No valid default.
+  }
+
+  linedef
+  {
+    id = <integer>; // ID of line. Interpreted as tag or scripting id.
+                    // Default = 0
+
+    v1 = <integer>; // Index of first vertex. No valid default.
+    v2 = <integer>; // Index of second vertex. No valid default.
+
+    // All flags default to false.
+    blocking          = <bool>; // true = line blocks things.
+    blockmonsters     = <bool>; // true = line blocks monsters.
+    twosided          = <bool>; // true = line is 2S.
+    dontpegtop        = <bool>; // true = upper texture unpegged.
+    dontpegbottom     = <bool>; // true = lower texture unpegged.
+    secret            = <bool>; // true = drawn as 1S on map.
+    blocksound        = <bool>; // true = blocks sound.
+    dontdraw          = <bool>; // true = line never drawn on map.
+    mapped            = <bool>; // true = always appears on map.
+    // Boom
+    passuse           = <bool>; // true = passes use action.
+    // MBF21
+    blocklandmonsters = <bool>; // true = line blocks monsters on the ground.
+    blockplayers      = <bool>; // true = line blocks players.
+
+    special = <integer>; // Special. Default = 0.
+    arg0    = <integer>; // Target ID used on action activation. Default = 0.
+
+    sidefront = <integer>; // Sidedef 1 index. No valid default.
+    sideback  = <integer>; // Sidedef 2 index. Default = -1.
+
+    alpha   = <float>;  // Opacity percentage. Default = 1.0.
+    tranmap = <string>; // Custom translucency map lump. Overrides alpha.
+
+    comment = <string>; // A comment. No special meaning is attached to it.
+  }
+
+  sidedef
+  {
+    offsetx = <integer>; // X Offset. Default = 0.
+    offsety = <integer>; // Y Offset. Default = 0.
+
+    texturetop    = <string>; // Upper texture. Default = "-".
+    texturebottom = <string>; // Lower texture. Default = "-".
+    texturemiddle = <string>; // Middle texture. Default = "-".
+
+    sector = <integer>; // Sector index. No valid default.
+
+    offsetx_top    = <float>; // Tiered X/Y textures offsets. Default = 0.0.
+    offsety_top    = <float>; // Additive to base offsets.
+    offsetx_mid    = <float>; //
+    offsety_mid    = <float>; //
+    offsetx_bottom = <float>; //
+    offsety_bottom = <float>; //
+
+    xscroll = <float>; // X/Y scrolling factor. Default = 0.0.
+    yscroll = <float>; //
+
+    xscrolltop    = <float>; // Tiered X/Y scrolling factor. Default = 0.0.
+    yscrolltop    = <float>; // Additive to base scrolling factors.
+    xscrollmid    = <float>; //
+    yscrollmid    = <float>; //
+    xscrollbottom = <float>; //
+    yscrollbottom = <float>; //
+
+    light = <integer>;      // This side's own light level. Additive to the
+                            // sector's light level. Default = 0
+    lightabsolute = <bool>; // true = 'light' is considered "absolute",
+                            // overriding the sector's light level.
+
+    light_top = <integer>;         // Tiered side light levels. Default = 0.0.
+    lightabsolute_top = <bool>;    // Additive to base light level.
+    light_mid = <integer>;         // Absolute flags behave the same as above.
+    lightabsolute_mid = <bool>;    //
+    light_bottom = <integer>;      //
+    lightabsolute_bottom = <bool>; //
+
+    smoothlighting = <bool>; // Use smooth fake contrast on this sidedef.
+    nofakecontrast = <bool>; // Disables use of fake contrast on this sidedef.
+                             // The latter takes priority over the former.
+
+    clipmidtex = <bool>; // Side's mid textures are clipped to floor and ceiling.
+
+    tint = <string>; // View-agnostic custom COLORMAP lump
+
+    comment = <string>; // A comment. No special meaning is attached to it.
+  }
+
+  sector
+  {
+    heightfloor   = <integer>; // Floor height. Default = 0.
+    heightceiling = <integer>; // Ceiling height. Default = 0.
+
+    texturefloor   = <string>; // Floor flat. No valid default.
+    textureceiling = <string>; // Ceiling flat. No valid default.
+
+    lightlevel = <integer>; // Light level. Default = 160.
+
+    special = <integer>; // Sector special. Default = 0.
+    id      = <integer>; // Sector tag/id. Default = 0.
+
+    xpanningfloor = <float>;   // Plane texture offsets.
+    ypanningfloor = <float>;   // Default = 0.0.
+    xpanningceiling = <float>; //
+    ypanningceiling = <float>; //
+
+    xscrollfloor      = <float>; // Plane texture scrolling factor. Default = 0.0.
+    yscrollfloor      = <float>; // The "scroll mode" bit mask goes as follows:
+    scrollfloormode   = <int>;   //   1 = scroll textures
+    xscrollceiling    = <float>; //   2 = carry static objects
+    yscrollceiling    = <float>; //   4 = carry players
+    scrollceilingmode = <int>;   //   8 = carry monsters
+
+    rotationfloor   = <float>; // Angle of plane texture rotation.
+    rotationceiling = <float>; // Default = 0.0.
+
+    lightfloor           = <integer>; // Plane light level, addtive to the
+    lightceiling         = <integer>; // sector's light level. Default = 0.
+    lightfloorabsolute   = <bool>;    // true = 'light' is considered "absolute",
+    lightceilingabsolute = <bool>;    // overriding the sector's light level.
+
+    tint        = <string>; // View-agnostic custom COLORMAP lump
+    tintfloor   = <string>; // Same as above, but for sector floor
+    tintceiling = <string>; // Same as above, but for sector ceiling
+
+    comment = <string>; // A comment. No special meaning is attached to it.
+  }
+
+  thing
+  {
+    id = <integer>; // Thing ID. Default = 0.
+
+    x = <float>; // X coordinate. No valid default.
+    y = <float>; // Y coordinate. No valid default.
+
+    height = <float>; // Z height relative to floor. Default = 0.
+                      // (Relative to ceiling for SPAWNCEILING items).
+
+    angle = <integer>; // Map angle of thing in degrees. Default = 0 (East).
+
+    type = <integer>; // DoomedNum. No valid default.
+
+    // All flags default to false.
+    skill1 = <bool>; // true = in skill 1.
+    skill2 = <bool>; // true = in skill 2.
+    skill3 = <bool>; // true = in skill 3.
+    skill4 = <bool>; // true = in skill 4.
+    skill5 = <bool>; // true = in skill 5.
+    ambush = <bool>; // true = thing is deaf.
+    single = <bool>; // true = in SP mode.
+    dm     = <bool>; // true = in DM mode.
+    coop   = <bool>; // true = in Coop.
+    // MBF
+    friend = <bool>; // true = marine's best friend :)
+
+    // MUSINFO Music Changers, and SNDINFO Ambient Sound sources make use of
+    // these arguments slots for additional customization.
+    arg0 = <integer>; // Argument 0.
+    arg1 = <integer>; // Argument 1.
+    arg2 = <integer>; // Argument 2.
+    arg3 = <integer>; // Argument 3.
+    arg4 = <integer>; // Argument 4.
+
+    alpha   = <float>;  // Opacity percentage. Default = 1.0.
+    tranmap = <string>; // Custom translucency map lump. Overrides alpha.
+    tint    = <string>; // View-agnostic custom COLORMAP lump
+
+    comment = <string>; // A comment. No special meaning is attached to it.
+  }
+
+
+*** Tag / ID Behavior for Map Conversion:
+
+  Unlike traditional Doom maps UDMF makes a clear distinction between a line's
+  ID and the parameter which identifies the object the line's special is 
+  supposed to affect.
+
+  The id will be used to identify this line, and arg0 will be used to identify
+  the line or sector that this line is to affect or otherwise reference, i.e.
+  it is effectively a parameter to the line's special.
+
+===============================================================================
+EOF
+===============================================================================

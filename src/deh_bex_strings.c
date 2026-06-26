@@ -492,7 +492,7 @@ const char * const strings_quit_messages[] =
 };
 
 // killough 1/18/98: remove hardcoded limit and replace with var (silly hack):
-const int num_quit_mnemonics = arrlen(strings_quit_messages) - 1;
+const int num_quit_mnemonics = arrlen(strings_quit_messages);
 
 // [FG] Obituaries
 static boolean HandleExtendedObituary(char *mnemonic, char *string)
@@ -526,7 +526,7 @@ static boolean HandleExtendedObituary(char *mnemonic, char *string)
     return found;
 }
 
-static void *DEH_BEXStringsStart(deh_context_t *context, char *line)
+static int DEH_BEXStringsStart(deh_context_t *context, char *line)
 {
     char s[10];
 
@@ -535,10 +535,10 @@ static void *DEH_BEXStringsStart(deh_context_t *context, char *line)
         DEH_Warning(context, "Parse error on section start");
     }
 
-    return NULL;
+    return 0;
 }
 
-static void DEH_BEXStringsParseLine(deh_context_t *context, char *line, void *tag)
+static void DEH_BEXStringsParseLine(deh_context_t *context, char *line, int tag)
 {
     char *variable_name, *value;
 

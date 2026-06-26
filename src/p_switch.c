@@ -143,7 +143,6 @@ void P_StartButton
       buttonlist[i].where = w;
       buttonlist[i].btexture = texture;
       buttonlist[i].btimer = time;
-      buttonlist[i].soundorg = (mobj_t *)&line->frontsector->soundorg;
       return;
     }
     
@@ -160,68 +159,63 @@ void P_StartButton
 //
 // No return value
 //
-void P_ChangeSwitchTexture
-( line_t*       line,
-  int           useAgain )
+void P_ChangeSwitchTexture(line_t *line, int useAgain)
 {
-  int     texTop;
-  int     texMid;
-  int     texBot;
-  int     i;
-  int     sound;
+    /* Rearranged a bit to avoid too much code duplication */
+    sfxenum_t sound = P_IsExitLine(line) ? sfx_swtchx : sfx_swtchn;
+    side_t *s = &sides[line->sidenum[0]];
+    short *texTop = &s->toptexture;
+    short *texMid = &s->midtexture;
+    short *texBot = &s->bottomtexture;
 
-  if (!useAgain)
-    dirty_line(line)->special = 0;
-
-  texTop = sides[line->sidenum[0]].toptexture;
-  texMid = sides[line->sidenum[0]].midtexture;
-  texBot = sides[line->sidenum[0]].bottomtexture;
-
-  sound = sfx_swtchn;
-
-  // EXIT SWITCH?
-  if (line->special == 11)                
-    sound = sfx_swtchx;
-
-  for (i = 0;i < numswitches*2;i++)
-  {
-    if (switchlist[i] == texTop)     // if an upper texture
+    if (!useAgain)
     {
-      S_StartSound(buttonlist->soundorg,sound);     // switch activation sound
-      dirty_side(&sides[line->sidenum[0]])->toptexture = switchlist[i^1];       //chg texture
-
-      if (useAgain)
-        P_StartButton(line,top,switchlist[i],BUTTONTIME);         //start timer
-
-      return;
+        dirty_line(line)->special = 0;
     }
-    else
+
+    /* search for a texture to change */
+    short *texture = NULL;
+    bwhere_e position = 0;
+
+    int i = 0;
+    for (i = 0; i < numswitches * 2; i++)
     {
-      if (switchlist[i] == texMid)   // if a normal texture
-      {
-        S_StartSound(buttonlist->soundorg,sound);   // switch activation sound
-        dirty_side(&sides[line->sidenum[0]])->midtexture = switchlist[i^1];     //chg texture
-
-        if (useAgain)
-          P_StartButton(line, middle,switchlist[i],BUTTONTIME);   //start timer
-
-        return;
-      }
-      else
-      {
-        if (switchlist[i] == texBot) // if a lower texture
+        if (switchlist[i] == *texTop)
         {
-          S_StartSound(buttonlist->soundorg,sound); // switch activation sound
-          dirty_side(&sides[line->sidenum[0]])->bottomtexture = switchlist[i^1];//chg texture
-
-          if (useAgain)
-            P_StartButton(line, bottom,switchlist[i],BUTTONTIME); //start timer
-
-          return;
+            texture = texTop;
+            position = top;
+            break;
         }
-      }
+        else if (switchlist[i] == *texMid)
+        {
+            texture = texMid;
+            position = middle;
+            break;
+        }
+        else if (switchlist[i] == *texBot)
+        {
+            texture = texBot;
+            position = bottom;
+            break;
+        }
     }
-  }
+
+    /* no switch texture was found to change */
+    if (texture == NULL)
+    {
+        return;
+    }
+
+    // Change textures
+    dirty_side(s);
+    *texture = switchlist[i^1];
+
+    S_StartSound((mobj_t *)&line->soundorg, sound);
+
+    if (useAgain)
+    {
+        P_StartButton(line, position, switchlist[i], BUTTONTIME);
+    }
 }
 
 
@@ -626,16 +620,23 @@ P_UseSpecialLine
 
     // ID24 Music Changers
     case 2059: case 2065: case 2089: case 2095:
+      P_ChangeSwitchTexture(line,0);
+      EV_ChangeMusic(line, side);
+      return true;
+
     case 2060: case 2066: case 2090: case 2096:
+      P_ChangeSwitchTexture(line,1);
       EV_ChangeMusic(line, side);
       return true;
 
     case 2078:
-      dirty_line(line)->special = 0;
-      // fallthrough
-
     case 2079:
     {
+      if (line->special == 2078)
+        P_ChangeSwitchTexture(line,0);
+      else
+        P_ChangeSwitchTexture(line,1);
+
       int colormap_index = side ? line->backtint : line->fronttint;
       for (int s = -1; (s = P_FindSectorFromLineTag(line, s)) >= 0;)
       {

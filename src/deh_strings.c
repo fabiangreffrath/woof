@@ -19,6 +19,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "deh_strings.h"
 #include "doomtype.h"
@@ -104,7 +105,7 @@ static void InitHashTable(void)
     // init hash table
     hash_table_entries = 0;
     hash_table_length = 16;
-    hash_table = calloc(sizeof(deh_substitution_t *), hash_table_length);
+    hash_table = calloc(hash_table_length, sizeof(deh_substitution_t *));
 }
 
 static void DEH_AddToHashtable(deh_substitution_t *sub);
@@ -117,7 +118,7 @@ static void IncreaseHashtable(void)
 
     // double the size
     hash_table_length *= 2;
-    hash_table = calloc(sizeof(deh_substitution_t *), hash_table_length);
+    hash_table = calloc(hash_table_length, sizeof(deh_substitution_t *));
 
     // go through the old table and insert all the old entries
     for (int i = 0; i < old_table_length; ++i)

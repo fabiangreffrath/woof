@@ -41,7 +41,7 @@
 #include "m_swap.h"
 #include "nano_bsp.h"
 #include "p_enemy.h"
-#include "p_extnodes.h"
+#include "p_bsp.h"
 #include "p_map.h"
 #include "p_maputl.h"
 #include "p_mobj.h"
@@ -62,8 +62,33 @@
 #include "w_wad.h"
 #include "z_zone.h"
 
+statenum_t *seenstate_tab = NULL;
+
 // Detect map Format currently being set up.
-mapformat_t mapformat = MFMT_Invalid;
+// Different map formats
+static const char *const map_format_names[] = {
+    [MAP_NONE] = "Invalid",
+    [MAP_DOOM] = "Doom",
+    [MAP_HEXEN] = "Hexen",
+    [MAP_UDMF] = "UDMF",
+};
+
+static const char *const bsp_format_names[] = {
+    [BSP_DOOMBSP] = "DoomBSP", [BSP_DEEPBSPV4] = "DeepBSPV4",
+    [BSP_XNOD] = "XNOD",       [BSP_ZNOD] = "ZNOD",
+    [BSP_XGLN] = "XGLN",       [BSP_ZGLN] = "ZGLN",
+    [BSP_XGL2] = "XGL2",       [BSP_ZGL2] = "ZGL2",
+    [BSP_XGL3] = "XGL3",       [BSP_ZGL3] = "ZGL3",
+    [BSP_NANO] = "NanoBSP"};
+
+// Appended to node_format_names, hence the plus sign
+static const char *const bmap_format_names[] = {
+    [BMAP_DoomBlockmap] = "",
+    [BMAP_XBM1] = "+XBM1",
+    [BMAP_BoomBuilder] = "+BoomBlockmap",
+};
+
+map_t map = {0};
 
 //
 // MAP related Lookup tables.
@@ -90,6 +115,9 @@ line_t   *lines;
 
 int      numsides;
 side_t   *sides;
+
+int      *sslines_indexes;
+ssline_t *sslines;
 
 arena_t *world_arena;
 
@@ -161,8 +189,8 @@ void P_LoadVertexes (int lump)
   // internal representation as fixed.
   for (i=0; i<numvertexes; i++)
     {
-      vertexes[i].x = SHORT(((mapvertex_t *) data)[i].x)<<FRACBITS;
-      vertexes[i].y = SHORT(((mapvertex_t *) data)[i].y)<<FRACBITS;
+      vertexes[i].x = IntToFixed(SHORT(((mapvertex_t *) data)[i].x));
+      vertexes[i].y = IntToFixed(SHORT(((mapvertex_t *) data)[i].y));
 
       // [FG] vertex coordinates used for rendering
       vertexes[i].r_x = vertexes[i].x;
@@ -199,101 +227,6 @@ sector_t* GetSectorAtNullAddress(void)
 }
 
 //
-// P_LoadSegs
-//
-// killough 5/3/98: reformatted, cleaned up
-
-void P_LoadSegs (int lump)
-{
-  int  i;
-  byte *data;
-
-  numsegs = W_LumpLength(lump) / sizeof(mapseg_t);
-  segs = arena_alloc_num(world_arena, seg_t, numsegs);
-  memset(segs, 0, numsegs*sizeof(seg_t));
-  data = W_CacheLumpNum(lump,PU_STATIC);
-
-  for (i=0; i<numsegs; i++)
-    {
-      seg_t *li = segs+i;
-      mapseg_t *ml = (mapseg_t *) data + i;
-
-      int side, linedef;
-      line_t *ldef;
-
-      // [FG] extended nodes
-      li->v1 = &vertexes[(unsigned short)SHORT(ml->v1)];
-      li->v2 = &vertexes[(unsigned short)SHORT(ml->v2)];
-
-      li->angle = (SHORT(ml->angle))<<16;
-      li->offset = (SHORT(ml->offset))<<16;
-      linedef = (unsigned short)SHORT(ml->linedef); // [FG] extended nodes
-      ldef = &lines[linedef];
-      li->linedef = ldef;
-      side = SHORT(ml->side);
-
-      // Andrey Budko: check for wrong indexes
-      if ((unsigned)ldef->sidenum[side] >= (unsigned)numsides)
-      {
-        I_Error("linedef %d for seg %d references a non-existent sidedef %d",
-                linedef, i, (unsigned)ldef->sidenum[side]);
-      }
-
-      li->sidedef = &sides[ldef->sidenum[side]];
-      li->frontsector = sides[ldef->sidenum[side]].sector;
-      // [FG] recalculate
-      li->offset = P_GetOffset(li->v1, (ml->side ? ldef->v2 : ldef->v1));
-
-      if (ldef->flags & ML_TWOSIDED)
-      {
-        int sidenum = ldef->sidenum[side ^ 1];
-
-        if (sidenum == NO_INDEX)
-        {
-          // this is wrong
-          li->backsector = GetSectorAtNullAddress();
-        }
-        else
-        {
-          li->backsector = sides[sidenum].sector;
-        }
-      }
-      else
-      {
-        li->backsector = 0;
-      }
-    }
-
-  Z_Free (data);
-}
-
-//
-// P_LoadSubsectors
-//
-// killough 5/3/98: reformatted, cleaned up
-
-void P_LoadSubsectors (int lump)
-{
-  byte *data;
-  int  i;
-
-  numsubsectors = W_LumpLength (lump) / sizeof(mapsubsector_t);
-  subsectors = arena_alloc_num(world_arena, subsector_t, numsubsectors);
-  data = W_CacheLumpNum(lump, PU_STATIC);
-
-  memset(subsectors, 0, numsubsectors*sizeof(subsector_t));
-
-  for (i=0; i<numsubsectors; i++)
-    {
-      // [FG] extended nodes
-      subsectors[i].numlines  = (unsigned short)SHORT(((mapsubsector_t *) data)[i].numsegs );
-      subsectors[i].firstline = (unsigned short)SHORT(((mapsubsector_t *) data)[i].firstseg);
-    }
-
-  Z_Free (data);
-}
-
-//
 // P_LoadSectors
 //
 // killough 5/3/98: reformatted, cleaned up
@@ -303,19 +236,8 @@ void P_LoadSectors (int lump)
   byte *data;
   int  i;
 
-  // [FG] SEGS, SSECTORS, NODES lumps missing?
-  for (i = ML_SECTORS; !W_LumpExistsWithName(lump, "SECTORS") && i > ML_VERTEXES; i--)
-  {
-    lump--;
-  }
-  if (i == ML_VERTEXES)
-  {
-    I_Error("No SECTORS found for %s!", lumpinfo[lump - i].name);
-  }
-
   numsectors = W_LumpLength (lump) / sizeof(mapsector_t);
   sectors = arena_alloc_num(world_arena, sector_t, numsectors);
-  memset (sectors, 0, numsectors*sizeof(sector_t));
   data = W_CacheLumpNum (lump,PU_STATIC);
 
   for (i=0; i<numsectors; i++)
@@ -323,8 +245,8 @@ void P_LoadSectors (int lump)
       sector_t *ss = sectors + i;
       const mapsector_t *ms = (mapsector_t *) data + i;
 
-      ss->floorheight = SHORT(ms->floorheight)<<FRACBITS;
-      ss->ceilingheight = SHORT(ms->ceilingheight)<<FRACBITS;
+      ss->floorheight = IntToFixed(SHORT(ms->floorheight));
+      ss->ceilingheight = IntToFixed(SHORT(ms->ceilingheight));
       ss->floorpic = R_FlatNumForName(ms->floorpic);
       ss->ceilingpic = R_FlatNumForName(ms->ceilingpic);
       ss->lightlevel = SHORT(ms->lightlevel);
@@ -349,6 +271,8 @@ void P_SectorInit(sector_t * const sector)
   sector->floorlightsec = -1;   // sector used to get floor lighting
   sector->ceilinglightsec = -1; // sector used to get ceiling lighting:
 
+  sector->tint = sector->tintfloor = sector->tintceiling = -1;
+
   // killough 8/28/98: initialize all sectors to normal friction first
   sector->friction = ORIG_FRICTION;
   sector->movefactor = ORIG_FRICTION_FACTOR;
@@ -369,59 +293,6 @@ void P_SectorInit(sector_t * const sector)
   // [FG] inhibit sector interpolation during the 0th gametic
   sector->oldceilgametic = sector->oldfloorgametic = -1;
   sector->old_ceil_offs_gametic = sector->old_floor_offs_gametic = -1;
-}
-
-
-//
-// P_LoadNodes
-//
-// killough 5/3/98: reformatted, cleaned up
-
-void P_LoadNodes (int lump)
-{
-  byte *data;
-  int  i;
-
-  numnodes = W_LumpLength (lump) / sizeof(mapnode_t);
-  nodes = Z_Malloc (numnodes*sizeof(node_t),PU_LEVEL,0);
-  data = W_CacheLumpNum (lump, PU_STATIC);
-
-  for (i=0; i<numnodes; i++)
-    {
-      node_t *no = nodes + i;
-      mapnode_t *mn = (mapnode_t *) data + i;
-      int j;
-
-      no->x = SHORT(mn->x)<<FRACBITS;
-      no->y = SHORT(mn->y)<<FRACBITS;
-      no->dx = SHORT(mn->dx)<<FRACBITS;
-      no->dy = SHORT(mn->dy)<<FRACBITS;
-
-      for (j=0 ; j<2 ; j++)
-        {
-          int k;
-          no->children[j] = (unsigned short)SHORT(mn->children[j]); // [FG] extended nodes
-
-          // [FG] extended nodes
-          if (no->children[j] == (unsigned short)-1)
-              no->children[j] = -1;
-          else
-          if (no->children[j] & NF_SUBSECTOR_VANILLA)
-          {
-              no->children[j] &= ~NF_SUBSECTOR_VANILLA;
-
-              if (no->children[j] >= numsubsectors)
-                  no->children[j] = 0;
-
-              no->children[j] |= NF_SUBSECTOR;
-          }
-
-          for (k=0 ; k<4 ; k++)
-            no->bbox[j][k] = SHORT(mn->bbox[j][k])<<FRACBITS;
-        }
-    }
-
-  Z_Free (data);
 }
 
 
@@ -464,6 +335,9 @@ void P_LoadThings (int lump)
       mt.type = SHORT(mtd->type);
       mt.options = SHORT(mtd->options);
 
+      mt.health = FRACUNIT;
+      mt.tint = NO_INDEX;
+
       if (mt.options & MTF_EASY)
       {
         mt.options |= MTF_SKILL1 | MTF_SKILL2;
@@ -503,7 +377,6 @@ void P_LoadLineDefs (int lump)
 
   numlines = W_LumpLength (lump) / sizeof(maplinedef_t);
   lines = arena_alloc_num(world_arena, line_t, numlines);
-  memset (lines, 0, numlines*sizeof(line_t));
   data = W_CacheLumpNum (lump,PU_STATIC);
 
   for (i=0; i<numlines; i++)
@@ -572,6 +445,12 @@ void P_LinedefInit(line_t * const linedef)
     linedef->bbox[BOXBOTTOM] = v2.y;
     linedef->bbox[BOXTOP] = v1.y;
   }
+
+  /* calculate sound origin of line to be its midpoint */
+  // Andrey Budko: fix sound origin for large levels
+  linedef->soundorg.x = linedef->bbox[BOXLEFT] / 2 + linedef->bbox[BOXRIGHT] / 2;
+  linedef->soundorg.y = linedef->bbox[BOXTOP] / 2 + linedef->bbox[BOXBOTTOM] / 2;
+  linedef->soundorg.thinker.function.p1 = P_DegenMobjThinker;
 }
 
 // killough 4/4/98: delay using sidedefs until they are loaded
@@ -768,7 +647,6 @@ void P_LoadSideDefs (int lump)
 {
   numsides = W_LumpLength(lump) / sizeof(mapsidedef_t);
   sides = arena_alloc_num(world_arena, side_t, numsides);
-  memset(sides, 0, numsides*sizeof(side_t));
 }
 
 // killough 4/4/98: delay using texture names until
@@ -785,8 +663,8 @@ void P_LoadSideDefs2(int lump)
       register mapsidedef_t *msd = (mapsidedef_t *) data + i;
       register side_t *sd = sides + i;
 
-      sd->textureoffset = SHORT(msd->textureoffset)<<FRACBITS;
-      sd->rowoffset = SHORT(msd->rowoffset)<<FRACBITS;
+      sd->textureoffset = IntToFixed(SHORT(msd->textureoffset));
+      sd->rowoffset = IntToFixed(SHORT(msd->rowoffset));
       sd->sector = &sectors[SHORT(msd->sector)];
       P_SidedefInit(sd);
 
@@ -800,584 +678,11 @@ void P_LoadSideDefs2(int lump)
 
 void P_SidedefInit(side_t * const sidedef)
 {
+  sidedef->tint = -1;
   // [crispy] smooth texture scrolling
   sidedef->oldtextureoffset = sidedef->interptextureoffset = sidedef->textureoffset;
   sidedef->oldrowoffset = sidedef->interprowoffset = sidedef->rowoffset;
   sidedef->oldgametic = -1;
-}
-
-#ifndef MBF_STRICT
-
-// jff 10/6/98
-// New code added to speed up calculation of internal blockmap
-// Algorithm is order of nlines*(ncols+nrows) not nlines*ncols*nrows
-//
-
-#define blkshift 7               /* places to shift rel position for cell num */
-#define blkmask ((1<<blkshift)-1)/* mask for rel position within cell */
-#define blkmargin 0              /* size guardband around map used */
-                                 // jff 10/8/98 use guardband>0
-                                 // jff 10/12/98 0 ok with + 1 in rows,cols
-
-typedef struct linelist_t        // type used to list lines in each block
-{
-  long num;
-  struct linelist_t *next;
-} linelist_t;
-
-//
-// Subroutine to add a line number to a block list
-// It simply returns if the line is already in the block
-//
-
-static void AddBlockLine
-(
-  linelist_t **lists,
-  int *count,
-  int *done,
-  int blockno,
-  long lineno
-)
-{
-  linelist_t *l;
-
-  if (done[blockno])
-    return;
-
-  l = Z_Malloc(sizeof(linelist_t), PU_STATIC, 0);
-  l->num = lineno;
-  l->next = lists[blockno];
-  lists[blockno] = l;
-  count[blockno]++;
-  done[blockno] = 1;
-}
-
-void P_CreateBlockMap(void)
-{
-  int xorg,yorg;                 // blockmap origin (lower left)
-  int nrows,ncols;               // blockmap dimensions
-  linelist_t **blocklists=NULL;  // array of pointers to lists of lines
-  int *blockcount=NULL;          // array of counters of line lists
-  int *blockdone=NULL;           // array keeping track of blocks/line
-  int NBlocks;                   // number of cells = nrows*ncols
-  long linetotal=0;              // total length of all blocklists
-  int i,j;
-  int map_minx=INT_MAX;          // init for map limits search
-  int map_miny=INT_MAX;
-  int map_maxx=INT_MIN;
-  int map_maxy=INT_MIN;
-
-  // scan for map limits, which the blockmap must enclose
-
-  // This fixes MBF's code, which has a bug where maxx/maxy
-  // are wrong if the 0th node has the largest x or y
-  if (numvertexes)
-  {
-    map_minx = map_maxx = vertexes[0].x;
-    map_miny = map_maxy = vertexes[0].y;
-  }
-
-  for (i=0;i<numvertexes;i++)
-  {
-    fixed_t t;
-
-    if ((t=vertexes[i].x) < map_minx)
-      map_minx = t;
-    else if (t > map_maxx)
-      map_maxx = t;
-    if ((t=vertexes[i].y) < map_miny)
-      map_miny = t;
-    else if (t > map_maxy)
-      map_maxy = t;
-  }
-  map_minx >>= FRACBITS;    // work in map coords, not fixed_t
-  map_maxx >>= FRACBITS;
-  map_miny >>= FRACBITS;
-  map_maxy >>= FRACBITS;
-
-  // set up blockmap area to enclose level plus margin
-
-  xorg = map_minx-blkmargin;
-  yorg = map_miny-blkmargin;
-  ncols = (map_maxx+blkmargin-xorg+1+blkmask)>>blkshift;  //jff 10/12/98
-  nrows = (map_maxy+blkmargin-yorg+1+blkmask)>>blkshift;  //+1 needed for
-  NBlocks = ncols*nrows;                                  //map exactly 1 cell
-
-  // create the array of pointers on NBlocks to blocklists
-  // also create an array of linelist counts on NBlocks
-  // finally make an array in which we can mark blocks done per line
-
-  // CPhipps - calloc's
-  blocklists = Z_Calloc(NBlocks,sizeof(linelist_t *), PU_STATIC, 0);
-  blockcount = Z_Calloc(NBlocks,sizeof(int), PU_STATIC, 0);
-  blockdone = Z_Malloc(NBlocks*sizeof(int), PU_STATIC, 0);
-
-  // initialize each blocklist, and enter the trailing -1 in all blocklists
-  // note the linked list of lines grows backwards
-
-  for (i=0;i<NBlocks;i++)
-  {
-    blocklists[i] = Z_Malloc(sizeof(linelist_t), PU_STATIC, 0);
-    blocklists[i]->num = -1;
-    blocklists[i]->next = NULL;
-    blockcount[i]++;
-  }
-
-  // For each linedef in the wad, determine all blockmap blocks it touches,
-  // and add the linedef number to the blocklists for those blocks
-
-  for (i=0;i<numlines;i++)
-  {
-    int x1 = lines[i].v1->x>>FRACBITS;         // lines[i] map coords
-    int y1 = lines[i].v1->y>>FRACBITS;
-    int x2 = lines[i].v2->x>>FRACBITS;
-    int y2 = lines[i].v2->y>>FRACBITS;
-    int dx = x2-x1;
-    int dy = y2-y1;
-    int vert = !dx;                            // lines[i] slopetype
-    int horiz = !dy;
-    int spos = (dx^dy) > 0;
-    int sneg = (dx^dy) < 0;
-    int bx,by;                                 // block cell coords
-    int minx = x1>x2? x2 : x1;                 // extremal lines[i] coords
-    int maxx = x1>x2? x1 : x2;
-    int miny = y1>y2? y2 : y1;
-    int maxy = y1>y2? y1 : y2;
-
-    // no blocks done for this linedef yet
-
-    memset(blockdone,0,NBlocks*sizeof(int));
-
-    // The line always belongs to the blocks containing its endpoints
-
-    bx = (x1-xorg)>>blkshift;
-    by = (y1-yorg)>>blkshift;
-    AddBlockLine(blocklists,blockcount,blockdone,by*ncols+bx,i);
-    bx = (x2-xorg)>>blkshift;
-    by = (y2-yorg)>>blkshift;
-    AddBlockLine(blocklists,blockcount,blockdone,by*ncols+bx,i);
-
-
-    // For each column, see where the line along its left edge, which
-    // it contains, intersects the Linedef i. Add i to each corresponding
-    // blocklist.
-
-    if (!vert)    // don't interesect vertical lines with columns
-    {
-      for (j=0;j<ncols;j++)
-      {
-        // intersection of Linedef with x=xorg+(j<<blkshift)
-        // (y-y1)*dx = dy*(x-x1)
-        // y = dy*(x-x1)+y1*dx;
-
-        int x = xorg+(j<<blkshift);       // (x,y) is intersection
-        int y = (dy*(x-x1))/dx+y1;
-        int yb = (y-yorg)>>blkshift;      // block row number
-        int yp = (y-yorg)&blkmask;        // y position within block
-
-        if (yb<0 || yb>nrows-1)     // outside blockmap, continue
-          continue;
-
-        if (x<minx || x>maxx)       // line doesn't touch column
-          continue;
-
-        // The cell that contains the intersection point is always added
-
-        AddBlockLine(blocklists,blockcount,blockdone,ncols*yb+j,i);
-
-        // if the intersection is at a corner it depends on the slope
-        // (and whether the line extends past the intersection) which
-        // blocks are hit
-
-        if (yp==0)        // intersection at a corner
-        {
-          if (sneg)       //   \ - blocks x,y-, x-,y
-          {
-            if (yb>0 && miny<y)
-              AddBlockLine(blocklists,blockcount,blockdone,ncols*(yb-1)+j,i);
-            if (j>0 && minx<x)
-              AddBlockLine(blocklists,blockcount,blockdone,ncols*yb+j-1,i);
-          }
-          else if (spos)  //   / - block x-,y-
-          {
-            if (yb>0 && j>0 && minx<x)
-              AddBlockLine(blocklists,blockcount,blockdone,ncols*(yb-1)+j-1,i);
-          }
-          else if (horiz) //   - - block x-,y
-          {
-            if (j>0 && minx<x)
-              AddBlockLine(blocklists,blockcount,blockdone,ncols*yb+j-1,i);
-          }
-        }
-        else if (j>0 && minx<x) // else not at corner: x-,y
-          AddBlockLine(blocklists,blockcount,blockdone,ncols*yb+j-1,i);
-      }
-    }
-
-    // For each row, see where the line along its bottom edge, which
-    // it contains, intersects the Linedef i. Add i to all the corresponding
-    // blocklists.
-
-    if (!horiz)
-    {
-      for (j=0;j<nrows;j++)
-      {
-        // intersection of Linedef with y=yorg+(j<<blkshift)
-        // (x,y) on Linedef i satisfies: (y-y1)*dx = dy*(x-x1)
-        // x = dx*(y-y1)/dy+x1;
-
-        int y = yorg+(j<<blkshift);       // (x,y) is intersection
-        int x = (dx*(y-y1))/dy+x1;
-        int xb = (x-xorg)>>blkshift;      // block column number
-        int xp = (x-xorg)&blkmask;        // x position within block
-
-        if (xb<0 || xb>ncols-1)   // outside blockmap, continue
-          continue;
-
-        if (y<miny || y>maxy)     // line doesn't touch row
-          continue;
-
-        // The cell that contains the intersection point is always added
-
-        AddBlockLine(blocklists,blockcount,blockdone,ncols*j+xb,i);
-
-        // if the intersection is at a corner it depends on the slope
-        // (and whether the line extends past the intersection) which
-        // blocks are hit
-
-        if (xp==0)        // intersection at a corner
-        {
-          if (sneg)       //   \ - blocks x,y-, x-,y
-          {
-            if (j>0 && miny<y)
-              AddBlockLine(blocklists,blockcount,blockdone,ncols*(j-1)+xb,i);
-            if (xb>0 && minx<x)
-              AddBlockLine(blocklists,blockcount,blockdone,ncols*j+xb-1,i);
-          }
-          else if (vert)  //   | - block x,y-
-          {
-            if (j>0 && miny<y)
-              AddBlockLine(blocklists,blockcount,blockdone,ncols*(j-1)+xb,i);
-          }
-          else if (spos)  //   / - block x-,y-
-          {
-            if (xb>0 && j>0 && miny<y)
-              AddBlockLine(blocklists,blockcount,blockdone,ncols*(j-1)+xb-1,i);
-          }
-        }
-        else if (j>0 && miny<y) // else not on a corner: x,y-
-          AddBlockLine(blocklists,blockcount,blockdone,ncols*(j-1)+xb,i);
-      }
-    }
-  }
-
-  // Add initial 0 to all blocklists
-  // count the total number of lines (and 0's and -1's)
-
-  memset(blockdone,0,NBlocks*sizeof(int));
-  for (i=0,linetotal=0;i<NBlocks;i++)
-  {
-    AddBlockLine(blocklists,blockcount,blockdone,i,0);
-    linetotal += blockcount[i];
-  }
-
-  // Create the blockmap lump
-
-  //blockmaplump = malloc_IfSameLevel(blockmaplump, sizeof(*blockmaplump) * (4 + NBlocks + linetotal));
-  blockmaplump = Z_Malloc(sizeof(*blockmaplump) * (4 + NBlocks + linetotal), PU_LEVEL, 0);
-
-  // blockmap header
-
-  blockmaplump[0] = bmaporgx = xorg << FRACBITS;
-  blockmaplump[1] = bmaporgy = yorg << FRACBITS;
-  blockmaplump[2] = bmapwidth  = ncols;
-  blockmaplump[3] = bmapheight = nrows;
-
-  // offsets to lists and block lists
-
-  for (i=0;i<NBlocks;i++)
-  {
-    linelist_t *bl = blocklists[i];
-    long offs = blockmaplump[4+i] =   // set offset to block's list
-      (i? blockmaplump[4+i-1] : 4+NBlocks) + (i? blockcount[i-1] : 0);
-
-    // add the lines in each block's list to the blockmaplump
-    // delete each list node as we go
-
-    while (bl)
-    {
-      linelist_t *tmp = bl->next;
-      blockmaplump[offs++] = bl->num;
-      Z_Free(bl);
-      bl = tmp;
-    }
-  }
-
-  // free all temporary storage
-
-  Z_Free(blocklists);
-  Z_Free(blockcount);
-  Z_Free(blockdone);
-}
-
-#else // MBF_STRICT
-
-//
-// killough 10/98:
-//
-// Rewritten to use faster algorithm.
-//
-// New procedure uses Bresenham-like algorithm on the linedefs, adding the
-// linedef to each block visited from the beginning to the end of the linedef.
-//
-// The algorithm's complexity is on the order of nlines*total_linedef_length.
-//
-// Please note: This section of code is not interchangable with TeamTNT's
-// code which attempts to fix the same problem.
-
-static void P_CreateBlockMap(void)
-{
-  register int i;
-  fixed_t minx = INT_MAX, miny = INT_MAX, maxx = INT_MIN, maxy = INT_MIN;
-
-  // First find limits of map
-
-  for (i=0; i<numvertexes; i++)
-    {
-      if (vertexes[i].x >> FRACBITS < minx)
-	minx = vertexes[i].x >> FRACBITS;
-      else
-	if (vertexes[i].x >> FRACBITS > maxx)
-	  maxx = vertexes[i].x >> FRACBITS;
-      if (vertexes[i].y >> FRACBITS < miny)
-	miny = vertexes[i].y >> FRACBITS;
-      else
-	if (vertexes[i].y >> FRACBITS > maxy)
-	  maxy = vertexes[i].y >> FRACBITS;
-    }
-
-  // Save blockmap parameters
-
-  bmaporgx = minx << FRACBITS;
-  bmaporgy = miny << FRACBITS;
-  bmapwidth  = ((maxx-minx) >> MAPBTOFRAC) + 1;
-  bmapheight = ((maxy-miny) >> MAPBTOFRAC) + 1;
-
-  // Compute blockmap, which is stored as a 2d array of variable-sized lists.
-  //
-  // Pseudocode:
-  //
-  // For each linedef:
-  //
-  //   Map the starting and ending vertices to blocks.
-  //
-  //   Starting in the starting vertex's block, do:
-  //
-  //     Add linedef to current block's list, dynamically resizing it.
-  //
-  //     If current block is the same as the ending vertex's block, exit loop.
-  //
-  //     Move to an adjacent block by moving towards the ending block in 
-  //     either the x or y direction, to the block which contains the linedef.
-
-  {
-    typedef struct { int n, nalloc, *list; } bmap_t;  // blocklist structure
-    unsigned tot = bmapwidth * bmapheight;            // size of blockmap
-    bmap_t *bmap = Z_Calloc(sizeof *bmap, tot, PU_STATIC, 0); // array of blocklists
-
-    for (i=0; i < numlines; i++)
-      {
-	// starting coordinates
-	int x = (lines[i].v1->x >> FRACBITS) - minx;
-	int y = (lines[i].v1->y >> FRACBITS) - miny;
-	
-	// x-y deltas
-	int adx = lines[i].dx >> FRACBITS, dx = adx < 0 ? -1 : 1;
-	int ady = lines[i].dy >> FRACBITS, dy = ady < 0 ? -1 : 1; 
-
-	// difference in preferring to move across y (>0) instead of x (<0)
-	int diff = !adx ? 1 : !ady ? -1 :
-	  (((x >> MAPBTOFRAC) << MAPBTOFRAC) + 
-	   (dx > 0 ? MAPBLOCKUNITS-1 : 0) - x) * (ady = abs(ady)) * dx -
-	  (((y >> MAPBTOFRAC) << MAPBTOFRAC) + 
-	   (dy > 0 ? MAPBLOCKUNITS-1 : 0) - y) * (adx = abs(adx)) * dy;
-
-	// starting block, and pointer to its blocklist structure
-	int b = (y >> MAPBTOFRAC)*bmapwidth + (x >> MAPBTOFRAC);
-
-	// ending block
-	int bend = (((lines[i].v2->y >> FRACBITS) - miny) >> MAPBTOFRAC) *
-	  bmapwidth + (((lines[i].v2->x >> FRACBITS) - minx) >> MAPBTOFRAC);
-
-	// delta for pointer when moving across y
-	dy *= bmapwidth;
-
-	// deltas for diff inside the loop
-	adx <<= MAPBTOFRAC;
-	ady <<= MAPBTOFRAC;
-
-	// Now we simply iterate block-by-block until we reach the end block.
-	while ((unsigned) b < tot)    // failsafe -- should ALWAYS be true
-	  {
-	    // Increase size of allocated list if necessary
-	    if (bmap[b].n >= bmap[b].nalloc)
-	      bmap[b].list = realloc(bmap[b].list, 
-				     (bmap[b].nalloc = bmap[b].nalloc ? 
-				      bmap[b].nalloc*2 : 8)*sizeof*bmap->list);
-
-	    // Add linedef to end of list
-	    bmap[b].list[bmap[b].n++] = i;
-
-	    // If we have reached the last block, exit
-	    if (b == bend)
-	      break;
-
-	    // Move in either the x or y direction to the next block
-	    if (diff < 0) 
-	      diff += ady, b += dx;
-	    else
-	      diff -= adx, b += dy;
-	  }
-      }
-
-    // Compute the total size of the blockmap.
-    //
-    // Compression of empty blocks is performed by reserving two offset words
-    // at tot and tot+1.
-    //
-    // 4 words, unused if this routine is called, are reserved at the start.
-
-    {
-      int count = tot+6;  // we need at least 1 word per block, plus reserved's
-
-      for (i = 0; i < tot; i++)
-	if (bmap[i].n)
-	  count += bmap[i].n + 2; // 1 header word + 1 trailer word + blocklist
-
-      // Allocate blockmap lump with computed count
-      blockmaplump = Z_Malloc(sizeof(*blockmaplump) * count, PU_LEVEL, 0);
-    }									 
-
-    // Now compress the blockmap.
-    {
-      int ndx = tot += 4;         // Advance index to start of linedef lists
-      bmap_t *bp = bmap;          // Start of uncompressed blockmap
-
-      blockmaplump[ndx++] = 0;    // Store an empty blockmap list at start
-      blockmaplump[ndx++] = -1;   // (Used for compression)
-
-      for (i = 4; i < tot; i++, bp++)
-	if (bp->n)                                      // Non-empty blocklist
-	  {
-	    blockmaplump[blockmaplump[i] = ndx++] = 0;  // Store index & header
-	    do
-	      blockmaplump[ndx++] = bp->list[--bp->n];  // Copy linedef list
-	    while (bp->n);
-	    blockmaplump[ndx++] = -1;                   // Store trailer
-	    Z_Free(bp->list);                           // Free linedef list
-	  }
-	else            // Empty blocklist: point to reserved empty blocklist
-	  blockmaplump[i] = tot;
-
-      Z_Free(bmap);    // Free uncompressed blockmap
-    }
-  }
-}
-
-#endif // MBF_STRICT
-
-// Check if there is at least one block in BLOCKMAP
-// which does not have 0 as the first item in the list
-
-void P_SetSkipBlockStart(void)
-{
-  int x, y;
-
-  skipblstart = true;
-
-  for(y = 0; y < bmapheight; y++)
-    for(x = 0; x < bmapwidth; x++)
-    {
-      int32_t *list;
-      int32_t *blockoffset;
-
-      blockoffset = blockmaplump + y * bmapwidth + x + 4;
-
-      list = blockmaplump + *blockoffset;
-
-      if (*list != 0)
-      {
-        skipblstart = false;
-        return;
-      }
-    }
-}
-
-//
-// P_LoadBlockMap
-//
-// killough 3/1/98: substantially modified to work
-// towards removing blockmap limit (a wad limitation)
-//
-// killough 3/30/98: Rewritten to remove blockmap limit
-//
-
-boolean P_LoadBlockMap (int lump)
-{
-  long count;
-  boolean ret = true;
-
-  //!
-  // @category mod
-  //
-  // Forces a (re-)building of the BLOCKMAP lumps for loaded maps.
-  //
-
-  if (M_CheckParm("-blockmap") || (count = W_LumpLengthWithName(lump, "BLOCKMAP")/2) >= 0x10000 || count < 4) // [FG] always rebuild too short blockmaps
-  {
-    P_CreateBlockMap();
-  }
-  else
-    {
-      long i;
-      short *wadblockmaplump = W_CacheLumpNum (lump, PU_LEVEL);
-      blockmaplump = Z_Malloc(sizeof(*blockmaplump) * count, PU_LEVEL, 0);
-
-      // killough 3/1/98: Expand wad blockmap into larger internal one,
-      // by treating all offsets except -1 as unsigned and zero-extending
-      // them. This potentially doubles the size of blockmaps allowed,
-      // because Doom originally considered the offsets as always signed.
-
-      blockmaplump[0] = SHORT(wadblockmaplump[0]);
-      blockmaplump[1] = SHORT(wadblockmaplump[1]);
-      blockmaplump[2] = (long)(SHORT(wadblockmaplump[2])) & FRACMASK;
-      blockmaplump[3] = (long)(SHORT(wadblockmaplump[3])) & FRACMASK;
-
-      for (i=4 ; i<count ; i++)
-        {
-          short t = SHORT(wadblockmaplump[i]);          // killough 3/1/98
-          blockmaplump[i] = t == -1 ? -1l : (long) t & FRACMASK;
-        }
-
-      Z_Free(wadblockmaplump);
-
-      bmaporgx = blockmaplump[0]<<FRACBITS;
-      bmaporgy = blockmaplump[1]<<FRACBITS;
-      bmapwidth = blockmaplump[2];
-      bmapheight = blockmaplump[3];
-
-      ret = false;
-
-      P_SetSkipBlockStart();
-    }
-
-  // clear out mobj chains
-  blocklinks_size = sizeof(*blocklinks) * bmapwidth * bmapheight;
-  blocklinks = M_ArenaAlloc(world_arena, blocklinks_size, alignof(mobj_t *));
-  memset(blocklinks, 0, blocklinks_size);
-  blockmap = blockmaplump + 4;
-
-  return ret;
 }
 
 //
@@ -1525,7 +830,7 @@ int P_GroupLines (void)
 
 void P_RemoveSlimeTrails(void)                // killough 10/98
 {
-  byte *hit = Z_Calloc(1, numvertexes, PU_STATIC, 0);         // Hitlist for vertices
+  byte *hit = Z_Calloc(numvertexes, sizeof(*hit), PU_STATIC, 0); // Hitlist for vertices
   int i;
   for (i=0; i<numsegs; i++)                   // Go through each seg
     {
@@ -1589,8 +894,6 @@ static angle_t anglediff(angle_t a, angle_t b)
 
 void P_SegLengths(void)
 {
-    const int rightangle = abs(finesine[(ANG60/2) >> ANGLETOFINESHIFT]);
-
     for (int32_t i = 0; i < numsegs; i++)
     {
         seg_t *li = segs+i;
@@ -1622,26 +925,16 @@ void P_SegLengths(void)
         {
             // vanilla
             if (!dy)
-              li->fakecontrast = -LIGHTBRIGHT;
+              li->fakecontrast = -1;
             else if (!dx)
-              li->fakecontrast = +LIGHTBRIGHT;
-
-            // [crispy]
-            // TODO: smooth out even more
-            if (flags & SF_SMOOTH_CONTRAST)
-            {
-                if (abs(finesine[li->r_angle >> ANGLETOFINESHIFT]) < rightangle)
-                    li->fakecontrast = -(LIGHTBRIGHT >> 1);
-                else if (abs(finecosine[li->r_angle >> ANGLETOFINESHIFT]) < rightangle)
-                    li->fakecontrast = LIGHTBRIGHT >> 1;
-            }
+              li->fakecontrast = +1;
         }
     }
 }
 
 // [FG] pad the REJECT table when the lump is too small
 
-static boolean P_LoadReject(int lumpnum, int totallines)
+boolean P_LoadReject(int lumpnum, int totallines)
 {
     int minlength;
     int lumplen;
@@ -1722,7 +1015,7 @@ static boolean P_LoadReject(int lumpnum, int totallines)
     return ret;
 }
 
-static void LoadDoomFormat(int lumpnum, nodeformat_t nodeformat, boolean *gen_blockmap, boolean *pad_reject)
+static void LoadMap(map_t *map)
 {
   // note: most of this ordering is important
 
@@ -1730,42 +1023,39 @@ static void LoadDoomFormat(int lumpnum, nodeformat_t nodeformat, boolean *gen_bl
   // killough 4/4/98: split load of sidedefs into two parts,
   // to allow texture names to be used in special linedefs
 
-  P_LoadVertexes (lumpnum+ML_VERTEXES);
-  P_LoadSectors  (lumpnum+ML_SECTORS);
-  P_LoadSideDefs (lumpnum+ML_SIDEDEFS);                // killough 4/4/98
-  P_LoadLineDefs (lumpnum+ML_LINEDEFS);                //       |
-  P_LoadSideDefs2(lumpnum+ML_SIDEDEFS);                //       |
-  P_LoadLineDefs2(lumpnum+ML_LINEDEFS);                // killough 4/4/98
-  *gen_blockmap = P_LoadBlockMap(lumpnum+ML_BLOCKMAP); // killough 3/1/98
+  P_LoadVertexes (map->vertexes);
+  P_LoadSectors  (map->sectors);
+  P_LoadSideDefs (map->sidedefs);                // killough 4/4/98
+  P_LoadLineDefs (map->linedefs);                //       |
+  P_LoadSideDefs2(map->sidedefs);                //       |
+  P_LoadLineDefs2(map->linedefs);                // killough 4/4/98
+  map->bmap_format = P_LoadBlockMap(map->blockmap); // killough 3/1/98
 
   // [FG] build nodes with NanoBSP
-  if (nodeformat == NFMT_NANO)
+  if (map->bsp_format == BSP_NANO)
   {
     BSP_BuildNodes();
   }
   // support all ZDoom extended node formats
-  else if (nodeformat >= NFMT_XNOD && nodeformat <= NFMT_ZGL3)
+  else if (map->bsp_format >= BSP_XNOD && map->bsp_format <= BSP_ZGL3)
   {
-    int znode_num = (nodeformat >= NFMT_XNOD && nodeformat <= NFMT_ZNOD)
-                  ? lumpnum+ML_NODES
-                  : lumpnum+ML_SSECTORS;
-    P_LoadNodes_ZDoom(znode_num, nodeformat);
+    P_LoadBSPTree_ZDBSP(map->znodes, map->bsp_format);
   }
-  else if (nodeformat == NFMT_DEEP)
+  else if (map->bsp_format == BSP_DEEPBSPV4)
   {
-    P_LoadSubsectors_DEEP(lumpnum+ML_SSECTORS);
-    P_LoadNodes_DEEP     (lumpnum+ML_NODES);
-    P_LoadSegs_DEEP      (lumpnum+ML_SEGS);
+    P_LoadSubsectors_DeePBSPV4(map->ssectors);
+    P_LoadNodes_DeePBSPV4(map->nodes);
+    P_LoadSegs_DeePBSPV4(map->segs);
   }
   else
   {
-    P_LoadSubsectors(lumpnum+ML_SSECTORS);
-    P_LoadNodes     (lumpnum+ML_NODES);
-    P_LoadSegs      (lumpnum+ML_SEGS);
+    P_LoadSubsectors(map->ssectors);
+    P_LoadNodes(map->nodes);
+    P_LoadSegs(map->segs);
   }
 
   // [FG] pad the REJECT table when the lump is too small
-  *pad_reject = P_LoadReject(lumpnum+ML_REJECT, P_GroupLines());
+  map->reject_built = P_LoadReject(map->reject, P_GroupLines());
 }
 
 //
@@ -1776,18 +1066,148 @@ static void LoadDoomFormat(int lumpnum, nodeformat_t nodeformat, boolean *gen_bl
 // fast-forward demo to the next map
 boolean playback_nextlevel = false;
 
-void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
+// check for different supported and unsupported formats
+static void CheckMapFormat(int lumpnum, map_t *map)
 {
-  int   i;
+    map->map_format = MAP_NONE;
+    map->bsp_format = BSP_NANO;
+    map->bmap_format = BMAP_BoomBuilder;
+    map->built = false;
+    map->param = false;
+
+    map->label = lumpnum;
+    map->vertexes = NO_INDEX;
+    map->linedefs = NO_INDEX;
+    map->sidedefs = NO_INDEX;
+    map->sectors = NO_INDEX;
+    map->things = NO_INDEX;
+    map->textmap = NO_INDEX;
+    map->nodes = NO_INDEX;
+    map->ssectors = NO_INDEX;
+    map->segs = NO_INDEX;
+    map->znodes = NO_INDEX;
+    map->blockmap = NO_INDEX;
+    map->reject = NO_INDEX;
+    map->behavior = NO_INDEX;
+    map->dialogue = NO_INDEX;
+    map->lightmap = NO_INDEX;
+
+    // Fully built map
+    if (W_LumpExistsWithName(lumpnum + ML_THINGS, "THINGS")
+        && W_LumpExistsWithName(lumpnum + ML_LINEDEFS, "LINEDEFS")
+        && W_LumpExistsWithName(lumpnum + ML_SIDEDEFS, "SIDEDEFS")
+        && W_LumpExistsWithName(lumpnum + ML_VERTEXES, "VERTEXES")
+        && W_LumpExistsWithName(lumpnum + ML_SEGS, "SEGS")
+        && W_LumpExistsWithName(lumpnum + ML_SSECTORS, "SSECTORS")
+        && W_LumpExistsWithName(lumpnum + ML_NODES, "NODES")
+        && W_LumpExistsWithName(lumpnum + ML_SECTORS, "SECTORS")
+        && W_LumpExistsWithName(lumpnum + ML_REJECT, "REJECT")
+        && W_LumpExistsWithName(lumpnum + ML_BLOCKMAP, "BLOCKMAP"))
+    {
+        map->map_format = MAP_DOOM;
+        map->built = true;
+        map->things = lumpnum + ML_THINGS;
+        map->linedefs = lumpnum + ML_LINEDEFS;
+        map->sidedefs = lumpnum + ML_SIDEDEFS;
+        map->vertexes = lumpnum + ML_VERTEXES;
+        map->segs = lumpnum + ML_SEGS;
+        map->ssectors = lumpnum + ML_SSECTORS;
+        map->nodes = lumpnum + ML_NODES;
+        map->sectors = lumpnum + ML_SECTORS;
+        map->reject = lumpnum + ML_REJECT;
+        map->blockmap = lumpnum + ML_BLOCKMAP;
+
+        // [FG] check nodes format
+        P_CheckBSPFormat_Binary(map);
+
+        if (W_LumpExistsWithName(lumpnum + ML_BEHAVIOR, "BEHAVIOR"))
+        {
+            map->map_format = MAP_HEXEN;
+            map->param = true;
+            map->behavior = lumpnum + ML_BEHAVIOR;
+        }
+    }
+
+    // Non built map
+    if (map->map_format == MAP_NONE
+        && W_LumpExistsWithName(lumpnum + MLX_THINGS, "THINGS")
+        && W_LumpExistsWithName(lumpnum + MLX_LINEDEFS, "LINEDEFS")
+        && W_LumpExistsWithName(lumpnum + MLX_SIDEDEFS, "SIDEDEFS")
+        && W_LumpExistsWithName(lumpnum + MLX_VERTEXES, "VERTEXES")
+        && W_LumpExistsWithName(lumpnum + MLX_SECTORS, "SECTORS"))
+    {
+        map->map_format = MAP_DOOM;
+        map->built = false;
+        map->things = lumpnum + MLX_THINGS;
+        map->linedefs = lumpnum + MLX_LINEDEFS;
+        map->sidedefs = lumpnum + MLX_SIDEDEFS;
+        map->vertexes = lumpnum + MLX_VERTEXES;
+        map->sectors = lumpnum + MLX_SECTORS;
+
+        map->bsp_format = BSP_NANO;
+
+        if (W_LumpExistsWithName(lumpnum + MLX_BEHAVIOR, "BEHAVIOR"))
+        {
+            map->map_format = MAP_HEXEN;
+            map->param = true;
+            map->behavior = lumpnum + MLX_BEHAVIOR;
+        }
+    }
+
+    if (W_LumpExistsWithName(lumpnum + ML_TEXTMAP, "TEXTMAP"))
+    {
+        map->map_format = MAP_UDMF;
+        map->built = true;
+        map->textmap = lumpnum + ML_TEXTMAP;
+
+        // skip label and TEXTMAP, test against all other lumps until ENDMAP
+        for (int i = ML_TEXTMAP + 1; i < ML_MAPLUMPCOUNT; ++i)
+        {
+            int j = lumpnum + i;
+            if (W_LumpExistsWithName(j, "ENDMAP"))
+            {
+                break;
+            }
+            else if (W_LumpExistsWithName(j, "ZNODES"))
+            {
+                map->znodes = j;
+            }
+            else if (W_LumpExistsWithName(j, "REJECT"))
+            {
+                map->reject = j;
+            }
+            else if (W_LumpExistsWithName(j, "BLOCKMAP"))
+            {
+                map->blockmap = j;
+            }
+            else if (W_LumpExistsWithName(j, "BEHAVIOR"))
+            {
+                map->behavior = j;
+            }
+            else if (W_LumpExistsWithName(j, "DIALOGUE"))
+            {
+                map->dialogue = j;
+            }
+            else if (W_LumpExistsWithName(j, "LIGHTMAP"))
+            {
+                map->lightmap = j;
+            }
+        }
+
+        // [FG] check nodes format
+        P_CheckBSPFormat_UDMF(map);
+    }
+}
+
+void P_SetupLevel(int episode, int map_num, skill_t skill)
+{
   char  lumpname[9];
   int   lumpnum;
-  nodeformat_t nodeformat = NFMT_NANO;
-  boolean gen_blockmap = false, pad_reject = false;
 
   totalkills = totalitems = totalsecret = wminfo.maxfrags = 0;
   max_kill_requirement = 0;
   wminfo.partime = 180;
-  for (i=0; i<MAXPLAYERS; i++)
+  for (int i = 0; i < MAXPLAYERS; i++)
   {
     players[i].killcount = players[i].secretcount = players[i].itemcount = 0;
     players[i].maxkilldiscount = 0;
@@ -1797,7 +1217,7 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   players[consoleplayer].viewz = 1;
 
   // [FG] fast-forward demo to the desired map
-  if (playback_warp == map || playback_nextlevel)
+  if (playback_warp == map_num || playback_nextlevel)
   {
     if (!playback_skiptics)
       G_EnableWarp(false);
@@ -1817,52 +1237,62 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   Z_FreeTag(PU_CACHE);
 
   P_InitThinkers();
+  // haleyjd 02/02/04 -- clear the TID hash table
+  P_InitTIDHash();
 
   // if working with a devlopment map, reload it
   //    W_Reload ();     killough 1/31/98: W_Reload obsolete
 
   // find map name
-  M_CopyLumpName(lumpname, MapName(episode, map));
+  M_CopyLumpName(lumpname, MapName(episode, map_num));
 
   lumpnum = W_GetNumForName(lumpname);
 
-  mapformat = P_CheckMapFormat(lumpnum);
-  G_ApplyLevelCompatibility(lumpnum);
+  CheckMapFormat(lumpnum, &map);
+  G_ApplyLevelCompatibility(&map);
 
   leveltime = 0;
   oldleveltime = 0;
 
-  // [FG] check nodes format
-  if (mapformat == MFMT_Doom)
+  switch (map.map_format)
   {
-    R_PointOnSide = R_PointOnSideClassic;
-    R_PointOnSegSide = R_PointOnSegSideClassic;
-    P_PointOnLineSide = P_PointOnLineSideClassic;
-    P_PointOnDivlineSide = P_PointOnDivlineSideClassic;
-
-    nodeformat = P_CheckDoomNodeFormat(lumpnum);
-    LoadDoomFormat(lumpnum, nodeformat, &gen_blockmap, &pad_reject);
+    case MAP_DOOM:
+      // the original implementation used only low precision math
+      P_PointOnLineSide = P_PointOnLineSide_Classic;
+      P_PointOnDivlineSide = P_PointOnDivlineSide_Classic;
+      LoadMap(&map);
+      break;
+    case MAP_HEXEN:
+      I_Error("Unsupported Hexen level format in %s", lumpname);
+      break;
+    case MAP_UDMF:
+      // udmf requires higher precision math
+      P_PointOnLineSide = P_PointOnLineSide_Precise;
+      P_PointOnDivlineSide = P_PointOnDivlineSide_Precise;
+      UDMF_LoadMap(&map);
+      break;
+    case MAP_NONE:
+      I_Error("Unknown level format in %s", lumpname);
+      break;
   }
-  else if (mapformat == MFMT_UDMF)
-  {
-    R_PointOnSide = R_PointOnSidePrecise;
-    R_PointOnSegSide = R_PointOnSegSidePrecise;
-    P_PointOnLineSide = P_PointOnLineSidePrecise;
-    P_PointOnDivlineSide = P_PointOnDivlineSidePrecise;
 
-    UDMF_LoadMap(lumpnum, &nodeformat, &gen_blockmap, &pad_reject);
-  }
-  else if (mapformat == MFMT_Hexen)
+  // P_CrossSubsector optimization
+  P_InitSubsectorLines();
+
+  // XGL3/ZGL3 provide high-precision partition lines
+  if (map.bsp_format >= BSP_XGL3)
   {
-    I_Error("Unsupported Hexen level format in %s", lumpname);
+    R_PointOnSide = R_PointOnSide_Precise;
   }
   else
   {
-    I_Error("Unknown level format in %s", lumpname);
+    R_PointOnSide = R_PointOnSide_Classic;
   }
 
-  if (nodeformat != NFMT_NANO)
+  if (map.bsp_format != BSP_NANO)
+  {
     P_RemoveSlimeTrails();    // killough 10/98: remove slime trails from wad
+  }
 
   // [crispy] fix long wall wobble
   P_SegLengths();
@@ -1874,23 +1304,39 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
   deathmatch_p = deathmatchstarts;
   P_MapStart();
 
-  if (mapformat == MFMT_Doom)
+  switch (map.map_format)
   {
-    P_LoadThings(lumpnum+ML_THINGS);
-  }
-  else if (mapformat == MFMT_UDMF)
-  {
-    UDMF_LoadThings();
+    case MAP_DOOM:
+      P_LoadThings(map.things);
+      break;
+    case MAP_HEXEN:
+      I_Error("Tried to spawn things on invalid map format");
+      break;
+    case MAP_UDMF:
+      P_LoadThings_UDMF();
+      UDMF_ClearMemory(); // done with internal UDMF representation
+      break;
+    case MAP_NONE:
+      I_Error("Tried to spawn things on invalid map format");
+      break;
   }
 
   // if deathmatch, randomly spawn the active players
   if (deathmatch)
-    for (i=0; i<MAXPLAYERS; i++)
+  {
+    for (int i = 0; i < MAXPLAYERS; i++)
       if (playeringame[i])
         {
           players[i].mo = NULL;
           G_DeathMatchSpawnPlayer(i);
         }
+  }
+  else // if !deathmatch, check all necessary player starts actually exist
+  {
+    for (int i = 0; i < MAXPLAYERS; i++)
+      if (playeringame[i] && !players[i].mo)
+        I_Error("missing player %d start", i + 1);
+  }
 
   // killough 3/26/98: Spawn icon landings:
   if (gamemode==commercial)
@@ -1917,12 +1363,13 @@ void P_SetupLevel(int episode, int map, int playermask, skill_t skill)
     R_PrecacheLevel();
 
   // [FG] log level setup
-  I_Printf(VB_DEMO, "P_SetupLevel: %.8s (%s), Skill %d, %s%s%s, %s",
+  I_Printf(VB_DEMO, "P_SetupLevel: %.8s (%s), Skill %d, %s (%s%s%s), %s",
     lumpname, W_WadNameForLump(lumpnum),
     gameskill + 1,
-    node_format_names[nodeformat],
-    gen_blockmap ? "+Blockmap" : "",
-    pad_reject ? "+Reject" : "",
+    map_format_names[map.map_format],
+    bsp_format_names[map.bsp_format],
+    bmap_format_names[map.bmap_format],
+    map.reject_built ? "+Reject" : "",
     G_GetCurrentComplevelName());
 }
 
@@ -1942,6 +1389,8 @@ void P_Init (void)
   activeceilings_arena = M_ArenaInit(SIZE_MB(32), SIZE_MB(1));
   activeplats_arena = M_ArenaInit(SIZE_MB(32), SIZE_MB(1));
   #undef SIZE_MB
+
+  seenstate_tab = calloc(num_states, sizeof(*seenstate_tab));
 }
 
 //----------------------------------------------------------------------------

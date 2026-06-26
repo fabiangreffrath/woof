@@ -22,8 +22,6 @@
 
 #include <string.h>
 
-#include "deh_bex_music.h"
-#include "deh_bex_sounds.h"
 #include "deh_strings.h"
 #include "doomdef.h"
 #include "doomstat.h"
@@ -464,6 +462,12 @@ static boolean StartSoundEx(const mobj_t *origin, int sfx_id,
 
     sfx = &S_sfx[sfx_id];
 
+    if (sfx->flags & SFX_Random)
+    {
+        sfx_id = S_RandomSound(sfx_id);
+        sfx = &S_sfx[sfx_id];
+    }
+
     // Initialize sound parameters
     if (ambient)
     {
@@ -805,6 +809,26 @@ void S_ResumeSound(void)
     I_ProcessSoundUpdates();
 }
 
+void S_MuteSound(void)
+{
+    if (nosfxparm)
+    {
+        return;
+    }
+
+    I_MuteSound();
+}
+
+void S_UnmuteSound(void)
+{
+    if (nosfxparm)
+    {
+        return;
+    }
+
+    I_UnmuteSound();
+}
+
 //
 // Stop and resume music, during game PAUSE.
 //
@@ -820,7 +844,7 @@ void S_PauseMusic(void)
 
 void S_ResumeMusic(void)
 {
-    if (mus_playing && mus_paused)
+    if (mus_playing && mus_paused && !paused)
     {
         I_ResumeSong(mus_playing->handle);
         mus_paused = false;
@@ -1096,6 +1120,7 @@ void S_StopMusic(void)
     if (mus_paused)
     {
         I_ResumeSong(mus_playing->handle);
+        mus_paused = false;
     }
 
     I_StopSong((void *)mus_playing->handle);
@@ -1362,7 +1387,6 @@ static void InitPitchStepTable(void)
 void S_Init(int sfxVolume, int musicVolume)
 {
     ResetActive();
-    S_PostParseSndInfo();
 
     // jff 1/22/98 skip sound init if sound not enabled
     if (!nosfxparm)
@@ -1398,7 +1422,7 @@ void S_Init(int sfxVolume, int musicVolume)
 void S_BindSoundVariables(void)
 {
     BIND_NUM(extra_music, EXMUS_OFF, EXMUS_OFF, EXMUS_ORIGINAL,
-             "Extra soundtrack (0 = Off; 1 = Remix; 2 = Original");
+             "Extra soundtrack (0 = Off; 1 = Remix; 2 = Original)");
 }
 
 //----------------------------------------------------------------------------

@@ -1056,6 +1056,26 @@ boolean P_IsDeathExit(sector_t *sector)
   return false;
 }
 
+boolean P_IsExitLine(line_t *line)
+{
+  int special = line->special;
+
+  return special == 11 || special == 51 ||
+         special == 52 || special == 124 ||
+         special == 197 || special == 198 ||
+         special == 2069 || special == 2070 ||
+         special == 2071 || special == 2072 ||
+         special == 2073 || special == 2074;
+}
+
+boolean P_IsTeleportLine(line_t *line)
+{
+  int special = line->special;
+
+  return special == 39 || special == 97 ||
+         special == 125 || special == 126;
+}
+
 //
 // P_IsSecret()
 //
@@ -1084,6 +1104,15 @@ boolean P_IsSecret(sector_t *sec)
 boolean P_WasSecret(sector_t *sec)
 {
   return sec->oldspecial == 9 || sec->oldspecial & SECRET_MASK;
+}
+
+//
+// P_RevealedSecret()
+//
+
+boolean P_RevealedSecret(sector_t *sec)
+{
+  return P_WasSecret(sec) && !P_IsSecret(sec);
 }
 
 //
@@ -2259,16 +2288,23 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line, int side)
 
     // ID24 Music Changers
     case 2061: case 2067: case 2091: case 2097:
+      P_ChangeSwitchTexture(line,0);
+      EV_ChangeMusic(line, side);
+      break;
+
     case 2062: case 2068: case 2092: case 2098:
+      P_ChangeSwitchTexture(line,1);
       EV_ChangeMusic(line, side);
       break;
 
     case 2080:
-      dirty_line(line)->special = 0;
-      // fallthrough
-
     case 2081:
     {
+      if (line->special == 2080)
+        P_ChangeSwitchTexture(line,0);
+      else
+        P_ChangeSwitchTexture(line,1);
+
       int colormap_index = side ? line->backtint : line->fronttint;
       for (int s = -1; (s = P_FindSectorFromLineTag(line, s)) >= 0;)
       {
@@ -2604,7 +2640,7 @@ void P_UpdateSpecials (void)
                   buttonlist[i].btexture;
                 break;
               }
-            S_StartSound((mobj_t *)&buttonlist[i].soundorg,sfx_swtchn);
+            S_StartSound((mobj_t *)&buttonlist[i].line->soundorg, sfx_swtchn);
             memset(&buttonlist[i],0,sizeof(button_t));
           }
       }

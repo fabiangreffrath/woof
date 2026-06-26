@@ -155,7 +155,7 @@ int V_ScaleY(int y);
 // Allocates buffer screens, call before R_Init.
 void V_Init(void);
 
-void V_UseBuffer(pixel_t *buffer);
+void V_UseBuffer(pixel_t *buffer, int pitch);
 
 void V_RestoreBuffer(void);
 
@@ -200,6 +200,8 @@ void V_TileBlock64(int line, int width, int height, const byte *src);
 void V_DrawBackground(const char *patchname);
 
 void V_ShadeScreen(void);
+
+void V_ShadeRect(int x, int y, int width, int height);
 
 // [FG] colored blood and gibs
 

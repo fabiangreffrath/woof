@@ -23,7 +23,6 @@
 #include "m_arena.h"
 #include "m_array.h"
 #include "m_fixed.h"
-#include "m_hashmap.h"
 #include "m_random.h"
 #include "p_ambient.h"
 #include "p_dirty.h"
@@ -36,7 +35,6 @@
 #include "p_tick.h"
 #include "r_defs.h"
 #include "r_state.h"
-#include "s_sndinfo.h"
 
 #include <stddef.h>
 #include <stdint.h>
@@ -196,11 +194,6 @@ static uintptr_t *msecnode_pointers;
 static uintptr_t *ceilinglist_pointers;
 static uintptr_t *platlist_pointers;
 
-static hashmap_t *thinker_hashmap;
-static hashmap_t *msecnode_hashmap;
-static hashmap_t *ceilinglist_hashmap;
-static hashmap_t *platlist_hashmap;
-
 #define readp_index(ptr, base)                                 \
     do                                                         \
     {                                                          \
@@ -262,7 +255,7 @@ static void writep_thinker(const thinker_t *thinker)
     }
     else
     {
-        index = hashmap_get_index(thinker_hashmap, (uintptr_t)thinker);
+        index = M_ArenaTableIndex(thinkers_arena, (uintptr_t)thinker);
     }
     write32(index);
 }
@@ -300,7 +293,7 @@ static void writep_msecnode(const msecnode_t *node)
     }
     else
     {
-        index = hashmap_get_index(msecnode_hashmap, (uintptr_t)node);
+        index = M_ArenaTableIndex(msecnodes_arena, (uintptr_t)node);
     }
     write32(index);
 }
@@ -328,7 +321,7 @@ static void writep_activeceilings(const ceilinglist_t *cl)
     }
     else
     {
-        index = hashmap_get_index(ceilinglist_hashmap, (uintptr_t)cl);
+        index = M_ArenaTableIndex(activeceilings_arena, (uintptr_t)cl);
     }
     write32(index);
 }
@@ -356,7 +349,7 @@ static void writep_activeplats(const platlist_t *pl)
     }
     else
     {
-        index = hashmap_get_index(platlist_hashmap, (uintptr_t)pl);
+        index = M_ArenaTableIndex(activeplats_arena, (uintptr_t)pl);
     }
     write32(index);
 }
@@ -465,7 +458,7 @@ static void read_mobj_t(mobj_t *str, thinker_class_t tc)
     str->flags_extra = read32();
     str->intflags = read32();
     str->health = read32();
-    str->id = read32();
+    str->tid = read32();
     str->special = read32();
     str->args[0] = read32();
     str->args[1] = read32();
@@ -539,7 +532,7 @@ static void write_mobj_t(mobj_t *str)
     write32(str->flags_extra);
     write32(str->intflags);
     write32(str->health);
-    write32(str->id);
+    write32(str->tid);
     write32(str->special);
     write32(str->args[0]);
     write32(str->args[1]);
@@ -1454,10 +1447,9 @@ static thinker_class_t GetThinkerClass(actionf_p1 func)
 
 static void PrepareArchiveThinkers(void)
 {
-    thinker_hashmap = M_ArenaHashMap(thinkers_arena);
     uintptr_t *table = M_ArenaTable(thinkers_arena);
 
-    int count = array_size(table);
+    int count = M_ArenaTableSize(thinkers_arena);
 
     write32(count);
 
@@ -1482,7 +1474,7 @@ static void PrepareArchiveThinkers(void)
         thinker_pointers[i] = pointer;
     }
 
-    array_free(table);
+    free(table);
 }
 
 static void ArchiveThinkers(void)
@@ -1559,56 +1551,56 @@ static void PrepareUnArchiveThinkers(void)
         {
             case tc_mobj:
             case tc_mobj_del:
-                pointer.p.mobj = arena_calloc(thinkers_arena, mobj_t);
+                pointer.p.mobj = arena_alloc(thinkers_arena, mobj_t);
                 break;
             case tc_ceiling:
             case tc_ceiling_del:
-                pointer.p.ceiling = arena_calloc(thinkers_arena, ceiling_t);
+                pointer.p.ceiling = arena_alloc(thinkers_arena, ceiling_t);
                 break;
             case tc_door:
             case tc_door_del:
-                pointer.p.door = arena_calloc(thinkers_arena, vldoor_t);
+                pointer.p.door = arena_alloc(thinkers_arena, vldoor_t);
                 break;
             case tc_floor:
             case tc_floor_del:
-                pointer.p.floor = arena_calloc(thinkers_arena, floormove_t);
+                pointer.p.floor = arena_alloc(thinkers_arena, floormove_t);
                 break;
             case tc_plat:
             case tc_plat_del:
-                pointer.p.plat = arena_calloc(thinkers_arena, plat_t);
+                pointer.p.plat = arena_alloc(thinkers_arena, plat_t);
                 break;
             case tc_flash:
-                pointer.p.flash = arena_calloc(thinkers_arena, lightflash_t);
+                pointer.p.flash = arena_alloc(thinkers_arena, lightflash_t);
                 break;
             case tc_strobe:
-                pointer.p.strobe = arena_calloc(thinkers_arena, strobe_t);
+                pointer.p.strobe = arena_alloc(thinkers_arena, strobe_t);
                 break;
             case tc_glow:
-                pointer.p.glow = arena_calloc(thinkers_arena, glow_t);
+                pointer.p.glow = arena_alloc(thinkers_arena, glow_t);
                 break;
             case tc_elevator:
             case tc_elevator_del:
-                pointer.p.elevator = arena_calloc(thinkers_arena, elevator_t);
+                pointer.p.elevator = arena_alloc(thinkers_arena, elevator_t);
                 break;
             case tc_scroll:
             case tc_param_scroll_floor:
             case tc_param_scroll_ceiling:
-                pointer.p.scroll = arena_calloc(thinkers_arena, scroll_t);
+                pointer.p.scroll = arena_alloc(thinkers_arena, scroll_t);
                 break;
             case tc_pusher:
-                pointer.p.pusher = arena_calloc(thinkers_arena, pusher_t);
+                pointer.p.pusher = arena_alloc(thinkers_arena, pusher_t);
                 break;
             case tc_flicker:
-                pointer.p.flicker = arena_calloc(thinkers_arena, fireflicker_t);
+                pointer.p.flicker = arena_alloc(thinkers_arena, fireflicker_t);
                 break;
             case tc_friction:
-                pointer.p.friction = arena_calloc(thinkers_arena, friction_t);
+                pointer.p.friction = arena_alloc(thinkers_arena, friction_t);
                 break;
             case tc_ambient:
-                pointer.p.ambient = arena_calloc(thinkers_arena, ambient_t);
+                pointer.p.ambient = arena_alloc(thinkers_arena, ambient_t);
                 break;
             case tc_none:
-                pointer.p.thinker = arena_calloc(thinkers_arena, thinker_t);
+                pointer.p.thinker = arena_alloc(thinkers_arena, thinker_t);
                 break;
             default:
                 I_Error("Unknown class: %d", pointer.tc);
@@ -1627,6 +1619,7 @@ static void UnArchiveThinkers(void)
             case tc_mobj:
             case tc_mobj_del:
                 read_mobj_t(pointer->p.mobj, pointer->tc);
+                P_AddThingTID(pointer->p.mobj, pointer->p.mobj->tid);
                 break;
             case tc_ceiling:
             case tc_ceiling_del:
@@ -1687,20 +1680,19 @@ static void UnArchiveThinkers(void)
 
 static void PrepareArchiveMSecNodes(void)
 {
-    msecnode_hashmap = M_ArenaHashMap(msecnodes_arena);
-    int count = hashmap_get_size(msecnode_hashmap);
+    int count = M_ArenaTableSize(msecnodes_arena);
     write32(count);
 }
 
 static void ArchiveMSecNodes(void)
 {
     uintptr_t *table = M_ArenaTable(msecnodes_arena);
-    int count = array_size(table);
+    int count = M_ArenaTableSize(msecnodes_arena);
     for (int i = 0; i < count; ++i)
     {
         write_msecnode_t((msecnode_t *)table[i]);
     }
-    array_free(table);
+    free(table);
 }
 
 static void PrepareUnArchiveMSecNodes(void)
@@ -1709,7 +1701,7 @@ static void PrepareUnArchiveMSecNodes(void)
     array_resize(msecnode_pointers, count);
     for (int i = 0; i < count; ++i)
     {
-        msecnode_t *node = arena_calloc(msecnodes_arena, msecnode_t);
+        msecnode_t *node = arena_alloc(msecnodes_arena, msecnode_t);
         msecnode_pointers[i] = (uintptr_t)node;
     }
 }
@@ -1801,21 +1793,20 @@ static void UnArchiveBlocklinks(void)
 
 static void PrepareArchiveCeilingList(void)
 {
-    ceilinglist_hashmap = M_ArenaHashMap(activeceilings_arena);
-    int count = hashmap_get_size(ceilinglist_hashmap);
+    int count = M_ArenaTableSize(activeceilings_arena);
     write32(count);
 }
 
 static void ArchiveCeilingList(void)
 {
     uintptr_t *table = M_ArenaTable(activeceilings_arena);
-    int count = array_size(table);
+    int count = M_ArenaTableSize(activeceilings_arena);
     for (int i = 0; i < count; ++i)
     {
         ceilinglist_t *cl = (ceilinglist_t *)table[i];
         writep_thinker(&cl->ceiling->thinker);
     }
-    array_free(table);
+    free(table);
 }
 
 static void PrepareUnArchiveCeilingList(void)
@@ -1824,7 +1815,7 @@ static void PrepareUnArchiveCeilingList(void)
     array_resize(ceilinglist_pointers, count);
     for (int i = 0; i < count; ++i)
     {
-        ceilinglist_t *cl = arena_calloc(activeceilings_arena, ceilinglist_t);
+        ceilinglist_t *cl = arena_alloc(activeceilings_arena, ceilinglist_t);
         ceilinglist_pointers[i] = (uintptr_t)cl;
     }
 }
@@ -1851,21 +1842,20 @@ static void UnArchiveCeilingList(void)
 
 static void PrepareArchivePlatList(void)
 {
-    platlist_hashmap = M_ArenaHashMap(activeplats_arena);
-    int count = hashmap_get_size(platlist_hashmap);
+    int count = M_ArenaTableSize(activeplats_arena);
     write32(count);
 }
 
 static void ArchivePlatList(void)
 {
     uintptr_t *table = M_ArenaTable(activeplats_arena);
-    int count = array_size(table);
+    int count = M_ArenaTableSize(activeplats_arena);
     for (int i = 0; i < count; ++i)
     {
         platlist_t *cl = (platlist_t *)table[i];
         writep_thinker(&cl->plat->thinker);
     }
-    array_free(table);
+    free(table);
 }
 
 static void PrepareUnArchivePlatList(void)
@@ -1874,7 +1864,7 @@ static void PrepareUnArchivePlatList(void)
     array_resize(platlist_pointers, count);
     for (int i = 0; i < count; ++i)
     {
-        platlist_t *pl = arena_calloc(activeplats_arena, platlist_t);
+        platlist_t *pl = arena_alloc(activeplats_arena, platlist_t);
         platlist_pointers[i] = (uintptr_t)pl;
     }
 }

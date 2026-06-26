@@ -133,20 +133,20 @@ void R_InitPlanes (void)
 
 void R_InitPlanesRes(void)
 {
-  floorclip = Z_Calloc(1, video.width * sizeof(*floorclip), PU_RENDERER, NULL);
-  ceilingclip = Z_Calloc(1, video.width * sizeof(*ceilingclip), PU_RENDERER, NULL);
-  spanstart = Z_Calloc(1, video.height * sizeof(*spanstart), PU_RENDERER, NULL);
+  floorclip = Z_Calloc(video.width, sizeof(*floorclip), PU_RENDERER, NULL);
+  ceilingclip = Z_Calloc(video.width, sizeof(*ceilingclip), PU_RENDERER, NULL);
+  spanstart = Z_Calloc(video.height, sizeof(*spanstart), PU_RENDERER, NULL);
 
-  cachedheight = Z_Calloc(1, video.height * sizeof(*cachedheight), PU_RENDERER, NULL);
-  cacheddistance = Z_Calloc(1, video.height * sizeof(*cacheddistance), PU_RENDERER, NULL);
-  cachedxstep = Z_Calloc(1, video.height * sizeof(*cachedxstep), PU_RENDERER, NULL);
-  cachedystep = Z_Calloc(1, video.height * sizeof(*cachedystep), PU_RENDERER, NULL);
-  cachedrotation = Z_Calloc(1, video.height * sizeof(*cachedrotation), PU_RENDERER, NULL);
+  cachedheight = Z_Calloc(video.height, sizeof(*cachedheight), PU_RENDERER, NULL);
+  cacheddistance = Z_Calloc(video.height, sizeof(*cacheddistance), PU_RENDERER, NULL);
+  cachedxstep = Z_Calloc(video.height, sizeof(*cachedxstep), PU_RENDERER, NULL);
+  cachedystep = Z_Calloc(video.height, sizeof(*cachedystep), PU_RENDERER, NULL);
+  cachedrotation = Z_Calloc(video.height, sizeof(*cachedrotation), PU_RENDERER, NULL);
 
-  yslope = Z_Calloc(1, video.height * sizeof(*yslope), PU_RENDERER, NULL);
+  yslope = Z_Calloc(video.height, sizeof(*yslope), PU_RENDERER, NULL);
 
   maxopenings = video.width * video.height;
-  openings = Z_Calloc(1, maxopenings * sizeof(*openings), PU_RENDERER, NULL);
+  openings = Z_Calloc(maxopenings, sizeof(*openings), PU_RENDERER, NULL);
 
   R_InitPlanes();
 }
@@ -178,7 +178,7 @@ void R_InitVisplanesRes(void)
 // BASIC PRIMITIVE
 //
 
-static void R_MapPlane(int y, int x1, int x2, lighttable_t *thiscolormap)
+static void R_MapPlane(int y, int x1, int x2, const lighttable_t * const thiscolormap)
 {
   fixed_t distance;
   unsigned lookup;
@@ -408,7 +408,8 @@ visplane_t *R_CheckPlane(visplane_t *pl, int start, int stop)
 
 // [FG] 32-bit integer math
 static void R_MakeSpans(int x, unsigned int t1, unsigned int b1,
-                        unsigned int t2, unsigned int b2, lighttable_t *colormap)
+                        unsigned int t2, unsigned int b2,
+                        const lighttable_t * const colormap)
 {
   for (; t1 < t2 && t1 <= b1; t1++)
     R_MapPlane(t1, spanstart[t1], x-1, colormap);
@@ -619,7 +620,9 @@ static void do_draw_plane(visplane_t *pl)
 
     planezlightindex = light;
     planezlightoffset = &zlightoffset[light * MAXLIGHTZ];
-    lighttable_t *thiscolormap = pl->tint ? colormaps[pl->tint] : fullcolormap;
+    const lighttable_t * const thiscolormap = (pl->tint >= 0)
+                                            ? colormaps[pl->tint]
+                                            : fullcolormap;
 
     for (int x = pl->minx; x <= stop; x++)
     {

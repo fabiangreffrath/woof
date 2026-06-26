@@ -534,7 +534,6 @@ typedef struct
   bwhere_e where;
   int   btexture;
   int   btimer;
-  struct mobj_s *soundorg;
 } button_t;
 
 void P_StartButton(struct line_s *line, bwhere_e w, int texture, int time);
@@ -850,9 +849,15 @@ int P_SectorActive(special_e t, struct sector_s *s);
 
 boolean P_IsDeathExit(struct sector_s *sec);
 
+boolean P_IsExitLine(struct line_s * line);
+
+boolean P_IsTeleportLine(struct line_s *line);
+
 boolean P_IsSecret(struct sector_s *sec);
 
 boolean P_WasSecret(struct sector_s *sec);
+
+boolean P_RevealedSecret(struct sector_s *sec);
 
 void P_ChangeSwitchTexture(struct line_s *line, int useAgain);
 

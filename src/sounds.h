@@ -40,6 +40,14 @@ typedef struct sfxparams_s
 // SoundFX struct.
 //
 
+typedef enum
+{
+  SFX_None,
+  SFX_Random =   (1u << 0),
+  SFX_Ambient =  (1u << 1),
+  SFX_NoPrefix = (1u << 2)
+} sfxflags_t;
+
 typedef struct sfxrumble_s
 {
   float *low;     // Pointer to array of low frequency rumble values.
@@ -85,8 +93,7 @@ typedef struct sfxinfo_s
   // Sound length in seconds.
   float length;
 
-  // Is this an ambient sound?
-  boolean ambient;
+  sfxflags_t flags;
 
   // Is this a looping sound?
   boolean looping;
@@ -122,7 +129,11 @@ typedef struct musicinfo_s
 extern sfxinfo_t    original_S_sfx[];
 
 // the complete set of music
-extern musicinfo_t  original_S_music[];
+extern musicinfo_t  S_music[];
+
+// DSDHacked
+extern sfxinfo_t *S_sfx;
+extern int num_sfx;
 
 //
 // Identifiers for all music in game.

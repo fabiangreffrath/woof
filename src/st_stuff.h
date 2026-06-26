@@ -32,7 +32,7 @@ struct player_s;
 // Size of statusbar.
 // Now sensitive for scaling.
 
-//#define ST_HEIGHT 32
+#define ST_HEIGHT 32
 extern int st_height, st_height_screenblocks10;
 #define ST_WIDTH  SCREENWIDTH
 #define ST_Y      (SCREENHEIGHT - st_height)
@@ -63,6 +63,7 @@ void ST_ResetPalette(void);
 extern boolean st_refresh_background;
 
 void ST_InitRes(void);
+void ST_SetSTHeight(void);
 
 extern int health_red;    // health amount less than which status is red
 extern int health_yellow; // health amount less than which status is yellow

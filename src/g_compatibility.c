@@ -17,6 +17,7 @@
 
 #include <string.h>
 
+#include "doomdata.h"
 #include "doomstat.h"
 #include "doomtype.h"
 #include "g_game.h"
@@ -28,8 +29,7 @@
 #include "m_json.h"
 #include "md5.h"
 
-static const char *comp_names[] =
-{
+static const char *comp_names[] = {
     [comp_telefrag] = "comp_telefrag",
     [comp_dropoff] = "comp_dropoff",
     [comp_vile] = "comp_vile",
@@ -56,7 +56,7 @@ static const char *comp_names[] =
     [comp_ledgeblock] = "comp_ledgeblock",
     [comp_friendlyspawn] = "comp_friendlyspawn",
     [comp_voodooscroller] = "comp_voodooscroller",
-    [comp_reservedlineflag] = "comp_reservedlineflag"
+    [comp_reservedlineflag] = "comp_reservedlineflag",
 };
 
 typedef byte md5_digest_t[16];
@@ -164,19 +164,29 @@ static void MD5UpdateLump(int lump, struct MD5Context *md5)
     MD5Update(md5, W_CacheLumpNum(lump, PU_CACHE), W_LumpLength(lump));
 }
 
-static void GetLevelCheckSum(int lump, md5_checksum_t* cksum)
+static void GetLevelCheckSum(map_t* map, md5_checksum_t *cksum)
 {
     struct MD5Context md5;
 
     MD5Init(&md5);
 
-    MD5UpdateLump(lump + ML_LABEL, &md5);
-    MD5UpdateLump(lump + ML_THINGS, &md5);
-    MD5UpdateLump(lump + ML_LINEDEFS, &md5);
-    MD5UpdateLump(lump + ML_SIDEDEFS, &md5);
-    MD5UpdateLump(lump + ML_SECTORS, &md5);
+    if (map->map_format == MAP_UDMF)
+    {
+        MD5UpdateLump(map->textmap, &md5);
+    }
+    else
+    {
+        MD5UpdateLump(map->label, &md5);
+        MD5UpdateLump(map->things, &md5);
+        MD5UpdateLump(map->linedefs, &md5);
+        MD5UpdateLump(map->sidedefs, &md5);
+        MD5UpdateLump(map->sectors, &md5);
+    }
 
-    // ML_BEHAVIOR when it becomes applicable to comp options
+    if (W_LumpExistsWithName(map->behavior, "BEHAVIOR"))
+    {
+        MD5UpdateLump(map->behavior, &md5);
+    }
 
     MD5Final(cksum->digest, &md5);
 
@@ -187,7 +197,7 @@ static void GetLevelCheckSum(int lump, md5_checksum_t* cksum)
 // function will apply comp options to automatically fix some issues that
 // appear when playing wads in mbf21 (since this is the default).
 
-void G_ApplyLevelCompatibility(int lump)
+void G_ApplyLevelCompatibility(map_t* map)
 {
     static demo_version_t old_demo_version;
     static boolean restore_comp;
@@ -210,7 +220,7 @@ void G_ApplyLevelCompatibility(int lump)
 
     md5_checksum_t cksum;
 
-    GetLevelCheckSum(lump, &cksum);
+    GetLevelCheckSum(map, &cksum);
 
     I_Printf(VB_DEBUG, "Level checksum: %s", cksum.string);
 
@@ -228,7 +238,8 @@ void G_ApplyLevelCompatibility(int lump)
             {
                 demo_version = G_GetNamedComplevel(new_demover);
                 G_ReloadDefaults(true);
-                I_Printf(VB_INFO, "Automatically setting compatibility level \"%s\"",
+                I_Printf(VB_INFO,
+                         "Automatically setting compatibility level \"%s\"",
                          G_GetCurrentComplevelName());
             }
 
@@ -242,7 +253,8 @@ void G_ApplyLevelCompatibility(int lump)
             {
                 comp[option->comp] = option->value;
 
-                I_Printf(VB_INFO, "Automatically setting comp option \"%s = %d\"",
+                I_Printf(VB_INFO,
+                         "Automatically setting comp option \"%s = %d\"",
                          comp_names[option->comp], option->value);
             }
 

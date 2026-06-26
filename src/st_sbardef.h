@@ -16,6 +16,7 @@
 
 #include "doomdef.h"
 #include "doomtype.h"
+#include "doomstat.h"
 #include "r_defs.h"
 #include "v_video.h"
 
@@ -156,6 +157,7 @@ typedef enum
     sbe_carousel,
     sbe_list,
     sbe_string,
+    sbe_minimap,
 
     sbe_max,
 } sbarelementtype_t;
@@ -285,7 +287,6 @@ typedef struct sbe_widget_s
     int height;
 
     int duration;
-    int duration_left;
 
     boolean vertical;
 } sbe_widget_t;
@@ -303,6 +304,21 @@ typedef struct
     hudfont_t *font;
     const char *data;
 } sbe_string_t;
+
+typedef enum
+{
+    sbmm_background_off,
+    sbmm_background_dark,
+    sbmm_background_black
+} sbmm_backgound_t;
+
+typedef struct
+{
+    int width;
+    int height;
+    fixed_t scale;
+    sbmm_backgound_t background;
+} sbe_minimap_t;
 
 struct sbarelem_s
 {
@@ -333,6 +349,7 @@ struct sbarelem_s
         sbe_widget_t *widget;
         sbe_list_t *list;
         sbe_string_t *string;
+        sbe_minimap_t *minimap;
     } subtype;
 };
 
@@ -342,6 +359,9 @@ typedef struct
     boolean fullscreenrender;
     const char *fillflat;
     sbarelem_t *children;
+
+    // Woof!
+    const char *name;
 } statusbar_t;
 
 struct numberfont_s

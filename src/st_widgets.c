@@ -84,6 +84,7 @@ static void SetLine(sbe_widget_t *widget, const char *string)
 }
 
 static char message_string[HU_MAXLINELENGTH];
+static int message_duration_left;
 
 static boolean message_review;
 
@@ -95,25 +96,25 @@ static void UpdateMessage(sbe_widget_t *widget, player_t *player)
     static boolean overwrite = true;
     static boolean messages_enabled = true;
 
-    if (messages_enabled)
+    if (messages_enabled || message_string[0])
     {
         if (message_string[0])
         {
-            widget->duration_left = widget->duration;
+            message_duration_left = widget->duration;
             M_StringCopy(string, message_string, sizeof(string));
             message_string[0] = '\0';
             overwrite = false;
         }
         else if (player->message && player->message[0] && overwrite)
         {
-            widget->duration_left = widget->duration;
+            message_duration_left = widget->duration;
             M_StringCopy(string, player->message, sizeof(string));
             player->message[0] = '\0';
         }
         else if (message_review)
         {
             message_review = false;
-            widget->duration_left = widget->duration;
+            message_duration_left = widget->duration;
         }
     }
 
@@ -122,18 +123,19 @@ static void UpdateMessage(sbe_widget_t *widget, player_t *player)
         messages_enabled = show_messages;
     }
 
-    if (widget->duration_left == 0)
+    if (message_duration_left == 0)
     {
         overwrite = true;
     }
     else
     {
         ST_AddLine(widget, string);
-        --widget->duration_left;
+        --message_duration_left;
     }
 }
 
 static char announce_string[HU_MAXLINELENGTH], author_string[HU_MAXLINELENGTH];
+static int announce_duration_left;
 
 static void UpdateAnnounceMessage(sbe_widget_t *widget, player_t *player)
 {
@@ -157,7 +159,7 @@ static void UpdateAnnounceMessage(sbe_widget_t *widget, player_t *player)
     if (announce_string[0])
     {
         state = announce_map;
-        widget->duration_left = widget->duration;
+        announce_duration_left = widget->duration;
         M_StringCopy(string, announce_string, sizeof(string));
         announce_string[0] = '\0';
     }
@@ -165,20 +167,20 @@ static void UpdateAnnounceMessage(sbe_widget_t *widget, player_t *player)
     {
         author_string[0] = '\0';
         state = announce_secret;
-        widget->duration_left = widget->duration;
+        announce_duration_left = widget->duration;
         M_snprintf(string, sizeof(string), GOLD_S "%s" ORIG_S,
             player->secretmessage);
         player->secretmessage = NULL;
     }
 
-    if (widget->duration_left > 0)
+    if (announce_duration_left > 0)
     {
         ST_AddLine(widget, string);
         if (author_string[0])
         {
             ST_AddLine(widget, author_string);
         }
-        --widget->duration_left;
+        --announce_duration_left;
     }
     else
     {
@@ -391,8 +393,6 @@ boolean ST_MessagesResponder(event_t *ev)
         return false;
     }
 
-    static char lastmessage[HU_MAXLINELENGTH + 1];
-
     boolean eatkey = false;
     static boolean shiftdown = false;
     static boolean altdown = false;
@@ -452,13 +452,14 @@ boolean ST_MessagesResponder(event_t *ev)
                 {
                     if (p == consoleplayer)
                     {
-                        displaymsg("%s",
-                                   ++num_nobrainers < 3 ? HUSTR_TALKTOSELF1
-                                   : num_nobrainers < 6 ? HUSTR_TALKTOSELF2
-                                   : num_nobrainers < 9 ? HUSTR_TALKTOSELF3
-                                   : num_nobrainers < 32
-                                       ? HUSTR_TALKTOSELF4
-                                       : HUSTR_TALKTOSELF5);
+                        M_StringCopy(message_string,
+                                     ++num_nobrainers < 3 ? HUSTR_TALKTOSELF1
+                                     : num_nobrainers < 6 ? HUSTR_TALKTOSELF2
+                                     : num_nobrainers < 9 ? HUSTR_TALKTOSELF3
+                                     : num_nobrainers < 32
+                                         ? HUSTR_TALKTOSELF4
+                                         : HUSTR_TALKTOSELF5,
+                                     sizeof(message_string));
                     }
                     else if (playeringame[p])
                     {
@@ -500,8 +501,8 @@ boolean ST_MessagesResponder(event_t *ev)
 
             // leave chat mode and notify that it was sent
             chat_on = false;
-            M_StringCopy(lastmessage, chat_macros[ch], sizeof(lastmessage));
-            displaymsg("%s", lastmessage);
+            M_StringCopy(message_string, chat_macros[ch],
+                         sizeof(message_string));
             eatkey = true;
         }
         else
@@ -521,9 +522,8 @@ boolean ST_MessagesResponder(event_t *ev)
                 chat_on = false;
                 if (chatline.pos)
                 {
-                    M_StringCopy(lastmessage, chatline.string,
-                                 sizeof(lastmessage));
-                    displaymsg("%s", lastmessage);
+                    M_StringCopy(message_string, chatline.string,
+                                 sizeof(message_string));
                 }
             }
             else if (ch == KEY_ESCAPE) // phares
@@ -735,7 +735,7 @@ static const statsformatfunc_t StatsFormatFuncs[] = {
 };
 
 static char killchar = 'K';
-static char statscolor = '\x36'; // red
+static char statscolor = '0' + CR_RED;
 
 static void UpdateMonSec(sbe_widget_t *widget)
 {
@@ -1060,15 +1060,15 @@ void ST_InitWidgets(void)
     if (gamemission == pack_chex || gamemission == pack_chex3v)
     {
         killchar = 'F';
-        statscolor = '\x33'; // green
+        statscolor = '0' + CR_GREEN;
     }
     else if (gamemission == pack_hacx)
     {
-        statscolor = '\x3a'; // blue2
+        statscolor = '0' + CR_BLUE2;
     }
     else if (gamemission == pack_rekkr)
     {
-        statscolor = '\x35'; // gold
+        statscolor = '0' + CR_GOLD;
     }
 }
 

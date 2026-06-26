@@ -25,11 +25,6 @@
 
 struct event_s;
 
-// Used by ST StatusBar stuff.
-#define AM_MSGHEADER (('a'<<24)+('m'<<16))
-#define AM_MSGENTERED (AM_MSGHEADER | ('e'<<8))
-#define AM_MSGEXITED (AM_MSGHEADER | ('x'<<8))
-
 // Called by main loop.
 boolean AM_Responder(struct event_s *ev);
 
@@ -62,6 +57,9 @@ void AM_ColorPreset(void);
 void AM_ApplyColors(boolean force);
 void AM_ResetThickness(void);
 
+void AM_MiniStart();
+void AM_MiniDrawer(int x, int y, int width, int height, fixed_t scale);
+
 void AM_BindAutomapVariables(void);
 
 typedef struct
@@ -89,6 +87,8 @@ extern int markpointnum, markpointnum_max;
 extern boolean followplayer;
 extern boolean automap_grid;
 extern int ddt_cheating;
+
+extern boolean map_smooth_lines;
 
 // end changes -- killough 2/22/98
 

@@ -302,16 +302,16 @@ typedef struct
 {
     color_slot_t red_slots[8];
     color_slot_t green_slots[8];
-    color_slot_t blue_slots[4];
+    color_slot_t blue_slots[8];
 
-    byte palette[768];
+    byte palette[3*512];
 } uniform_quantizer_t;
 
 static void AddColor(uniform_quantizer_t *q, int r, int g, int b)
 {
     int red_index = r >> 5;
     int green_index = g >> 5;
-    int blue_index = b >> 6;
+    int blue_index = b >> 5;
     AddValue(&q->red_slots[red_index], r);
     AddValue(&q->green_slots[green_index], g);
     AddValue(&q->blue_slots[blue_index], b);
@@ -339,8 +339,8 @@ static int GetPaletteIndex(int r, int g, int b)
 {
     int red_index = r >> 5;
     int green_index = g >> 5;
-    int blue_index = b >> 6;
-    return (red_index << 5) + (green_index << 2) + blue_index;
+    int blue_index = b >> 5;
+    return (red_index << 6) + (green_index << 3) + blue_index;
 }
 
 typedef struct
@@ -480,9 +480,9 @@ static boolean DecodePNG(png_t *png)
 
         GetPalette(&q);
 
-        byte translate[256];
+        byte translate[512];
         byte *palette = q.palette;
-        for (int i = 0; i < 256; ++i)
+        for (int i = 0; i < 512; ++i)
         {
             int r = *palette++;
             int g = *palette++;
@@ -536,9 +536,9 @@ static boolean DecodePNG(png_t *png)
 
         GetPalette(&q);
 
-        byte translate[256];
+        byte translate[512];
         byte *palette = q.palette;
-        for (int i = 0; i < 256; ++i)
+        for (int i = 0; i < 512; ++i)
         {
             int r = *palette++;
             int g = *palette++;
@@ -713,6 +713,8 @@ patch_t *V_CachePatchNum(int lump, pu_tag tag)
         }
     }
 
+    Z_ChangeTag(buffer, PU_STATIC);
+
     if (!DecodePNG(&png))
     {
         goto error;
@@ -848,6 +850,7 @@ boolean V_LumpIsPatch(const int lump)
         return false;
     }
 
+    const patch_t *patch = V_CachePatchNum(lump, PU_CACHE);
     int size = V_LumpSize(lump);
 
     // minimum length of a valid Doom patch
@@ -855,8 +858,6 @@ boolean V_LumpIsPatch(const int lump)
     {
         return false;
     }
-
-    const patch_t *patch = V_CachePatchNum(lump, PU_CACHE);
 
     int width = SHORT(patch->width);
     int height = SHORT(patch->height);

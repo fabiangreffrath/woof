@@ -189,7 +189,7 @@ static int wipe_renderMelt(int width, int height, int ticks)
     int currcolend;
     int currrow;
 
-    V_UseBuffer(wipe_scr);
+    V_UseBuffer(wipe_scr, width);
     V_PutBlock(0, 0, width, height, wipe_scr_end);
     V_RestoreBuffer();
 

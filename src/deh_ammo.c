@@ -51,33 +51,33 @@ DEH_BEGIN_MAPPING(ammo_mapping, ammoinfo_t)
 DEH_END_MAPPING
 */
 
-static void *DEH_AmmoStart(deh_context_t *context, char *line)
+static int DEH_AmmoStart(deh_context_t *context, char *line)
 {
     int ammo_number = -1;
 
     if (sscanf(line, "Ammo %i", &ammo_number) != 1)
     {
         DEH_Warning(context, "Parse error on section start");
-        return NULL;
+        return -1;
     }
 
     if (ammo_number < 0 || ammo_number >= NUMAMMO)
     {
         DEH_Warning(context, "Invalid ammo number: %i", ammo_number);
-        return NULL;
+        return -1;
     }
 
-    return &maxammo[ammo_number];
+    return ammo_number;
 }
 
-static void DEH_AmmoParseLine(deh_context_t *context, char *line, void *tag)
+static void DEH_AmmoParseLine(deh_context_t *context, char *line, int tag)
 {
-    if (tag == NULL)
+    if (tag == -1)
     {
         return;
     }
 
-    int ammo_number = ((int *)tag) - maxammo;
+    int ammo_number = tag;
 
     // Parse the assignment
     char *variable_name, *value;

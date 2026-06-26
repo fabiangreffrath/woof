@@ -19,7 +19,7 @@
 #define __P_AMBIENT__
 
 #include "p_mobj.h"
-#include "s_sndinfo.h"
+#include "decl_sounds.h"
 
 #define AMB_UPDATE_NOW -1 // Try to start ambient sound immediately.
 

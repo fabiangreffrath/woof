@@ -19,28 +19,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include "deh_defs.h"
-#include "deh_frame.h"
 #include "deh_io.h"
 #include "deh_main.h"
+#include "dsdh_main.h"
 #include "info.h"
 
-static int CodePointerIndex(actionf_t *ptr)
-{
-    for (int i = 0; i < num_states; ++i)
-    {
-        if (!memcmp(&deh_codepointer[i], ptr, sizeof(actionf_t)))
-        {
-            return i;
-        }
-    }
-
-    return -1;
-}
-
-static void *DEH_PointerStart(deh_context_t *context, char *line)
+static int DEH_PointerStart(deh_context_t *context, char *line)
 {
     // FIXME: can the third argument here be something other than "Frame"
     // or are we ok?
@@ -49,29 +35,29 @@ static void *DEH_PointerStart(deh_context_t *context, char *line)
     if (sscanf(line, "Pointer %*i (%*s %i)", &frame_number) != 1)
     {
         DEH_Warning(context, "Parse error on section start");
-        return NULL;
+        return -1;
     }
 
     if (frame_number < 0)
     {
         DEH_Warning(context, "Invalid frame number: %i", frame_number);
-        return NULL;
+        return -1;
     }
 
     // DSDhacked
-    DEH_StatesEnsureCapacity(frame_number);
+    frame_number = DSDH_StateTranslate(frame_number);
 
-    return &states[frame_number];
+    return frame_number;
 }
 
-static void DEH_PointerParseLine(deh_context_t *context, char *line, void *tag)
+static void DEH_PointerParseLine(deh_context_t *context, char *line, int tag)
 {
-    if (tag == NULL)
+    if (tag == -1)
     {
         return;
     }
 
-    state_t *state = (state_t *)tag;
+    int frame_number = tag;
 
     // Parse the assignment
     char *variable_name, *value;
@@ -92,21 +78,16 @@ static void DEH_PointerParseLine(deh_context_t *context, char *line, void *tag)
         }
 
         // DSDHacked
-        DEH_StatesEnsureCapacity(ivalue);
+        ivalue = DSDH_StateTranslate(ivalue);
 
-        state->action = deh_codepointer[ivalue];
+        if (ivalue < NUMSTATES)
+        {
+            states[frame_number].action = original_states[ivalue].action;
+        }
     }
     else
     {
         DEH_Warning(context, "Unknown variable name '%s'", variable_name);
-    }
-}
-
-static void DEH_PointerSHA1Sum(sha1_context_t *context)
-{
-    for (int i = 0; i < num_states; ++i)
-    {
-        SHA1_UpdateInt32(context, CodePointerIndex(&states[i].action));
     }
 }
 
@@ -117,5 +98,5 @@ deh_section_t deh_section_pointer =
     DEH_PointerStart,
     DEH_PointerParseLine,
     NULL,
-    DEH_PointerSHA1Sum,
+    NULL,
 };

@@ -41,9 +41,11 @@
 #include "m_array.h"
 #include "m_cheat.h"
 #include "m_config.h"
+#include "m_input.h"
 #include "m_misc.h"
 #include "m_random.h"
 #include "m_swap.h"
+#include "mn_menu.h"
 #include "p_inter.h"
 #include "p_mobj.h"
 #include "p_user.h"
@@ -130,6 +132,8 @@ static int armor_green;   // armor amount above is blue, below is green
 static boolean hud_armor_type; // color of armor depends on type
 
 static boolean weapon_carousel;
+
+static boolean minimap;
 
 static sbardef_t *sbardef;
 
@@ -1024,7 +1028,11 @@ static void UpdateNumber(sbarelem_t *elem, player_t *player)
     {
         if (elem->type == sbe_percent && font->percent != NULL)
         {
-            totalwidth += SHORT(font->percent->width) - font->monowidth;
+            const int extrawidth = SHORT(font->percent->width) - font->monowidth;
+            if (extrawidth > 0)
+            {
+                totalwidth += extrawidth;
+            }
         }
     }
     else if (font->type == sbf_proportional)
@@ -1303,6 +1311,10 @@ static void UpdateElem(sbarelem_t *elem, player_t *player)
             UpdateString(elem);
             break;
 
+        case sbe_minimap:
+            elem->enabled = (minimap && !automapactive && !strictmode);
+            break;
+
         default:
             break;
     }
@@ -1384,10 +1396,6 @@ static void ResetElem(sbarelem_t *elem, player_t *player)
             }
             break;
 
-        case sbe_widget:
-            elem->subtype.widget->duration_left = 0;
-            break;
-
         case sbe_string:
             {
                 sbe_string_t *string = elem->subtype.string;
@@ -1396,6 +1404,10 @@ static void ResetElem(sbarelem_t *elem, player_t *player)
                     string->line.string = "";
                 }
             }
+            break;
+
+        case sbe_minimap:
+            AM_MiniStart();
             break;
 
         default:
@@ -1735,6 +1747,54 @@ static void DrawWidget(int x1, int y1, int *x2, int *y2, boolean dry,
     }
 }
 
+static void DrawMiniMap(int x1, int y1, int *x2, int *y2, boolean dry,
+                        sbarelem_t *elem)
+{
+    if (automapactive)
+    {
+        return;
+    }
+
+    sbe_minimap_t *mm = elem->subtype.minimap;
+
+    int width = mm->width;
+    int height = mm->height;
+
+    x1 = AdjustX(x1, width, elem->alignment);
+    x1 = WideShiftX(x1, elem->alignment);
+    y1 = AdjustY(y1, height, elem->alignment);
+
+    if (x2)
+    {
+        *x2 = MAX(*x2, x1 + width);
+    }
+    if (y2)
+    {
+        *y2 = MAX(*y2, y1 + height);
+    }
+
+    if (dry)
+    {
+        return;
+    }
+
+    x1 += video.deltaw;
+
+    if (mm->background == sbmm_background_black)
+    {
+        V_FillRect(x1, y1, width, height, v_darkest_color);
+    }
+    else if (mm->background == sbmm_background_dark && !MN_MenuIsShaded())
+    {
+        V_ShadeRect(x1, y1, width, height);
+    }
+
+    vrect_t rect = {.x = x1, .y = y1, .w = width, .h = height};
+    V_ScaleRect(&rect);
+
+    AM_MiniDrawer(rect.sx, rect.sy, rect.sw, rect.sh, mm->scale);
+}
+
 static void DrawListOfElem(int x1, int y1, int *x2, int *y2, boolean dry,
                            sbarelem_t *elem);
 
@@ -1824,6 +1884,10 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
             }
             break;
 
+        case sbe_minimap:
+            DrawMiniMap(x1, y1, x2, y2, dry, elem);
+            break;
+
         default:
             break;
     }
@@ -1837,15 +1901,36 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
 
 static void UpdateListOfElem(sbarelem_t *elem, player_t *player)
 {
+    sbe_list_t *list = elem->subtype.list;
+
+    int listwidth = 0, listheight = 0;
+
     array_foreach_type(child, elem->children, sbarelem_t)
     {
         UpdateElem(child, player);
 
         int width = 0, height = 0;
-        DrawElem(0, 0, &width, &height, true, child); // Dry run
+        if (child->enabled)
+        {
+            DrawElem(0, 0, &width, &height, true, child); // Dry run
+            width -= child->x_pos;
+            height -= child->y_pos;
+        }
         child->width = width;
         child->height = height;
+
+        if (list->horizontal && width)
+        {
+            listwidth += (width + list->spacing);
+        }
+        else if (height)
+        {
+            listheight += (height + list->spacing);
+        }
     }
+
+    elem->width = listwidth;
+    elem->height = listheight;
 }
 
 static void DrawListOfElem(int x1, int y1, int *x2, int *y2, boolean dry,
@@ -1853,35 +1938,13 @@ static void DrawListOfElem(int x1, int y1, int *x2, int *y2, boolean dry,
 {
     sbe_list_t *list = elem->subtype.list;
 
-    int listwidth = 0, listheight = 0;
-
-    array_foreach_type(child, elem->children, sbarelem_t)
-    {
-        if (dry)
-        {
-            int width = 0, height = 0;
-            DrawElem(0, 0, &width, &height, true, child);
-            child->width = width;
-            child->height = height;
-        }
-
-        if (list->horizontal && child->width)
-        {
-            listwidth += (child->width + list->spacing);
-        }
-        else if (child->height)
-        {
-            listheight += (child->height + list->spacing);
-        }
-    }
-
     if (list->horizontal)
     {
-        x1 = AdjustX(x1, listwidth, elem->alignment);
+        x1 = AdjustX(x1, elem->width, elem->alignment);
     }
     else
     {
-        y1 = AdjustY(y1, listheight, elem->alignment);
+        y1 = AdjustY(y1, elem->height, elem->alignment);
     }
 
     x1 = WideShiftX(x1, elem->alignment);
@@ -1972,19 +2035,9 @@ static void DrawBackground(const char *name)
 {
     if (st_refresh_background)
     {
-        static int old_st_height;
+        ST_InitRes();
 
-        if (old_st_height < st_height)
-        {
-            old_st_height = st_height;
-            if (st_backing_screen)
-            {
-                Z_Free(st_backing_screen);
-            }
-            ST_InitRes();
-        }
-
-        V_UseBuffer(st_backing_screen);
+        V_UseBuffer(st_backing_screen, video.width);
 
         if (st_solidbackground && st_height > 3)
         {
@@ -2031,9 +2084,9 @@ static void DrawCenteredMessage(void)
     }
 }
 
-static void DrawStatusBar(void)
+void ST_SetSTHeight(void)
 {
-    if (!statusbar->fullscreenrender)
+    if (statusbar && !statusbar->fullscreenrender)
     {
         st_height = CLAMP(statusbar->height, 0, SCREENHEIGHT) & ~1;
     }
@@ -2041,6 +2094,11 @@ static void DrawStatusBar(void)
     {
         st_height = 0;
     }
+}
+
+static void DrawStatusBar(void)
+{
+    ST_SetSTHeight();
 
     if (st_height && (screenblocks <= 10 || automap_on))
     {
@@ -2071,10 +2129,10 @@ void ST_Erase(void)
 //  intercept cheats.
 boolean ST_Responder(event_t *ev)
 {
-    // Filter automap on/off.
-    if (ev->type == ev_keyup && (ev->data1.i & 0xffff0000) == AM_MSGHEADER)
+    if (M_InputActivated(input_map_mini))
     {
-        return false;
+        minimap = !minimap;
+        return true;
     }
     else if (ST_MessagesResponder(ev))
     {
@@ -2133,7 +2191,7 @@ static void DoPaletteStuff(player_t *player)
             // tune down a bit so the menu remains legible
             if (menuactive || paused || STRICTMODE(palette_changes == PAL_CHANGE_REDUCED))
             {
-                palette /= 2;
+                palette = (palette + 1) / 2;
             }
             palette += STARTREDPALS;
         }
@@ -2147,7 +2205,7 @@ static void DoPaletteStuff(player_t *player)
         }
         if (STRICTMODE(palette_changes == PAL_CHANGE_REDUCED))
         {
-            palette /= 2;
+            palette = (palette + 1) / 2;
         }
         palette += STARTBONUSPALS;
     }
@@ -2263,14 +2321,23 @@ void ST_Init(void)
 
 void ST_InitRes(void)
 {
-    if (!st_height)
+    static int old_st_size;
+    const int st_size = video.width * V_ScaleY(st_height);
+
+    if (old_st_size >= st_size)
     {
         return;
     }
+    old_st_size = st_size;
+
+    if (st_backing_screen)
+    {
+        Z_Free(st_backing_screen);
+    }
     // killough 11/98: allocate enough for hires
     st_backing_screen =
-        Z_Malloc(video.width * V_ScaleY(st_height) * sizeof(*st_backing_screen),
-                 PU_RENDERER, 0);
+        Z_Malloc(st_size * sizeof(*st_backing_screen),
+                 PU_STATIC, 0);
 }
 
 const char **ST_StatusbarList(void)
@@ -2287,16 +2354,19 @@ const char **ST_StatusbarList(void)
         return strings;
     }
 
-    statusbar_t *item;
-    array_foreach(item, sbardef->statusbars)
+    for (int i = 0; i < array_size(sbardef->statusbars); ++i)
     {
-        if (item->fullscreenrender)
+        statusbar_t *sb = &sbardef->statusbars[i];
+        if (sb->name)
         {
-            array_push(strings, "Fullscreen");
+            array_push(strings, sb->name);
         }
         else
         {
-            array_push(strings, "Status Bar");
+            char buf[16];
+            buf[0] = '\0';
+            M_snprintf(buf, sizeof(buf), "HUD #%d", i + 1);
+            array_push(strings, M_StringDuplicate(buf));
         }
     }
     return strings;
@@ -2384,6 +2454,8 @@ void ST_BindSTSVariables(void)
 
   M_BindBool("weapon_carousel", &weapon_carousel, NULL,
              true, ss_weap, wad_no, "Show weapon carousel");
+
+  M_BindBool("minimap", &minimap, NULL, false, ss_auto, wad_no, "Show minimap");
 }
 
 //----------------------------------------------------------------------------

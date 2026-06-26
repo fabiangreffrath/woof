@@ -113,6 +113,7 @@ enum
     input_map_grid,
     input_map_overlay,
     input_map_rotate,
+    input_map_mini,
 
     input_chat,
     input_chat_dest0,

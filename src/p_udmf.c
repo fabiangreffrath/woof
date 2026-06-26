@@ -20,20 +20,20 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
-#include "i_printf.h"
 #include "i_system.h"
-#include "m_argv.h"
 #include "m_arena.h"
+#include "m_argv.h"
 #include "m_array.h"
 #include "m_fixed.h"
 #include "m_misc.h"
 #include "m_scanner.h"
 #include "m_swap.h"
-#include "p_extnodes.h"
+#include "p_bsp.h"
 #include "p_mobj.h"
 #include "p_setup.h"
 #include "p_spec.h"
 #include "r_data.h"
+#include "r_defs.h"
 #include "r_state.h"
 #include "r_tranmap.h"
 #include "tables.h"
@@ -46,39 +46,48 @@
 
 typedef enum
 {
-    UDMF_BASE = (0),
+    UDMF_BASE = (0), // shut compiler up, also reset when parsing new map
 
-    UDMF_THING_FRIEND  = (1u << 1), // Marine's Best Friend :)
-    UDMF_THING_SPECIAL = (1u << 2), // Death/Pickup/etc-activated actions
-    UDMF_THING_PARAM   = (1u << 3), // ditto, also customizes some MObjs
-    UDMF_THING_ALPHA   = (1u << 4), // opacity percentage
-    UDMF_THING_TRANMAP = (1u << 5), // ditto, also customizable LUT
+    UDMF_THING_FRIEND  = (1u << 0), // Marine's Best Friend :)
+    UDMF_THING_SPECIAL = (1u << 1), // Death/Pickup/etc-activated actions
+    UDMF_THING_PARAM   = (1u << 2), // ditto, also customizes some MObjs
+    UDMF_THING_HEALTH  = (1u << 3), // positive is a multiple, negative is override
+    UDMF_THING_GRAVITY = (1u << 4), // per-mobj custom gravity
+    UDMF_THING_ALPHA   = (1u << 5), // opacity percentage
+    UDMF_THING_TRANMAP = (1u << 6), // ditto, also customizable LUT
+    UDMF_THING_TINT    = (1u << 7), // view-agnostic colormap for the given mobj
 
-    UDMF_LINE_PARAM    = (1u << 6), // Hexen-style param actions
-    UDMF_LINE_PASSUSE  = (1u << 7), // Boom's "Pass Use Through" line flag
-    UDMF_LINE_BLOCK    = (1u << 8), // MBF21's entity blocking flag
-    UDMF_LINE_3DMIDTEX = (1u << 9), // EE's 3D middle texture
-    UDMF_LINE_ALPHA    = (1u << 10), // opacity percentage
-    UDMF_LINE_TRANMAP  = (1u << 11), // ditto, also customizable LUT
+    UDMF_LINE_PARAM    = (1u << 8), // Hexen-style param actions
+    UDMF_LINE_PASSUSE  = (1u << 9), // Boom's "Pass Use Through" line flag
+    UDMF_LINE_BLOCK    = (1u << 10), // MBF21's entity blocking flags
+    UDMF_LINE_3DMIDTEX = (1u << 11), // EE's 3D middle texture
+    UDMF_LINE_ALPHA    = (1u << 12), // opacity percentage
+    UDMF_LINE_TRANMAP  = (1u << 13), // ditto, also customizable LUT
+    UDMF_LINE_STYLE    = (1u << 14), // custom automap style
 
-    UDMF_SIDE_OFFSET   = (1u << 12), // texture X/Y alignment
-    UDMF_SIDE_SCROLL   = (1u << 13), // texture scrolling property
-    UDMF_SIDE_LIGHT    = (1u << 14), // independent light levels
+    UDMF_SIDE_OFFSET   = (1u << 15), // texture X/Y alignment
+    UDMF_SIDE_SCROLL   = (1u << 16), // texture scrolling property
+    UDMF_SIDE_LIGHT    = (1u << 17), // independent light levels
+    UDMF_SIDE_TINT     = (1u << 18), // view-agnostic colormap for the given sidedef
 
-    UDMF_SEC_ANGLE     = (1u << 15), // plane rotation
-    UDMF_SEC_OFFSET    = (1u << 16), // plane X/Y alignment
-    UDMF_SEC_EE_SCROLL = (1u << 17), // EE's original plane scrolling property
-    UDMF_SEC_SCROLL    = (1u << 18), // DSDA's latter plane scrolling property
-    UDMF_SEC_LIGHT     = (1u << 19), // independent light levels
+    UDMF_SEC_ANGLE     = (1u << 19), // plane rotation
+    UDMF_SEC_OFFSET    = (1u << 20), // plane X/Y alignment
+    UDMF_SEC_EE_SCROLL = (1u << 21), // EE's original plane scrolling property
+    UDMF_SEC_SCROLL    = (1u << 22), // DSDA's later plane scrolling property
+    UDMF_SEC_LIGHT     = (1u << 23), // independent light levels
+    UDMF_SEC_GRAVITY   = (1u << 24), // WIP
+    UDMF_SEC_COLORMAP  = (1u << 25), // viewplayer's colormap on this given frame
+    UDMF_SEC_TINT      = (1u << 26), // view-agnostic colormap for the given sector
+    UDMF_SEC_SILENCE   = (1u << 27), // WIP
 
     // Compatibility
-    UDMF_COMP_NO_ARG0 = (1u << 31),
+    UDMF_COMP_NO_ARG0  = (1u << 31),
 } UDMF_Features_t;
 
 typedef struct
 {
     // Base spec
-    int32_t id;
+    int32_t tid;
     int32_t type;
     double x, y;
     double height;
@@ -88,8 +97,10 @@ typedef struct
     int32_t args[5];
 
     // Extensions
+    double health;
     char tranmap[9];
     double alpha;
+    char tint[9];
 } UDMF_Thing_t;
 
 typedef struct
@@ -112,6 +123,7 @@ typedef struct
     // Extensions
     char tranmap[9];
     double alpha;
+    amls_t amls;
 } UDMF_Linedef_t;
 
 // Important note about line tag/id/arg0, in the Doom/Heretic/Strife namespaces:
@@ -138,6 +150,8 @@ typedef struct
     int32_t light_mid;
     int32_t light_bottom;
 
+    char tint[9];
+
     double offsetx_top,    offsety_top;
     double offsetx_mid,    offsety_mid;
     double offsetx_bottom, offsety_bottom;
@@ -163,6 +177,9 @@ typedef struct
 
     int32_t lightfloor, lightceiling;
 
+    char colormap[9];
+    char tint[9], tintceiling[9], tintfloor[9];
+
     double xpanningfloor,   ypanningfloor;
     double xpanningceiling, ypanningceiling;
     double rotationfloor, rotationceiling;
@@ -176,14 +193,6 @@ typedef struct
     int32_t scroll_floor_type, scroll_ceil_type;
 } UDMF_Sector_t;
 
-static char *const UDMF_Lumps[] = {
-    [UDMF_LABEL] = "-",           [UDMF_TEXTMAP] = "TEXTMAP",
-    [UDMF_ZNODES] = "ZNODES",     [UDMF_BLOCKMAP] = "BLOCKMAP",
-    [UDMF_REJECT] = "REJECT",     [UDMF_BEHAVIOR] = "BEHAVIOR",
-    [UDMF_DIALOGUE] = "DIALOGUE", [UDMF_LIGHTMAP] = "LIGHTMAP",
-    [UDMF_ENDMAP] = "ENDMAP",
-};
-
 static UDMF_Features_t udmf_flags = UDMF_BASE;
 
 static UDMF_Vertex_t *udmf_vertexes = NULL;
@@ -191,6 +200,15 @@ static UDMF_Linedef_t *udmf_linedefs = NULL;
 static UDMF_Sidedef_t *udmf_sidedefs = NULL;
 static UDMF_Sector_t *udmf_sectors = NULL;
 static UDMF_Thing_t *udmf_things = NULL;
+
+void UDMF_ClearMemory(void)
+{
+    array_free(udmf_vertexes);
+    array_free(udmf_linedefs);
+    array_free(udmf_sidedefs);
+    array_free(udmf_sectors);
+    array_free(udmf_things);
+}
 
 //
 // UDMF parsing utils
@@ -201,8 +219,7 @@ inline static int UDMF_ScanInt(scanner_t *s)
 {
     int x = 0;
     SC_MustGetToken(s, '=');
-    SC_MustGetToken(s, TK_IntConst);
-    x = SC_GetNumber(s);
+    x = SC_GetNegativeInteger(s);
     SC_MustGetToken(s, ';');
     return x;
 }
@@ -212,8 +229,7 @@ inline static double UDMF_ScanDouble(scanner_t *s)
 {
     double x = 0;
     SC_MustGetToken(s, '=');
-    SC_MustGetToken(s, TK_FloatConst);
-    x = SC_GetDecimal(s);
+    x = SC_GetNegativeDecimal(s);
     SC_MustGetToken(s, ';');
     return x;
 }
@@ -242,25 +258,25 @@ inline static void UDMF_ScanLumpName(scanner_t *s, char *x)
 }
 
 // Property is valid in all namespaces
-#define BASE_PROP(keyword) (!strcasecmp(prop, #keyword))
+#define BASE_PROP(keyword) (!strcmp(prop, #keyword))
 
 // Property is valid in the current namespace
 #define PROP(keyword, flags) \
-    (!strcasecmp(prop, #keyword) && (udmf_flags & (flags)))
+    ((udmf_flags & (flags)) && !strcmp(prop, #keyword))
 
 // Parse specific string properties
 inline static int32_t UDMF_ScanSectorScroll(scanner_t *s)
 {
-    const char *buf;
     int32_t mode = 0;
     SC_MustGetToken(s, '=');
     SC_MustGetToken(s, TK_StringConst);
-    buf = SC_GetString(s);
-    if (!strcasecmp(buf, "visual"))
+    const char *buf = SC_GetString(s);
+    M_StringToLower((char *)buf);
+    if (!strcmp(buf, "visual"))
       mode = SCROLL_TEXTURE;
-    else if (!strcasecmp(buf, "physical"))
+    else if (!strcmp(buf, "physical"))
       mode = SCROLL_CARRY;
-    else if (!strcasecmp(buf, "both"))
+    else if (!strcmp(buf, "both"))
       mode = SCROLL_ALL;
     SC_MustGetToken(s, ';');
     return mode;
@@ -315,14 +331,12 @@ static void UDMF_ParseNamespace(scanner_t *s)
     {
         udmf_flags |= UDMF_LINE_PASSUSE | UDMF_THING_FRIEND;
     }
-    else if (devparm && !strcasecmp(name, "dsda"))
+    else if (!strcasecmp(name, "woof"))
     {
-        I_Printf(VB_WARNING, "Loading development-only UDMF namespace: \"%s\"", name);
-        udmf_flags |= UDMF_LINE_PASSUSE | UDMF_THING_FRIEND | UDMF_LINE_BLOCK;
-        udmf_flags |= UDMF_LINE_PARAM | UDMF_LINE_3DMIDTEX;
-        udmf_flags |= UDMF_THING_PARAM | UDMF_THING_ALPHA;
-        udmf_flags |= UDMF_SIDE_OFFSET | UDMF_SIDE_SCROLL | UDMF_SIDE_LIGHT;
-        udmf_flags |= UDMF_SEC_ANGLE | UDMF_SEC_OFFSET | UDMF_SEC_SCROLL | UDMF_SEC_LIGHT;
+        udmf_flags |= UDMF_LINE_PASSUSE | UDMF_LINE_BLOCK | UDMF_LINE_ALPHA | UDMF_LINE_TRANMAP;
+        udmf_flags |= UDMF_THING_FRIEND | UDMF_THING_PARAM | UDMF_THING_HEALTH | UDMF_THING_ALPHA | UDMF_THING_TRANMAP | UDMF_THING_TINT;
+        udmf_flags |= UDMF_SIDE_OFFSET | UDMF_SIDE_SCROLL | UDMF_SIDE_LIGHT | UDMF_SIDE_TINT;
+        udmf_flags |= UDMF_SEC_ANGLE | UDMF_SEC_OFFSET | UDMF_SEC_SCROLL | UDMF_SEC_LIGHT | UDMF_SEC_COLORMAP | UDMF_SEC_TINT;
     }
     else
     {
@@ -345,6 +359,7 @@ static void UDMF_ParseVertex(scanner_t *s)
     {
         SC_MustGetToken(s, TK_Identifier);
         const char *prop = SC_GetString(s);
+        M_StringToLower((char *)prop);
         if (BASE_PROP(x))
         {
             vertex.x = UDMF_ScanDouble(s);
@@ -370,7 +385,7 @@ static void UDMF_ParseLinedef(scanner_t *s)
 {
     UDMF_Linedef_t line = {0};
     line.sideback = -1;
-    line.tranmap[0] = '-';
+    M_CopyLumpName(line.tranmap, "-");
     line.alpha = 1.0;
 
     SC_MustGetToken(s, '{');
@@ -378,6 +393,7 @@ static void UDMF_ParseLinedef(scanner_t *s)
     {
         SC_MustGetToken(s, TK_Identifier);
         const char *prop = SC_GetString(s);
+        M_StringToLower((char *)prop);
         if (BASE_PROP(v1))
         {
             line.v1_id = UDMF_ScanInt(s);
@@ -459,10 +475,6 @@ static void UDMF_ParseLinedef(scanner_t *s)
         {
             line.flags |= UDMF_ScanFlag(s, ML_MAPPED);
         }
-        else if (PROP(tranmap, UDMF_LINE_TRANMAP))
-        {
-            UDMF_ScanLumpName(s, line.tranmap);
-        }
         else if (PROP(passuse, UDMF_LINE_PASSUSE))
         {
             line.flags |= UDMF_ScanFlag(s, ML_PASSUSE);
@@ -479,9 +491,17 @@ static void UDMF_ParseLinedef(scanner_t *s)
         {
             line.flags |= UDMF_ScanFlag(s, ML_3DMIDTEX);
         }
-        else if (PROP(alpha, UDMF_THING_ALPHA))
+        else if (PROP(alpha, UDMF_LINE_ALPHA))
         {
             line.alpha = UDMF_ScanDouble(s);
+        }
+        else if (PROP(tranmap, UDMF_LINE_TRANMAP))
+        {
+            UDMF_ScanLumpName(s, line.tranmap);
+        }
+        else if (PROP(automapstyle, UDMF_LINE_STYLE))
+        {
+            line.amls = UDMF_ScanInt(s);
         }
         else
         {
@@ -501,12 +521,14 @@ static void UDMF_ParseSidedef(scanner_t *s)
     M_CopyLumpName(side.texturetop, "-");
     M_CopyLumpName(side.texturemiddle, "-");
     M_CopyLumpName(side.texturebottom, "-");
+    M_CopyLumpName(side.tint, "-");
 
     SC_MustGetToken(s, '{');
     while (!SC_CheckToken(s, '}'))
     {
         SC_MustGetToken(s, TK_Identifier);
         const char *prop = SC_GetString(s);
+        M_StringToLower((char *)prop);
         if (BASE_PROP(offsetx))
         {
             side.offsetx = UDMF_ScanInt(s);
@@ -567,7 +589,7 @@ static void UDMF_ParseSidedef(scanner_t *s)
         {
             side.flags |= UDMF_ScanFlag(s, SF_NO_FAKE_CONTRAST);
         }
-        else if (PROP(smoothfakecontrast, UDMF_SIDE_LIGHT))
+        else if (PROP(smoothlighting, UDMF_SIDE_LIGHT))
         {
             side.flags |= UDMF_ScanFlag(s, SF_SMOOTH_CONTRAST);
         }
@@ -627,6 +649,10 @@ static void UDMF_ParseSidedef(scanner_t *s)
         {
             side.yscrollbottom = UDMF_ScanDouble(s);
         }
+        else if (PROP(tint, UDMF_SIDE_TINT))
+        {
+            UDMF_ScanLumpName(s, side.tint);
+        }
         else
         {
             UDMF_SkipScan(s);
@@ -652,6 +678,7 @@ static void UDMF_ParseSector(scanner_t *s)
     {
         SC_MustGetToken(s, TK_Identifier);
         const char *prop = SC_GetString(s);
+        M_StringToLower((char *)prop);
         if (BASE_PROP(heightfloor))
         {
             sector.heightfloor = UDMF_ScanInt(s);
@@ -768,6 +795,22 @@ static void UDMF_ParseSector(scanner_t *s)
         {
             sector.flags |= UDMF_ScanFlag(s, SECF_ABS_LIGHT_CEIL);
         }
+        else if (PROP(colormap, UDMF_SEC_COLORMAP))
+        {
+            UDMF_ScanLumpName(s, sector.colormap);
+        }
+        else if (PROP(tint, UDMF_SEC_TINT))
+        {
+            UDMF_ScanLumpName(s, sector.tint);
+        }
+        else if (PROP(tintfloor, UDMF_SEC_TINT))
+        {
+            UDMF_ScanLumpName(s, sector.tintfloor);
+        }
+        else if (PROP(tintceiling, UDMF_SEC_TINT))
+        {
+            UDMF_ScanLumpName(s, sector.tintceiling);
+        }
         else
         {
             UDMF_SkipScan(s);
@@ -785,21 +828,23 @@ static void UDMF_ParseThing(scanner_t *s)
 {
     UDMF_Thing_t thing = {0};
     thing.options |= MTF_NOTSINGLE | MTF_NOTCOOP | MTF_NOTDM;
-    thing.tranmap[0] = '-';
+    M_CopyLumpName(thing.tranmap, "-");
     thing.alpha = 1.0;
+    thing.health = 1.0;
 
     SC_MustGetToken(s, '{');
     while (!SC_CheckToken(s, '}'))
     {
         SC_MustGetToken(s, TK_Identifier);
         const char *prop = SC_GetString(s);
+        M_StringToLower((char *)prop);
         if (BASE_PROP(type))
         {
             thing.type = UDMF_ScanInt(s);
         }
         else if (PROP(id, UDMF_THING_PARAM))
         {
-            thing.id = UDMF_ScanInt(s);
+            thing.tid = UDMF_ScanInt(s);
         }
         else if (BASE_PROP(x))
         {
@@ -881,9 +926,21 @@ static void UDMF_ParseThing(scanner_t *s)
         {
             thing.args[4] = UDMF_ScanInt(s);
         }
+        else if (PROP(arg4, UDMF_THING_HEALTH))
+        {
+            thing.health = UDMF_ScanDouble(s);
+        }
         else if (PROP(alpha, UDMF_THING_ALPHA))
         {
             thing.alpha = UDMF_ScanDouble(s);
+        }
+        else if (PROP(tranmap, UDMF_THING_TRANMAP))
+        {
+            UDMF_ScanLumpName(s, thing.tranmap);
+        }
+        else if (PROP(tint, UDMF_THING_TINT))
+        {
+            UDMF_ScanLumpName(s, thing.tint);
         }
         else
         {
@@ -898,39 +955,38 @@ static void UDMF_ParseThing(scanner_t *s)
 // UDMF textmap loading
 //
 
-static void UDMF_ParseTextMap(int lumpnum)
+static void UDMF_ParseTextMap(map_t *map)
 {
-    scanner_t *s =
-        SC_Open("TEXTMAP", W_CacheLumpNum(lumpnum + UDMF_TEXTMAP, PU_CACHE),
-                W_LumpLength(lumpnum + UDMF_TEXTMAP));
+    scanner_t *s = SC_Open("TEXTMAP", W_CacheLumpNum(map->textmap, PU_CACHE),
+                           W_LumpLength(map->textmap));
 
-    const char *toplevel = NULL;
     while (SC_TokensLeft(s))
     {
         SC_MustGetToken(s, TK_Identifier);
-        toplevel = SC_GetString(s);
+        const char *toplevel = SC_GetString(s);
+        M_StringToLower((char *)toplevel);
 
-        if (!strcasecmp(toplevel, "namespace"))
+        if (!strcmp(toplevel, "namespace"))
         {
             UDMF_ParseNamespace(s);
         }
-        else if (!strcasecmp(toplevel, "vertex"))
+        else if (!strcmp(toplevel, "vertex"))
         {
             UDMF_ParseVertex(s);
         }
-        else if (!strcasecmp(toplevel, "linedef"))
+        else if (!strcmp(toplevel, "linedef"))
         {
             UDMF_ParseLinedef(s);
         }
-        else if (!strcasecmp(toplevel, "sidedef"))
+        else if (!strcmp(toplevel, "sidedef"))
         {
             UDMF_ParseSidedef(s);
         }
-        else if (!strcasecmp(toplevel, "sector"))
+        else if (!strcmp(toplevel, "sector"))
         {
             UDMF_ParseSector(s);
         }
-        else if (!strcasecmp(toplevel, "thing"))
+        else if (!strcmp(toplevel, "thing"))
         {
             UDMF_ParseThing(s);
         }
@@ -954,7 +1010,6 @@ static void UDMF_LoadVertexes(void)
 {
     numvertexes = array_size(udmf_vertexes);
     vertexes = arena_alloc_num(world_arena, vertex_t, numvertexes);
-    memset(vertexes, 0, numvertexes * sizeof(vertex_t));
 
     for (int i = 0; i < numvertexes; i++)
     {
@@ -970,7 +1025,6 @@ static void UDMF_LoadSectors(void)
 {
     numsectors = array_size(udmf_sectors);
     sectors = arena_alloc_num(world_arena, sector_t, numsectors);
-    memset(sectors, 0, numsectors * sizeof(sector_t));
 
     for (int i = 0; i < numsectors; i++)
     {
@@ -979,6 +1033,7 @@ static void UDMF_LoadSectors(void)
         sectors[i].floorpic = R_FlatNumForName(udmf_sectors[i].texturefloor);
         sectors[i].ceilingpic = R_FlatNumForName(udmf_sectors[i].textureceiling);
         sectors[i].lightlevel = udmf_sectors[i].lightlevel;
+        sectors[i].special = udmf_sectors[i].special;
         sectors[i].tag = udmf_sectors[i].tag;
 
         sectors[i].flags = udmf_sectors[i].flags;
@@ -994,6 +1049,13 @@ static void UDMF_LoadSectors(void)
         sectors[i].floor_yoffs = DoubleToFixed(udmf_sectors[i].ypanningfloor);
         sectors[i].ceiling_xoffs = DoubleToFixed(udmf_sectors[i].xpanningceiling);
         sectors[i].ceiling_yoffs = DoubleToFixed(udmf_sectors[i].ypanningceiling);
+
+        P_SectorInit(&sectors[i]);
+
+        sectors[i].colormap = R_ColormapNumForName(udmf_sectors[i].colormap);
+        sectors[i].tint = R_ColormapNumForName(udmf_sectors[i].tint);
+        sectors[i].tintceiling = R_ColormapNumForName(udmf_sectors[i].tintceiling);
+        sectors[i].tintfloor = R_ColormapNumForName(udmf_sectors[i].tintfloor);
 
         if (udmf_sectors[i].scroll_floor_type && (udmf_sectors[i].scroll_floor_x || udmf_sectors[i].scroll_floor_y))
         {
@@ -1024,8 +1086,6 @@ static void UDMF_LoadSectors(void)
                 DoubleToFixed(udmf_sectors[i].xscrollceiling),
                 DoubleToFixed(udmf_sectors[i].yscrollceiling));
         }
-
-        P_SectorInit(&sectors[i]);
     }
 }
 
@@ -1033,7 +1093,6 @@ static void UDMF_LoadSideDefs(void)
 {
     numsides = array_size(udmf_sidedefs);
     sides = arena_alloc_num(world_arena, side_t, numsides);
-    memset(sides, 0, numsides * sizeof(side_t));
 
     for (int i = 0; i < numsides; i++)
     {
@@ -1048,11 +1107,15 @@ static void UDMF_LoadSideDefs(void)
         sides[i].offsetx_bottom = DoubleToFixed(udmf_sidedefs[i].offsetx_bottom);
         sides[i].offsety_bottom = DoubleToFixed(udmf_sidedefs[i].offsety_bottom);
 
+        P_SidedefInit(&sides[i]);
+
         sides[i].flags = udmf_sidedefs[i].flags;
         sides[i].light = udmf_sidedefs[i].light;
         sides[i].light_top = udmf_sidedefs[i].light_top;
         sides[i].light_mid = udmf_sidedefs[i].light_mid;
         sides[i].light_bottom = udmf_sidedefs[i].light_bottom;
+
+        sides[i].tint = R_ColormapNumForName(udmf_sidedefs[i].tint);
 
         if (udmf_sidedefs[i].xscroll || udmf_sidedefs[i].yscroll)
         {
@@ -1081,7 +1144,6 @@ static void UDMF_LoadSideDefs(void)
                                DoubleToFixed(udmf_sidedefs[i].xscrollbottom),
                                DoubleToFixed(udmf_sidedefs[i].yscrollbottom));
         }
-        P_SidedefInit(&sides[i]);
     }
 }
 
@@ -1089,7 +1151,6 @@ static void UDMF_LoadLineDefs(void)
 {
     numlines = array_size(udmf_linedefs);
     lines = arena_alloc_num(world_arena, line_t, numlines);
-    memset(lines, 0, numlines * sizeof(line_t));
 
     for (int i = 0; i < numlines; i++)
     {
@@ -1107,6 +1168,13 @@ static void UDMF_LoadLineDefs(void)
         lines[i].args[3] = udmf_linedefs[i].args[3];
         lines[i].args[4] = udmf_linedefs[i].args[4];
 
+        // Custom automap line style
+        lines[i].amls = udmf_linedefs[i].amls;
+        if (lines[i].amls < amls_Default || lines[i].amls >= AMLS_COUNT)
+        {
+            lines[i].amls = amls_Default;
+        }
+
         // Woof! currently does not support parameterized line specials
         if (udmf_flags & UDMF_LINE_PARAM)
         {
@@ -1121,14 +1189,16 @@ static void UDMF_LoadLineDefs(void)
 
         P_LinedefInit(&lines[i]);
 
-        if (udmf_linedefs[i].alpha < 1.0)
+        // Translucency and special effects support
+        int32_t lump = W_CheckNumForName(udmf_linedefs[i].tranmap);
+
+        if (lump == NO_INDEX && udmf_linedefs[i].alpha < 1.0)
         {
-          const int32_t alpha = (int32_t)floorf(udmf_linedefs[i].alpha * 100.0);
-          lines[i].tranmap = GetNormalTranMap(alpha);
+            const int32_t alpha = (int32_t)floor(udmf_linedefs[i].alpha * 100.0);
+            lines[i].tranmap = GetNormalTranMap(alpha);
         }
 
-        int32_t lump = W_CheckNumForName(udmf_linedefs[i].tranmap);
-        if (lump >= 0 && W_LumpLength(lump) == 256 * 256)
+        if (lump != NO_INDEX && W_LumpLength(lump) == tranmap_lump_length)
         {
             lines[i].tranmap = W_CacheLumpNum(lump, PU_CACHE);
         }
@@ -1207,7 +1277,7 @@ static void UDMF_LoadLineDefs_Post(void)
     }
 }
 
-void UDMF_LoadThings(void)
+void P_LoadThings_UDMF(void)
 {
     for (int i = 0; i < array_size(udmf_things); i++)
     {
@@ -1240,7 +1310,7 @@ void UDMF_LoadThings(void)
         mt.type = udmf_things[i].type;
         mt.options = udmf_things[i].options;
 
-        mt.id = udmf_things[i].id;
+        mt.tid = udmf_things[i].tid;
         mt.special = udmf_things[i].special;
         mt.args[0] = udmf_things[i].args[0];
         mt.args[1] = udmf_things[i].args[1];
@@ -1248,169 +1318,46 @@ void UDMF_LoadThings(void)
         mt.args[3] = udmf_things[i].args[3];
         mt.args[4] = udmf_things[i].args[4];
 
-        if (udmf_things[i].alpha < 1.0)
+        mt.health = DoubleToFixed(udmf_things[i].health);
+        mt.tint = R_ColormapNumForName(udmf_things[i].tint);
+
+        // Translucency and special effects support
+        int32_t lump = W_CheckNumForName(udmf_things[i].tranmap);
+
+        if (lump == NO_INDEX && udmf_things[i].alpha < 1.0)
         {
-          const int32_t alpha = (int32_t)floor(udmf_things[i].alpha * 100.0);
-          mt.tranmap = GetNormalTranMap(alpha);
+            const int32_t alpha = (int32_t)floor(udmf_things[i].alpha * 100.0);
+            mt.tranmap = GetNormalTranMap(alpha);
         }
 
-        int32_t lump = W_CheckNumForName(udmf_things[i].tranmap);
-        if (lump >= 0 && W_LumpLength(lump) == 256 * 256)
+        if (lump != NO_INDEX && W_LumpLength(lump) == tranmap_lump_length)
         {
             mt.tranmap = W_CacheLumpNum(lump, PU_CACHE);
         }
+
 
         P_SpawnMapThing(&mt);
     }
 }
 
-static boolean UDMF_LoadBlockMap(int blockmap_num)
+void UDMF_LoadMap(map_t *map)
 {
-    long count;
-    boolean ret = true;
-
-    // [FG] always rebuild too short blockmaps
-    if (M_CheckParm("-blockmap")
-        || (count = W_LumpLengthWithName(blockmap_num, "BLOCKMAP") / 2)
-               >= 0x10000
-        || count < 4)
-    {
-        P_CreateBlockMap();
-    }
-    else
-    {
-        long i;
-        short *wadblockmaplump = W_CacheLumpNum(blockmap_num, PU_LEVEL);
-        blockmaplump = Z_Malloc(sizeof(*blockmaplump) * count, PU_LEVEL, 0);
-
-        // killough 3/1/98: Expand wad blockmap into larger internal one,
-        // by treating all offsets except -1 as unsigned and zero-extending
-        // them. This potentially doubles the size of blockmaps allowed,
-        // because Doom originally considered the offsets as always signed.
-
-        blockmaplump[0] = SHORT(wadblockmaplump[0]);
-        blockmaplump[1] = SHORT(wadblockmaplump[1]);
-        blockmaplump[2] = (long)(SHORT(wadblockmaplump[2]))&FRACMASK;
-        blockmaplump[3] = (long)(SHORT(wadblockmaplump[3]))&FRACMASK;
-
-        for (i = 4; i < count; i++)
-        {
-            short t = SHORT(wadblockmaplump[i]); // killough 3/1/98
-            blockmaplump[i] = t == -1 ? -1l : (long)t & FRACMASK;
-        }
-
-        Z_Free(wadblockmaplump);
-
-        bmaporgx = blockmaplump[0] << FRACBITS;
-        bmaporgy = blockmaplump[1] << FRACBITS;
-        bmapwidth = blockmaplump[2];
-        bmapheight = blockmaplump[3];
-
-        ret = false;
-
-        P_SetSkipBlockStart();
-    }
-
-    // clear out mobj chains
-    blocklinks_size = sizeof(*blocklinks) * bmapwidth * bmapheight;
-    blocklinks = M_ArenaAlloc(world_arena, blocklinks_size, alignof(mobj_t *));
-    memset(blocklinks, 0, blocklinks_size);
-    blockmap = blockmaplump + 4;
-
-    return ret;
-}
-
-static boolean UDMF_LoadReject(int reject_num)
-{
-    // Calculate the size that the REJECT lump *should* be.
-    int minlength = (numsectors * numsectors + 7) / 8;
-    int lumplen = W_LumpLengthWithName(reject_num, "REJECT");
-    boolean ret;
-
-    // If the lump meets the minimum length, it can be loaded directly.
-    // Otherwise, we need to allocate a buffer of the correct size
-    // and pad it with appropriate data.
-
-    if (lumplen >= minlength)
-    {
-        rejectmatrix = W_CacheLumpNum(reject_num, PU_LEVEL);
-        ret = false;
-    }
-    else
-    {
-        unsigned int padvalue = 0x00;
-
-        rejectmatrix = Z_Malloc(minlength, PU_LEVEL, (void **)&rejectmatrix);
-        if (reject_num >= 0)
-        {
-            W_ReadLumpSize(reject_num, rejectmatrix, minlength);
-        }
-
-        if (M_CheckParm("-reject_pad_with_ff"))
-        {
-            padvalue = 0xff;
-        }
-
-        memset(rejectmatrix + lumplen, padvalue, minlength - lumplen);
-
-        // No overflow emulation in UDMF
-
-        ret = true;
-    }
-
-    return ret;
-}
-
-void UDMF_LoadMap(int lumpnum, nodeformat_t *nodeformat, int *gen_blockmap,
-                  int *pad_reject)
-{
-    int znodes_num = -1;
-    int reject_num = -1;
-    int blockmap_num = -1;
-
-    // +2 skips label, and TEXTMAP
-    for (int i = lumpnum + 2; i < numlumps; ++i)
-    {
-        char *name = lumpinfo[i].name;
-        if (!strcasecmp(name, UDMF_Lumps[UDMF_ZNODES]))
-        {
-            znodes_num = i;
-        }
-        else if (!strcasecmp(name, UDMF_Lumps[UDMF_REJECT]))
-        {
-            reject_num = i;
-        }
-        else if (!strcasecmp(name, UDMF_Lumps[UDMF_BLOCKMAP]))
-        {
-            blockmap_num = i;
-        }
-        else if (!strcasecmp(name, UDMF_Lumps[UDMF_ENDMAP]))
-        {
-            break;
-        }
-    }
-
-    if (znodes_num < 0)
+    if (map->znodes < 0)
     {
         I_Error("Could not find ZNODES lump for UDMF map: %s.",
-                lumpinfo[lumpnum].name);
+                lumpinfo[map->label].name);
     }
 
-    *nodeformat = P_CheckUDMFNodeFormat(znodes_num);
-    if (*nodeformat == NFMT_NANO)
+    if (map->bsp_format == BSP_NANO)
     {
         I_Error("Invalid format found on ZNODES lump for UDMF map: %s",
-                lumpinfo[lumpnum].name);
+                lumpinfo[map->label].name);
     }
 
     // Clear everything
-    array_free(udmf_vertexes);
-    array_free(udmf_linedefs);
-    array_free(udmf_sidedefs);
-    array_free(udmf_sectors);
-    array_free(udmf_things);
+    UDMF_ClearMemory();
 
-    UDMF_ParseTextMap(lumpnum);
+    UDMF_ParseTextMap(map);
 
     // note: most of this ordering is important
     UDMF_LoadVertexes();
@@ -1420,8 +1367,7 @@ void UDMF_LoadMap(int lumpnum, nodeformat_t *nodeformat, int *gen_blockmap,
     UDMF_LoadSideDefs_Post(); // <- this needs side_t::special
     UDMF_LoadLineDefs_Post(); // <- this needs Sides Post Processing
 
-    *gen_blockmap = UDMF_LoadBlockMap(blockmap_num);
-    P_LoadNodes_ZDoom(znodes_num, *nodeformat);
-    P_GroupLines();
-    *pad_reject = UDMF_LoadReject(reject_num);
+    map->bmap_format = P_LoadBlockMap(map->blockmap);
+    P_LoadBSPTree_ZDBSP(map->znodes, map->bsp_format);
+    map->reject_built = P_LoadReject(map->reject, P_GroupLines());
 }

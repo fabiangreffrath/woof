@@ -1,5 +1,6 @@
 //
 // Copyright(C) 2025 ceski
+// Copyright(C) 2026, Roman Fomin
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -10,21 +11,19 @@
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-//
-// DESCRIPTION:
-//      SNDINFO
-//
 
-#ifndef __S_SNDINFO__
-#define __S_SNDINFO__
+#ifndef DECL_SOUNDS_H
+#define DECL_SOUNDS_H
 
-typedef enum ambient_type_e
+int S_RandomSound(int sfx_number);
+
+typedef enum
 {
     AMB_TYPE_POINT,
     AMB_TYPE_WORLD,
 } ambient_type_t;
 
-typedef enum ambient_mode_e
+typedef enum
 {
     AMB_MODE_CONTINUOUS,
     AMB_MODE_RANDOM,
@@ -44,7 +43,5 @@ typedef struct ambient_data_s
 } ambient_data_t;
 
 const ambient_data_t *S_GetAmbientData(int index);
-void S_ParseSndInfo(int lumpnum);
-void S_PostParseSndInfo(void);
 
 #endif
