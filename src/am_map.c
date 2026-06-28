@@ -2038,7 +2038,7 @@ static int ColorForStyle(line_t *line, amls_t style)
             }
 
         case amls_IntraTeleport:
-            return cur_mapcolor_exit;
+            return cur_mapcolor_tele;
             break;
 
         case amls_OneSided:
