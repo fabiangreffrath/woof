@@ -288,7 +288,7 @@ jobs:
           artifacts: build/*.zsync
 
       - name: Update Nightly Tag
-        if: ${{ !contains(github.ref, 'tags') && github.ref == 'refs/heads/main' }}
+        if: ${{ !contains(github.ref, 'tags') && github.ref == 'refs/heads/master' }}
         run: |
           git tag -d nightly || true
           git push origin :refs/tags/nightly || true
@@ -296,7 +296,7 @@ jobs:
           git push origin nightly
 
       - name: Nightly Pre-Release
-        if: ${{ !contains(github.ref, 'tags') && github.ref == 'refs/heads/main' }}
+        if: ${{ !contains(github.ref, 'tags') && github.ref == 'refs/heads/master' }}
         uses: ncipollo/release-action@v1
         with:
           name: "[Nightly] Woof! ${{ env.VERSION }}"
