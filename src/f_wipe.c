@@ -442,7 +442,7 @@ static wipe_t wipes[] = {
 int wipe_ScreenWipe(int x, int y, int width, int height, int ticks)
 {
     wipefx_t wipeno = (screen_wipe_internal == wipe_Invalid)
-                    ? screen_wipe
+                    ? wipe_Melt
                     : screen_wipe_internal;
     static boolean go; // when zero, stop the wipe
 
