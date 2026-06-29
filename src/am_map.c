@@ -2012,10 +2012,13 @@ static amls_t LineStyle(line_t *line)
 
 static int ColorForStyle(line_t *line, amls_t style)
 {
+    const boolean blinking =
+        (map_keyed_door == MAP_KEYED_DOOR_FLASH) && (leveltime & 16);
+
     switch (style)
     {
         case amls_Locked:
-            if ((map_keyed_door == MAP_KEYED_DOOR_FLASH) && (leveltime & 16))
+            if (blinking)
             {
                 return cur_mapcolor_grid;
                 break;
@@ -2055,7 +2058,7 @@ static int ColorForStyle(line_t *line, amls_t style)
             break;
 
         case amls_InterTeleport:
-            return cur_mapcolor_exit;
+            return (blinking) ? cur_mapcolor_grid : cur_mapcolor_exit;
             break;
 
         case amls_ClosedDoor:
