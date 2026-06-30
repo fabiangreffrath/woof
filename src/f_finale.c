@@ -815,7 +815,7 @@ static void EndFinaleCast_SetupCall(void)
         cast_frame_t *frame;
         array_foreach(frame, callee->aliveframes)
         {
-            W_CacheSpriteName(frame->frame_lump, PU_LEVEL);
+            V_CacheSpriteName(frame->frame_lump, PU_LEVEL);
             frame->tranmap = (W_CheckNumForName(frame->tran_lump) >= 0)
                            ? W_CacheLumpName(frame->tran_lump, PU_LEVEL)
                            : NULL;
@@ -825,7 +825,7 @@ static void EndFinaleCast_SetupCall(void)
         }
         array_foreach(frame, callee->deathframes)
         {
-            W_CacheSpriteName(frame->frame_lump, PU_LEVEL);
+            V_CacheSpriteName(frame->frame_lump, PU_LEVEL);
             frame->tranmap = (W_CheckNumForName(frame->tran_lump) >= 0)
                            ? W_CacheLumpName(frame->tran_lump, PU_LEVEL)
                            : NULL;
@@ -899,7 +899,7 @@ void EndFinaleCast_Drawer(void)
 {
     V_DrawPatchFullScreen(W_CacheLumpName(endfinale->background, PU_LEVEL));
     F_CastPrint(ef_current_callee->name);
-    patch_t *frame = W_CacheSpriteName(ef_current_frame->frame_lump, PU_LEVEL);
+    patch_t *frame = V_CacheSpriteName(ef_current_frame->frame_lump, PU_LEVEL);
     const byte *tranmap = ef_current_frame->tranmap;
     const byte *xlat = ef_current_frame->xlat;
     boolean flip = ef_current_frame->flipped;
