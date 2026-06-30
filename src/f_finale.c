@@ -25,6 +25,7 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
+#include "dsdh_main.h"
 #include "f_wipe.h"
 #include "g_game.h"
 #include "g_umapinfo.h"
@@ -165,7 +166,7 @@ static void ParseEndFinale_CastFrame(json_t *js_frame, cast_frame_t **frames,
     M_CopyLumpName(cast_frame.xlat_lump, (xlat_lump ? xlat_lump : "\0"));
     cast_frame.flipped = JS_GetBooleanValue(js_frame, "flipped");
     cast_frame.duration = MAX(1, JS_GetNumberValue(js_frame, "duration") * TICRATE);
-    cast_frame.sound = JS_GetIntegerValue(js_frame, "sound");
+    cast_frame.sound = DSDH_SoundTranslate(JS_GetIntegerValue(js_frame, "sound"));
 
     array_push(*frames, cast_frame);
     (*framecount)++;
@@ -176,7 +177,7 @@ static cast_anim_t ParseEndFinale_CastAnims(json_t *js_castanim_entry,
 {
     cast_anim_t out = {0};
     out.name = DEH_StringForMnemonic(JS_GetStringValue(js_castanim_entry, "name"));
-    out.alertsound = JS_GetIntegerValue(js_castanim_entry, "alertsound");
+    out.alertsound = DSDH_SoundTranslate(JS_GetIntegerValue(js_castanim_entry, "alertsound"));
 
     json_t *js_alive_frame_list = JS_GetObject(js_castanim_entry, "aliveframes");
     json_t *js_alive_frame = NULL;
@@ -217,7 +218,7 @@ static void ParseEndFinale_Bunny(json_t *js_bunny, end_finale_t *out,
 {
     out->bunny_overlay = JS_GetIntegerValue(js_bunny, "overlay");
     out->bunny_overlaycount = JS_GetIntegerValue(js_bunny, "overlaycount");
-    out->bunny_overlaysound = JS_GetIntegerValue(js_bunny, "overlaysound");
+    out->bunny_overlaysound = DSDH_SoundTranslate(JS_GetIntegerValue(js_bunny, "overlaysound"));
     out->bunny_overlayx = JS_GetIntegerValue(js_bunny, "overlayx");
     out->bunny_overlayy = JS_GetIntegerValue(js_bunny, "overlayy");
     const char *bunny_lump = JS_GetStringValue(js_bunny, "stitchimage");
