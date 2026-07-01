@@ -2470,6 +2470,10 @@ void G_Rewind(void)
     {
         gameaction = ga_rewind;
     }
+    else
+    {
+        displaymsg("Rewind is disabled in strict mode");
+    }
 }
 
 // killough 12/98:
