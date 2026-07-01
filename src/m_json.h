@@ -25,6 +25,7 @@ typedef struct yyjson_obj_iter json_obj_iter_t;
 
 boolean JS_GetVersion(json_t *json, version_t *version);
 
+json_t *JS_OpenString(char *string, size_t length);
 json_t *JS_Open(const char *lump, const char *type, version_t maxversion);
 json_t *JS_OpenOptions(int lumpnum, boolean comments);
 void JS_Close(const char *lump);

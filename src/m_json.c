@@ -48,6 +48,27 @@ typedef struct
 
 static doc_t *docs;
 
+json_t *JS_OpenString(char *string, size_t length)
+{
+    yyjson_read_err err;
+    yyjson_doc *json_doc = yyjson_read_opts(string, length, YYJSON_READ_NOFLAG, NULL, &err);
+
+    if (!json_doc)
+    {
+        size_t line, col, chr;
+        yyjson_locate_pos(string, length, err.pos, &line, &col, &chr);
+        I_Printf(VB_ERROR, "%s(%d:%d): read error: %s\n", __func__, (int)line,
+                 (int)col, err.msg);
+        return NULL;
+    }
+
+    array_push(docs, ((doc_t){json_doc, -1}));
+
+    json_t *json = yyjson_doc_get_root(json_doc);
+
+    return json;
+}
+
 json_t *JS_OpenOptions(int lumpnum, boolean comments)
 {
     char *string = W_CacheLumpNum(lumpnum, PU_CACHE);
