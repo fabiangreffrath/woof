@@ -2466,7 +2466,14 @@ char* G_MBFSaveGameName(int slot)
 
 void G_Rewind(void)
 {
-    gameaction = ga_rewind;
+    if (!strictmode)
+    {
+        gameaction = ga_rewind;
+    }
+    else
+    {
+        displaymsg("Rewind is disabled in strict mode");
+    }
 }
 
 // killough 12/98:
