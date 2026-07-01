@@ -499,7 +499,7 @@ static void cheat_avj(void)
 {
   void A_VileJump(mobj_t *mo);
 
-  if (plyr->mo)
+  if (plyr->mo && plyr->playerstate == PST_LIVE)
     A_VileJump(plyr->mo);
 }
 
