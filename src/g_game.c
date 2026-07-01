@@ -2466,7 +2466,10 @@ char* G_MBFSaveGameName(int slot)
 
 void G_Rewind(void)
 {
-    gameaction = ga_rewind;
+    if (!strictmode)
+    {
+        gameaction = ga_rewind;
+    }
 }
 
 // killough 12/98:
