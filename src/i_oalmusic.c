@@ -80,6 +80,7 @@ typedef struct
 
     byte *data;
     boolean looping;
+    boolean paused;
 
     ALfloat gain;
     ALfloat auto_gain;
@@ -284,11 +285,14 @@ static boolean UpdatePlayer(void)
             return false;
         }
 
-        alSourcePlay(player.source);
-        if (alGetError() != AL_NO_ERROR)
+        if (!player.paused)
         {
-            I_Printf(VB_ERROR, "UpdatePlayer: Error restarting playback");
-            return false;
+            alSourcePlay(player.source);
+            if (alGetError() != AL_NO_ERROR)
+            {
+                I_Printf(VB_ERROR, "UpdatePlayer: Error restarting playback");
+                return false;
+            }
         }
     }
 
@@ -484,17 +488,8 @@ static void I_OAL_PauseSong(void *handle)
         return;
     }
 
-    // Grant some time to set the source state to AL_PLAYING after calling
-    // alSourcePlay(). alSourcePause() applied to an AL_INITIAL source is a
-    // NOP.
-    ALint state = AL_INITIAL;
-    do
-    {
-        SDL_Delay(1);
-        alGetSourcei(player.source, AL_SOURCE_STATE, &state);
-    } while (state == AL_INITIAL);
-
     alSourcePause(player.source);
+    player.paused = true;
 }
 
 static void I_OAL_ResumeSong(void *handle)
@@ -505,6 +500,7 @@ static void I_OAL_ResumeSong(void *handle)
     }
 
     alSourcePlay(player.source);
+    player.paused = false;
 }
 
 static void I_OAL_PlaySong(void *handle, boolean looping)
@@ -516,11 +512,14 @@ static void I_OAL_PlaySong(void *handle, boolean looping)
 
     player.looping = looping;
 
-    alSourcePlay(player.source);
-    if (alGetError() != AL_NO_ERROR)
+    if (!player.paused)
     {
-        I_Printf(VB_ERROR, "I_OAL_PlaySong: Error starting playback.");
-        return;
+        alSourcePlay(player.source);
+        if (alGetError() != AL_NO_ERROR)
+        {
+            I_Printf(VB_ERROR, "I_OAL_PlaySong: Error starting playback.");
+            return;
+        }
     }
 
     SDL_SetAtomicInt(&player_thread_running, 1);
