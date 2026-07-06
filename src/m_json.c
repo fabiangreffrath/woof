@@ -205,6 +205,11 @@ json_t *JS_GetObject(json_t *json, const char *string)
     return yyjson_obj_get(json, string);
 }
 
+int JS_GetObjectSize(json_t *json)
+{
+    return yyjson_obj_size(json);
+}
+
 int JS_GetArraySize(json_t *json)
 {
     return yyjson_arr_size(json);
