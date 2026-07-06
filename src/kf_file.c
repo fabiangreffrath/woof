@@ -1539,10 +1539,10 @@ inline static json_mut_t *ArchiveThingList(const sector_t *sector)
     return thinglist_arr;
 }
 
-inline static void UnArchiveThingList(sector_t *sector)
+inline static void UnArchiveThingList(sector_t *sector, json_t *thinglist_arr)
 {
     sector->thinglist = NULL;
-    int count = read32();
+    int count = JS_GetArraySize(thinglist_arr);
     if (!count)
     {
         return;
@@ -1552,7 +1552,9 @@ inline static void UnArchiveThingList(sector_t *sector)
     sprev = &sector->thinglist;
     while (count--)
     {
-        mobj = readp_mobj();
+        json_t *thing_obj = JS_GetArrayItem(thinglist_arr, count);
+        mobj = readp_mobj(JS_GetInteger(thing_obj));
+
         *sprev = mobj;
         mobj->sprev = sprev;
         mobj->snext = NULL;
@@ -1663,7 +1665,10 @@ static void UnArchiveWorld(void)
         sector->soundtarget = readp_mobj();
         sector->floordata = readp_thinker();
         sector->ceilingdata = readp_thinker();
-        UnArchiveThingList(sector);
+        
+        json_t *thinglist_obj = JS_GetObject(, "thinglist");
+        UnArchiveThingList(sector, thinglist_obj);
+        
         sector->touching_thinglist = readp_msecnode();
     }
 
