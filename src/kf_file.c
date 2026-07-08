@@ -818,7 +818,7 @@ static json_mut_t *write_player_t(player_t *str)
     json_mut_t *visitedlevels_arr = JS_NewArray(doc);
     array_foreach_type(level, str->visitedlevels, level_t)
     {
-        json_mut_t *visitedlevel_obj = JS_NewArray(doc);
+        json_mut_t *visitedlevel_obj = JS_NewObject(doc);
 
         JS_SetInt(doc, visitedlevel_obj, "episode", level->episode);
         JS_SetInt(doc, visitedlevel_obj, "map", level->map);
@@ -1031,10 +1031,10 @@ static void read_strobe_t(strobe_t *str, json_t *strobe_obj)
 
     JS_GetIdx(str->sector, sectors, strobe_obj, "sector");
     str->count = JS_GetIntegerValue(strobe_obj, "count");
-    str->minlight = JS_GetIntegerValue(strobe_obj, "count");
-    str->maxlight = JS_GetIntegerValue(strobe_obj, "count");
-    str->darktime = JS_GetIntegerValue(strobe_obj, "count");
-    str->brighttime = JS_GetIntegerValue(strobe_obj, "count");
+    str->minlight = JS_GetIntegerValue(strobe_obj, "minlight");
+    str->maxlight = JS_GetIntegerValue(strobe_obj, "maxlight");
+    str->darktime = JS_GetIntegerValue(strobe_obj, "darktime");
+    str->brighttime = JS_GetIntegerValue(strobe_obj, "brighttime");
 }
 
 static json_mut_t *write_strobe_t(strobe_t *str)
@@ -1304,7 +1304,7 @@ static json_mut_t *write_ambient_t(ambient_t *str)
 
 static void read_rng_t(rng_t *str, json_t *rng_obj)
 {
-    json_t *seeds_arr = JS_GetObject(root, "seeds");
+    json_t *seeds_arr = JS_GetObject(rng_obj, "seeds");
     for (int i = 0; i < NUMPRCLASS; ++i)
     {
         json_t *seed_obj = JS_GetArrayItem(seeds_arr, i);
@@ -1868,11 +1868,12 @@ static void PrepareUnArchiveThinkers(json_t *thinkers)
 static void UnArchiveThinkers(json_t *thinkers)
 {
     int count = array_size(thinker_pointers);
-    thinker_pointer_t *pointer = thinker_pointers;
 
-    for (int i = 0; i < count; pointer++, i++)
+    for (int i = 0; i < count; i++)
     {
-        json_t *thinker = JS_GetArrayItem(thinkers, i);
+        thinker_pointer_t *pointer = &thinker_pointers[i];
+        json_t *wrapper = JS_GetArrayItem(thinkers, i);
+        json_t *thinker = JS_GetObject(wrapper, "thinker");
         switch (pointer->tc)
         {
             case tc_mobj:
@@ -2101,7 +2102,7 @@ static void UnArchiveCeilingList(json_t *ceilinglist_arr)
     prev = &activeceilings;
     for (int i = 0; i < count; ++i)
     {
-        json_t *ceilinglist_obj = JS_GetArrayItem(ceilinglist_arr, count);
+        json_t *ceilinglist_obj = JS_GetArrayItem(ceilinglist_arr, i);
 
         cl = (ceilinglist_t *)ceilinglist_pointers[i];
         cl->ceiling = (ceiling_t *)readp_thinker(JS_GetInteger(ceilinglist_obj));
@@ -2150,7 +2151,7 @@ static void UnArchivePlatList(json_t *platlist_arr)
     prev = &activeplats;
     for (int i = 0; i < count; ++i)
     {
-        json_t *platlist_obj = JS_GetArrayItem(platlist_arr, count);
+        json_t *platlist_obj = JS_GetArrayItem(platlist_arr, i);
 
         pl = (platlist_t *)platlist_pointers[i];
         pl->plat = (plat_t *)readp_thinker(JS_GetInteger(platlist_obj));
