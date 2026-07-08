@@ -39,43 +39,11 @@
 
 #include <stddef.h>
 #include <stdint.h>
-
-// temp
-#include "yyjson.h"
-#include <stdio.h>
+#include <string.h>
 
 static json_mut_doc_t *doc;
 static json_mut_t *root_mut;
 static json_t *root;
-
-inline static void write8_internal(const int8_t data[], int count)
-{
-    saveg_grow(sizeof(int8_t) * count);
-    for (int i = 0; i < count; ++i)
-    {
-        savep_putbyte(data[i]);
-    }
-}
-
-#define write8(...)                                       \
-    write8_internal((const int8_t[]){__VA_ARGS__},        \
-                    sizeof((const int8_t[]){__VA_ARGS__}) \
-                        / sizeof(const int8_t))
-
-inline static void write16_internal(const int16_t data[], int count)
-{
-    saveg_grow(sizeof(int16_t) * count);
-    for (int i = 0; i < count; ++i)
-    {
-        savep_putbyte(data[i] & 0xff);
-        savep_putbyte((data[i] >> 8) & 0xff);
-    }
-}
-
-#define write16(...)                                        \
-    write16_internal((const int16_t[]){__VA_ARGS__},        \
-                     sizeof((const int16_t[]){__VA_ARGS__}) \
-                         / sizeof(const int16_t))
 
 inline static void write32_internal(const int32_t data[], int count)
 {
@@ -88,20 +56,6 @@ inline static void write32_internal(const int32_t data[], int count)
         savep_putbyte((data[i] >> 24) & 0xff);
     }
 }
-
-#define write32(...)                                        \
-    write32_internal((const int32_t[]){__VA_ARGS__},        \
-                     sizeof((const int32_t[]){__VA_ARGS__}) \
-                         / sizeof(const int32_t))
-
-#define read8 saveg_read8
-#define read16 saveg_read16
-#define read32 saveg_read32
-#define read64 saveg_read64
-#define write64 saveg_write64
-
-#define read_enum read32
-#define write_enum write32
 
 enum
 {
@@ -1348,14 +1302,16 @@ static json_mut_t *write_ambient_t(ambient_t *str)
     return obj;
 }
 
-static void read_rng_t(rng_t *str)
+static void read_rng_t(rng_t *str, json_t *rng_obj)
 {
+    json_t *seeds_arr = JS_GetObject(root, "seeds");
     for (int i = 0; i < NUMPRCLASS; ++i)
     {
-        str->seed[i] = read32();
+        json_t *seed_obj = JS_GetArrayItem(seeds_arr, i);
+        str->seed[i] = JS_GetNumber(seed_obj);
     }
-    str->rndindex = read32();
-    str->prndindex = read32();
+    str->rndindex = JS_GetIntegerValue(rng_obj, "rndindex");
+    str->prndindex = JS_GetIntegerValue(rng_obj, "prndindex");
 }
 
 static json_mut_t *write_rng_t(rng_t *str)
@@ -1442,13 +1398,13 @@ static json_mut_t *write_divline_t(divline_t *str)
     return obj;
 }
 
-static void read_partial_side_t(partial_side_t *str)
+static void read_partial_side_t(partial_side_t *str, json_t *partial_side_obj)
 {
-    str->textureoffset = read32();
-    str->rowoffset = read32();
-    str->toptexture = read16();
-    str->bottomtexture = read16();
-    str->midtexture = read16();
+    str->textureoffset = JS_GetIntegerValue(partial_side_obj, "textureoffset");
+    str->rowoffset = JS_GetIntegerValue(partial_side_obj, "rowoffset");
+    str->toptexture = JS_GetIntegerValue(partial_side_obj, "toptexture");
+    str->bottomtexture = JS_GetIntegerValue(partial_side_obj, "bottomtexture");
+    str->midtexture = JS_GetIntegerValue(partial_side_obj, "midtexture");
 }
 
 static json_mut_t *write_partial_side_t(partial_side_t *str)
@@ -1498,32 +1454,39 @@ static void ArchiveDirty(void)
 
 static void UnArchiveDirty(void)
 {
-    int count = read32();
+    json_t *lines_arr = JS_GetObject(root, "dirty_lines");
+    int count = JS_GetArraySize(lines_arr);
     int oldcount = array_size(dirty_lines);
     for (int i = count; i < oldcount; ++i)
     {
         P_CleanLine(&dirty_lines[i]);
     }
     array_resize(dirty_lines, count);
+    json_arr_iter_t *lines_iter = JS_ArrayIterator(lines_arr);
     array_foreach_type(dl, dirty_lines, dirty_line_t)
     {
-        dl->line = lines + read32();
+        json_t *line_obj = JS_ArrayNext(lines_iter);
+        dl->line = lines + JS_GetIntegerValue(line_obj, "line");
         dl->line->dirty = true;
-        dl->clean_line.special = read16();
+        dl->clean_line.special = JS_GetIntegerValue(line_obj, "special");
     }
 
-    count = read32();
+    json_t *sides_arr = JS_GetObject(root, "dirty_sides");
+    count = JS_GetArraySize(sides_arr);
     oldcount = array_size(dirty_sides);
     for (int i = count; i < oldcount; ++i)
     {
         P_CleanSide(&dirty_sides[i]);
     }
     array_resize(dirty_sides, count);
+    json_arr_iter_t *sides_iter = JS_ArrayIterator(sides_arr);
     array_foreach_type(ds, dirty_sides, dirty_side_t)
     {
-        ds->side = sides + read32();
+        json_t *side_obj = JS_ArrayNext(sides_iter);
+        ds->side = sides + JS_GetIntegerValue(side_obj, "side");
         ds->side->dirty = true;
-        read_partial_side_t(&ds->clean_side);
+        json_t *partial_side_obj = JS_GetObject(side_obj, "partial_side");
+        read_partial_side_t(&ds->clean_side, partial_side_obj);
     }
 }
 
@@ -2260,17 +2223,20 @@ static void ArchiveAutoMap(void)
 
 static void UnArchiveAutoMap(void)
 {
-    automapactive = read32();
-    viewactive = read32();
-    followplayer = read32();
-    automap_grid = read32();
+    json_t *automap_obj = JS_GetObject(root, "automap");
+
+    automapactive = JS_GetIntegerValue(automap_obj, "automapactive");
+    viewactive = JS_GetIntegerValue(automap_obj, "viewactive");
+    followplayer = JS_GetIntegerValue(automap_obj, "followplayer");
+    automap_grid = JS_GetIntegerValue(automap_obj, "automap_grid");
 
     if (automapactive)
     {
         AM_Start();
     }
 
-    markpointnum = read32();
+    json_t *markpoints_arr = JS_GetObject(root, "markpoints");
+    markpointnum = JS_GetArraySize(markpoints_arr);
 
     if (markpointnum)
     {
@@ -2284,8 +2250,10 @@ static void UnArchiveAutoMap(void)
 
         for (int i = 0; i < markpointnum; ++i)
         {
-            markpoints[i].x = read64();
-            markpoints[i].y = read64();
+            json_t *markpoint_arr = JS_GetArrayItem(markpoints_arr, i);
+
+            markpoints[i].x = JS_GetInteger(JS_GetArrayItem(markpoint_arr, 0));
+            markpoints[i].y = JS_GetInteger(JS_GetArrayItem(markpoint_arr, 1));
         }
     }
 }
@@ -2410,6 +2378,7 @@ void P_UnArchiveKeyframe(void)
 
     size_t json_len = strlen((char *)save_p);
     root = JS_OpenString((char *)save_p, json_len);
+    save_p += json_len + 1;
 
     StartUnArchive();
 
@@ -2489,7 +2458,8 @@ void P_UnArchiveKeyframe(void)
     activeplats = readp_activeplats(JS_GetInteger(activeplats_obj));
     UnArchivePlatList(platlist_arr);
 
-    read_rng_t(&rng);
+    json_t *rng_obj = JS_GetObject(root, "rng");
+    read_rng_t(&rng, rng_obj);
     UnArchiveButtons();
 
     UnArchiveAutoMap();
