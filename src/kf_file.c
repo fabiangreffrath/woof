@@ -239,7 +239,7 @@ static mobj_t *readp_mobj(int index)
 
 static int writep_mobj(const mobj_t *mobj)
 {
-    return writep_thinker(&mobj->thinker);
+    return mobj ? writep_thinker(&mobj->thinker) : null_index;
 }
 
 static msecnode_t *readp_msecnode(int index)
@@ -2236,6 +2236,13 @@ static void EndUnArchive(void)
     array_free(platlist_pointers);
 }
 
+#define MAX_STREAM_LENGTH (1 << 28) // 256 MiB
+
+static int CheckStreamLength(int32_t length)
+{
+    return length > 0 && length < MAX_STREAM_LENGTH;
+}
+
 void P_ArchiveKeyframe(void)
 {
     if (doc || root_mut)
@@ -2325,6 +2332,7 @@ void P_ArchiveKeyframe(void)
     // If compression fails or is disabled, fall back to plain JSON with a
     // null terminator so older code can still read it.
     unsigned char *compressed = NULL;
+
 #ifndef KF_NO_COMPRESS
     mz_ulong compressed_len = mz_compressBound((mz_ulong)json_len);
     if ((compressed = malloc((size_t)compressed_len)))
@@ -2333,11 +2341,13 @@ void P_ArchiveKeyframe(void)
                                  (const unsigned char *)json_str,
                                  (mz_ulong)json_len);
 
-        if (mz_ret == MZ_OK)
+        if (mz_ret == MZ_OK &&
+            CheckStreamLength((int32_t)json_len) &&
+            CheckStreamLength((int32_t)compressed_len))
         {
             free(json_str);
-            saveg_write32((int)json_len);
-            saveg_write32((int)compressed_len);
+            saveg_write32((int32_t)json_len);
+            saveg_write32((int32_t)compressed_len);
             saveg_grow(compressed_len);
             memcpy(save_p, compressed, (size_t)compressed_len);
             save_p += compressed_len;
@@ -2368,11 +2378,23 @@ void P_ArchiveKeyframe(void)
     }
 }
 
+#define ZLIB_MAGIC_BYTE 0x78
+
+static int CheckZlibHeader(uint8_t *c)
+{
+    return c[0] == ZLIB_MAGIC_BYTE && ((c[0] << 8) + c[1]) % 31 == 0;
+}
+
 void P_UnArchiveKeyframe(void)
 {
     if (root)
     {
         I_Error("Recursive call detected");
+    }
+
+    if (!saveg_check_size(2 * sizeof(int32_t) + sizeof(int16_t)))
+    {
+        I_Error("Corrupt savegame file");
     }
 
     // Detect whether the keyframe is compressed or plain JSON.
@@ -2389,56 +2411,45 @@ void P_UnArchiveKeyframe(void)
     // bytes that follow.  If they look like a valid zlib header we proceed
     // with decompression; otherwise we rewind save_p and parse as plain JSON.
     byte *orig_save_p = save_p;
-    if (saveg_check_size(2 * sizeof(int32_t) + sizeof(int16_t)))
-    {
-        mz_ulong json_len = (mz_ulong)saveg_read32();
-        int32_t compressed_len = saveg_read32();
-        union {uint16_t s; uint8_t c[2];} zip_header;
-        memcpy(&zip_header.s, save_p, sizeof(uint16_t));
-        const uint8_t ZLIB_MAGIC_BYTE = 0x78;
+    mz_ulong json_len = (mz_ulong)saveg_read32();
+    int32_t compressed_len = saveg_read32();
 
-        if ((int32_t)json_len > 0 && (int32_t)json_len < (1 << 28) &&
-            compressed_len > 0 && compressed_len < (1 << 28) &&
-            zip_header.c[0] == ZLIB_MAGIC_BYTE &&
-            ((zip_header.c[0] << 8) + zip_header.c[1]) % 31 == 0)
+    if (CheckStreamLength((int32_t)json_len) &&
+        CheckStreamLength((int32_t)compressed_len) &&
+        CheckZlibHeader(save_p))
+    {
+        // Compressed path: decompress into a temporary buffer, parse it,
+        // then free the buffer (yyjson copies all strings internally).
+        unsigned char *decomp = malloc((size_t)json_len);
+        if (!decomp)
         {
-            // Compressed path: decompress into a temporary buffer, parse it,
-            // then free the buffer (yyjson copies all strings internally).
-            unsigned char *decomp = malloc((size_t)json_len);
-            if (!decomp)
-            {
-                I_Error("Out of memory");
-            }
-            int mz_ret = mz_uncompress(decomp, &json_len, (const unsigned char *)save_p, (mz_ulong)compressed_len);
-            if (mz_ret != MZ_OK)
-            {
-                I_Error("Decompression error (%s)", mz_error(mz_ret));
-            }
-            root = JS_OpenString((char *)decomp, (size_t)json_len);
-            free(decomp);
-            if (!root)
-            {
-                I_Error("Error parsing JSON");
-            }
-            save_p += compressed_len;
+            I_Error("Out of memory");
         }
-        else
+        int mz_ret = mz_uncompress(decomp, &json_len, (const unsigned char *)save_p, (mz_ulong)compressed_len);
+        if (mz_ret != MZ_OK)
         {
-            // Plain JSON path: rewind to before the speculative header read
-            // and parse the null-terminated string directly from save_p.
-            save_p = orig_save_p;
-            json_len = (mz_ulong)strlen((char *)save_p);
-            root = JS_OpenString((char *)save_p, (size_t)json_len);
-            if (!root)
-            {
-                I_Error("Error parsing JSON");
-            }
-            save_p += json_len + 1;
+            I_Error("Decompression error (%s)", mz_error(mz_ret));
         }
+        root = JS_OpenString((char *)decomp, (size_t)json_len);
+        free(decomp);
+        if (!root)
+        {
+            I_Error("Error parsing JSON");
+        }
+        save_p += compressed_len;
     }
     else
     {
-        I_Error("Broken savegame");
+        // Plain JSON path: rewind to before the speculative header read
+        // and parse the null-terminated string directly from save_p.
+        save_p = orig_save_p;
+        json_len = (mz_ulong)strlen((char *)save_p);
+        root = JS_OpenString((char *)save_p, (size_t)json_len);
+        if (!root)
+        {
+            I_Error("Error parsing JSON");
+        }
+        save_p += json_len + 1;
     }
 
     StartUnArchive();
