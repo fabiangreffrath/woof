@@ -2278,11 +2278,6 @@ static int CheckStreamLength(int32_t length)
 
 void P_ArchiveKeyframe(void)
 {
-    if (doc || root_mut)
-    {
-        I_Error("Recursive call detected");
-    }
-
     doc = JS_NewDoc();
     root_mut = JS_NewObject(doc);
     JS_SetRoot(doc, root_mut);
@@ -2423,11 +2418,6 @@ static int CheckZlibHeader(uint8_t *c)
 
 void P_UnArchiveKeyframe(void)
 {
-    if (root)
-    {
-        I_Error("Recursive call detected");
-    }
-
     if (!saveg_check_size(2 * sizeof(int32_t) + sizeof(int16_t)))
     {
         I_Error("Corrupt savegame file");
