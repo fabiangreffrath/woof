@@ -105,6 +105,7 @@ boolean clcoopspawns;   // checkparm of -coop_spawns
 boolean cshalfplayerdamage = false;
 boolean csdoubleammo = false;
 boolean csaggromonsters = false;
+int cshelperdogs = 0;
 
 boolean nomonsters;     // working -nomonsters
 boolean respawnparm;    // working -respawn

@@ -3514,7 +3514,8 @@ static struct
     boolean pistolstart;
     boolean halfplayerdamage;
     boolean doubleammo;
-    boolean aggromonsters;    
+    boolean aggromonsters;
+    int helperdogs;
 } csmenu;
 
 const char *skill_strings[] = {
@@ -3534,6 +3535,7 @@ static void StartGame(void)
     cshalfplayerdamage = csmenu.halfplayerdamage;
     csdoubleammo = csmenu.doubleammo;
     csaggromonsters = csmenu.aggromonsters;
+    cshelperdogs = csmenu.helperdogs;
 
     M_ChooseSkill(csmenu_skill);
     setup_active = false;
@@ -3552,6 +3554,7 @@ static setup_menu_t customskill_settings1[] = {
     {"No monsters", S_ONOFF, CNTR_X, M_SPC, {"csmenu.nomonsters"}},
     {"Co-op spawns", S_ONOFF, CNTR_X, M_SPC, {"csmenu.coopspawns"}},
     {"Pistol start", S_ONOFF, CNTR_X, M_SPC, {"csmenu.pistolstart"}},
+    {"Helper dogs", S_MBF | S_THERMO | S_THRM_SIZE4,  CNTR_X, M_THRM_SPC, {"csmenu.helperdogs"}},
     MI_GAP,
     {"Start Game", S_CENTER, 0, M_SPC, .action = StartGame},
     MI_END
@@ -5158,5 +5161,6 @@ void MN_BindMenuVariables(void)
     BIND_BOOL_MENU(csmenu.doubleammo);
     BIND_BOOL_MENU(csmenu.halfplayerdamage);
     BIND_BOOL_MENU(csmenu.aggromonsters);
+    BIND_NUM_MENU(csmenu.helperdogs, 0, 3);
     BIND_NUM_MENU(freelook_mode, FREELOOK_OFF, FREELOOK_DIRECT_AIM);
 }
