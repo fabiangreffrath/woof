@@ -48,17 +48,22 @@ static json_mut_doc_t *doc;
 static json_mut_t *root_mut;
 static json_t *root;
 
+// Pointer fields (mobj_t*, thinker_t*, msecnode_t*, …) cannot be stored
+// directly in a savegame.  Instead every live pointer is mapped to an integer
+// index into one of the four pointer tables below.  Special negative sentinel
+// values are reserved for pointers that do not belong to any table:
 enum
 {
-    null_index = -1,
-    head_index = -2,
-    dummy_index = -3,
-    th_delete_index = -4,
-    th_misc_index = -5,
-    th_friends_index = -6,
-    th_enemies_index = -7,
+    null_index       = -1, // NULL pointer
+    head_index       = -2, // &thinkercap
+    dummy_index      = -3, // P_SubstNullMobj(NULL)
+    th_delete_index  = -4, // &thinkerclasscap[th_delete]
+    th_misc_index    = -5, // &thinkerclasscap[th_misc]
+    th_friends_index = -6, // &thinkerclasscap[th_friends]
+    th_enemies_index = -7, // &thinkerclasscap[th_enemies]
 };
 
+// Maps each thinker class cap (th_delete, th_misc, …) to its sentinel index.
 static int tclass_to_index[] = {
     [th_delete] = th_delete_index,
     [th_misc] = th_misc_index,
@@ -66,6 +71,9 @@ static int tclass_to_index[] = {
     [th_enemies] = th_enemies_index,
 };
 
+// Every concrete thinker type that can appear in a savegame.
+// tc_none covers thinkers with unknown or NULL function pointers.
+// The _del variants are thinkers already queued for removal.
 typedef enum
 {
     tc_mobj,
@@ -93,6 +101,8 @@ typedef enum
     tc_none
 } thinker_class_t;
 
+// Maps each thinker_class_t back to its tick function, used when restoring
+// thinkers from a savegame (the function pointer is never written to disk).
 static actionf_p1 actions[] = {
     [tc_mobj] = P_MobjThinker,
     [tc_mobj_del] = P_RemoveMobjThinkerDelayed,
@@ -119,6 +129,10 @@ static actionf_p1 actions[] = {
     [tc_none] = NULL
 };
 
+// One entry per live thinker, built by PrepareArchiveThinkers() before saving
+// and by PrepareUnArchiveThinkers() before loading.  The index of an entry in
+// this array is what gets written to / read from the JSON for any field that
+// holds a thinker pointer.
 typedef struct
 {
     thinker_class_t tc;
@@ -143,11 +157,16 @@ typedef struct
     } p;
 } thinker_pointer_t;
 
+// Pointer tables populated during Prepare* and consumed during UnArchive*.
+// Indices stored in the JSON refer into these arrays.
 static thinker_pointer_t *thinker_pointers;
 static uintptr_t *msecnode_pointers;
 static uintptr_t *ceilinglist_pointers;
 static uintptr_t *platlist_pointers;
 
+// Convenience macros for pointer-as-array-index fields (subsector, sector,
+// state, line, …).  The pointer is converted to/from an offset into its
+// respective base array.  A null_index round-trips to NULL.
 #define JS_GetIdx(ptr, base, obj, key)                         \
     do                                                         \
     {                                                          \
@@ -1617,6 +1636,9 @@ static thinker_class_t GetThinkerClass(actionf_p1 func)
     return tc_none;
 }
 
+// Pass 1 of archiving: snapshot the arena table so that every live thinker
+// pointer can later be converted to a stable integer index.  Must be called
+// before any write_*_t function that references thinker pointers.
 static void PrepareArchiveThinkers(void)
 {
     uintptr_t *table = M_ArenaTable(thinkers_arena);
@@ -1722,6 +1744,9 @@ static void ArchiveThinkers(void)
     JS_SetArray(doc, root_mut, "thinkers", arr);
 }
 
+// Pass 1 of unarchiving: allocate memory for every thinker and build the
+// index table so that cross-references between thinkers can be resolved in
+// the second pass (UnArchiveThinkers).
 static void PrepareUnArchiveThinkers(json_t *thinkers)
 {
     int count = JS_GetArraySize(thinkers);
@@ -1793,6 +1818,9 @@ static void PrepareUnArchiveThinkers(json_t *thinkers)
     }
 }
 
+// Pass 2 of unarchiving: fill in all fields, including cross-thinker pointer
+// fields (target, tracer, …) that could not be resolved until all thinkers
+// were allocated in pass 1.
 static void UnArchiveThinkers(json_t *thinkers)
 {
     int count = array_size(thinker_pointers);
@@ -2284,16 +2312,18 @@ void P_ArchiveKeyframe(void)
 
     EndArchive();
 
-    // Write to JSON string
-
+    // Serialise the document to a JSON string, then free it – the string
+    // owns its own memory and is independent of the yyjson document.
     size_t json_len;
     char *json_str = JS_DocWriteString(doc, &json_len);
     JS_FreeDoc(doc);
     root_mut = NULL;
     doc = NULL;
 
-    // Compress!
-
+    // Compress the JSON string with miniz and write the result to the save
+    // buffer as: [uint32 original_len][uint32 compressed_len][zlib stream].
+    // If compression fails or is disabled, fall back to plain JSON with a
+    // null terminator so older code can still read it.
     unsigned char *compressed = NULL;
 #ifndef KF_NO_COMPRESS
     mz_ulong compressed_len = mz_compressBound((mz_ulong)json_len);
@@ -2345,8 +2375,19 @@ void P_UnArchiveKeyframe(void)
         I_Error("Recursive call detected");
     }
 
-    // Decompress keyframe in JSON format
-
+    // Detect whether the keyframe is compressed or plain JSON.
+    //
+    // Compressed format: [uint32 original_len][uint32 compressed_len][zlib stream]
+    // Plain format:      [JSON text][NUL]
+    //
+    // A valid zlib stream always begins with the CMF byte 0x78 followed by a
+    // FLG byte such that (CMF << 8 | FLG) % 31 == 0.  A JSON stream always
+    // starts with ASCII whitespace or '{' / '[', so the first byte can never
+    // be 0x78, making this an unambiguous discriminator.
+    //
+    // We speculatively read the two 32-bit header fields and peek at the two
+    // bytes that follow.  If they look like a valid zlib header we proceed
+    // with decompression; otherwise we rewind save_p and parse as plain JSON.
     byte *orig_save_p = save_p;
     if (saveg_check_size(2 * sizeof(int32_t) + sizeof(int16_t)))
     {
@@ -2361,6 +2402,8 @@ void P_UnArchiveKeyframe(void)
             zip_header.c[0] == ZLIB_MAGIC_BYTE &&
             ((zip_header.c[0] << 8) + zip_header.c[1]) % 31 == 0)
         {
+            // Compressed path: decompress into a temporary buffer, parse it,
+            // then free the buffer (yyjson copies all strings internally).
             unsigned char *decomp = malloc((size_t)json_len);
             if (!decomp)
             {
@@ -2381,6 +2424,8 @@ void P_UnArchiveKeyframe(void)
         }
         else
         {
+            // Plain JSON path: rewind to before the speculative header read
+            // and parse the null-terminated string directly from save_p.
             save_p = orig_save_p;
             json_len = (mz_ulong)strlen((char *)save_p);
             root = JS_OpenString((char *)save_p, (size_t)json_len);
@@ -2482,8 +2527,8 @@ void P_UnArchiveKeyframe(void)
 
     EndUnArchive();
 
-    // Finish
-
+    // JS_OpenString() registers the parsed document under lump index NO_INDEX
+    // (-1) so that JS_CloseOptions() can find and free it here.
     JS_CloseOptions(NO_INDEX);
     root = NULL;
 }
