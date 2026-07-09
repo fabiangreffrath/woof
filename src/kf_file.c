@@ -54,11 +54,11 @@ static json_t *root;
 // values are reserved for pointers that do not belong to any table:
 enum
 {
-    null_index       = -1, // NULL pointer
-    head_index       = -2, // &thinkercap
-    dummy_index      = -3, // P_SubstNullMobj(NULL)
-    th_delete_index  = -4, // &thinkerclasscap[th_delete]
-    th_misc_index    = -5, // &thinkerclasscap[th_misc]
+    null_index = -1,       // NULL pointer
+    head_index = -2,       // &thinkercap
+    dummy_index = -3,      // P_SubstNullMobj(NULL)
+    th_delete_index = -4,  // &thinkerclasscap[th_delete]
+    th_misc_index = -5,    // &thinkerclasscap[th_misc]
     th_friends_index = -6, // &thinkerclasscap[th_friends]
     th_enemies_index = -7, // &thinkerclasscap[th_enemies]
 };
@@ -126,8 +126,7 @@ static actionf_p1 actions[] = {
     [tc_ambient] = T_AmbientSoundAdapter,
     [tc_param_scroll_floor] = T_ParamScrollFloorAdapter,
     [tc_param_scroll_ceiling] = T_ParamScrollCeilingAdapter,
-    [tc_none] = NULL
-};
+    [tc_none] = NULL};
 
 // One entry per live thinker, built by PrepareArchiveThinkers() before saving
 // and by PrepareUnArchiveThinkers() before loading.  The index of an entry in
@@ -136,6 +135,7 @@ static actionf_p1 actions[] = {
 typedef struct
 {
     thinker_class_t tc;
+
     union
     {
         thinker_t *thinker;
@@ -174,11 +174,10 @@ static uintptr_t *platlist_pointers;
         (ptr) = (index != null_index) ? (base) + index : NULL; \
     } while (0)
 
-#define JS_SetIdx(doc, obj, key, ptr, base)              \
-    do                                                   \
-    {                                                    \
-        JS_SetInt(doc, obj, key,                         \
-                  ptr ? (int)(ptr - base) : null_index); \
+#define JS_SetIdx(doc, obj, key, ptr, base)                             \
+    do                                                                  \
+    {                                                                   \
+        JS_SetInt(doc, obj, key, ptr ? (int)(ptr - base) : null_index); \
     } while (0)
 
 inline static thinker_t *readp_thinker_index(int index)
@@ -439,7 +438,9 @@ static void read_mobj_t(mobj_t *str, thinker_class_t tc, json_t *obj)
 
     json_t *args_arr = JS_GetObject(obj, "args");
     for (int i = 0; i < 5; ++i)
+    {
         str->args[i] = JS_GetInteger(JS_GetArrayItem(args_arr, i));
+    }
 
     str->movedir = JS_GetIntegerValue(obj, "movedir");
     str->movecount = JS_GetIntegerValue(obj, "movecount");
@@ -460,7 +461,8 @@ static void read_mobj_t(mobj_t *str, thinker_class_t tc, json_t *obj)
     str->below_thing = readp_mobj(JS_GetIntegerValue(obj, "below_thing"));
     str->friction = JS_GetIntegerValue(obj, "friction");
     str->movefactor = JS_GetIntegerValue(obj, "movefactor");
-    str->touching_sectorlist = readp_msecnode(JS_GetIntegerValue(obj, "touching_sectorlist"));
+    str->touching_sectorlist =
+        readp_msecnode(JS_GetIntegerValue(obj, "touching_sectorlist"));
     str->interp = JS_GetIntegerValue(obj, "interp");
     str->oldx = JS_GetIntegerValue(obj, "oldx");
     str->oldy = JS_GetIntegerValue(obj, "oldy");
@@ -518,7 +520,9 @@ static json_mut_t *write_mobj_t(mobj_t *str)
 
     json_mut_t *args_arr = JS_NewArray(doc);
     for (int i = 0; i < 5; ++i)
+    {
         JS_ArrayAddInt(doc, args_arr, str->args[i]);
+    }
     JS_SetArray(doc, obj, "args", args_arr);
 
     JS_SetInt(doc, obj, "movedir", str->movedir);
@@ -540,7 +544,8 @@ static json_mut_t *write_mobj_t(mobj_t *str)
     JS_SetInt(doc, obj, "below_thing", writep_mobj(str->below_thing));
     JS_SetInt(doc, obj, "friction", str->friction);
     JS_SetInt(doc, obj, "movefactor", str->movefactor);
-    JS_SetInt(doc, obj, "touching_sectorlist", writep_msecnode(str->touching_sectorlist));
+    JS_SetInt(doc, obj, "touching_sectorlist",
+              writep_msecnode(str->touching_sectorlist));
     JS_SetInt(doc, obj, "interp", str->interp);
     JS_SetInt(doc, obj, "oldx", str->oldx);
     JS_SetInt(doc, obj, "oldy", str->oldy);
@@ -626,32 +631,44 @@ static void read_player_t(player_t *str, json_t *obj)
 
     json_t *powers_arr = JS_GetObject(obj, "powers");
     for (int i = 0; i < NUMPOWERS; ++i)
+    {
         str->powers[i] = JS_GetInteger(JS_GetArrayItem(powers_arr, i));
+    }
 
     json_t *cards_arr = JS_GetObject(obj, "cards");
     for (int i = 0; i < NUMCARDS; ++i)
+    {
         str->cards[i] = JS_GetInteger(JS_GetArrayItem(cards_arr, i));
+    }
 
     str->backpack = JS_GetIntegerValue(obj, "backpack");
 
     json_t *frags_arr = JS_GetObject(obj, "frags");
     for (int i = 0; i < MAXPLAYERS; ++i)
+    {
         str->frags[i] = JS_GetInteger(JS_GetArrayItem(frags_arr, i));
+    }
 
     str->readyweapon = JS_GetIntegerValue(obj, "readyweapon");
     str->pendingweapon = JS_GetIntegerValue(obj, "pendingweapon");
 
     json_t *weapons_arr = JS_GetObject(obj, "weaponowned");
     for (int i = 0; i < NUMWEAPONS; ++i)
+    {
         str->weaponowned[i] = JS_GetInteger(JS_GetArrayItem(weapons_arr, i));
+    }
 
     json_t *ammo_arr = JS_GetObject(obj, "ammo");
     for (int i = 0; i < NUMAMMO; ++i)
+    {
         str->ammo[i] = JS_GetInteger(JS_GetArrayItem(ammo_arr, i));
+    }
 
     json_t *maxammo_arr = JS_GetObject(obj, "maxammo");
     for (int i = 0; i < NUMAMMO; ++i)
+    {
         str->maxammo[i] = JS_GetInteger(JS_GetArrayItem(maxammo_arr, i));
+    }
 
     str->attackdown = JS_GetIntegerValue(obj, "attackdown");
     str->usedown = JS_GetIntegerValue(obj, "usedown");
@@ -671,7 +688,9 @@ static void read_player_t(player_t *str, json_t *obj)
 
     json_t *psprites_arr = JS_GetObject(obj, "psprites");
     for (int i = 0; i < NUMPSPRITES; ++i)
+    {
         read_pspdef_t(&str->psprites[i], JS_GetArrayItem(psprites_arr, i));
+    }
 
     str->secretmessage = NULL;
     str->didsecret = JS_GetIntegerValue(obj, "didsecret");
@@ -782,7 +801,9 @@ static json_mut_t *write_player_t(player_t *str)
 
     json_mut_t *psprites_arr = JS_NewArray(doc);
     for (int i = 0; i < NUMPSPRITES; ++i)
+    {
         JS_ArrayAddObject(doc, psprites_arr, write_pspdef_t(&str->psprites[i]));
+    }
     JS_SetArray(doc, obj, "psprites", psprites_arr);
 
     JS_SetInt(doc, obj, "didsecret", str->didsecret);
@@ -1225,7 +1246,8 @@ static void read_ambient_t(ambient_t *str, json_t *obj)
     str->active = JS_GetIntegerValue(obj, "active");
     str->playing = false;
     str->offset = (float)FixedToDouble(JS_GetIntegerValue(obj, "offset"));
-    str->last_offset = (float)FixedToDouble(JS_GetIntegerValue(obj, "last_offset"));
+    str->last_offset =
+        (float)FixedToDouble(JS_GetIntegerValue(obj, "last_offset"));
     str->last_leveltime = JS_GetIntegerValue(obj, "last_leveltime");
 }
 
@@ -1297,7 +1319,6 @@ static json_mut_t *write_button_t(button_t *str)
 
     return obj;
 }
-
 
 static void read_msecnode_t(msecnode_t *str, json_t *obj)
 {
@@ -1491,24 +1512,29 @@ static void ArchiveWorld(void)
         JS_SetInt(doc, sector_obj, "ceiling_xoffs", sector->ceiling_xoffs);
         JS_SetInt(doc, sector_obj, "ceiling_yoffs", sector->ceiling_yoffs);
         JS_SetInt(doc, sector_obj, "floor_rotation", sector->floor_rotation);
-        JS_SetInt(doc, sector_obj, "ceiling_rotation", sector->ceiling_rotation);
+        JS_SetInt(doc, sector_obj, "ceiling_rotation",
+                  sector->ceiling_rotation);
         JS_SetInt(doc, sector_obj, "tint", sector->tint);
 
         JS_SetInt(doc, sector_obj, "floorpic", sector->floorpic);
         JS_SetInt(doc, sector_obj, "ceilingpic", sector->ceilingpic);
         JS_SetInt(doc, sector_obj, "lightlevel", sector->lightlevel);
-        JS_SetInt(doc, sector_obj, "special", sector->special); // needed?   yes -- transfer types
-        JS_SetInt(doc, sector_obj, "tag", sector->tag);         // needed?   need them -- killough 
+        JS_SetInt(doc, sector_obj, "special", sector->special);
+        JS_SetInt(doc, sector_obj, "tag", sector->tag);
 
         // Woof!
-        JS_SetInt(doc, sector_obj, "soundtarget", writep_mobj(sector->soundtarget));
-        JS_SetInt(doc, sector_obj, "floordata", writep_thinker(sector->floordata));
-        JS_SetInt(doc, sector_obj, "ceilingdata", writep_thinker(sector->ceilingdata));
+        JS_SetInt(doc, sector_obj, "soundtarget",
+                  writep_mobj(sector->soundtarget));
+        JS_SetInt(doc, sector_obj, "floordata",
+                  writep_thinker(sector->floordata));
+        JS_SetInt(doc, sector_obj, "ceilingdata",
+                  writep_thinker(sector->ceilingdata));
 
         json_mut_t *thinglist = ArchiveThingList(sector);
         JS_SetArray(doc, sector_obj, "thinglist", thinglist);
 
-        JS_SetInt(doc, sector_obj, "touching_thinglist", writep_msecnode(sector->touching_thinglist));
+        JS_SetInt(doc, sector_obj, "touching_thinglist",
+                  writep_msecnode(sector->touching_thinglist));
 
         JS_ArrayAddObject(doc, sectors_arr, sector_obj);
     }
@@ -1565,8 +1591,10 @@ static void UnArchiveWorld(void)
         sector->floor_yoffs = JS_GetIntegerValue(sector_obj, "floor_yoffs");
         sector->ceiling_xoffs = JS_GetIntegerValue(sector_obj, "ceiling_xoffs");
         sector->ceiling_yoffs = JS_GetIntegerValue(sector_obj, "ceiling_yoffs");
-        sector->floor_rotation = JS_GetIntegerValue(sector_obj, "floor_rotation");
-        sector->ceiling_rotation = JS_GetIntegerValue(sector_obj, "ceiling_rotation");
+        sector->floor_rotation =
+            JS_GetIntegerValue(sector_obj, "floor_rotation");
+        sector->ceiling_rotation =
+            JS_GetIntegerValue(sector_obj, "ceiling_rotation");
         sector->tint = JS_GetIntegerValue(sector_obj, "tint");
 
         sector->floorpic = JS_GetIntegerValue(sector_obj, "floorpic");
@@ -1576,14 +1604,18 @@ static void UnArchiveWorld(void)
         sector->tag = JS_GetIntegerValue(sector_obj, "tag");
 
         // Woof!
-        sector->soundtarget = readp_mobj(JS_GetIntegerValue(sector_obj, "soundtarget"));
-        sector->floordata = readp_thinker(JS_GetIntegerValue(sector_obj, "floordata"));
-        sector->ceilingdata = readp_thinker(JS_GetIntegerValue(sector_obj, "ceilingdata"));
+        sector->soundtarget =
+            readp_mobj(JS_GetIntegerValue(sector_obj, "soundtarget"));
+        sector->floordata =
+            readp_thinker(JS_GetIntegerValue(sector_obj, "floordata"));
+        sector->ceilingdata =
+            readp_thinker(JS_GetIntegerValue(sector_obj, "ceilingdata"));
 
         json_t *thinglist_obj = JS_GetObject(sector_obj, "thinglist");
         UnArchiveThingList(sector, thinglist_obj);
 
-        sector->touching_thinglist = readp_msecnode(JS_GetIntegerValue(sector_obj, "touching_thinglist"));
+        sector->touching_thinglist = readp_msecnode(
+            JS_GetIntegerValue(sector_obj, "touching_thinglist"));
     }
 
     line_t *line;
@@ -1607,12 +1639,14 @@ static void UnArchiveWorld(void)
 
                 // killough 10/98: load full sidedef offsets, including
                 // fractions
-                
-                side->textureoffset = JS_GetIntegerValue(side_obj, "textureoffset");
+
+                side->textureoffset =
+                    JS_GetIntegerValue(side_obj, "textureoffset");
                 side->rowoffset = JS_GetIntegerValue(side_obj, "rowoffset");
-                
+
                 side->toptexture = JS_GetIntegerValue(side_obj, "toptexture");
-                side->bottomtexture = JS_GetIntegerValue(side_obj, "bottomtexture");
+                side->bottomtexture =
+                    JS_GetIntegerValue(side_obj, "bottomtexture");
                 side->midtexture = JS_GetIntegerValue(side_obj, "midtexture");
             }
         }
@@ -1657,10 +1691,7 @@ static void PrepareArchiveThinkers(void)
                      "PrepareArchiveThinkers: Unknown thinker class");
         }
 
-        thinker_pointer_t pointer = {
-            .tc = tc,
-            .p.integer = table[i]
-        };
+        thinker_pointer_t pointer = {.tc = tc, .p.integer = table[i]};
         thinker_pointers[i] = pointer;
     }
 
@@ -2033,7 +2064,8 @@ static void ArchiveCeilingList(void)
     for (int i = 0; i < count; ++i)
     {
         ceilinglist_t *cl = (ceilinglist_t *)table[i];
-        JS_ArrayAddInt(doc, ceilinglist_arr, writep_thinker(&cl->ceiling->thinker));
+        JS_ArrayAddInt(doc, ceilinglist_arr,
+                       writep_thinker(&cl->ceiling->thinker));
     }
     free(table);
 
@@ -2061,7 +2093,8 @@ static void UnArchiveCeilingList(json_t *ceilinglist_arr)
         json_t *ceilinglist_obj = JS_GetArrayItem(ceilinglist_arr, i);
 
         cl = (ceilinglist_t *)ceilinglist_pointers[i];
-        cl->ceiling = (ceiling_t *)readp_thinker(JS_GetInteger(ceilinglist_obj));
+        cl->ceiling =
+            (ceiling_t *)readp_thinker(JS_GetInteger(ceilinglist_obj));
         *prev = cl;
         cl->prev = prev;
         cl->next = NULL;
@@ -2286,7 +2319,9 @@ void P_ArchiveKeyframe(void)
 
     json_mut_t *tmbbox_arr = JS_NewArray(doc);
     for (int i = 0; i < arrlen(tmbbox); ++i)
+    {
         JS_ArrayAddInt(doc, tmbbox_arr, tmbbox[i]);
+    }
     JS_SetArray(doc, root_mut, "tmbbox", tmbbox_arr);
 
     // p_maputil.h
@@ -2306,7 +2341,8 @@ void P_ArchiveKeyframe(void)
     ArchiveThinkers();
     ArchiveMSecNodes();
 
-    JS_SetInt(doc, root_mut, "activeceilings", writep_activeceilings(activeceilings));
+    JS_SetInt(doc, root_mut, "activeceilings",
+              writep_activeceilings(activeceilings));
     ArchiveCeilingList();
     JS_SetInt(doc, root_mut, "activeplats", writep_activeplats(activeplats));
     ArchivePlatList();
@@ -2337,13 +2373,12 @@ void P_ArchiveKeyframe(void)
     mz_ulong compressed_len = mz_compressBound((mz_ulong)json_len);
     if ((compressed = malloc((size_t)compressed_len)))
     {
-        int mz_ret = mz_compress(compressed, &compressed_len,
-                                 (const unsigned char *)json_str,
-                                 (mz_ulong)json_len);
+        int mz_ret =
+            mz_compress(compressed, &compressed_len,
+                        (const unsigned char *)json_str, (mz_ulong)json_len);
 
-        if (mz_ret == MZ_OK &&
-            CheckStreamLength((int32_t)json_len) &&
-            CheckStreamLength((int32_t)compressed_len))
+        if (mz_ret == MZ_OK && CheckStreamLength((int32_t)json_len)
+            && CheckStreamLength((int32_t)compressed_len))
         {
             free(json_str);
             saveg_write32((int32_t)json_len);
@@ -2354,7 +2389,8 @@ void P_ArchiveKeyframe(void)
         }
         else
         {
-            I_Printf(VB_ERROR, "P_ArchiveKeyframe: Compression error (%s)", mz_error(mz_ret));
+            I_Printf(VB_ERROR, "P_ArchiveKeyframe: Compression error (%s)",
+                     mz_error(mz_ret));
 
             free(compressed);
             compressed = NULL;
@@ -2399,8 +2435,8 @@ void P_UnArchiveKeyframe(void)
 
     // Detect whether the keyframe is compressed or plain JSON.
     //
-    // Compressed format: [uint32 original_len][uint32 compressed_len][zlib stream]
-    // Plain format:      [JSON text][NUL]
+    // Compressed: [uint32 original_len][uint32 compressed_len][zlib stream]
+    // Plain: [JSON text][NUL]
     //
     // A valid zlib stream always begins with the CMF byte 0x78 followed by a
     // FLG byte such that (CMF << 8 | FLG) % 31 == 0.  A JSON stream always
@@ -2414,9 +2450,9 @@ void P_UnArchiveKeyframe(void)
     mz_ulong json_len = (mz_ulong)saveg_read32();
     int32_t compressed_len = saveg_read32();
 
-    if (CheckStreamLength((int32_t)json_len) &&
-        CheckStreamLength((int32_t)compressed_len) &&
-        CheckZlibHeader(save_p))
+    if (CheckStreamLength((int32_t)json_len)
+        && CheckStreamLength((int32_t)compressed_len)
+        && CheckZlibHeader(save_p))
     {
         // Compressed path: decompress into a temporary buffer, parse it,
         // then free the buffer (yyjson copies all strings internally).
@@ -2425,7 +2461,9 @@ void P_UnArchiveKeyframe(void)
         {
             I_Error("Out of memory");
         }
-        int mz_ret = mz_uncompress(decomp, &json_len, (const unsigned char *)save_p, (mz_ulong)compressed_len);
+        int mz_ret =
+            mz_uncompress(decomp, &json_len, (const unsigned char *)save_p,
+                          (mz_ulong)compressed_len);
         if (mz_ret != MZ_OK)
         {
             I_Error("Decompression error (%s)", mz_error(mz_ret));
@@ -2464,7 +2502,7 @@ void P_UnArchiveKeyframe(void)
     for (int i = 0; i < NUMTHCLASS; ++i)
     {
         json_t *thinkerclasscap_obj = JS_GetArrayItem(thinkerclasscaps_arr, i);
-        
+
         read_thinker_t(&thinkerclasscap[i], tc_none, thinkerclasscap_obj);
     }
 
