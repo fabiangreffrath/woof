@@ -2352,7 +2352,7 @@ void P_ArchiveKeyframe(void)
     EndArchive();
 
     // Serialise the document to a JSON string, then free it – the string
-    // owns its own memory and is independent of the yyjson document.
+    // owns its own memory and is independent of the JSON document.
     size_t json_len;
     char *json_str = JS_DocWriteString(doc, &json_len);
     JS_FreeDoc(doc);
@@ -2446,7 +2446,7 @@ void P_UnArchiveKeyframe(void)
         && CheckZlibHeader(save_p))
     {
         // Compressed path: decompress into a temporary buffer, parse it,
-        // then free the buffer (yyjson copies all strings internally).
+        // then free the buffer (JS_OpenString copies all strings internally).
         unsigned char *decomp = malloc((size_t)json_len);
         if (!decomp)
         {
