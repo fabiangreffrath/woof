@@ -1230,16 +1230,16 @@ static json_mut_t *write_ambient_t(ambient_t *str)
     return obj;
 }
 
-static void read_rng_t(rng_t *str, json_t *rng_obj)
+static void read_rng_t(rng_t *str, json_t *obj)
 {
-    json_t *seeds_arr = JS_GetObject(rng_obj, "seeds");
+    json_t *seeds_arr = JS_GetObject(obj, "seeds");
     for (int i = 0; i < NUMPRCLASS; ++i)
     {
         json_t *seed_obj = JS_GetArrayItem(seeds_arr, i);
         str->seed[i] = JS_GetNumber(seed_obj);
     }
-    str->rndindex = JS_GetIntegerValue(rng_obj, "rndindex");
-    str->prndindex = JS_GetIntegerValue(rng_obj, "prndindex");
+    str->rndindex = JS_GetIntegerValue(obj, "rndindex");
+    str->prndindex = JS_GetIntegerValue(obj, "prndindex");
 }
 
 static json_mut_t *write_rng_t(rng_t *str)
@@ -1259,12 +1259,12 @@ static json_mut_t *write_rng_t(rng_t *str)
     return obj;
 }
 
-static void read_button_t(button_t *str, json_t *button_obj)
+static void read_button_t(button_t *str, json_t *obj)
 {
-    JS_GetIdx(str->line, lines, button_obj, "line");
-    str->where = JS_GetIntegerValue(button_obj, "where");
-    str->btexture = JS_GetIntegerValue(button_obj, "btexture");
-    str->btimer = JS_GetIntegerValue(button_obj, "btimer");
+    JS_GetIdx(str->line, lines, obj, "line");
+    str->where = JS_GetIntegerValue(obj, "where");
+    str->btexture = JS_GetIntegerValue(obj, "btexture");
+    str->btimer = JS_GetIntegerValue(obj, "btimer");
 }
 
 static json_mut_t *write_button_t(button_t *str)
@@ -1280,15 +1280,15 @@ static json_mut_t *write_button_t(button_t *str)
 }
 
 
-static void read_msecnode_t(msecnode_t *str, json_t *msecnode_obj)
+static void read_msecnode_t(msecnode_t *str, json_t *obj)
 {
-    JS_GetIdx(str->m_sector, sectors, msecnode_obj, "m_sector");
-    str->m_thing = readp_mobj(JS_GetIntegerValue(msecnode_obj, "m_thing"));
-    str->m_tprev = readp_msecnode(JS_GetIntegerValue(msecnode_obj, "m_tprev"));
-    str->m_tnext = readp_msecnode(JS_GetIntegerValue(msecnode_obj, "m_tnext"));
-    str->m_sprev = readp_msecnode(JS_GetIntegerValue(msecnode_obj, "m_sprev"));
-    str->m_snext = readp_msecnode(JS_GetIntegerValue(msecnode_obj, "m_snext"));
-    str->visited = JS_GetIntegerValue(msecnode_obj, "visited");
+    JS_GetIdx(str->m_sector, sectors, obj, "m_sector");
+    str->m_thing = readp_mobj(JS_GetIntegerValue(obj, "m_thing"));
+    str->m_tprev = readp_msecnode(JS_GetIntegerValue(obj, "m_tprev"));
+    str->m_tnext = readp_msecnode(JS_GetIntegerValue(obj, "m_tnext"));
+    str->m_sprev = readp_msecnode(JS_GetIntegerValue(obj, "m_sprev"));
+    str->m_snext = readp_msecnode(JS_GetIntegerValue(obj, "m_snext"));
+    str->visited = JS_GetIntegerValue(obj, "visited");
 }
 
 static json_mut_t *write_msecnode_t(msecnode_t *str)
@@ -1306,12 +1306,12 @@ static json_mut_t *write_msecnode_t(msecnode_t *str)
     return obj;
 }
 
-static void read_divline_t(divline_t *str, json_t *trace_obj)
+static void read_divline_t(divline_t *str, json_t *obj)
 {
-    str->x = JS_GetIntegerValue(trace_obj, "x");
-    str->y = JS_GetIntegerValue(trace_obj, "y");
-    str->dx = JS_GetIntegerValue(trace_obj, "dx");
-    str->dy = JS_GetIntegerValue(trace_obj, "dy");
+    str->x = JS_GetIntegerValue(obj, "x");
+    str->y = JS_GetIntegerValue(obj, "y");
+    str->dx = JS_GetIntegerValue(obj, "dx");
+    str->dy = JS_GetIntegerValue(obj, "dy");
 }
 
 static json_mut_t *write_divline_t(divline_t *str)
@@ -2345,6 +2345,8 @@ void P_UnArchiveKeyframe(void)
         I_Error("Recursive call detected");
     }
 
+    // Decompress keyframe in JSON format
+
     byte *orig_save_p = save_p;
     if (saveg_check_size(2 * sizeof(int32_t) + sizeof(int16_t)))
     {
@@ -2479,6 +2481,8 @@ void P_UnArchiveKeyframe(void)
     UnArchiveAutoMap();
 
     EndUnArchive();
+
+    // Finish
 
     JS_CloseOptions(NO_INDEX);
     root = NULL;
