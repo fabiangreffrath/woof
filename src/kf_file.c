@@ -38,6 +38,8 @@
 #include "r_defs.h"
 #include "r_state.h"
 
+#include "miniz.h"
+
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
@@ -1723,9 +1725,9 @@ static void ArchiveThinkers(void)
 static void PrepareUnArchiveThinkers(json_t *thinkers)
 {
     int count = JS_GetArraySize(thinkers);
-    while (count--)
+    for (int i = 0; i < count; ++i)
     {
-        json_t *thinker = JS_GetArrayItem(thinkers, count);
+        json_t *thinker = JS_GetArrayItem(thinkers, i);
         thinker_pointer_t pointer;
         pointer.tc = JS_GetIntegerValue(thinker, "class");
         switch (pointer.tc)
@@ -2210,7 +2212,7 @@ void P_ArchiveKeyframe(void)
 {
     if (doc || root_mut)
     {
-        I_Error("recursive call detected");
+        I_Error("Recursive call detected");
     }
 
     doc = JS_NewDoc();
@@ -2282,30 +2284,115 @@ void P_ArchiveKeyframe(void)
 
     EndArchive();
 
+    // Write to JSON string
+
     size_t json_len;
     char *json_str = JS_DocWriteString(doc, &json_len);
     JS_FreeDoc(doc);
     root_mut = NULL;
     doc = NULL;
 
-    json_len++; // include null-terminator
-    saveg_grow(json_len);
-    M_StringCopy((char *)save_p, json_str, json_len);
-    free(json_str);
+    // Compress!
 
-    save_p += json_len;
+    unsigned char *compressed = NULL;
+#ifndef KF_NO_COMPRESS
+    mz_ulong compressed_len = mz_compressBound((mz_ulong)json_len);
+    if ((compressed = malloc((size_t)compressed_len)))
+    {
+        int mz_ret = mz_compress(compressed, &compressed_len,
+                                 (const unsigned char *)json_str,
+                                 (mz_ulong)json_len);
+
+        if (mz_ret == MZ_OK)
+        {
+            free(json_str);
+            saveg_write32((int)json_len);
+            saveg_write32((int)compressed_len);
+            saveg_grow(compressed_len);
+            memcpy(save_p, compressed, (size_t)compressed_len);
+            save_p += compressed_len;
+        }
+        else
+        {
+            I_Printf(VB_ERROR, "P_ArchiveKeyframe: Compression error (%s)", mz_error(mz_ret));
+
+            free(compressed);
+            compressed = NULL;
+        }
+    }
+#endif
+
+    if (!compressed)
+    {
+        I_Printf(VB_WARNING, "P_ArchiveKeyframe: Saving uncompressed keyframe");
+
+        json_len++; // include null-terminator
+        saveg_grow(json_len);
+        M_StringCopy((char *)save_p, json_str, json_len);
+        free(json_str);
+        save_p += json_len;
+    }
+    else
+    {
+        free(compressed);
+    }
 }
 
 void P_UnArchiveKeyframe(void)
 {
     if (root)
     {
-        I_Error("recursive call detected");
+        I_Error("Recursive call detected");
     }
 
-    size_t json_len = strlen((char *)save_p);
-    root = JS_OpenString((char *)save_p, json_len);
-    save_p += json_len + 1;
+    byte *orig_save_p = save_p;
+    if (saveg_check_size(2 * sizeof(int32_t) + sizeof(int16_t)))
+    {
+        mz_ulong json_len = (mz_ulong)saveg_read32();
+        int32_t compressed_len = saveg_read32();
+        union {uint16_t s; uint8_t c[2];} zip_header;
+        memcpy(&zip_header.s, save_p, sizeof(uint16_t));
+        const uint8_t ZLIB_MAGIC_BYTE = 0x78;
+
+        if ((int32_t)json_len > 0 && (int32_t)json_len < (1 << 28) &&
+            compressed_len > 0 && compressed_len < (1 << 28) &&
+            zip_header.c[0] == ZLIB_MAGIC_BYTE &&
+            ((zip_header.c[0] << 8) + zip_header.c[1]) % 31 == 0)
+        {
+            unsigned char *decomp = malloc((size_t)json_len);
+            if (!decomp)
+            {
+                I_Error("Out of memory");
+            }
+            int mz_ret = mz_uncompress(decomp, &json_len, (const unsigned char *)save_p, (mz_ulong)compressed_len);
+            if (mz_ret != MZ_OK)
+            {
+                I_Error("Decompression error (%s)", mz_error(mz_ret));
+            }
+            root = JS_OpenString((char *)decomp, (size_t)json_len);
+            free(decomp);
+            if (!root)
+            {
+                I_Error("Error parsing JSON");
+            }
+            save_p += compressed_len;
+        }
+        else
+        {
+            save_p = orig_save_p;
+            json_len = (mz_ulong)strlen((char *)save_p);
+            root = JS_OpenString((char *)save_p, (size_t)json_len);
+            if (!root)
+            {
+                I_Error("Error parsing JSON");
+            }
+            save_p += json_len + 1;
+        }
+    }
+    else
+    {
+        I_Error("Broken savegame");
+    }
 
     StartUnArchive();
 
