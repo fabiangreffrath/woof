@@ -1487,9 +1487,12 @@ inline static void UnArchiveThingList(sector_t *sector, json_t *thinglist_arr)
         mobj = readp_mobj(JS_GetInteger(thing_obj));
 
         *sprev = mobj;
-        mobj->sprev = sprev;
-        mobj->snext = NULL;
-        sprev = &mobj->snext;
+        if (mobj)
+        {
+            mobj->sprev = sprev;
+            mobj->snext = NULL;
+            sprev = &mobj->snext;
+        }
     }
 }
 
@@ -2044,9 +2047,12 @@ static void UnArchiveBlocklinks(void)
 
                 mobj = readp_mobj(JS_GetInteger(mobj_obj));
                 *bprev = mobj;
-                mobj->bprev = bprev;
-                mobj->bnext = NULL;
-                bprev = &mobj->bnext;
+                if (mobj)
+                {
+                    mobj->bprev = bprev;
+                    mobj->bnext = NULL;
+                    bprev = &mobj->bnext;
+                }
             }
         }
     }
