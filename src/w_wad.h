@@ -144,7 +144,6 @@ void    W_ReadLumpSize(int lump, void *dest, int size);
 void    *W_CacheLumpNum(int lump, pu_tag tag);
 
 #define W_CacheLumpName(name,tag) W_CacheLumpNum (W_GetNumForName(name),(tag))
-#define W_CacheSpriteName(name,tag) W_CacheLumpNum((W_CheckNumForName)(name, ns_sprites),(tag))
 
 const char *W_CheckWidescreenPatch(const char *lump);
 

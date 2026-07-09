@@ -809,6 +809,26 @@ void S_ResumeSound(void)
     I_ProcessSoundUpdates();
 }
 
+void S_MuteSound(void)
+{
+    if (nosfxparm)
+    {
+        return;
+    }
+
+    I_MuteSound();
+}
+
+void S_UnmuteSound(void)
+{
+    if (nosfxparm)
+    {
+        return;
+    }
+
+    I_UnmuteSound();
+}
+
 //
 // Stop and resume music, during game PAUSE.
 //
@@ -824,7 +844,7 @@ void S_PauseMusic(void)
 
 void S_ResumeMusic(void)
 {
-    if (mus_playing && mus_paused)
+    if (mus_playing && mus_paused && !paused)
     {
         I_ResumeSong(mus_playing->handle);
         mus_paused = false;
@@ -1100,6 +1120,7 @@ void S_StopMusic(void)
     if (mus_paused)
     {
         I_ResumeSong(mus_playing->handle);
+        mus_paused = false;
     }
 
     I_StopSong((void *)mus_playing->handle);

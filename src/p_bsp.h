@@ -25,26 +25,9 @@
 
 struct vertex_s;
 
-typedef enum
-{
-    BSP_DOOMBSP,
-    BSP_DEEPBSPV4,
-    BSP_XNOD,
-    BSP_ZNOD,
-    BSP_XGLN,
-    BSP_ZGLN,
-    BSP_XGL2,
-    BSP_ZGL2,
-    BSP_XGL3,
-    BSP_ZGL3,
-    BSP_NANO,
-} bspformat_t;
-
-extern const char *const node_format_names[];
-
-extern mapformat_t P_CheckMapFormat(int lumpnum);
-extern bspformat_t P_CheckBSPFormat_Doom(int lumpnum);
-extern bspformat_t P_CheckBSPFormat_UDMF(int lumpnum);
+extern void P_InitSubsectorLines(void);
+extern void P_CheckBSPFormat_Binary(map_t *map);
+extern void P_CheckBSPFormat_UDMF(map_t *map);
 extern int P_GetOffset(struct vertex_s *v1, struct vertex_s *v2);
 
 extern void P_LoadSegs(int lump);
@@ -53,6 +36,6 @@ extern void P_LoadNodes(int lump);
 extern void P_LoadSegs_DeePBSPV4(int lump);
 extern void P_LoadSubsectors_DeePBSPV4(int lump);
 extern void P_LoadNodes_DeePBSPV4(int lump);
-extern void P_LoadBSPTree_ZDBSP(int lump, bspformat_t format);
+extern void P_LoadBSPTree_ZDBSP(int lump, bsp_format_t format);
 
 #endif

@@ -320,9 +320,15 @@ typedef struct mobj_s
     int                 health;
 
     // Action specials
-    int32_t             id;
+    int32_t             tid;
     int32_t             special;
     int32_t             args[5];
+
+    // Note: tid chain pointers are NOT serialized in save games,
+    // but are restored on load by rehashing the things as they are
+    // spawned.
+    struct mobj_s  *tid_next;  // ptr to next thing in tid chain
+    struct mobj_s **tid_prevn; // ptr to last thing's next pointer
 
     // Tinting
     int32_t             tint;
@@ -467,6 +473,13 @@ void    P_ExplodeMissile(mobj_t*);    // killough
 
 boolean P_SeekerMissile(mobj_t *actor, mobj_t **seekTarget, angle_t thresh, angle_t turnMax, boolean seekcenter);
 int     P_FaceMobj(mobj_t *source, mobj_t *target, angle_t *delta);
+
+// TIDs
+void P_InitTIDHash(void);
+void P_AddThingTID(mobj_t *mo, int tid);
+void P_RemoveThingTID(mobj_t *mo);
+mobj_t *P_FindMobjFromTID(int tid, mobj_t *rover, mobj_t *trigger);
+
 #endif
 
 //----------------------------------------------------------------------------

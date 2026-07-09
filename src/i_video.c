@@ -342,7 +342,7 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
             I_UpdatePriority(true);
             if (mute_unfocused)
             {
-                S_ResumeSound();
+                S_UnmuteSound();
                 S_ResumeMusic();
             }
             break;
@@ -352,7 +352,7 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
             I_UpdatePriority(false);
             if (mute_unfocused)
             {
-                S_PauseSound();
+                S_MuteSound();
                 S_PauseMusic();
             }
             break;
@@ -601,8 +601,10 @@ static void UpdateMouseMenu(void)
         ev.data1.i = EV_RESIZE_VIEWPORT;
     }
 
-    x = clampf((x - rect.x) / rect.w, 0.0f, 1.0f) * video.unscaledw;
-    y = clampf((y - rect.y) / rect.h, 0.0f, 1.0f) * SCREENHEIGHT;
+    const float scale = SDL_GetWindowPixelDensity(screen);
+
+    x = clampf((x * scale - rect.x) / rect.w, 0.0f, 1.0f) * video.unscaledw;
+    y = clampf((y * scale - rect.y) / rect.h, 0.0f, 1.0f) * SCREENHEIGHT;
 
     static float oldx, oldy;
     if (x != oldx || y != oldy)

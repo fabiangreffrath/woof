@@ -112,6 +112,9 @@ void S_StopMusic(void);
 void S_PauseSound(void);
 void S_ResumeSound(void);
 
+void S_MuteSound(void);
+void S_UnmuteSound(void);
+
 // Stop and resume music, during game PAUSE.
 void S_PauseMusic(void);
 void S_ResumeMusic(void);

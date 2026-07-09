@@ -26,6 +26,8 @@ struct patch_s *V_LinearToTransPatch(const byte *data, int width, int height,
 
 struct patch_s *V_CachePatchNum(int lump, pu_tag tag);
 
+#define V_CacheSpriteName(name,tag) V_CachePatchNum((W_CheckNumForName)(name, ns_sprites),(tag))
+
 inline static struct patch_s *V_CachePatchName(const char *name, pu_tag tag)
 {
     return V_CachePatchNum(W_GetNumForName(name), tag);

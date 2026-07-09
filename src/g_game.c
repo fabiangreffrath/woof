@@ -41,6 +41,7 @@
 #include "doomtype.h"
 #include "f_finale.h"
 #include "g_game.h"
+#include "f_wipe.h"
 #include "g_nextweapon.h"
 #include "g_rewind.h"
 #include "g_umapinfo.h"
@@ -969,7 +970,7 @@ static void G_DoLoadLevel(void)
     boom_basetic = gametic;
 
   if (wipegamestate == GS_LEVEL)
-    wipegamestate = -1;             // force a wipe
+    F_SetWipe(wipe_Melt); // force a wipe
 
   gamestate = GS_LEVEL;
 
@@ -1007,7 +1008,7 @@ static void G_DoLoadLevel(void)
 
   P_ClearDirtyArrays();
 
-  P_SetupLevel (gameepisode, gamemap, 0, gameskill);
+  P_SetupLevel(gameepisode, gamemap, gameskill);
 
   MN_UpdateFreeLook();
   HU_UpdateTurnFormat();
@@ -3084,7 +3085,8 @@ void G_Ticker(void)
 	      memcpy(cmd, &netcmds[i], sizeof *cmd);
 
 	      // catch BT_JOIN before G_ReadDemoTiccmd overwrites it
-	      if (demoplayback && cmd->buttons & BT_JOIN)
+	      if (demoplayback &&
+	          !(cmd->buttons & BT_CHANGE) && cmd->buttons & BT_JOIN)
 		G_JoinDemo();
 
 	      // catch BTS_RELOAD for demo playback restart

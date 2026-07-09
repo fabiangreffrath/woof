@@ -25,7 +25,8 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
-#include "f_finale.h"
+#include "dsdh_main.h"
+#include "f_wipe.h"
 #include "g_game.h"
 #include "g_umapinfo.h"
 #include "i_printf.h"
@@ -165,7 +166,7 @@ static void ParseEndFinale_CastFrame(json_t *js_frame, cast_frame_t **frames,
     M_CopyLumpName(cast_frame.xlat_lump, (xlat_lump ? xlat_lump : "\0"));
     cast_frame.flipped = JS_GetBooleanValue(js_frame, "flipped");
     cast_frame.duration = MAX(1, JS_GetNumberValue(js_frame, "duration") * TICRATE);
-    cast_frame.sound = JS_GetIntegerValue(js_frame, "sound");
+    cast_frame.sound = DSDH_SoundTranslate(JS_GetIntegerValue(js_frame, "sound"));
 
     array_push(*frames, cast_frame);
     (*framecount)++;
@@ -176,7 +177,7 @@ static cast_anim_t ParseEndFinale_CastAnims(json_t *js_castanim_entry,
 {
     cast_anim_t out = {0};
     out.name = DEH_StringForMnemonic(JS_GetStringValue(js_castanim_entry, "name"));
-    out.alertsound = JS_GetIntegerValue(js_castanim_entry, "alertsound");
+    out.alertsound = DSDH_SoundTranslate(JS_GetIntegerValue(js_castanim_entry, "alertsound"));
 
     json_t *js_alive_frame_list = JS_GetObject(js_castanim_entry, "aliveframes");
     json_t *js_alive_frame = NULL;
@@ -217,7 +218,7 @@ static void ParseEndFinale_Bunny(json_t *js_bunny, end_finale_t *out,
 {
     out->bunny_overlay = JS_GetIntegerValue(js_bunny, "overlay");
     out->bunny_overlaycount = JS_GetIntegerValue(js_bunny, "overlaycount");
-    out->bunny_overlaysound = JS_GetIntegerValue(js_bunny, "overlaysound");
+    out->bunny_overlaysound = DSDH_SoundTranslate(JS_GetIntegerValue(js_bunny, "overlaysound"));
     out->bunny_overlayx = JS_GetIntegerValue(js_bunny, "overlayx");
     out->bunny_overlayy = JS_GetIntegerValue(js_bunny, "overlayy");
     const char *bunny_lump = JS_GetStringValue(js_bunny, "stitchimage");
@@ -414,7 +415,7 @@ static boolean MapInfo_Ticker()
                 {
                     finalecount = 0;
                     finalestage = FINALE_STAGE_ART;
-                    wipegamestate = -1; // force a wipe
+                    F_SetWipe(wipe_Melt); // force a wipe
                     S_ChangeMusInfoMusic(W_GetNumForName(endfinale->music), 
                                          endfinale->musicloops);
                     if (endfinale->type == END_ART)
@@ -431,7 +432,7 @@ static boolean MapInfo_Ticker()
             {
                 finalecount = 0;
                 finalestage = FINALE_STAGE_ART;
-                wipegamestate = -1; // force a wipe
+                F_SetWipe(wipe_Melt); // force a wipe
                 if (gamemapinfo->flags & MapInfo_EndGameBunny)
                 {
                     S_StartMusic(mus_bunny);
@@ -675,7 +676,7 @@ void F_Ticker(void)
           {                               // with enough time, it's automatic
             finalecount = 0;
             finalestage = FINALE_STAGE_ART;
-            wipegamestate = -1;         // force a wipe
+            F_SetWipe(wipe_Melt); // force a wipe
             if (gameepisode == 3)
               S_StartMusic(mus_bunny);
           }
@@ -759,8 +760,8 @@ static void F_TextWrite(void)
     {
       continue;
     }
-    // [cispy] prevent text from being drawn off-screen vertically
-    if (cy + SHORT(hu_font[c]->height) > SCREENHEIGHT)
+    // [crispy] prevent text from being drawn off-screen vertically
+    if (cy + SHORT(hu_font[c]->height) - SHORT(hu_font[c]->topoffset) > SCREENHEIGHT)
       break;
     V_DrawPatch(cx, cy, hu_font[c]);
     cx+=w;
@@ -815,7 +816,7 @@ static void EndFinaleCast_SetupCall(void)
         cast_frame_t *frame;
         array_foreach(frame, callee->aliveframes)
         {
-            W_CacheSpriteName(frame->frame_lump, PU_LEVEL);
+            V_CacheSpriteName(frame->frame_lump, PU_LEVEL);
             frame->tranmap = (W_CheckNumForName(frame->tran_lump) >= 0)
                            ? W_CacheLumpName(frame->tran_lump, PU_LEVEL)
                            : NULL;
@@ -825,7 +826,7 @@ static void EndFinaleCast_SetupCall(void)
         }
         array_foreach(frame, callee->deathframes)
         {
-            W_CacheSpriteName(frame->frame_lump, PU_LEVEL);
+            V_CacheSpriteName(frame->frame_lump, PU_LEVEL);
             frame->tranmap = (W_CheckNumForName(frame->tran_lump) >= 0)
                            ? W_CacheLumpName(frame->tran_lump, PU_LEVEL)
                            : NULL;
@@ -899,7 +900,7 @@ void EndFinaleCast_Drawer(void)
 {
     V_DrawPatchFullScreen(W_CacheLumpName(endfinale->background, PU_LEVEL));
     F_CastPrint(ef_current_callee->name);
-    patch_t *frame = W_CacheSpriteName(ef_current_frame->frame_lump, PU_LEVEL);
+    patch_t *frame = V_CacheSpriteName(ef_current_frame->frame_lump, PU_LEVEL);
     const byte *tranmap = ef_current_frame->tranmap;
     const byte *xlat = ef_current_frame->xlat;
     boolean flip = ef_current_frame->flipped;
@@ -934,7 +935,7 @@ boolean         castattacking;
 //
 static void F_StartCast(void)
 {
-  wipegamestate = -1; // force a screen wipe
+  F_SetWipe(wipe_Melt); // force a screen wipe
   finalestage = FINALE_STAGE_CAST;
 
   if (gamemapinfo && gamemapinfo->flags & MapInfo_EndGameCustomFinale)

@@ -433,7 +433,7 @@ static void read_mobj_t(mobj_t *str, thinker_class_t tc, json_t *obj)
     str->flags_extra = JS_GetIntegerValue(obj, "flags_extra");
     str->intflags = JS_GetIntegerValue(obj, "intflags");
     str->health = JS_GetIntegerValue(obj, "health");
-    str->id = JS_GetIntegerValue(obj, "id");
+    str->tid = JS_GetIntegerValue(obj, "tid");
     str->special = JS_GetIntegerValue(obj, "special");
 
     json_t *args_arr = JS_GetObject(obj, "args");
@@ -515,7 +515,7 @@ static json_mut_t *write_mobj_t(mobj_t *str)
     JS_SetInt(doc, obj, "flags_extra", str->flags_extra);
     JS_SetInt(doc, obj, "intflags", str->intflags);
     JS_SetInt(doc, obj, "health", str->health);
-    JS_SetInt(doc, obj, "id", str->id);
+    JS_SetInt(doc, obj, "tid", str->tid);
     JS_SetInt(doc, obj, "special", str->special);
 
     json_mut_t *args_arr = JS_NewArray(doc);
@@ -1866,6 +1866,7 @@ static void UnArchiveThinkers(json_t *thinkers)
             case tc_mobj:
             case tc_mobj_del:
                 read_mobj_t(pointer->p.mobj, pointer->tc, data);
+                P_AddThingTID(pointer->p.mobj, pointer->p.mobj->tid);
                 break;
             case tc_ceiling:
             case tc_ceiling_del:
