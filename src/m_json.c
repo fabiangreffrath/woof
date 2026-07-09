@@ -14,6 +14,7 @@
 #include "m_json.h"
 
 #include <string.h>
+#include "doomdata.h"
 #include "doomtype.h"
 #include "i_printf.h"
 #include "m_array.h"
@@ -62,7 +63,7 @@ json_t *JS_OpenString(char *string, size_t length)
         return NULL;
     }
 
-    array_push(docs, ((doc_t){json_doc, -1}));
+    array_push(docs, ((doc_t){json_doc, NO_INDEX}));
 
     json_t *json = yyjson_doc_get_root(json_doc);
 
