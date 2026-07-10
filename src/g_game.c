@@ -3910,6 +3910,7 @@ void G_ReloadDefaults(boolean keep_demover)
   halfplayerdamage = cshalfplayerdamage;
   doubleammo = csdoubleammo;
   aggromonsters = csaggromonsters;
+  dogs = cshelperdogs;
 
   //jff 3/24/98 set startskill from defaultskill in config file, unless
   // it has already been set by a -skill parameter
