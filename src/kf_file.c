@@ -1584,9 +1584,10 @@ static void UnArchiveWorld(void)
     json_t *sectors_arr = JS_GetObject(root, "sectors");
 
     // do sectors
+    json_arr_iter_t *sector_iter = JS_ArrayIterator(sectors_arr);
     for (i = 0, sector = sectors; i < numsectors; i++, sector++)
     {
-        json_t *sector_obj = JS_GetArrayItem(sectors_arr, i);
+        json_t *sector_obj = JS_ArrayNext(sector_iter);
 
         sector->floorheight = JS_GetIntegerValue(sector_obj, "floorheight");
         sector->ceilingheight = JS_GetIntegerValue(sector_obj, "ceilingheight");
@@ -1625,9 +1626,10 @@ static void UnArchiveWorld(void)
 
     json_t *lines_arr = JS_GetObject(root, "lines");
 
+    json_arr_iter_t *line_iter = JS_ArrayIterator(lines_arr);
     for (i = 0, line = lines; i < numlines; i++, line++)
     {
-        json_t *line_obj = JS_GetArrayItem(lines_arr, i);
+        json_t *line_obj = JS_ArrayNext(line_iter);
 
         line->flags = JS_GetIntegerValue(line_obj, "flags");
         line->special = JS_GetIntegerValue(line_obj, "special");
@@ -1783,10 +1785,9 @@ static void ArchiveThinkers(void)
 // the second pass (UnArchiveThinkers).
 static void PrepareUnArchiveThinkers(json_t *thinkers)
 {
-    int count = JS_GetArraySize(thinkers);
-    for (int i = 0; i < count; ++i)
+    json_t *thinker;
+    JS_ArrayForEach(thinker, thinkers)
     {
-        json_t *thinker = JS_GetArrayItem(thinkers, i);
         thinker_pointer_t pointer;
         pointer.tc = JS_GetIntegerValue(thinker, "class");
         switch (pointer.tc)
@@ -1858,11 +1859,12 @@ static void PrepareUnArchiveThinkers(json_t *thinkers)
 static void UnArchiveThinkers(json_t *thinkers)
 {
     int count = array_size(thinker_pointers);
+    json_arr_iter_t *arr_iter = JS_ArrayIterator(thinkers);
 
     for (int i = 0; i < count; i++)
     {
         thinker_pointer_t *pointer = &thinker_pointers[i];
-        json_t *wrapper = JS_GetArrayItem(thinkers, i);
+        json_t *wrapper = JS_ArrayNext(arr_iter);
         json_t *data = JS_GetObject(wrapper, "thinker");
         switch (pointer->tc)
         {
@@ -1959,11 +1961,11 @@ static void PrepareUnArchiveMSecNodes(json_t *msecnodes_arr)
 static void UnArchiveMSecNodes(json_t *msecnodes_arr)
 {
     int count = JS_GetArraySize(msecnodes_arr);
+    json_arr_iter_t *arr_iter = JS_ArrayIterator(msecnodes_arr);
 
     for (int i = 0; i < count; ++i)
     {
-        json_t *msecnode_obj = JS_GetArrayItem(msecnodes_arr, i);
-
+        json_t *msecnode_obj = JS_ArrayNext(arr_iter);
         read_msecnode_t((msecnode_t *)msecnode_pointers[i], msecnode_obj);
     }
 }
@@ -2028,11 +2030,12 @@ static void UnArchiveBlocklinks(void)
     json_t *bmap_arr = JS_GetObject(root, "blocklinks");
 
     int blocklinks_count = bmapwidth * bmapheight;
+    json_arr_iter_t *bmap_iter = JS_ArrayIterator(bmap_arr);
     for (int i = 0; i < blocklinks_count; ++i)
     {
         blocklinks[i] = NULL;
 
-        json_t *blocklinks_arr = JS_GetArrayItem(bmap_arr, i);
+        json_t *blocklinks_arr = JS_ArrayNext(bmap_iter);
         int count = JS_GetArraySize(blocklinks_arr);
         if (count)
         {
@@ -2092,9 +2095,10 @@ static void UnArchiveCeilingList(json_t *ceilinglist_arr)
     int count = array_size(ceilinglist_pointers);
     ceilinglist_t *cl, **prev;
     prev = &activeceilings;
+    json_arr_iter_t *iter = JS_ArrayIterator(ceilinglist_arr);
     for (int i = 0; i < count; ++i)
     {
-        json_t *ceilinglist_obj = JS_GetArrayItem(ceilinglist_arr, i);
+        json_t *ceilinglist_obj = JS_ArrayNext(iter);
 
         cl = (ceilinglist_t *)ceilinglist_pointers[i];
         cl->ceiling =
@@ -2142,9 +2146,10 @@ static void UnArchivePlatList(json_t *platlist_arr)
     int count = array_size(platlist_pointers);
     platlist_t *pl, **prev;
     prev = &activeplats;
+    json_arr_iter_t *iter = JS_ArrayIterator(platlist_arr);
     for (int i = 0; i < count; ++i)
     {
-        json_t *platlist_obj = JS_GetArrayItem(platlist_arr, i);
+        json_t *platlist_obj = JS_ArrayNext(iter);
 
         pl = (platlist_t *)platlist_pointers[i];
         pl->plat = (plat_t *)readp_thinker(JS_GetInteger(platlist_obj));
