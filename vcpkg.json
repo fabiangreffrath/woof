@@ -40,7 +40,8 @@
       "default-features": false,
       "features": [
         "non-standard",
-        "reader"
+        "reader",
+        "writer"
       ]
     }
   ],
