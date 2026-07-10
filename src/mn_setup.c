@@ -3523,6 +3523,14 @@ const char *skill_strings[] = {
     "Ultra-Violence", "NIGHTMARE!",
 };
 
+static void CsBarkSound(void)
+{
+    if (csmenu.helperdogs)
+    {
+        M_StartSound(sfx_dgact);
+    }
+}
+
 static void SelectSkillLevel(void);
 
 static void StartGame(void)
@@ -3543,8 +3551,11 @@ static void StartGame(void)
 
 static setup_menu_t customskill_settings1[] = {
     MI_GAP_Y(10),
-    {"Skill level", S_CHOICE, CNTR_X, M_SPC, {"csmenu_skill"},
-     .strings_id = str_skill, .action = SelectSkillLevel},
+    {"Skill level",
+          S_CHOICE, CNTR_X,
+          M_SPC, {"csmenu_skill"},
+          .strings_id = str_skill,
+          .action = SelectSkillLevel},
     {"Half damage", S_ONOFF, CNTR_X, M_SPC, {"csmenu.halfplayerdamage"}},
     {"Double ammo", S_ONOFF, CNTR_X, M_SPC, {"csmenu.doubleammo"}},
     {"Fast monsters", S_ONOFF, CNTR_X, M_SPC, {"csmenu.fastparm"}},
@@ -3554,7 +3565,11 @@ static setup_menu_t customskill_settings1[] = {
     {"No monsters", S_ONOFF, CNTR_X, M_SPC, {"csmenu.nomonsters"}},
     {"Co-op spawns", S_ONOFF, CNTR_X, M_SPC, {"csmenu.coopspawns"}},
     {"Pistol start", S_ONOFF, CNTR_X, M_SPC, {"csmenu.pistolstart"}},
-    {"Helper dogs", S_MBF | S_THERMO | S_THRM_SIZE4,  CNTR_X, M_THRM_SPC, {"csmenu.helperdogs"}},
+    {"Helper dogs",
+          S_MBF | S_THERMO | S_THRM_SIZE4 | S_ACTION,
+          CNTR_X, M_THRM_SPC,
+          {"csmenu.helperdogs"},
+          .action = CsBarkSound},
     MI_GAP,
     {"Start Game", S_CENTER, 0, M_SPC, .action = StartGame},
     MI_END
