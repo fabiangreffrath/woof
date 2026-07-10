@@ -1366,13 +1366,13 @@ static json_mut_t *write_divline_t(divline_t *str)
     return obj;
 }
 
-static void read_partial_side_t(partial_side_t *str, json_t *partial_side_obj)
+static void read_partial_side_t(partial_side_t *str, json_t *obj)
 {
-    str->textureoffset = JS_GetIntegerValue(partial_side_obj, "textureoffset");
-    str->rowoffset = JS_GetIntegerValue(partial_side_obj, "rowoffset");
-    str->toptexture = JS_GetIntegerValue(partial_side_obj, "toptexture");
-    str->bottomtexture = JS_GetIntegerValue(partial_side_obj, "bottomtexture");
-    str->midtexture = JS_GetIntegerValue(partial_side_obj, "midtexture");
+    str->textureoffset = JS_GetIntegerValue(obj, "textureoffset");
+    str->rowoffset = JS_GetIntegerValue(obj, "rowoffset");
+    str->toptexture = JS_GetIntegerValue(obj, "toptexture");
+    str->bottomtexture = JS_GetIntegerValue(obj, "bottomtexture");
+    str->midtexture = JS_GetIntegerValue(obj, "midtexture");
 }
 
 static json_mut_t *write_partial_side_t(partial_side_t *str)
@@ -1636,7 +1636,7 @@ static void UnArchiveWorld(void)
         for (int j = 0; j < 2; j++)
         {
             json_t *side_obj = JS_GetArrayItem(sides_arr, j);
-            if (JS_GetObjectSize(side_obj) > 0)
+            if (JS_GetObjectSize(side_obj))
             {
                 side_t *side = &sides[line->sidenum[j]];
 
@@ -1978,11 +1978,8 @@ static void ArchivePlayers(void)
 
     for (int i = 0; i < MAXPLAYERS; i++)
     {
-        json_mut_t *player_obj = JS_NewObject(doc);
-        if (playeringame[i])
-        {
-            player_obj = write_player_t(&players[i]);
-        }
+        json_mut_t *player_obj =
+            playeringame[i] ? write_player_t(&players[i]) : JS_NewObject(doc);
         JS_ArrayAddObject(doc, players_arr, player_obj);
     }
 
@@ -1997,7 +1994,7 @@ static void UnArchivePlayers(void)
     {
         json_t *player_obj = JS_GetArrayItem(players_arr, i);
 
-        if (JS_GetObjectSize(player_obj) > 0)
+        if (JS_GetObjectSize(player_obj))
         {
             read_player_t(&players[i], player_obj);
         }
@@ -2391,8 +2388,15 @@ void P_ArchiveKeyframe(void)
         }
         else
         {
-            I_Printf(VB_ERROR, "P_ArchiveKeyframe: Compression error (%s)",
-                     mz_error(mz_ret));
+            if (mz_ret != MZ_OK)
+            {
+                I_Printf(VB_ERROR, "P_ArchiveKeyframe: Compression error (%s)",
+                         mz_error(mz_ret));
+            }
+            else
+            {
+                I_Printf(VB_ERROR, "P_ArchiveKeyframe: Stream too large");
+            }
 
             free(compressed);
             compressed = NULL;
@@ -2506,8 +2510,7 @@ void P_UnArchiveKeyframe(void)
     json_t *msecnodes_arr = JS_GetObject(root, "msecnodes");
     PrepareUnArchiveMSecNodes(msecnodes_arr);
 
-    json_t *headsecnode_obj = JS_GetObject(root, "headsecnode");
-    headsecnode = readp_msecnode(JS_GetInteger(headsecnode_obj));
+    headsecnode = readp_msecnode(JS_GetIntegerValue(root, "headsecnode"));
 
     UnArchiveDirty();
 
