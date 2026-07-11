@@ -1991,10 +1991,11 @@ static void ArchivePlayers(void)
 static void UnArchivePlayers(void)
 {
     json_t *players_arr = JS_GetObject(root, "players");
+    json_arr_iter_t *iter = JS_ArrayIterator(players_arr);
 
     for (int i = 0; i < MAXPLAYERS; i++)
     {
-        json_t *player_obj = JS_GetArrayItem(players_arr, i);
+        json_t *player_obj = JS_ArrayNext(iter);
 
         if (JS_GetObjectSize(player_obj))
         {
@@ -2180,11 +2181,11 @@ static void ArchiveButtons(void)
 static void UnArchiveButtons(void)
 {
     json_t *buttonlists_arr = JS_GetObject(root, "buttonlist");
+    json_arr_iter_t *iter = JS_ArrayIterator(buttonlists_arr);
 
     for (int i = 0; i < MAXBUTTONS; ++i)
     {
-        json_t *buttonlist_obj = JS_GetArrayItem(buttonlists_arr, i);
-
+        json_t *buttonlist_obj = JS_ArrayNext(iter);
         read_button_t(&buttonlist[i], buttonlist_obj);
     }
 }
