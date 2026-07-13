@@ -437,9 +437,10 @@ static void read_mobj_t(mobj_t *str, thinker_class_t tc, json_t *obj)
     str->special = JS_GetIntegerValue(obj, "special");
 
     json_t *args_arr = JS_GetObject(obj, "args");
+    json_arr_iter_t *args_iter = JS_ArrayIterator(args_arr);
     for (int i = 0; i < 5; ++i)
     {
-        str->args[i] = JS_GetInteger(JS_GetArrayItem(args_arr, i));
+        str->args[i] = JS_GetInteger(JS_ArrayNext(args_iter));
     }
 
     str->movedir = JS_GetIntegerValue(obj, "movedir");
@@ -630,44 +631,50 @@ static void read_player_t(player_t *str, json_t *obj)
     str->armortype = JS_GetIntegerValue(obj, "armortype");
 
     json_t *powers_arr = JS_GetObject(obj, "powers");
+    json_arr_iter_t *powers_iter = JS_ArrayIterator(powers_arr);
     for (int i = 0; i < NUMPOWERS; ++i)
     {
-        str->powers[i] = JS_GetInteger(JS_GetArrayItem(powers_arr, i));
+        str->powers[i] = JS_GetInteger(JS_ArrayNext(powers_iter));
     }
 
     json_t *cards_arr = JS_GetObject(obj, "cards");
+    json_arr_iter_t *cards_iter = JS_ArrayIterator(cards_arr);
     for (int i = 0; i < NUMCARDS; ++i)
     {
-        str->cards[i] = JS_GetInteger(JS_GetArrayItem(cards_arr, i));
+        str->cards[i] = JS_GetInteger(JS_ArrayNext(cards_iter));
     }
 
     str->backpack = JS_GetIntegerValue(obj, "backpack");
 
     json_t *frags_arr = JS_GetObject(obj, "frags");
+    json_arr_iter_t *frags_iter = JS_ArrayIterator(frags_arr);
     for (int i = 0; i < MAXPLAYERS; ++i)
     {
-        str->frags[i] = JS_GetInteger(JS_GetArrayItem(frags_arr, i));
+        str->frags[i] = JS_GetInteger(JS_ArrayNext(frags_iter));
     }
 
     str->readyweapon = JS_GetIntegerValue(obj, "readyweapon");
     str->pendingweapon = JS_GetIntegerValue(obj, "pendingweapon");
 
     json_t *weapons_arr = JS_GetObject(obj, "weaponowned");
+    json_arr_iter_t *weapons_iter = JS_ArrayIterator(weapons_arr);
     for (int i = 0; i < NUMWEAPONS; ++i)
     {
-        str->weaponowned[i] = JS_GetInteger(JS_GetArrayItem(weapons_arr, i));
+        str->weaponowned[i] = JS_GetInteger(JS_ArrayNext(weapons_iter));
     }
 
     json_t *ammo_arr = JS_GetObject(obj, "ammo");
+    json_arr_iter_t *ammo_iter = JS_ArrayIterator(ammo_arr);
     for (int i = 0; i < NUMAMMO; ++i)
     {
-        str->ammo[i] = JS_GetInteger(JS_GetArrayItem(ammo_arr, i));
+        str->ammo[i] = JS_GetInteger(JS_ArrayNext(ammo_iter));
     }
 
     json_t *maxammo_arr = JS_GetObject(obj, "maxammo");
+    json_arr_iter_t *maxammo_iter = JS_ArrayIterator(maxammo_arr);
     for (int i = 0; i < NUMAMMO; ++i)
     {
-        str->maxammo[i] = JS_GetInteger(JS_GetArrayItem(maxammo_arr, i));
+        str->maxammo[i] = JS_GetInteger(JS_ArrayNext(maxammo_iter));
     }
 
     str->attackdown = JS_GetIntegerValue(obj, "attackdown");
@@ -687,9 +694,10 @@ static void read_player_t(player_t *str, json_t *obj)
     str->colormap = JS_GetIntegerValue(obj, "colormap");
 
     json_t *psprites_arr = JS_GetObject(obj, "psprites");
+    json_arr_iter_t *psprites_iter = JS_ArrayIterator(psprites_arr);
     for (int i = 0; i < NUMPSPRITES; ++i)
     {
-        read_pspdef_t(&str->psprites[i], JS_GetArrayItem(psprites_arr, i));
+        read_pspdef_t(&str->psprites[i], JS_ArrayNext(psprites_iter));
     }
 
     str->secretmessage = NULL;
@@ -703,9 +711,9 @@ static void read_player_t(player_t *str, json_t *obj)
     array_clear(str->visitedlevels);
     json_t *visitedlevels_arr = JS_GetObject(obj, "visitedlevels");
     str->num_visitedlevels = JS_GetArraySize(visitedlevels_arr);
-    for (int i = 0; i < str->num_visitedlevels; ++i)
+    json_t *visitedlevel_obj;
+    JS_ArrayForEach(visitedlevel_obj, visitedlevels_arr)
     {
-        json_t *visitedlevel_obj = JS_GetArrayItem(visitedlevels_arr, i);
         level_t level = {0};
         level.episode = JS_GetIntegerValue(visitedlevel_obj, "episode");
         level.map = JS_GetIntegerValue(visitedlevel_obj, "map");
@@ -1274,10 +1282,10 @@ static json_mut_t *write_ambient_t(ambient_t *str)
 static void read_rng_t(rng_t *str, json_t *obj)
 {
     json_t *seeds_arr = JS_GetObject(obj, "seeds");
+    json_arr_iter_t *seeds_iter = JS_ArrayIterator(seeds_arr);
     for (int i = 0; i < NUMPRCLASS; ++i)
     {
-        json_t *seed_obj = JS_GetArrayItem(seeds_arr, i);
-        str->seed[i] = JS_GetNumber(seed_obj);
+        str->seed[i] = JS_GetInteger(JS_ArrayNext(seeds_iter));
     }
     str->rndindex = JS_GetIntegerValue(obj, "rndindex");
     str->prndindex = JS_GetIntegerValue(obj, "prndindex");
@@ -2248,9 +2256,10 @@ static void UnArchiveAutoMap(void)
                           PU_STATIC, 0);
         }
 
+        json_arr_iter_t *mp_iter = JS_ArrayIterator(markpoints_arr);
         for (int i = 0; i < markpointnum; ++i)
         {
-            json_t *markpoint_arr = JS_GetArrayItem(markpoints_arr, i);
+            json_t *markpoint_arr = JS_ArrayNext(mp_iter);
 
             markpoints[i].x = JS_GetInteger(JS_GetArrayItem(markpoint_arr, 0));
             markpoints[i].y = JS_GetInteger(JS_GetArrayItem(markpoint_arr, 1));
@@ -2506,11 +2515,10 @@ void P_UnArchiveKeyframe(void)
     read_thinker_t(&thinkercap, tc_none, thinkercap_obj);
 
     json_t *thinkerclasscaps_arr = JS_GetObject(root, "thinkerclasscaps");
+    json_arr_iter_t *tcc_iter = JS_ArrayIterator(thinkerclasscaps_arr);
     for (int i = 0; i < NUMTHCLASS; ++i)
     {
-        json_t *thinkerclasscap_obj = JS_GetArrayItem(thinkerclasscaps_arr, i);
-
-        read_thinker_t(&thinkerclasscap[i], tc_none, thinkerclasscap_obj);
+        read_thinker_t(&thinkerclasscap[i], tc_none, JS_ArrayNext(tcc_iter));
     }
 
     json_t *msecnodes_arr = JS_GetObject(root, "msecnodes");
@@ -2536,10 +2544,10 @@ void P_UnArchiveKeyframe(void)
     JS_GetIdx(blockline, lines, root, "blockline");
 
     json_t *tmbbox_arr = JS_GetObject(root, "tmbbox");
+    json_arr_iter_t *tmbbox_iter = JS_ArrayIterator(tmbbox_arr);
     for (int i = 0; i < arrlen(tmbbox); ++i)
     {
-        json_t *tmbbox_obj = JS_GetArrayItem(tmbbox_arr, i);
-        tmbbox[i] = JS_GetInteger(tmbbox_obj);
+        tmbbox[i] = JS_GetInteger(JS_ArrayNext(tmbbox_iter));
     }
 
     // p_maputil.h
