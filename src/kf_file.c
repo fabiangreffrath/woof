@@ -442,6 +442,7 @@ static void read_mobj_t(mobj_t *str, thinker_class_t tc, json_t *obj)
     {
         str->args[i] = JS_GetInteger(JS_ArrayNext(args_iter));
     }
+    JS_ArrayIteratorFree(args_iter);
 
     str->movedir = JS_GetIntegerValue(obj, "movedir");
     str->movecount = JS_GetIntegerValue(obj, "movecount");
@@ -636,6 +637,7 @@ static void read_player_t(player_t *str, json_t *obj)
     {
         str->powers[i] = JS_GetInteger(JS_ArrayNext(powers_iter));
     }
+    JS_ArrayIteratorFree(powers_iter);
 
     json_t *cards_arr = JS_GetObject(obj, "cards");
     json_arr_iter_t *cards_iter = JS_ArrayIterator(cards_arr);
@@ -643,6 +645,7 @@ static void read_player_t(player_t *str, json_t *obj)
     {
         str->cards[i] = JS_GetInteger(JS_ArrayNext(cards_iter));
     }
+    JS_ArrayIteratorFree(cards_iter);
 
     str->backpack = JS_GetIntegerValue(obj, "backpack");
 
@@ -652,6 +655,7 @@ static void read_player_t(player_t *str, json_t *obj)
     {
         str->frags[i] = JS_GetInteger(JS_ArrayNext(frags_iter));
     }
+    JS_ArrayIteratorFree(frags_iter);
 
     str->readyweapon = JS_GetIntegerValue(obj, "readyweapon");
     str->pendingweapon = JS_GetIntegerValue(obj, "pendingweapon");
@@ -662,6 +666,7 @@ static void read_player_t(player_t *str, json_t *obj)
     {
         str->weaponowned[i] = JS_GetInteger(JS_ArrayNext(weapons_iter));
     }
+    JS_ArrayIteratorFree(weapons_iter);
 
     json_t *ammo_arr = JS_GetObject(obj, "ammo");
     json_arr_iter_t *ammo_iter = JS_ArrayIterator(ammo_arr);
@@ -669,6 +674,7 @@ static void read_player_t(player_t *str, json_t *obj)
     {
         str->ammo[i] = JS_GetInteger(JS_ArrayNext(ammo_iter));
     }
+    JS_ArrayIteratorFree(ammo_iter);
 
     json_t *maxammo_arr = JS_GetObject(obj, "maxammo");
     json_arr_iter_t *maxammo_iter = JS_ArrayIterator(maxammo_arr);
@@ -676,6 +682,7 @@ static void read_player_t(player_t *str, json_t *obj)
     {
         str->maxammo[i] = JS_GetInteger(JS_ArrayNext(maxammo_iter));
     }
+    JS_ArrayIteratorFree(maxammo_iter);
 
     str->attackdown = JS_GetIntegerValue(obj, "attackdown");
     str->usedown = JS_GetIntegerValue(obj, "usedown");
@@ -699,6 +706,7 @@ static void read_player_t(player_t *str, json_t *obj)
     {
         read_pspdef_t(&str->psprites[i], JS_ArrayNext(psprites_iter));
     }
+    JS_ArrayIteratorFree(psprites_iter);
 
     str->secretmessage = NULL;
     str->didsecret = JS_GetIntegerValue(obj, "didsecret");
@@ -1287,6 +1295,7 @@ static void read_rng_t(rng_t *str, json_t *obj)
     {
         str->seed[i] = JS_GetInteger(JS_ArrayNext(seeds_iter));
     }
+    JS_ArrayIteratorFree(seeds_iter);
     str->rndindex = JS_GetIntegerValue(obj, "rndindex");
     str->prndindex = JS_GetIntegerValue(obj, "prndindex");
 }
@@ -1446,6 +1455,7 @@ static void UnArchiveDirty(void)
         dl->line->dirty = true;
         dl->clean_line.special = JS_GetIntegerValue(line_obj, "special");
     }
+    JS_ArrayIteratorFree(lines_iter);
 
     json_t *sides_arr = JS_GetObject(root, "dirty_sides");
     count = JS_GetArraySize(sides_arr);
@@ -1464,6 +1474,7 @@ static void UnArchiveDirty(void)
         json_t *partial_side_obj = JS_GetObject(side_obj, "partial_side");
         read_partial_side_t(&ds->clean_side, partial_side_obj);
     }
+    JS_ArrayIteratorFree(sides_iter);
 }
 
 inline static json_mut_t *ArchiveThingList(const sector_t *sector)
@@ -1629,6 +1640,7 @@ static void UnArchiveWorld(void)
         sector->touching_thinglist = readp_msecnode(
             JS_GetIntegerValue(sector_obj, "touching_thinglist"));
     }
+    JS_ArrayIteratorFree(sector_iter);
 
     line_t *line;
 
@@ -1664,6 +1676,7 @@ static void UnArchiveWorld(void)
             }
         }
     }
+    JS_ArrayIteratorFree(line_iter);
 }
 
 //
@@ -1932,6 +1945,7 @@ static void UnArchiveThinkers(json_t *thinkers)
                 break;
         }
     }
+    JS_ArrayIteratorFree(arr_iter);
 }
 
 //
@@ -1976,6 +1990,7 @@ static void UnArchiveMSecNodes(json_t *msecnodes_arr)
         json_t *msecnode_obj = JS_ArrayNext(arr_iter);
         read_msecnode_t((msecnode_t *)msecnode_pointers[i], msecnode_obj);
     }
+    JS_ArrayIteratorFree(arr_iter);
 }
 
 //
@@ -2010,6 +2025,7 @@ static void UnArchivePlayers(void)
             read_player_t(&players[i], player_obj);
         }
     }
+    JS_ArrayIteratorFree(iter);
 }
 
 //
@@ -2065,6 +2081,7 @@ static void UnArchiveBlocklinks(void)
             }
         }
     }
+    JS_ArrayIteratorFree(bmap_iter);
 }
 
 //
@@ -2117,6 +2134,7 @@ static void UnArchiveCeilingList(json_t *ceilinglist_arr)
         cl->next = NULL;
         prev = &cl->next;
     }
+    JS_ArrayIteratorFree(iter);
 }
 
 //
@@ -2167,6 +2185,7 @@ static void UnArchivePlatList(json_t *platlist_arr)
         pl->next = NULL;
         prev = &pl->next;
     }
+    JS_ArrayIteratorFree(iter);
 }
 
 //
@@ -2196,6 +2215,7 @@ static void UnArchiveButtons(void)
         json_t *buttonlist_obj = JS_ArrayNext(iter);
         read_button_t(&buttonlist[i], buttonlist_obj);
     }
+    JS_ArrayIteratorFree(iter);
 }
 
 //
@@ -2264,6 +2284,7 @@ static void UnArchiveAutoMap(void)
             markpoints[i].x = JS_GetInteger(JS_GetArrayItem(markpoint_arr, 0));
             markpoints[i].y = JS_GetInteger(JS_GetArrayItem(markpoint_arr, 1));
         }
+        JS_ArrayIteratorFree(mp_iter);
     }
 }
 
@@ -2520,6 +2541,7 @@ void P_UnArchiveKeyframe(void)
     {
         read_thinker_t(&thinkerclasscap[i], tc_none, JS_ArrayNext(tcc_iter));
     }
+    JS_ArrayIteratorFree(tcc_iter);
 
     json_t *msecnodes_arr = JS_GetObject(root, "msecnodes");
     PrepareUnArchiveMSecNodes(msecnodes_arr);
@@ -2549,6 +2571,7 @@ void P_UnArchiveKeyframe(void)
     {
         tmbbox[i] = JS_GetInteger(JS_ArrayNext(tmbbox_iter));
     }
+    JS_ArrayIteratorFree(tmbbox_iter);
 
     // p_maputil.h
     opentop = JS_GetIntegerValue(root, "opentop");

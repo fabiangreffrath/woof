@@ -53,6 +53,8 @@ int JS_GetArraySize(json_t *json);
 json_t *JS_GetArrayItem(json_t *json, int index);
 json_arr_iter_t *JS_ArrayIterator(json_t *json);
 json_t *JS_ArrayNext(json_arr_iter_t *iter);
+void JS_ArrayIteratorFree(json_arr_iter_t *iter);
+
 
 #define JS_ArrayForEach(element, array)                    \
     for (json_arr_iter_t *_iter = JS_ArrayIterator(array); \

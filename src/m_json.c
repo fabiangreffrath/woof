@@ -238,6 +238,11 @@ json_t *JS_ArrayNext(json_arr_iter_t *iter)
     return value;
 }
 
+void JS_ArrayIteratorFree(json_arr_iter_t *iter)
+{
+    free(iter);
+}
+
 boolean JS_GetBoolean(json_t *json)
 {
     return yyjson_get_bool(json);
