@@ -464,8 +464,8 @@ int wipe_ScreenWipe(int x, int y, int width, int height, int ticks)
 
 void F_SetWipe(wipefx_t wipe)
 {
-  wipegamestate = -1;
-  screen_wipe_internal = (strictmode) ? wipe : screen_wipe;
+    wipegamestate = GS_NONE;
+    screen_wipe_internal = (strictmode) ? wipe : screen_wipe;
 }
 
 //----------------------------------------------------------------------------
