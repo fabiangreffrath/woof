@@ -261,6 +261,12 @@ void D_Display (void)
 
   wipe = false;
 
+  // fallback
+  if (screen_wipe_internal == wipe_Invalid)
+  {
+    screen_wipe_internal = screen_wipe;
+  }
+
   // save the current screen if about to wipe
   if (gamestate != wipegamestate && screen_wipe_internal)
     {
