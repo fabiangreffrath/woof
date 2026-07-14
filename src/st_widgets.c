@@ -188,6 +188,12 @@ static void UpdateAnnounceMessage(sbe_widget_t *widget, player_t *player)
     }
 }
 
+void ST_ResetMessages(void)
+{
+    message_duration_left = 0;
+    announce_duration_left = 0;
+}
+
 // key tables
 // jff 5/10/98 french support removed, 
 // as it was not being used and couldn't be easily tested
