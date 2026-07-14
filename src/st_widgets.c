@@ -1088,7 +1088,7 @@ static void ForceCenterMessage(sbarelem_t *elem)
     static sbaralignment_t default_alignment;
     if (!st_msg_elem)
     {
-        default_alignment = elem->alignment;
+        default_alignment = elem->orig_alignment;
         st_msg_elem = elem;
     }
 

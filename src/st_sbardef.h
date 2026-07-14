@@ -325,7 +325,7 @@ struct sbarelem_s
     sbarelementtype_t type;
     int x_pos;
     int y_pos;
-    sbaralignment_t alignment;
+    sbaralignment_t alignment, orig_alignment;
     sbarcondition_t *conditions;
     sbarelem_t *children;
 
