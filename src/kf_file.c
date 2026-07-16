@@ -1,5 +1,6 @@
 //
 // Copyright(C) 2025 Roman Fomin
+// Copyright(C) 2026 Fabian Greffrath
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -23,6 +24,7 @@
 #include "m_arena.h"
 #include "m_array.h"
 #include "m_fixed.h"
+#include "m_json.h"
 #include "m_random.h"
 #include "p_ambient.h"
 #include "p_dirty.h"
@@ -36,75 +38,32 @@
 #include "r_defs.h"
 #include "r_state.h"
 
+#include "miniz.h"
+
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 
-inline static void write8_internal(const int8_t data[], int count)
-{
-    saveg_grow(sizeof(int8_t) * count);
-    for (int i = 0; i < count; ++i)
-    {
-        savep_putbyte(data[i]);
-    }
-}
+static json_mut_doc_t *doc;
+static json_mut_t *root_mut;
+static json_t *root;
 
-#define write8(...)                                       \
-    write8_internal((const int8_t[]){__VA_ARGS__},        \
-                    sizeof((const int8_t[]){__VA_ARGS__}) \
-                        / sizeof(const int8_t))
-
-inline static void write16_internal(const int16_t data[], int count)
-{
-    saveg_grow(sizeof(int16_t) * count);
-    for (int i = 0; i < count; ++i)
-    {
-        savep_putbyte(data[i] & 0xff);
-        savep_putbyte((data[i] >> 8) & 0xff);
-    }
-}
-
-#define write16(...)                                        \
-    write16_internal((const int16_t[]){__VA_ARGS__},        \
-                     sizeof((const int16_t[]){__VA_ARGS__}) \
-                         / sizeof(const int16_t))
-
-inline static void write32_internal(const int32_t data[], int count)
-{
-    saveg_grow(sizeof(int32_t) * count);
-    for (int i = 0; i < count; ++i)
-    {
-        savep_putbyte(data[i] & 0xff);
-        savep_putbyte((data[i] >> 8) & 0xff);
-        savep_putbyte((data[i] >> 16) & 0xff);
-        savep_putbyte((data[i] >> 24) & 0xff);
-    }
-}
-
-#define write32(...)                                        \
-    write32_internal((const int32_t[]){__VA_ARGS__},        \
-                     sizeof((const int32_t[]){__VA_ARGS__}) \
-                         / sizeof(const int32_t))
-
-#define read8 saveg_read8
-#define read16 saveg_read16
-#define read32 saveg_read32
-#define read64 saveg_read64
-#define write64 saveg_write64
-
-#define read_enum read32
-#define write_enum write32
-
+// Pointer fields (mobj_t*, thinker_t*, msecnode_t*, …) cannot be stored
+// directly in a savegame.  Instead every live pointer is mapped to an integer
+// index into one of the four pointer tables below.  Special negative sentinel
+// values are reserved for pointers that do not belong to any table:
 enum
 {
-    null_index = -1,
-    head_index = -2,
-    dummy_index = -3,
-    th_delete_index = -4,
-    th_misc_index = -5,
-    th_friends_index = -6,
-    th_enemies_index = -7,
+    null_index = -1,       // NULL pointer
+    head_index = -2,       // &thinkercap
+    dummy_index = -3,      // P_SubstNullMobj(NULL)
+    th_delete_index = -4,  // &thinkerclasscap[th_delete]
+    th_misc_index = -5,    // &thinkerclasscap[th_misc]
+    th_friends_index = -6, // &thinkerclasscap[th_friends]
+    th_enemies_index = -7, // &thinkerclasscap[th_enemies]
 };
 
+// Maps each thinker class cap (th_delete, th_misc, …) to its sentinel index.
 static int tclass_to_index[] = {
     [th_delete] = th_delete_index,
     [th_misc] = th_misc_index,
@@ -112,6 +71,9 @@ static int tclass_to_index[] = {
     [th_enemies] = th_enemies_index,
 };
 
+// Every concrete thinker type that can appear in a savegame.
+// tc_none covers thinkers with unknown or NULL function pointers.
+// The _del variants are thinkers already queued for removal.
 typedef enum
 {
     tc_mobj,
@@ -139,6 +101,8 @@ typedef enum
     tc_none
 } thinker_class_t;
 
+// Maps each thinker_class_t back to its tick function, used when restoring
+// thinkers from a savegame (the function pointer is never written to disk).
 static actionf_p1 actions[] = {
     [tc_mobj] = P_MobjThinker,
     [tc_mobj_del] = P_RemoveMobjThinkerDelayed,
@@ -162,12 +126,16 @@ static actionf_p1 actions[] = {
     [tc_ambient] = T_AmbientSoundAdapter,
     [tc_param_scroll_floor] = T_ParamScrollFloorAdapter,
     [tc_param_scroll_ceiling] = T_ParamScrollCeilingAdapter,
-    [tc_none] = NULL
-};
+    [tc_none] = NULL};
 
+// One entry per live thinker, built by PrepareArchiveThinkers() before saving
+// and by PrepareUnArchiveThinkers() before loading.  The index of an entry in
+// this array is what gets written to / read from the JSON for any field that
+// holds a thinker pointer.
 typedef struct
 {
     thinker_class_t tc;
+
     union
     {
         thinker_t *thinker;
@@ -189,23 +157,27 @@ typedef struct
     } p;
 } thinker_pointer_t;
 
+// Pointer tables populated during Prepare* and consumed during UnArchive*.
+// Indices stored in the JSON refer into these arrays.
 static thinker_pointer_t *thinker_pointers;
 static uintptr_t *msecnode_pointers;
 static uintptr_t *ceilinglist_pointers;
 static uintptr_t *platlist_pointers;
 
-#define readp_index(ptr, base)                                 \
+// Convenience macros for pointer-as-array-index fields (subsector, sector,
+// state, line, …).  The pointer is converted to/from an offset into its
+// respective base array.  A null_index round-trips to NULL.
+#define JS_GetIdx(ptr, base, obj, key)                         \
     do                                                         \
     {                                                          \
-        int index = read32();                                  \
+        int index = JS_GetIntegerValue(obj, key);              \
         (ptr) = (index != null_index) ? (base) + index : NULL; \
     } while (0)
 
-#define writep_index(ptr, base)                          \
-    do                                                   \
-    {                                                    \
-        int index = (ptr) ? (ptr) - (base) : null_index; \
-        write32(index);                                  \
+#define JS_SetIdx(doc, obj, key, ptr, base)                             \
+    do                                                                  \
+    {                                                                   \
+        JS_SetInt(doc, obj, key, ptr ? (int)(ptr - base) : null_index); \
     } while (0)
 
 inline static thinker_t *readp_thinker_index(int index)
@@ -232,13 +204,12 @@ inline static thinker_t *readp_thinker_index(int index)
     }
 }
 
-static thinker_t *readp_thinker(void)
+static thinker_t *readp_thinker(int index)
 {
-    int index = read32();
     return readp_thinker_index(index);
 }
 
-static void writep_thinker(const thinker_t *thinker)
+static int writep_thinker(const thinker_t *thinker)
 {
     int index;
     if (!thinker)
@@ -257,22 +228,21 @@ static void writep_thinker(const thinker_t *thinker)
     {
         index = M_ArenaTableIndex(thinkers_arena, (uintptr_t)thinker);
     }
-    write32(index);
+    return index;
 }
 
-static mobj_t *readp_mobj(void)
+static mobj_t *readp_mobj(int index)
 {
-    return (mobj_t *)readp_thinker();
+    return (mobj_t *)readp_thinker(index);
 }
 
-static void writep_mobj(const mobj_t *mobj)
+static int writep_mobj(const mobj_t *mobj)
 {
-    writep_thinker(&mobj->thinker);
+    return mobj ? writep_thinker(&mobj->thinker) : null_index;
 }
 
-static msecnode_t *readp_msecnode(void)
+static msecnode_t *readp_msecnode(int index)
 {
-    int index = read32();
     if (index == null_index)
     {
         return NULL;
@@ -284,7 +254,7 @@ static msecnode_t *readp_msecnode(void)
     return (msecnode_t *)msecnode_pointers[index];
 }
 
-static void writep_msecnode(const msecnode_t *node)
+static int writep_msecnode(const msecnode_t *node)
 {
     int index;
     if (!node)
@@ -295,12 +265,11 @@ static void writep_msecnode(const msecnode_t *node)
     {
         index = M_ArenaTableIndex(msecnodes_arena, (uintptr_t)node);
     }
-    write32(index);
+    return index;
 }
 
-static ceilinglist_t *readp_activeceilings(void)
+static ceilinglist_t *readp_activeceilings(int index)
 {
-    int index = read32();
     if (index == null_index)
     {
         return NULL;
@@ -312,7 +281,7 @@ static ceilinglist_t *readp_activeceilings(void)
     return (ceilinglist_t *)ceilinglist_pointers[index];
 }
 
-static void writep_activeceilings(const ceilinglist_t *cl)
+static int writep_activeceilings(const ceilinglist_t *cl)
 {
     int index;
     if (!cl)
@@ -323,12 +292,11 @@ static void writep_activeceilings(const ceilinglist_t *cl)
     {
         index = M_ArenaTableIndex(activeceilings_arena, (uintptr_t)cl);
     }
-    write32(index);
+    return index;
 }
 
-static platlist_t *readp_activeplats(void)
+static platlist_t *readp_activeplats(int index)
 {
-    int index = read32();
     if (index == null_index)
     {
         return NULL;
@@ -340,7 +308,7 @@ static platlist_t *readp_activeplats(void)
     return (platlist_t *)platlist_pointers[index];
 }
 
-static void writep_activeplats(const platlist_t *pl)
+static int writep_activeplats(const platlist_t *pl)
 {
     int index;
     if (!pl)
@@ -351,32 +319,35 @@ static void writep_activeplats(const platlist_t *pl)
     {
         index = M_ArenaTableIndex(activeplats_arena, (uintptr_t)pl);
     }
-    write32(index);
+    return index;
 }
 
-static void read_mapthing_t(mapthing_t *str)
+static void read_mapthing_t(mapthing_t *str, json_t *obj)
 {
-    str->x = read32();
-    str->y = read32();
-    str->height = read32();
-    str->angle = read16();
-    str->type = read16();
-    str->options = read32();
+    str->x = JS_GetIntegerValue(obj, "x");
+    str->y = JS_GetIntegerValue(obj, "y");
+    str->height = JS_GetIntegerValue(obj, "height");
+    str->angle = JS_GetIntegerValue(obj, "angle");
+    str->type = JS_GetIntegerValue(obj, "type");
+    str->options = JS_GetIntegerValue(obj, "options");
 }
 
-static void write_mapthing_t(mapthing_t *str)
+static json_mut_t *write_mapthing_t(mapthing_t *str)
 {
-    write32(str->x);
-    write32(str->y);
-    write32(str->height);
-    write16(str->angle);
-    write16(str->type);
-    write32(str->options);
+    json_mut_t *obj = JS_NewObject(doc);
+
+    JS_SetInt(doc, obj, "x", str->x);
+    JS_SetInt(doc, obj, "y", str->y);
+    JS_SetInt(doc, obj, "height", str->height);
+    JS_SetInt(doc, obj, "angle", str->angle);
+    JS_SetInt(doc, obj, "type", str->type);
+    JS_SetInt(doc, obj, "options", str->options);
+
+    return obj;
 }
 
-static thinker_t *readp_thclass()
+static thinker_t *readp_thclass(int index)
 {
-    int index = read32();
     for (int tclass = 0; tclass < NUMTHCLASS; ++tclass)
     {
         if (index == tclass_to_index[tclass])
@@ -387,840 +358,1051 @@ static thinker_t *readp_thclass()
     return readp_thinker_index(index);
 }
 
-static void writep_thclass(thinker_t *str)
+static int writep_thclass(thinker_t *str)
 {
     int tclass;
     for (tclass = 0; tclass < NUMTHCLASS; ++tclass)
     {
         if (str == &thinkerclasscap[tclass])
         {
-            write32(tclass_to_index[tclass]);
-            return;
+            return tclass_to_index[tclass];
         }
     }
-    writep_thinker(str);
+    return writep_thinker(str);
 }
 
-static void read_thinker_t(thinker_t *str, thinker_class_t tc)
+static void read_thinker_t(thinker_t *str, thinker_class_t tc, json_t *obj)
 {
-    str->prev = readp_thinker();
-    str->next = readp_thinker();
+    str->prev = readp_thinker(JS_GetIntegerValue(obj, "prev"));
+    str->next = readp_thinker(JS_GetIntegerValue(obj, "next"));
     str->function.p1 = actions[tc];
-    str->cnext = readp_thclass();
-    str->cprev = readp_thclass();
-    str->references = read32();
+    str->cnext = readp_thclass(JS_GetIntegerValue(obj, "cnext"));
+    str->cprev = readp_thclass(JS_GetIntegerValue(obj, "cprev"));
+    str->references = JS_GetIntegerValue(obj, "references");
 }
 
-static void write_thinker_t(thinker_t *str)
+static json_mut_t *write_thinker_t(thinker_t *str)
 {
-    writep_thinker(str->prev);
-    writep_thinker(str->next);
-    writep_thclass(str->cnext);
-    writep_thclass(str->cprev);
-    write32(str->references);
+    json_mut_t *obj = JS_NewObject(doc);
+
+    JS_SetInt(doc, obj, "prev", writep_thinker(str->prev));
+    JS_SetInt(doc, obj, "next", writep_thinker(str->next));
+    JS_SetInt(doc, obj, "cnext", writep_thclass(str->cnext));
+    JS_SetInt(doc, obj, "cprev", writep_thclass(str->cprev));
+    JS_SetInt(doc, obj, "references", str->references);
+
+    return obj;
 }
 
-static void read_mobj_t(mobj_t *str, thinker_class_t tc)
+static void read_mobj_t(mobj_t *str, thinker_class_t tc, json_t *obj)
 {
-    read_thinker_t(&str->thinker, tc);
-    str->x = read32();
-    str->y = read32();
-    str->z = read32();
+    read_thinker_t(&str->thinker, tc, JS_GetObject(obj, "thinker"));
+
+    str->x = JS_GetIntegerValue(obj, "x");
+    str->y = JS_GetIntegerValue(obj, "y");
+    str->z = JS_GetIntegerValue(obj, "z");
 
     // Done in UnArchiveThingList
     // str->snext;
     // str->sprev;
 
-    str->angle = read32();
-    str->sprite = read_enum();
-    str->frame = read32();
+    str->angle = JS_GetIntegerValue(obj, "angle");
+    str->sprite = JS_GetIntegerValue(obj, "sprite");
+    str->frame = JS_GetIntegerValue(obj, "frame");
 
     // Done in UnArchiveBlocklinks
     // str->bnext;
     // str->bprev;
 
-    readp_index(str->subsector, subsectors);
-    str->floorz = read32();
-    str->ceilingz = read32();
-    str->dropoffz = read32();
-    str->radius = read32();
-    str->height = read32();
-    str->momx = read32();
-    str->momy = read32();
-    str->momz = read32();
-    str->validcount = read32();
-    str->type = read_enum();
-    readp_index(str->info, mobjinfo);
-    str->tics = read32();
-    readp_index(str->state, states);
-    str->flags = read32();
-    str->flags2 = read32();
-    str->flags_extra = read32();
-    str->intflags = read32();
-    str->health = read32();
-    str->tid = read32();
-    str->special = read32();
-    str->args[0] = read32();
-    str->args[1] = read32();
-    str->args[2] = read32();
-    str->args[3] = read32();
-    str->args[4] = read32();
-    str->movedir = read16();
-    str->movecount = read16();
-    str->strafecount = read16();
-    str->target = readp_mobj();
-    str->reactiontime = read16();
-    str->threshold = read16();
-    str->pursuecount = read16();
-    str->gear = read16();
-    readp_index(str->player, players);
-    str->lastlook = read16();
-    read_mapthing_t(&str->spawnpoint);
-    str->tracer = readp_mobj();
-    str->lastenemy = readp_mobj();
-    str->above_thing = readp_mobj();
-    str->below_thing = readp_mobj();
-    str->friction = read32();
-    str->movefactor = read32();
-    str->touching_sectorlist = readp_msecnode();
-    str->interp = read32();
-    str->oldx = read32();
-    str->oldy = read32();
-    str->oldz = read32();
-    str->oldangle = read32();
-    str->bloodcolor = read32();
+    JS_GetIdx(str->subsector, subsectors, obj, "subsector");
+    str->floorz = JS_GetIntegerValue(obj, "floorz");
+    str->ceilingz = JS_GetIntegerValue(obj, "ceilingz");
+    str->dropoffz = JS_GetIntegerValue(obj, "dropoffz");
+    str->radius = JS_GetIntegerValue(obj, "radius");
+    str->height = JS_GetIntegerValue(obj, "height");
+    str->momx = JS_GetIntegerValue(obj, "momx");
+    str->momy = JS_GetIntegerValue(obj, "momy");
+    str->momz = JS_GetIntegerValue(obj, "momz");
+    str->validcount = JS_GetIntegerValue(obj, "validcount");
+    str->type = JS_GetIntegerValue(obj, "type");
+    JS_GetIdx(str->info, mobjinfo, obj, "info");
+    str->tics = JS_GetIntegerValue(obj, "tics");
+    JS_GetIdx(str->state, states, obj, "state");
+    str->flags = JS_GetIntegerValue(obj, "flags");
+    str->flags2 = JS_GetIntegerValue(obj, "flags2");
+    str->flags_extra = JS_GetIntegerValue(obj, "flags_extra");
+    str->intflags = JS_GetIntegerValue(obj, "intflags");
+    str->health = JS_GetIntegerValue(obj, "health");
+    str->tid = JS_GetIntegerValue(obj, "tid");
+    str->special = JS_GetIntegerValue(obj, "special");
+
+    json_t *args_arr = JS_GetObject(obj, "args");
+    json_arr_iter_t *args_iter = JS_ArrayIterator(args_arr);
+    for (int i = 0; i < 5; ++i)
+    {
+        str->args[i] = JS_GetInteger(JS_ArrayNext(args_iter));
+    }
+    JS_ArrayIteratorFree(args_iter);
+
+    str->movedir = JS_GetIntegerValue(obj, "movedir");
+    str->movecount = JS_GetIntegerValue(obj, "movecount");
+    str->strafecount = JS_GetIntegerValue(obj, "strafecount");
+    str->target = readp_mobj(JS_GetIntegerValue(obj, "target"));
+    str->reactiontime = JS_GetIntegerValue(obj, "reactiontime");
+    str->threshold = JS_GetIntegerValue(obj, "threshold");
+    str->pursuecount = JS_GetIntegerValue(obj, "pursuecount");
+    str->gear = JS_GetIntegerValue(obj, "gear");
+    JS_GetIdx(str->player, players, obj, "player");
+    str->lastlook = JS_GetIntegerValue(obj, "lastlook");
+
+    read_mapthing_t(&str->spawnpoint, JS_GetObject(obj, "spawnpoint"));
+
+    str->tracer = readp_mobj(JS_GetIntegerValue(obj, "tracer"));
+    str->lastenemy = readp_mobj(JS_GetIntegerValue(obj, "lastenemy"));
+    str->above_thing = readp_mobj(JS_GetIntegerValue(obj, "above_thing"));
+    str->below_thing = readp_mobj(JS_GetIntegerValue(obj, "below_thing"));
+    str->friction = JS_GetIntegerValue(obj, "friction");
+    str->movefactor = JS_GetIntegerValue(obj, "movefactor");
+    str->touching_sectorlist =
+        readp_msecnode(JS_GetIntegerValue(obj, "touching_sectorlist"));
+    str->interp = JS_GetIntegerValue(obj, "interp");
+    str->oldx = JS_GetIntegerValue(obj, "oldx");
+    str->oldy = JS_GetIntegerValue(obj, "oldy");
+    str->oldz = JS_GetIntegerValue(obj, "oldz");
+    str->oldangle = JS_GetIntegerValue(obj, "oldangle");
+    str->bloodcolor = JS_GetIntegerValue(obj, "bloodcolor");
 
     // TODO
     // P_SetActualHeight(str);
 }
 
-static void write_mobj_t(mobj_t *str)
+static json_mut_t *write_mobj_t(mobj_t *str)
 {
-    write_thinker_t(&str->thinker);
-    write32(str->x);
-    write32(str->y);
-    write32(str->z);
+    json_mut_t *obj = JS_NewObject(doc);
+
+    JS_SetObject(doc, obj, "thinker", write_thinker_t(&str->thinker));
+
+    JS_SetInt(doc, obj, "x", str->x);
+    JS_SetInt(doc, obj, "y", str->y);
+    JS_SetInt(doc, obj, "z", str->z);
 
     // Done in ArchiveThingList
     // str->snext;
     // str->sprev;
 
-    write32(str->angle);
-    write_enum(str->sprite);
-    write32(str->frame);
+    JS_SetInt(doc, obj, "angle", str->angle);
+    JS_SetInt(doc, obj, "sprite", str->sprite);
+    JS_SetInt(doc, obj, "frame", str->frame);
 
     // Done in ArchiveBlocklinks
     // str->bnext;
     // str->bprev;
 
-    writep_index(str->subsector, subsectors);
-    write32(str->floorz);
-    write32(str->ceilingz);
-    write32(str->dropoffz);
-    write32(str->radius);
-    write32(str->height);
-    write32(str->momx);
-    write32(str->momy);
-    write32(str->momz);
-    write32(str->validcount);
-    write_enum(str->type);
-    writep_index(str->info, mobjinfo);
-    write32(str->tics);
-    writep_index(str->state, states);
-    write32(str->flags);
-    write32(str->flags2);
-    write32(str->flags_extra);
-    write32(str->intflags);
-    write32(str->health);
-    write32(str->tid);
-    write32(str->special);
-    write32(str->args[0]);
-    write32(str->args[1]);
-    write32(str->args[2]);
-    write32(str->args[3]);
-    write32(str->args[4]);
-    write16(str->movedir);
-    write16(str->movecount);
-    write16(str->strafecount);
-    writep_mobj(str->target);
-    write16(str->reactiontime);
-    write16(str->threshold);
-    write16(str->pursuecount);
-    write16(str->gear);
-    writep_index(str->player, players);
-    write16(str->lastlook);
-    write_mapthing_t(&str->spawnpoint);
-    writep_mobj(str->tracer);
-    writep_mobj(str->lastenemy);
-    writep_mobj(str->above_thing);
-    writep_mobj(str->below_thing);
-    write32(str->friction);
-    write32(str->movefactor);
-    writep_msecnode(str->touching_sectorlist);
-    write32(str->interp);
-    write32(str->oldx);
-    write32(str->oldy);
-    write32(str->oldz);
-    write32(str->oldangle);
-    write32(str->bloodcolor);
+    JS_SetIdx(doc, obj, "subsector", str->subsector, subsectors);
+    JS_SetInt(doc, obj, "floorz", str->floorz);
+    JS_SetInt(doc, obj, "ceilingz", str->ceilingz);
+    JS_SetInt(doc, obj, "dropoffz", str->dropoffz);
+    JS_SetInt(doc, obj, "radius", str->radius);
+    JS_SetInt(doc, obj, "height", str->height);
+    JS_SetInt(doc, obj, "momx", str->momx);
+    JS_SetInt(doc, obj, "momy", str->momy);
+    JS_SetInt(doc, obj, "momz", str->momz);
+    JS_SetInt(doc, obj, "validcount", str->validcount);
+    JS_SetInt(doc, obj, "type", str->type);
+    JS_SetIdx(doc, obj, "info", str->info, mobjinfo);
+    JS_SetInt(doc, obj, "tics", str->tics);
+    JS_SetIdx(doc, obj, "state", str->state, states);
+    JS_SetInt(doc, obj, "flags", str->flags);
+    JS_SetInt(doc, obj, "flags2", str->flags2);
+    JS_SetInt(doc, obj, "flags_extra", str->flags_extra);
+    JS_SetInt(doc, obj, "intflags", str->intflags);
+    JS_SetInt(doc, obj, "health", str->health);
+    JS_SetInt(doc, obj, "tid", str->tid);
+    JS_SetInt(doc, obj, "special", str->special);
+
+    json_mut_t *args_arr = JS_NewArray(doc);
+    for (int i = 0; i < 5; ++i)
+    {
+        JS_ArrayAddInt(doc, args_arr, str->args[i]);
+    }
+    JS_SetArray(doc, obj, "args", args_arr);
+
+    JS_SetInt(doc, obj, "movedir", str->movedir);
+    JS_SetInt(doc, obj, "movecount", str->movecount);
+    JS_SetInt(doc, obj, "strafecount", str->strafecount);
+    JS_SetInt(doc, obj, "target", writep_mobj(str->target));
+    JS_SetInt(doc, obj, "reactiontime", str->reactiontime);
+    JS_SetInt(doc, obj, "threshold", str->threshold);
+    JS_SetInt(doc, obj, "pursuecount", str->pursuecount);
+    JS_SetInt(doc, obj, "gear", str->gear);
+    JS_SetIdx(doc, obj, "player", str->player, players);
+    JS_SetInt(doc, obj, "lastlook", str->lastlook);
+
+    JS_SetObject(doc, obj, "spawnpoint", write_mapthing_t(&str->spawnpoint));
+
+    JS_SetInt(doc, obj, "tracer", writep_mobj(str->tracer));
+    JS_SetInt(doc, obj, "lastenemy", writep_mobj(str->lastenemy));
+    JS_SetInt(doc, obj, "above_thing", writep_mobj(str->above_thing));
+    JS_SetInt(doc, obj, "below_thing", writep_mobj(str->below_thing));
+    JS_SetInt(doc, obj, "friction", str->friction);
+    JS_SetInt(doc, obj, "movefactor", str->movefactor);
+    JS_SetInt(doc, obj, "touching_sectorlist",
+              writep_msecnode(str->touching_sectorlist));
+    JS_SetInt(doc, obj, "interp", str->interp);
+    JS_SetInt(doc, obj, "oldx", str->oldx);
+    JS_SetInt(doc, obj, "oldy", str->oldy);
+    JS_SetInt(doc, obj, "oldz", str->oldz);
+    JS_SetInt(doc, obj, "oldangle", str->oldangle);
+    JS_SetInt(doc, obj, "bloodcolor", str->bloodcolor);
+
+    return obj;
 }
 
-static void read_ticcmd_t(ticcmd_t *str)
+static void read_ticcmd_t(ticcmd_t *str, json_t *obj)
 {
-    str->forwardmove = read8();
-    str->sidemove = read8();
-    str->angleturn = read16();
-    str->consistancy = read16();
-    str->chatchar = read8();
-    str->buttons = read8();
+    str->forwardmove = JS_GetIntegerValue(obj, "forwardmove");
+    str->sidemove = JS_GetIntegerValue(obj, "sidemove");
+    str->angleturn = JS_GetIntegerValue(obj, "angleturn");
+    str->consistancy = JS_GetIntegerValue(obj, "consistancy");
+    str->chatchar = JS_GetIntegerValue(obj, "chatchar");
+    str->buttons = JS_GetIntegerValue(obj, "buttons");
 }
 
-static void write_ticcmd_t(ticcmd_t *str)
+static json_mut_t *write_ticcmd_t(ticcmd_t *str)
 {
-    write8(str->forwardmove);
-    write8(str->sidemove);
-    write16(str->angleturn);
-    write16(str->consistancy);
-    write8(str->chatchar);
-    write8(str->buttons);
+    json_mut_t *obj = JS_NewObject(doc);
+
+    JS_SetInt(doc, obj, "forwardmove", str->forwardmove);
+    JS_SetInt(doc, obj, "sidemove", str->sidemove);
+    JS_SetInt(doc, obj, "angleturn", str->angleturn);
+    JS_SetInt(doc, obj, "consistancy", str->consistancy);
+    JS_SetInt(doc, obj, "chatchar", str->chatchar);
+    JS_SetInt(doc, obj, "buttons", str->buttons);
+
+    return obj;
 }
 
-static void read_pspdef_t(pspdef_t *str)
+static void read_pspdef_t(pspdef_t *str, json_t *obj)
 {
-    readp_index(str->state, states);
-    str->tics = read32();
-    str->sx = read32();
-    str->sy = read32();
-    str->sx2 = read32();
-    str->sy2 = read32();
-    str->oldsx2 = read32();
-    str->oldsy2 = read32();
-    str->sxf = read32();
-    str->syf = read32();
+    JS_GetIdx(str->state, states, obj, "state");
+    str->tics = JS_GetIntegerValue(obj, "tics");
+    str->sx = JS_GetIntegerValue(obj, "sx");
+    str->sy = JS_GetIntegerValue(obj, "sy");
+    str->sx2 = JS_GetIntegerValue(obj, "sx2");
+    str->sy2 = JS_GetIntegerValue(obj, "sy2");
+    str->oldsx2 = JS_GetIntegerValue(obj, "oldsx2");
+    str->oldsy2 = JS_GetIntegerValue(obj, "oldsy2");
+    str->sxf = JS_GetIntegerValue(obj, "sxf");
+    str->syf = JS_GetIntegerValue(obj, "syf");
 }
 
-static void write_pspdef_t(pspdef_t *str)
+static json_mut_t *write_pspdef_t(pspdef_t *str)
 {
-    writep_index(str->state, states);
-    write32(str->tics);
-    write32(str->sx);
-    write32(str->sy);
-    write32(str->sx2);
-    write32(str->sy2);
-    write32(str->oldsx2);
-    write32(str->oldsy2);
-    write32(str->sxf);
-    write32(str->syf);
+    json_mut_t *obj = JS_NewObject(doc);
+
+    JS_SetIdx(doc, obj, "state", str->state, states);
+    JS_SetInt(doc, obj, "tics", str->tics);
+    JS_SetInt(doc, obj, "sx", str->sx);
+    JS_SetInt(doc, obj, "sy", str->sy);
+    JS_SetInt(doc, obj, "sx2", str->sx2);
+    JS_SetInt(doc, obj, "sy2", str->sy2);
+    JS_SetInt(doc, obj, "oldsx2", str->oldsx2);
+    JS_SetInt(doc, obj, "oldsy2", str->oldsy2);
+    JS_SetInt(doc, obj, "sxf", str->sxf);
+    JS_SetInt(doc, obj, "syf", str->syf);
+
+    return obj;
 }
 
-static void read_player_t(player_t *str)
+static void read_player_t(player_t *str, json_t *obj)
 {
-    str->mo = readp_mobj();
-    str->playerstate = read_enum();
-    read_ticcmd_t(&str->cmd);
-    str->viewz = read32();
-    str->viewheight = read32();
-    str->deltaviewheight = read32();
-    str->bob = read32();
-    str->momx = read32();
-    str->momy = read32();
-    str->health = read32();
-    str->armorpoints = read32();
-    str->armortype = read32();
+    str->mo = readp_mobj(JS_GetIntegerValue(obj, "mo"));
+    str->playerstate = JS_GetIntegerValue(obj, "playerstate");
+
+    read_ticcmd_t(&str->cmd, JS_GetObject(obj, "ticcmd"));
+
+    str->viewz = JS_GetIntegerValue(obj, "viewz");
+    str->viewheight = JS_GetIntegerValue(obj, "viewheight");
+    str->deltaviewheight = JS_GetIntegerValue(obj, "deltaviewheight");
+    str->bob = JS_GetIntegerValue(obj, "bob");
+    str->momx = JS_GetIntegerValue(obj, "momx");
+    str->momy = JS_GetIntegerValue(obj, "momy");
+    str->health = JS_GetIntegerValue(obj, "health");
+    str->armorpoints = JS_GetIntegerValue(obj, "armorpoints");
+    str->armortype = JS_GetIntegerValue(obj, "armortype");
+
+    json_t *powers_arr = JS_GetObject(obj, "powers");
+    json_arr_iter_t *powers_iter = JS_ArrayIterator(powers_arr);
     for (int i = 0; i < NUMPOWERS; ++i)
     {
-        str->powers[i] = read32();
+        str->powers[i] = JS_GetInteger(JS_ArrayNext(powers_iter));
     }
+    JS_ArrayIteratorFree(powers_iter);
+
+    json_t *cards_arr = JS_GetObject(obj, "cards");
+    json_arr_iter_t *cards_iter = JS_ArrayIterator(cards_arr);
     for (int i = 0; i < NUMCARDS; ++i)
     {
-        str->cards[i] = read32();
+        str->cards[i] = JS_GetInteger(JS_ArrayNext(cards_iter));
     }
-    str->backpack = read32();
+    JS_ArrayIteratorFree(cards_iter);
+
+    str->backpack = JS_GetIntegerValue(obj, "backpack");
+
+    json_t *frags_arr = JS_GetObject(obj, "frags");
+    json_arr_iter_t *frags_iter = JS_ArrayIterator(frags_arr);
     for (int i = 0; i < MAXPLAYERS; ++i)
     {
-        str->frags[i] = read32();
+        str->frags[i] = JS_GetInteger(JS_ArrayNext(frags_iter));
     }
-    str->readyweapon = read_enum();
-    str->pendingweapon = read_enum();
+    JS_ArrayIteratorFree(frags_iter);
+
+    str->readyweapon = JS_GetIntegerValue(obj, "readyweapon");
+    str->pendingweapon = JS_GetIntegerValue(obj, "pendingweapon");
+
+    json_t *weapons_arr = JS_GetObject(obj, "weaponowned");
+    json_arr_iter_t *weapons_iter = JS_ArrayIterator(weapons_arr);
     for (int i = 0; i < NUMWEAPONS; ++i)
     {
-        str->weaponowned[i] = read32();
+        str->weaponowned[i] = JS_GetInteger(JS_ArrayNext(weapons_iter));
     }
+    JS_ArrayIteratorFree(weapons_iter);
+
+    json_t *ammo_arr = JS_GetObject(obj, "ammo");
+    json_arr_iter_t *ammo_iter = JS_ArrayIterator(ammo_arr);
     for (int i = 0; i < NUMAMMO; ++i)
     {
-        str->ammo[i] = read32();
+        str->ammo[i] = JS_GetInteger(JS_ArrayNext(ammo_iter));
     }
+    JS_ArrayIteratorFree(ammo_iter);
+
+    json_t *maxammo_arr = JS_GetObject(obj, "maxammo");
+    json_arr_iter_t *maxammo_iter = JS_ArrayIterator(maxammo_arr);
     for (int i = 0; i < NUMAMMO; ++i)
     {
-        str->maxammo[i] = read32();
+        str->maxammo[i] = JS_GetInteger(JS_ArrayNext(maxammo_iter));
     }
-    str->attackdown = read32();
-    str->usedown = read32();
-    str->cheats = read32();
-    str->refire = read32();
-    str->killcount = read32();
-    str->itemcount = read32();
-    str->secretcount = read32();
+    JS_ArrayIteratorFree(maxammo_iter);
+
+    str->attackdown = JS_GetIntegerValue(obj, "attackdown");
+    str->usedown = JS_GetIntegerValue(obj, "usedown");
+    str->cheats = JS_GetIntegerValue(obj, "cheats");
+    str->refire = JS_GetIntegerValue(obj, "refire");
+    str->killcount = JS_GetIntegerValue(obj, "killcount");
+    str->itemcount = JS_GetIntegerValue(obj, "itemcount");
+    str->secretcount = JS_GetIntegerValue(obj, "secretcount");
     // TODO
     str->message = NULL;
-    str->damagecount = read32();
-    str->bonuscount = read32();
-    str->attacker = readp_mobj();
-    str->extralight = read32();
-    str->fixedcolormap = read32();
-    str->colormap = read32();
+    str->damagecount = JS_GetIntegerValue(obj, "damagecount");
+    str->bonuscount = JS_GetIntegerValue(obj, "bonuscount");
+    str->attacker = readp_mobj(JS_GetIntegerValue(obj, "attacker"));
+    str->extralight = JS_GetIntegerValue(obj, "extralight");
+    str->fixedcolormap = JS_GetIntegerValue(obj, "fixedcolormap");
+    str->colormap = JS_GetIntegerValue(obj, "colormap");
+
+    json_t *psprites_arr = JS_GetObject(obj, "psprites");
+    json_arr_iter_t *psprites_iter = JS_ArrayIterator(psprites_arr);
     for (int i = 0; i < NUMPSPRITES; ++i)
     {
-        read_pspdef_t(&str->psprites[i]);
+        read_pspdef_t(&str->psprites[i], JS_ArrayNext(psprites_iter));
     }
-    str->secretmessage = NULL;
-    str->didsecret = read32();
-    str->oldviewz = read32();
-    str->pitch = read32();
-    str->oldpitch = read32();
-    str->slope = read32();
-    str->maxkilldiscount = read32();
+    JS_ArrayIteratorFree(psprites_iter);
 
-    str->num_visitedlevels = read32();
+    str->secretmessage = NULL;
+    str->didsecret = JS_GetIntegerValue(obj, "didsecret");
+    str->oldviewz = JS_GetIntegerValue(obj, "oldviewz");
+    str->pitch = JS_GetIntegerValue(obj, "pitch");
+    str->oldpitch = JS_GetIntegerValue(obj, "oldpitch");
+    str->slope = JS_GetIntegerValue(obj, "slope");
+    str->maxkilldiscount = JS_GetIntegerValue(obj, "maxkilldiscount");
+
     array_clear(str->visitedlevels);
-    for (int i = 0; i < str->num_visitedlevels; ++i)
+    json_t *visitedlevels_arr = JS_GetObject(obj, "visitedlevels");
+    str->num_visitedlevels = JS_GetArraySize(visitedlevels_arr);
+    json_t *visitedlevel_obj;
+    JS_ArrayForEach(visitedlevel_obj, visitedlevels_arr)
     {
         level_t level = {0};
-        level.episode = read32();
-        level.map = read32();
+        level.episode = JS_GetIntegerValue(visitedlevel_obj, "episode");
+        level.map = JS_GetIntegerValue(visitedlevel_obj, "map");
         array_push(str->visitedlevels, level);
     }
 
-    str->lastweapon = read_enum();
-    str->nextweapon = read_enum();
-    str->switching = read_enum();
+    str->lastweapon = JS_GetIntegerValue(obj, "lastweapon");
+    str->nextweapon = JS_GetIntegerValue(obj, "nextweapon");
+    str->switching = JS_GetIntegerValue(obj, "switching");
 }
 
-static void write_player_t(player_t *str)
+static json_mut_t *write_player_t(player_t *str)
 {
-    writep_mobj(str->mo);
-    write_enum(str->playerstate);
-    write_ticcmd_t(&str->cmd);
-    write32(str->viewz);
-    write32(str->viewheight);
-    write32(str->deltaviewheight);
-    write32(str->bob);
-    write32(str->momx);
-    write32(str->momy);
-    write32(str->health);
-    write32(str->armorpoints);
-    write32(str->armortype);
+    json_mut_t *obj = JS_NewObject(doc);
+
+    JS_SetInt(doc, obj, "mo", writep_mobj(str->mo));
+    JS_SetInt(doc, obj, "playerstate", str->playerstate);
+
+    JS_SetObject(doc, obj, "ticcmd", write_ticcmd_t(&str->cmd));
+
+    JS_SetInt(doc, obj, "viewz", str->viewz);
+    JS_SetInt(doc, obj, "viewheight", str->viewheight);
+    JS_SetInt(doc, obj, "deltaviewheight", str->deltaviewheight);
+    JS_SetInt(doc, obj, "bob", str->bob);
+    JS_SetInt(doc, obj, "momx", str->momx);
+    JS_SetInt(doc, obj, "momy", str->momy);
+    JS_SetInt(doc, obj, "health", str->health);
+    JS_SetInt(doc, obj, "armorpoints", str->armorpoints);
+    JS_SetInt(doc, obj, "armortype", str->armortype);
+
+    json_mut_t *powers_arr = JS_NewArray(doc);
     for (int i = 0; i < NUMPOWERS; ++i)
     {
-        write32(str->powers[i]);
+        JS_ArrayAddInt(doc, powers_arr, str->powers[i]);
     }
+    JS_SetArray(doc, obj, "powers", powers_arr);
+
+    json_mut_t *cards_arr = JS_NewArray(doc);
     for (int i = 0; i < NUMCARDS; ++i)
     {
-        write32(str->cards[i]);
+        JS_ArrayAddInt(doc, cards_arr, str->cards[i]);
     }
-    write32(str->backpack);
+    JS_SetArray(doc, obj, "cards", cards_arr);
+
+    JS_SetInt(doc, obj, "backpack", str->backpack);
+
+    json_mut_t *frags_arr = JS_NewArray(doc);
     for (int i = 0; i < MAXPLAYERS; ++i)
     {
-        write32(str->frags[i]);
+        JS_ArrayAddInt(doc, frags_arr, str->frags[i]);
     }
-    write_enum(str->readyweapon);
-    write_enum(str->pendingweapon);
+    JS_SetArray(doc, obj, "frags", frags_arr);
+
+    JS_SetInt(doc, obj, "readyweapon", str->readyweapon);
+    JS_SetInt(doc, obj, "pendingweapon", str->pendingweapon);
+
+    json_mut_t *weaponowned_arr = JS_NewArray(doc);
     for (int i = 0; i < NUMWEAPONS; ++i)
     {
-        write32(str->weaponowned[i]);
+        JS_ArrayAddInt(doc, weaponowned_arr, str->weaponowned[i]);
     }
+    JS_SetArray(doc, obj, "weaponowned", weaponowned_arr);
+
+    json_mut_t *ammo_arr = JS_NewArray(doc);
     for (int i = 0; i < NUMAMMO; ++i)
     {
-        write32(str->ammo[i]);
+        JS_ArrayAddInt(doc, ammo_arr, str->ammo[i]);
     }
+    JS_SetArray(doc, obj, "ammo", ammo_arr);
+
+    json_mut_t *maxammo_arr = JS_NewArray(doc);
     for (int i = 0; i < NUMAMMO; ++i)
     {
-        write32(str->maxammo[i]);
+        JS_ArrayAddInt(doc, maxammo_arr, str->maxammo[i]);
     }
-    write32(str->attackdown);
-    write32(str->usedown);
-    write32(str->cheats);
-    write32(str->refire);
-    write32(str->killcount);
-    write32(str->itemcount);
-    write32(str->secretcount);
+    JS_SetArray(doc, obj, "maxammo", maxammo_arr);
+
+    JS_SetInt(doc, obj, "attackdown", str->attackdown);
+    JS_SetInt(doc, obj, "usedown", str->usedown);
+    JS_SetInt(doc, obj, "cheats", str->cheats);
+    JS_SetInt(doc, obj, "refire", str->refire);
+    JS_SetInt(doc, obj, "killcount", str->killcount);
+    JS_SetInt(doc, obj, "itemcount", str->itemcount);
+    JS_SetInt(doc, obj, "secretcount", str->secretcount);
     // TODO
     // str->message;
-    write32(str->damagecount);
-    write32(str->bonuscount);
-    writep_mobj(str->attacker);
-    write32(str->extralight);
-    write32(str->fixedcolormap);
-    write32(str->colormap);
+    JS_SetInt(doc, obj, "damagecount", str->damagecount);
+    JS_SetInt(doc, obj, "bonuscount", str->bonuscount);
+    JS_SetInt(doc, obj, "attacker", writep_mobj(str->attacker));
+    JS_SetInt(doc, obj, "extralight", str->extralight);
+    JS_SetInt(doc, obj, "fixedcolormap", str->fixedcolormap);
+    JS_SetInt(doc, obj, "colormap", str->colormap);
+
+    json_mut_t *psprites_arr = JS_NewArray(doc);
     for (int i = 0; i < NUMPSPRITES; ++i)
     {
-        write_pspdef_t(&str->psprites[i]);
+        JS_ArrayAddObject(doc, psprites_arr, write_pspdef_t(&str->psprites[i]));
     }
-    write32(str->didsecret);
-    write32(str->oldviewz);
-    write32(str->pitch);
-    write32(str->oldpitch);
-    write32(str->slope);
-    write32(str->maxkilldiscount);
+    JS_SetArray(doc, obj, "psprites", psprites_arr);
 
-    write32(str->num_visitedlevels);
-    level_t *level;
-    array_foreach(level, str->visitedlevels)
+    JS_SetInt(doc, obj, "didsecret", str->didsecret);
+    JS_SetInt(doc, obj, "oldviewz", str->oldviewz);
+    JS_SetInt(doc, obj, "pitch", str->pitch);
+    JS_SetInt(doc, obj, "oldpitch", str->oldpitch);
+    JS_SetInt(doc, obj, "slope", str->slope);
+    JS_SetInt(doc, obj, "maxkilldiscount", str->maxkilldiscount);
+
+    json_mut_t *visitedlevels_arr = JS_NewArray(doc);
+    array_foreach_type(level, str->visitedlevels, level_t)
     {
-        write32(level->episode);
-        write32(level->map);
+        json_mut_t *visitedlevel_obj = JS_NewObject(doc);
+        JS_SetInt(doc, visitedlevel_obj, "episode", level->episode);
+        JS_SetInt(doc, visitedlevel_obj, "map", level->map);
+        JS_ArrayAddObject(doc, visitedlevels_arr, visitedlevel_obj);
     }
+    JS_SetArray(doc, obj, "visitedlevels", visitedlevels_arr);
 
-    write_enum(str->lastweapon);
-    write_enum(str->nextweapon);
-    write_enum(str->switching);
+    JS_SetInt(doc, obj, "lastweapon", str->lastweapon);
+    JS_SetInt(doc, obj, "nextweapon", str->nextweapon);
+    JS_SetInt(doc, obj, "switching", str->switching);
+
+    return obj;
 }
 
-static void read_ceiling_t(ceiling_t *str, thinker_class_t tc)
+static void read_ceiling_t(ceiling_t *str, thinker_class_t tc, json_t *obj)
 {
-    read_thinker_t(&str->thinker, tc);
-    str->type = read_enum();
-    readp_index(str->sector, sectors);
-    str->bottomheight = read32();
-    str->topheight = read32();
-    str->speed = read32();
-    str->oldspeed = read32();
-    str->crush = read32();
-    str->newspecial = read32();
-    str->oldspecial = read32();
-    str->texture = read16();
-    str->direction = read32();
-    str->tag = read32();
-    str->olddirection = read32();
-    str->list = readp_activeceilings();
+    read_thinker_t(&str->thinker, tc, JS_GetObject(obj, "thinker"));
+
+    str->type = JS_GetIntegerValue(obj, "type");
+    JS_GetIdx(str->sector, sectors, obj, "sector");
+    str->bottomheight = JS_GetIntegerValue(obj, "bottomheight");
+    str->topheight = JS_GetIntegerValue(obj, "topheight");
+    str->speed = JS_GetIntegerValue(obj, "speed");
+    str->oldspeed = JS_GetIntegerValue(obj, "oldspeed");
+    str->crush = JS_GetIntegerValue(obj, "crush");
+    str->newspecial = JS_GetIntegerValue(obj, "newspecial");
+    str->oldspecial = JS_GetIntegerValue(obj, "oldspecial");
+    str->texture = JS_GetIntegerValue(obj, "texture");
+    str->direction = JS_GetIntegerValue(obj, "direction");
+    str->tag = JS_GetIntegerValue(obj, "tag");
+    str->olddirection = JS_GetIntegerValue(obj, "olddirection");
+    str->list = readp_activeceilings(JS_GetIntegerValue(obj, "list"));
 }
 
-static void write_ceiling_t(ceiling_t *str)
+static json_mut_t *write_ceiling_t(ceiling_t *str)
 {
-    write_thinker_t(&str->thinker);
-    write_enum(str->type);
-    writep_index(str->sector, sectors);
-    write32(str->bottomheight);
-    write32(str->topheight);
-    write32(str->speed);
-    write32(str->oldspeed);
-    write32(str->crush);
-    write32(str->newspecial);
-    write32(str->oldspecial);
-    write16(str->texture);
-    write32(str->direction);
-    write32(str->tag);
-    write32(str->olddirection);
-    writep_activeceilings(str->list);
+    json_mut_t *obj = JS_NewObject(doc);
+
+    JS_SetObject(doc, obj, "thinker", write_thinker_t(&str->thinker));
+
+    JS_SetInt(doc, obj, "type", str->type);
+    JS_SetIdx(doc, obj, "sector", str->sector, sectors);
+    JS_SetInt(doc, obj, "bottomheight", str->bottomheight);
+    JS_SetInt(doc, obj, "topheight", str->topheight);
+    JS_SetInt(doc, obj, "speed", str->speed);
+    JS_SetInt(doc, obj, "oldspeed", str->oldspeed);
+    JS_SetInt(doc, obj, "crush", str->crush);
+    JS_SetInt(doc, obj, "newspecial", str->newspecial);
+    JS_SetInt(doc, obj, "oldspecial", str->oldspecial);
+    JS_SetInt(doc, obj, "texture", str->texture);
+    JS_SetInt(doc, obj, "direction", str->direction);
+    JS_SetInt(doc, obj, "tag", str->tag);
+    JS_SetInt(doc, obj, "olddirection", str->olddirection);
+    JS_SetInt(doc, obj, "list", writep_activeceilings(str->list));
+
+    return obj;
 }
 
-static void read_vldoor_t(vldoor_t *str, thinker_class_t tc)
+static void read_vldoor_t(vldoor_t *str, thinker_class_t tc, json_t *obj)
 {
-    read_thinker_t(&str->thinker, tc);
-    str->type = read_enum();
-    readp_index(str->sector, sectors);
-    str->topheight = read32();
-    str->speed = read32();
-    str->direction = read32();
-    str->topwait = read32();
-    str->topcountdown = read32();
-    readp_index(str->line, lines);
-    str->lighttag = read32();
+    read_thinker_t(&str->thinker, tc, JS_GetObject(obj, "thinker"));
+
+    str->type = JS_GetIntegerValue(obj, "type");
+    JS_GetIdx(str->sector, sectors, obj, "sector");
+    str->topheight = JS_GetIntegerValue(obj, "topheight");
+    str->speed = JS_GetIntegerValue(obj, "speed");
+    str->direction = JS_GetIntegerValue(obj, "direction");
+    str->topwait = JS_GetIntegerValue(obj, "topwait");
+    str->topcountdown = JS_GetIntegerValue(obj, "topcountdown");
+    JS_GetIdx(str->line, lines, obj, "line");
+    str->lighttag = JS_GetIntegerValue(obj, "lighttag");
 }
 
-static void write_vldoor_t(vldoor_t *str)
+static json_mut_t *write_vldoor_t(vldoor_t *str)
 {
-    write_thinker_t(&str->thinker);
-    write_enum(str->type);
-    write32(str->sector - sectors);
-    write32(str->topheight);
-    write32(str->speed);
-    write32(str->direction);
-    write32(str->topwait);
-    write32(str->topcountdown);
-    writep_index(str->line, lines);
-    write32(str->lighttag);
+    json_mut_t *obj = JS_NewObject(doc);
+
+    JS_SetObject(doc, obj, "thinker", write_thinker_t(&str->thinker));
+
+    JS_SetInt(doc, obj, "type", str->type);
+    JS_SetIdx(doc, obj, "sector", str->sector, sectors);
+    JS_SetInt(doc, obj, "topheight", str->topheight);
+    JS_SetInt(doc, obj, "speed", str->speed);
+    JS_SetInt(doc, obj, "direction", str->direction);
+    JS_SetInt(doc, obj, "topwait", str->topwait);
+    JS_SetInt(doc, obj, "topcountdown", str->topcountdown);
+    JS_SetIdx(doc, obj, "line", str->line, lines);
+    JS_SetInt(doc, obj, "lighttag", str->lighttag);
+
+    return obj;
 }
 
-static void read_floormove_t(floormove_t *str, thinker_class_t tc)
+static void read_floormove_t(floormove_t *str, thinker_class_t tc, json_t *obj)
 {
-    read_thinker_t(&str->thinker, tc);
-    str->type = read_enum();
-    str->crush = read32();
-    readp_index(str->sector, sectors);
-    str->direction = read32();
-    str->newspecial = read32();
-    str->oldspecial = read32();
-    str->texture = read16();
-    str->floordestheight = read32();
-    str->speed = read32();
+    read_thinker_t(&str->thinker, tc, JS_GetObject(obj, "thinker"));
+
+    str->type = JS_GetIntegerValue(obj, "type");
+    str->crush = JS_GetIntegerValue(obj, "crush");
+    JS_GetIdx(str->sector, sectors, obj, "sector");
+    str->direction = JS_GetIntegerValue(obj, "direction");
+    str->newspecial = JS_GetIntegerValue(obj, "newspecial");
+    str->oldspecial = JS_GetIntegerValue(obj, "oldspecial");
+    str->texture = JS_GetIntegerValue(obj, "texture");
+    str->floordestheight = JS_GetIntegerValue(obj, "floordestheight");
+    str->speed = JS_GetIntegerValue(obj, "speed");
 }
 
-static void write_floormove_t(floormove_t *str)
+static json_mut_t *write_floormove_t(floormove_t *str)
 {
-    write_thinker_t(&str->thinker);
-    write_enum(str->type);
-    write32(str->crush);
-    writep_index(str->sector, sectors);
-    write32(str->direction);
-    write32(str->newspecial);
-    write32(str->oldspecial);
-    write16(str->texture);
-    write32(str->floordestheight);
-    write32(str->speed);
+    json_mut_t *obj = JS_NewObject(doc);
+
+    JS_SetObject(doc, obj, "thinker", write_thinker_t(&str->thinker));
+
+    JS_SetInt(doc, obj, "type", str->type);
+    JS_SetInt(doc, obj, "crush", str->crush);
+    JS_SetIdx(doc, obj, "sector", str->sector, sectors);
+    JS_SetInt(doc, obj, "direction", str->direction);
+    JS_SetInt(doc, obj, "newspecial", str->newspecial);
+    JS_SetInt(doc, obj, "oldspecial", str->oldspecial);
+    JS_SetInt(doc, obj, "texture", str->texture);
+    JS_SetInt(doc, obj, "floordestheight", str->floordestheight);
+    JS_SetInt(doc, obj, "speed", str->speed);
+
+    return obj;
 }
 
-static void read_plat_t(plat_t *str, thinker_class_t tc)
+static void read_plat_t(plat_t *str, thinker_class_t tc, json_t *obj)
 {
-    read_thinker_t(&str->thinker, tc);
-    readp_index(str->sector, sectors);
-    str->speed = read32();
-    str->low = read32();
-    str->high = read32();
-    str->wait = read32();
-    str->count = read32();
-    str->status = read_enum();
-    str->oldstatus = read_enum();
-    str->crush = read32();
-    str->tag = read32();
-    str->type = read_enum();
-    str->list = readp_activeplats();
+    read_thinker_t(&str->thinker, tc, JS_GetObject(obj, "thinker"));
+
+    JS_GetIdx(str->sector, sectors, obj, "sector");
+    str->speed = JS_GetIntegerValue(obj, "speed");
+    str->low = JS_GetIntegerValue(obj, "low");
+    str->high = JS_GetIntegerValue(obj, "high");
+    str->wait = JS_GetIntegerValue(obj, "wait");
+    str->count = JS_GetIntegerValue(obj, "count");
+    str->status = JS_GetIntegerValue(obj, "status");
+    str->oldstatus = JS_GetIntegerValue(obj, "oldstatus");
+    str->crush = JS_GetIntegerValue(obj, "crush");
+    str->tag = JS_GetIntegerValue(obj, "tag");
+    str->type = JS_GetIntegerValue(obj, "type");
+    str->list = readp_activeplats(JS_GetIntegerValue(obj, "list"));
 }
 
-static void write_plat_t(plat_t *str)
+static json_mut_t *write_plat_t(plat_t *str)
 {
-    write_thinker_t(&str->thinker);
-    writep_index(str->sector, sectors);
-    write32(str->speed);
-    write32(str->low);
-    write32(str->high);
-    write32(str->wait);
-    write32(str->count);
-    write_enum(str->status);
-    write_enum(str->oldstatus);
-    write32(str->crush);
-    write32(str->tag);
-    write_enum(str->type);
-    writep_activeplats(str->list);
+    json_mut_t *obj = JS_NewObject(doc);
+
+    JS_SetObject(doc, obj, "thinker", write_thinker_t(&str->thinker));
+
+    JS_SetIdx(doc, obj, "sector", str->sector, sectors);
+    JS_SetInt(doc, obj, "speed", str->speed);
+    JS_SetInt(doc, obj, "low", str->low);
+    JS_SetInt(doc, obj, "high", str->high);
+    JS_SetInt(doc, obj, "wait", str->wait);
+    JS_SetInt(doc, obj, "count", str->count);
+    JS_SetInt(doc, obj, "status", str->status);
+    JS_SetInt(doc, obj, "oldstatus", str->oldstatus);
+    JS_SetInt(doc, obj, "crush", str->crush);
+    JS_SetInt(doc, obj, "tag", str->tag);
+    JS_SetInt(doc, obj, "type", str->type);
+    JS_SetInt(doc, obj, "list", writep_activeplats(str->list));
+
+    return obj;
 }
 
-static void read_lightflash_t(lightflash_t *str)
+static void read_lightflash_t(lightflash_t *str, json_t *obj)
 {
-    read_thinker_t(&str->thinker, tc_flash);
-    readp_index(str->sector, sectors);
-    str->count = read32();
-    str->maxlight = read32();
-    str->minlight = read32();
-    str->maxtime = read32();
-    str->mintime = read32();
+    read_thinker_t(&str->thinker, tc_flash, JS_GetObject(obj, "thinker"));
+
+    JS_GetIdx(str->sector, sectors, obj, "sector");
+    str->count = JS_GetIntegerValue(obj, "count");
+    str->maxlight = JS_GetIntegerValue(obj, "maxlight");
+    str->minlight = JS_GetIntegerValue(obj, "minlight");
+    str->maxtime = JS_GetIntegerValue(obj, "maxtime");
+    str->mintime = JS_GetIntegerValue(obj, "mintime");
 }
 
-static void write_lightflash_t(lightflash_t *str)
+static json_mut_t *write_lightflash_t(lightflash_t *str)
 {
-    write_thinker_t(&str->thinker);
-    writep_index(str->sector, sectors);
-    write32(str->count);
-    write32(str->maxlight);
-    write32(str->minlight);
-    write32(str->maxtime);
-    write32(str->mintime);
+    json_mut_t *obj = JS_NewObject(doc);
+
+    JS_SetObject(doc, obj, "thinker", write_thinker_t(&str->thinker));
+
+    JS_SetIdx(doc, obj, "sector", str->sector, sectors);
+    JS_SetInt(doc, obj, "count", str->count);
+    JS_SetInt(doc, obj, "maxlight", str->maxlight);
+    JS_SetInt(doc, obj, "minlight", str->minlight);
+    JS_SetInt(doc, obj, "maxtime", str->maxtime);
+    JS_SetInt(doc, obj, "mintime", str->mintime);
+
+    return obj;
 }
 
-static void read_strobe_t(strobe_t *str)
+static void read_strobe_t(strobe_t *str, json_t *obj)
 {
-    read_thinker_t(&str->thinker, tc_strobe);
-    readp_index(str->sector, sectors);
-    str->count = read32();
-    str->minlight = read32();
-    str->maxlight = read32();
-    str->darktime = read32();
-    str->brighttime = read32();
+    read_thinker_t(&str->thinker, tc_strobe, JS_GetObject(obj, "thinker"));
+
+    JS_GetIdx(str->sector, sectors, obj, "sector");
+    str->count = JS_GetIntegerValue(obj, "count");
+    str->minlight = JS_GetIntegerValue(obj, "minlight");
+    str->maxlight = JS_GetIntegerValue(obj, "maxlight");
+    str->darktime = JS_GetIntegerValue(obj, "darktime");
+    str->brighttime = JS_GetIntegerValue(obj, "brighttime");
 }
 
-static void write_strobe_t(strobe_t *str)
+static json_mut_t *write_strobe_t(strobe_t *str)
 {
-    write_thinker_t(&str->thinker);
-    writep_index(str->sector, sectors);
-    write32(str->count);
-    write32(str->minlight);
-    write32(str->maxlight);
-    write32(str->darktime);
-    write32(str->brighttime);
+    json_mut_t *obj = JS_NewObject(doc);
+
+    JS_SetObject(doc, obj, "thinker", write_thinker_t(&str->thinker));
+
+    JS_SetIdx(doc, obj, "sector", str->sector, sectors);
+    JS_SetInt(doc, obj, "count", str->count);
+    JS_SetInt(doc, obj, "minlight", str->minlight);
+    JS_SetInt(doc, obj, "maxlight", str->maxlight);
+    JS_SetInt(doc, obj, "darktime", str->darktime);
+    JS_SetInt(doc, obj, "brighttime", str->brighttime);
+
+    return obj;
 }
 
-static void read_glow_t(glow_t *str)
+static void read_glow_t(glow_t *str, json_t *obj)
 {
-    read_thinker_t(&str->thinker, tc_glow);
-    readp_index(str->sector, sectors);
-    str->minlight = read32();
-    str->maxlight = read32();
-    str->direction = read32();
+    read_thinker_t(&str->thinker, tc_glow, JS_GetObject(obj, "thinker"));
+
+    JS_GetIdx(str->sector, sectors, obj, "sector");
+    str->minlight = JS_GetIntegerValue(obj, "minlight");
+    str->maxlight = JS_GetIntegerValue(obj, "maxlight");
+    str->direction = JS_GetIntegerValue(obj, "direction");
 }
 
-static void write_glow_t(glow_t *str)
+static json_mut_t *write_glow_t(glow_t *str)
 {
-    write_thinker_t(&str->thinker);
-    write32(str->sector - sectors);
-    write32(str->minlight);
-    write32(str->maxlight);
-    write32(str->direction);
+    json_mut_t *obj = JS_NewObject(doc);
+
+    JS_SetObject(doc, obj, "thinker", write_thinker_t(&str->thinker));
+
+    JS_SetIdx(doc, obj, "sector", str->sector, sectors);
+    JS_SetInt(doc, obj, "minlight", str->minlight);
+    JS_SetInt(doc, obj, "maxlight", str->maxlight);
+    JS_SetInt(doc, obj, "direction", str->direction);
+
+    return obj;
 }
 
-static void read_fireflicker_t(fireflicker_t *str)
+static void read_fireflicker_t(fireflicker_t *str, json_t *obj)
 {
-    read_thinker_t(&str->thinker, tc_flicker);
-    readp_index(str->sector, sectors);
-    str->count = read32();
-    str->maxlight = read32();
-    str->minlight = read32();
+    read_thinker_t(&str->thinker, tc_flicker, JS_GetObject(obj, "thinker"));
+
+    JS_GetIdx(str->sector, sectors, obj, "sector");
+    str->count = JS_GetIntegerValue(obj, "count");
+    str->maxlight = JS_GetIntegerValue(obj, "maxlight");
+    str->minlight = JS_GetIntegerValue(obj, "minlight");
 }
 
-static void write_fireflicker_t(fireflicker_t *str)
+static json_mut_t *write_fireflicker_t(fireflicker_t *str)
 {
-    write_thinker_t(&str->thinker);
-    writep_index(str->sector, sectors);
-    write32(str->count);
-    write32(str->maxlight);
-    write32(str->minlight);
+    json_mut_t *obj = JS_NewObject(doc);
+
+    JS_SetObject(doc, obj, "thinker", write_thinker_t(&str->thinker));
+
+    JS_SetIdx(doc, obj, "sector", str->sector, sectors);
+    JS_SetInt(doc, obj, "count", str->count);
+    JS_SetInt(doc, obj, "maxlight", str->maxlight);
+    JS_SetInt(doc, obj, "minlight", str->minlight);
+
+    return obj;
 }
 
-static void read_elevator_t(elevator_t *str, thinker_class_t tc)
+static void read_elevator_t(elevator_t *str, thinker_class_t tc, json_t *obj)
 {
-    read_thinker_t(&str->thinker, tc);
-    str->type = read_enum();
-    readp_index(str->sector, sectors);
-    str->direction = read32();
-    str->floordestheight = read32();
-    str->ceilingdestheight = read32();
-    str->speed = read32();
+    read_thinker_t(&str->thinker, tc, JS_GetObject(obj, "thinker"));
+
+    str->type = JS_GetIntegerValue(obj, "type");
+    JS_GetIdx(str->sector, sectors, obj, "sector");
+    str->direction = JS_GetIntegerValue(obj, "direction");
+    str->floordestheight = JS_GetIntegerValue(obj, "floordestheight");
+    str->ceilingdestheight = JS_GetIntegerValue(obj, "ceilingdestheight");
+    str->speed = JS_GetIntegerValue(obj, "speed");
 }
 
-static void write_elevator_t(elevator_t *str)
+static json_mut_t *write_elevator_t(elevator_t *str)
 {
-    write_thinker_t(&str->thinker);
-    write_enum(str->type);
-    writep_index(str->sector, sectors);
-    write32(str->direction);
-    write32(str->floordestheight);
-    write32(str->ceilingdestheight);
-    write32(str->speed);
+    json_mut_t *obj = JS_NewObject(doc);
+
+    JS_SetObject(doc, obj, "thinker", write_thinker_t(&str->thinker));
+
+    JS_SetInt(doc, obj, "type", str->type);
+    JS_SetIdx(doc, obj, "sector", str->sector, sectors);
+    JS_SetInt(doc, obj, "direction", str->direction);
+    JS_SetInt(doc, obj, "floordestheight", str->floordestheight);
+    JS_SetInt(doc, obj, "ceilingdestheight", str->ceilingdestheight);
+    JS_SetInt(doc, obj, "speed", str->speed);
+
+    return obj;
 }
 
-static void read_scroll_t(scroll_t *str, thinker_class_t tc)
+static void read_scroll_t(scroll_t *str, thinker_class_t tc, json_t *obj)
 {
-    read_thinker_t(&str->thinker, tc);
-    str->dx = read32();
-    str->dy = read32();
-    str->affectee = read32();
-    str->control = read32();
-    str->last_height = read32();
-    str->vdx = read32();
-    str->vdy = read32();
-    str->accel = read32();
-    str->type = read_enum();
+    read_thinker_t(&str->thinker, tc, JS_GetObject(obj, "thinker"));
+
+    str->dx = JS_GetIntegerValue(obj, "dx");
+    str->dy = JS_GetIntegerValue(obj, "dy");
+    str->affectee = JS_GetIntegerValue(obj, "affectee");
+    str->control = JS_GetIntegerValue(obj, "control");
+    str->last_height = JS_GetIntegerValue(obj, "last_height");
+    str->vdx = JS_GetIntegerValue(obj, "vdx");
+    str->vdy = JS_GetIntegerValue(obj, "vdy");
+    str->accel = JS_GetIntegerValue(obj, "accel");
+    str->type = JS_GetIntegerValue(obj, "type");
 }
 
-static void write_scroll_t(scroll_t *str)
+static json_mut_t *write_scroll_t(scroll_t *str)
 {
-    write_thinker_t(&str->thinker);
-    write32(str->dx);
-    write32(str->dy);
-    write32(str->affectee);
-    write32(str->control);
-    write32(str->last_height);
-    write32(str->vdx);
-    write32(str->vdy);
-    write32(str->accel);
-    write_enum(str->type);
+    json_mut_t *obj = JS_NewObject(doc);
+
+    JS_SetObject(doc, obj, "thinker", write_thinker_t(&str->thinker));
+
+    JS_SetInt(doc, obj, "dx", str->dx);
+    JS_SetInt(doc, obj, "dy", str->dy);
+    JS_SetInt(doc, obj, "affectee", str->affectee);
+    JS_SetInt(doc, obj, "control", str->control);
+    JS_SetInt(doc, obj, "last_height", str->last_height);
+    JS_SetInt(doc, obj, "vdx", str->vdx);
+    JS_SetInt(doc, obj, "vdy", str->vdy);
+    JS_SetInt(doc, obj, "accel", str->accel);
+    JS_SetInt(doc, obj, "type", str->type);
+
+    return obj;
 }
 
-static void read_pusher_t(pusher_t *str)
+static void read_pusher_t(pusher_t *str, json_t *obj)
 {
-    read_thinker_t(&str->thinker, tc_pusher);
-    str->type = read_enum();
-    str->source = readp_mobj();
-    str->x_mag = read32();
-    str->y_mag = read32();
-    str->magnitude = read32();
-    str->radius = read32();
-    str->x = read32();
-    str->y = read32();
-    str->affectee = read32();
+    read_thinker_t(&str->thinker, tc_pusher, JS_GetObject(obj, "thinker"));
+
+    str->type = JS_GetIntegerValue(obj, "type");
+    str->source = readp_mobj(JS_GetIntegerValue(obj, "source"));
+    str->x_mag = JS_GetIntegerValue(obj, "x_mag");
+    str->y_mag = JS_GetIntegerValue(obj, "y_mag");
+    str->magnitude = JS_GetIntegerValue(obj, "magnitude");
+    str->radius = JS_GetIntegerValue(obj, "radius");
+    str->x = JS_GetIntegerValue(obj, "x");
+    str->y = JS_GetIntegerValue(obj, "y");
+    str->affectee = JS_GetIntegerValue(obj, "affectee");
 }
 
-static void write_pusher_t(pusher_t *str)
+static json_mut_t *write_pusher_t(pusher_t *str)
 {
-    write_thinker_t(&str->thinker);
-    write_enum(str->type);
-    writep_mobj(str->source);
-    write32(str->x_mag);
-    write32(str->y_mag);
-    write32(str->magnitude);
-    write32(str->radius);
-    write32(str->x);
-    write32(str->y);
-    write32(str->affectee);
+    json_mut_t *obj = JS_NewObject(doc);
+
+    JS_SetObject(doc, obj, "thinker", write_thinker_t(&str->thinker));
+
+    JS_SetInt(doc, obj, "type", str->type);
+    JS_SetInt(doc, obj, "source", writep_mobj(str->source));
+    JS_SetInt(doc, obj, "x_mag", str->x_mag);
+    JS_SetInt(doc, obj, "y_mag", str->y_mag);
+    JS_SetInt(doc, obj, "magnitude", str->magnitude);
+    JS_SetInt(doc, obj, "radius", str->radius);
+    JS_SetInt(doc, obj, "x", str->x);
+    JS_SetInt(doc, obj, "y", str->y);
+    JS_SetInt(doc, obj, "affectee", str->affectee);
+
+    return obj;
 }
 
-static void read_friction_t(friction_t *str)
+static void read_friction_t(friction_t *str, json_t *obj)
 {
-    read_thinker_t(&str->thinker, tc_friction);
-    str->friction = read32();
-    str->movefactor = read32();
-    str->affectee = read32();
+    read_thinker_t(&str->thinker, tc_friction, JS_GetObject(obj, "thinker"));
+
+    str->friction = JS_GetIntegerValue(obj, "friction");
+    str->movefactor = JS_GetIntegerValue(obj, "movefactor");
+    str->affectee = JS_GetIntegerValue(obj, "affectee");
 }
 
-static void write_friction_t(friction_t *str)
+static json_mut_t *write_friction_t(friction_t *str)
 {
-    write_thinker_t(&str->thinker);
-    write32(str->friction);
-    write32(str->movefactor);
-    write32(str->affectee);
+    json_mut_t *obj = JS_NewObject(doc);
+
+    JS_SetObject(doc, obj, "thinker", write_thinker_t(&str->thinker));
+
+    JS_SetInt(doc, obj, "friction", str->friction);
+    JS_SetInt(doc, obj, "movefactor", str->movefactor);
+    JS_SetInt(doc, obj, "affectee", str->affectee);
+
+    return obj;
 }
 
-static void read_ambient_data_t(ambient_data_t *str)
+static void read_ambient_data_t(ambient_data_t *str, json_t *obj)
 {
-    str->type = read_enum();
-    str->mode = read_enum();
-    str->close_dist = read32();
-    str->clipping_dist = read32();
-    str->min_tics = read32();
-    str->max_tics = read32();
-    str->volume_scale = read32();
-    str->sfx_id = read32();
+    str->type = JS_GetIntegerValue(obj, "type");
+    str->mode = JS_GetIntegerValue(obj, "mode");
+    str->close_dist = JS_GetIntegerValue(obj, "close_dist");
+    str->clipping_dist = JS_GetIntegerValue(obj, "clipping_dist");
+    str->min_tics = JS_GetIntegerValue(obj, "min_tics");
+    str->max_tics = JS_GetIntegerValue(obj, "max_tics");
+    str->volume_scale = JS_GetIntegerValue(obj, "volume_scale");
+    str->sfx_id = JS_GetIntegerValue(obj, "sfx_id");
 }
 
-static void write_ambient_data_t(ambient_data_t *str)
+static json_mut_t *write_ambient_data_t(ambient_data_t *str)
 {
-    write_enum(str->type);
-    write_enum(str->mode);
-    write32(str->close_dist);
-    write32(str->clipping_dist);
-    write32(str->min_tics);
-    write32(str->max_tics);
-    write32(str->volume_scale);
-    write32(str->sfx_id);
+    json_mut_t *obj = JS_NewObject(doc);
+
+    JS_SetInt(doc, obj, "type", str->type);
+    JS_SetInt(doc, obj, "mode", str->mode);
+    JS_SetInt(doc, obj, "close_dist", str->close_dist);
+    JS_SetInt(doc, obj, "clipping_dist", str->clipping_dist);
+    JS_SetInt(doc, obj, "min_tics", str->min_tics);
+    JS_SetInt(doc, obj, "max_tics", str->max_tics);
+    JS_SetInt(doc, obj, "volume_scale", str->volume_scale);
+    JS_SetInt(doc, obj, "sfx_id", str->sfx_id);
+
+    return obj;
 }
 
-static void read_ambient_t(ambient_t *str)
+static void read_ambient_t(ambient_t *str, json_t *obj)
 {
-    read_thinker_t(&str->thinker, tc_ambient);
-    str->source = readp_mobj();
-    str->origin = readp_mobj();
-    read_ambient_data_t(&str->data);
+    read_thinker_t(&str->thinker, tc_ambient, JS_GetObject(obj, "thinker"));
+
+    str->source = readp_mobj(JS_GetIntegerValue(obj, "source"));
+    str->origin = readp_mobj(JS_GetIntegerValue(obj, "origin"));
+
+    read_ambient_data_t(&str->data, JS_GetObject(obj, "ambient_data"));
+
     str->update_tics = AMB_UPDATE_NOW;
-    str->wait_tics = read32();
-    str->active = read32();
+    str->wait_tics = JS_GetIntegerValue(obj, "wait_tics");
+    str->active = JS_GetIntegerValue(obj, "active");
     str->playing = false;
-    str->offset = (float)FixedToDouble(read32());
-    str->last_offset = (float)FixedToDouble(read32());
-    str->last_leveltime = read32();
+    str->offset = (float)FixedToDouble(JS_GetIntegerValue(obj, "offset"));
+    str->last_offset =
+        (float)FixedToDouble(JS_GetIntegerValue(obj, "last_offset"));
+    str->last_leveltime = JS_GetIntegerValue(obj, "last_leveltime");
 }
 
-static void write_ambient_t(ambient_t *str)
+static json_mut_t *write_ambient_t(ambient_t *str)
 {
-    write_thinker_t(&str->thinker);
-    writep_mobj(str->source);
-    writep_mobj(str->origin);
-    write_ambient_data_t(&str->data);
-    write32(str->wait_tics);
-    write32(str->active);
-    write32(DoubleToFixed(str->offset));
-    write32(DoubleToFixed(str->last_offset));
-    write32(str->last_leveltime);
+    json_mut_t *obj = JS_NewObject(doc);
+
+    JS_SetObject(doc, obj, "thinker", write_thinker_t(&str->thinker));
+
+    JS_SetInt(doc, obj, "source", writep_mobj(str->source));
+    JS_SetInt(doc, obj, "origin", writep_mobj(str->origin));
+
+    JS_SetObject(doc, obj, "ambient_data", write_ambient_data_t(&str->data));
+
+    JS_SetInt(doc, obj, "wait_tics", str->wait_tics);
+    JS_SetInt(doc, obj, "active", str->active);
+    JS_SetInt(doc, obj, "offset", DoubleToFixed(str->offset));
+    JS_SetInt(doc, obj, "last_offset", DoubleToFixed(str->last_offset));
+    JS_SetInt(doc, obj, "last_leveltime", str->last_leveltime);
+
+    return obj;
 }
 
-static void read_rng_t(rng_t *str)
+static void read_rng_t(rng_t *str, json_t *obj)
 {
+    json_t *seeds_arr = JS_GetObject(obj, "seeds");
+    json_arr_iter_t *seeds_iter = JS_ArrayIterator(seeds_arr);
     for (int i = 0; i < NUMPRCLASS; ++i)
     {
-        str->seed[i] = read32();
+        str->seed[i] = JS_GetInteger(JS_ArrayNext(seeds_iter));
     }
-    str->rndindex = read32();
-    str->prndindex = read32();
+    JS_ArrayIteratorFree(seeds_iter);
+    str->rndindex = JS_GetIntegerValue(obj, "rndindex");
+    str->prndindex = JS_GetIntegerValue(obj, "prndindex");
 }
 
-static void write_rng_t(rng_t *str)
+static json_mut_t *write_rng_t(rng_t *str)
 {
+    json_mut_t *obj = JS_NewObject(doc);
+
+    json_mut_t *seed_arr = JS_NewArray(doc);
     for (int i = 0; i < NUMPRCLASS; ++i)
     {
-        write32(str->seed[i]);
+        JS_ArrayAddInt(doc, seed_arr, str->seed[i]);
     }
-    write32(str->rndindex);
-    write32(str->prndindex);
+    JS_SetArray(doc, obj, "seeds", seed_arr);
+
+    JS_SetInt(doc, obj, "rndindex", str->rndindex);
+    JS_SetInt(doc, obj, "prndindex", str->prndindex);
+
+    return obj;
 }
 
-static void read_button_t(button_t *str)
+static void read_button_t(button_t *str, json_t *obj)
 {
-    readp_index(str->line, lines);
-    str->where = read_enum();
-    str->btexture = read32();
-    str->btimer = read32();
+    JS_GetIdx(str->line, lines, obj, "line");
+    str->where = JS_GetIntegerValue(obj, "where");
+    str->btexture = JS_GetIntegerValue(obj, "btexture");
+    str->btimer = JS_GetIntegerValue(obj, "btimer");
 }
 
-static void write_button_t(button_t *str)
+static json_mut_t *write_button_t(button_t *str)
 {
-    writep_index(str->line, lines);
-    write_enum(str->where);
-    write32(str->btexture);
-    write32(str->btimer);
+    json_mut_t *obj = JS_NewObject(doc);
+
+    JS_SetIdx(doc, obj, "line", str->line, lines);
+    JS_SetInt(doc, obj, "where", str->where);
+    JS_SetInt(doc, obj, "btexture", str->btexture);
+    JS_SetInt(doc, obj, "btimer", str->btimer);
+
+    return obj;
 }
 
-
-static void read_msecnode_t(msecnode_t *str)
+static void read_msecnode_t(msecnode_t *str, json_t *obj)
 {
-    readp_index(str->m_sector, sectors);
-    str->m_thing = readp_mobj();
-    str->m_tprev = readp_msecnode();
-    str->m_tnext = readp_msecnode();
-    str->m_sprev = readp_msecnode();
-    str->m_snext = readp_msecnode();
-    str->visited = read32();
+    JS_GetIdx(str->m_sector, sectors, obj, "m_sector");
+    str->m_thing = readp_mobj(JS_GetIntegerValue(obj, "m_thing"));
+    str->m_tprev = readp_msecnode(JS_GetIntegerValue(obj, "m_tprev"));
+    str->m_tnext = readp_msecnode(JS_GetIntegerValue(obj, "m_tnext"));
+    str->m_sprev = readp_msecnode(JS_GetIntegerValue(obj, "m_sprev"));
+    str->m_snext = readp_msecnode(JS_GetIntegerValue(obj, "m_snext"));
+    str->visited = JS_GetIntegerValue(obj, "visited");
 }
 
-static void write_msecnode_t(msecnode_t *str)
+static json_mut_t *write_msecnode_t(msecnode_t *str)
 {
-    writep_index(str->m_sector, sectors);
-    writep_mobj(str->m_thing);
-    writep_msecnode(str->m_tprev);
-    writep_msecnode(str->m_tnext);
-    writep_msecnode(str->m_sprev);
-    writep_msecnode(str->m_snext);
-    write32(str->visited);
+    json_mut_t *obj = JS_NewObject(doc);
+
+    JS_SetIdx(doc, obj, "m_sector", str->m_sector, sectors);
+    JS_SetInt(doc, obj, "m_thing", writep_mobj(str->m_thing));
+    JS_SetInt(doc, obj, "m_tprev", writep_msecnode(str->m_tprev));
+    JS_SetInt(doc, obj, "m_tnext", writep_msecnode(str->m_tnext));
+    JS_SetInt(doc, obj, "m_sprev", writep_msecnode(str->m_sprev));
+    JS_SetInt(doc, obj, "m_snext", writep_msecnode(str->m_snext));
+    JS_SetInt(doc, obj, "visited", str->visited);
+
+    return obj;
 }
 
-static void read_divline_t(divline_t *str)
+static void read_divline_t(divline_t *str, json_t *obj)
 {
-    str->x = read32();
-    str->y = read32();
-    str->dx = read32();
-    str->dy = read32();
+    str->x = JS_GetIntegerValue(obj, "x");
+    str->y = JS_GetIntegerValue(obj, "y");
+    str->dx = JS_GetIntegerValue(obj, "dx");
+    str->dy = JS_GetIntegerValue(obj, "dy");
 }
 
-static void write_divline_t(divline_t *str)
+static json_mut_t *write_divline_t(divline_t *str)
 {
-    write32(str->x);
-    write32(str->y);
-    write32(str->dx);
-    write32(str->dy);
+    json_mut_t *obj = JS_NewObject(doc);
+
+    JS_SetInt(doc, obj, "x", str->x);
+    JS_SetInt(doc, obj, "y", str->y);
+    JS_SetInt(doc, obj, "dx", str->dx);
+    JS_SetInt(doc, obj, "dy", str->dy);
+
+    return obj;
 }
 
-static void read_partial_side_t(partial_side_t *str)
+static void read_partial_side_t(partial_side_t *str, json_t *obj)
 {
-    str->textureoffset = read32();
-    str->rowoffset = read32();
-    str->toptexture = read16();
-    str->bottomtexture = read16();
-    str->midtexture = read16();
+    str->textureoffset = JS_GetIntegerValue(obj, "textureoffset");
+    str->rowoffset = JS_GetIntegerValue(obj, "rowoffset");
+    str->toptexture = JS_GetIntegerValue(obj, "toptexture");
+    str->bottomtexture = JS_GetIntegerValue(obj, "bottomtexture");
+    str->midtexture = JS_GetIntegerValue(obj, "midtexture");
 }
 
-static void write_partial_side_t(partial_side_t *str)
+static json_mut_t *write_partial_side_t(partial_side_t *str)
 {
-    write32(str->textureoffset);
-    write32(str->rowoffset);
-    write16(str->toptexture);
-    write16(str->bottomtexture);
-    write16(str->midtexture);
+    json_mut_t *obj = JS_NewObject(doc);
+
+    JS_SetInt(doc, obj, "textureoffset", str->textureoffset);
+    JS_SetInt(doc, obj, "rowoffset", str->rowoffset);
+    JS_SetInt(doc, obj, "toptexture", str->toptexture);
+    JS_SetInt(doc, obj, "bottomtexture", str->bottomtexture);
+    JS_SetInt(doc, obj, "midtexture", str->midtexture);
+
+    return obj;
 }
 
 //
@@ -1229,72 +1411,88 @@ static void write_partial_side_t(partial_side_t *str)
 
 static void ArchiveDirty(void)
 {
-    int count = array_size(dirty_lines);
-    write32(count);
+    json_mut_t *lines_arr = JS_NewArray(doc);
     array_foreach_type(dl, dirty_lines, dirty_line_t)
     {
-        write32(dl->line - lines);
-        write16(dl->clean_line.special);
-    }
+        json_mut_t *line_obj = JS_NewObject(doc);
 
-    count = array_size(dirty_sides);
-    write32(count);
+        JS_SetIdx(doc, line_obj, "line", dl->line, lines);
+        JS_SetInt(doc, line_obj, "special", dl->clean_line.special);
+
+        JS_ArrayAddObject(doc, lines_arr, line_obj);
+    }
+    JS_SetArray(doc, root_mut, "dirty_lines", lines_arr);
+
+    json_mut_t *sides_arr = JS_NewArray(doc);
     array_foreach_type(ds, dirty_sides, dirty_side_t)
     {
-        write32(ds->side - sides);
-        write_partial_side_t(&ds->clean_side);
+        json_mut_t *side_obj = JS_NewObject(doc);
+
+        JS_SetIdx(doc, side_obj, "side", ds->side, sides);
+        json_mut_t *partial_side = write_partial_side_t(&ds->clean_side);
+        JS_SetObject(doc, side_obj, "partial_side", partial_side);
+
+        JS_ArrayAddObject(doc, sides_arr, side_obj);
     }
+    JS_SetArray(doc, root_mut, "dirty_sides", sides_arr);
 }
 
 static void UnArchiveDirty(void)
 {
-    int count = read32();
+    json_t *lines_arr = JS_GetObject(root, "dirty_lines");
+    int count = JS_GetArraySize(lines_arr);
     int oldcount = array_size(dirty_lines);
     for (int i = count; i < oldcount; ++i)
     {
         P_CleanLine(&dirty_lines[i]);
     }
     array_resize(dirty_lines, count);
+    json_arr_iter_t *lines_iter = JS_ArrayIterator(lines_arr);
     array_foreach_type(dl, dirty_lines, dirty_line_t)
     {
-        dl->line = lines + read32();
+        json_t *line_obj = JS_ArrayNext(lines_iter);
+        dl->line = lines + JS_GetIntegerValue(line_obj, "line");
         dl->line->dirty = true;
-        dl->clean_line.special = read16();
+        dl->clean_line.special = JS_GetIntegerValue(line_obj, "special");
     }
+    JS_ArrayIteratorFree(lines_iter);
 
-    count = read32();
+    json_t *sides_arr = JS_GetObject(root, "dirty_sides");
+    count = JS_GetArraySize(sides_arr);
     oldcount = array_size(dirty_sides);
     for (int i = count; i < oldcount; ++i)
     {
         P_CleanSide(&dirty_sides[i]);
     }
     array_resize(dirty_sides, count);
+    json_arr_iter_t *sides_iter = JS_ArrayIterator(sides_arr);
     array_foreach_type(ds, dirty_sides, dirty_side_t)
     {
-        ds->side = sides + read32();
+        json_t *side_obj = JS_ArrayNext(sides_iter);
+        ds->side = sides + JS_GetIntegerValue(side_obj, "side");
         ds->side->dirty = true;
-        read_partial_side_t(&ds->clean_side);
+        json_t *partial_side_obj = JS_GetObject(side_obj, "partial_side");
+        read_partial_side_t(&ds->clean_side, partial_side_obj);
     }
+    JS_ArrayIteratorFree(sides_iter);
 }
 
-inline static void ArchiveThingList(const sector_t *sector)
+inline static json_mut_t *ArchiveThingList(const sector_t *sector)
 {
-    int count = 0;
+    json_mut_t *thinglist_arr = JS_NewArray(doc);
+
     for (mobj_t *mobj = sector->thinglist; mobj; mobj = mobj->snext)
     {
-        ++count;
+        JS_ArrayAddInt(doc, thinglist_arr, writep_mobj(mobj));
     }
-    write32(count);
-    for (mobj_t *mobj = sector->thinglist; mobj; mobj = mobj->snext)
-    {
-        writep_mobj(mobj);
-    }
+
+    return thinglist_arr;
 }
 
-inline static void UnArchiveThingList(sector_t *sector)
+inline static void UnArchiveThingList(sector_t *sector, json_t *thinglist_arr)
 {
     sector->thinglist = NULL;
-    int count = read32();
+    int count = JS_GetArraySize(thinglist_arr);
     if (!count)
     {
         return;
@@ -1304,11 +1502,16 @@ inline static void UnArchiveThingList(sector_t *sector)
     sprev = &sector->thinglist;
     while (count--)
     {
-        mobj = readp_mobj();
+        json_t *thing_obj = JS_GetArrayItem(thinglist_arr, count);
+        mobj = readp_mobj(JS_GetInteger(thing_obj));
+
         *sprev = mobj;
-        mobj->sprev = sprev;
-        mobj->snext = NULL;
-        sprev = &mobj->snext;
+        if (mobj)
+        {
+            mobj->sprev = sprev;
+            mobj->snext = NULL;
+            sprev = &mobj->snext;
+        }
     }
 }
 
@@ -1318,55 +1521,78 @@ static void ArchiveWorld(void)
     const sector_t *sector;
 
     // do sectors
+    json_mut_t *sectors_arr = JS_NewArray(doc);
     for (i = 0, sector = sectors; i < numsectors; i++, sector++)
     {
-        // killough 10/98: save full floor & ceiling heights, including fraction
-        write32(sector->floorheight,
-                sector->ceilingheight,
-                sector->floor_xoffs,
-                sector->floor_yoffs,
-                sector->ceiling_xoffs,
-                sector->ceiling_yoffs,
-                sector->floor_rotation,
-                sector->ceiling_rotation,
-                sector->tint);
+        json_mut_t *sector_obj = JS_NewObject(doc);
 
-        write16(sector->floorpic,
-                sector->ceilingpic,
-                sector->lightlevel,
-                sector->special, // needed?   yes -- transfer types
-                sector->tag);    // needed?   need them -- killough 
+        // killough 10/98: save full floor & ceiling heights, including fraction
+        JS_SetInt(doc, sector_obj, "floorheight", sector->floorheight);
+        JS_SetInt(doc, sector_obj, "ceilingheight", sector->ceilingheight);
+        JS_SetInt(doc, sector_obj, "floor_xoffs", sector->floor_xoffs);
+        JS_SetInt(doc, sector_obj, "floor_yoffs", sector->floor_yoffs);
+        JS_SetInt(doc, sector_obj, "ceiling_xoffs", sector->ceiling_xoffs);
+        JS_SetInt(doc, sector_obj, "ceiling_yoffs", sector->ceiling_yoffs);
+        JS_SetInt(doc, sector_obj, "floor_rotation", sector->floor_rotation);
+        JS_SetInt(doc, sector_obj, "ceiling_rotation",
+                  sector->ceiling_rotation);
+        JS_SetInt(doc, sector_obj, "tint", sector->tint);
+
+        JS_SetInt(doc, sector_obj, "floorpic", sector->floorpic);
+        JS_SetInt(doc, sector_obj, "ceilingpic", sector->ceilingpic);
+        JS_SetInt(doc, sector_obj, "lightlevel", sector->lightlevel);
+        JS_SetInt(doc, sector_obj, "special", sector->special);
+        JS_SetInt(doc, sector_obj, "tag", sector->tag);
 
         // Woof!
-        writep_mobj(sector->soundtarget);
-        writep_thinker(sector->floordata);
-        writep_thinker(sector->ceilingdata);
-        ArchiveThingList(sector);
-        writep_msecnode(sector->touching_thinglist);
+        JS_SetInt(doc, sector_obj, "soundtarget",
+                  writep_mobj(sector->soundtarget));
+        JS_SetInt(doc, sector_obj, "floordata",
+                  writep_thinker(sector->floordata));
+        JS_SetInt(doc, sector_obj, "ceilingdata",
+                  writep_thinker(sector->ceilingdata));
+
+        json_mut_t *thinglist = ArchiveThingList(sector);
+        JS_SetArray(doc, sector_obj, "thinglist", thinglist);
+
+        JS_SetInt(doc, sector_obj, "touching_thinglist",
+                  writep_msecnode(sector->touching_thinglist));
+
+        JS_ArrayAddObject(doc, sectors_arr, sector_obj);
     }
+    JS_SetArray(doc, root_mut, "sectors", sectors_arr);
 
     const line_t *line;
 
+    json_mut_t *lines_arr = JS_NewArray(doc);
     for (i = 0, line = lines; i < numlines; i++, line++)
     {
-        write16(line->flags);
-        write16(line->special);
+        json_mut_t *line_obj = JS_NewObject(doc);
 
+        JS_SetInt(doc, line_obj, "flags", line->flags);
+        JS_SetInt(doc, line_obj, "special", line->special);
+
+        json_mut_t *sides_arr = JS_NewArray(doc);
         for (int j = 0; j < 2; j++)
         {
+            json_mut_t *side_obj = JS_NewObject(doc);
             if (line->sidenum[j] != NO_INDEX)
             {
                 side_t *side = &sides[line->sidenum[j]];
 
-                write32(side->textureoffset,
-                        side->rowoffset);
+                JS_SetInt(doc, side_obj, "textureoffset", side->textureoffset);
+                JS_SetInt(doc, side_obj, "rowoffset", side->rowoffset);
 
-                write16(side->toptexture,
-                        side->bottomtexture,
-                        side->midtexture);
+                JS_SetInt(doc, side_obj, "toptexture", side->toptexture);
+                JS_SetInt(doc, side_obj, "bottomtexture", side->bottomtexture);
+                JS_SetInt(doc, side_obj, "midtexture", side->midtexture);
             }
+            JS_ArrayAddObject(doc, sides_arr, side_obj);
         }
+        JS_SetArray(doc, line_obj, "sides", sides_arr);
+        JS_ArrayAddObject(doc, lines_arr, line_obj);
     }
+    JS_SetArray(doc, root_mut, "lines", lines_arr);
 }
 
 static void UnArchiveWorld(void)
@@ -1374,58 +1600,83 @@ static void UnArchiveWorld(void)
     int i;
     sector_t *sector;
 
+    json_t *sectors_arr = JS_GetObject(root, "sectors");
+
     // do sectors
+    json_arr_iter_t *sector_iter = JS_ArrayIterator(sectors_arr);
     for (i = 0, sector = sectors; i < numsectors; i++, sector++)
     {
-        sector->floorheight = read32();
-        sector->ceilingheight = read32();
-        sector->floor_xoffs = read32();
-        sector->floor_yoffs = read32();
-        sector->ceiling_xoffs = read32();
-        sector->ceiling_yoffs = read32();
-        sector->floor_rotation = read32();
-        sector->ceiling_rotation = read32();
-        sector->tint = read32();
+        json_t *sector_obj = JS_ArrayNext(sector_iter);
 
-        sector->floorpic = read16();
-        sector->ceilingpic = read16();
-        sector->lightlevel = read16();
-        sector->special = read16();
-        sector->tag = read16();
+        sector->floorheight = JS_GetIntegerValue(sector_obj, "floorheight");
+        sector->ceilingheight = JS_GetIntegerValue(sector_obj, "ceilingheight");
+        sector->floor_xoffs = JS_GetIntegerValue(sector_obj, "floor_xoffs");
+        sector->floor_yoffs = JS_GetIntegerValue(sector_obj, "floor_yoffs");
+        sector->ceiling_xoffs = JS_GetIntegerValue(sector_obj, "ceiling_xoffs");
+        sector->ceiling_yoffs = JS_GetIntegerValue(sector_obj, "ceiling_yoffs");
+        sector->floor_rotation =
+            JS_GetIntegerValue(sector_obj, "floor_rotation");
+        sector->ceiling_rotation =
+            JS_GetIntegerValue(sector_obj, "ceiling_rotation");
+        sector->tint = JS_GetIntegerValue(sector_obj, "tint");
+
+        sector->floorpic = JS_GetIntegerValue(sector_obj, "floorpic");
+        sector->ceilingpic = JS_GetIntegerValue(sector_obj, "ceilingpic");
+        sector->lightlevel = JS_GetIntegerValue(sector_obj, "lightlevel");
+        sector->special = JS_GetIntegerValue(sector_obj, "special");
+        sector->tag = JS_GetIntegerValue(sector_obj, "tag");
 
         // Woof!
-        sector->soundtarget = readp_mobj();
-        sector->floordata = readp_thinker();
-        sector->ceilingdata = readp_thinker();
-        UnArchiveThingList(sector);
-        sector->touching_thinglist = readp_msecnode();
+        sector->soundtarget =
+            readp_mobj(JS_GetIntegerValue(sector_obj, "soundtarget"));
+        sector->floordata =
+            readp_thinker(JS_GetIntegerValue(sector_obj, "floordata"));
+        sector->ceilingdata =
+            readp_thinker(JS_GetIntegerValue(sector_obj, "ceilingdata"));
+
+        json_t *thinglist_obj = JS_GetObject(sector_obj, "thinglist");
+        UnArchiveThingList(sector, thinglist_obj);
+
+        sector->touching_thinglist = readp_msecnode(
+            JS_GetIntegerValue(sector_obj, "touching_thinglist"));
     }
+    JS_ArrayIteratorFree(sector_iter);
 
     line_t *line;
 
+    json_t *lines_arr = JS_GetObject(root, "lines");
+
+    json_arr_iter_t *line_iter = JS_ArrayIterator(lines_arr);
     for (i = 0, line = lines; i < numlines; i++, line++)
     {
-        line->flags = read16();
-        line->special = read16();
+        json_t *line_obj = JS_ArrayNext(line_iter);
 
+        line->flags = JS_GetIntegerValue(line_obj, "flags");
+        line->special = JS_GetIntegerValue(line_obj, "special");
+
+        json_t *sides_arr = JS_GetObject(line_obj, "sides");
         for (int j = 0; j < 2; j++)
         {
-            if (line->sidenum[j] != NO_INDEX)
+            json_t *side_obj = JS_GetArrayItem(sides_arr, j);
+            if (JS_GetObjectSize(side_obj))
             {
                 side_t *side = &sides[line->sidenum[j]];
 
                 // killough 10/98: load full sidedef offsets, including
                 // fractions
-                
-                side->textureoffset = read32();
-                side->rowoffset = read32();
-                
-                side->toptexture = read16();
-                side->bottomtexture = read16();
-                side->midtexture = read16();
+
+                side->textureoffset =
+                    JS_GetIntegerValue(side_obj, "textureoffset");
+                side->rowoffset = JS_GetIntegerValue(side_obj, "rowoffset");
+
+                side->toptexture = JS_GetIntegerValue(side_obj, "toptexture");
+                side->bottomtexture =
+                    JS_GetIntegerValue(side_obj, "bottomtexture");
+                side->midtexture = JS_GetIntegerValue(side_obj, "midtexture");
             }
         }
     }
+    JS_ArrayIteratorFree(line_iter);
 }
 
 //
@@ -1445,13 +1696,14 @@ static thinker_class_t GetThinkerClass(actionf_p1 func)
     return tc_none;
 }
 
+// Pass 1 of archiving: snapshot the arena table so that every live thinker
+// pointer can later be converted to a stable integer index.  Must be called
+// before any write_*_t function that references thinker pointers.
 static void PrepareArchiveThinkers(void)
 {
     uintptr_t *table = M_ArenaTable(thinkers_arena);
 
     int count = M_ArenaTableSize(thinkers_arena);
-
-    write32(count);
 
     array_resize(thinker_pointers, count);
 
@@ -1465,12 +1717,7 @@ static void PrepareArchiveThinkers(void)
                      "PrepareArchiveThinkers: Unknown thinker class");
         }
 
-        write8(tc);
-
-        thinker_pointer_t pointer = {
-            .tc = tc,
-            .p.integer = table[i]
-        };
+        thinker_pointer_t pointer = {.tc = tc, .p.integer = table[i]};
         thinker_pointers[i] = pointer;
     }
 
@@ -1479,74 +1726,91 @@ static void PrepareArchiveThinkers(void)
 
 static void ArchiveThinkers(void)
 {
+    json_mut_t *arr = JS_NewArray(doc);
+
     array_foreach_type(pointer, thinker_pointers, thinker_pointer_t)
     {
+        json_mut_t *data = NULL;
+
         switch (pointer->tc)
         {
             case tc_mobj:
             case tc_mobj_del:
-                write_mobj_t(pointer->p.mobj);
+                data = write_mobj_t(pointer->p.mobj);
                 break;
             case tc_ceiling:
             case tc_ceiling_del:
-                write_ceiling_t(pointer->p.ceiling);
+                data = write_ceiling_t(pointer->p.ceiling);
                 break;
             case tc_door:
             case tc_door_del:
-                write_vldoor_t(pointer->p.door);
+                data = write_vldoor_t(pointer->p.door);
                 break;
             case tc_floor:
             case tc_floor_del:
-                write_floormove_t(pointer->p.floor);
+                data = write_floormove_t(pointer->p.floor);
                 break;
             case tc_plat:
             case tc_plat_del:
-                write_plat_t(pointer->p.plat);
+                data = write_plat_t(pointer->p.plat);
                 break;
             case tc_flash:
-                write_lightflash_t(pointer->p.flash);
+                data = write_lightflash_t(pointer->p.flash);
                 break;
             case tc_strobe:
-                write_strobe_t(pointer->p.strobe);
+                data = write_strobe_t(pointer->p.strobe);
                 break;
             case tc_glow:
-                write_glow_t(pointer->p.glow);
+                data = write_glow_t(pointer->p.glow);
                 break;
             case tc_elevator:
             case tc_elevator_del:
-                write_elevator_t(pointer->p.elevator);
+                data = write_elevator_t(pointer->p.elevator);
                 break;
             case tc_scroll:
             case tc_param_scroll_floor:
             case tc_param_scroll_ceiling:
-                write_scroll_t(pointer->p.scroll);
+                data = write_scroll_t(pointer->p.scroll);
                 break;
             case tc_pusher:
-                write_pusher_t(pointer->p.pusher);
+                data = write_pusher_t(pointer->p.pusher);
                 break;
             case tc_flicker:
-                write_fireflicker_t(pointer->p.flicker);
+                data = write_fireflicker_t(pointer->p.flicker);
                 break;
             case tc_friction:
-                write_friction_t(pointer->p.friction);
+                data = write_friction_t(pointer->p.friction);
                 break;
             case tc_ambient:
-                write_ambient_t(pointer->p.ambient);
+                data = write_ambient_t(pointer->p.ambient);
                 break;
             case tc_none:
-                write_thinker_t(pointer->p.thinker);
+                data = write_thinker_t(pointer->p.thinker);
                 break;
         }
+
+        if (data)
+        {
+            json_mut_t *obj = JS_NewObject(doc);
+            JS_SetInt(doc, obj, "class", pointer->tc);
+            JS_SetObject(doc, obj, "thinker", data);
+            JS_ArrayAddObject(doc, arr, obj);
+        }
     }
+
+    JS_SetArray(doc, root_mut, "thinkers", arr);
 }
 
-static void PrepareUnArchiveThinkers(void)
+// Pass 1 of unarchiving: allocate memory for every thinker and build the
+// index table so that cross-references between thinkers can be resolved in
+// the second pass (UnArchiveThinkers).
+static void PrepareUnArchiveThinkers(json_t *thinkers)
 {
-    int count = read32();
-    while (count--)
+    json_t *thinker;
+    JS_ArrayForEach(thinker, thinkers)
     {
         thinker_pointer_t pointer;
-        pointer.tc = read8();
+        pointer.tc = JS_GetIntegerValue(thinker, "class");
         switch (pointer.tc)
         {
             case tc_mobj:
@@ -1610,94 +1874,104 @@ static void PrepareUnArchiveThinkers(void)
     }
 }
 
-static void UnArchiveThinkers(void)
+// Pass 2 of unarchiving: fill in all fields, including cross-thinker pointer
+// fields (target, tracer, …) that could not be resolved until all thinkers
+// were allocated in pass 1.
+static void UnArchiveThinkers(json_t *thinkers)
 {
-    array_foreach_type(pointer, thinker_pointers, thinker_pointer_t)
+    int count = array_size(thinker_pointers);
+    json_arr_iter_t *arr_iter = JS_ArrayIterator(thinkers);
+
+    for (int i = 0; i < count; i++)
     {
+        thinker_pointer_t *pointer = &thinker_pointers[i];
+        json_t *wrapper = JS_ArrayNext(arr_iter);
+        json_t *data = JS_GetObject(wrapper, "thinker");
         switch (pointer->tc)
         {
             case tc_mobj:
             case tc_mobj_del:
-                read_mobj_t(pointer->p.mobj, pointer->tc);
+                read_mobj_t(pointer->p.mobj, pointer->tc, data);
                 P_AddThingTID(pointer->p.mobj, pointer->p.mobj->tid);
                 break;
             case tc_ceiling:
             case tc_ceiling_del:
-                read_ceiling_t(pointer->p.ceiling, pointer->tc);
+                read_ceiling_t(pointer->p.ceiling, pointer->tc, data);
                 break;
             case tc_door:
             case tc_door_del:
-                read_vldoor_t(pointer->p.door, pointer->tc);
+                read_vldoor_t(pointer->p.door, pointer->tc, data);
                 break;
             case tc_floor:
             case tc_floor_del:
-                read_floormove_t(pointer->p.floor, pointer->tc);
+                read_floormove_t(pointer->p.floor, pointer->tc, data);
                 break;
             case tc_plat:
             case tc_plat_del:
-                read_plat_t(pointer->p.plat, pointer->tc);
+                read_plat_t(pointer->p.plat, pointer->tc, data);
                 break;
             case tc_flash:
-                read_lightflash_t(pointer->p.flash);
+                read_lightflash_t(pointer->p.flash, data);
                 break;
             case tc_strobe:
-                read_strobe_t(pointer->p.strobe);
+                read_strobe_t(pointer->p.strobe, data);
                 break;
             case tc_glow:
-                read_glow_t(pointer->p.glow);
+                read_glow_t(pointer->p.glow, data);
                 break;
             case tc_elevator:
             case tc_elevator_del:
-                read_elevator_t(pointer->p.elevator, pointer->tc);
+                read_elevator_t(pointer->p.elevator, pointer->tc, data);
                 break;
             case tc_scroll:
             case tc_param_scroll_floor:
             case tc_param_scroll_ceiling:
-                read_scroll_t(pointer->p.scroll, pointer->tc);
+                read_scroll_t(pointer->p.scroll, pointer->tc, data);
                 break;
             case tc_pusher:
-                read_pusher_t(pointer->p.pusher);
+                read_pusher_t(pointer->p.pusher, data);
                 break;
             case tc_flicker:
-                read_fireflicker_t(pointer->p.flicker);
+                read_fireflicker_t(pointer->p.flicker, data);
                 break;
             case tc_friction:
-                read_friction_t(pointer->p.friction);
+                read_friction_t(pointer->p.friction, data);
                 break;
             case tc_ambient:
-                read_ambient_t(pointer->p.ambient);
+                read_ambient_t(pointer->p.ambient, data);
                 break;
             case tc_none:
-                read_thinker_t(pointer->p.thinker, pointer->tc);
+                read_thinker_t(pointer->p.thinker, pointer->tc, data);
                 break;
         }
     }
+    JS_ArrayIteratorFree(arr_iter);
 }
 
 //
 // MSecNodes
 //
 
-static void PrepareArchiveMSecNodes(void)
-{
-    int count = M_ArenaTableSize(msecnodes_arena);
-    write32(count);
-}
-
 static void ArchiveMSecNodes(void)
 {
+    json_mut_t *msecnodes_arr = JS_NewArray(doc);
+
     uintptr_t *table = M_ArenaTable(msecnodes_arena);
     int count = M_ArenaTableSize(msecnodes_arena);
     for (int i = 0; i < count; ++i)
     {
-        write_msecnode_t((msecnode_t *)table[i]);
+        json_mut_t *msecnode_obj = write_msecnode_t((msecnode_t *)table[i]);
+        JS_ArrayAddObject(doc, msecnodes_arr, msecnode_obj);
     }
     free(table);
+
+    JS_SetArray(doc, root_mut, "msecnodes", msecnodes_arr);
 }
 
-static void PrepareUnArchiveMSecNodes(void)
+static void PrepareUnArchiveMSecNodes(json_t *msecnodes_arr)
 {
-    int count = read32();
+    int count = JS_GetArraySize(msecnodes_arr);
+
     array_resize(msecnode_pointers, count);
     for (int i = 0; i < count; ++i)
     {
@@ -1706,13 +1980,17 @@ static void PrepareUnArchiveMSecNodes(void)
     }
 }
 
-static void UnArchiveMSecNodes(void)
+static void UnArchiveMSecNodes(json_t *msecnodes_arr)
 {
-    int count = array_size(msecnode_pointers);
+    int count = JS_GetArraySize(msecnodes_arr);
+    json_arr_iter_t *arr_iter = JS_ArrayIterator(msecnodes_arr);
+
     for (int i = 0; i < count; ++i)
     {
-        read_msecnode_t((msecnode_t *)msecnode_pointers[i]);
+        json_t *msecnode_obj = JS_ArrayNext(arr_iter);
+        read_msecnode_t((msecnode_t *)msecnode_pointers[i], msecnode_obj);
     }
+    JS_ArrayIteratorFree(arr_iter);
 }
 
 //
@@ -1721,24 +1999,33 @@ static void UnArchiveMSecNodes(void)
 
 static void ArchivePlayers(void)
 {
+    json_mut_t *players_arr = JS_NewArray(doc);
+
     for (int i = 0; i < MAXPLAYERS; i++)
     {
-        if (playeringame[i])
-        {
-            write_player_t(&players[i]);
-        }
+        json_mut_t *player_obj =
+            playeringame[i] ? write_player_t(&players[i]) : JS_NewObject(doc);
+        JS_ArrayAddObject(doc, players_arr, player_obj);
     }
+
+    JS_SetArray(doc, root_mut, "players", players_arr);
 }
 
 static void UnArchivePlayers(void)
 {
+    json_t *players_arr = JS_GetObject(root, "players");
+    json_arr_iter_t *iter = JS_ArrayIterator(players_arr);
+
     for (int i = 0; i < MAXPLAYERS; i++)
     {
-        if (playeringame[i])
+        json_t *player_obj = JS_ArrayNext(iter);
+
+        if (JS_GetObjectSize(player_obj))
         {
-            read_player_t(&players[i]);
+            read_player_t(&players[i], player_obj);
         }
     }
+    JS_ArrayIteratorFree(iter);
 }
 
 //
@@ -1747,71 +2034,80 @@ static void UnArchivePlayers(void)
 
 static void ArchiveBlocklinks(void)
 {
+    json_mut_t *bmap_arr = JS_NewArray(doc);
+
     int blocklinks_count = bmapwidth * bmapheight;
     for (int i = 0; i < blocklinks_count; ++i)
     {
-        int count = 0;
+        json_mut_t *blocklinks_arr = JS_NewArray(doc);
         for (mobj_t *mobj = blocklinks[i]; mobj; mobj = mobj->bnext)
         {
-            ++count;
+            JS_ArrayAddInt(doc, blocklinks_arr, writep_mobj(mobj));
         }
-        write32(count);
-        for (mobj_t *mobj = blocklinks[i]; mobj; mobj = mobj->bnext)
-        {
-            writep_mobj(mobj);
-        }
+        JS_ArrayAddObject(doc, bmap_arr, blocklinks_arr);
     }
+
+    JS_SetArray(doc, root_mut, "blocklinks", bmap_arr);
 }
 
 static void UnArchiveBlocklinks(void)
 {
+    json_t *bmap_arr = JS_GetObject(root, "blocklinks");
+
     int blocklinks_count = bmapwidth * bmapheight;
+    json_arr_iter_t *bmap_iter = JS_ArrayIterator(bmap_arr);
     for (int i = 0; i < blocklinks_count; ++i)
     {
         blocklinks[i] = NULL;
 
-        int count = read32();
+        json_t *blocklinks_arr = JS_ArrayNext(bmap_iter);
+        int count = JS_GetArraySize(blocklinks_arr);
         if (count)
         {
             mobj_t *mobj;
             mobj_t **bprev = &blocklinks[i];
             while (count--)
             {
-                mobj = readp_mobj();
+                json_t *mobj_obj = JS_GetArrayItem(blocklinks_arr, count);
+
+                mobj = readp_mobj(JS_GetInteger(mobj_obj));
                 *bprev = mobj;
-                mobj->bprev = bprev;
-                mobj->bnext = NULL;
-                bprev = &mobj->bnext;
+                if (mobj)
+                {
+                    mobj->bprev = bprev;
+                    mobj->bnext = NULL;
+                    bprev = &mobj->bnext;
+                }
             }
         }
     }
+    JS_ArrayIteratorFree(bmap_iter);
 }
 
 //
 // CeilingList
 //
 
-static void PrepareArchiveCeilingList(void)
-{
-    int count = M_ArenaTableSize(activeceilings_arena);
-    write32(count);
-}
-
 static void ArchiveCeilingList(void)
 {
+    json_mut_t *ceilinglist_arr = JS_NewArray(doc);
+
     uintptr_t *table = M_ArenaTable(activeceilings_arena);
     int count = M_ArenaTableSize(activeceilings_arena);
     for (int i = 0; i < count; ++i)
     {
         ceilinglist_t *cl = (ceilinglist_t *)table[i];
-        writep_thinker(&cl->ceiling->thinker);
+        JS_ArrayAddInt(doc, ceilinglist_arr,
+                       writep_thinker(&cl->ceiling->thinker));
     }
     free(table);
+
+    JS_SetArray(doc, root_mut, "ceilinglist", ceilinglist_arr);
 }
 
-static void PrepareUnArchiveCeilingList(void)
+static void PrepareUnArchiveCeilingList(json_t *ceilinglist_arr)
 {
-    int count = read32();
+    int count = JS_GetArraySize(ceilinglist_arr);
     array_resize(ceilinglist_pointers, count);
     for (int i = 0; i < count; ++i)
     {
@@ -1820,47 +2116,50 @@ static void PrepareUnArchiveCeilingList(void)
     }
 }
 
-static void UnArchiveCeilingList(void)
+static void UnArchiveCeilingList(json_t *ceilinglist_arr)
 {
     int count = array_size(ceilinglist_pointers);
     ceilinglist_t *cl, **prev;
     prev = &activeceilings;
+    json_arr_iter_t *iter = JS_ArrayIterator(ceilinglist_arr);
     for (int i = 0; i < count; ++i)
     {
+        json_t *ceilinglist_obj = JS_ArrayNext(iter);
+
         cl = (ceilinglist_t *)ceilinglist_pointers[i];
-        cl->ceiling = (ceiling_t *)readp_thinker();
+        cl->ceiling =
+            (ceiling_t *)readp_thinker(JS_GetInteger(ceilinglist_obj));
         *prev = cl;
         cl->prev = prev;
         cl->next = NULL;
         prev = &cl->next;
     }
+    JS_ArrayIteratorFree(iter);
 }
 
 //
 // PlatList
 //
 
-static void PrepareArchivePlatList(void)
-{
-    int count = M_ArenaTableSize(activeplats_arena);
-    write32(count);
-}
-
 static void ArchivePlatList(void)
 {
+    json_mut_t *platlist_arr = JS_NewArray(doc);
+
     uintptr_t *table = M_ArenaTable(activeplats_arena);
     int count = M_ArenaTableSize(activeplats_arena);
     for (int i = 0; i < count; ++i)
     {
         platlist_t *cl = (platlist_t *)table[i];
-        writep_thinker(&cl->plat->thinker);
+        JS_ArrayAddInt(doc, platlist_arr, writep_thinker(&cl->plat->thinker));
     }
     free(table);
+
+    JS_SetArray(doc, root_mut, "platlist", platlist_arr);
 }
 
-static void PrepareUnArchivePlatList(void)
+static void PrepareUnArchivePlatList(json_t *platlist_arr)
 {
-    int count = read32();
+    int count = JS_GetArraySize(platlist_arr);
     array_resize(platlist_pointers, count);
     for (int i = 0; i < count; ++i)
     {
@@ -1869,20 +2168,24 @@ static void PrepareUnArchivePlatList(void)
     }
 }
 
-static void UnArchivePlatList(void)
+static void UnArchivePlatList(json_t *platlist_arr)
 {
     int count = array_size(platlist_pointers);
     platlist_t *pl, **prev;
     prev = &activeplats;
+    json_arr_iter_t *iter = JS_ArrayIterator(platlist_arr);
     for (int i = 0; i < count; ++i)
     {
+        json_t *platlist_obj = JS_ArrayNext(iter);
+
         pl = (platlist_t *)platlist_pointers[i];
-        pl->plat = (plat_t *)readp_thinker();
+        pl->plat = (plat_t *)readp_thinker(JS_GetInteger(platlist_obj));
         *prev = pl;
         pl->prev = prev;
         pl->next = NULL;
         prev = &pl->next;
     }
+    JS_ArrayIteratorFree(iter);
 }
 
 //
@@ -1891,18 +2194,28 @@ static void UnArchivePlatList(void)
 
 static void ArchiveButtons(void)
 {
+    json_mut_t *buttonlists_arr = JS_NewArray(doc);
+
     for (int i = 0; i < MAXBUTTONS; i++)
     {
-        write_button_t(&buttonlist[i]);
+        json_mut_t *buttonlist_obj = write_button_t(&buttonlist[i]);
+        JS_ArrayAddObject(doc, buttonlists_arr, buttonlist_obj);
     }
+
+    JS_SetArray(doc, root_mut, "buttonlist", buttonlists_arr);
 }
 
 static void UnArchiveButtons(void)
 {
+    json_t *buttonlists_arr = JS_GetObject(root, "buttonlist");
+    json_arr_iter_t *iter = JS_ArrayIterator(buttonlists_arr);
+
     for (int i = 0; i < MAXBUTTONS; ++i)
     {
-        read_button_t(&buttonlist[i]);
+        json_t *buttonlist_obj = JS_ArrayNext(iter);
+        read_button_t(&buttonlist[i], buttonlist_obj);
     }
+    JS_ArrayIteratorFree(iter);
 }
 
 //
@@ -1911,36 +2224,47 @@ static void UnArchiveButtons(void)
 
 static void ArchiveAutoMap(void)
 {
-    write32(automapactive,
-            viewactive,
-            followplayer,
-            automap_grid);
+    json_mut_t *automap_obj = JS_NewObject(doc);
 
-    write32(markpointnum);
+    JS_SetInt(doc, automap_obj, "automapactive", automapactive);
+    JS_SetInt(doc, automap_obj, "viewactive", viewactive);
+    JS_SetInt(doc, automap_obj, "followplayer", followplayer);
+    JS_SetInt(doc, automap_obj, "automap_grid", automap_grid);
 
+    json_mut_t *markpoints_arr = JS_NewArray(doc);
     if (markpointnum)
     {
         for (int i = 0; i < markpointnum; ++i)
         {
-            write64(markpoints[i].x);
-            write64(markpoints[i].y);
+            json_mut_t *markpoint_arr = JS_NewArray(doc);
+
+            JS_ArrayAddInt(doc, markpoint_arr, markpoints[i].x);
+            JS_ArrayAddInt(doc, markpoint_arr, markpoints[i].y);
+
+            JS_ArrayAddObject(doc, markpoints_arr, markpoint_arr);
         }
     }
+    JS_SetArray(doc, automap_obj, "markpoints", markpoints_arr);
+
+    JS_SetObject(doc, root_mut, "automap", automap_obj);
 }
 
 static void UnArchiveAutoMap(void)
 {
-    automapactive = read32();
-    viewactive = read32();
-    followplayer = read32();
-    automap_grid = read32();
+    json_t *automap_obj = JS_GetObject(root, "automap");
+
+    automapactive = JS_GetIntegerValue(automap_obj, "automapactive");
+    viewactive = JS_GetIntegerValue(automap_obj, "viewactive");
+    followplayer = JS_GetIntegerValue(automap_obj, "followplayer");
+    automap_grid = JS_GetIntegerValue(automap_obj, "automap_grid");
 
     if (automapactive)
     {
         AM_Start();
     }
 
-    markpointnum = read32();
+    json_t *markpoints_arr = JS_GetObject(automap_obj, "markpoints");
+    markpointnum = JS_GetArraySize(markpoints_arr);
 
     if (markpointnum)
     {
@@ -1952,11 +2276,15 @@ static void UnArchiveAutoMap(void)
                           PU_STATIC, 0);
         }
 
+        json_arr_iter_t *mp_iter = JS_ArrayIterator(markpoints_arr);
         for (int i = 0; i < markpointnum; ++i)
         {
-            markpoints[i].x = read64();
-            markpoints[i].y = read64();
+            json_t *markpoint_arr = JS_ArrayNext(mp_iter);
+
+            markpoints[i].x = JS_GetInteger(JS_GetArrayItem(markpoint_arr, 0));
+            markpoints[i].y = JS_GetInteger(JS_GetArrayItem(markpoint_arr, 1));
         }
+        JS_ArrayIteratorFree(mp_iter);
     }
 }
 
@@ -1981,140 +2309,312 @@ static void EndUnArchive(void)
     array_free(platlist_pointers);
 }
 
+#define MAX_STREAM_LENGTH (1 << 28) // 256 MiB
+
+static int CheckStreamLength(int32_t length)
+{
+    return length > 0 && length < MAX_STREAM_LENGTH;
+}
+
 void P_ArchiveKeyframe(void)
 {
+    doc = JS_NewDoc();
+    root_mut = JS_NewObject(doc);
+    JS_SetRoot(doc, root_mut);
+
     PrepareArchiveThinkers();
-    write_thinker_t(&thinkercap);
+
+    json_mut_t *thinkercap_obj = write_thinker_t(&thinkercap);
+    JS_SetObject(doc, root_mut, "thinkercap", thinkercap_obj);
+
+    json_mut_t *thinkerclasscaps_arr = JS_NewArray(doc);
     for (int i = 0; i < NUMTHCLASS; ++i)
     {
-        write_thinker_t(&thinkerclasscap[i]);
+        json_mut_t *thinkerclasscap_obj = write_thinker_t(&thinkerclasscap[i]);
+        JS_ArrayAddObject(doc, thinkerclasscaps_arr, thinkerclasscap_obj);
     }
+    JS_SetArray(doc, root_mut, "thinkerclasscaps", thinkerclasscaps_arr);
+    JS_SetInt(doc, root_mut, "headsecnode", writep_msecnode(headsecnode));
 
-    PrepareArchiveMSecNodes();
-    writep_msecnode(headsecnode);
- 
     ArchiveDirty();
-
     ArchiveWorld();
 
     // p_map.h
-    write32(floatok,
-            felldown,
-            tmfloorz,
-            tmceilingz,
-            hangsolid);
+    JS_SetInt(doc, root_mut, "floatok", floatok);
+    JS_SetInt(doc, root_mut, "felldown", felldown);
+    JS_SetInt(doc, root_mut, "tmfloorz", tmfloorz);
+    JS_SetInt(doc, root_mut, "tmceilingz", tmceilingz);
+    JS_SetInt(doc, root_mut, "hangsolid", hangsolid);
 
-    writep_index(ceilingline, lines);
-    writep_index(floorline, lines);
-    writep_mobj(linetarget);
-    writep_msecnode(sector_list);
-    writep_index(blockline, lines);
+    JS_SetIdx(doc, root_mut, "ceilingline", ceilingline, lines);
+    JS_SetIdx(doc, root_mut, "floorline", floorline, lines);
+    JS_SetInt(doc, root_mut, "linetarget", writep_mobj(linetarget));
+    JS_SetInt(doc, root_mut, "sector_list", writep_msecnode(sector_list));
+    JS_SetIdx(doc, root_mut, "blockline", blockline, lines);
 
+    json_mut_t *tmbbox_arr = JS_NewArray(doc);
     for (int i = 0; i < arrlen(tmbbox); ++i)
     {
-        write32(tmbbox[i]);
+        JS_ArrayAddInt(doc, tmbbox_arr, tmbbox[i]);
     }
+    JS_SetArray(doc, root_mut, "tmbbox", tmbbox_arr);
 
     // p_maputil.h
-    write32(opentop,
-            openbottom,
-            openrange,
-            lowfloor);
+    JS_SetInt(doc, root_mut, "opentop", opentop);
+    JS_SetInt(doc, root_mut, "openbottom", openbottom);
+    JS_SetInt(doc, root_mut, "openrange", openrange);
+    JS_SetInt(doc, root_mut, "lowfloor", lowfloor);
 
-    write_divline_t(&trace);
+    json_mut_t *trace_obj = write_divline_t(&trace);
+    JS_SetObject(doc, root_mut, "trace", trace_obj);
 
     // p_setup.h
     ArchiveBlocklinks();
 
     // p_spec.h
-    PrepareArchiveCeilingList();
-    PrepareArchivePlatList();
-
     ArchivePlayers();
-
     ArchiveThinkers();
-
     ArchiveMSecNodes();
 
-    writep_activeceilings(activeceilings);
+    JS_SetInt(doc, root_mut, "activeceilings",
+              writep_activeceilings(activeceilings));
     ArchiveCeilingList();
-    writep_activeplats(activeplats);
+    JS_SetInt(doc, root_mut, "activeplats", writep_activeplats(activeplats));
     ArchivePlatList();
 
-    write_rng_t(&rng);
-    ArchiveButtons();
+    json_mut_t *rng_obj = write_rng_t(&rng);
+    JS_SetObject(doc, root_mut, "rng", rng_obj);
 
+    ArchiveButtons();
     ArchiveAutoMap();
 
     EndArchive();
+
+    // Serialise the document to a JSON string, then free it – the string
+    // owns its own memory and is independent of the JSON document.
+    size_t json_len;
+    char *json_str = JS_DocWriteString(doc, &json_len);
+    JS_FreeDoc(doc);
+    root_mut = NULL;
+    doc = NULL;
+
+    // Compress the JSON string with miniz and write the result to the save
+    // buffer as: [uint32 original_len][uint32 compressed_len][zlib stream].
+    // If compression fails or is disabled, fall back to plain JSON with a
+    // null terminator so older code can still read it.
+    unsigned char *compressed = NULL;
+
+#ifndef KF_NO_COMPRESS
+    mz_ulong compressed_len = mz_compressBound((mz_ulong)json_len);
+    if ((compressed = malloc((size_t)compressed_len)))
+    {
+        int mz_ret =
+            mz_compress(compressed, &compressed_len,
+                        (const unsigned char *)json_str, (mz_ulong)json_len);
+
+        if (mz_ret == MZ_OK && CheckStreamLength((int32_t)json_len)
+            && CheckStreamLength((int32_t)compressed_len))
+        {
+            free(json_str);
+            saveg_write32((int32_t)json_len);
+            saveg_write32((int32_t)compressed_len);
+            saveg_grow(compressed_len);
+            memcpy(save_p, compressed, (size_t)compressed_len);
+            save_p += compressed_len;
+        }
+        else
+        {
+            if (mz_ret != MZ_OK)
+            {
+                I_Printf(VB_ERROR, "P_ArchiveKeyframe: Compression error (%s)",
+                         mz_error(mz_ret));
+            }
+            else
+            {
+                I_Printf(VB_ERROR, "P_ArchiveKeyframe: Stream too large");
+            }
+
+            free(compressed);
+            compressed = NULL;
+        }
+    }
+#endif
+
+    if (!compressed)
+    {
+        I_Printf(VB_WARNING, "P_ArchiveKeyframe: Saving uncompressed keyframe");
+
+        json_len++; // include null-terminator
+        saveg_grow(json_len);
+        M_StringCopy((char *)save_p, json_str, json_len);
+        free(json_str);
+        save_p += json_len;
+    }
+    else
+    {
+        free(compressed);
+    }
+}
+
+#define ZLIB_MAGIC_BYTE 0x78
+
+static int CheckZlibHeader(uint8_t *c)
+{
+    return c[0] == ZLIB_MAGIC_BYTE && ((c[0] << 8) + c[1]) % 31 == 0;
 }
 
 void P_UnArchiveKeyframe(void)
 {
-    StartUnArchive();
-
-    PrepareUnArchiveThinkers();
-    read_thinker_t(&thinkercap, tc_none);
-    for (int i = 0; i < NUMTHCLASS; ++i)
+    if (!saveg_check_size(2 * sizeof(int32_t) + sizeof(int16_t)))
     {
-        read_thinker_t(&thinkerclasscap[i], tc_none);
+        I_Error("Corrupt savegame file");
     }
 
-    PrepareUnArchiveMSecNodes();
-    headsecnode = readp_msecnode();
+    // Detect whether the keyframe is compressed or plain JSON.
+    //
+    // Compressed: [uint32 original_len][uint32 compressed_len][zlib stream]
+    // Plain: [JSON text][NUL]
+    //
+    // A valid zlib stream always begins with the CMF byte 0x78 followed by a
+    // FLG byte such that (CMF << 8 | FLG) % 31 == 0.  A JSON stream always
+    // starts with ASCII whitespace or '{' / '[', so the first byte can never
+    // be 0x78, making this an unambiguous discriminator.
+    //
+    // We speculatively read the two 32-bit header fields and peek at the two
+    // bytes that follow.  If they look like a valid zlib header we proceed
+    // with decompression; otherwise we rewind save_p and parse as plain JSON.
+    byte *orig_save_p = save_p;
+    mz_ulong json_len = (mz_ulong)saveg_read32();
+    int32_t compressed_len = saveg_read32();
+
+    if (CheckStreamLength((int32_t)json_len)
+        && CheckStreamLength((int32_t)compressed_len)
+        && CheckZlibHeader(save_p))
+    {
+        // Compressed path: decompress into a temporary buffer, parse it,
+        // then free the buffer (JS_OpenString copies all strings internally).
+        unsigned char *decomp = malloc((size_t)json_len);
+        if (!decomp)
+        {
+            I_Error("Out of memory");
+        }
+        int mz_ret =
+            mz_uncompress(decomp, &json_len, (const unsigned char *)save_p,
+                          (mz_ulong)compressed_len);
+        if (mz_ret != MZ_OK)
+        {
+            I_Error("Decompression error (%s)", mz_error(mz_ret));
+        }
+        root = JS_OpenString((char *)decomp, (size_t)json_len);
+        free(decomp);
+        if (!root)
+        {
+            I_Error("Error parsing JSON");
+        }
+        save_p += compressed_len;
+    }
+    else
+    {
+        // Plain JSON path: rewind to before the speculative header read
+        // and parse the null-terminated string directly from save_p.
+        save_p = orig_save_p;
+        json_len = (mz_ulong)strlen((char *)save_p);
+        root = JS_OpenString((char *)save_p, (size_t)json_len);
+        if (!root)
+        {
+            I_Error("Error parsing JSON");
+        }
+        save_p += json_len + 1;
+    }
+
+    StartUnArchive();
+
+    json_t *thinkers_obj = JS_GetObject(root, "thinkers");
+    PrepareUnArchiveThinkers(thinkers_obj);
+
+    json_t *thinkercap_obj = JS_GetObject(root, "thinkercap");
+    read_thinker_t(&thinkercap, tc_none, thinkercap_obj);
+
+    json_t *thinkerclasscaps_arr = JS_GetObject(root, "thinkerclasscaps");
+    json_arr_iter_t *tcc_iter = JS_ArrayIterator(thinkerclasscaps_arr);
+    for (int i = 0; i < NUMTHCLASS; ++i)
+    {
+        read_thinker_t(&thinkerclasscap[i], tc_none, JS_ArrayNext(tcc_iter));
+    }
+    JS_ArrayIteratorFree(tcc_iter);
+
+    json_t *msecnodes_arr = JS_GetObject(root, "msecnodes");
+    PrepareUnArchiveMSecNodes(msecnodes_arr);
+
+    headsecnode = readp_msecnode(JS_GetIntegerValue(root, "headsecnode"));
 
     UnArchiveDirty();
 
     UnArchiveWorld();
 
     // p_map.h
-    floatok = read32();
-    felldown = read32();
-    tmfloorz = read32();
-    tmceilingz = read32();
-    hangsolid = read32();
+    floatok = JS_GetIntegerValue(root, "floatok");
+    felldown = JS_GetIntegerValue(root, "felldown");
+    tmfloorz = JS_GetIntegerValue(root, "tmfloorz");
+    tmceilingz = JS_GetIntegerValue(root, "tmceilingz");
+    hangsolid = JS_GetIntegerValue(root, "hangsolid");
 
-    readp_index(ceilingline, lines);
-    readp_index(floorline, lines);
-    linetarget = readp_mobj();
-    sector_list = readp_msecnode();
-    readp_index(blockline, lines);
+    JS_GetIdx(ceilingline, lines, root, "ceilingline");
+    JS_GetIdx(floorline, lines, root, "floorline");
+    linetarget = readp_mobj(JS_GetIntegerValue(root, "linetarget"));
+    sector_list = readp_msecnode(JS_GetIntegerValue(root, "sector_list"));
+    JS_GetIdx(blockline, lines, root, "blockline");
 
+    json_t *tmbbox_arr = JS_GetObject(root, "tmbbox");
+    json_arr_iter_t *tmbbox_iter = JS_ArrayIterator(tmbbox_arr);
     for (int i = 0; i < arrlen(tmbbox); ++i)
     {
-        tmbbox[i] = read32();
+        tmbbox[i] = JS_GetInteger(JS_ArrayNext(tmbbox_iter));
     }
+    JS_ArrayIteratorFree(tmbbox_iter);
 
     // p_maputil.h
-    opentop = read32();
-    openbottom = read32();
-    openrange = read32();
-    lowfloor = read32();
+    opentop = JS_GetIntegerValue(root, "opentop");
+    openbottom = JS_GetIntegerValue(root, "openbottom");
+    openrange = JS_GetIntegerValue(root, "openrange");
+    lowfloor = JS_GetIntegerValue(root, "lowfloor");
 
-    read_divline_t(&trace);
+    json_t *trace_obj = JS_GetObject(root, "trace");
+    read_divline_t(&trace, trace_obj);
 
     // p_setup.h
     UnArchiveBlocklinks();
 
     // p_spec.h
-    PrepareUnArchiveCeilingList();
-    PrepareUnArchivePlatList();
+    json_t *ceilinglist_arr = JS_GetObject(root, "ceilinglist");
+    PrepareUnArchiveCeilingList(ceilinglist_arr);
+    json_t *platlist_arr = JS_GetObject(root, "platlist");
+    PrepareUnArchivePlatList(platlist_arr);
 
     UnArchivePlayers();
 
-    UnArchiveThinkers();
+    UnArchiveThinkers(thinkers_obj);
 
-    UnArchiveMSecNodes();
+    UnArchiveMSecNodes(msecnodes_arr);
 
-    activeceilings = readp_activeceilings();
-    UnArchiveCeilingList();
-    activeplats = readp_activeplats();
-    UnArchivePlatList();
+    json_t *activeceilings_obj = JS_GetObject(root, "activeceilings");
+    activeceilings = readp_activeceilings(JS_GetInteger(activeceilings_obj));
+    UnArchiveCeilingList(ceilinglist_arr);
 
-    read_rng_t(&rng);
+    json_t *activeplats_obj = JS_GetObject(root, "activeplats");
+    activeplats = readp_activeplats(JS_GetInteger(activeplats_obj));
+    UnArchivePlatList(platlist_arr);
+
+    json_t *rng_obj = JS_GetObject(root, "rng");
+    read_rng_t(&rng, rng_obj);
     UnArchiveButtons();
 
     UnArchiveAutoMap();
 
     EndUnArchive();
+
+    // JS_OpenString() registers the parsed document under lump index NO_INDEX
+    // (-1) so that JS_CloseOptions() can find and free it here.
+    JS_CloseOptions(NO_INDEX);
+    root = NULL;
 }
