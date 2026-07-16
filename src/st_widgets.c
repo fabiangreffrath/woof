@@ -188,6 +188,12 @@ static void UpdateAnnounceMessage(sbe_widget_t *widget, player_t *player)
     }
 }
 
+void ST_ResetMessages(void)
+{
+    message_duration_left = 0;
+    announce_duration_left = 0;
+}
+
 // key tables
 // jff 5/10/98 french support removed, 
 // as it was not being used and couldn't be easily tested
@@ -1082,7 +1088,7 @@ static void ForceCenterMessage(sbarelem_t *elem)
     static sbaralignment_t default_alignment;
     if (!st_msg_elem)
     {
-        default_alignment = elem->alignment;
+        default_alignment = elem->orig_alignment;
         st_msg_elem = elem;
     }
 
