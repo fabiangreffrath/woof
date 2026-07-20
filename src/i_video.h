@@ -63,7 +63,7 @@ extern int current_video_height;
 #define DRS_MIN_HEIGHT 400
 extern boolean dynamic_resolution;
 extern boolean uncapped;
-extern int fps;
+extern int fps[16];
 extern int custom_fov;    // Custom FOV set by the player.
 extern boolean resetneeded;
 extern boolean setrefreshneeded;

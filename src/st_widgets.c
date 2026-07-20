@@ -930,8 +930,10 @@ static void UpdateFPS(sbe_widget_t *widget, player_t *player)
 
     ForceDoomFont(widget);
 
-    static char string[20];
-    M_snprintf(string, sizeof(string), GRAY_S "%d " GREEN_S "FPS", fps);
+    static char string[80];
+    M_snprintf(string, sizeof(string),
+               GREEN_S "FPS: " RED_S "%d " GOLD_S "%d " GREEN_S "%d " BLUE1_S "%d",
+               fps[0], fps[5], fps[10], fps[15]);
     ST_AddLine(widget, string);
 }
 
@@ -949,7 +951,7 @@ static void UpdateRate(sbe_widget_t *widget, player_t *player)
                GRAY_S "Sprites %4d Segs %4d Visplanes %4d   " GREEN_S
                       "FPS %3d %dx%d",
                rendered_vissprites, rendered_segs, rendered_visplanes,
-               fps, video.width, video.height);
+               fps[8], video.width, video.height);
     ST_AddLine(widget, line1);
 
     if (voxels_rendering)

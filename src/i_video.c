@@ -81,7 +81,8 @@ static boolean default_uncapped;
 
 int custom_fov;
 
-int fps; // [FG] FPS counter widget
+int fps[16] = {0}; // [FG] FPS counter widget
+static int fps_index, fps_array[16] = {0};
 boolean resetneeded;
 boolean setrefreshneeded;
 boolean toggle_fullscreen;
@@ -839,6 +840,11 @@ static unsigned int disk_to_draw, disk_to_restore;
 
 static void I_ResetTargetRefresh(void);
 
+static int compare_fps(const void *p1, const void *p2)
+{
+    return (int)(*(int *)p1 - *(int *)p2);
+}
+
 void I_FinishUpdate(void)
 {
     if (noblit)
@@ -868,7 +874,12 @@ void I_FinishUpdate(void)
         // Update FPS counter every second
         if (time >= 1000000)
         {
-            fps = ((uint64_t)frame_counter * 1000000) / time;
+            fps_array[fps_index] = ((uint64_t)frame_counter * 1000000) / time;
+            fps_index = (fps_index + 1) & (arrlen(fps) - 1);
+
+            memcpy(fps, fps_array, sizeof(fps_array));
+            qsort(fps, arrlen(fps), sizeof(*fps), compare_fps);
+
             frame_counter = 0;
             last_time = frametime_start;
         }

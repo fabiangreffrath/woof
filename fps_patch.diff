@@ -1,0 +1,79 @@
+diff --git a/src/i_video.c b/src/i_video.c
+index 294feffe..250408a7 100644
+--- a/src/i_video.c
++++ b/src/i_video.c
+@@ -81,7 +81,8 @@ static boolean default_uncapped;
+ 
+ int custom_fov;
+ 
+-int fps; // [FG] FPS counter widget
++int fps[16] = {0}; // [FG] FPS counter widget
++static int fps_index, fps_array[16] = {0};
+ boolean resetneeded;
+ boolean setrefreshneeded;
+ boolean toggle_fullscreen;
+@@ -837,6 +838,11 @@ static unsigned int disk_to_draw, disk_to_restore;
+ 
+ static void I_ResetTargetRefresh(void);
+ 
++static int compare_fps(const void *p1, const void *p2)
++{
++    return (int)(*(int *)p1 - *(int *)p2);
++}
++
+ void I_FinishUpdate(void)
+ {
+     if (noblit)
+@@ -866,7 +872,12 @@ void I_FinishUpdate(void)
+         // Update FPS counter every second
+         if (time >= 1000000)
+         {
+-            fps = ((uint64_t)frame_counter * 1000000) / time;
++            fps_array[fps_index] = ((uint64_t)frame_counter * 1000000) / time;
++            fps_index = (fps_index + 1) & (arrlen(fps) - 1);
++
++            memcpy(fps, fps_array, sizeof(fps_array));
++            qsort(fps, arrlen(fps), sizeof(*fps), compare_fps);
++
+             frame_counter = 0;
+             last_time = frametime_start;
+         }
+diff --git a/src/i_video.h b/src/i_video.h
+index caecffb3..19cbd84d 100644
+--- a/src/i_video.h
++++ b/src/i_video.h
+@@ -63,7 +63,7 @@ extern int current_video_height;
+ #define DRS_MIN_HEIGHT 400
+ extern boolean dynamic_resolution;
+ extern boolean uncapped;
+-extern int fps;
++extern int fps[16];
+ extern int custom_fov;    // Custom FOV set by the player.
+ extern boolean resetneeded;
+ extern boolean setrefreshneeded;
+diff --git a/src/st_widgets.c b/src/st_widgets.c
+index 56d93336..3ed86052 100644
+--- a/src/st_widgets.c
++++ b/src/st_widgets.c
+@@ -932,8 +932,10 @@ static void UpdateFPS(sbe_widget_t *widget, player_t *player)
+ 
+     ForceDoomFont(widget);
+ 
+-    static char string[20];
+-    M_snprintf(string, sizeof(string), GRAY_S "%d " GREEN_S "FPS", fps);
++    static char string[80];
++    M_snprintf(string, sizeof(string),
++               GREEN_S "FPS: " RED_S "%d " GOLD_S "%d " GREEN_S "%d " BLUE1_S "%d",
++               fps[0], fps[5], fps[10], fps[15]);
+     ST_AddLine(widget, string);
+ }
+ 
+@@ -951,7 +953,7 @@ static void UpdateRate(sbe_widget_t *widget, player_t *player)
+                GRAY_S "Sprites %4d Segs %4d Visplanes %4d   " GREEN_S
+                       "FPS %3d %dx%d",
+                rendered_vissprites, rendered_segs, rendered_visplanes,
+-               fps, video.width, video.height);
++               fps[8], video.width, video.height);
+     ST_AddLine(widget, line1);
+ 
+     if (voxels_rendering)
