@@ -26,7 +26,7 @@
 
 typedef enum wipefx_e
 {
-  wipe_Invalid = -1, // falls back on user setting
+  wipe_Default = -1, // falls back on user setting
   wipe_None,         // no effect
   wipe_Melt,         // weird screen melt
   wipe_Crossfade,    // transparency-based fade through

@@ -288,7 +288,7 @@ int wipe_EndScreen(int x, int y, int width, int height)
 
 static int wipe_NOP(int width, int height, int tics)
 {
-    return 0;
+    return tics > 0;
 }
 
 /*
@@ -441,9 +441,9 @@ static wipe_t wipes[] = {
 // killough 3/5/98: reformatted and cleaned up
 int wipe_ScreenWipe(int x, int y, int width, int height, int ticks)
 {
-    wipefx_t wipeno = (screen_wipe_internal == wipe_Invalid)
-                    ? wipe_Melt
-                    : screen_wipe_internal;
+    wipefx_t wipeno = (screen_wipe_internal == wipe_Default)
+                          ? screen_wipe
+                          : screen_wipe_internal;
     static boolean go; // when zero, stop the wipe
 
     if (!go) // initial stuff
@@ -466,8 +466,8 @@ int wipe_ScreenWipe(int x, int y, int width, int height, int ticks)
 
 void F_SetWipe(wipefx_t wipe)
 {
-  wipegamestate = -1;
-  screen_wipe_internal = (strictmode) ? wipe : screen_wipe;
+    wipegamestate = GS_NONE;
+    screen_wipe_internal = (strictmode) ? wipe : screen_wipe;
 }
 
 //----------------------------------------------------------------------------

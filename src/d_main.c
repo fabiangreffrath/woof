@@ -224,7 +224,7 @@ void D_ProcessEvents (void)
 
 // wipegamestate can be set to -1 to force a wipe on the next draw
 gamestate_t wipegamestate = GS_DEMOSCREEN;
-wipefx_t    screen_wipe_internal = wipe_Invalid;
+wipefx_t    screen_wipe_internal = wipe_Default;
 wipefx_t    screen_wipe = wipe_None;
 
 void D_Display (void)
@@ -456,8 +456,7 @@ void D_AdvanceDemo(void)
 // This cycles through the demo sequences.
 void D_AdvanceDemoLoop(void)
 {
-  if (demosequence >= 0)
-    demoloop_prev = &demoloop[demosequence];
+  demoloop_prev = &demoloop[demosequence];
   demosequence = (demosequence + 1) % demoloop_count;
   demoloop_point = &demoloop[demosequence];
 }
@@ -501,10 +500,7 @@ void D_DoAdvanceDemo(void)
             break;
     }
 
-    if (demoloop_prev)
-    {
-        screen_wipe_internal = demoloop_prev->outro_wipe;
-    }
+    screen_wipe_internal = demoloop_prev->outro_wipe;
 }
 
 //
@@ -513,7 +509,8 @@ void D_DoAdvanceDemo(void)
 void D_StartTitle (void)
 {
   gameaction = ga_nothing;
-  demosequence = -1;
+  // Setup last entry as "previous" for the demoloop outro wipe
+  demosequence = (demoloop_count - 1);
   demoplayback = false;
   D_AdvanceDemo();
 }
