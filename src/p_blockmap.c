@@ -366,8 +366,8 @@ static void P_CreateBlockMap(void)
 
     // blockmap header
 
-    blockmaplump[0] = bmaporgx = xorg << FRACBITS;
-    blockmaplump[1] = bmaporgy = yorg << FRACBITS;
+    blockmaplump[0] = bmaporgx = IntToFixed(xorg);
+    blockmaplump[1] = bmaporgy = IntToFixed(yorg);
     blockmaplump[2] = bmapwidth = ncols;
     blockmaplump[3] = bmapheight = nrows;
 
@@ -443,8 +443,8 @@ static void P_CreateBlockMap(void)
 
     // Save blockmap parameters
 
-    bmaporgx = minx << FRACBITS;
-    bmaporgy = miny << FRACBITS;
+    bmaporgx = IntToFixed(minx);
+    bmaporgy = IntToFixed(miny);
     bmapwidth = ((maxx - minx) >> MAPBTOFRAC) + 1;
     bmapheight = ((maxy - miny) >> MAPBTOFRAC) + 1;
 

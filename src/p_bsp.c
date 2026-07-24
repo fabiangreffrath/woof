@@ -806,10 +806,10 @@ void P_LoadNodes_DeePBSPV4(int lump)
         mapnode_deepbspv4_t *mn = (mapnode_deepbspv4_t *)data + i;
         int j;
 
-        no->x = SHORT(mn->x) << FRACBITS;
-        no->y = SHORT(mn->y) << FRACBITS;
-        no->dx = SHORT(mn->dx) << FRACBITS;
-        no->dy = SHORT(mn->dy) << FRACBITS;
+        no->x = IntToFixed(SHORT(mn->x));
+        no->y = IntToFixed(SHORT(mn->y));
+        no->dx = IntToFixed(SHORT(mn->dx));
+        no->dy = IntToFixed(SHORT(mn->dy));
 
         for (j = 0; j < 2; j++)
         {
@@ -820,7 +820,7 @@ void P_LoadNodes_DeePBSPV4(int lump)
 
             for (k = 0; k < 4; k++)
             {
-                no->bbox[j][k] = SHORT(mn->bbox[j][k]) << FRACBITS;
+                no->bbox[j][k] = IntToFixed(SHORT(mn->bbox[j][k]));
             }
         }
     }
@@ -1044,6 +1044,8 @@ void P_LoadBSPTree_ZDBSP(int lump, bsp_format_t format)
     unsigned int numNodes;
     vertex_t *newvertarray = NULL;
 
+    unsigned int value;
+
     data = W_CacheLumpNum(lump, PU_LEVEL);
 
     // 0. Uncompress nodes lump (or simply skip header)
@@ -1113,10 +1115,12 @@ void P_LoadBSPTree_ZDBSP(int lump, bsp_format_t format)
 
     // 1. Load new vertices added during node building
 
-    orgVerts = LONG(*((unsigned int *)data));
+    memcpy(&value, data, sizeof(orgVerts));
+    orgVerts = LONG(value);
     data += sizeof(orgVerts);
 
-    newVerts = LONG(*((unsigned int *)data));
+    memcpy(&value, data, sizeof(newVerts));
+    newVerts = LONG(value);
     data += sizeof(newVerts);
 
     if (orgVerts + newVerts == (unsigned int)numvertexes)
@@ -1133,12 +1137,14 @@ void P_LoadBSPTree_ZDBSP(int lump, bsp_format_t format)
 
     for (i = 0; i < newVerts; i++)
     {
+        memcpy(&value, data, sizeof(newvertarray[0].x));
         newvertarray[i + orgVerts].r_x = newvertarray[i + orgVerts].x =
-            LONG(*((unsigned int *)data));
+            LONG(value);
         data += sizeof(newvertarray[0].x);
 
+        memcpy(&value, data, sizeof(newvertarray[0].y));
         newvertarray[i + orgVerts].r_y = newvertarray[i + orgVerts].y =
-            LONG(*((unsigned int *)data));
+            LONG(value);
         data += sizeof(newvertarray[0].y);
     }
 
@@ -1156,7 +1162,8 @@ void P_LoadBSPTree_ZDBSP(int lump, bsp_format_t format)
 
     // 2. Load subsectors
 
-    numSubs = LONG(*((unsigned int *)data));
+    memcpy(&value, data, sizeof(numSubs));
+    numSubs = LONG(value);
     data += sizeof(numSubs);
 
     if (numSubs < 1)
@@ -1180,7 +1187,8 @@ void P_LoadBSPTree_ZDBSP(int lump, bsp_format_t format)
 
     // 3. Load segs
 
-    numSegs = LONG(*((unsigned int *)data));
+    memcpy(&value, data, sizeof(numSegs));
+    numSegs = LONG(value);
     data += sizeof(numSegs);
 
     // The number of stored segs should match the number of segs used by
@@ -1212,7 +1220,8 @@ void P_LoadBSPTree_ZDBSP(int lump, bsp_format_t format)
 
     // 4. Load nodes
 
-    numNodes = LONG(*((unsigned int *)data));
+    memcpy(&value, data, sizeof(numNodes));
+    numNodes = LONG(value);
     data += sizeof(numNodes);
 
     numnodes = numNodes;
@@ -1235,23 +1244,23 @@ void P_LoadBSPTree_ZDBSP(int lump, bsp_format_t format)
                 no->children[j] = LONG(mn3->children[j]);
                 for (k = 0; k < 4; k++)
                 {
-                    no->bbox[j][k] = SHORT(mn3->bbox[j][k]) << FRACBITS;
+                    no->bbox[j][k] = IntToFixed(SHORT(mn3->bbox[j][k]));
                 }
             }
         }
         else
         {
             const mapnode_xnod_t *mn = (const mapnode_xnod_t *)data + i;
-            no->x = SHORT(mn->x) << FRACBITS;
-            no->y = SHORT(mn->y) << FRACBITS;
-            no->dx = SHORT(mn->dx) << FRACBITS;
-            no->dy = SHORT(mn->dy) << FRACBITS;
+            no->x = IntToFixed(SHORT(mn->x));
+            no->y = IntToFixed(SHORT(mn->y));
+            no->dx = IntToFixed(SHORT(mn->dx));
+            no->dy = IntToFixed(SHORT(mn->dy));
             for (j = 0; j < 2; j++)
             {
                 no->children[j] = LONG(mn->children[j]);
                 for (k = 0; k < 4; k++)
                 {
-                    no->bbox[j][k] = SHORT(mn->bbox[j][k]) << FRACBITS;
+                    no->bbox[j][k] = IntToFixed(SHORT(mn->bbox[j][k]));
                 }
             }
         }
