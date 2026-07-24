@@ -1077,11 +1077,12 @@ void P_LoadBSPTree_ZDBSP(int lump, bsp_format_t format)
         // resize if output buffer runs full
         while ((err = inflate(zstream, Z_SYNC_FLUSH)) == Z_OK)
         {
-            int outlen_old = outlen;
-            outlen = 2 * outlen_old;
+            const int next_out_old = (int)(zstream->next_out - output);
+
+            outlen *= 2;
             output = Z_Realloc(output, outlen, PU_STATIC, 0);
-            zstream->next_out = output + outlen_old;
-            zstream->avail_out = outlen - outlen_old;
+            zstream->next_out = output + next_out_old;
+            zstream->avail_out = outlen - next_out_old;
         }
 
         if (err != Z_STREAM_END)
