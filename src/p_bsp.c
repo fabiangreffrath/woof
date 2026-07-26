@@ -1056,35 +1056,34 @@ void P_LoadBSPTree_ZDBSP(int lump, bsp_format_t format)
     {
         const int len = W_LumpLength(lump);
         int outlen, err;
-        z_stream *zstream;
+        z_stream zstream;
 
         // first estimate for compression rate:
         // output buffer size == 2.5 * input size
         outlen = 2.5 * len;
-        output = Z_Malloc(outlen, PU_STATIC, 0);
+        output = malloc(outlen);
 
         // initialize stream state for decompression
-        zstream = Z_Malloc(sizeof(*zstream), PU_STATIC, 0);
-        memset(zstream, 0, sizeof(*zstream));
-        zstream->next_in = data + 4;
-        zstream->avail_in = len - 4;
-        zstream->next_out = output;
-        zstream->avail_out = outlen;
+        memset(&zstream, 0, sizeof(zstream));
+        zstream.next_in = data + 4;
+        zstream.avail_in = len - 4;
+        zstream.next_out = output;
+        zstream.avail_out = outlen;
 
-        if (inflateInit(zstream) != Z_OK)
+        if (inflateInit(&zstream) != Z_OK)
         {
             I_Error("Error during ZNOD nodes decompression initialization!");
         }
 
         // resize if output buffer runs full
-        while ((err = inflate(zstream, Z_SYNC_FLUSH)) == Z_OK)
+        while ((err = inflate(&zstream, Z_SYNC_FLUSH)) == Z_OK)
         {
-            const int next_out_old = (int)(zstream->next_out - output);
+            const int next_out_old = (int)(zstream.next_out - output);
 
             outlen *= 2;
-            output = Z_Realloc(output, outlen, PU_STATIC, 0);
-            zstream->next_out = output + next_out_old;
-            zstream->avail_out = outlen - next_out_old;
+            output = I_Realloc(output, outlen);
+            zstream.next_out = output + next_out_old;
+            zstream.avail_out = outlen - next_out_old;
         }
 
         if (err != Z_STREAM_END)
@@ -1094,18 +1093,17 @@ void P_LoadBSPTree_ZDBSP(int lump, bsp_format_t format)
 
         I_Printf(VB_DEBUG,
                  "P_LoadBSPTree_ZDBSP: ZNOD nodes compression ratio %.3f",
-                 (float)zstream->total_out / zstream->total_in);
+                 (float)zstream.total_out / zstream.total_in);
 
         data = output;
 
-        if (inflateEnd(zstream) != Z_OK)
+        if (inflateEnd(&zstream) != Z_OK)
         {
             I_Error("Error during ZNOD nodes decompression shut-down!");
         }
 
         // release the original data lump
         W_CacheLumpNum(lump, PU_CACHE);
-        Z_Free(zstream);
     }
     else
     {
@@ -1268,7 +1266,7 @@ void P_LoadBSPTree_ZDBSP(int lump, bsp_format_t format)
 
     if (compressed && output)
     {
-        Z_Free(output);
+        free(output);
     }
     else
     {
