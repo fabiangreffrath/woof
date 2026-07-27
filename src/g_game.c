@@ -1663,6 +1663,7 @@ static void G_PlayerFinishLevel(int player)
   p->slope = 0;
   p->recoilpitch = p->oldrecoilpitch = 0;
   p->ticangle = p->oldticangle = 0;
+  ST_ResetMessages();
 }
 
 // [crispy] format time for level statistics
