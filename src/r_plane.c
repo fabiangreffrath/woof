@@ -230,9 +230,7 @@ static void R_MapPlane(int y, int x1, int x2, const lighttable_t * const thiscol
   if (fixedcolormapindex)
   {
     ds_colormap[0] = thiscolormap + fixedcolormapindex * 256;
-    ds_colormap[1] = (STRICTMODE(brightmaps) || force_brightmaps)
-                      ? thiscolormap
-                      : ds_colormap[0];
+    ds_colormap[1] = ds_colormap[0];
   }
   else
   {
