@@ -37,13 +37,15 @@ typedef struct
 #if defined(HAVE_EXT_VECTOR_TYPE)
 typedef float quat __attribute__((ext_vector_type(4)));
 #else
-typedef struct
+#pragma pack(push, 1)
+typedef struct ALIGNED(16)
 {
     float x;
     float y;
     float z;
     float w;
 } quat;
+#pragma pack(pop)
 #endif
 
 //
