@@ -3261,7 +3261,7 @@ void G_PlayerReborn(int player)
   p->ammo[am_clip] = deh_initial_bullets; // Ty 03/12/98 - use dehacked values
 
   for (i=0 ; i<NUMAMMO ; i++)
-    p->maxammo[i] = maxammo[i];
+    p->maxammo[i] = ammoinfo[i].maxammo;
 }
 
 //
