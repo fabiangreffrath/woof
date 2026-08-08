@@ -1445,6 +1445,48 @@ static thinker_class_t GetThinkerClass(actionf_p1 func)
     return tc_none;
 }
 
+static thinker_class_t CheckCeilingInStasis(thinker_t *thinker)
+{
+    uintptr_t *table = M_ArenaTable(activeceilings_arena);
+    int count = M_ArenaTableSize(activeceilings_arena);
+
+    thinker_class_t tc = tc_none;
+    for (int i = 0; i < count; ++i)
+    {
+        ceilinglist_t *cl = (ceilinglist_t *)table[i];
+        if (cl->ceiling->thinker.function.v == NULL
+            && thinker == &cl->ceiling->thinker)
+        {
+            tc = tc_ceiling;
+            break;
+        }
+    }
+    free(table);
+
+    return tc;
+}
+
+static thinker_class_t CheckPlatInStasis(thinker_t *thinker)
+{
+    uintptr_t *table = M_ArenaTable(activeplats_arena);
+    int count = M_ArenaTableSize(activeplats_arena);
+
+    thinker_class_t tc = tc_none;
+    for (int i = 0; i < count; ++i)
+    {
+        platlist_t *cl = (platlist_t *)table[i];
+        if (cl->plat->thinker.function.v == NULL
+            && thinker == &cl->plat->thinker)
+        {
+            tc = tc_plat;
+            break;
+        }
+    }
+    free(table);
+
+    return tc;
+}
+
 static void PrepareArchiveThinkers(void)
 {
     uintptr_t *table = M_ArenaTable(thinkers_arena);
@@ -1459,6 +1501,21 @@ static void PrepareArchiveThinkers(void)
     {
         thinker_t *thinker = (thinker_t *)table[i];
         thinker_class_t tc = GetThinkerClass(thinker->function.p1);
+
+        // killough 2/8/98: fix plat original height bug.
+        // Since acv==NULL, this could be a plat in stasis.
+        // so check the active plats list, and save this
+        // plat (jff: or ceiling) even if it is in stasis.
+
+        if (tc == tc_none)
+        {
+            tc = CheckPlatInStasis(thinker);
+            if (tc == tc_none)
+            {
+                tc = CheckCeilingInStasis(thinker);
+            }
+        }
+
         if (tc == tc_none)
         {
             I_Printf(VB_WARNING,
