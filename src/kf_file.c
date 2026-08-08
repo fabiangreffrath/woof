@@ -1501,14 +1501,21 @@ static void PrepareArchiveThinkers(void)
     {
         thinker_t *thinker = (thinker_t *)table[i];
         thinker_class_t tc = GetThinkerClass(thinker->function.p1);
+
+        // killough 2/8/98: fix plat original height bug.
+        // Since acv==NULL, this could be a plat in stasis.
+        // so check the active plats list, and save this
+        // plat (jff: or ceiling) even if it is in stasis.
+
         if (tc == tc_none)
         {
-            tc = CheckCeilingInStasis(thinker);
+            tc = CheckPlatInStasis(thinker);
             if (tc == tc_none)
             {
-                tc = CheckPlatInStasis(thinker);
+                tc = CheckCeilingInStasis(thinker);
             }
         }
+
         if (tc == tc_none)
         {
             I_Printf(VB_WARNING,
