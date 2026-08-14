@@ -86,6 +86,7 @@ boolean resetneeded;
 boolean setrefreshneeded;
 boolean toggle_fullscreen;
 
+static boolean draw_to_texture;
 static boolean use_vsync; // killough 2/8/98: controls whether vsync is called
 boolean correct_aspect_ratio;
 static int fpslimit; // when uncapped, limit framerate to this value
@@ -683,19 +684,27 @@ static void UpdateRender(void)
     // When using SDL_LockTexture, the pixels made available for editing may not
     // contain the original texture data. We have to maintain a copy of the
     // video buffer in order to emulate HOM effects.
-    void *pixels;
-    int dst_pitch;
-    SDL_LockTexture(texture, &rect, &pixels, &dst_pitch);
-    int h = rect.h;
-    int src_pitch = video.width;
-    pixel_t *dst = pixels;
-    pixel_t *src = I_VideoBuffer;
-    while (h--)
+    if (!draw_to_texture)
     {
-        memcpy(dst, src, src_pitch);
-        dst += dst_pitch;        
-        src += src_pitch;
+        void *pixels;
+        int dst_pitch;
+        SDL_LockTexture(texture, &rect, &pixels, &dst_pitch);
+        int h = rect.h;
+        int src_pitch = video.width;
+        pixel_t *dst = pixels;
+        pixel_t *src = I_VideoBuffer;
+        while (h--)
+        {
+            memcpy(dst, src, src_pitch);
+            dst += dst_pitch;        
+            src += src_pitch;
+        }
     }
+    else
+    {
+        I_VideoBuffer = NULL;
+    }
+
     SDL_UnlockTexture(texture);
 
     SDL_RenderClear(renderer);
@@ -838,6 +847,24 @@ static void I_DrawDiskIcon(), I_RestoreDiskBackground();
 static unsigned int disk_to_draw, disk_to_restore;
 
 static void I_ResetTargetRefresh(void);
+
+void I_BeginUpdate(void)
+{
+    if (!draw_to_texture || noblit)
+    {
+        return;
+    }
+
+    void *pixels;
+    int dst_pitch;
+
+    SDL_LockTexture(texture, &rect, &pixels, &dst_pitch);
+
+    I_VideoBuffer = pixels;
+
+    V_RestoreBuffer();
+    R_InitYLookup();
+}
 
 void I_FinishUpdate(void)
 {
@@ -1235,6 +1262,16 @@ static void ResetResolution(int height)
     double vertscale = (double)actualheight / (double)unscaled_actualheight;
     video.width = (int)ceil(video.unscaledw * vertscale);
 
+    if (draw_to_texture)
+    {
+        // The texture's pitch is a multiple of 4
+        video.pitch = (video.width + 3) & ~3;
+    }
+    else
+    {
+        video.pitch = video.width;
+    }
+
     video.deltaw = (video.unscaledw - NONWIDEWIDTH) / 2;
 
     Z_FreeTag(PU_VALLOC);
@@ -1589,12 +1626,16 @@ static void CreateVideoBuffer(void)
     SDL_SetTextureScaleMode(texture,
         smooth_scaling ? SDL_SCALEMODE_PIXELART : SDL_SCALEMODE_NEAREST);
 
-    if (I_VideoBuffer)
+    if (!draw_to_texture)
     {
-        free(I_VideoBuffer);
+        if (I_VideoBuffer)
+        {
+            free(I_VideoBuffer);
+        }
+
+        I_VideoBuffer = calloc(video.width * video.height, sizeof(pixel_t));
+        V_RestoreBuffer();
     }
-    I_VideoBuffer = calloc(video.width * video.height, sizeof(pixel_t));
-    V_RestoreBuffer();
 
     Z_FreeTag(PU_RENDERER);
     R_InitAnyRes();
@@ -1723,6 +1764,8 @@ void I_BindVideoVariables(void)
               &current_video_height, 600, 200, UL, ss_none, wad_no,
               "Vertical resolution");
     BIND_BOOL_GENERAL(dynamic_resolution, true, "Dynamic resolution");
+    BIND_BOOL_GENERAL(draw_to_texture, false,
+        "Draw to SDL texture directly (faster, might break HOMs)");
     BIND_BOOL(correct_aspect_ratio, true, "Aspect ratio correction");
     BIND_BOOL(fullscreen, true, "Fullscreen");
     BIND_BOOL_GENERAL(use_vsync, true,

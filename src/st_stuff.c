@@ -2003,7 +2003,7 @@ static void DrawSolidBackground(void)
 
         for (y = v0; y < v1; y++)
         {
-            int line = V_ScaleY(y) * video.width;
+            int line = V_ScaleY(y) * video.pitch;
             for (x = 0; x < depth; x++)
             {
                 pixel_t *c = st_backing_screen + line + V_ScaleX(x);
@@ -2037,7 +2037,7 @@ static void DrawBackground(const char *name)
     {
         ST_InitRes();
 
-        V_UseBuffer(st_backing_screen, video.width);
+        V_UseBuffer(st_backing_screen, video.pitch);
 
         if (st_solidbackground && st_height > 3)
         {
@@ -2322,7 +2322,7 @@ void ST_Init(void)
 void ST_InitRes(void)
 {
     static int old_st_size;
-    const int st_size = video.width * V_ScaleY(st_height);
+    const int st_size = video.pitch * V_ScaleY(st_height);
 
     if (old_st_size >= st_size)
     {

@@ -1359,7 +1359,7 @@ static boolean AM_clipMline
 
 inline static void PutDot(int x, int y, int color)
 {
-    I_VideoBuffer[y * video.width + x] = color;
+    I_VideoBuffer[y * video.pitch + x] = color;
 }
 
 static void AM_drawFline_Vanilla(fline_t *fl, int color)
@@ -1435,7 +1435,7 @@ static void AM_drawFline_Vanilla(fline_t *fl, int color)
 //
 inline static void PutWuDot(int x, int y, int color, int weight)
 {
-    pixel_t *dest = I_VideoBuffer + y * video.width + x;
+    pixel_t *dest = I_VideoBuffer + y * video.pitch + x;
     unsigned int *fg2rgb = Col2RGB8[weight];
     unsigned int *bg2rgb = Col2RGB8[64 - weight];
     unsigned int fg, bg;

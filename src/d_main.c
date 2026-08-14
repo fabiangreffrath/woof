@@ -265,7 +265,6 @@ void D_Display (void)
   if (gamestate != wipegamestate && screen_wipe_internal)
     {
       wipe = true;
-      wipe_StartScreen(0, 0, video.width, video.height);
     }
 
   if (!wipe)
@@ -282,6 +281,13 @@ void D_Display (void)
       oldgamestate = GS_NONE;            // force background redraw
       borderdrawcount = true;
     }
+
+  I_BeginUpdate();
+
+  if (wipe)
+  {
+    wipe_StartScreen(0, 0, video.width, video.height);
+  }
 
   if (gamestate == GS_LEVEL && gametic)
     ST_Erase();
@@ -387,12 +393,23 @@ void D_Display (void)
 
   wipestart = I_GetTime () - 1;
 
+  boolean first_wipe_frame = true;
+
   do
     {
       int nowtime = I_GetTime();
       int tics = nowtime - wipestart;
 
       fractionaltic = I_GetFracTime();
+
+      if (first_wipe_frame)
+      {
+        first_wipe_frame = false;
+      }
+      else
+      {
+        I_BeginUpdate();
+      }
 
       done = wipe_ScreenWipe(0, 0, video.width, video.height, tics);
       wipestart = nowtime;

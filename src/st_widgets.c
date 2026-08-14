@@ -1012,6 +1012,11 @@ boolean ST_DemoProgressBar(boolean force)
     const int progress = video.unscaledw * playback_tic / playback_totaltics;
     static int old_progress = 0;
 
+    if (!force)
+    {
+        I_BeginUpdate();
+    }
+
     if (old_progress < progress)
     {
         old_progress = progress;

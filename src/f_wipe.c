@@ -70,7 +70,7 @@ static int wipe_doCrossfade(int width, int height, int ticks)
     {
         pixel_t *sta = wipe_scr_start + y * width;
         pixel_t *end = wipe_scr_end + y * width;
-        pixel_t *dst = wipe_scr + y * video.width;
+        pixel_t *dst = wipe_scr + y * video.pitch;
 
         for (int x = 0; x < width; x++)
         {
@@ -189,7 +189,7 @@ static int wipe_renderMelt(int width, int height, int ticks)
     int currcolend;
     int currrow;
 
-    V_UseBuffer(wipe_scr, width);
+    V_UseBuffer(wipe_scr, video.pitch);
     V_PutBlock(0, 0, width, height, wipe_scr_end);
     V_RestoreBuffer();
 
@@ -218,7 +218,7 @@ static int wipe_renderMelt(int width, int height, int ticks)
                 for (int i = 0; i < height; ++i)
                 {
                     *dest = *source;
-                    dest += width;
+                    dest += video.pitch;
                     source += width;
                 }
             }
@@ -233,12 +233,12 @@ static int wipe_renderMelt(int width, int height, int ticks)
             for (; currcol < currcolend; ++currcol)
             {
                 pixel_t *source = wipe_scr_start + currcol;
-                pixel_t *dest = wipe_scr + currcol + (currrow * video.width);
+                pixel_t *dest = wipe_scr + currcol + (currrow * video.pitch);
 
                 for (int i = 0; i < height - currrow; ++i)
                 {
                     *dest = *source;
-                    dest += width;
+                    dest += video.pitch;
                     source += width;
                 }
             }
@@ -254,7 +254,7 @@ static int wipe_renderMelt(int width, int height, int ticks)
         for (int i = 0; i < height; ++i)
         {
             *dest = v_darkest_color;
-            dest += width;
+            dest += video.pitch;
         }
     }
 
@@ -401,13 +401,13 @@ static int wipe_doFizzle(int width, int height, int ticks)
         V_ScaleRect(&rect);
 
         pixel_t *src = wipe_scr_end + rect.sy * width + rect.sx;
-        pixel_t *dest = wipe_scr + rect.sy * width + rect.sx;
+        pixel_t *dest = wipe_scr + rect.sy * video.pitch + rect.sx;
 
         while (rect.sh--)
         {
             memcpy(dest, src, rect.sw);
             src += width;
-            dest += width;
+            dest += video.pitch;
         }
 
         if (rndval == 0) // entire sequence has been completed

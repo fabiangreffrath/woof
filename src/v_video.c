@@ -1059,7 +1059,7 @@ void V_DrawBackground(const char *patchname)
 
 void V_Init(void)
 {
-    linesize = video.width;
+    linesize = video.pitch;
 
     video.xscale = IntToFixed(video.width) / video.unscaledw;
     video.yscale = IntToFixed(video.height) / SCREENHEIGHT;
@@ -1121,7 +1121,7 @@ void V_UseBuffer(pixel_t *buffer, int pitch)
 void V_RestoreBuffer(void)
 {
     dest_screen = I_VideoBuffer;
-    linesize = video.width;
+    linesize = video.pitch;
 }
 
 //

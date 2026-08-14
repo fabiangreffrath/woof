@@ -48,6 +48,7 @@ void I_QuitVideo(void);
 // Takes full 8 bit values.
 void I_SetPalette(byte *palette);
 
+void I_BeginUpdate(void);
 void I_FinishUpdate(void);
 
 void I_ReadScreen(pixel_t *dst);

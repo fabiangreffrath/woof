@@ -1089,11 +1089,25 @@ void R_InitBufferRes(void)
 //  of a pixel to draw.
 //
 
+void R_InitYLookup(void)
+{
+    if (!I_VideoBuffer)
+    {
+        return;
+    }
+
+    for (int i = viewheight; i--;)
+    {
+        ylookup[i] =
+            I_VideoBuffer + (i + viewwindowy) * linesize; // killough 11/98
+    }
+}
+
 void R_InitBuffer(void)
 {
     int i;
 
-    linesize = video.width; // killough 11/98
+    linesize = video.pitch; // killough 11/98
 
     // Handle resize,
     //  e.g. smaller view windows
@@ -1110,11 +1124,7 @@ void R_InitBuffer(void)
 
     // Preclaculate all row offsets.
 
-    for (i = viewheight; i--;)
-    {
-        ylookup[i] =
-            I_VideoBuffer + (i + viewwindowy) * linesize; // killough 11/98
-    }
+    R_InitYLookup();
 
     if (background_buffer != NULL)
     {

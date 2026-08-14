@@ -115,6 +115,7 @@ void V_InitColorTranslation(void);
 
 typedef struct
 {
+    int pitch;
     int width;
     int height;
     int unscaledw; // unscaled width with correction for widecreen
