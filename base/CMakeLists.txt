@@ -112,6 +112,8 @@ set(BASE_SOURCES
     all-all/sounds/dsdgpain.wav
     all-all/sounds/dsdgsit.wav
 
+    all-all/sprites/bon3a0.png
+    all-all/sprites/bon4a0.png
     all-all/sprites/dogsa1.png
     all-all/sprites/dogsa2.png
     all-all/sprites/dogsa3.png

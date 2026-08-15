@@ -204,6 +204,8 @@ extern boolean halfplayerdamage, cshalfplayerdamage;
 extern boolean doubleammo, csdoubleammo;
 extern boolean aggromonsters, csaggromonsters;
 
+extern int cshelperdogs;
+
 // Netgame? Only true if >1 player.
 extern  boolean netgame;
 extern  boolean solonet;

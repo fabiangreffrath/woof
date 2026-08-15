@@ -913,6 +913,7 @@ static void G_DoLoadLevel(void)
   int i;
 
   S_StopAmbientSounds();
+  ST_ResetMessages();
 
   // Set the sky map.
   // First thing, we have a dummy sky texture name,
@@ -2466,7 +2467,14 @@ char* G_MBFSaveGameName(int slot)
 
 void G_Rewind(void)
 {
-    gameaction = ga_rewind;
+    if (!strictmode)
+    {
+        gameaction = ga_rewind;
+    }
+    else
+    {
+        displaymsg("Rewind is disabled in strict mode");
+    }
 }
 
 // killough 12/98:
@@ -2863,7 +2871,10 @@ static boolean DoLoadGame(boolean do_load_autosave)
       if (demorecording) // So this can only possibly be a -recordfrom command.
 	G_BeginRecording();// Start the -recordfrom, since the game was loaded.
 
+  // TODO: Why does `AM_MiniStart()` set `automapactive = false`?
+  const boolean saved_automapactive = automapactive;
   ST_Start();
+  automapactive = saved_automapactive;
 
   return true;
 }
@@ -3910,6 +3921,7 @@ void G_ReloadDefaults(boolean keep_demover)
   halfplayerdamage = cshalfplayerdamage;
   doubleammo = csdoubleammo;
   aggromonsters = csaggromonsters;
+  dogs = cshelperdogs;
 
   //jff 3/24/98 set startskill from defaultskill in config file, unless
   // it has already been set by a -skill parameter

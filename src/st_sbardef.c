@@ -123,6 +123,7 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
     out->x_pos = JS_GetInteger(x_pos);
     out->y_pos = JS_GetInteger(y_pos);
     out->alignment = JS_GetInteger(alignment);
+    out->orig_alignment = out->alignment;
 
     json_t *translucency = JS_GetObject(json, "translucency");
     if (JS_IsBoolean(translucency) && JS_GetBoolean(translucency))
