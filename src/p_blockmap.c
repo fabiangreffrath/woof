@@ -650,7 +650,7 @@ static bmap_format_t CheckBlockmapFormat(int lump, int lump_size)
 {
     bmap_format_t format = BMAP_DoomBlockmap;
     boolean force_rebuild = false;
-    void *data = W_CacheLumpNum(lump, PU_CACHE);
+    void *data = (lump >= 0) ? W_CacheLumpNum(lump, PU_CACHE) : NULL;
     int vanilla_size = lump_size / sizeof(uint16_t);
 
     // Try extended formats
@@ -677,7 +677,10 @@ static bmap_format_t CheckBlockmapFormat(int lump, int lump_size)
         format = BMAP_BoomBuilder;
     }
 
-    Z_Free(data);
+    if (data)
+    {
+        Z_Free(data);
+    }
     return format;
 }
 
