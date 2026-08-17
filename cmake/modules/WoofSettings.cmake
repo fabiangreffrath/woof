@@ -54,6 +54,7 @@ if(MSVC)
     # the compiler to convert the signed value to unsigned.
     _checked_add_compile_option(/wd4018)
 else()
+    _checked_add_compile_option(-funroll-loops)
     _checked_add_compile_option(-Werror=array-bounds)
     _checked_add_compile_option(-Werror=clobbered)
     _checked_add_compile_option(-Werror=format-security)
