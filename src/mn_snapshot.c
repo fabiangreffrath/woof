@@ -134,14 +134,19 @@ static void TakeSnapshot(void)
 
     pixel_t *p = current_snapshot;
     const pixel_t *s = I_VideoBuffer;
-    int x, y;
-    for (y = 0; y < SCREENHEIGHT; y++)
+
+    for (int x = video.deltaw; x < NONWIDEWIDTH + video.deltaw; x++)
     {
-        int line = V_ScaleY(y) * video.width;
-        for (x = video.deltaw; x < NONWIDEWIDTH + video.deltaw; x++)
+        const int line = V_ScaleX(x) * video.height;
+        pixel_t *p2 = p;
+
+        for (int y = 0; y < SCREENHEIGHT; y++)
         {
-            *p++ = s[line + V_ScaleX(x)];
+            *p2 = s[line + V_ScaleY(y)];
+            p2 += SCREENWIDTH;
         }
+
+        p++;
     }
 
     R_SetViewSize(old_screenblocks);
@@ -180,20 +185,20 @@ boolean MN_DrawSnapshot(int n, int x, int y, int w, int h)
     const fixed_t step_x = (SCREENWIDTH << FRACBITS) / rect.sw;
     const fixed_t step_y = (SCREENHEIGHT << FRACBITS) / rect.sh;
 
-    pixel_t *dest = I_VideoBuffer + rect.sy * video.width + rect.sx;
+    pixel_t *dest = I_VideoBuffer + (rect.sx * video.height) + rect.sy;
 
     fixed_t srcx, srcy;
     int destx, desty;
-    pixel_t *destline, *srcline;
+    pixel_t *destcol, *srcline;
 
-    for (desty = 0, srcy = 0; desty < rect.sh; desty++, srcy += step_y)
+    for (destx = 0, srcx = 0; destx < rect.sw; destx++, srcx += step_x)
     {
-        destline = dest + desty * video.width;
-        srcline = snapshots[n] + (srcy >> FRACBITS) * SCREENWIDTH;
+        destcol = dest + (destx * video.height);
+        srcline = snapshots[n] + (srcx >> FRACBITS);
 
-        for (destx = 0, srcx = 0; destx < rect.sw; destx++, srcx += step_x)
+        for (desty = 0, srcy = 0; desty < rect.sh; desty++, srcy += step_y)
         {
-            *destline++ = srcline[srcx >> FRACBITS];
+            *destcol++ = srcline[(srcy >> FRACBITS) * SCREENWIDTH];
         }
     }
 
