@@ -466,6 +466,7 @@ static void DrawSkyTex(visplane_t *pl, sky_t *sky, skytex_t *skytex)
         sky->vertically_scrolling = (sky->old_texturemid != dc_texturemid);
         sky->old_texturemid = dc_texturemid;
         sky->texturemid_tic = leveltime;
+        sky->stretchable &= !sky->vertically_scrolling;
     }
 
     if (colfunc != R_DrawTLColumn && !sky->vertically_scrolling && dc_texheight >= 128)
