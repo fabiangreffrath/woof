@@ -2308,7 +2308,7 @@ void M_Init(void)
         ReadDef2.prevMenu = NULL;
     }
 
-    if (gameversion == exe_final)
+    if (gameversion == exe_final || gameversion == exe_final2)
     {
         ReadDef2.routine = M_DrawReadThisCommercial;
         // [crispy] rearrange Skull in Final Doom HELP screen
