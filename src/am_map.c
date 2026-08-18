@@ -2551,11 +2551,7 @@ static void AM_drawMarks(void)
 //
 static void AM_drawCrosshair(int color)
 {
-  // [crispy] do not draw the useless dot on the player arrow
-  if (!followplayer)
-  {
     PutDot((f_w + 1) / 2, (f_h + 1) / 2, color); // single point for now
-  }
 }
 
 //
@@ -2570,7 +2566,9 @@ void AM_Drawer(void)
     // move AM_doFollowPlayer and AM_changeWindowLoc from AM_Ticker for
     // interpolation
 
-    if (followplayer)
+    const boolean cur_followplayer = followplayer || minimap.active;
+
+    if (cur_followplayer)
     {
         AM_doFollowPlayer();
     }
@@ -2587,7 +2585,7 @@ void AM_Drawer(void)
         mapcenter.x = m_x + m_w / 2;
         mapcenter.y = m_y + m_h / 2;
         // [crispy] keep the map static if not following the player
-        if (automaprotate && followplayer)
+        if (automaprotate && cur_followplayer)
         {
             mapangle = ANG90 - plr->mo->angle;
         }
@@ -2617,7 +2615,10 @@ void AM_Drawer(void)
     {
         AM_drawThings(cur_mapcolor_sprt, 0); // jff 1/5/98 default double IDDT sprite
     }
-    AM_drawCrosshair(cur_mapcolor_hair); // jff 1/7/98 default crosshair color
+    if (!cur_followplayer)
+    {
+        AM_drawCrosshair(cur_mapcolor_hair); // jff 1/7/98 default crosshair color
+    }
     AM_drawMarks();
 }
 
