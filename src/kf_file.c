@@ -440,6 +440,7 @@ static void read_mobj_t(mobj_t *str, thinker_class_t tc, json_t *obj)
     }
     JS_ArrayIteratorFree(args_iter);
 
+    str->tint = JS_GetIntegerValue(obj, "tint");
     str->movedir = JS_GetIntegerValue(obj, "movedir");
     str->movecount = JS_GetIntegerValue(obj, "movecount");
     str->strafecount = JS_GetIntegerValue(obj, "strafecount");
@@ -523,6 +524,7 @@ static json_mut_t *write_mobj_t(mobj_t *str, json_mut_doc_t *doc)
     }
     JS_SetArray(doc, obj, "args", args_arr);
 
+    JS_SetInt(doc, obj, "tint", str->tint);
     JS_SetInt(doc, obj, "movedir", str->movedir);
     JS_SetInt(doc, obj, "movecount", str->movecount);
     JS_SetInt(doc, obj, "strafecount", str->strafecount);
