@@ -436,13 +436,15 @@ static void DrawPatchColumnTRTL(const patch_column_t *patchcol)
 static void DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
                              column_t *column)
 {
+    const int screentop = CLAMP(ytop + patchcol->topoffset, 0, SCREENHEIGHT-1);
+
     for (; column->topdelta != 0xff;
          column = (column_t *)((byte *)column + column->length + 4))
     {
         // calculate unclipped screen coordinates for post
-        int columntop = ytop + column->topdelta;
+        const int columntop = ytop + column->topdelta;
 
-        if (columntop >= 0)
+        if (columntop >= screentop)
         {
             // SoM: Make sure the lut is never referenced out of range
             if (columntop >= SCREENHEIGHT)
@@ -451,12 +453,12 @@ static void DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
             }
 
             patchcol->y1 = y1lookup[columntop];
-            patchcol->frac = IntToFixed(patchcol->topoffset);
+            patchcol->frac = 0;
         }
         else
         {
-            patchcol->frac = (-columntop) << FRACBITS;
-            patchcol->y1 = 0;
+            patchcol->frac = IntToFixed(screentop - columntop);
+            patchcol->y1 = y1lookup[screentop];
         }
 
         int columnbottom = columntop + column->length - 1;
