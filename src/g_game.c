@@ -3600,6 +3600,8 @@ static int G_GetHelpers(void)
 
 // [FG] support named complevels on the command line, e.g. "-complevel boom"
 
+static int named_complevel_id = -1;
+
 demo_version_t G_GetNamedComplevel(const char *arg)
 {
     const struct
@@ -3636,6 +3638,7 @@ demo_version_t G_GetNamedComplevel(const char *arg)
             {
                 gameversion = named_complevel[i].exe;
             }
+            named_complevel_id = i;
 
             return named_complevel[i].demover;
         }
@@ -3940,6 +3943,7 @@ void G_ReloadDefaults(boolean keep_demover)
   compatibility = false;     // killough 10/98: replaced by comp[] vector
   memcpy(comp, default_comp, sizeof comp);
 
+  int p;
   if (!keep_demover)
   {
     demo_version_t demover = DV_NONE;
@@ -3953,7 +3957,7 @@ void G_ReloadDefaults(boolean keep_demover)
     // "vanilla", "boom", "mbf", "mbf21".
     //
 
-    int p = M_CheckParmWithArgs("-complevel", 1);
+    p = M_CheckParmWithArgs("-complevel", 1);
 
     if (!p)
     {
@@ -4039,6 +4043,9 @@ void G_ReloadDefaults(boolean keep_demover)
 
   if (M_CheckParm("-skill") && startskill == sk_none && !demo_compatibility)
     I_Error("'-skill 0' requires complevel Vanilla.");
+
+  if ((p = M_CheckParm("-gameversion")) && named_complevel_id != 0)
+    I_Error("'-gameversion %s' requires explicit '-complevel vanilla'.", myargv[p+1]);
 
   if (demorecording && demo_version == DV_ID24)
     I_Error("Recording ID24 demos is currently not enabled. "
