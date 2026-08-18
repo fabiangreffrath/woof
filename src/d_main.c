@@ -262,7 +262,7 @@ void D_Display (void)
   wipe = false;
 
   // save the current screen if about to wipe
-  if (gamestate != wipegamestate && screen_wipe_internal)
+  if (gamestate != wipegamestate)
     {
       wipe = true;
       wipe_StartScreen(0, 0, video.width, video.height);
