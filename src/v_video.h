@@ -169,8 +169,10 @@ typedef struct
     boolean center;
     int width;
     int height;
+
+    boolean no_crop;
 } crop_t;
-extern crop_t zero_crop;
+extern crop_t no_crop;
 
 // On-screen patch drawing functions for specific purposes
 void V_DrawPatch(int x, int y, patch_t *patch);
