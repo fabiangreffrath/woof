@@ -29,6 +29,8 @@
 #include "r_main.h"
 #include "v_video.h"
 
+#include "base64/base64.h"
+
 static const char snapshot_str[] = "WOOF_SNAPSHOT";
 static const int snapshot_len = arrlen(snapshot_str);
 static const int snapshot_size = (SCREENWIDTH * SCREENHEIGHT) * sizeof(pixel_t);
@@ -147,14 +149,11 @@ static void TakeSnapshot(void)
     R_SetViewSize(old_screenblocks);
 }
 
-void MN_WriteSnapshot(pixel_t *p)
+char *MN_WriteSnapshot(void)
 {
     TakeSnapshot();
 
-    memcpy(p, snapshot_str, snapshot_len);
-    p += snapshot_len;
-
-    memcpy(p, current_snapshot, snapshot_size);
+    return (char*)base64_encode(current_snapshot, snapshot_size, NULL);
 }
 
 // [FG] draw snapshot for the n'th savegame, if no snapshot is found

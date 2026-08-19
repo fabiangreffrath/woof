@@ -359,10 +359,22 @@ void JS_SetInt(json_mut_doc_t *doc, json_mut_t *obj,
     yyjson_mut_obj_add_int(doc, obj, key, val);
 }
 
+void JS_SetUInt(json_mut_doc_t *doc, json_mut_t *obj,
+               const char *key, uint64_t val)
+{
+    yyjson_mut_obj_add_uint(doc, obj, key, val);
+}
+
 void JS_SetObject(json_mut_doc_t *doc, json_mut_t *parent,
                   const char *key, json_mut_t *child)
 {
     yyjson_mut_obj_add_val(doc, parent, key, child);
+}
+
+void JS_SetString(json_mut_doc_t *doc, json_mut_t *parent,
+                  const char *key, const char *str)
+{
+    yyjson_mut_obj_add_str(doc, parent, key, str);
 }
 
 void JS_SetArray(json_mut_doc_t *doc, json_mut_t *parent,
@@ -380,6 +392,11 @@ void JS_ArrayAddObject(json_mut_doc_t *doc, json_mut_t *arr, json_mut_t *obj)
 {
     (void)doc;
     yyjson_mut_arr_add_val(arr, obj);
+}
+
+void JS_ArrayAddString(json_mut_doc_t *doc, json_mut_t *arr, const char *str)
+{
+    yyjson_mut_arr_add_str(doc, arr, str);
 }
 
 char *JS_DocWriteString(json_mut_doc_t *doc, size_t *len)

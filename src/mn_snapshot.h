@@ -25,7 +25,7 @@
 const int MN_SnapshotDataSize(void);
 void MN_ResetSnapshot(int i);
 boolean MN_ReadSnapshot(int i, FILE *fp);
-void MN_WriteSnapshot(byte *p);
+char *MN_WriteSnapshot(void);
 boolean MN_DrawSnapshot(int i, int x, int y, int w, int h);
 
 void MN_ReadSavegameTime(int i, char *name);

@@ -63,6 +63,7 @@
 #include "m_config.h"
 #include "m_input.h"
 #include "m_io.h"
+#include "m_json.h"
 #include "m_misc.h"
 #include "m_random.h"
 #include "m_swap.h" // [FG] LONG
@@ -100,6 +101,8 @@
 #include "wi_stuff.h"
 #include "ws_stuff.h"
 #include "z_zone.h"
+
+#include "miniz.h"
 
 #define SAVEGAMESIZE  0x20000
 #define SAVESTRINGSIZE  24
@@ -2502,120 +2505,182 @@ static uint64_t G_Signature(int sig_epi, int sig_map)
   return s;
 }
 
+#define MAX_STREAM_LENGTH (1 << 28) // 256 MiB
+
+static int CheckStreamLength(int32_t length)
+{
+    return length > 0 && length < MAX_STREAM_LENGTH;
+}
+
+static json_mut_t *G_WriteOptionsJSON(json_mut_doc_t * doc);
+
 static void DoSaveGame(char *name)
 {
-  S_MarkSounds();
+    json_mut_doc_t *doc = JS_NewDoc();
+    json_mut_t *root_mut = JS_NewObject(doc);
+    JS_SetRoot(doc, root_mut);
 
-  save_p = savebuffer = Z_Malloc(savegamesize, PU_STATIC, 0);
+    S_MarkSounds();
 
-  saveg_grow(SAVESTRINGSIZE + VERSIONSIZE);
-  memcpy(save_p, savedescription, SAVESTRINGSIZE);
-  save_p += SAVESTRINGSIZE;
+    JS_SetString(doc, root_mut, "savedescription", savedescription);
+    // killough 2/22/98: "proprietary" version string :-)
+    JS_SetString(doc, root_mut, "version_name", CURRENT_SAVE_VERSION);
 
-  // killough 2/22/98: "proprietary" version string :-)
-  char version_name[VERSIONSIZE] = {0};
-  strcpy(version_name, CURRENT_SAVE_VERSION);
-  memcpy(save_p, version_name, VERSIONSIZE);
-  save_p += VERSIONSIZE;
+    saveg_compat = saveg_current;
 
-  saveg_compat = saveg_current;
+    JS_SetInt(doc, root_mut, "demo_version", demo_version);
 
-  saveg_write8(demo_version);
+    // killough 2/14/98: save old compatibility flag:
+    JS_SetInt(doc, root_mut, "compatibility", compatibility);
 
-  // killough 2/14/98: save old compatibility flag:
-  saveg_write8(compatibility);
+    JS_SetInt(doc, root_mut, "gameskill", gameskill);
+    JS_SetInt(doc, root_mut, "gameepisode", gameepisode);
+    JS_SetInt(doc, root_mut, "gamemap", gamemap);
 
-  saveg_write8(gameskill);
-  saveg_write8(gameepisode);
-  saveg_write8(gamemap);
+    // killough 3/16/98, 12/98: store lump name checksum
+    JS_SetUInt(doc, root_mut, "signature", G_Signature(gameepisode, gamemap));
 
-  // killough 3/16/98, 12/98: store lump name checksum
-  saveg_write64(G_Signature(gameepisode, gamemap));
+    // killough 3/16/98: store pwad filenames in savegame
+    json_mut_t *wadfiles_arr = JS_NewArray(doc);
+    for (int i = 0; i < array_size(wadfiles); i++)
+    {
+        const char *basename = M_BaseName(wadfiles[i]);
+        JS_ArrayAddString(doc, wadfiles_arr, basename);
+    }
+    JS_SetArray(doc, root_mut, "wadfiles", wadfiles_arr);
 
-  // killough 3/16/98: store pwad filenames in savegame
-  {
-      int i;
-      for (*save_p = 0, i = 0; i < array_size(wadfiles); i++)
-      {
-          const char *basename = M_BaseName(wadfiles[i]);
-          saveg_grow(strlen(basename) + 2);
-          strcat(strcat((char *)save_p, basename), "\n");
-      }
-      save_p += strlen((char *)save_p) + 1;
-  }
+    json_mut_t *playeringame_arr = JS_NewArray(doc);
+    for (int i = 0; i < MAXPLAYERS; i++)
+    {
+        JS_ArrayAddInt(doc, playeringame_arr, playeringame[i]);
+    }
+    JS_SetArray(doc, root_mut, "playeringame", playeringame_arr);
 
-  {
-      int i;
-      for (i = 0; i < MAXPLAYERS; i++)
-      {
-          saveg_write8(playeringame[i]);
-      }
-      for (; i < MIN_MAXPLAYERS; i++) // killough 2/28/98
-      {
-          saveg_write8(0);
-      }
-  }
+    JS_SetInt(doc, root_mut, "idmusnum",
+              idmusnum); // jff 3/17/98 save idmus state
 
-  saveg_write8(idmusnum);               // jff 3/17/98 save idmus state
+    JS_SetObject(doc, root_mut, "gameoptions",
+                 G_WriteOptionsJSON(doc)); // killough 3/1/98: save game options
 
-  saveg_grow(G_GameOptionSize());
-  save_p = G_WriteOptions(save_p);    // killough 3/1/98: save game options
+    JS_SetInt(doc, root_mut, "pistolstart", pistolstart);
+    JS_SetInt(doc, root_mut, "coopspawns", coopspawns);
+    JS_SetInt(doc, root_mut, "halfplayerdamage", halfplayerdamage);
+    JS_SetInt(doc, root_mut, "doubleammo", doubleammo);
+    JS_SetInt(doc, root_mut, "aggromonsters", aggromonsters);
 
-  saveg_write8(pistolstart);
-  saveg_write8(coopspawns);
-  saveg_write8(halfplayerdamage);
-  saveg_write8(doubleammo);
-  saveg_write8(aggromonsters);
+    JS_SetInt(doc, root_mut, "leveltime",
+              leveltime); // killough 11/98: save entire word
 
-  // [FG] fix copy size and pointer progression
-  saveg_write32(leveltime); //killough 11/98: save entire word
+    // killough 11/98: save revenant tracer state
+    JS_SetInt(doc, root_mut, "boom_basetic", (gametic - boom_basetic) & 255);
 
-  // killough 11/98: save revenant tracer state
-  saveg_write8((gametic - boom_basetic) & 255);
+    P_ArchiveKeyframe(doc, root_mut);
 
-  P_ArchiveKeyframe();
+    // [FG] save total time for all completed levels
+    JS_SetInt(doc, root_mut, "totalleveltimes", totalleveltimes);
 
-  saveg_write8(0xe6);   // consistancy marker
+    // save lump name for current MUSINFO item
+    char lumpname[9] = {0};
+    if (musinfo.current_item > 0)
+    {
+        M_CopyLumpName(lumpname, lumpinfo[musinfo.current_item].name);
+    }
+    JS_SetString(doc, root_mut, "musinfo", lumpname);
 
-  // [FG] save total time for all completed levels
-  saveg_write32(totalleveltimes);
+    // save max_kill_requirement
+    JS_SetInt(doc, root_mut, "max_kill_requirement", max_kill_requirement);
 
-  // save lump name for current MUSINFO item
-  saveg_grow(8);
-  if (musinfo.current_item > 0)
-    M_CopyLumpName((char*)save_p, lumpinfo[musinfo.current_item].name);
-  else
-    memset(save_p, 0, 8);
-  save_p += 8;
+    // [FG] save snapshot
+    char *snapshot = MN_WriteSnapshot();
+    JS_SetString(doc, root_mut, "snapshot", snapshot);
 
-  // save max_kill_requirement
-  saveg_write32(max_kill_requirement);
+    // Serialise the document to a JSON string, then free it – the string
+    // owns its own memory and is independent of the JSON document.
+    size_t json_len;
+    char *json_str = JS_DocWriteString(doc, &json_len);
+    JS_FreeDoc(doc);
 
-  // [FG] save snapshot
-  saveg_grow(MN_SnapshotDataSize());
-  MN_WriteSnapshot(save_p);
-  save_p += MN_SnapshotDataSize();
+    free(snapshot);
+    root_mut = NULL;
+    doc = NULL;
 
-  int length = save_p - savebuffer;
+    // Compress the JSON string with miniz and write the result to the save
+    // buffer as: [uint32 original_len][uint32 compressed_len][zlib stream].
+    // If compression fails or is disabled, fall back to plain JSON with a
+    // null terminator so older code can still read it.
+    unsigned char *compressed = NULL;
 
-  M_MakeDirectory(basesavegame);
+#ifndef SAVEGAME_NO_COMPRESS
+    mz_ulong compressed_len = mz_compressBound((mz_ulong)json_len);
+    if ((compressed = malloc((size_t)compressed_len)))
+    {
+        int mz_ret =
+            mz_compress(compressed, &compressed_len,
+                        (const unsigned char *)json_str, (mz_ulong)json_len);
 
-  if (!M_WriteFile(name, savebuffer, length))
-  {
-      displaymsg("Could not save game");
-  }
-  else
-  {
-      displaymsg("%s", DEH_String(GGSAVED));
-  }
+        if (mz_ret == MZ_OK && CheckStreamLength((int32_t)json_len)
+            && CheckStreamLength((int32_t)compressed_len))
+        {
+            free(json_str);
+            save_p = savebuffer =
+                Z_Malloc(compressed_len + sizeof(int32_t), PU_STATIC, 0);
+            saveg_write32((int32_t)json_len);
+            memcpy(save_p, compressed, (size_t)compressed_len);
+            save_p += compressed_len;
+        }
+        else
+        {
+            if (mz_ret != MZ_OK)
+            {
+                I_Printf(VB_ERROR, "P_ArchiveKeyframe: Compression error (%s)",
+                         mz_error(mz_ret));
+            }
+            else
+            {
+                I_Printf(VB_ERROR, "P_ArchiveKeyframe: Stream too large");
+            }
 
-  Z_Free(savebuffer);  // killough
-  savebuffer = save_p = NULL;
+            free(compressed);
+            compressed = NULL;
+        }
+    }
+#endif
 
-  gameaction = ga_nothing;
-  savedescription[0] = 0;
+    if (!compressed)
+    {
+        I_Printf(VB_WARNING, "P_ArchiveKeyframe: Saving uncompressed keyframe");
 
-  I_ResetDRS();
+        json_len++; // include null-terminator
+        save_p = savebuffer = Z_Malloc(json_len, PU_STATIC, 0);
+        M_StringCopy((char *)save_p, json_str, json_len);
+        save_p += json_len;
+        free(json_str);
+    }
+    else
+    {
+        free(compressed);
+    }
+
+    int length = save_p - savebuffer;
+
+    M_MakeDirectory(basesavegame);
+
+    if (!M_WriteFile(name, savebuffer, length))
+    {
+        displaymsg("Could not save game");
+    }
+    else
+    {
+        displaymsg("%s", DEH_String(GGSAVED));
+    }
+
+    Z_Free(savebuffer); // killough
+    savebuffer = save_p = NULL;
+
+    gameaction = ga_nothing;
+    savedescription[0] = 0;
+
+    I_ResetDRS();
 }
 
 static void G_DoSaveGame(void)
@@ -4405,6 +4470,72 @@ byte *G_WriteOptions(byte *demo_p)
     I_Error("GAME_OPTION_SIZE is too small");
 
   return target;
+}
+
+static json_mut_t *G_WriteOptionsJSON(json_mut_doc_t *doc)
+{
+    json_mut_t *obj = JS_NewObject(doc);
+
+    JS_SetInt(doc, obj, "monsters_remember", monsters_remember); // part of monster AI
+    JS_SetInt(doc, obj, "variable_friction", variable_friction); // ice & mud
+    JS_SetInt(doc, obj, "weapon_recoil", weapon_recoil); // weapon recoil
+    JS_SetInt(doc, obj, "allow_pushers", allow_pushers); // MT_PUSH Things
+
+    JS_SetInt(doc, obj, "player_bobbing", player_bobbing); // whether player bobs or not
+
+    // killough 3/6/98: add parameters to savegame, move around some in demos
+    JS_SetInt(doc, obj, "respawnparm", respawnparm);
+    JS_SetInt(doc, obj, "fastparm", fastparm);
+    JS_SetInt(doc, obj, "nomonsters", nomonsters);
+
+    JS_SetInt(doc, obj, "demo_insurance", demo_insurance); // killough 3/31/98
+
+    // killough 3/26/98: Added rngseed. 3/31/98: moved here
+    JS_SetUInt(doc, obj, "rngseed", rngseed);
+
+    // Options new to v2.03 begin here
+
+    JS_SetInt(doc, obj, "monster_infighting", monster_infighting); // killough 7/19/98
+    JS_SetInt(doc, obj, "dogs", dogs); // killough 7/19/98
+    JS_SetInt(doc, obj, "classic_bfg", classic_bfg); // killough 7/19/98
+    JS_SetInt(doc, obj, "beta_emulation", beta_emulation); // killough 7/24/98
+    JS_SetInt(doc, obj, "distfriend", distfriend); // killough 8/8/98  
+    JS_SetInt(doc, obj, "monster_backing", monster_backing); // killough 9/8/98
+    JS_SetInt(doc, obj, "monster_avoid_hazards", monster_avoid_hazards); // killough 9/9/98
+    JS_SetInt(doc, obj, "monster_friction", monster_friction); // killough 10/98
+    JS_SetInt(doc, obj, "help_friends", help_friends); // killough 9/9/98
+    JS_SetInt(doc, obj, "dog_jumping", dog_jumping);
+    JS_SetInt(doc, obj, "monkeys", monkeys);
+
+    JS_SetInt(doc, obj, "comp_telefrag", comp[comp_telefrag]);
+    JS_SetInt(doc, obj, "comp_dropoff", comp[comp_dropoff]);
+    JS_SetInt(doc, obj, "comp_vile", comp[comp_vile]);
+    JS_SetInt(doc, obj, "comp_pain", comp[comp_pain]);
+    JS_SetInt(doc, obj, "comp_skull", comp[comp_skull]);
+    JS_SetInt(doc, obj, "comp_blazing", comp[comp_blazing]);
+    JS_SetInt(doc, obj, "comp_doorlight", comp[comp_doorlight]);
+    JS_SetInt(doc, obj, "comp_model", comp[comp_model]);
+    JS_SetInt(doc, obj, "comp_god", comp[comp_god]);
+    JS_SetInt(doc, obj, "comp_falloff", comp[comp_falloff]);
+    JS_SetInt(doc, obj, "comp_floors", comp[comp_floors]);
+    JS_SetInt(doc, obj, "comp_skymap", comp[comp_skymap]);
+    JS_SetInt(doc, obj, "comp_pursuit", comp[comp_pursuit]);
+    JS_SetInt(doc, obj, "comp_doorstuck", comp[comp_doorstuck]);
+    JS_SetInt(doc, obj, "comp_staylift", comp[comp_staylift]);
+    JS_SetInt(doc, obj, "comp_zombie", comp[comp_zombie]);
+    JS_SetInt(doc, obj, "comp_stairs", comp[comp_stairs]);
+    JS_SetInt(doc, obj, "comp_infcheat", comp[comp_infcheat]);
+    JS_SetInt(doc, obj, "comp_zerotags", comp[comp_zerotags]);
+    // from PrBoom+/Eternity Engine (part of mbf21 spec)
+    JS_SetInt(doc, obj, "comp_respawn", comp[comp_respawn]);
+    JS_SetInt(doc, obj, "comp_soul", comp[comp_soul]);
+    // mbf21
+    JS_SetInt(doc, obj, "comp_ledgeblock", comp[comp_ledgeblock]);
+    JS_SetInt(doc, obj, "comp_friendlyspawn", comp[comp_friendlyspawn]);
+    JS_SetInt(doc, obj, "comp_voodooscroller", comp[comp_voodooscroller]);
+    JS_SetInt(doc, obj, "comp_reservedlineflag", comp[comp_reservedlineflag]);
+
+    return obj;
 }
 
 // Same, but read instead of write

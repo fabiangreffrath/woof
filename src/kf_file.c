@@ -2371,12 +2371,8 @@ static int CheckStreamLength(int32_t length)
     return length > 0 && length < MAX_STREAM_LENGTH;
 }
 
-void P_ArchiveKeyframe(void)
+void P_ArchiveKeyframe(json_mut_doc_t *doc, json_mut_t *root_mut)
 {
-    json_mut_doc_t *doc = JS_NewDoc();
-    json_mut_t *root_mut = JS_NewObject(doc);
-    JS_SetRoot(doc, root_mut);
-
     PrepareArchiveThinkers();
 
     json_mut_t *thinkercap_obj = write_thinker_t(&thinkercap, doc);
@@ -2434,7 +2430,8 @@ void P_ArchiveKeyframe(void)
     JS_SetInt(doc, root_mut, "activeceilings",
               writep_activeceilings(activeceilings));
     ArchiveCeilingList(doc, root_mut);
-    JS_SetInt(doc, root_mut, "activeplats", writep_activeplats(activeplats));
+    JS_SetInt(doc, root_mut, "activeplats",
+              writep_activeplats(activeplats));
     ArchivePlatList(doc, root_mut);
 
     json_mut_t *rng_obj = write_rng_t(&rng, doc);
@@ -2444,71 +2441,6 @@ void P_ArchiveKeyframe(void)
     ArchiveAutoMap(doc, root_mut);
 
     EndArchive();
-
-    // Serialise the document to a JSON string, then free it – the string
-    // owns its own memory and is independent of the JSON document.
-    size_t json_len;
-    char *json_str = JS_DocWriteString(doc, &json_len);
-    JS_FreeDoc(doc);
-    root_mut = NULL;
-    doc = NULL;
-
-    // Compress the JSON string with miniz and write the result to the save
-    // buffer as: [uint32 original_len][uint32 compressed_len][zlib stream].
-    // If compression fails or is disabled, fall back to plain JSON with a
-    // null terminator so older code can still read it.
-    unsigned char *compressed = NULL;
-
-#ifndef KF_NO_COMPRESS
-    mz_ulong compressed_len = mz_compressBound((mz_ulong)json_len);
-    if ((compressed = malloc((size_t)compressed_len)))
-    {
-        int mz_ret =
-            mz_compress(compressed, &compressed_len,
-                        (const unsigned char *)json_str, (mz_ulong)json_len);
-
-        if (mz_ret == MZ_OK && CheckStreamLength((int32_t)json_len)
-            && CheckStreamLength((int32_t)compressed_len))
-        {
-            free(json_str);
-            saveg_write32((int32_t)json_len);
-            saveg_write32((int32_t)compressed_len);
-            saveg_grow(compressed_len);
-            memcpy(save_p, compressed, (size_t)compressed_len);
-            save_p += compressed_len;
-        }
-        else
-        {
-            if (mz_ret != MZ_OK)
-            {
-                I_Printf(VB_ERROR, "P_ArchiveKeyframe: Compression error (%s)",
-                         mz_error(mz_ret));
-            }
-            else
-            {
-                I_Printf(VB_ERROR, "P_ArchiveKeyframe: Stream too large");
-            }
-
-            free(compressed);
-            compressed = NULL;
-        }
-    }
-#endif
-
-    if (!compressed)
-    {
-        I_Printf(VB_WARNING, "P_ArchiveKeyframe: Saving uncompressed keyframe");
-
-        json_len++; // include null-terminator
-        saveg_grow(json_len);
-        M_StringCopy((char *)save_p, json_str, json_len);
-        free(json_str);
-        save_p += json_len;
-    }
-    else
-    {
-        free(compressed);
-    }
 }
 
 #define ZLIB_MAGIC_BYTE 0x78

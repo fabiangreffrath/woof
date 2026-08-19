@@ -74,13 +74,18 @@ void        JS_SetRoot(json_mut_doc_t *doc, json_mut_t *root);
 
 void JS_SetInt(json_mut_doc_t *doc, json_mut_t *obj,
                const char *key, int val);
+void JS_SetUInt(json_mut_doc_t *doc, json_mut_t *obj,
+               const char *key, uint64_t val);
 void JS_SetObject(json_mut_doc_t *doc, json_mut_t *parent,
                   const char *key, json_mut_t *child);
+void JS_SetString(json_mut_doc_t *doc, json_mut_t *parent,
+                  const char *key, const char *str);
 void JS_SetArray(json_mut_doc_t *doc, json_mut_t *parent,
                  const char *key, json_mut_t *arr);
 
 void JS_ArrayAddInt(json_mut_doc_t *doc, json_mut_t *arr, int val);
 void JS_ArrayAddObject(json_mut_doc_t *doc, json_mut_t *arr, json_mut_t *obj);
+void JS_ArrayAddString(json_mut_doc_t *doc, json_mut_t *arr, const char *str);
 
 char *JS_DocWriteString(json_mut_doc_t *doc, size_t *len);
 
