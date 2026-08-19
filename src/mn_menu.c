@@ -1,7 +1,7 @@
 //
 //  Copyright (C) 1999 by
 //  id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman
-//  Copyright(C) 2020-2021 Fabian Greffrath
+//  Copyright(C) 2020-2026 Fabian Greffrath
 //
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU General Public License
@@ -1224,6 +1224,7 @@ static void M_ReadSaveString(char *name, int menu_slot, int save_slot,
         }
     }
 
+    // Open file and read content
     int savegamesize = M_ReadFile(name, &save_p);
     savebuffer = save_p;
     free(name);
@@ -1276,7 +1277,7 @@ static void M_ReadSaveString(char *name, int menu_slot, int save_slot,
         const char *snapshot = JS_GetStringValue(root, "snapshot");
 
         M_snprintf(savegamestrings[menu_slot], SAVESTRINGSIZE, "%s",
-                   savegamestring);
+                   savegamestring ? savegamestring : DEH_String(EMPTYSTRING));
 
         if (!MN_ReadSnapshot(menu_slot, (byte *)snapshot, 0))
         {

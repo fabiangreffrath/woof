@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2022 Fabian Greffrath
+//  Copyright (C) 2022-2026 Fabian Greffrath
 //
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU General Public License

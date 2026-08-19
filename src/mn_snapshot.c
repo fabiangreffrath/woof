@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2022 Fabian Greffrath
+//  Copyright (C) 2022-2026 Fabian Greffrath
 //
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU General Public License
@@ -53,13 +53,18 @@ boolean MN_ReadSnapshot(int i, const byte *buf, int len)
 {
     MN_ResetSnapshot(i);
 
+    if (buf == NULL)
+    {
+        return false;
+    }
+
+    // Check if base64-encoded or legacy
     if (len == 0)
     {
         byte *str;
         len = strlen((char *)buf);
 
-        if ((snapshots[i] = malloc(snapshot_size * sizeof(**snapshots)))
-            == NULL)
+        if ((snapshots[i] = malloc(snapshot_size * sizeof(**snapshots))) == NULL)
         {
             return false;
         }
@@ -98,8 +103,7 @@ boolean MN_ReadSnapshot(int i, const byte *buf, int len)
             return false;
         }
 
-        if ((snapshots[i] = malloc(snapshot_size * sizeof(**snapshots)))
-            == NULL)
+        if ((snapshots[i] = malloc(snapshot_size * sizeof(**snapshots))) == NULL)
         {
             return false;
         }
