@@ -169,8 +169,6 @@ typedef struct
     boolean center;
     int width;
     int height;
-
-    boolean no_crop;
 } crop_t;
 extern crop_t no_crop;
 

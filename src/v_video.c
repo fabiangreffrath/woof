@@ -247,7 +247,7 @@ typedef struct
     byte *source;
 } patch_column_t;
 
-crop_t no_crop = { .no_crop = true };
+crop_t no_crop = {0};
 
 static const byte *translation, *translation2;
 
@@ -436,8 +436,8 @@ static void DrawPatchColumnTRTL(const patch_column_t *patchcol)
 static void DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
                              const column_t *column)
 {
-    const int screentop = MAX(ytop, 0);
-    const int screenbottom = MIN(ytop + patchcol->height, SCREENHEIGHT);
+    const int screentop = CLAMP(ytop, 0, SCREENHEIGHT-1);
+    const int screenbottom = CLAMP(ytop + patchcol->height, 0, SCREENHEIGHT);
 
     for (; column->topdelta != 0xff;
          column = (column_t *)((byte *)column + column->length + 4))
@@ -519,24 +519,11 @@ static inline void DrawPatchInternal(int x, int y, int xoffset, int yoffset,
                 : (trans)          ? DrawPatchColumnTL
                                    : DrawPatchColumn;
 
-    int left_crop, final_width;
+    const int left_crop = (crop.center && crop.left) ? patch_width / 2 + crop.left : crop.left;
+    const int final_width = crop.width ? MIN(patch_width, crop.width) : patch_width;
 
-    if (crop.no_crop)
-    {
-        left_crop = 0;
-        final_width = patch_width;
-
-        patchcol.top_crop = 0;
-        patchcol.height = patch_height;
-    }
-    else
-    {
-        left_crop = crop.center ? patch_width / 2 + crop.left : crop.left;
-        final_width = MIN(patch_width, crop.width);
-
-        patchcol.top_crop = crop.center ? patch_height / 2 + crop.top : crop.top;
-        patchcol.height = MIN(patch_height, crop.height);
-    }
+    patchcol.top_crop = (crop.center && crop.top) ? patch_height / 2 + crop.top : crop.top;
+    patchcol.height = crop.height ? MIN(patch_height, crop.height) : patch_height;
 
     // Adjust for arbitrary resolution
     x += video.deltaw;
