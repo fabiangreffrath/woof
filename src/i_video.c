@@ -1218,13 +1218,11 @@ static aspect_ratio_t CurrentAspectRatio(void)
 
     if (w > ASPECT_RATIO_MAX * h)
     {
-        w = 36;
-        h = 10;
+        return (aspect_ratio_t){.w = 36, .h = 10};
     }
     else if (w < ASPECT_RATIO_MIN * h)
     {
-        w = 4;
-        h = 3;
+        return (aspect_ratio_t){.w = 4, .h = 3};
     }
 
     return (aspect_ratio_t){.w = w, .h = h};
@@ -1368,9 +1366,7 @@ static void I_InitVideoParms(void)
             I_Error("The vertical resolution is too low, turn off the aspect "
                     "ratio correction.");
         }
-        double aspect_ratio =
-            (double)max_video_width / (double)max_video_height;
-        if (aspect_ratio < ASPECT_RATIO_MIN)
+        if (max_video_width < ASPECT_RATIO_MIN * max_video_height)
         {
             I_Printf(VB_ERROR, "Aspect ratio not supported, set other resolution");
             max_video_width = mode->w;
