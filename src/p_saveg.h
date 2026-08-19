@@ -23,6 +23,16 @@
 #include "doomtype.h"
 #include "z_zone.h"
 
+static inline int CheckStreamLength(int32_t length)
+{
+    return length > 0 && length < (1 << 28); // 256 MiB
+}
+
+static inline int CheckZlibHeader(uint8_t *c)
+{
+    return c[0] == 0x78 /* ZLIB_MAGIC_BYTE */ && ((c[0] << 8) + c[1]) % 31 == 0;
+}
+
 // Persistent storage/archiving.
 // These are the load / save game routines.
 void P_UnArchivePlayers(void);

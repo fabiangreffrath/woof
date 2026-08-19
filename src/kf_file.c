@@ -2364,13 +2364,6 @@ static void EndUnArchive(void)
     array_free(platlist_pointers);
 }
 
-#define MAX_STREAM_LENGTH (1 << 28) // 256 MiB
-
-static int CheckStreamLength(int32_t length)
-{
-    return length > 0 && length < MAX_STREAM_LENGTH;
-}
-
 void P_ArchiveKeyframe(json_mut_doc_t *doc, json_mut_t *root_mut)
 {
     PrepareArchiveThinkers();
@@ -2441,13 +2434,6 @@ void P_ArchiveKeyframe(json_mut_doc_t *doc, json_mut_t *root_mut)
     ArchiveAutoMap(doc, root_mut);
 
     EndArchive();
-}
-
-#define ZLIB_MAGIC_BYTE 0x78
-
-static int CheckZlibHeader(uint8_t *c)
-{
-    return c[0] == ZLIB_MAGIC_BYTE && ((c[0] << 8) + c[1]) % 31 == 0;
 }
 
 void P_UnArchiveKeyframe(void)

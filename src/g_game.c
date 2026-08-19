@@ -2505,13 +2505,6 @@ static uint64_t G_Signature(int sig_epi, int sig_map)
   return s;
 }
 
-#define MAX_STREAM_LENGTH (1 << 28) // 256 MiB
-
-static int CheckStreamLength(int32_t length)
-{
-    return length > 0 && length < MAX_STREAM_LENGTH;
-}
-
 static json_mut_t *G_WriteOptionsJSON(json_mut_doc_t * doc);
 
 static void DoSaveGame(char *name)

@@ -45,6 +45,7 @@
 #include "i_video.h"
 #include "m_input.h"
 #include "m_io.h"
+#include "m_json.h"
 #include "m_misc.h"
 #include "m_swap.h"
 #include "mn_font.h"
@@ -65,6 +66,8 @@
 #include "w_wad.h"
 #include "wi_stuff.h"
 #include "z_zone.h"
+
+#include "miniz.h"
 
 // [crispy] remove DOS reference from the game quit confirmation dialogs
 #ifndef _WIN32
@@ -1200,47 +1203,110 @@ static void EmptySaveString(char *name, boolean is_autosave)
 static void M_ReadSaveString(char *name, int menu_slot, int save_slot,
                              boolean is_autosave)
 {
-    FILE *fp = M_fopen(name, "rb");
     MN_ReadSavegameTime(menu_slot, name);
-    free(name);
-
     MN_ResetSnapshot(menu_slot);
 
-    if (!fp)
+    // Check if file exists
+    if (!M_FileExistsNotDir(name))
     {
         if (!is_autosave)
         {
-            name = G_MBFSaveGameName(save_slot);
-            fp = M_fopen(name, "rb");
             free(name);
+            name = G_MBFSaveGameName(save_slot);
         }
 
-        if (!fp)
+        if (!M_FileExistsNotDir(name))
         {
             EmptySaveString(savegamestrings[menu_slot], is_autosave);
             SetLoadSlotStatus(menu_slot, 0);
+            free(name);
             return;
         }
     }
 
-    // [FG] check return value
-    if (!fread(&savegamestrings[menu_slot], SAVESTRINGSIZE, 1, fp))
+    int savegamesize = M_ReadFile(name, &save_p);
+    savebuffer = save_p;
+    free(name);
+
+    if (savegamesize < SAVESTRINGSIZE)
     {
-        fclose(fp);
         EmptySaveString(savegamestrings[menu_slot], is_autosave);
         SetLoadSlotStatus(menu_slot, 0);
+        Z_Free(save_p);
         return;
     }
 
-    // Ensure that string is terminated
-    savegamestrings[menu_slot][SAVESTRINGSIZE - 1] = '\0';
+    mz_ulong json_len = (mz_ulong)saveg_read32();
+    unsigned char *json_str = NULL;
 
-    if (!MN_ReadSnapshot(menu_slot, fp))
+    // Check for zlib-compressed JSON stream
+    if (CheckStreamLength((int32_t)json_len) && CheckZlibHeader(save_p))
     {
-        MN_ResetSnapshot(menu_slot);
+        json_str = malloc((size_t)json_len);
+        if (json_str)
+        {
+            int mz_ret = mz_uncompress(
+                json_str, &json_len, (const unsigned char *)save_p,
+                (mz_ulong)savegamesize - sizeof(int32_t));
+            if (mz_ret != MZ_OK)
+            {
+                free(json_str);
+                json_str = NULL;
+            }
+        }
     }
 
-    fclose(fp);
+    // Uncompressed stream
+    if (json_str == NULL)
+    {
+        json_str = savebuffer;
+        json_len = savegamesize - 1;
+    }
+
+    // Check for JSON stream
+    json_t *root = NULL;
+    if (*json_str == '{' || *json_str == '[')
+    {
+        root = JS_OpenString((char *)json_str, (size_t)json_len);
+    }
+
+    if (root)
+    {
+        const char *savegamestring = JS_GetStringValue(root, "savedescription");
+        const char *snapshot = JS_GetStringValue(root, "snapshot");
+
+        M_snprintf(savegamestrings[menu_slot], SAVESTRINGSIZE, "%s",
+                   savegamestring);
+
+        if (!MN_ReadSnapshot(menu_slot, (byte *)snapshot, 0))
+        {
+            MN_ResetSnapshot(menu_slot);
+        }
+
+        JS_CloseOptions(NO_INDEX);
+    }
+    else
+    {
+        M_snprintf(savegamestrings[menu_slot], SAVESTRINGSIZE, "%s",
+                   (char *)savebuffer);
+
+        if (!MN_ReadSnapshot(menu_slot, savebuffer, savegamesize))
+        {
+            MN_ResetSnapshot(menu_slot);
+        }
+    }
+
+    if (json_str != NULL && json_str != savebuffer)
+    {
+        free(json_str);
+    }
+
+    if (savebuffer)
+    {
+        Z_Free(savebuffer);
+        savebuffer = save_p = NULL;
+    }
+
     SetLoadSlotStatus(menu_slot, 1);
 }
 

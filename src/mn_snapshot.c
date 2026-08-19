@@ -15,7 +15,6 @@
 //      Savegame snapshots
 //
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -39,11 +38,6 @@ static pixel_t *snapshots[10];
 static pixel_t *current_snapshot;
 static char savegametimes[10][32];
 
-const int MN_SnapshotDataSize(void)
-{
-    return snapshot_len + snapshot_size;
-}
-
 void MN_ResetSnapshot(int i)
 {
     if (snapshots[i])
@@ -55,35 +49,65 @@ void MN_ResetSnapshot(int i)
 
 // [FG] try to read snapshot data from the end of a savegame file
 
-boolean MN_ReadSnapshot(int i, FILE *fp)
+boolean MN_ReadSnapshot(int i, const byte *buf, int len)
 {
-    char str[16] = {0};
-
     MN_ResetSnapshot(i);
 
-    if (fseek(fp, -MN_SnapshotDataSize(), SEEK_END) != 0)
+    if (len == 0)
     {
-        return false;
-    }
+        byte *str;
+        len = strlen((char *)buf);
 
-    if (fread(str, 1, snapshot_len, fp) != snapshot_len)
-    {
-        return false;
-    }
+        if ((snapshots[i] = malloc(snapshot_size * sizeof(**snapshots)))
+            == NULL)
+        {
+            return false;
+        }
 
-    if (strncasecmp(str, snapshot_str, snapshot_len) != 0)
-    {
-        return false;
-    }
+        size_t decoded_size;
+        if ((str = base64_decode(buf, len, &decoded_size)) == NULL)
+        {
+            return false;
+        }
 
-    if ((snapshots[i] = malloc(snapshot_size * sizeof(**snapshots))) == NULL)
-    {
-        return false;
-    }
+        if (decoded_size != snapshot_size)
+        {
+            free(str);
+            return false;
+        }
 
-    if (fread(snapshots[i], 1, snapshot_size, fp) != snapshot_size)
+        if (memcpy(snapshots[i], str, snapshot_size) == NULL)
+        {
+            free(str);
+            return false;
+        }
+
+        free(str);
+    }
+    else
     {
-        return false;
+        const byte *str;
+
+        if ((str = buf + len - (snapshot_len + snapshot_size)) < buf)
+        {
+            return false;
+        }
+
+        if (strncasecmp((char *)str, snapshot_str, snapshot_len) != 0)
+        {
+            return false;
+        }
+
+        if ((snapshots[i] = malloc(snapshot_size * sizeof(**snapshots)))
+            == NULL)
+        {
+            return false;
+        }
+
+        if (memcpy(snapshots[i], str + snapshot_len, snapshot_size) == NULL)
+        {
+            return false;
+        }
     }
 
     return true;
