@@ -453,19 +453,29 @@ static void DrawSkyTex(visplane_t *pl, sky_t *sky, skytex_t *skytex)
     }
 
     // sidedef-defined skies are stretched here
-    if (stretchsky && sky->stretchable && side)
+    if (side && !sky->vertically_scrolling)
     {
-        dc_texturemid = dc_texturemid * dc_texheight / SKYSTRETCH_HEIGHT;
-        dc_iscale = dc_iscale * dc_texheight / SKYSTRETCH_HEIGHT;
-    }
+        // If the sky is scrolled vertically for at least one tic,
+        // we mark it as vertically-scrolling permanently
+        if (sky->texturemid_tic != leveltime)
+        {
+            if (sky->old_texturemid != dc_texturemid)
+            {
+                sky->vertically_scrolling = true;
+                sky->stretchable = false;
+            }
+            else
+            {
+                sky->texturemid_tic = leveltime;
+                sky->old_texturemid = dc_texturemid;
+            }
+        }
 
-    angle_t an = viewangle + deltax;
-
-    if (sky->texturemid_tic != leveltime)
-    {
-        sky->vertically_scrolling = (sky->old_texturemid != dc_texturemid);
-        sky->old_texturemid = dc_texturemid;
-        sky->texturemid_tic = leveltime;
+        if (stretchsky && sky->stretchable)
+        {
+            dc_texturemid = dc_texturemid * dc_texheight / SKYSTRETCH_HEIGHT;
+            dc_iscale = dc_iscale * dc_texheight / SKYSTRETCH_HEIGHT;
+        }
     }
 
     if (colfunc != R_DrawTLColumn && !sky->vertically_scrolling && dc_texheight >= 128)
@@ -481,6 +491,8 @@ static void DrawSkyTex(visplane_t *pl, sky_t *sky, skytex_t *skytex)
         dc_skycolor = R_GetSkyColor(skytex->texture);
         colfunc = R_DrawSkyColumn;
     }
+
+    const angle_t an = viewangle + deltax;
 
     for (int x = pl->minx; x <= pl->maxx; x++)
     {
