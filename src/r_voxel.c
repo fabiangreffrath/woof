@@ -502,7 +502,7 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 		return false;
 
 	// skip the player thing we are viewing from
-	if (thing->player == viewplayer)
+	if (thing == viewplayer->mo)
 		return true;
 
 	// does the voxel model exist?
