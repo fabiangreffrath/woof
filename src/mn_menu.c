@@ -1207,6 +1207,7 @@ static void M_ReadSaveString(char *name, int menu_slot, int save_slot,
     MN_ResetSnapshot(menu_slot);
 
     // Check if file exists
+
     if (!M_FileExistsNotDir(name))
     {
         if (!is_autosave)
@@ -1225,6 +1226,7 @@ static void M_ReadSaveString(char *name, int menu_slot, int save_slot,
     }
 
     // Open file and read content
+
     int savegamesize = M_ReadFile(name, &save_p);
     savebuffer = save_p;
     free(name);
@@ -1237,27 +1239,32 @@ static void M_ReadSaveString(char *name, int menu_slot, int save_slot,
         return;
     }
 
-    mz_ulong json_len = (mz_ulong)saveg_read32();
-    unsigned char *json_str = NULL;
-
     // Check for zlib-compressed JSON stream
-    if (CheckStreamLength((int32_t)json_len) && CheckZlibHeader(save_p))
+
+    unsigned char *decomp_str = NULL;
+    mz_ulong decomp_len = (mz_ulong)saveg_read32();
+
+    if (CheckStreamLength((int32_t)decomp_len) && CheckZlibHeader(save_p))
     {
-        json_str = malloc((size_t)json_len);
-        if (json_str)
+        decomp_str = malloc((size_t)decomp_len);
+        if (decomp_str)
         {
             int mz_ret = mz_uncompress(
-                json_str, &json_len, (const unsigned char *)save_p,
+                decomp_str, &decomp_len, (const unsigned char *)save_p,
                 (mz_ulong)savegamesize - sizeof(int32_t));
             if (mz_ret != MZ_OK)
             {
-                free(json_str);
-                json_str = NULL;
+                free(decomp_str);
+                decomp_str = NULL;
             }
         }
     }
 
     // Uncompressed stream
+
+    unsigned char *json_str = decomp_str;
+    size_t json_len = (size_t)decomp_len;
+
     if (json_str == NULL)
     {
         json_str = savebuffer;
@@ -1265,11 +1272,14 @@ static void M_ReadSaveString(char *name, int menu_slot, int save_slot,
     }
 
     // Check for JSON stream
+
     json_t *root = NULL;
     if (CheckJSONStream(json_str, json_len))
     {
-        root = JS_OpenString((char *)json_str, (size_t)json_len);
+        root = JS_OpenString((char *)json_str, json_len);
     }
+
+    // Parse JSON stream or legacy binary savegame
 
     if (root)
     {
@@ -1297,9 +1307,9 @@ static void M_ReadSaveString(char *name, int menu_slot, int save_slot,
         }
     }
 
-    if (json_str != NULL && json_str != savebuffer)
+    if (decomp_str)
     {
-        free(json_str);
+        free(decomp_str);
     }
 
     if (savebuffer)
