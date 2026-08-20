@@ -1237,6 +1237,7 @@ static void ResetResolution(int height)
 
     video.unscaledw = unscaled_actualheight * aspect_ratio.w / aspect_ratio.h;
     video.width = actualheight * aspect_ratio.w / aspect_ratio.h;
+    video.width &= (int)~1;
 
     video.deltaw = (video.unscaledw - NONWIDEWIDTH) / 2;
 
