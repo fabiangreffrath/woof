@@ -526,7 +526,7 @@ void R_ExecuteSetViewSize (void)
 
   setsizeneeded = false;
 
-  if (setblocks == 10)
+  if (setblocks <= 10)
   {
     st_height = st_height_screenblocks10;
   }
