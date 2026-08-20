@@ -1266,7 +1266,7 @@ static void M_ReadSaveString(char *name, int menu_slot, int save_slot,
 
     // Check for JSON stream
     json_t *root = NULL;
-    if (*json_str == '{' || *json_str == '[')
+    if (CheckJSONStream(json_str, json_len))
     {
         root = JS_OpenString((char *)json_str, (size_t)json_len);
     }

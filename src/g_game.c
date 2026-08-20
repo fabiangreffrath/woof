@@ -2584,9 +2584,10 @@ static void DoSaveGame(char *name)
     // save max_kill_requirement
     JS_SetInt(doc, root_mut, "max_kill_requirement", max_kill_requirement);
 
-    // [FG] save snapshot
+#ifndef SAVEGAME_NO_SNAPSHOT
     char *snapshot = MN_WriteSnapshot();
     JS_SetString(doc, root_mut, "snapshot", snapshot);
+#endif
 
     // Serialise the document to a JSON string, then free it – the string
     // owns its own memory and is independent of the JSON document.
@@ -2594,9 +2595,9 @@ static void DoSaveGame(char *name)
     char *json_str = JS_DocWriteString(doc, &json_len);
     JS_FreeDoc(doc);
 
+#ifndef SAVEGAME_NO_SNAPSHOT
     free(snapshot);
-    root_mut = NULL;
-    doc = NULL;
+#endif
 
     // Compress the JSON string with miniz and write the result to the save
     // buffer as: [uint32 original_len][uint32 compressed_len][zlib stream].
