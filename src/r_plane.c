@@ -181,8 +181,6 @@ void R_InitVisplanesRes(void)
 static void R_MapPlane(int y, int x1, int x2, const lighttable_t * const thiscolormap)
 {
   fixed_t distance;
-  unsigned lookup;
-  int lightindex;
   int dx;
   fixed_t dy;
 
@@ -227,20 +225,18 @@ static void R_MapPlane(int y, int x1, int x2, const lighttable_t * const thiscol
   ds_yfrac = viewy_trans - FixedMul(angle_sin, distance) + dx * ds_ystep;
 
   // ID24 per-sector colormaps
-  if (fixedcolormapindex)
+  if (fixedcolormapoffset)
   {
-    ds_colormap[0] = thiscolormap + fixedcolormapindex * 256;
+    ds_colormap[0] = thiscolormap + fixedcolormapoffset;
     ds_colormap[1] = ds_colormap[0];
   }
   else
   {
-    lookup = distance >> LIGHTZSHIFT;
-    lookup = CLAMP(lookup, 0, MAXLIGHTZ - 1);
-    lightindex = zlightindex[planezlightindex * MAXLIGHTZ + lookup];
-    ds_colormap[0] = thiscolormap + lightindex * 256;
-    ds_colormap[1] = (STRICTMODE(brightmaps) || force_brightmaps)
-                      ? thiscolormap
-                      : ds_colormap[0];
+    unsigned index = distance >> LIGHTZSHIFT;
+    index = MIN(index, MAXLIGHTZ - 1);
+
+    ds_colormap[0] = thiscolormap + planezlightoffset[index];
+    ds_colormap[1] = thiscolormap;
   }
 
   ds_y = y;
@@ -599,25 +595,16 @@ static void do_draw_plane(visplane_t *pl)
         viewy_trans = yoffs - (FixedMul(viewx, sin) + FixedMul(viewy, cos));
     }
 
-    int stop, light;
     planeheight = abs(pl->height - viewz);
-    light = (pl->lightlevel >> LIGHTSEGSHIFT) + extralight;
 
-    if (light >= LIGHTLEVELS)
-    {
-        light = LIGHTLEVELS - 1;
-    }
-
-    if (light < 0)
-    {
-        light = 0;
-    }
-
-    stop = pl->maxx + 1;
+    const int stop = pl->maxx + 1;
     pl->top[pl->minx - 1] = pl->top[stop] = USHRT_MAX;
 
-    planezlightindex = light;
-    planezlightoffset = &zlightoffset[light * MAXLIGHTZ];
+    int light = (pl->lightlevel >> LIGHTSEGSHIFT) + extralight;
+    light = CLAMP(light, 0, LIGHTLEVELS - 1);
+
+    planezlightoffset = zlightoffset[light];
+
     const lighttable_t * const thiscolormap = (pl->tint >= 0)
                                             ? colormaps[pl->tint]
                                             : fullcolormap;

@@ -72,8 +72,6 @@ typedef struct {
 fixed_t pspritescale;
 fixed_t pspriteiscale;
 
-lighttable_t **spritelights;        // killough 1/25/98 made static
-
 // [Woof!] optimization for drawing huge amount of drawsegs.
 // adapted from prboom-plus/src/r_things.c
 typedef struct drawseg_xrange_item_s
@@ -709,10 +707,10 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
     // shadow draw
     vis->colormap[0] = vis->colormap[1] = NULL;
   }
-  else if (fixedcolormap)
+  else if (fixedcolormapoffset)
   {
     // fixed map
-    vis->colormap[0] = vis->colormap[1] = thiscolormap + fixedcolormapindex * 256;
+    vis->colormap[0] = vis->colormap[1] = thiscolormap + fixedcolormapoffset;
   }
   else if (thing->frame & FF_FULLBRIGHT)
   {
@@ -723,18 +721,19 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
   else
   {
     // diminished light
-    const int index = R_GetLightIndex(xscale);
+
     int lightnum = (demo_version >= DV_MBF)
                  ? (lightlevel_override >> LIGHTSEGSHIFT)
                  : (thing->subsector->sector->lightlevel >> LIGHTSEGSHIFT);
 
-    lightnum = CLAMP(lightnum + extralight, 0, LIGHTLEVELS - 1);
-    int* spritelightoffsets = &scalelightoffset[MAXLIGHTSCALE * lightnum];
+    lightnum += extralight;
+    lightnum = CLAMP(lightnum, 0, LIGHTLEVELS - 1);
+
+    const int *const spritelightoffsets = scalelightoffset[lightnum];
+    const int index = R_GetLightIndex(xscale);
 
     vis->colormap[0] = thiscolormap + spritelightoffsets[index];
-    vis->colormap[1] = (STRICTMODE(brightmaps) || force_brightmaps)
-                       ? thiscolormap
-                       : dc_colormap[0];
+    vis->colormap[1] = thiscolormap;
   }
 
   // ID24 per-state tranmap
@@ -945,10 +944,10 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
     // shadow draw
     vis->colormap[0] = vis->colormap[1] = NULL;
   }
-  else if (fixedcolormap)
+  else if (fixedcolormapoffset)
   {
     // fixed color
-    vis->colormap[0] = vis->colormap[1] = thiscolormap + fixedcolormapindex * 256;
+    vis->colormap[0] = vis->colormap[1] = thiscolormap + fixedcolormapoffset;
   }
   else if (psp->state->frame & FF_FULLBRIGHT)
   {
@@ -963,13 +962,13 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
                  ? (lightlevel_override >> LIGHTSEGSHIFT)
                  : (viewplayer->mo->subsector->sector->lightlevel >> LIGHTSEGSHIFT);
 
-    lightnum = CLAMP(lightnum + extralight, 0, LIGHTLEVELS - 1);
-    int* spritelightoffsets = &scalelightoffset[MAXLIGHTSCALE * lightnum];
+    lightnum += extralight;
+    lightnum = CLAMP(lightnum, 0, LIGHTLEVELS - 1);
+
+    const int *const spritelightoffsets = scalelightoffset[lightnum];
 
     vis->colormap[0] = thiscolormap + spritelightoffsets[MAXLIGHTSCALE - 1];
-    vis->colormap[1] = (STRICTMODE(brightmaps) || force_brightmaps)
-                        ? thiscolormap
-                        : dc_colormap[0];
+    vis->colormap[1] = thiscolormap;
   }
 
   // ID24 per-state tranmap
