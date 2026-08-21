@@ -578,7 +578,8 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
 
   xscale = FixedDiv(projection, tz);
 
-    // decide which patch to use for sprite relative to player
+  // decide which patch to use for sprite relative to player
+
   if ((unsigned) thing->sprite >= num_sprites)
     I_Error ("invalid sprite number %i", thing->sprite);
 
@@ -856,19 +857,15 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
 
   // decide which patch to use
 
-#ifdef RANGECHECK
   if ((unsigned) psp->state->sprite >= num_sprites)
     I_Error ("invalid sprite number %i", psp->state->sprite);
-#endif
 
   sprdef = &sprites[psp->state->sprite];
 
-#ifdef RANGECHECK
   if ((psp->state->frame&FF_FRAMEMASK) >= sprdef->numframes)
     I_Error ("invalid frame %i for sprite %s",
              (int)(psp->state->frame & FF_FRAMEMASK),
              sprnames[psp->state->sprite]);
-#endif
 
   sprframe = &sprdef->spriteframes[psp->state->frame & FF_FRAMEMASK];
 
