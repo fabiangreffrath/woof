@@ -289,6 +289,21 @@ int JS_GetIntegerValue(json_t *json, const char *string)
     return 0;
 }
 
+uint64_t JS_GetUInteger(json_t *json)
+{
+    return yyjson_get_uint(json);
+}
+
+uint64_t JS_GetUIntegerValue(json_t *json, const char *string)
+{
+    json_t *obj = JS_GetObject(json, string);
+    if (JS_IsNumber(obj))
+    {
+        return JS_GetUInteger(obj);
+    }
+    return 0;
+}
+
 const char *JS_GetString(json_t *json)
 {
     return yyjson_get_str(json);

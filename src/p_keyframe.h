@@ -29,6 +29,6 @@ void P_LoadKeyframe(const keyframe_t *keyframe);
 void P_FreeKeyframe(keyframe_t *keyframe);
 
 void P_ArchiveKeyframe(json_mut_doc_t *doc, json_mut_t *root_mut);
-void P_UnArchiveKeyframe(void);
+void P_UnArchiveKeyframe(json_t *root);
 
 #endif

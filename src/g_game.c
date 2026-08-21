@@ -2311,8 +2311,6 @@ static void G_DoPlayDemo(void)
 
 #define VERSIONSIZE   16
 
-#define CURRENT_SAVE_VERSION "Woof 16.0.0"
-
 static const char *saveg_versions[] =
 {
     [saveg_mbf] = "MBF 203",
@@ -2320,7 +2318,6 @@ static const char *saveg_versions[] =
     [saveg_woof600] = "Woof 6.0.0",
     [saveg_woof1300] = "Woof 13.0.0",
     [saveg_woof1500] = "Woof 15.0.0",
-    [saveg_current] = CURRENT_SAVE_VERSION
 };
 
 static char *savename = NULL;
@@ -2506,7 +2503,8 @@ static uint64_t G_Signature(int sig_epi, int sig_map)
   return s;
 }
 
-static json_mut_t *G_WriteOptionsJSON(json_mut_doc_t * doc);
+static json_mut_t *WriteOptionsJSON(json_mut_doc_t * doc);
+static json_mut_t *WriteCustomSkillOptionsJSON(json_mut_doc_t *doc);
 
 static void DoSaveGame(char *name)
 {
@@ -2518,7 +2516,7 @@ static void DoSaveGame(char *name)
 
     JS_SetString(doc, root_mut, "savedescription", savedescription);
     // killough 2/22/98: "proprietary" version string :-)
-    JS_SetString(doc, root_mut, "version_name", CURRENT_SAVE_VERSION);
+    JS_SetString(doc, root_mut, "version_name", PROJECT_STRING);
 
     saveg_compat = saveg_current;
 
@@ -2554,13 +2552,10 @@ static void DoSaveGame(char *name)
               idmusnum); // jff 3/17/98 save idmus state
 
     JS_SetObject(doc, root_mut, "gameoptions",
-                 G_WriteOptionsJSON(doc)); // killough 3/1/98: save game options
+                 WriteOptionsJSON(doc)); // killough 3/1/98: save game options
 
-    JS_SetInt(doc, root_mut, "pistolstart", pistolstart);
-    JS_SetInt(doc, root_mut, "coopspawns", coopspawns);
-    JS_SetInt(doc, root_mut, "halfplayerdamage", halfplayerdamage);
-    JS_SetInt(doc, root_mut, "doubleammo", doubleammo);
-    JS_SetInt(doc, root_mut, "aggromonsters", aggromonsters);
+    JS_SetObject(doc, root_mut, "customskilloptions",
+                 WriteCustomSkillOptionsJSON(doc)); // killough 3/1/98: save game options
 
     JS_SetInt(doc, root_mut, "leveltime",
               leveltime); // killough 11/98: save entire word
@@ -2695,44 +2690,150 @@ static void G_DoSaveAutoSave(void)
 
 static byte *LoadCustomSkillOptions(byte *opt_p)
 {
-    if (saveg_compat > saveg_woof1500)
-    {
-        pistolstart = *opt_p++;
-        coopspawns = *opt_p++;
-        halfplayerdamage = *opt_p++;
-        doubleammo = *opt_p++;
-        aggromonsters = *opt_p++;
-    }
-    else
-    {
-        pistolstart = clpistolstart;
-        coopspawns = clcoopspawns;
-        halfplayerdamage = false;
-        doubleammo = false;
-        aggromonsters = false;
-    }
+    pistolstart = clpistolstart;
+    coopspawns = clcoopspawns;
+    halfplayerdamage = false;
+    doubleammo = false;
+    aggromonsters = false;
+
     return opt_p;
 }
 
-static boolean DoLoadGame(boolean do_load_autosave)
+static json_mut_t *WriteCustomSkillOptionsJSON(json_mut_doc_t *doc)
 {
-  I_SetFastdemoTimer(false);
+    json_mut_t *obj = JS_NewObject(doc);
 
-  // [crispy] loaded game must always be single player.
-  // Needed for ability to use a further game loading, as well as
-  // cheat codes and other single player only specifics.
-  if (!command_loadgame)
-  {
-    netdemo = false;
-    netgame = false;
-    solonet = false;
-    deathmatch = false;
-  }
+    JS_SetInt(doc, obj, "pistolstart", pistolstart);
+    JS_SetInt(doc, obj, "coopspawns", coopspawns);
+    JS_SetInt(doc, obj, "halfplayerdamage", halfplayerdamage);
+    JS_SetInt(doc, obj, "doubleammo", doubleammo);
+    JS_SetInt(doc, obj, "aggromonsters", aggromonsters);
 
-  gameaction = ga_nothing;
+    return obj;
+}
 
-  savegamesize = M_ReadFile(savename, &savebuffer);
+static void LoadCustomSkillOptionsJSON(json_t *root)
+{
+    pistolstart = JS_GetIntegerValue(root, "pistolstart");
+    coopspawns = JS_GetIntegerValue(root, "coopspawns");
+    halfplayerdamage = JS_GetIntegerValue(root, "halfplayerdamage");
+    doubleammo = JS_GetIntegerValue(root, "doubleammo");
+    aggromonsters = JS_GetIntegerValue(root, "aggromonsters");
+}
 
+static void ReadOptionsJSON(json_t *root);
+
+static boolean DoLoadGameJSON(boolean do_load_autosave, json_t *root)
+{
+    saveg_compat = saveg_current;
+
+    int tmp_compatibility = JS_GetIntegerValue(root, "compatibility");
+
+    int tmp_skill = JS_GetIntegerValue(root, "gameskill");
+    int tmp_episode = JS_GetIntegerValue(root, "gameepisode");
+    int tmp_map = JS_GetIntegerValue(root, "gamemap");
+
+    uint64_t checksum = JS_GetUIntegerValue(root, "signature");
+
+    if (!forced_loadgame)
+    {
+        if (checksum != G_Signature(tmp_episode, tmp_map))
+        {
+            json_t *wadfiles_arr = JS_GetObject(root, "wadfiles");
+            int num_wadfiles = JS_GetArraySize(wadfiles_arr);
+            const char **wadfile_names =
+                malloc(num_wadfiles * sizeof(*wadfile_names));
+
+            int str_len = 128;
+            for (int i = 0; i < num_wadfiles; i++)
+            {
+                wadfile_names[i] =
+                    JS_GetString(JS_GetArrayItem(wadfiles_arr, i));
+                str_len += strlen(wadfile_names[i]);
+            }
+
+            char *msg = malloc(str_len);
+            int offset =
+                M_snprintf(msg, str_len, "%s",
+                           "Incompatible Savegame!!!\nWads expected:\n\n");
+            for (int i = 0; i < num_wadfiles; i++)
+            {
+                offset += M_snprintf(msg + offset, str_len - offset, "%s\n",
+                                     wadfile_names[i]);
+            }
+            M_snprintf(msg + offset, str_len - offset, "%s", "\nAre you sure?");
+            free(wadfile_names);
+
+            if (do_load_autosave)
+            {
+                G_LoadAutoSaveErr(msg);
+            }
+            else
+            {
+                G_LoadGameErr(msg);
+            }
+            free(msg);
+
+            return false;
+        }
+    }
+
+    compatibility = tmp_compatibility;
+    gameskill = tmp_skill;
+    gameepisode = tmp_episode;
+    gamemap = tmp_map;
+    gamemapinfo = G_LookupMapinfo(gameepisode, gamemap);
+
+    json_t *playeringame_arr = JS_GetObject(root, "playeringame");
+    json_arr_iter_t *playeringame_iter = JS_ArrayIterator(playeringame_arr);
+    for (int i = 0; i < MAXPLAYERS; i++)
+    {
+        playeringame[i] = JS_GetInteger(JS_ArrayNext(playeringame_iter));
+    }
+    JS_ArrayIteratorFree(playeringame_iter);
+
+    idmusnum = JS_GetIntegerValue(root, "idmusnum");
+
+    json_t *gameoptions_obj = JS_GetObject(root, "gameoptions");
+    ReadOptionsJSON(gameoptions_obj);
+    json_t *custonskilloptions_obj = JS_GetObject(root, "customskilloptions");
+    LoadCustomSkillOptionsJSON(custonskilloptions_obj);
+
+    G_InitNew(gameskill, gameepisode, gamemap);
+
+    ReadOptionsJSON(gameoptions_obj);
+    LoadCustomSkillOptionsJSON(custonskilloptions_obj);
+
+    leveltime = JS_GetIntegerValue(root, "leveltime");
+
+    boom_basetic = gametic - JS_GetIntegerValue(root, "boom_basetic");
+
+    P_UnArchiveKeyframe(root);
+
+    totalleveltimes = JS_GetIntegerValue(root, "totalleveltimes");
+
+    const char *lumpname = JS_GetStringValue(root, "musinfo");
+    if (lumpname && *lumpname)
+    {
+        int lumpnum = W_CheckNumForName(lumpname);
+
+        if (lumpnum >= 0)
+        {
+            musinfo.mapthing = NULL;
+            musinfo.lastmapthing = NULL;
+            musinfo.tics = 0;
+            musinfo.current_item = lumpnum;
+            S_ChangeMusInfoMusic(lumpnum, true);
+        }
+    }
+
+    max_kill_requirement = JS_GetIntegerValue(root, "max_kill_requirement");
+
+    return true;
+}
+
+static boolean DoLoadGameBinary(boolean do_load_autosave)
+{
   save_p = savebuffer + SAVESTRINGSIZE;
 
   // skip the description field
@@ -2845,15 +2946,6 @@ static boolean DoLoadGame(boolean do_load_autosave)
 
   // killough 11/98: load revenant tracer state
   boom_basetic = gametic - (int) *save_p++;
-
-  if (saveg_compat > saveg_woof1500)
-  {
-    P_MapStart();
-    P_UnArchiveKeyframe();
-    P_MapEnd();
-  }
-  else
-  {
   // dearchive all the modifications
   P_MapStart();
   P_UnArchivePlayers();
@@ -2863,7 +2955,6 @@ static boolean DoLoadGame(boolean do_load_autosave)
   P_UnArchiveRNG();    // killough 1/18/98: load RNG information
   P_UnArchiveMap();    // killough 1/22/98: load automap information
   P_MapEnd();
-  }
 
   if (saveg_read8() != 0xe6)
     I_Error ("Bad savegame");
@@ -2908,35 +2999,135 @@ static boolean DoLoadGame(boolean do_load_autosave)
       }
   }
 
-  // done
-  Z_Free(savebuffer);
-  savegamesize = SAVEGAMESIZE;
-
-  if (setsizeneeded)
-    R_ExecuteSetViewSize();
-
-  // draw the pattern into the back screen
-  R_FillBackScreen();
-
-  // killough 12/98: support -recordfrom and -loadgame -playdemo
-  if (!command_loadgame)
-    singledemo = false;         // Clear singledemo flag if loading from menu
-  else
-    if (singledemo)
-      {
-	gameaction = ga_loadgame; // Mark that we're loading a game before demo
-	G_DoPlayDemo();           // This will detect it and won't reinit level
-      }
-    else       // Loading games from menu isn't allowed during demo recordings,
-      if (demorecording) // So this can only possibly be a -recordfrom command.
-	G_BeginRecording();// Start the -recordfrom, since the game was loaded.
-
-  // TODO: Why does `AM_MiniStart()` set `automapactive = false`?
-  const boolean saved_automapactive = automapactive;
-  ST_Start();
-  automapactive = saved_automapactive;
-
   return true;
+}
+
+static boolean DoLoadGame(boolean do_load_autosave)
+{
+    I_SetFastdemoTimer(false);
+
+    // [crispy] loaded game must always be single player.
+    // Needed for ability to use a further game loading, as well as
+    // cheat codes and other single player only specifics.
+    if (!command_loadgame)
+    {
+        netdemo = false;
+        netgame = false;
+        solonet = false;
+        deathmatch = false;
+    }
+
+    gameaction = ga_nothing;
+
+    savegamesize = M_ReadFile(savename, &savebuffer);
+    save_p = savebuffer;
+
+    if (savegamesize < SAVESTRINGSIZE)
+    {
+        Z_Free(savebuffer);
+        savegamesize = SAVEGAMESIZE;
+        return false;
+    }
+
+    // Check for zlib-compressed JSON stream
+
+    unsigned char *decomp_str = NULL;
+    mz_ulong decomp_len = (mz_ulong)saveg_read32();
+
+    if (CheckStreamLength((int32_t)decomp_len) && CheckZlibHeader(save_p))
+    {
+        decomp_str = malloc((size_t)decomp_len);
+        if (decomp_str)
+        {
+            int mz_ret = mz_uncompress(
+                decomp_str, &decomp_len, (const unsigned char *)save_p,
+                (mz_ulong)savegamesize - sizeof(int32_t));
+            if (mz_ret != MZ_OK)
+            {
+                free(decomp_str);
+                decomp_str = NULL;
+            }
+        }
+    }
+
+    // Uncompressed stream
+
+    unsigned char *json_str = decomp_str;
+    size_t json_len = (size_t)decomp_len;
+
+    if (json_str == NULL)
+    {
+        json_str = savebuffer;
+        json_len = savegamesize - 1;
+    }
+
+    // Check for JSON stream
+
+    json_t *root = NULL;
+    if (CheckJSONStream(json_str, json_len))
+    {
+        root = JS_OpenString((char *)json_str, json_len);
+    }
+
+    // Parse JSON stream or legacy binary savegame
+
+    boolean ret = false;
+    if (root)
+    {
+        ret = DoLoadGameJSON(do_load_autosave, root);
+        JS_CloseOptions(NO_INDEX);
+    }
+    else
+    {
+        ret = DoLoadGameBinary(do_load_autosave);
+    }
+
+    if (decomp_str)
+    {
+        free(decomp_str);
+    }
+
+    if (!ret)
+    {
+        return false;
+    }
+
+    // done
+    Z_Free(savebuffer);
+    savegamesize = SAVEGAMESIZE;
+
+    if (setsizeneeded)
+    {
+        R_ExecuteSetViewSize();
+    }
+
+    // draw the pattern into the back screen
+    R_FillBackScreen();
+
+    // killough 12/98: support -recordfrom and -loadgame -playdemo
+    if (!command_loadgame)
+    {
+        singledemo = false; // Clear singledemo flag if loading from menu
+    }
+    else if (singledemo)
+    {
+        gameaction = ga_loadgame; // Mark that we're loading a game before demo
+        G_DoPlayDemo();           // This will detect it and won't reinit level
+    }
+    else // Loading games from menu isn't allowed during demo recordings,
+        if (demorecording) // So this can only possibly be a -recordfrom
+                           // command.
+        {
+            G_BeginRecording(); // Start the -recordfrom, since the game was
+                                // loaded.
+        }
+
+    // TODO: Why does `AM_MiniStart()` set `automapactive = false`?
+    const boolean saved_automapactive = automapactive;
+    ST_Start();
+    automapactive = saved_automapactive;
+
+    return true;
 }
 
 static void PrintLevelTimes(void)
@@ -4467,7 +4658,7 @@ byte *G_WriteOptions(byte *demo_p)
   return target;
 }
 
-static json_mut_t *G_WriteOptionsJSON(json_mut_doc_t *doc)
+static json_mut_t *WriteOptionsJSON(json_mut_doc_t *doc)
 {
     json_mut_t *obj = JS_NewObject(doc);
 
@@ -4696,6 +4887,57 @@ byte *G_ReadOptions(byte *demo_p)
     }
 
   return target;
+}
+
+static void ReadOptionsJSON(json_t *root)
+{
+    monsters_remember = JS_GetIntegerValue(root, "monsters_remember");
+    variable_friction = JS_GetIntegerValue(root, "variable_friction");
+    weapon_recoil = JS_GetIntegerValue(root, "weapon_recoil");
+    allow_pushers = JS_GetIntegerValue(root, "allow_pushers");
+    player_bobbing = JS_GetIntegerValue(root, "player_bobbing");
+    respawnparm = JS_GetIntegerValue(root, "respawnparm");
+    fastparm = JS_GetIntegerValue(root, "fastparm");
+    nomonsters = JS_GetIntegerValue(root, "nomonsters");
+    demo_insurance = JS_GetIntegerValue(root, "demo_insurance");
+    rngseed = JS_GetUIntegerValue(root, "rngseed");
+    monster_infighting = JS_GetIntegerValue(root, "monster_infighting");
+    dogs = JS_GetIntegerValue(root, "dogs");
+    classic_bfg = JS_GetIntegerValue(root, "classic_bfg");
+    beta_emulation = JS_GetIntegerValue(root, "beta_emulation");
+    distfriend = JS_GetIntegerValue(root, "distfriend");
+    monster_backing = JS_GetIntegerValue(root, "monster_backing");
+    monster_avoid_hazards = JS_GetIntegerValue(root, "monster_avoid_hazards");
+    monster_friction = JS_GetIntegerValue(root, "monster_friction");
+    help_friends = JS_GetIntegerValue(root, "help_friends");
+    dog_jumping = JS_GetIntegerValue(root, "dog_jumping");
+    monkeys = JS_GetIntegerValue(root, "monkeys");
+
+    comp[comp_telefrag] = JS_GetIntegerValue(root, "comp_telefrag");
+    comp[comp_dropoff] = JS_GetIntegerValue(root, "comp_dropoff");
+    comp[comp_vile] = JS_GetIntegerValue(root, "comp_vile");
+    comp[comp_pain] = JS_GetIntegerValue(root, "comp_pain");
+    comp[comp_skull] = JS_GetIntegerValue(root, "comp_skull");
+    comp[comp_blazing] = JS_GetIntegerValue(root, "comp_blazing");
+    comp[comp_doorlight] = JS_GetIntegerValue(root, "comp_doorlight");
+    comp[comp_model] = JS_GetIntegerValue(root, "comp_model");
+    comp[comp_god] = JS_GetIntegerValue(root, "comp_god");
+    comp[comp_falloff] = JS_GetIntegerValue(root, "comp_falloff");
+    comp[comp_floors] = JS_GetIntegerValue(root, "comp_floors");
+    comp[comp_skymap] = JS_GetIntegerValue(root, "comp_skymap");
+    comp[comp_pursuit] = JS_GetIntegerValue(root, "comp_pursuit");
+    comp[comp_doorstuck] = JS_GetIntegerValue(root, "comp_doorstuck");
+    comp[comp_staylift] = JS_GetIntegerValue(root, "comp_staylift");
+    comp[comp_zombie] = JS_GetIntegerValue(root, "comp_zombie");
+    comp[comp_stairs] = JS_GetIntegerValue(root, "comp_stairs");
+    comp[comp_infcheat] = JS_GetIntegerValue(root, "comp_infcheat");
+    comp[comp_zerotags] = JS_GetIntegerValue(root, "comp_zerotags");
+    comp[comp_respawn] = JS_GetIntegerValue(root, "comp_respawn");
+    comp[comp_soul] = JS_GetIntegerValue(root, "comp_soul");
+    comp[comp_ledgeblock] = JS_GetIntegerValue(root, "comp_ledgeblock");
+    comp[comp_friendlyspawn] = JS_GetIntegerValue(root, "comp_friendlyspawn");
+    comp[comp_voodooscroller] = JS_GetIntegerValue(root, "comp_voodooscroller");
+    comp[comp_reservedlineflag] = JS_GetIntegerValue(root, "comp_reservedlineflag");
 }
 
 void G_BeginRecording(void)

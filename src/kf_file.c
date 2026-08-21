@@ -2436,72 +2436,8 @@ void P_ArchiveKeyframe(json_mut_doc_t *doc, json_mut_t *root_mut)
     EndArchive();
 }
 
-void P_UnArchiveKeyframe(void)
+void P_UnArchiveKeyframe(json_t *root)
 {
-    json_t *root = NULL;
-
-    if (!saveg_check_size(2 * sizeof(int32_t) + sizeof(int16_t)))
-    {
-        I_Error("Corrupt savegame file");
-    }
-
-    // Detect whether the keyframe is compressed or plain JSON.
-    //
-    // Compressed: [uint32 original_len][uint32 compressed_len][zlib stream]
-    // Plain: [JSON text][NUL]
-    //
-    // A valid zlib stream always begins with the CMF byte 0x78 followed by a
-    // FLG byte such that (CMF << 8 | FLG) % 31 == 0.  A JSON stream always
-    // starts with ASCII whitespace or '{' / '[', so the first byte can never
-    // be 0x78, making this an unambiguous discriminator.
-    //
-    // We speculatively read the two 32-bit header fields and peek at the two
-    // bytes that follow.  If they look like a valid zlib header we proceed
-    // with decompression; otherwise we rewind save_p and parse as plain JSON.
-    byte *orig_save_p = save_p;
-    mz_ulong json_len = (mz_ulong)saveg_read32();
-    int32_t compressed_len = saveg_read32();
-
-    if (CheckStreamLength((int32_t)json_len)
-        && CheckStreamLength((int32_t)compressed_len)
-        && CheckZlibHeader(save_p))
-    {
-        // Compressed path: decompress into a temporary buffer, parse it,
-        // then free the buffer (JS_OpenString copies all strings internally).
-        unsigned char *decomp = malloc((size_t)json_len);
-        if (!decomp)
-        {
-            I_Error("Out of memory");
-        }
-        int mz_ret =
-            mz_uncompress(decomp, &json_len, (const unsigned char *)save_p,
-                          (mz_ulong)compressed_len);
-        if (mz_ret != MZ_OK)
-        {
-            I_Error("Decompression error (%s)", mz_error(mz_ret));
-        }
-        root = JS_OpenString((char *)decomp, (size_t)json_len);
-        free(decomp);
-        if (!root)
-        {
-            I_Error("Error parsing JSON");
-        }
-        save_p += compressed_len;
-    }
-    else
-    {
-        // Plain JSON path: rewind to before the speculative header read
-        // and parse the null-terminated string directly from save_p.
-        save_p = orig_save_p;
-        json_len = (mz_ulong)strlen((char *)save_p);
-        root = JS_OpenString((char *)save_p, (size_t)json_len);
-        if (!root)
-        {
-            I_Error("Error parsing JSON");
-        }
-        save_p += json_len + 1;
-    }
-
     StartUnArchive();
 
     json_t *thinkers_obj = JS_GetObject(root, "thinkers");
@@ -2587,9 +2523,4 @@ void P_UnArchiveKeyframe(void)
     UnArchiveAutoMap(root);
 
     EndUnArchive();
-
-    // JS_OpenString() registers the parsed document under lump index NO_INDEX
-    // (-1) so that JS_CloseOptions() can find and free it here.
-    JS_CloseOptions(NO_INDEX);
-    root = NULL;
 }
