@@ -415,7 +415,13 @@ void JS_ArrayAddString(json_mut_doc_t *doc, json_mut_t *arr, const char *str)
     yyjson_mut_arr_add_str(doc, arr, str);
 }
 
+#ifndef SAVEGAME_NO_COMPRESS
+#define YYJSON_WRITE_FLAG YYJSON_WRITE_NOFLAG
+#else
+#define YYJSON_WRITE_FLAG YYJSON_WRITE_PRETTY
+#endif
+
 char *JS_DocWriteString(json_mut_doc_t *doc, size_t *len)
 {
-    return yyjson_mut_write(doc, YYJSON_WRITE_NOFLAG, len);
+    return yyjson_mut_write(doc, YYJSON_WRITE_FLAG, len);
 }

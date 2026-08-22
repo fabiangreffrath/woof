@@ -2508,12 +2508,10 @@ void P_UnArchiveKeyframe(json_t *root)
 
     UnArchiveMSecNodes(msecnodes_arr);
 
-    json_t *activeceilings_obj = JS_GetObject(root, "activeceilings");
-    activeceilings = readp_activeceilings(JS_GetInteger(activeceilings_obj));
+    activeceilings = readp_activeceilings(JS_GetIntegerValue(root, "activeceilings"));
     UnArchiveCeilingList(ceilinglist_arr);
 
-    json_t *activeplats_obj = JS_GetObject(root, "activeplats");
-    activeplats = readp_activeplats(JS_GetInteger(activeplats_obj));
+    activeplats = readp_activeplats(JS_GetIntegerValue(root, "activeplats"));
     UnArchivePlatList(platlist_arr);
 
     json_t *rng_obj = JS_GetObject(root, "rng");

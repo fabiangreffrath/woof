@@ -2690,6 +2690,7 @@ static void G_DoSaveAutoSave(void)
 
 static byte *LoadCustomSkillOptions(byte *opt_p)
 {
+    // Woof! < 16.0.0 (binary savegame format) had no custom skill options
     pistolstart = clpistolstart;
     coopspawns = clcoopspawns;
     halfplayerdamage = false;
@@ -2745,12 +2746,14 @@ static boolean DoLoadGameJSON(boolean do_load_autosave, json_t *root)
                 malloc(num_wadfiles * sizeof(*wadfile_names));
 
             int str_len = 128;
+            json_arr_iter_t *wadfiles_iter = JS_ArrayIterator(wadfiles_arr);
             for (int i = 0; i < num_wadfiles; i++)
             {
                 wadfile_names[i] =
-                    JS_GetString(JS_GetArrayItem(wadfiles_arr, i));
+                    JS_GetString(JS_ArrayNext(wadfiles_iter));
                 str_len += strlen(wadfile_names[i]);
             }
+            JS_ArrayIteratorFree(wadfiles_iter);
 
             char *msg = malloc(str_len);
             int offset =
@@ -2794,6 +2797,7 @@ static boolean DoLoadGameJSON(boolean do_load_autosave, json_t *root)
 
     idmusnum = JS_GetIntegerValue(root, "idmusnum");
 
+    /* cph 2001/05/23 - Must read options before we set up the level */
     json_t *gameoptions_obj = JS_GetObject(root, "gameoptions");
     ReadOptionsJSON(gameoptions_obj);
     json_t *custonskilloptions_obj = JS_GetObject(root, "customskilloptions");
@@ -2801,6 +2805,8 @@ static boolean DoLoadGameJSON(boolean do_load_autosave, json_t *root)
 
     G_InitNew(gameskill, gameepisode, gamemap);
 
+    /* cph - MBF needs to reread the savegame options because G_InitNew
+     * rereads the WAD options. The demo playback code does this too. */
     ReadOptionsJSON(gameoptions_obj);
     LoadCustomSkillOptionsJSON(custonskilloptions_obj);
 
@@ -3030,6 +3036,10 @@ static boolean DoLoadGame(boolean do_load_autosave)
     }
 
     // Check for zlib-compressed JSON stream
+    //
+    // Compressed: [uint32 decomp_len][zlib stream]
+    // Plain JSON: [JSON text][NUL]
+    // Legacy: [char[24] description][binary stream]
 
     unsigned char *decomp_str = NULL;
     mz_ulong decomp_len = (mz_ulong)saveg_read32();
@@ -3037,12 +3047,15 @@ static boolean DoLoadGame(boolean do_load_autosave)
     if (CheckStreamLength((int32_t)decomp_len) && CheckZlibHeader(save_p))
     {
         decomp_str = malloc((size_t)decomp_len);
+
         if (decomp_str)
         {
+            mz_ulong actual_len = decomp_len;
             int mz_ret = mz_uncompress(
-                decomp_str, &decomp_len, (const unsigned char *)save_p,
+                decomp_str, &actual_len, (const unsigned char *)save_p,
                 (mz_ulong)savegamesize - sizeof(int32_t));
-            if (mz_ret != MZ_OK)
+
+            if (mz_ret != MZ_OK || actual_len != decomp_len)
             {
                 free(decomp_str);
                 decomp_str = NULL;
