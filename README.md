@@ -253,7 +253,7 @@ Copyright:
  © 2020-2024 Julia Nechaevskaya.  
 License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/)
 
-Files: `id1.wad/sm*.png`  
+Files: `base/id1.wad/sm*.png`  
 Copyright:  
  © 2026 DragonKnightKX.  
 License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/)
