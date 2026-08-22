@@ -253,6 +253,11 @@ Copyright:
  © 2020-2024 Julia Nechaevskaya.  
 License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/)
 
+Files: `id1.wad/sm*.png`  
+Copyright:  
+ © 2026 DragonKnightKX.  
+License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/)
+
 Files: `data/io.github.fabiangreffrath.woof.metainfo.*`  
 Copyright:  
  © 2023-2024 Fabian Greffrath.  
