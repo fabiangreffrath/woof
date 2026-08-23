@@ -1246,12 +1246,15 @@ static void M_ReadSaveString(char *name, int menu_slot, int save_slot,
     if (CheckStreamLength((int32_t)decomp_len) && CheckZlibHeader(save_p))
     {
         decomp_str = malloc((size_t)decomp_len);
+
         if (decomp_str)
         {
+            mz_ulong actual_len = decomp_len;
             int mz_ret = mz_uncompress(
-                decomp_str, &decomp_len, (const unsigned char *)save_p,
+                decomp_str, &actual_len, (const unsigned char *)save_p,
                 (mz_ulong)savegamesize - sizeof(int32_t));
-            if (mz_ret != MZ_OK)
+
+            if (mz_ret != MZ_OK || actual_len != decomp_len)
             {
                 free(decomp_str);
                 decomp_str = NULL;
