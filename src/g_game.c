@@ -2605,8 +2605,9 @@ static void DoSaveGame(char *name)
     if ((compressed = malloc((size_t)compressed_len)))
     {
         int mz_ret =
-            mz_compress(compressed, &compressed_len,
-                        (const unsigned char *)json_str, (mz_ulong)json_len);
+            mz_compress2(compressed, &compressed_len,
+                        (const unsigned char *)json_str, (mz_ulong)json_len,
+                        MZ_BEST_SPEED);
 
         if (mz_ret == MZ_OK && CheckStreamLength((int32_t)json_len)
             && CheckStreamLength((int32_t)compressed_len))
