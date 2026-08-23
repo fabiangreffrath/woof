@@ -1700,6 +1700,14 @@ fixed_t P_AimLineAttack(mobj_t *t1,angle_t angle,fixed_t distance,int mask)
   {
     topslope = t1->player->slope + 1;
     bottomslope = t1->player->slope - 1;
+
+    // [Alaux] CROSSHAIR_AIM has the same value as one of the mobj flags,
+    // so there might be issues if it just so happens that the shooting player
+    // and the hit entity both have that flag;
+    // as of writing this, nothing in the codebase makes the mask anything
+    // else other than MF_FRIEND,
+    // so we can just remove CROSSHAIR_AIM to avoid such potential issues
+    mask &= ~CROSSHAIR_AIM;
   }
   else
   {
