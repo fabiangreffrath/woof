@@ -518,7 +518,6 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
   spritedef_t   *sprdef;
   spriteframe_t *sprframe;
   int       lump;
-  boolean   flip;
   vissprite_t *vis;
   fixed_t   iscale;
   int heightsec;      // killough 3/27/98
@@ -589,28 +588,37 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
 
   sprframe = &sprdef->spriteframes[thing->frame & FF_FRAMEMASK];
 
-  if (sprframe->rotate)
-    {
-      // choose a different rotation based on player view
-      angle_t ang = R_PointToAngle(interpx, interpy);
-      unsigned rot = (ang-interpangle+(unsigned)(ANG45/2)*9)>>29;
-      lump = sprframe->lump[rot];
-      flip = (boolean) sprframe->flip[rot];
-    }
-  else
-    {
-      // use single rotation for all views
-      lump = sprframe->lump[0];
-      flip = (boolean) sprframe->flip[0];
-    }
+  boolean flip = false;
 
   // [crispy] randomly flip corpse, blood and death animation sprites
   if (STRICTMODE(flipcorpses) &&
       (thing->flags_extra & MFX_MIRROREDCORPSE) &&
       !(thing->flags & MF_SHOOTABLE) &&
       (thing->intflags & MIF_FLIP))
+  {
+    flip = !flip;
+  }
+
+  if (sprframe->rotate)
     {
-      flip = !flip;
+      // choose a different rotation based on player view
+      angle_t ang = R_PointToAngle(interpx, interpy);
+      unsigned rot = (ang-interpangle+(unsigned)(ANG45/2)*9)>>29;
+
+      // [Alaux] Proper rotation for flipped things
+      if (flip)
+      {
+        rot = (8 - rot) & 7;
+      }
+
+      lump = sprframe->lump[rot];
+      flip ^= (boolean) sprframe->flip[rot];
+    }
+  else
+    {
+      // use single rotation for all views
+      lump = sprframe->lump[0];
+      flip ^= (boolean) sprframe->flip[0];
     }
 
   txc = tx; // [FG] sprite center coordinate
