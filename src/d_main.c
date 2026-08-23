@@ -224,7 +224,7 @@ void D_ProcessEvents (void)
 
 // wipegamestate can be set to -1 to force a wipe on the next draw
 gamestate_t wipegamestate = GS_DEMOSCREEN;
-wipefx_t    screen_wipe_internal = wipe_Invalid;
+wipefx_t    screen_wipe_internal = wipe_Default;
 wipefx_t    screen_wipe = wipe_None;
 
 void D_Display (void)
@@ -262,7 +262,7 @@ void D_Display (void)
   wipe = false;
 
   // save the current screen if about to wipe
-  if (gamestate != wipegamestate && screen_wipe_internal)
+  if (gamestate != wipegamestate)
     {
       wipe = true;
       wipe_StartScreen(0, 0, video.width, video.height);
