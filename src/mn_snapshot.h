@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2022 Fabian Greffrath
+//  Copyright (C) 2022-2026 Fabian Greffrath
 //
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU General Public License
@@ -18,14 +18,11 @@
 #ifndef __MN_SNAPSHOT__
 #define __MN_SNAPSHOT__
 
-#include <stdio.h>
-
 #include "doomtype.h"
 
-const int MN_SnapshotDataSize(void);
 void MN_ResetSnapshot(int i);
-boolean MN_ReadSnapshot(int i, FILE *fp);
-void MN_WriteSnapshot(byte *p);
+boolean MN_ReadSnapshot(int i, const byte *buf, int len);
+char *MN_WriteSnapshot(void);
 boolean MN_DrawSnapshot(int i, int x, int y, int w, int h);
 
 void MN_ReadSavegameTime(int i, char *name);

@@ -299,6 +299,11 @@ Copyright:
  © 2011 Jan Kokemüller.  
 License: [MIT](https://opensource.org/licenses/MIT)
 
+Files: `third-party/base64/*`  
+Copyright:  
+ © 2002-2012 Jouni Malinen.  
+License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
+
 Files: `third-party/md5/*`  
 License: public-domain
 
