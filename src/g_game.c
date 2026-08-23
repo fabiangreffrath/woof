@@ -2595,7 +2595,7 @@ static void DoSaveGame(char *name)
 #endif
 
     // Compress the JSON string with miniz and write the result to the save
-    // buffer as: [uint32 original_len][uint32 compressed_len][zlib stream].
+    // buffer as: [uint32 json_len][zlib stream].
     // If compression fails or is disabled, fall back to plain JSON with a
     // null terminator so older code can still read it.
     unsigned char *compressed = NULL;
