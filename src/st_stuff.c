@@ -2001,17 +2001,18 @@ static void DrawSolidBackground(void)
         unsigned r = 0, g = 0, b = 0;
         byte col;
 
-        for (y = v0; y < v1; y++)
+        for (x = 0; x < depth; x++)
         {
-            int line = V_ScaleY(y) * video.width;
-            for (x = 0; x < depth; x++)
+            const int line = V_ScaleX(x) * V_ScaleY(st_height);
+
+            for (y = v0; y < v1; y++)
             {
-                pixel_t *c = st_backing_screen + line + V_ScaleX(x);
+                pixel_t *c = st_backing_screen + line + V_ScaleY(y);
                 r += pal[3 * c[0] + 0];
                 g += pal[3 * c[0] + 1];
                 b += pal[3 * c[0] + 2];
 
-                c += V_ScaleX(width - 2 * x - 1);
+                c += V_ScaleX(width - 2 * x - 1) * V_ScaleY(st_height);
                 r += pal[3 * c[0] + 0];
                 g += pal[3 * c[0] + 1];
                 b += pal[3 * c[0] + 2];
@@ -2037,7 +2038,7 @@ static void DrawBackground(const char *name)
     {
         ST_InitRes();
 
-        V_UseBuffer(st_backing_screen, video.width);
+        V_UseBuffer(st_backing_screen, V_ScaleY(st_height));
 
         if (st_solidbackground && st_height > 3)
         {
@@ -2073,7 +2074,7 @@ static void DrawBackground(const char *name)
         st_refresh_background = false;
     }
 
-    V_CopyRect(0, 0, st_backing_screen, video.unscaledw, st_height, 0, ST_Y);
+    V_CopyRect(0, 0, st_backing_screen, video.unscaledw, st_height, V_ScaleY(st_height), 0, ST_Y);
 }
 
 static void DrawCenteredMessage(void)

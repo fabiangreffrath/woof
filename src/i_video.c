@@ -115,8 +115,8 @@ static SDL_Window *screen;
 static SDL_Renderer *renderer;
 static SDL_Palette *palette;
 static SDL_Texture *texture;
-static SDL_Rect rect = {0};
-static SDL_FRect frect = {0.0f};
+static SDL_Rect src_rect = {0}, dst_rect = {0};
+static SDL_FRect src_frect = {0.0f}, dst_frect = {0.0f};
 
 static int window_width, window_height;
 static int default_window_width, default_window_height;
@@ -587,24 +587,24 @@ static void UpdateMouseMenu(void)
     float x, y;
     SDL_GetMouseState(&x, &y);
 
-    SDL_FRect rect;
-    SDL_GetRenderLogicalPresentationRect(renderer, &rect);
+    SDL_FRect mouse_rect;
+    SDL_GetRenderLogicalPresentationRect(renderer, &mouse_rect);
 
     static SDL_FRect old_rect;
-    if (SDL_RectsEqualFloat(&rect, &old_rect))
+    if (SDL_RectsEqualFloat(&mouse_rect, &old_rect))
     {
         ev.data1.i = 0;
     }
     else
     {
-        old_rect = rect;
+        old_rect = mouse_rect;
         ev.data1.i = EV_RESIZE_VIEWPORT;
     }
 
     const float scale = SDL_GetWindowPixelDensity(screen);
 
-    x = clampf((x * scale - rect.x) / rect.w, 0.0f, 1.0f) * video.unscaledw;
-    y = clampf((y * scale - rect.y) / rect.h, 0.0f, 1.0f) * SCREENHEIGHT;
+    x = clampf((x * scale - mouse_rect.x) / mouse_rect.w, 0.0f, 1.0f) * video.unscaledw;
+    y = clampf((y * scale - mouse_rect.y) / mouse_rect.h, 0.0f, 1.0f) * SCREENHEIGHT;
 
     static float oldx, oldy;
     if (x != oldx || y != oldy)
@@ -685,21 +685,25 @@ static void UpdateRender(void)
     // video buffer in order to emulate HOM effects.
     void *pixels;
     int dst_pitch;
-    SDL_LockTexture(texture, &rect, &pixels, &dst_pitch);
-    int h = rect.h;
-    int src_pitch = video.width;
+
+    SDL_LockTexture(texture, &src_rect, &pixels, &dst_pitch);
+
+    int h = src_rect.h;
+    const int src_pitch = video.height;
     pixel_t *dst = pixels;
     pixel_t *src = I_VideoBuffer;
+
     while (h--)
     {
         memcpy(dst, src, src_pitch);
-        dst += dst_pitch;        
+        dst += dst_pitch;
         src += src_pitch;
     }
+
     SDL_UnlockTexture(texture);
 
     SDL_RenderClear(renderer);
-    SDL_RenderTexture(renderer, texture, &frect, NULL);
+    SDL_RenderTextureRotated(renderer, texture, &src_frect, &dst_frect, 90.0, NULL, SDL_FLIP_VERTICAL);
 }
 
 static uint64_t frametime_start, frametime_withoutpresent;
@@ -953,10 +957,10 @@ static void I_InitDiskFlash(void)
         Z_Free(old_data);
     }
 
-    diskflash = Z_Malloc(disk.sw * disk.sh * sizeof(*diskflash), PU_STATIC, 0);
-    old_data = Z_Malloc(disk.sw * disk.sh * sizeof(*old_data), PU_STATIC, 0);
+    diskflash = Z_Calloc(disk.sw * disk.sh, sizeof(*diskflash), PU_STATIC, 0);
+    old_data = Z_Calloc(disk.sw * disk.sh, sizeof(*old_data), PU_STATIC, 0);
 
-    V_UseBuffer(diskflash, disk.sw);
+    V_UseBuffer(diskflash, disk.sh);
     V_DrawPatch(-video.deltaw, 0, V_CachePatchName("STDISK", PU_CACHE));
     V_RestoreBuffer();
 }
@@ -1260,9 +1264,15 @@ static void ResetResolution(int height)
 
 static void ResetLogicalSize(void)
 {
-    rect.w = video.width;
-    rect.h = video.height;
-    SDL_RectToFRect(&rect, &frect);
+    src_rect.w = video.height;
+    src_rect.h = video.width;
+    SDL_RectToFRect(&src_rect, &src_frect);
+
+    dst_rect.x = (video.width - actualheight) / 2;
+    dst_rect.y = (actualheight - video.width) / 2;
+    dst_rect.w = actualheight;
+    dst_rect.h = video.width;
+    SDL_RectToFRect(&dst_rect, &dst_frect);
 
     if (!SDL_SetRenderLogicalPresentation(renderer, video.width, actualheight,
         SDL_LOGICAL_PRESENTATION_LETTERBOX))
@@ -1577,7 +1587,7 @@ static void CreateVideoBuffer(void)
 
     texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_INDEX8,
                                 SDL_TEXTUREACCESS_STREAMING,
-                                video.width, video.height);
+                                video.height, video.width);
     if (!texture)
     {
         I_Error("Failed to create texture: %s", SDL_GetError());

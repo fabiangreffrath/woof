@@ -1213,7 +1213,14 @@ void AM_Ticker (void)
 //
 static void AM_clearFB(int color)
 {
-  memset(I_VideoBuffer, color, f_h * f_w);
+  int width = f_w;
+  pixel_t *dest = I_VideoBuffer;
+
+  while (width--)
+  {
+    memset(dest, color, f_h);
+    dest += video.height;
+  }
 }
 
 //
@@ -1368,7 +1375,7 @@ static boolean AM_clipMline
 
 inline static void PutDot(int x, int y, int color)
 {
-    I_VideoBuffer[y * video.width + x] = color;
+    I_VideoBuffer[(x * video.height) + y] = color;
 }
 
 static void AM_drawFline_Vanilla(fline_t *fl, int color)
@@ -1444,7 +1451,7 @@ static void AM_drawFline_Vanilla(fline_t *fl, int color)
 //
 inline static void PutWuDot(int x, int y, int color, int weight)
 {
-    pixel_t *dest = I_VideoBuffer + y * video.width + x;
+    pixel_t *dest = I_VideoBuffer + (x * video.height) + y;
     unsigned int *fg2rgb = Col2RGB8[weight];
     unsigned int *bg2rgb = Col2RGB8[64 - weight];
     unsigned int fg, bg;
