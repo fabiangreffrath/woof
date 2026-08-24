@@ -81,7 +81,7 @@
 // int     detailLevel;    obsolete -- killough
 int screenblocks, maxscreenblocks; // has default
 
-static int quickSaveSlot; // -1 = no quicksave slot picked!
+static int quickSavePage, quickSaveSlot; // -1 = no quicksave slot picked!
 
 static int messageToPrint; // 1 = message to be printed
 
@@ -904,7 +904,7 @@ static void DeleteSaveGame(int slot)
     M_remove(name);
     free(name);
 
-    if (slot == quickSaveSlot)
+    if (savepage == quickSavePage && slot == quickSaveSlot)
     {
         quickSaveSlot = -1;
     }
@@ -979,7 +979,13 @@ static void M_DrawSaveLoadBorders(void)
         byte *cr = (item->flags & MF_HILITE) ? cr_bright : NULL;
 
         M_DrawSaveLoadBorder(x, y, cr);
-        WriteText(x, y, savegamestrings[i]);
+
+        int cr2 = (savepage == quickSavePage
+                   && (currentMenu == &LoadAutoSaveDef ? i - 1 == quickSaveSlot
+                                                       : i == quickSaveSlot))
+                      ? CR_GOLD
+                      : CR_NONE;
+        MN_DrawString(x, y, cr2, savegamestrings[i]);
     }
 }
 
@@ -1411,6 +1417,7 @@ void MN_SetQuickSaveSlot(int slot)
 {
     if (quickSaveSlot == -2)
     {
+        quickSavePage = savepage;
         quickSaveSlot = slot;
     }
 }
@@ -1752,6 +1759,7 @@ static void M_QuickSaveResponse(int ch)
 {
     if (ch == 'y')
     {
+        quickSavePage = savepage;
         if (MN_StartsWithMapIdentifier(savegamestrings[quickSaveSlot]))
         {
             SetDefaultSaveName(savegamestrings[quickSaveSlot], NULL);
@@ -1794,6 +1802,7 @@ static void M_QuickLoadResponse(int ch)
 {
     if (ch == 'y')
     {
+        savepage = quickSavePage;
         M_LoadSelect(quickSaveSlot);
         M_StartSound(sfx_swtchx);
     }
@@ -2907,7 +2916,6 @@ static boolean SaveLoadResponder(menu_action_t action, int ch)
         if (savepage > 0)
         {
             savepage--;
-            quickSaveSlot = -1;
             M_UpdateLoadMenu();
             M_ReadSaveStrings();
             M_StartSound(sfx_pstop);
@@ -2919,7 +2927,6 @@ static boolean SaveLoadResponder(menu_action_t action, int ch)
         if (savepage < savepage_max)
         {
             savepage++;
-            quickSaveSlot = -1;
             M_UpdateLoadMenu();
             M_ReadSaveStrings();
             M_StartSound(sfx_pstop);
