@@ -137,7 +137,6 @@ void R_DrawColumn(void)
             }
         }
 
-        UNROLL_LOOP
         do
         {
             src = source[frac >> 16];
@@ -155,7 +154,7 @@ void R_DrawColumn(void)
     }
     else
     {
-        UNROLL_LOOP
+        UNROLL_LOOP_BY(2)
         while (count--)
         {
             src = source[(frac >> FRACBITS) & heightmask];
@@ -221,7 +220,6 @@ void R_DrawTLColumn(void)
             }
         }
 
-        UNROLL_LOOP
         do
         {
             src = source[frac >> 16];
@@ -239,7 +237,7 @@ void R_DrawTLColumn(void)
     }
     else
     {
-        UNROLL_LOOP
+        UNROLL_LOOP_BY(2)
         while (count--)
         {
             src = source[(frac >> FRACBITS) & heightmask];
@@ -364,7 +362,6 @@ void R_DrawSkyColumn(void)
             frac -= heightmask;
         }
 
-        UNROLL_LOOP
         do
         {
             *dest = colormap[source[frac >> FRACBITS]];
@@ -377,7 +374,7 @@ void R_DrawSkyColumn(void)
     }
     else
     {
-        UNROLL_LOOP
+        UNROLL_LOOP_BY(2)
         while (count--)
         {
             *dest = colormap[source[(frac >> FRACBITS) & heightmask]];
@@ -478,7 +475,6 @@ static void DrawFuzzColumnOriginal(void)
 
     count++; // killough 1/99: minor tuning
 
-    UNROLL_LOOP
     do
     {
         // Lookup framebuffer, and retrieve
@@ -556,7 +552,6 @@ static void DrawFuzzColumnBlocky(void)
 
     const int fuzzblockwidth = MIN(fuzzblocksize, video.width - dc_x);
 
-    UNROLL_LOOP
     do
     {
         count -= lines;
@@ -654,7 +649,6 @@ static void DrawFuzzColumnRefraction(void)
     int dark = FUZZDARK;
     int offset = 0;
 
-    UNROLL_LOOP
     do
     {
         count -= lines;
@@ -716,7 +710,6 @@ static void DrawFuzzColumnShadow(void)
 
     count++; // killough 1/99: minor tuning
 
-    UNROLL_LOOP
     do
     {
         *dest = fullcolormap[8 * 256 + *dest];
@@ -815,7 +808,6 @@ void R_DrawTranslatedColumn(void)
             }
         }
 
-        UNROLL_LOOP
         do
         {
             src = source[frac >> 16];
@@ -833,7 +825,7 @@ void R_DrawTranslatedColumn(void)
     }
     else
     {
-        UNROLL_LOOP
+        UNROLL_LOOP_BY(2)
         while (count--)
         {
             src = source[(frac >> FRACBITS) & heightmask];
@@ -925,7 +917,6 @@ void R_DrawTRTLColumn(void)
             }
         }
 
-        UNROLL_LOOP
         do
         {
             src = source[frac >> 16];
@@ -943,7 +934,7 @@ void R_DrawTRTLColumn(void)
     }
     else
     {
-        UNROLL_LOOP
+        UNROLL_LOOP_BY(2)
         while (count--)
         {
             src = source[(frac >> FRACBITS) & heightmask];
@@ -1004,7 +995,7 @@ void R_DrawSpan(void)
 
     byte src;
 
-    UNROLL_LOOP
+    UNROLL_LOOP_BY(4)
     while (count--)
     {
         // SoM: Why didn't I see this earlier? the spot variable is a waste now

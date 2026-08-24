@@ -143,11 +143,13 @@ inline static double clamp(double x, double min, double max)
 #endif
 
 #if defined(__GNUC__) && !defined(__clang__)
-  #define UNROLL_LOOP _Pragma("GCC unroll 4")
+  #define PRAGMA(x) _Pragma(#x)
+  #define UNROLL_LOOP_BY(n) PRAGMA(GCC unroll n)
 #elif defined(__clang__)
-  #define UNROLL_LOOP _Pragma("clang loop unroll_count(4)")
+  #define PRAGMA(x) _Pragma(#x)
+  #define UNROLL_LOOP_BY(n) PRAGMA(clang loop unroll_count(n))
 #else
-  #define UNROLL_LOOP
+  #define UNROLL_LOOP_BY(n)
 #endif
 
 // The packed attribute forces structures to be packed into the minimum
