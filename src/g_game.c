@@ -17,6 +17,7 @@
 //
 //-----------------------------------------------------------------------------
 
+#include <ctype.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -2024,6 +2025,18 @@ static void InvalidDemo(void)
     G_CheckDemoStatus();
 }
 
+static char *SanitizeSignature(const char *orig, size_t len)
+{
+    char *san = malloc(4 * len + 1);
+
+    for (int i = 0, j = 0; i < len; i++)
+    {
+        j += M_snprintf(&san[j], 5, isprint(orig[i]) ? "%c" : "%#x", orig[i]);
+    }
+
+    return san;
+}
+
 static void G_DoPlayDemo(void)
 {
   skill_t skill;
@@ -2085,9 +2098,11 @@ static void G_DoPlayDemo(void)
     // Eternity Engine also uses 255 demover, with other signatures.
     if (memcmp(demo_p, "PR+UM", 5))
     {
+      char *san = SanitizeSignature((const char *)demo_p, 6);
       I_Printf(VB_WARNING,
-            "Extended demo format %d found, but \"PR+UM\" string not found.",
-            demover);
+            "Extended demo format %d found with unknown signature: %s",
+            demover, san);
+      free(san);
       InvalidDemo();
       return;
     }
