@@ -1046,7 +1046,7 @@ static void UpdateNumber(sbarelem_t *elem, player_t *player)
         while (tempnum > 0)
         {
             int workingnum = tempnum % 10;
-            totalwidth = SHORT(font->numbers[workingnum]->width);
+            totalwidth += SHORT(font->numbers[workingnum]->width);
             tempnum /= 10;
         }
         if (elem->type == sbe_percent && font->percent != NULL)
