@@ -372,7 +372,7 @@ static boolean MapInfo_Ticker()
 
     boolean next_level = false;
 
-    if (!demo_compatibility)
+    if (!demo_compatibility  || (!demorecording && !demoplayback))
     {
         WI_checkForAccelerate();
     }
