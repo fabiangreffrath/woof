@@ -117,7 +117,7 @@ boolean MI_SkipShowNextLoc(void);
 boolean MI_BossAction(mobj_t *mo);
 const char *MI_GetLevelTitle(void);
 int MI_SkyTexture(void);
-int MI_PrepareIntermission(wbstartstruct_t *wminfo);
+MI_Completion_t MI_PrepareIntermission(wbstartstruct_t *wminfo);
 MI_WinDisplay_t MI_PrepareFinale(void);
 void MI_WI_Start(wbstartstruct_t *wbs, const char **exitpic,
                  const char **enterpic, wi_animation_t **animation);

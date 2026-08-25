@@ -1279,7 +1279,7 @@ static int LegacyParTimes(void)
     return partime;
 }
 
-int MI_PrepareIntermission(wbstartstruct_t *wminfo)
+MI_Completion_t MI_PrepareIntermission(wbstartstruct_t *wminfo)
 {
     // UMAPINFO
     if (gamemapinfo)

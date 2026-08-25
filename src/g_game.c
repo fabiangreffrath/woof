@@ -1688,153 +1688,22 @@ static void G_DoCompleted(void)
   if (automapactive)
     AM_Stop();
 
-  wminfo.nextep = wminfo.epsd = gameepisode -1;
-  wminfo.last = gamemap -1;
+  wminfo.nextep = wminfo.epsd = gameepisode - 1;
+  wminfo.last = gamemap - 1;
 
-  wminfo.lastmapinfo = gamemapinfo;
-  wminfo.nextmapinfo = NULL;
+  MI_UpdateLastMapInfo(&wminfo);
+
   umapinfo_partimes = false;
-  if (gamemapinfo)
+
+  MI_Completion_t behaviour = MI_PrepareIntermission(&wminfo);
+
+  if (behaviour & DC_Victory)
   {
-    const char *next = NULL;
-    boolean intermission = false;
-
-    if (gamemapinfo->flags & MapInfo_EndGame)
-    {
-      if (gamemapinfo->flags & MapInfo_NoIntermission)
-      {
-        gameaction = ga_victory;
-        return;
-      }
-      else
-      {
-        intermission = true;
-      }
-    }
-
-    if (secretexit && gamemapinfo->nextsecret[0])
-      next = gamemapinfo->nextsecret;
-    else if (gamemapinfo->nextmap[0])
-      next = gamemapinfo->nextmap;
-
-    if (next)
-    {
-      G_ValidateMapName(next, &wminfo.nextep, &wminfo.next);
-      wminfo.nextep--;
-      wminfo.next--;
-      // episode change
-      if (wminfo.nextep != wminfo.epsd)
-      {
-        for (i = 0; i < MAXPLAYERS; i++)
-          players[i].didsecret = false;
-      }
-    }
-
-    if (next || intermission)
-    {
-      wminfo.didsecret = players[consoleplayer].didsecret;
-      wminfo.partime = gamemapinfo->partime * TICRATE;
-      if (wminfo.partime > 0)
-        umapinfo_partimes = true;
-      goto frommapinfo;	// skip past the default setup.
-    }
+    gameaction = ga_victory;
+    return;
   }
 
-  if (gamemode != commercial) // kilough 2/7/98
-    switch(gamemap)
-      {
-      case 8:
-        gameaction = ga_victory;
-        return;
-      case 9:
-        for (i=0 ; i<MAXPLAYERS ; i++)
-          players[i].didsecret = true;
-        break;
-      }
-
-  wminfo.didsecret = players[consoleplayer].didsecret;
-
-  // wminfo.next is 0 biased, unlike gamemap
-  if (gamemode == commercial)
-    {
-      if (secretexit)
-        switch(gamemap)
-          {
-          case 15:
-            wminfo.next = 30; break;
-          case 31:
-            wminfo.next = 31; break;
-          }
-      else
-        switch(gamemap)
-          {
-          case 31:
-          case 32:
-            wminfo.next = 15; break;
-          default:
-            wminfo.next = gamemap;
-          }
-    }
-  else
-    {
-      if (secretexit)
-        wminfo.next = 8;  // go to secret level
-      else
-        if (gamemap == 9)
-          {
-            // returning from secret level
-            switch (gameepisode)
-              {
-              case 1:
-                wminfo.next = 3;
-                break;
-              case 2:
-                wminfo.next = 5;
-                break;
-              case 3:
-                wminfo.next = 6;
-                break;
-              case 4:
-                wminfo.next = 2;
-                break;
-              }
-          }
-        else
-          wminfo.next = gamemap;          // go to next level
-    }
-
-  if (gamemode == commercial)
-  {
-    // MAP33 reads its par time from beyond the cpars[] array.
-    if (demo_compatibility && gamemap == 33)
-    {
-      int cpars32;
-
-      memcpy(&cpars32, DEH_String(GAMMALVL0), sizeof(int));
-      wminfo.partime = TICRATE*LONG(cpars32);
-    }
-    else if (gamemap >= 1 && gamemap <= 34)
-    {
-      wminfo.partime = TICRATE * bex_cpars[gamemap - 1];
-    }
-  }
-  else
-  {
-    // Doom Episode 4 doesn't have a par time, so this overflows into the cpars[] array.
-    if (demo_compatibility && gameepisode == 4 && gamemap >= 1 && gamemap <= 9)
-    {
-      wminfo.partime = TICRATE * bex_cpars[gamemap - 1];
-    }
-    else if (gameepisode >= 1 && gameepisode <= 6 && gamemap >= 1 && gamemap <= 9)
-    {
-      wminfo.partime = TICRATE * bex_pars[gameepisode - 1][gamemap - 1];
-    }
-  }
-
-frommapinfo:
-  
-  wminfo.nextmapinfo = MI_MapEntry(wminfo.nextep+1, wminfo.next+1);
-
+  MI_UpdateNextMapInfo(&wminfo);
   wminfo.maxkills = totalkills;
   wminfo.maxitems = totalitems;
   wminfo.maxsecret = totalsecret;
