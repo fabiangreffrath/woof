@@ -1065,32 +1065,9 @@ boolean MI_BossAction(mobj_t *mo)
         }
     }
 
-    // make sure there is a player alive for victory
-    int i = 0;
-    for (i = 0; i < MAXPLAYERS; i++)
+    if (!CheckBossDeath(mo))
     {
-        if (playeringame[i] && players[i].health > 0)
-        {
-            break;
-        }
-    }
-
-    if (i == MAXPLAYERS)
-    {
-        return true; // no one left alive, so do not end game
-    }
-
-    // scan the remaining thinkers to see if all bosses are dead
-    for (thinker_t *th = thinkercap.next; th != &thinkercap; th = th->next)
-    {
-        if (th->function.p1 == P_MobjThinker)
-        {
-            mobj_t *mo2 = (mobj_t *)th;
-            if (mo2 != mo && mo2->type == mo->type && mo2->health > 0)
-            {
-                return true; // other boss not dead
-            }
-        }
+        return true; // other boss not dead
     }
 
     // victory!
