@@ -1349,7 +1349,7 @@ void MI_MapAnnouncement(char announce_string[120], char author_string[120],
     M_StringCopy(announce_string, string, str_size);
 }
 
-void MI_Spechits(line_t *dummy, int *speciallines, boolean *trigger_keen)
+void MI_SpecHits(line_t *dummy, int *speciallines, boolean *trigger_keen)
 {
     // UMAPINFO
     if (gamemapinfo && array_size(gamemapinfo->bossactions))

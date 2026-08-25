@@ -893,7 +893,7 @@ static void cheat_spechits(void)
     plyr->cards[i] = origcards[i];
   }
 
-  MI_Spechits(&dummy, &speciallines, &trigger_keen);
+  MI_SpecHits(&dummy, &speciallines, &trigger_keen);
 
   // Keens (no matter which level they are on)
   if (trigger_keen)

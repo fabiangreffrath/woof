@@ -123,7 +123,7 @@ void MI_WI_Start(wbstartstruct_t *wbs, const char **exitpic,
                  const char **enterpic, wi_animation_t **animation);
 void MI_MapAnnouncement(char announce_string[120], char author_string[120],
                         const char string[120], size_t str_size);
-void MI_Spechits(line_t *dummy, int *speciallines, boolean *trigger_keen);
+void MI_SpecHits(line_t *dummy, int *speciallines, boolean *trigger_keen);
 void MI_ChangeMusic(void);
 
 #endif
