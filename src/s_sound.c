@@ -1159,7 +1159,7 @@ static inline int WRAP(int i, int w)
 
 void S_Start(void)
 {
-    int cnum, mnum;
+    int cnum;
 
     // kill all playing sounds at start of level
     //  (trust me - a good idea)
