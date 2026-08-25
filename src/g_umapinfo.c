@@ -829,7 +829,7 @@ MI_ShowNext_t MI_ShowNextLoc(void)
     // UMAPINFO
     if (gamemapinfo)
     {
-        if (gamemapinfo->endpic[0])
+        if (gamemapinfo->flags & MapInfo_EndGame)
         {
             return WI_ShowNextDone;
         }
@@ -861,6 +861,43 @@ boolean MI_SkipShowNextLoc(void)
 
     // Legacy
     return false;
+}
+
+boolean CheckBossDeath(mobj_t *mo)
+{
+    int i;
+    thinker_t *th;
+
+    // make sure there is a player alive for victory
+    for (i = 0; i < MAXPLAYERS; i++)
+    {
+        if (playeringame[i] && players[i].health > 0)
+        {
+            break;
+        }
+    }
+
+    if (i == MAXPLAYERS)
+    {
+        return false; // no one left alive, so do not end game
+    }
+
+    // scan the remaining thinkers to see
+    // if all bosses are dead
+    for (th = thinkercap.next; th != &thinkercap; th = th->next)
+    {
+        if (th->function.p1 == P_MobjThinker)
+        {
+            mobj_t *mo2 = (mobj_t *)th;
+
+            if (mo2 != mo && mo2->type == mo->type && mo2->health > 0)
+            {
+                return false; // other boss not dead
+            }
+        }
+    }
+
+    return true;
 }
 
 boolean MI_BossAction(mobj_t *mo)
@@ -904,7 +941,7 @@ boolean MI_BossAction(mobj_t *mo)
             return true; // no matches found
         }
 
-        if (!P_CheckBossDeath(mo))
+        if (!CheckBossDeath(mo))
         {
             return true; // other boss not dead
         }

@@ -2303,43 +2303,6 @@ void A_BossDeath(mobj_t *mo)
   G_ExitLevel();
 }
 
-boolean P_CheckBossDeath(mobj_t *mo)
-{
-    int i;
-    thinker_t *th;
-
-    // make sure there is a player alive for victory
-    for (i = 0; i < MAXPLAYERS; i++)
-    {
-        if (playeringame[i] && players[i].health > 0)
-        {
-            break;
-        }
-    }
-
-    if (i == MAXPLAYERS)
-    {
-        return false; // no one left alive, so do not end game
-    }
-
-    // scan the remaining thinkers to see
-    // if all bosses are dead
-    for (th = thinkercap.next; th != &thinkercap; th = th->next)
-    {
-        if (th->function.p1 == P_MobjThinker)
-        {
-            mobj_t *mo2 = (mobj_t *)th;
-
-            if (mo2 != mo && mo2->type == mo->type && mo2->health > 0)
-            {
-                return false; // other boss not dead
-            }
-        }
-    }
-
-    return true;
-}
-
 void A_Hoof (mobj_t* mo)
 {
   S_StartSound(mo, sfx_hoof);

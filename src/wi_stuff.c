@@ -1317,26 +1317,30 @@ static void WI_initShowNextLoc(void)
 {
   SetupMusic(true);
 
-  if (gamemapinfo)
+  MI_ShowNext_t behavior = MI_ShowNextLoc();
+
+  if (behavior & WI_ShowNextDone)
   {
-      if (gamemapinfo->flags & MapInfo_EndGame)
-      {
-          G_WorldDone();
-          return;
-      }
-
-      state = ShowNextLoc;
-
-      // episode change
-      if (wbs->epsd != wbs->nextep)
-      {
-          wbs->epsd = wbs->nextep;
-          wbs->last = wbs->next - 1;
-          WI_loadData();
-      }
+    G_WorldDone();
+    return;
   }
 
-  state = ShowNextLoc;
+  if (behavior & WI_ShowNextLoc)
+  {
+    state = ShowNextLoc;
+  }
+
+  if (behavior & WI_ShowNextEpisodal)
+  {
+    // episode change
+    if (wbs->epsd != wbs->nextep)
+    {
+      wbs->epsd = wbs->nextep;
+      wbs->last = wbs->next - 1;
+      WI_loadData();
+    }
+  }
+
   acceleratestage = 0;
   cnt = SHOWNEXTLOCDELAY * TICRATE;
 
@@ -1372,7 +1376,7 @@ static void WI_drawShowNextLoc(void)
   int   i;
   int   last;
 
-  if (gamemapinfo && gamemapinfo->flags & MapInfo_EndGame)
+  if (MI_SkipShowNextLoc())
   {
       return;
   }
@@ -2680,39 +2684,7 @@ void WI_Start(wbstartstruct_t* wbstartstruct)
   enterpic = NULL;
   animation = NULL;
 
-  if (wbs->lastmapinfo)
-  {
-      if (wbs->lastmapinfo->exitpic[0])
-      {
-          exitpic = wbs->lastmapinfo->exitpic;
-      }
-      if (wbs->lastmapinfo->exitanim[0])
-      {
-          if (!animation)
-          {
-              animation = Z_Calloc(1, sizeof(*animation), PU_LEVEL, NULL);
-          }
-          animation->interlevel_exiting =
-              WI_ParseInterlevel(wbs->lastmapinfo->exitanim);
-      }
-  }
-
-  if (wbs->nextmapinfo)
-  {
-      if (wbs->nextmapinfo->enterpic[0])
-      {
-          enterpic = wbs->nextmapinfo->enterpic;
-      }
-      if (wbs->nextmapinfo->enteranim[0])
-      {
-          if (!animation)
-          {
-              animation = Z_Calloc(1, sizeof(*animation), PU_LEVEL, NULL);
-          }
-          animation->interlevel_entering =
-              WI_ParseInterlevel(wbs->nextmapinfo->enteranim);
-      }
-  }
+  MI_WI_Start(wbstartstruct, &exitpic, &enterpic, &animation);
 
   WI_loadData();
 
