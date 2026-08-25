@@ -371,9 +371,9 @@ static void cheat_mus(char *buf)
   
   // First check if we have a mapinfo entry for the requested level.
   if (gamemode == commercial)
-    entry = G_LookupMapinfo(1, 10*(buf[0]-'0') + (buf[1]-'0'));
+    entry = MI_MapEntry(1, 10*(buf[0]-'0') + (buf[1]-'0'));
   else
-    entry = G_LookupMapinfo(buf[0]-'0', buf[1]-'0');
+    entry = MI_MapEntry(buf[0]-'0', buf[1]-'0');
 
   if (entry && entry->music[0])
   {
@@ -649,7 +649,7 @@ static void cheat_clev(char *buf)
 
   // First check if we have a mapinfo entry for the requested level.
   // If this is present the remaining checks should be skipped.
-  entry = G_LookupMapinfo(epsd, map);
+  entry = MI_MapEntry(epsd, map);
   if (!entry)
   {
     char *next;

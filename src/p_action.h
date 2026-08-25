@@ -19,9 +19,13 @@
 #ifndef __P_ACTION__
 #define __P_ACTION__
 
+#include "doomtype.h"
+
 struct player_s;
 struct pspdef_s;
 struct mobj_s;
+
+boolean P_CheckBossDeath(struct mobj_s *mo);
 
 // ********************************************************************
 // Function addresses or Code Pointers

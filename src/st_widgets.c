@@ -568,7 +568,7 @@ void ST_ResetTitle(void)
     char string[120];
     string[0] = '\0';
 
-    const char *s = G_GetLevelTitle();
+    const char *s = MI_GetLevelTitle();
 
     char *n;
 

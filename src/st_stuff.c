@@ -1246,7 +1246,7 @@ static void UpdateString(sbarelem_t *elem)
     switch (string->type)
     {
         case sbstr_maptitle:
-            string->line.string = G_GetLevelTitle();
+            string->line.string = MI_GetLevelTitle();
             break;
         case sbstr_label:
             if (gamemapinfo && gamemapinfo->label)

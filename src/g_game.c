@@ -1019,7 +1019,7 @@ static void G_DoLoadLevel(void)
   MN_UpdateFreeLook();
   HU_UpdateTurnFormat();
 
-  I_UpdateDiscordPresence(G_GetLevelTitle(), gamedescription);
+  I_UpdateDiscordPresence(MI_GetLevelTitle(), gamedescription);
 
   // [Woof!] Do not reset chosen player view across levels in multiplayer
   // demo playback. However, it must be reset when starting a new game.
@@ -1207,7 +1207,7 @@ int G_GotoPrevLevel(void)
         while ((gamemap = (gamemap + 99) % 100) != cur_map)
         {
             int next_epsd, next_map;
-            gamemapinfo = G_LookupMapinfo(gameepisode, gamemap);
+            gamemapinfo = MI_MapEntry(gameepisode, gamemap);
             G_GotoNextLevel(&next_epsd, &next_map);
 
             // do not let linear and UMAPINFO maps cross
@@ -1932,7 +1932,7 @@ static void G_DoCompleted(void)
 
 frommapinfo:
   
-  wminfo.nextmapinfo = G_LookupMapinfo(wminfo.nextep+1, wminfo.next+1);
+  wminfo.nextmapinfo = MI_MapEntry(wminfo.nextep+1, wminfo.next+1);
 
   wminfo.maxkills = totalkills;
   wminfo.maxitems = totalitems;
@@ -1998,7 +1998,7 @@ static void G_DoWorldDone(void)
   gamestate = GS_LEVEL;
   gameepisode = wminfo.nextep + 1;
   gamemap = wminfo.next+1;
-  gamemapinfo = G_LookupMapinfo(gameepisode, gamemap);
+  gamemapinfo = MI_MapEntry(gameepisode, gamemap);
   G_ResetRewind(false);
   G_DoLoadLevel();
   gameaction = ga_nothing;
@@ -2801,7 +2801,7 @@ static boolean DoLoadGameJSON(boolean do_load_autosave, json_t *root)
     gameskill = tmp_skill;
     gameepisode = tmp_episode;
     gamemap = tmp_map;
-    gamemapinfo = G_LookupMapinfo(gameepisode, gamemap);
+    gamemapinfo = MI_MapEntry(gameepisode, gamemap);
 
     json_t *playeringame_arr = JS_GetObject(root, "playeringame");
     json_arr_iter_t *playeringame_iter = JS_ArrayIterator(playeringame_arr);
@@ -2925,7 +2925,7 @@ static boolean DoLoadGameBinary(boolean do_load_autosave)
   gameskill = tmp_skill;
   gameepisode = tmp_episode;
   gamemap = tmp_map;
-  gamemapinfo = G_LookupMapinfo(gameepisode, gamemap);
+  gamemapinfo = MI_MapEntry(gameepisode, gamemap);
 
   for (int i = 0; i < MAXPLAYERS; i++)
   {
@@ -4478,7 +4478,7 @@ void G_InitNew(skill_t skill, int episode, int map)
   gameepisode = episode;
   gamemap = map;
   gameskill = skill;
-  gamemapinfo = G_LookupMapinfo(gameepisode, gamemap);
+  gamemapinfo = MI_MapEntry(gameepisode, gamemap);
 
   // [FG] total time for all completed levels
   totalleveltimes = 0;
@@ -4504,7 +4504,7 @@ void G_SimplifiedInitNew(int episode, int map)
 {
   gameepisode = episode;
   gamemap = map;
-  gamemapinfo = G_LookupMapinfo(episode, gamemap);
+  gamemapinfo = MI_MapEntry(episode, gamemap);
 
   AM_clearMarks();
 
@@ -5330,78 +5330,6 @@ void G_CheckDemoRecordingStatus(void)
     {
         G_CheckDemoStatus();
     }
-}
-
-static boolean IsVanillaMap(int e, int m)
-{
-    if (gamemode == commercial)
-    {
-        return (e == 1 && m > 0 && m <= 32);
-    }
-    else
-    {
-        return (e > 0 && e <= 4 && m > 0 && m <= 9);
-    }
-}
-
-static inline const char * GetVanillaMapname()
-{
-    return (gamemode != commercial) ? mapnames[(gameepisode - 1) * 9 + gamemap - 1] :
-          (gamemission == pack_tnt) ? mapnamest[gamemap - 1] :
-         (gamemission == pack_plut) ? mapnamesp[gamemap - 1] :
-                                      mapnames2[gamemap - 1];
-}
-
-static inline const char * GetVanillaMapnameOverflow()
-{
-    return (gamemission == doom2) ? mapnamesp[gamemap - 33] :
-       (gamemission == pack_plut) ? mapnamest[gamemap - 33] : "";
-}
-
-const char *G_GetLevelTitle(void)
-{
-    const char *result = "";
-
-    if (gamemapinfo && gamemapinfo->levelname)
-    {
-        if (!(gamemapinfo->flags & MapInfo_LabelClear))
-        {
-            static char *string;
-            if (string)
-            {
-                free(string);
-            }
-            string = M_StringJoin(gamemapinfo->label ? gamemapinfo->label
-                                                     : gamemapinfo->mapname,
-                                  ": ", gamemapinfo->levelname);
-            result = string;
-        }
-        else
-        {
-            result = gamemapinfo->levelname;
-        }
-    }
-    else if (gamestate == GS_LEVEL)
-    {
-        if (IsVanillaMap(gameepisode, gamemap))
-        {
-            result = DEH_String(GetVanillaMapname());
-        }
-        // WADs like pl2.wad have a MAP33, and rely on the layout in the
-        // Vanilla executable, where it is possible to overflow the end of one
-        // array into the next.
-        else if (gamemode == commercial && gamemap >= 33 && gamemap <= 35)
-        {
-            result = DEH_String(GetVanillaMapnameOverflow());
-        }
-        else
-        {
-            // initialize the map title widget with the generic map lump name
-            result = MapName(gameepisode, gamemap);
-        }
-    }
-
-    return result;
 }
 
 // killough 1/22/98: this is a "Doom printf" for messages. I've gotten

@@ -391,25 +391,6 @@ static const char *exitpic, *enterpic;
 #define M_ARRAY_FREE(ptr) Z_Free((ptr))
 #include "m_array.h"
 
-typedef struct
-{
-    interlevelframe_t *frames;
-    int x_pos;
-    int y_pos;
-    int frame_index;
-    boolean frame_start;
-    int duration_left;
-} wi_animationstate_t;
-
-typedef struct
-{
-    interlevel_t *interlevel_exiting;
-    interlevel_t *interlevel_entering;
-
-    wi_animationstate_t *states;
-    char *background_lump;
-} wi_animation_t;
-
 static wi_animation_t *animation;
 
 //
