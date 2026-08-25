@@ -94,7 +94,6 @@ static const char *params_with_args[] = {
 "-gameversion",
 "-setmem",
 "-spechit",
-"-statdump",
 };
 
 #define HELP_STRING "Usage: woof [options] \n\

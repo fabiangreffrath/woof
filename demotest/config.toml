@@ -23,7 +23,7 @@ demo = "30av-25337.lmp"
 demo_url = "https://dsdarchive.com/files/demos/av/28171/avall-41337.zip"
 wad = "AV.WAD"
 wad_url = "https://dsdarchive.com/files/wads/doom2/385/av_new.zip"
-statdump = "av.txt"
+levelstat = "av.txt"
 
 [[demo]]
 demo = "pl2all1.lmp"
@@ -31,7 +31,7 @@ demo_url = "https://dsdarchive.com/files/demos/pl2/19121/p2all-6504.zip"
 wad = "PL2.WAD"
 wad_url = "https://dsdarchive.com/files/wads/plutonia/2283/pl2.zip"
 gameversion = "final"
-statdump = "pl2.txt"
+levelstat = "pl2.txt"
 
 [[demo]]
 demo = "30cyx1904.lmp"
@@ -39,7 +39,7 @@ demo_url = "https://dsdarchive.com/files/demos/cydreams/45733/cyallx1904.zip"
 wad = "Cyber110.wad"
 wad_url = "https://dsdarchive.com/files/wads/doom2/806/cydreams.zip"
 deh = "Cyber110.deh"
-statdump = "cydreams.txt"
+levelstat = "cydreams.txt"
 
 [[demo]]
 demo = "lodam642.lmp"

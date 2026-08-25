@@ -82,7 +82,6 @@
 #include "s_trakinfo.h"
 #include "st_stuff.h"
 #include "st_widgets.h"
-#include "statdump.h"
 #include "g_umapinfo.h"
 #include "v_patch.h"
 #include "v_video.h"
@@ -2251,14 +2250,6 @@ void D_DoomMain(void)
   I_PutChar(VB_INFO, '\n');
 
   idmusnum = -1; //jff 3/17/98 insure idmus number is blank
-
-  // check for a driver that wants intermission stats
-  // [FG] replace with -statdump implementation from Chocolate Doom
-  if ((p = M_CheckParm ("-statdump")) && p<myargc-1)
-    {
-      I_AtExit(StatDump, true);
-      I_Printf(VB_INFO, "External statistics registered.");
-    }
 
   //!
   // @arg <min:sec>

@@ -181,7 +181,6 @@ set(WOOF_SOURCES
     st_carousel.c          st_carousel.h
     st_stuff.c             st_stuff.h
     st_widgets.c           st_widgets.h
-    statdump.c             statdump.h
     tables.c               tables.h
     v_flextran.c           v_flextran.h
     v_patch.c              v_patch.h
