@@ -26,6 +26,7 @@
 #include "doomtype.h"
 #include "dsdh_main.h"
 #include "g_game.h"
+#include "i_printf.h"
 #include "m_array.h"
 #include "m_misc.h"
 #include "m_scanner.h"
@@ -1399,32 +1400,27 @@ MI_WinDisplay_t MI_PrepareFinale(void)
     if (gamemapinfo)
     {
         MI_WinDisplay_t res = 0;
+        if (gamemapinfo->flags & MapInfo_InterTextClear
+            && gamemapinfo->flags & MapInfo_EndGame)
+        {
+            I_Printf(
+                VB_DEBUG,
+                "UMAPINFO: 'intertext = clear' with one of the end game keys.");
+        }
+
         if (gamemapinfo->intertextsecret && secretexit)
         {
-            // '-' means that any default intermission was cleared.
-            if (gamemapinfo->intertextsecret[0] != '-')
-            {
-                res = WD_StartFinale;
-            }
-            else
-            {
-                res = 0;
-            }
+            res = (gamemapinfo->flags & MapInfo_InterTextSecretClear)
+                      ? 0
+                      : WD_StartFinale;
         }
         else if (gamemapinfo->intertext && !secretexit)
         {
-            // '-' means that any default intermission was cleared.
-            if (gamemapinfo->intertext[0] != '-')
-            {
-                res = WD_StartFinale;
-            }
-            else
-            {
-                res = 0;
-            }
+            res = (gamemapinfo->flags & MapInfo_InterTextClear)
+                      ? 0
+                      : WD_StartFinale;
         }
-        else if (gamemapinfo->endpic[0] && gamemapinfo->endpic[0] != '-'
-                 && !secretexit)
+        else if (gamemapinfo->flags & MapInfo_EndGame && !secretexit)
         {
             res = WD_Victory;
         }
