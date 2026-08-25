@@ -1286,7 +1286,7 @@ MI_Completion_t MI_PrepareIntermission(wbstartstruct_t *wminfo)
     {
         const char *next = "";
 
-        if (gamemapinfo->endpic[0] && strcmp(gamemapinfo->endpic, "-") != 0
+        if (gamemapinfo->flags & MapInfo_EndGame
             && gamemapinfo->flags & MapInfo_NoIntermission)
         {
             return DC_Victory;
@@ -1404,6 +1404,8 @@ MI_Completion_t MI_PrepareIntermission(wbstartstruct_t *wminfo)
             wminfo->next = gamemap; // go to next level
         }
     }
+
+    wminfo->partime = LegacyParTimes();
 
     return 0;
 }
