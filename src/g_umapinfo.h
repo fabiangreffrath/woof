@@ -114,11 +114,11 @@ void MI_UpdateNextMapInfo(wbstartstruct_t *wminfo);
 void MI_NextMap(int *episode, int *map);
 MI_ShowNext_t MI_ShowNextLoc(void);
 boolean MI_SkipShowNextLoc(void);
-boolean MI_BossAction(mobj_t *mo, line_t *junk, thinker_t **th);
+boolean MI_BossAction(mobj_t *mo);
 const char *MI_GetLevelTitle(void);
 int MI_SkyTexture(void);
 int MI_PrepareIntermission(wbstartstruct_t *wminfo);
-int MI_PrepareFinale(void);
+MI_WinDisplay_t MI_PrepareFinale(void);
 void MI_WI_Start(wbstartstruct_t *wbs, const char **exitpic,
                  const char **enterpic, wi_animation_t **animation);
 void MI_MapAnnouncement(char announce_string[120], char author_string[120],

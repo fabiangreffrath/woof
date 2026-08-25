@@ -862,8 +862,10 @@ boolean MI_SkipShowNextLoc(void)
     return false;
 }
 
-boolean MI_BossAction(mobj_t *mo, line_t *junk, thinker_t **th)
+boolean MI_BossAction(mobj_t *mo)
 {
+    line_t junk;
+
     // UMAPINFO
     if (gamemapinfo && gamemapinfo->flags & MapInfo_BossActionClear)
     {
@@ -910,21 +912,195 @@ boolean MI_BossAction(mobj_t *mo, line_t *junk, thinker_t **th)
         {
             if (bossaction->type == mo->type)
             {
-                *junk = *lines;
-                junk->special = (short)bossaction->special;
-                junk->args[0] = (short)bossaction->tag;
+                junk = *lines;
+                junk.special = (short)bossaction->special;
+                junk.args[0] = (short)bossaction->tag;
                 // use special semantics for line activation to block problem
                 // types.
-                if (!P_UseSpecialLine(mo, junk, 0, true))
+                if (!P_UseSpecialLine(mo, &junk, 0, true))
                 {
-                    P_CrossSpecialLine(junk, 0, mo, true);
+                    P_CrossSpecialLine(&junk, 0, mo, true);
                 }
             }
         }
     }
 
-    // No legacy
-    return true;
+    // Legacy
+    if (gamemode == commercial)
+    {
+        if (gamemap != 7)
+        {
+            return true;
+        }
+
+        if (!(mo->flags2 & (MF2_MAP07BOSS1 | MF2_MAP07BOSS2)))
+        {
+            return true;
+        }
+    }
+    else
+    {
+        // [FG] game version specific differences
+        if (demo_compatibility && gameversion < exe_ultimate)
+        {
+            if (gamemap != 8)
+            {
+                return true;
+            }
+
+            if (mo->flags2 & MF2_E1M8BOSS && gameepisode != 1)
+            {
+                return true;
+            }
+        }
+        else
+        {
+            switch (gameepisode)
+            {
+                case 1:
+                    if (gamemap != 8)
+                    {
+                        return true;
+                    }
+
+                    if (!(mo->flags2 & MF2_E1M8BOSS))
+                    {
+                        return true;
+                    }
+                    break;
+
+                case 2:
+                    if (gamemap != 8)
+                    {
+                        return true;
+                    }
+
+                    if (!(mo->flags2 & MF2_E2M8BOSS))
+                    {
+                        return true;
+                    }
+                    break;
+
+                case 3:
+                    if (gamemap != 8)
+                    {
+                        return true;
+                    }
+
+                    if (!(mo->flags2 & MF2_E3M8BOSS))
+                    {
+                        return true;
+                    }
+
+                    break;
+
+                case 4:
+                    switch (gamemap)
+                    {
+                        case 6:
+                            if (!(mo->flags2 & MF2_E4M6BOSS))
+                            {
+                                return true;
+                            }
+                            break;
+
+                        case 8:
+                            if (!(mo->flags2 & MF2_E4M8BOSS))
+                            {
+                                return true;
+                            }
+                            break;
+
+                        default:
+                            return true;
+                            break;
+                    }
+                    break;
+
+                default:
+                    if (gamemap != 8)
+                    {
+                        return true;
+                    }
+                    break;
+            }
+        }
+    }
+
+    // make sure there is a player alive for victory
+    int i = 0;
+    for (i = 0; i < MAXPLAYERS; i++)
+    {
+        if (playeringame[i] && players[i].health > 0)
+        {
+            break;
+        }
+    }
+
+    if (i == MAXPLAYERS)
+    {
+        return true; // no one left alive, so do not end game
+    }
+
+    // scan the remaining thinkers to see if all bosses are dead
+    for (thinker_t *th = thinkercap.next; th != &thinkercap; th = th->next)
+    {
+        if (th->function.p1 == P_MobjThinker)
+        {
+            mobj_t *mo2 = (mobj_t *)th;
+            if (mo2 != mo && mo2->type == mo->type && mo2->health > 0)
+            {
+                return true; // other boss not dead
+            }
+        }
+    }
+
+    // victory!
+    if (gamemode == commercial)
+    {
+        if (gamemap == 7)
+        {
+            if (mo->flags2 & MF2_MAP07BOSS1)
+            {
+                junk.args[0] = 666;
+                EV_DoFloor(&junk, lowerFloorToLowest);
+                return true;
+            }
+
+            if (mo->flags2 & MF2_MAP07BOSS2)
+            {
+                junk.args[0] = 667;
+                EV_DoFloor(&junk, raiseToTexture);
+                return true;
+            }
+        }
+    }
+    else
+    {
+        switch (gameepisode)
+        {
+            case 1:
+                junk.args[0] = 666;
+                EV_DoFloor(&junk, lowerFloorToLowest);
+                return true;
+
+            case 4:
+                switch (gamemap)
+                {
+                    case 6:
+                        junk.args[0] = 666;
+                        EV_DoDoor(&junk, blazeOpen);
+                        return true;
+
+                    case 8:
+                        junk.args[0] = 666;
+                        EV_DoFloor(&junk, lowerFloorToLowest);
+                        return true;
+                }
+        }
+    }
+
+    return false;
 }
 
 static boolean IsVanillaMap(int e, int m)
@@ -1217,7 +1393,7 @@ int MI_PrepareIntermission(wbstartstruct_t *wminfo)
     return 0;
 }
 
-int MI_PrepareFinale(void)
+MI_WinDisplay_t MI_PrepareFinale(void)
 {
     // UMAPINFO
     if (gamemapinfo)
