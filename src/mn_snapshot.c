@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2022 Fabian Greffrath
+//  Copyright (C) 2022-2026 Fabian Greffrath
 //
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU General Public License
@@ -15,7 +15,6 @@
 //      Savegame snapshots
 //
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -29,6 +28,8 @@
 #include "r_main.h"
 #include "v_video.h"
 
+#include "base64/base64.h"
+
 static const char snapshot_str[] = "WOOF_SNAPSHOT";
 static const int snapshot_len = arrlen(snapshot_str);
 static const int snapshot_size = (SCREENWIDTH * SCREENHEIGHT) * sizeof(pixel_t);
@@ -36,11 +37,6 @@ static const int snapshot_size = (SCREENWIDTH * SCREENHEIGHT) * sizeof(pixel_t);
 static pixel_t *snapshots[10];
 static pixel_t *current_snapshot;
 static char savegametimes[10][32];
-
-const int MN_SnapshotDataSize(void)
-{
-    return snapshot_len + snapshot_size;
-}
 
 void MN_ResetSnapshot(int i)
 {
@@ -53,35 +49,69 @@ void MN_ResetSnapshot(int i)
 
 // [FG] try to read snapshot data from the end of a savegame file
 
-boolean MN_ReadSnapshot(int i, FILE *fp)
+boolean MN_ReadSnapshot(int i, const byte *buf, int len)
 {
-    char str[16] = {0};
-
     MN_ResetSnapshot(i);
 
-    if (fseek(fp, -MN_SnapshotDataSize(), SEEK_END) != 0)
+    if (buf == NULL)
     {
         return false;
     }
 
-    if (fread(str, 1, snapshot_len, fp) != snapshot_len)
+    // Check if base64-encoded or legacy
+    if (len == 0)
     {
-        return false;
-    }
+        byte *str;
+        len = strlen((char *)buf);
 
-    if (strncasecmp(str, snapshot_str, snapshot_len) != 0)
-    {
-        return false;
-    }
+        if ((snapshots[i] = malloc(snapshot_size * sizeof(**snapshots))) == NULL)
+        {
+            return false;
+        }
 
-    if ((snapshots[i] = malloc(snapshot_size * sizeof(**snapshots))) == NULL)
-    {
-        return false;
-    }
+        size_t decoded_size;
+        if ((str = base64_decode(buf, len, &decoded_size)) == NULL)
+        {
+            return false;
+        }
 
-    if (fread(snapshots[i], 1, snapshot_size, fp) != snapshot_size)
+        if (decoded_size != snapshot_size)
+        {
+            free(str);
+            return false;
+        }
+
+        if (memcpy(snapshots[i], str, snapshot_size) == NULL)
+        {
+            free(str);
+            return false;
+        }
+
+        free(str);
+    }
+    else
     {
-        return false;
+        const byte *str;
+
+        if ((str = buf + len - (snapshot_len + snapshot_size)) < buf)
+        {
+            return false;
+        }
+
+        if (strncasecmp((char *)str, snapshot_str, snapshot_len) != 0)
+        {
+            return false;
+        }
+
+        if ((snapshots[i] = malloc(snapshot_size * sizeof(**snapshots))) == NULL)
+        {
+            return false;
+        }
+
+        if (memcpy(snapshots[i], str + snapshot_len, snapshot_size) == NULL)
+        {
+            return false;
+        }
     }
 
     return true;
@@ -147,14 +177,11 @@ static void TakeSnapshot(void)
     R_SetViewSize(old_screenblocks);
 }
 
-void MN_WriteSnapshot(pixel_t *p)
+char *MN_WriteSnapshot(void)
 {
     TakeSnapshot();
 
-    memcpy(p, snapshot_str, snapshot_len);
-    p += snapshot_len;
-
-    memcpy(p, current_snapshot, snapshot_size);
+    return (char*)base64_encode(current_snapshot, snapshot_size, NULL);
 }
 
 // [FG] draw snapshot for the n'th savegame, if no snapshot is found

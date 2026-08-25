@@ -253,6 +253,11 @@ Copyright:
  © 2020-2024 Julia Nechaevskaya.  
 License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/)
 
+Files: `base/id1.wad/sm*.png`  
+Copyright:  
+ © 2026 DragonKnightKX.  
+License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/)
+
 Files: `data/io.github.fabiangreffrath.woof.metainfo.*`  
 Copyright:  
  © 2023-2024 Fabian Greffrath.  
@@ -293,6 +298,11 @@ Files: `third-party/libebur128/*`
 Copyright:  
  © 2011 Jan Kokemüller.  
 License: [MIT](https://opensource.org/licenses/MIT)
+
+Files: `third-party/base64/*`  
+Copyright:  
+ © 2002-2012 Jouni Malinen.  
+License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
 
 Files: `third-party/md5/*`  
 License: public-domain
