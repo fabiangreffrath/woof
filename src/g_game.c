@@ -1690,13 +1690,10 @@ static void G_DoCompleted(void)
 
   wminfo.nextep = wminfo.epsd = gameepisode - 1;
   wminfo.last = gamemap - 1;
-
   MI_UpdateLastMapInfo(&wminfo);
-
   umapinfo_partimes = false;
 
   MI_Completion_t behaviour = MI_PrepareIntermission(&wminfo);
-
   if (behaviour & DC_Victory)
   {
     gameaction = ga_victory;
