@@ -973,6 +973,13 @@ static void M_DrawSaveLoadBorders(void)
     const int num_slots = currentMenu->numitems - 1;
     const int x = currentMenu->x;
 
+    int slot = quickSaveSlot;
+
+    if (menuactive && currentMenu == &LoadAutoSaveDef)
+    {
+        slot++;
+    }
+
     for (int i = 0; i < num_slots; i++)
     {
         const int y = currentMenu->y + LINEHEIGHT * i;
@@ -983,11 +990,7 @@ static void M_DrawSaveLoadBorders(void)
         M_DrawSaveLoadBorder(x, y, cr);
 
         byte *cr2 =
-            (savepage == quickSavePage
-             && (currentMenu == &LoadAutoSaveDef ? i - 1 == quickSaveSlot
-                                                 : i == quickSaveSlot))
-                ? cr_gold
-                : NULL;
+            (savepage == quickSavePage && i == slot) ? cr_gold : NULL;
         WriteTextCR(x, y, cr2, savegamestrings[i]);
     }
 }
@@ -1416,12 +1419,19 @@ static void M_DoSave(int slot)
     MN_ClearMenus();
 }
 
-void MN_SetQuickSaveSlot(int slot)
+void MN_SetQuickSaveSlot(int choice)
 {
+    int slot = choice;
+
+    if (menuactive && currentMenu == &LoadAutoSaveDef)
+    {
+        slot--;
+    }
+
     if (quickSaveSlot == -2)
     {
         quickSavePage = savepage;
-        quickSaveSlot = (currentMenu == &LoadAutoSaveDef) ? slot - 1 : slot;
+        quickSaveSlot = slot;
     }
 }
 
@@ -1762,7 +1772,13 @@ static void M_QuickSaveResponse(int ch)
 {
     if (ch == 'y')
     {
-        savepage = quickSavePage;
+        if (currentMenu != &SaveDef || savepage != quickSavePage)
+        {
+            savepage = quickSavePage;
+            SetNextMenu(&SaveDef);
+            M_ReadSaveStrings();
+        }
+
         if (MN_StartsWithMapIdentifier(savegamestrings[quickSaveSlot]))
         {
             SetDefaultSaveName(savegamestrings[quickSaveSlot], NULL);
