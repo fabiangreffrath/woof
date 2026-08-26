@@ -1762,7 +1762,7 @@ static void M_QuickSaveResponse(int ch)
 {
     if (ch == 'y')
     {
-        quickSavePage = savepage;
+        savepage = quickSavePage;
         if (MN_StartsWithMapIdentifier(savegamestrings[quickSaveSlot]))
         {
             SetDefaultSaveName(savegamestrings[quickSaveSlot], NULL);
