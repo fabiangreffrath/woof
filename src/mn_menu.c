@@ -906,6 +906,7 @@ static void DeleteSaveGame(int slot)
 
     if (savepage == quickSavePage && slot == quickSaveSlot)
     {
+        quickSavePage = -1;
         quickSaveSlot = -1;
     }
 
@@ -1857,6 +1858,7 @@ static void M_EndGameResponse(int ch)
     }
 
     // [crispy] clear quicksave slot
+    quickSavePage = -1;
     quickSaveSlot = -1;
 
     currentMenu->lastOn = itemOn;
@@ -2377,6 +2379,7 @@ void M_Init(void)
     messageToPrint = 0;
     messageString = NULL;
     messageLastMenuActive = menuactive;
+    quickSavePage = -1;
     quickSaveSlot = -1;
     M_ResetAutoSave();
 
