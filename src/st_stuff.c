@@ -1812,6 +1812,7 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
     // A list already positions its members, so suppress their own
     // alignment to avoid applying it twice.
 
+    const sbaralignment_t orig_alignment = elem->alignment;
     if (is_list_child)
     {
         elem->alignment &= ~(sbe_h_mask | sbe_v_mask);
@@ -1821,7 +1822,7 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
     {
         case sbe_list:
             DrawListOfElem(x1, y1, x2, y2, dry, elem);
-            elem->alignment = elem->orig_alignment;
+            elem->alignment = orig_alignment;
             return;
 
         case sbe_graphic:
@@ -1901,7 +1902,7 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
             break;
     }
 
-    elem->alignment = elem->orig_alignment;
+    elem->alignment = orig_alignment;
 
     sbarelem_t *child;
     array_foreach(child, elem->children)
