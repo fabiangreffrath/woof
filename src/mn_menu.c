@@ -1396,8 +1396,11 @@ static void M_DrawSave(void)
     if (saveStringEnter)
     {
         i = MN_StringWidth(savegamestrings[saveSlot]);
-        WriteText(currentMenu->x + i, currentMenu->y + LINEHEIGHT * saveSlot,
-                  "_");
+        byte *cr = (savepage == quickSavePage && itemOn == quickSaveSlot)
+                       ? cr_gold
+                       : NULL;
+        WriteTextCR(currentMenu->x + i, currentMenu->y + LINEHEIGHT * saveSlot,
+                    cr, "_");
     }
 
     int index = (menu_input == mouse_mode ? highlight_item : itemOn);
