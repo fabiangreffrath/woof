@@ -1419,7 +1419,7 @@ void MN_SetQuickSaveSlot(int slot)
     if (quickSaveSlot == -2)
     {
         quickSavePage = savepage;
-        quickSaveSlot = slot;
+        quickSaveSlot = (currentMenu == &LoadAutoSaveDef) ? slot - 1 : slot;
     }
 }
 
