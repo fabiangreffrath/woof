@@ -251,8 +251,7 @@ static void ParseLumpName(scanner_t *s, char *buffer)
     {
         SC_Error(s, "String too long. Maximum size is 8 characters.");
     }
-    strncpy(buffer, SC_GetString(s), 8);
-    buffer[8] = 0;
+    M_CopyLumpName(buffer, SC_GetString(s));
     M_StringToUpper(buffer);
 }
 
@@ -1408,6 +1407,31 @@ MI_Completion_t MI_PrepareIntermission(wbstartstruct_t *wminfo)
     wminfo->partime = LegacyParTimes();
 
     return 0;
+}
+
+void MI_VisitLevel(void)
+{
+    for (int i = 0; i < MAXPLAYERS; ++i)
+    {
+        if (playeringame[i])
+        {
+            level_t *level;
+            array_foreach(level, players[i].visitedlevels)
+            {
+                if (level->episode == gameepisode && level->map == gamemap)
+                {
+                    break;
+                }
+            }
+            if (level == array_end(players[i].visitedlevels))
+            {
+                level_t newlevel = {gameepisode, gamemap};
+                array_push(players[i].visitedlevels, newlevel);
+            }
+            players[i].num_visitedlevels = array_size(players[i].visitedlevels);
+        }
+    }
+    wminfo.visitedlevels = players[consoleplayer].visitedlevels;
 }
 
 MI_WinDisplay_t MI_PrepareFinale(void)

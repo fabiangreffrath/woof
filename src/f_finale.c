@@ -314,27 +314,18 @@ static boolean MapInfo_StartFinale(void)
         return false;
     }
 
-    if (secretexit)
+    if (secretexit && !(gamemapinfo->flags & MapInfo_InterTextSecretClear))
     {
-        if (gamemapinfo->flags & MapInfo_InterTextSecretClear)
-        {
-            finaletext = NULL;
-        }
-        else if (gamemapinfo->intertextsecret)
-        {
-            finaletext = gamemapinfo->intertextsecret;
-        }
+        finaletext = gamemapinfo->intertextsecret;
     }
-    else
+    else if (secretexit && !(gamemapinfo->flags & MapInfo_InterTextClear))
     {
-        if (gamemapinfo->flags & MapInfo_InterTextClear)
-        {
-            finaletext = NULL;
-        }
-        else if (gamemapinfo->intertext)
-        {
-            finaletext = gamemapinfo->intertext;
-        }
+        finaletext = gamemapinfo->intertext;
+    }
+
+    if (!finaletext)
+    {
+        finaletext = "The End";
     }
 
     if (gamemapinfo->interbackdrop[0])
@@ -1292,27 +1283,29 @@ void F_Drawer (void)
     F_TextWrite ();
   else
   {
+    const char* finalelump = NULL;
     switch (gameepisode)
     {
       case 1:
-           if ( (gamemode == retail && !pwad_help2) || gamemode == commercial )
-             V_DrawPatchFullScreen(
-              V_CachePatchName(W_CheckWidescreenPatch("CREDIT"), PU_CACHE));
-           else
-             V_DrawPatchFullScreen(
-              V_CachePatchName(W_CheckWidescreenPatch("HELP2"), PU_CACHE));
-           break;
+          finalelump =
+              ((gamemode == retail && !pwad_help2) || gamemode == commercial)
+                  ? "CREDIT"
+                  : "HELP2";
+          break;
       case 2:
-           V_DrawPatchFullScreen(
-            V_CachePatchName(W_CheckWidescreenPatch("VICTORY2"), PU_CACHE));
+           finalelump = "VICTORY2";
            break;
       case 3:
            F_BunnyScroll();
            break;
       case 4:
-           V_DrawPatchFullScreen(
-            V_CachePatchName(W_CheckWidescreenPatch("ENDPIC"), PU_CACHE));
+           finalelump = "ENDPIC";
            break;
+    }
+
+    if (finalelump)
+    {
+      V_DrawPatchFullScreen(V_CachePatchName(W_CheckWidescreenPatch(finalelump), PU_CACHE));
     }
   }
 }

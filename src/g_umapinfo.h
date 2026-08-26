@@ -26,20 +26,22 @@ typedef enum
 {
     MapInfo_LabelClear = (1u << 0),
 
+    MapInfo_EndGameClear = (1u << 1),
     MapInfo_EndGameArt = (1u << 2),
     MapInfo_EndGameStandard = (1u << 3),
     MapInfo_EndGameCast = (1u << 4),
     MapInfo_EndGameBunny = (1u << 5),
     MapInfo_EndGameCustomFinale = (1u << 6),
-    MapInfo_EndGame = (MapInfo_EndGameArt | MapInfo_EndGameStandard
-                       | MapInfo_EndGameCast | MapInfo_EndGameBunny),
-    MapInfo_EndGameClear = (1u << 7),
 
-    MapInfo_NoIntermission = (1u << 8),
-    MapInfo_InterTextClear = (1u << 9),
-    MapInfo_InterTextSecretClear = (1u << 10),
+    MapInfo_NoIntermission = (1u << 7),
+    MapInfo_InterTextClear = (1u << 8),
+    MapInfo_InterTextSecretClear = (1u << 9),
 
-    MapInfo_BossActionClear = (1u << 11)
+    MapInfo_BossActionClear = (1u << 10),
+
+    MapInfo_EndGame = (MapInfo_EndGameArt|MapInfo_EndGameStandard|
+                      MapInfo_EndGameCast|MapInfo_EndGameBunny|
+                      MapInfo_EndGameCustomFinale),
 } mapinfo_flags_t;
 
 typedef struct
@@ -118,6 +120,7 @@ boolean MI_BossAction(mobj_t *mo);
 const char *MI_GetLevelTitle(void);
 int MI_SkyTexture(void);
 MI_Completion_t MI_PrepareIntermission(wbstartstruct_t *wminfo);
+void MI_VisitLevel(void);
 MI_WinDisplay_t MI_PrepareFinale(void);
 void MI_WI_Start(wbstartstruct_t *wbs, const char **exitpic,
                  const char **enterpic, wi_animation_t **animation);

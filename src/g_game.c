@@ -1732,27 +1732,7 @@ static void G_DoCompleted(void)
     StatCopy(&wminfo);
   }
 
-  for (int i = 0; i < MAXPLAYERS; ++i)
-  {
-      if (playeringame[i])
-      {
-          level_t *level;
-          array_foreach(level, players[i].visitedlevels)
-          {
-              if (level->episode == gameepisode && level->map == gamemap)
-              {
-                  break;
-              }
-          }
-          if (level == array_end(players[i].visitedlevels))
-          {
-              level_t newlevel = {gameepisode, gamemap};
-              array_push(players[i].visitedlevels, newlevel);
-          }
-          players[i].num_visitedlevels = array_size(players[i].visitedlevels);
-      }
-  }
-  wminfo.visitedlevels = players[consoleplayer].visitedlevels;
+  MI_VisitLevel();
 
   WI_Start (&wminfo);
 }
