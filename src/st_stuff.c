@@ -1653,6 +1653,21 @@ static void DrawNumber(int x1, int y1, int *x2, int *y2, boolean dry,
                        sbarelem_t *elem)
 {
     sbe_number_t *number = elem->subtype.number;
+    const sbaralignment_t orig_alignment = elem->alignment;
+
+    if (!dry && (orig_alignment & (sbe_h_middle | sbe_h_right)))
+    {
+        // The per-glyph shift below cancels itself out against
+        // DrawPatch(), so measure the true width via a dry run (widescreen
+        // bits masked too, or WideShiftX() would skew it) and shift once.
+
+        elem->alignment &= ~(sbe_h_mask | sbe_wide_left | sbe_wide_right);
+        int width = 0;
+        DrawNumber(0, y1, &width, NULL, true, elem);
+        x1 -= (orig_alignment & sbe_h_middle) ? width / 2 : width;
+    }
+
+    elem->alignment = orig_alignment & ~sbe_h_mask;
 
     int value = number->value;
     int base_xoffset = number->xoffset;
@@ -1685,12 +1700,29 @@ static void DrawNumber(int x1, int y1, int *x2, int *y2, boolean dry,
     }
 
     number->xoffset = base_xoffset;
+    elem->alignment = orig_alignment;
 }
 
 static void DrawStringLine(int x1, int y1, int *x2, int *y2, boolean dry,
                            stringline_t *line, sbarelem_t *elem,
                            hudfont_t *font)
 {
+    const sbaralignment_t orig_alignment = elem->alignment;
+
+    if (!dry && (orig_alignment & (sbe_h_middle | sbe_h_right)))
+    {
+        // The per-glyph shift below cancels itself out against
+        // DrawPatch(), so measure the true width via a dry run (widescreen
+        // bits masked too, or WideShiftX() would skew it) and shift once.
+
+        elem->alignment &= ~(sbe_h_mask | sbe_wide_left | sbe_wide_right);
+        int width = 0;
+        DrawStringLine(0, y1, &width, NULL, true, line, elem, font);
+        x1 -= (orig_alignment & sbe_h_middle) ? width / 2 : width;
+    }
+
+    elem->alignment = orig_alignment & ~sbe_h_mask;
+
     int base_xoffset = line->xoffset;
 
     int cr = elem->cr;
@@ -1729,6 +1761,7 @@ static void DrawStringLine(int x1, int y1, int *x2, int *y2, boolean dry,
     }
 
     line->xoffset = base_xoffset;
+    elem->alignment = orig_alignment;
 }
 
 static void DrawWidget(int x1, int y1, int *x2, int *y2, boolean dry,
