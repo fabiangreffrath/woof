@@ -1266,6 +1266,7 @@ static void UpdateString(sbarelem_t *elem)
 }
 
 static void UpdateListOfElem(sbarelem_t *elem, player_t *player);
+static void UpdateCanvasOfElem(sbarelem_t *elem, player_t *player);
 
 static void UpdateElem(sbarelem_t *elem, player_t *player)
 {
@@ -1279,6 +1280,10 @@ static void UpdateElem(sbarelem_t *elem, player_t *player)
     {
         case sbe_list:
             UpdateListOfElem(elem, player);
+            return;
+
+        case sbe_canvas:
+            UpdateCanvasOfElem(elem, player);
             return;
 
         case sbe_face:
@@ -1815,6 +1820,14 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
             DrawListOfElem(x1, y1, x2, y2, dry, elem);
             return;
 
+        case sbe_canvas:
+            // No visual of its own; just position the anchor for
+            // the children loop below.
+            x1 = AdjustX(x1, elem->width, elem->alignment);
+            x1 = WideShiftX(x1, elem->alignment);
+            y1 = AdjustY(y1, elem->height, elem->alignment);
+            break;
+
         case sbe_graphic:
             {
                 sbe_graphic_t *graphic = elem->subtype.graphic;
@@ -1931,6 +1944,37 @@ static void UpdateListOfElem(sbarelem_t *elem, player_t *player)
 
     elem->width = listwidth;
     elem->height = listheight;
+}
+
+// A canvas positions children at their own x_pos/y_pos instead of
+// stacking them, so its size is the furthest extent any child reaches.
+
+static void UpdateCanvasOfElem(sbarelem_t *elem, player_t *player)
+{
+    int width = 0, height = 0;
+
+    sbarelem_t *child;
+    array_foreach(child, elem->children)
+    {
+        UpdateElem(child, player);
+
+        if (child->enabled)
+        {
+            const sbaralignment_t orig_alignment = child->alignment;
+            child->alignment &= ~(sbe_h_mask | sbe_v_mask);
+
+            int cw = 0, ch = 0;
+            DrawElem(0, 0, &cw, &ch, true, child); // Dry run
+
+            child->alignment = orig_alignment;
+
+            width = MAX(width, cw);
+            height = MAX(height, ch);
+        }
+    }
+
+    elem->width = width;
+    elem->height = height;
 }
 
 static void DrawListOfElem(int x1, int y1, int *x2, int *y2, boolean dry,
