@@ -89,6 +89,9 @@ extern line_t           *lines;
 extern int              numsides;
 extern side_t           *sides;
 
+extern int              *sslines_indexes;
+extern ssline_t         *sslines;
+
 extern struct arena_s   *world_arena;
 
 typedef struct localview_s

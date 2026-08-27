@@ -233,6 +233,11 @@ Copyright:
  © TobiasKosmos.  
 License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/) and [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/)
 
+Files: `base/all-all/sprites/bon*`  
+Copyright:  
+ © 2026 Amaruq Wulfe.  
+License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/)
+
 Files: `base/all-all/sbardef.lmp`  
 Copyright:  
  © 2024 Ethan Watson.  
@@ -248,6 +253,11 @@ Copyright:
  © 2020-2024 Julia Nechaevskaya.  
 License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/)
 
+Files: `base/id1.wad/sm*.png`  
+Copyright:  
+ © 2026 DragonKnightKX.  
+License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/)
+
 Files: `data/io.github.fabiangreffrath.woof.metainfo.*`  
 Copyright:  
  © 2023-2024 Fabian Greffrath.  
@@ -256,7 +266,8 @@ License: [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/)
 Files: `opl/*`  
 Copyright:  
  © 2005-2014 Simon Howard;  
- © 2013-2018 Alexey Khokholov (Nuke.YKT).  
+ © 2013-2018 Alexey Khokholov (Nuke.YKT);  
+ © 2026 Tony Gies.  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
 Files: `soundfonts/TimGM6mb.sf2`  
@@ -287,6 +298,11 @@ Files: `third-party/libebur128/*`
 Copyright:  
  © 2011 Jan Kokemüller.  
 License: [MIT](https://opensource.org/licenses/MIT)
+
+Files: `third-party/base64/*`  
+Copyright:  
+ © 2002-2012 Jouni Malinen.  
+License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
 
 Files: `third-party/md5/*`  
 License: public-domain

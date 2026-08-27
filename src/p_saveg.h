@@ -1,6 +1,7 @@
 //
 //  Copyright (C) 1999 by
 //  id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman
+//  Copyright (C) 2026 Fabian Greffrath
 //
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU General Public License
@@ -22,6 +23,32 @@
 
 #include "doomtype.h"
 #include "z_zone.h"
+
+static inline int CheckStreamLength(int32_t length)
+{
+    return length > 0 && length < (1 << 28); // 256 MiB
+}
+
+static inline int CheckZlibHeader(uint8_t *c)
+{
+    return c[0] == 0x78 /* ZLIB_MAGIC_BYTE */ && ((c[0] << 8) + c[1]) % 31 == 0;
+}
+
+static inline int CheckJSONStream(uint8_t *c, size_t length)
+{
+    int ends_with_brace = (c[--length] == '}');
+
+    int starts_with_brace = (*c++ == '{');
+
+    // skip white-space characters
+    while (*c == '\n' || *c == ' ')
+    {
+        c++;
+    }
+    int next_is_quote = (*c == '"');
+
+    return starts_with_brace && next_is_quote && ends_with_brace;
+}
 
 // Persistent storage/archiving.
 // These are the load / save game routines.

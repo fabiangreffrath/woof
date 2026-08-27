@@ -246,6 +246,33 @@ typedef enum
   ST_NEGATIVE
 } slopetype_t;
 
+// Automap drawing
+typedef enum amls_e
+{
+    amls_Default,
+    amls_OneSided,
+    amls_TwoSided,
+    amls_FloorDiff,
+    amls_CeilingDiff,
+    amls_ExtraFloor,
+    amls_Special,
+    amls_Secret,
+    amls_NotSeen,
+    amls_Locked,
+    amls_IntraTeleport,
+    amls_InterTeleport,
+    amls_UnexploredSecret,
+    amls_Portal,
+
+    amls_InterTeleportSecret,
+    amls_Invisible,
+    amls_RevealedSecret,
+    amls_ClosedDoor,
+
+    AMLS_COUNT = amls_Portal + 1,
+    AMLS_COUNT_EXT = amls_ClosedDoor + 1,
+} amls_t;
+
 typedef struct line_s
 {
   vertex_t *v1, *v2;     // Vertices, from v1 to v2.
@@ -262,8 +289,10 @@ typedef struct line_s
   sector_t *backsector; 
   int validcount;        // if == validcount, already checked
   void *specialdata;     // thinker_t for reversable actions
+  degenmobj_t soundorg;  // sound origin for switches/buttons
   const byte *tranmap;   // better translucency handling
   int firsttag,nexttag;  // killough 4/17/98: improves searches for tags.
+  amls_t amls;           // custom automap drawing
 
   // ID24 line specials
   angle_t angle;
@@ -274,20 +303,6 @@ typedef struct line_s
 
   boolean dirty;
 } line_t;
-
-//
-// A SubSector.
-// References a Sector.
-// Basically, this is a list of LineSegs,
-//  indicating the visible walls that define
-//  (all or some) sides of a convex BSP leaf.
-//
-
-typedef struct subsector_s
-{
-  sector_t *sector;
-  int numlines, firstline; // [FG] extended nodes
-} subsector_t;
 
 // phares 3/14/98
 //
@@ -342,6 +357,29 @@ typedef struct seg_s
   // NanoBSP
   struct seg_s *next;
 } seg_t;
+
+typedef struct ssline_s
+{
+  seg_t *seg;
+  line_t *linedef;
+  fixed_t x1, y1;
+  fixed_t x2, y2;
+  fixed_t bbox[4];
+} ssline_t;
+
+//
+// A SubSector.
+// References a Sector.
+// Basically, this is a list of LineSegs,
+//  indicating the visible walls that define
+//  (all or some) sides of a convex BSP leaf.
+//
+
+typedef struct subsector_s
+{
+  sector_t *sector;
+  int numlines, firstline; // [FG] extended nodes
+} subsector_t;
 
 //
 // BSP node.

@@ -174,7 +174,7 @@ int OPL_FillBuffer(byte *buffer, int buffer_samples)
         }
 
         // Add emulator output to buffer.
-        Bit16s *cursor = (Bit16s *)(buffer + filled * 4);
+        int16_t *cursor = (int16_t *)(buffer + filled * 4);
         for (int s = 0; s < nsamples; ++s)
         {
             // Check for chip activations before we generate the sample
@@ -191,13 +191,13 @@ int OPL_FillBuffer(byte *buffer, int buffer_samples)
             }
 
             // Generate a sample from each chip and mix them
-            Bit32s mix[2] = {0, 0};
+            int32_t mix[2] = {0, 0};
             for (int c = 0; c < num_opl_chips; ++c)
             {
                 // Run the chip if it's active or if it has pending register writes
                 if (opl_chip_timeouts[c] < OPL_CHIP_TIMEOUT || (opl_chips[c].writebuf[opl_chips[c].writebuf_cur].reg & 0x200))
                 {
-                    Bit16s sample[2];
+                    int16_t sample[2];
                     OPL3_Generate(&opl_chips[c], sample);
                     mix[0] += sample[0];
                     mix[1] += sample[1];
@@ -425,4 +425,3 @@ opl_driver_t opl_emu_driver =
     OPL_EMU_ClearCallbacks,
     OPL_EMU_AdjustCallbacks,
 };
-

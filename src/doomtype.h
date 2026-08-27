@@ -142,6 +142,16 @@ inline static double clamp(double x, double min, double max)
   #define NORETURN
 #endif
 
+#if defined(__GNUC__) && !defined(__clang__)
+  #define PRAGMA(x) _Pragma(#x)
+  #define UNROLL_LOOP_BY(n) PRAGMA(GCC unroll n)
+#elif defined(__clang__)
+  #define PRAGMA(x) _Pragma(#x)
+  #define UNROLL_LOOP_BY(n) PRAGMA(clang loop unroll_count(n))
+#else
+  #define UNROLL_LOOP_BY(n)
+#endif
+
 // The packed attribute forces structures to be packed into the minimum
 // space necessary.  If this is not done, the compiler may align structure
 // fields differently to optimize memory access, inflating the overall

@@ -844,7 +844,7 @@ void S_PauseMusic(void)
 
 void S_ResumeMusic(void)
 {
-    if (mus_playing && mus_paused)
+    if (mus_playing && mus_paused && !paused)
     {
         I_ResumeSong(mus_playing->handle);
         mus_paused = false;
@@ -1100,6 +1100,11 @@ void S_RestartMusic(void)
     {
         S_ChangeMusic(current_musicnum, true);
     }
+
+    if (paused)
+    {
+        S_PauseMusic();
+    }
 }
 
 //
@@ -1120,6 +1125,7 @@ void S_StopMusic(void)
     if (mus_paused)
     {
         I_ResumeSong(mus_playing->handle);
+        mus_paused = false;
     }
 
     I_StopSong((void *)mus_playing->handle);

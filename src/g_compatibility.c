@@ -24,7 +24,6 @@
 #include "i_printf.h"
 #include "m_array.h"
 #include "m_misc.h"
-#include "p_udmf.h"
 #include "w_wad.h"
 
 #include "m_json.h"
@@ -165,31 +164,28 @@ static void MD5UpdateLump(int lump, struct MD5Context *md5)
     MD5Update(md5, W_CacheLumpNum(lump, PU_CACHE), W_LumpLength(lump));
 }
 
-static void GetLevelCheckSum(int lump, md5_checksum_t *cksum, mapformat_t map)
+static void GetLevelCheckSum(map_t* map, md5_checksum_t *cksum)
 {
     struct MD5Context md5;
 
     MD5Init(&md5);
 
-    int behavior = lump + (map.built ? ML_BEHAVIOR : MLX_BEHAVIOR);
-
-    if (map.format == MAP_UDMF)
+    if (map->map_format == MAP_UDMF)
     {
-        MD5UpdateLump(lump + ML_TEXTMAP, &md5);
-        behavior = UDMF_FindLumps(lump).behavior;
+        MD5UpdateLump(map->textmap, &md5);
     }
     else
     {
-        MD5UpdateLump(lump + ML_LABEL, &md5);
-        MD5UpdateLump(lump + ML_THINGS, &md5);
-        MD5UpdateLump(lump + ML_LINEDEFS, &md5);
-        MD5UpdateLump(lump + ML_SIDEDEFS, &md5);
-        MD5UpdateLump(lump + (map.built ? ML_SECTORS : MLX_SECTORS), &md5);
+        MD5UpdateLump(map->label, &md5);
+        MD5UpdateLump(map->things, &md5);
+        MD5UpdateLump(map->linedefs, &md5);
+        MD5UpdateLump(map->sidedefs, &md5);
+        MD5UpdateLump(map->sectors, &md5);
     }
 
-    if (W_LumpExistsWithName(behavior, "BEHAVIOR"))
+    if (W_LumpExistsWithName(map->behavior, "BEHAVIOR"))
     {
-        MD5UpdateLump(behavior, &md5);
+        MD5UpdateLump(map->behavior, &md5);
     }
 
     MD5Final(cksum->digest, &md5);
@@ -201,7 +197,7 @@ static void GetLevelCheckSum(int lump, md5_checksum_t *cksum, mapformat_t map)
 // function will apply comp options to automatically fix some issues that
 // appear when playing wads in mbf21 (since this is the default).
 
-void G_ApplyLevelCompatibility(int lump, mapformat_t mapformat)
+void G_ApplyLevelCompatibility(map_t* map)
 {
     static demo_version_t old_demo_version;
     static boolean restore_comp;
@@ -224,7 +220,7 @@ void G_ApplyLevelCompatibility(int lump, mapformat_t mapformat)
 
     md5_checksum_t cksum;
 
-    GetLevelCheckSum(lump, &cksum, mapformat);
+    GetLevelCheckSum(map, &cksum);
 
     I_Printf(VB_DEBUG, "Level checksum: %s", cksum.string);
 

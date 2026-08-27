@@ -163,7 +163,7 @@ jobs:
             ${{ matrix.config.msys-env }}-libxmp
             ${{ matrix.config.msys-env }}-libspng
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Build SDL3 (Linux)
         if: runner.os == 'Linux' && matrix.config.type == 'system'
@@ -175,7 +175,7 @@ jobs:
       - name: Restore vcpkg cache
         id: cache-vcpkg
         if: matrix.config.type == 'vcpkg'
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@v6
         with:
           path: ${{ github.workspace }}/vcpkg_cache
           key: vcpkg-${{ matrix.config.triplet }}
@@ -215,14 +215,14 @@ jobs:
 
       - name: Save vcpkg cache
         if: matrix.config.type == 'vcpkg'
-        uses: actions/cache/save@v5
+        uses: actions/cache/save@v6
         with:
           path: ${{ github.workspace }}/vcpkg_cache
           key: ${{ steps.cache-vcpkg.outputs.cache-primary-key }}
 
       - name: Restore demotest cache
         id: cache-demotest
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@v6
         with:
           path: demotest/extract
           key: demotest
@@ -234,7 +234,7 @@ jobs:
 
       - name: Save demotest cache
         if: steps.cache-demotest.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v5
+        uses: actions/cache/save@v6
         with:
           path: demotest/extract
           key: demotest

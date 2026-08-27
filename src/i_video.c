@@ -1175,7 +1175,12 @@ static void SetWindowPosition(void)
     SDL_SyncWindow(screen);
 }
 
-static double CurrentAspectRatio(void)
+typedef struct
+{
+    int w, h;
+} aspect_ratio_t;
+
+static aspect_ratio_t CurrentAspectRatio(void)
 {
     int w, h;
 
@@ -1211,29 +1216,28 @@ static double CurrentAspectRatio(void)
             break;
     }
 
-    double aspect_ratio = (double)w / (double)h;
+    if (w > ASPECT_RATIO_MAX * h)
+    {
+        return (aspect_ratio_t){.w = 36, .h = 10};
+    }
+    else if (w < ASPECT_RATIO_MIN * h)
+    {
+        return (aspect_ratio_t){.w = 4, .h = 3};
+    }
 
-    aspect_ratio = CLAMP(aspect_ratio, ASPECT_RATIO_MIN, ASPECT_RATIO_MAX);
-
-    return aspect_ratio;
+    return (aspect_ratio_t){.w = w, .h = h};
 }
 
 static void ResetResolution(int height)
 {
-    double aspect_ratio = CurrentAspectRatio();
+    const aspect_ratio_t aspect_ratio = CurrentAspectRatio();
 
-    actualheight = correct_aspect_ratio ? (int)(height * 1.2) : height;
+    actualheight = correct_aspect_ratio ? (6 * height / 5) : height;
     video.height = height;
 
-    video.unscaledw = (int)(unscaled_actualheight * aspect_ratio);
-
-    // Unscaled widescreen 16:9 resolution truncates to 426x240, which is not
-    // quite 16:9. To avoid visual instability, we calculate the scaled width
-    // without the actual aspect ratio. For example, at 1280x720 we get
-    // 1278x720.
-
-    double vertscale = (double)actualheight / (double)unscaled_actualheight;
-    video.width = (int)ceil(video.unscaledw * vertscale);
+    video.unscaledw = unscaled_actualheight * aspect_ratio.w / aspect_ratio.h;
+    video.width = actualheight * aspect_ratio.w / aspect_ratio.h;
+    video.width &= (int)~1;
 
     video.deltaw = (video.unscaledw - NONWIDEWIDTH) / 2;
 
@@ -1363,9 +1367,7 @@ static void I_InitVideoParms(void)
             I_Error("The vertical resolution is too low, turn off the aspect "
                     "ratio correction.");
         }
-        double aspect_ratio =
-            (double)max_video_width / (double)max_video_height;
-        if (aspect_ratio < ASPECT_RATIO_MIN)
+        if (max_video_width < ASPECT_RATIO_MIN * max_video_height)
         {
             I_Printf(VB_ERROR, "Aspect ratio not supported, set other resolution");
             max_video_width = mode->w;
@@ -1382,7 +1384,7 @@ static void I_InitVideoParms(void)
 
     if (correct_aspect_ratio)
     {
-        max_height_adjusted = (int)(max_height / 1.2);
+        max_height_adjusted = 5 * max_height / 6;
         unscaled_actualheight = ACTUALHEIGHT;
     }
     else

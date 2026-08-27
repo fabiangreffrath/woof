@@ -737,7 +737,7 @@ void M_LoadDefaults(void)
 
     if ((f = M_fopen(defaultfile, "r")))
     {
-        I_Printf(VB_INFO, " default file: %s", defaultfile);
+        I_Printf(VB_INFO, " config file: %s", defaultfile);
 
         char s[256];
         while (fgets(s, sizeof s, f))

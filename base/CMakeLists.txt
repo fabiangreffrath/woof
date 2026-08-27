@@ -112,6 +112,8 @@ set(BASE_SOURCES
     all-all/sounds/dsdgpain.wav
     all-all/sounds/dsdgsit.wav
 
+    all-all/sprites/bon3a0.png
+    all-all/sprites/bon4a0.png
     all-all/sprites/dogsa1.png
     all-all/sprites/dogsa2.png
     all-all/sprites/dogsa3.png
@@ -240,6 +242,10 @@ set(BASE_SOURCES
     hacx.wad/dehacked.deh
 
     id1.wad/dehacked.lmp
+    id1.wad/smflam0.png
+    id1.wad/smflam1.png
+    id1.wad/smheat0.png
+    id1.wad/smheat1.png
 
     rekkr-all/dehacked.lmp
 

@@ -33,6 +33,7 @@
 #include "p_setup.h"
 #include "p_spec.h"
 #include "r_data.h"
+#include "r_defs.h"
 #include "r_state.h"
 #include "r_tranmap.h"
 #include "tables.h"
@@ -62,21 +63,22 @@ typedef enum
     UDMF_LINE_3DMIDTEX = (1u << 11), // EE's 3D middle texture
     UDMF_LINE_ALPHA    = (1u << 12), // opacity percentage
     UDMF_LINE_TRANMAP  = (1u << 13), // ditto, also customizable LUT
+    UDMF_LINE_STYLE    = (1u << 14), // custom automap style
 
-    UDMF_SIDE_OFFSET   = (1u << 14), // texture X/Y alignment
-    UDMF_SIDE_SCROLL   = (1u << 15), // texture scrolling property
-    UDMF_SIDE_LIGHT    = (1u << 16), // independent light levels
-    UDMF_SIDE_TINT     = (1u << 17), // view-agnostic colormap for the given sidedef
+    UDMF_SIDE_OFFSET   = (1u << 15), // texture X/Y alignment
+    UDMF_SIDE_SCROLL   = (1u << 16), // texture scrolling property
+    UDMF_SIDE_LIGHT    = (1u << 17), // independent light levels
+    UDMF_SIDE_TINT     = (1u << 18), // view-agnostic colormap for the given sidedef
 
-    UDMF_SEC_ANGLE     = (1u << 18), // plane rotation
-    UDMF_SEC_OFFSET    = (1u << 19), // plane X/Y alignment
-    UDMF_SEC_EE_SCROLL = (1u << 20), // EE's original plane scrolling property
-    UDMF_SEC_SCROLL    = (1u << 21), // DSDA's later plane scrolling property
-    UDMF_SEC_LIGHT     = (1u << 22), // independent light levels
-    UDMF_SEC_GRAVITY   = (1u << 23), // WIP
-    UDMF_SEC_COLORMAP  = (1u << 24), // viewplayer's colormap on this given frame
-    UDMF_SEC_TINT      = (1u << 25), // view-agnostic colormap for the given sector
-    UDMF_SEC_SILENCE   = (1u << 26), // WIP
+    UDMF_SEC_ANGLE     = (1u << 19), // plane rotation
+    UDMF_SEC_OFFSET    = (1u << 20), // plane X/Y alignment
+    UDMF_SEC_EE_SCROLL = (1u << 21), // EE's original plane scrolling property
+    UDMF_SEC_SCROLL    = (1u << 22), // DSDA's later plane scrolling property
+    UDMF_SEC_LIGHT     = (1u << 23), // independent light levels
+    UDMF_SEC_GRAVITY   = (1u << 24), // WIP
+    UDMF_SEC_COLORMAP  = (1u << 25), // viewplayer's colormap on this given frame
+    UDMF_SEC_TINT      = (1u << 26), // view-agnostic colormap for the given sector
+    UDMF_SEC_SILENCE   = (1u << 27), // WIP
 
     // Compatibility
     UDMF_COMP_NO_ARG0  = (1u << 31),
@@ -85,7 +87,7 @@ typedef enum
 typedef struct
 {
     // Base spec
-    int32_t id;
+    int32_t tid;
     int32_t type;
     double x, y;
     double height;
@@ -121,6 +123,7 @@ typedef struct
     // Extensions
     char tranmap[9];
     double alpha;
+    amls_t amls;
 } UDMF_Linedef_t;
 
 // Important note about line tag/id/arg0, in the Doom/Heretic/Strife namespaces:
@@ -207,52 +210,6 @@ void UDMF_ClearMemory(void)
     array_free(udmf_things);
 }
 
-UDMF_Lumpnums_t UDMF_FindLumps(int lumpnum)
-{
-    UDMF_Lumpnums_t lumps = {
-        .znodes = -1,
-        .reject = -1,
-        .blockmap = -1,
-        .behavior = -1,
-        .dialogue = -1,
-        .lightmap = -1,
-    };
-
-    // skip label and TEXTMAP, test against all other lumps until ENDMAP
-    for (int i = ML_TEXTMAP + 1; i < UDMF_MAXLUMP; ++i)
-    {
-        int j = lumpnum + i;
-        if (W_LumpExistsWithName(j, "ENDMAP"))
-        {
-            break;
-        }
-        else if (W_LumpExistsWithName(j, "ZNODES"))
-        {
-            lumps.znodes = j;
-        }
-        else if (W_LumpExistsWithName(j, "REJECT"))
-        {
-            lumps.reject = j;
-        }
-        else if (W_LumpExistsWithName(j, "BLOCKMAP"))
-        {
-            lumps.blockmap = j;
-        }
-        else if (W_LumpExistsWithName(j, "BEHAVIOR"))
-        {
-            lumps.behavior = j;
-        }
-        else if (W_LumpExistsWithName(j, "DIALOGUE"))
-        {
-            lumps.dialogue = j;
-        }
-        else if (W_LumpExistsWithName(j, "LIGHTMAP"))
-        {
-            lumps.lightmap = j;
-        }
-    }
-    return lumps;
-}
 //
 // UDMF parsing utils
 //
@@ -541,6 +498,10 @@ static void UDMF_ParseLinedef(scanner_t *s)
         else if (PROP(tranmap, UDMF_LINE_TRANMAP))
         {
             UDMF_ScanLumpName(s, line.tranmap);
+        }
+        else if (PROP(automapstyle, UDMF_LINE_STYLE))
+        {
+            line.amls = UDMF_ScanInt(s);
         }
         else
         {
@@ -883,7 +844,7 @@ static void UDMF_ParseThing(scanner_t *s)
         }
         else if (PROP(id, UDMF_THING_PARAM))
         {
-            thing.id = UDMF_ScanInt(s);
+            thing.tid = UDMF_ScanInt(s);
         }
         else if (BASE_PROP(x))
         {
@@ -994,11 +955,10 @@ static void UDMF_ParseThing(scanner_t *s)
 // UDMF textmap loading
 //
 
-static void UDMF_ParseTextMap(int lumpnum)
+static void UDMF_ParseTextMap(map_t *map)
 {
-    scanner_t *s =
-        SC_Open("TEXTMAP", W_CacheLumpNum(lumpnum + ML_TEXTMAP, PU_CACHE),
-                W_LumpLength(lumpnum + ML_TEXTMAP));
+    scanner_t *s = SC_Open("TEXTMAP", W_CacheLumpNum(map->textmap, PU_CACHE),
+                           W_LumpLength(map->textmap));
 
     while (SC_TokensLeft(s))
     {
@@ -1208,6 +1168,13 @@ static void UDMF_LoadLineDefs(void)
         lines[i].args[3] = udmf_linedefs[i].args[3];
         lines[i].args[4] = udmf_linedefs[i].args[4];
 
+        // Custom automap line style
+        lines[i].amls = udmf_linedefs[i].amls;
+        if (lines[i].amls < amls_Default || lines[i].amls >= AMLS_COUNT)
+        {
+            lines[i].amls = amls_Default;
+        }
+
         // Woof! currently does not support parameterized line specials
         if (udmf_flags & UDMF_LINE_PARAM)
         {
@@ -1310,7 +1277,7 @@ static void UDMF_LoadLineDefs_Post(void)
     }
 }
 
-void UDMF_LoadThings(void)
+void P_LoadThings_UDMF(void)
 {
     for (int i = 0; i < array_size(udmf_things); i++)
     {
@@ -1343,7 +1310,7 @@ void UDMF_LoadThings(void)
         mt.type = udmf_things[i].type;
         mt.options = udmf_things[i].options;
 
-        mt.id = udmf_things[i].id;
+        mt.tid = udmf_things[i].tid;
         mt.special = udmf_things[i].special;
         mt.args[0] = udmf_things[i].args[0];
         mt.args[1] = udmf_things[i].args[1];
@@ -1373,28 +1340,24 @@ void UDMF_LoadThings(void)
     }
 }
 
-void UDMF_LoadMap(int lumpnum, bspformat_t *bsp, bmap_format_t *gen_blockmap,
-                  int *pad_reject)
+void UDMF_LoadMap(map_t *map)
 {
-    UDMF_Lumpnums_t lumps = UDMF_FindLumps(lumpnum);
-
-    if (lumps.znodes < 0)
+    if (map->znodes < 0)
     {
         I_Error("Could not find ZNODES lump for UDMF map: %s.",
-                lumpinfo[lumpnum].name);
+                lumpinfo[map->label].name);
     }
 
-    *bsp = P_CheckBSPFormat_UDMF(lumps.znodes);
-    if (*bsp == BSP_NANO)
+    if (map->bsp_format == BSP_NANO)
     {
         I_Error("Invalid format found on ZNODES lump for UDMF map: %s",
-                lumpinfo[lumpnum].name);
+                lumpinfo[map->label].name);
     }
 
     // Clear everything
     UDMF_ClearMemory();
 
-    UDMF_ParseTextMap(lumpnum);
+    UDMF_ParseTextMap(map);
 
     // note: most of this ordering is important
     UDMF_LoadVertexes();
@@ -1404,7 +1367,7 @@ void UDMF_LoadMap(int lumpnum, bspformat_t *bsp, bmap_format_t *gen_blockmap,
     UDMF_LoadSideDefs_Post(); // <- this needs side_t::special
     UDMF_LoadLineDefs_Post(); // <- this needs Sides Post Processing
 
-    *gen_blockmap = P_LoadBlockMap(lumps.blockmap);
-    P_LoadBSPTree_ZDBSP(lumps.znodes, *bsp);
-    *pad_reject = P_LoadReject(lumps.reject, P_GroupLines());
+    map->bmap_format = P_LoadBlockMap(map->blockmap);
+    P_LoadBSPTree_ZDBSP(map->znodes, map->bsp_format);
+    map->reject_built = P_LoadReject(map->reject, P_GroupLines());
 }

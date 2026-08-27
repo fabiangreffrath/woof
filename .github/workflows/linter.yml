@@ -37,7 +37,7 @@ jobs:
           install-linux-dependencies: true
           version: 3-latest
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Configure
         run: >-

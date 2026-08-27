@@ -392,7 +392,7 @@ enum
     str_death_use_action,
     str_widescreen,
     str_bobbing_pct,
-    str_screen_melt,
+    str_screen_wipe,
     str_palette_changes,
     str_invul_mode,
     str_skill,
@@ -3361,7 +3361,7 @@ static setup_menu_t gen_settings5[] = {
 static const char *death_use_action_strings[] = {"default", "last save",
                                                  "nothing"};
 
-static const char *screen_melt_strings[] = {"Off", "Melt", "Crossfade", "Fizzle"};
+static const char *screen_wipe_strings[] = {"Off", "Melt", "Crossfade", "Fizzle"};
 
 static const char *palette_changes_strings[] = {"Off", "On", "Reduced"};
 
@@ -3374,7 +3374,7 @@ static setup_menu_t gen_settings6[] = {
     {"Quality of life", S_SKIP | S_TITLE, OFF_CNTR_X, M_SPC},
 
     {"Screen wipe effect", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC,
-     {"screen_melt"}, .strings_id = str_screen_melt},
+     {"screen_melt"}, .strings_id = str_screen_wipe},
 
     {"Pain/Pickup/Powerup flashes", S_CHOICE | S_STRICT, OFF_CNTR_X, M_SPC,
      {"palette_changes"}, .strings_id = str_palette_changes},
@@ -3514,13 +3514,22 @@ static struct
     boolean pistolstart;
     boolean halfplayerdamage;
     boolean doubleammo;
-    boolean aggromonsters;    
+    boolean aggromonsters;
+    int helperdogs;
 } csmenu;
 
 const char *skill_strings[] = {
     "I'm too young to die", "Hey, not too rough", "Hurt me plenty",
     "Ultra-Violence", "NIGHTMARE!",
 };
+
+static void CsBarkSound(void)
+{
+    if (csmenu.helperdogs)
+    {
+        M_StartSound(sfx_dgact);
+    }
+}
 
 static void SelectSkillLevel(void);
 
@@ -3534,6 +3543,7 @@ static void StartGame(void)
     cshalfplayerdamage = csmenu.halfplayerdamage;
     csdoubleammo = csmenu.doubleammo;
     csaggromonsters = csmenu.aggromonsters;
+    cshelperdogs = csmenu.helperdogs;
 
     M_ChooseSkill(csmenu_skill);
     setup_active = false;
@@ -3541,8 +3551,11 @@ static void StartGame(void)
 
 static setup_menu_t customskill_settings1[] = {
     MI_GAP_Y(10),
-    {"Skill level", S_CHOICE, CNTR_X, M_SPC, {"csmenu_skill"},
-     .strings_id = str_skill, .action = SelectSkillLevel},
+    {"Skill level",
+          S_CHOICE, CNTR_X,
+          M_SPC, {"csmenu_skill"},
+          .strings_id = str_skill,
+          .action = SelectSkillLevel},
     {"Half damage", S_ONOFF, CNTR_X, M_SPC, {"csmenu.halfplayerdamage"}},
     {"Double ammo", S_ONOFF, CNTR_X, M_SPC, {"csmenu.doubleammo"}},
     {"Fast monsters", S_ONOFF, CNTR_X, M_SPC, {"csmenu.fastparm"}},
@@ -3552,6 +3565,11 @@ static setup_menu_t customskill_settings1[] = {
     {"No monsters", S_ONOFF, CNTR_X, M_SPC, {"csmenu.nomonsters"}},
     {"Co-op spawns", S_ONOFF, CNTR_X, M_SPC, {"csmenu.coopspawns"}},
     {"Pistol start", S_ONOFF, CNTR_X, M_SPC, {"csmenu.pistolstart"}},
+    {"Helper dogs",
+          S_MBF | S_THERMO | S_THRM_SIZE4 | S_ACTION,
+          CNTR_X, M_THRM_SPC,
+          {"csmenu.helperdogs"},
+          .action = CsBarkSound},
     MI_GAP,
     {"Start Game", S_CENTER, 0, M_SPC, .action = StartGame},
     MI_END
@@ -5036,7 +5054,7 @@ static const char **selectstrings[] = {
     [str_death_use_action] = death_use_action_strings,
     [str_widescreen] = widescreen_strings,
     [str_bobbing_pct] = bobbing_pct_strings,
-    [str_screen_melt] = screen_melt_strings,
+    [str_screen_wipe] = screen_wipe_strings,
     [str_palette_changes] = palette_changes_strings,
     [str_invul_mode] = invul_mode_strings,
     [str_skill] = skill_strings,
@@ -5158,5 +5176,6 @@ void MN_BindMenuVariables(void)
     BIND_BOOL_MENU(csmenu.doubleammo);
     BIND_BOOL_MENU(csmenu.halfplayerdamage);
     BIND_BOOL_MENU(csmenu.aggromonsters);
+    BIND_NUM_MENU(csmenu.helperdogs, 0, 3);
     BIND_NUM_MENU(freelook_mode, FREELOOK_OFF, FREELOOK_DIRECT_AIM);
 }

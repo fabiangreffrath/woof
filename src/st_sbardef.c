@@ -103,7 +103,7 @@ static crop_t ParseCrop(json_t *json)
         return crop;
     }
 
-    return zero_crop;
+    return no_crop;
 }
 
 static boolean ParseSbarElem(json_t *json, sbarelem_t *out);
@@ -123,6 +123,7 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
     out->x_pos = JS_GetInteger(x_pos);
     out->y_pos = JS_GetInteger(y_pos);
     out->alignment = JS_GetInteger(alignment);
+    out->orig_alignment = out->alignment;
 
     json_t *translucency = JS_GetObject(json, "translucency");
     if (JS_IsBoolean(translucency) && JS_GetBoolean(translucency))
@@ -475,6 +476,14 @@ static boolean ParseNumberFont(json_t *json, numberfont_t *out)
     return true;
 }
 
+// Some PWADs (e.g. RUST) replace certain HUD font characters with
+// nearly-TITLEPIC-sized graphics with story text.
+//
+// A regular character should not be wider than 8 spaces (32 px)
+#define MAXWIDTH (8 * SPACEWIDTH)
+// A regular character should not be taller than the status bar (32 px)
+#define MAXHEIGHT (ST_HEIGHT)
+
 static void LoadHUDFont(hudfont_t *out)
 {
     char lump[9] = {0};
@@ -492,8 +501,18 @@ static void LoadHUDFont(hudfont_t *out)
             continue;
         }
         out->characters[i] = V_CachePatchNum(found, PU_STATIC);
-        maxwidth = MAX(maxwidth, SHORT(out->characters[i]->width));
-        maxheight = MAX(maxheight, SHORT(out->characters[i]->height));
+
+        const short width = SHORT(out->characters[i]->width);
+        if (width <= MAXWIDTH)
+        {
+            maxwidth = MAX(maxwidth, width);
+        }
+
+        const short height = SHORT(out->characters[i]->height);
+        if (height <= MAXHEIGHT)
+        {
+            maxheight = MAX(maxheight, height);
+        }
     }
 
     out->maxheight = maxheight;

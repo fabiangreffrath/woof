@@ -28,7 +28,9 @@
 
 extern statenum_t *seenstate_tab;
 
-void P_SetupLevel(int episode, int map, int playermask, skill_t skill);
+extern map_t map;
+
+void P_SetupLevel(int episode, int map, skill_t skill);
 void P_Init(void);               // Called by startup code.
 
 extern byte     *rejectmatrix;   // for fast sight rejection
