@@ -318,7 +318,7 @@ static boolean MapInfo_StartFinale(void)
     {
         finaletext = gamemapinfo->intertextsecret;
     }
-    else if (secretexit && !(gamemapinfo->flags & MapInfo_InterTextClear))
+    else if (!secretexit && !(gamemapinfo->flags & MapInfo_InterTextClear))
     {
         finaletext = gamemapinfo->intertext;
     }
