@@ -54,8 +54,8 @@ static const iwad_t iwads[] = {
 static const char *const gamemode_str[] = {
     "Shareware mode",
     "Registered mode",
-    "Commercial mode",
     "Retail mode",
+    "Commercial mode",
     "Unknown mode"
 };
 
