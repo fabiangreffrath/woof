@@ -26,8 +26,8 @@
 typedef enum {
   shareware,    // DOOM 1 shareware, E1, M9
   registered,   // DOOM 1 registered, E3, M27
-  commercial,   // DOOM 2 retail, E1 M34  (DOOM 2 german edition not handled)
   retail,       // DOOM 1 retail, E4, M36
+  commercial,   // DOOM 2 retail, E1 M34  (DOOM 2 german edition not handled)
   indetermined  // Well, no IWAD found.
 } GameMode_t;
 
