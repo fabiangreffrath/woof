@@ -385,11 +385,11 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
                 break;
 
             case sbc_modeeequal:
-                result &= gamemode == (cond->param + 1);
+                result &= gamemode == cond->param;
                 break;
 
             case sbc_modenotequal:
-                result &= gamemode != (cond->param + 1);
+                result &= gamemode != cond->param;
                 break;
 
             case sbc_hudmodeequal:
