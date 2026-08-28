@@ -186,7 +186,7 @@ static void SaveGameSettings(net_gamesettings_t *settings)
     G_WriteOptions(settings->options);
 }
 
-int GetChocolateNetworkGamemode(GameMode_t mode)
+static int GetChocolateNetworkGamemode(GameMode_t mode)
 {
   int fixed_gamemode = 0;
   switch (mode)
