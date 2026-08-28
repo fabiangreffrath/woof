@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "doomdef.h"
 #include "doomtype.h"
 #include "i_exit.h"
 #include "i_system.h"
@@ -533,4 +534,30 @@ void NET_LogPacket(net_packet_t *packet)
         fprintf(net_debug, "%02x", packet->data[packet->pos + i]);
     }
     fprintf(net_debug, "\n");
+}
+
+int NET_GetChocolateNetworkGamemode(GameMode_t mode)
+{
+    int fixed_gamemode = 0;
+    switch (mode)
+    {
+        case shareware:
+            fixed_gamemode = 0;
+            break;
+        case registered:
+            fixed_gamemode = 1;
+            break;
+        case retail:
+            fixed_gamemode = 3;
+            break;
+        case commercial:
+            fixed_gamemode = 2;
+            break;
+        case indetermined:
+            fixed_gamemode = 4;
+            break;
+        default:
+            I_Error("Indetermined gamemode %d", mode);
+    }
+    return fixed_gamemode;
 }

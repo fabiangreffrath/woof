@@ -24,6 +24,7 @@
 #include "execute.h"
 #include "m_misc.h"
 #include "multiplayer.h"
+#include "net_common.h"
 #include "net_defs.h"
 #include "net_io.h"
 #include "net_query.h"
@@ -797,7 +798,7 @@ static void SelectQueryAddress(TXT_UNCAST_ARG(button),
     {
         for (i = 0; found_iwads[i] != NULL; ++i)
         {
-            if (found_iwads[i]->mode == querydata->gamemode
+            if (NET_GetChocolateNetworkGamemode(found_iwads[i]->mode) == querydata->gamemode
              && found_iwads[i]->mission == querydata->gamemission)
             {
                 found_iwad_selected = i;

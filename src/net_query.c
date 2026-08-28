@@ -24,6 +24,7 @@
 #include "i_printf.h"
 #include "i_system.h"
 #include "i_timer.h"
+#include "net_common.h"
 #include "net_defs.h"
 #include "net_io.h"
 #include "net_packet.h"
@@ -773,7 +774,7 @@ static void NET_QueryPrintCallback(net_addr_t *addr, net_querydata_t *data,
     formatted_printf(22, "%s", NET_AddrToString(addr));
     formatted_printf(4, "%i/%i ", data->num_players, data->max_players);
 
-    if (data->gamemode != indetermined)
+    if (data->gamemode != NET_GetChocolateNetworkGamemode(indetermined))
     {
         printf("(%s) ", GameDescription(data->gamemode, data->gamemission));
     }

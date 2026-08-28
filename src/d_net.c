@@ -29,6 +29,7 @@
 #include "i_system.h"
 #include "m_argv.h"
 #include "m_misc.h"
+#include "net_common.h"
 #include "net_defs.h"
 #include "p_mobj.h"
 #include "tables.h"
@@ -186,29 +187,6 @@ static void SaveGameSettings(net_gamesettings_t *settings)
     G_WriteOptions(settings->options);
 }
 
-static int GetChocolateNetworkGamemode(GameMode_t mode)
-{
-  int fixed_gamemode = 0;
-  switch (mode)
-  {
-    case shareware:
-      fixed_gamemode = 0;
-      break;
-    case registered:
-      fixed_gamemode = 1;
-      break;
-    case retail:
-      fixed_gamemode = 3;
-      break;
-    case commercial:
-      fixed_gamemode = 2;
-      break;
-    default:
-      I_Error("Indetermined gamemode %d", mode);
-  }
-  return fixed_gamemode;
-}
-
 static void InitConnectData(net_connect_data_t *connect_data)
 {
     connect_data->max_players = MAXPLAYERS;
@@ -244,7 +222,7 @@ static void InitConnectData(net_connect_data_t *connect_data)
 
     // Game type fields:
 
-    connect_data->gamemode = GetChocolateNetworkGamemode(gamemode);
+    connect_data->gamemode = NET_GetChocolateNetworkGamemode(gamemode);
     connect_data->gamemission = gamemission;
 
     longtics = (demo_compatibility && M_ParmExists("-longtics")) || mbf21;

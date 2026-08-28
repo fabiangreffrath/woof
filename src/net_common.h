@@ -101,4 +101,6 @@ void NET_OpenLog(void);
 void NET_Log(const char *fmt, ...) PRINTF_ATTR(1, 2);
 void NET_LogPacket(net_packet_t *packet);
 
+int NET_GetChocolateNetworkGamemode(GameMode_t mode);
+
 #endif /* #ifndef NET_COMMON_H */
