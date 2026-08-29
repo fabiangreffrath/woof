@@ -41,7 +41,7 @@
 * Fixed ID24 inventory-reset exits missing from UMAPINFO 0-tag check.
 * Fixed MBF high-precision scroller math to match DSDA demo behavior.
 * Fixed how friendly monsters count towards the kill count to match DSDA demo behavior (fixes kill counts in 'Fast Food 2' and 'One Of Everything').
-* Fixed some internal `MT_DOGS` to match DSDA demo behavior.
+* Fixed MBF Helper Dog spawning behavior to match DSDA-Doom.
 * Fixed MBF21 homing player projectiles misbehaving when using Direct Vertical Aiming.
 * Fixed voodoo dolls becoming invisible when voxels were enabled.
 * Fixed rotation of entities mirrored by the Randomly Mirrored Corpses feature.
