@@ -1069,14 +1069,12 @@ static void UpdateNumber(sbarelem_t *elem, player_t *player)
     number->numvalues = numvalues;
 }
 
-// [FG] Computes xoffset/totalwidth for h_right/h_middle, ignoring any
-// trailing whitespace so a padded, fixed-width string still right-aligns
-// to its visible content rather than to the full padded buffer.
+// Calculate xoffset/totalwidth for h_right/h_middle
+
 static void UpdateStringLine(sbaralignment_t alignment, hudfont_t *font,
                              stringline_t *line)
 {
     int totalwidth = 0;
-    int width_at_last_visible = 0;
 
     const char *str = line->string;
     while (*str)
@@ -1102,23 +1100,18 @@ static void UpdateStringLine(sbaralignment_t alignment, hudfont_t *font,
         }
 
         totalwidth += width;
-
-        if (ch != ' ')
-        {
-            width_at_last_visible = totalwidth;
-        }
     }
 
     line->xoffset = 0;
     if (alignment & sbe_h_middle)
     {
-        line->xoffset -= (width_at_last_visible >> 1);
+        line->xoffset -= (totalwidth >> 1);
     }
     else if (alignment & sbe_h_right)
     {
-        line->xoffset -= width_at_last_visible;
+        line->xoffset -= totalwidth;
     }
-    line->totalwidth = width_at_last_visible;
+    line->totalwidth = totalwidth;
 }
 
 static void UpdateLines(sbarelem_t *elem)
