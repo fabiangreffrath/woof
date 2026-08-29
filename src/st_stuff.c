@@ -1799,7 +1799,7 @@ static void DrawListOfElem(int x1, int y1, int *x2, int *y2, boolean dry,
                            sbarelem_t *elem);
 
 static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
-                     sbarelem_t *elem)
+                     sbarelem_t *elem, boolean is_list_child)
 {
     if (!elem->enabled)
     {
@@ -1809,10 +1809,19 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
     x1 += elem->x_pos;
     y1 += elem->y_pos;
 
+    // [FG] A list already positions its members, so suppress their own
+    // alignment to avoid applying it twice.
+    sbaralignment_t real_alignment = elem->alignment;
+    if (is_list_child)
+    {
+        elem->alignment = elem->orig_alignment & ~(sbe_h_mask | sbe_v_mask);
+    }
+
     switch (elem->type)
     {
         case sbe_list:
             DrawListOfElem(x1, y1, x2, y2, dry, elem);
+            elem->alignment = real_alignment;
             return;
 
         case sbe_graphic:
@@ -1892,10 +1901,12 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
             break;
     }
 
+    elem->alignment = real_alignment;
+
     sbarelem_t *child;
     array_foreach(child, elem->children)
     {
-        DrawElem(x1, y1, x2, y2, dry, child);
+        DrawElem(x1, y1, x2, y2, dry, child, false);
     }
 }
 
@@ -1912,7 +1923,7 @@ static void UpdateListOfElem(sbarelem_t *elem, player_t *player)
         int width = 0, height = 0;
         if (child->enabled)
         {
-            DrawElem(0, 0, &width, &height, true, child); // Dry run
+            DrawElem(0, 0, &width, &height, true, child, true); // Dry run
             width -= child->x_pos;
             height -= child->y_pos;
         }
@@ -1927,6 +1938,21 @@ static void UpdateListOfElem(sbarelem_t *elem, player_t *player)
         {
             listheight += (height + list->spacing);
         }
+    }
+
+    // [FG] The loop above adds a trailing list->spacing after the last
+    // contributing child, throwing off a bottom/right-aligned list's
+    // block shift by that amount.
+    if (list->horizontal)
+    {
+        if (listwidth)
+        {
+            listwidth -= list->spacing;
+        }
+    }
+    else if (listheight)
+    {
+        listheight -= list->spacing;
     }
 
     elem->width = listwidth;
@@ -1962,7 +1988,7 @@ static void DrawListOfElem(int x1, int y1, int *x2, int *y2, boolean dry,
             x1adj = AdjustX(x1, child->width, elem->alignment);
         }
 
-        DrawElem(x1adj, y1adj, x2, y2, dry, child);
+        DrawElem(x1adj, y1adj, x2, y2, dry, child, true);
 
         if (list->horizontal && child->width)
         {
@@ -2109,7 +2135,7 @@ static void DrawStatusBar(void)
     int y1 = statusbar->fullscreenrender ? 0 : SCREENHEIGHT - statusbar->height;
     array_foreach(child, statusbar->children)
     {
-        DrawElem(0, y1, NULL, NULL, false, child);
+        DrawElem(0, y1, NULL, NULL, false, child, false);
     }
 
     DrawCenteredMessage();
