@@ -1,39 +1,39 @@
 **New Features and Improvements**
 
 * Mod Support:
- - Added support for the base UDMF spec, and the new exclusive `"woof"` UDMF namespace.
- - Added support for XGL2, XGL3, ZGL2 and ZGL3 node formats.
- - Added support for UZDoom-style obituary assignments in `DEHACKED`, with `Obituary = "x"`, `Melee Obituary = "x"` and `Self Obituary = "x"`.
- - Added support for an exclusive `Woof Bits = x` thing property in `DEHACKED`. Monsters in Legacy of Rust now respect corpse flipping.
- - Added support for ID24 sector-tinting line specials.
- - Added support for visual-only Boom scrollers in vanilla complevels.
- - Added support for dedicated Rekkr autoload directory (via `rekkr-all/`) (thanks @MelodicSpaceship).
- - Added support for ID24 per-state TRANMAPs in `DEHACKED`, via the `Tranmap = "x"` thing property.
- - Added support for custom screen wipes defined in `DEMOLOOP`.
- - Added support for the new XBM1 blockmap lump format.
- - Added support for the ID24 `endfinale` lump, used for custom cast sequences in Legacy of Rust and Dominus Diabolicus.
+  - Added support for the base UDMF spec, and the new exclusive `"woof"` UDMF namespace.
+  - Added support for XGL2, XGL3, ZGL2 and ZGL3 node formats.
+  - Added support for UZDoom-style obituary assignments in `DEHACKED`, with `Obituary = "x"`, `Melee Obituary = "x"` and `Self Obituary = "x"`.
+  - Added support for an exclusive `Woof Bits = x` thing property in `DEHACKED`. Monsters in Legacy of Rust now respect corpse flipping.
+  - Added support for ID24 sector-tinting line specials.
+  - Added support for visual-only Boom scrollers in vanilla complevels.
+  - Added support for dedicated Rekkr autoload directory (via `rekkr-all/`) (thanks @MelodicSpaceship).
+  - Added support for ID24 per-state TRANMAPs in `DEHACKED`, via the `Tranmap = "x"` thing property.
+  - Added support for custom screen wipes defined in `DEMOLOOP`.
+  - Added support for the new XBM1 blockmap lump format.
+  - Added support for the ID24 `endfinale` lump, used for custom cast sequences in Legacy of Rust and Dominus Diabolicus.
 
 * Audio:
- - Sounds from linedefs now use the midpoint of the linedef as the origin, instead of the midpoint of the line's front sector, matching DSDA's behavior.
- - Replaced Nuked-OPL3 with Nuked-OPL3-fast, a byte-identical and faster implementation of the original.
+  - Sounds from linedefs now use the midpoint of the linedef as the origin, instead of the midpoint of the line's front sector, matching DSDA's behavior.
+  - Replaced Nuked-OPL3 with Nuked-OPL3-fast, a byte-identical and faster implementation of the original.
 
 * Rendering:
- - Reworked internal handling of transparency tables:
-  - TRANMAPs are now cached locally on-disk.
-  - Generator now uses linear sRGB blending, as opposed to gamma sRGB, for more accurate color mixing.
-  - The "transparent ghost monsters" feature now uses additive transparency.
- - Added built-in magenta-and-black checkerboard fallback flat to missing floor or ceiling flats.
- - Support for rendering of translucent translated sprites (enables e.g. translucent colored blood).
- - Optimized rendering of very small and/or distant sprites.
+  - Reworked internal handling of transparency tables:
+    - TRANMAPs are now cached locally on-disk.
+    - Generator now uses linear sRGB blending, as opposed to gamma sRGB, for more accurate color mixing.
+    - The "transparent ghost monsters" feature now uses additive transparency.
+  - Added built-in magenta-and-black checkerboard fallback flat to missing floor or ceiling flats.
+  - Support for rendering of translucent translated sprites (enables e.g. translucent colored blood).
+  - Optimized rendering of very small and/or distant sprites.
 
 * Build:
- - Removed extraneous example WADs and documentation files from final builds.
+  - Removed extraneous example WADs and documentation files from final builds.
 
 * Refactor:
- - Moved from Boom-based Dehacked parser to Chocolate Doom's Dehacked parser.
-  - Added extra warnings when in debug mode on the terminal.
-  - Removed `-dehout`, `-bexout` and `-bex` CLI options.
- - Added DSDA's `ssline` optimization for `P_CrossSubsector`.
+  - Moved from Boom-based Dehacked parser to Chocolate Doom's Dehacked parser.
+    - Added extra warnings when in debug mode on the terminal.
+    - Removed `-dehout`, `-bexout` and `-bex` CLI options.
+  - Added DSDA's `ssline` optimization for `P_CrossSubsector`.
 
 **Bug Fixes**
 
