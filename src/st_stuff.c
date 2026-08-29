@@ -1266,6 +1266,7 @@ static void UpdateString(sbarelem_t *elem)
 }
 
 static void UpdateListOfElem(sbarelem_t *elem, player_t *player);
+static void UpdateCanvasOfElem(sbarelem_t *elem, player_t *player);
 
 static void UpdateElem(sbarelem_t *elem, player_t *player)
 {
@@ -1279,6 +1280,10 @@ static void UpdateElem(sbarelem_t *elem, player_t *player)
     {
         case sbe_list:
             UpdateListOfElem(elem, player);
+            return;
+
+        case sbe_canvas:
+            UpdateCanvasOfElem(elem, player);
             return;
 
         case sbe_face:
@@ -1648,6 +1653,21 @@ static void DrawNumber(int x1, int y1, int *x2, int *y2, boolean dry,
                        sbarelem_t *elem)
 {
     sbe_number_t *number = elem->subtype.number;
+    sbaralignment_t real_alignment = elem->alignment;
+
+    if (!dry && (real_alignment & (sbe_h_middle | sbe_h_right)))
+    {
+        // [FG] The per-glyph shift below cancels itself out against
+        // DrawPatch(), so measure the true width via a dry run (widescreen
+        // bits masked too, or WideShiftX() would skew it) and shift once.
+        elem->alignment =
+            real_alignment & ~(sbe_h_mask | sbe_wide_left | sbe_wide_right);
+        int width = 0;
+        DrawNumber(0, y1, &width, NULL, true, elem);
+        x1 -= (real_alignment & sbe_h_middle) ? width / 2 : width;
+    }
+
+    elem->alignment = real_alignment & ~sbe_h_mask;
 
     int value = number->value;
     int base_xoffset = number->xoffset;
@@ -1680,12 +1700,29 @@ static void DrawNumber(int x1, int y1, int *x2, int *y2, boolean dry,
     }
 
     number->xoffset = base_xoffset;
+    elem->alignment = real_alignment;
 }
 
 static void DrawStringLine(int x1, int y1, int *x2, int *y2, boolean dry,
                            stringline_t *line, sbarelem_t *elem,
                            hudfont_t *font)
 {
+    sbaralignment_t real_alignment = elem->alignment;
+
+    if (!dry && (real_alignment & (sbe_h_middle | sbe_h_right)))
+    {
+        // [FG] The per-glyph shift below cancels itself out against
+        // DrawPatch(), so measure the true width via a dry run (widescreen
+        // bits masked too, or WideShiftX() would skew it) and shift once.
+        elem->alignment =
+            real_alignment & ~(sbe_h_mask | sbe_wide_left | sbe_wide_right);
+        int width = 0;
+        DrawStringLine(0, y1, &width, NULL, true, line, elem, font);
+        x1 -= (real_alignment & sbe_h_middle) ? width / 2 : width;
+    }
+
+    elem->alignment = real_alignment & ~sbe_h_mask;
+
     int base_xoffset = line->xoffset;
 
     int cr = elem->cr;
@@ -1724,6 +1761,7 @@ static void DrawStringLine(int x1, int y1, int *x2, int *y2, boolean dry,
     }
 
     line->xoffset = base_xoffset;
+    elem->alignment = real_alignment;
 }
 
 static void DrawWidget(int x1, int y1, int *x2, int *y2, boolean dry,
@@ -1823,6 +1861,14 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
             DrawListOfElem(x1, y1, x2, y2, dry, elem);
             elem->alignment = real_alignment;
             return;
+
+        case sbe_canvas:
+            // [FG] No visual of its own; just position the anchor for
+            // the children loop below.
+            x1 = AdjustX(x1, elem->width, elem->alignment);
+            x1 = WideShiftX(x1, elem->alignment);
+            y1 = AdjustY(y1, elem->height, elem->alignment);
+            break;
 
         case sbe_graphic:
             {
@@ -1957,6 +2003,36 @@ static void UpdateListOfElem(sbarelem_t *elem, player_t *player)
 
     elem->width = listwidth;
     elem->height = listheight;
+}
+
+// [FG] A canvas positions children at their own x_pos/y_pos instead of
+// stacking them, so its size is the furthest extent any child reaches.
+static void UpdateCanvasOfElem(sbarelem_t *elem, player_t *player)
+{
+    int width = 0, height = 0;
+
+    sbarelem_t *child;
+    array_foreach(child, elem->children)
+    {
+        UpdateElem(child, player);
+
+        if (child->enabled)
+        {
+            sbaralignment_t real_alignment = child->alignment;
+            child->alignment = child->orig_alignment & ~(sbe_h_mask | sbe_v_mask);
+
+            int cw = 0, ch = 0;
+            DrawElem(0, 0, &cw, &ch, true, child); // Dry run
+
+            child->alignment = real_alignment;
+
+            width = MAX(width, cw);
+            height = MAX(height, ch);
+        }
+    }
+
+    elem->width = width;
+    elem->height = height;
 }
 
 static void DrawListOfElem(int x1, int y1, int *x2, int *y2, boolean dry,
