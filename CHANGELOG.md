@@ -47,5 +47,6 @@
 * Fixed rotation of entities mirrored by the Randomly Mirrored Corpses feature.
 * Fixed "Bobbing" Weapon Alignment misbehaving with DeHackEd-set weapon sprite offsets (fixes jittering weapons in D4V.wad).
 * Disabled interpolation of weapon sprites when sprite and DeHackEd offsets change simultaneously (fixes jittering pistol in DoomZero.wad).
+* Fixed SBARDEF game-mode condition checks.
 * Included player weapon-switching state in savegames (fixes some visual bugs with weapons when loading savegames).
 * Ensured that savegame description strings are null-terminated.
