@@ -2022,7 +2022,7 @@ static void UpdateCanvasOfElem(sbarelem_t *elem, player_t *player)
             child->alignment = child->orig_alignment & ~(sbe_h_mask | sbe_v_mask);
 
             int cw = 0, ch = 0;
-            DrawElem(0, 0, &cw, &ch, true, child); // Dry run
+            DrawElem(0, 0, &cw, &ch, true, child, true); // Dry run
 
             child->alignment = real_alignment;
 
