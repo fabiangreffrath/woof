@@ -1069,7 +1069,7 @@ static void UpdateNumber(sbarelem_t *elem, player_t *player)
     number->numvalues = numvalues;
 }
 
-// Calculate xoffset/totalwidth for h_right/h_middle
+// Calculate xoffset/totalwidth for h_right/h_middle-aligned strings.
 
 static void UpdateStringLine(sbaralignment_t alignment, hudfont_t *font,
                              stringline_t *line)
@@ -1310,15 +1310,7 @@ static void UpdateElem(sbarelem_t *elem, player_t *player)
                 ST_UpdateWidget(elem, player);
                 UpdateLines(elem);
 
-                // [FG] A non-empty line's height doesn't depend on its
-                // content -- DrawWidget() steps by font->maxheight for
-                // any such line regardless of what's in it -- so compute
-                // it directly instead of via a dry run, which silently
-                // measures 0 height for a line whose only character has
-                // no glyph (e.g. a single space), making list members
-                // above/below it jump around as that line's content
-                // changes. A line with an empty string still counts as
-                // 0, matching DrawWidget()'s own skip below.
+                // Calculate widget's width/height, skip empty lines.
                 int width = 0, height = 0;
                 stringline_t *line;
                 array_foreach(line, widget->lines)
@@ -1771,8 +1763,7 @@ static void DrawWidget(int x1, int y1, int *x2, int *y2, boolean dry,
     {
         DrawStringLine(x1, y1, x2, y2, dry, line, elem, font);
 
-        // [FG] An empty line occupies no vertical space, matching how
-        // UpdateElem() computes elem->height for this widget.
+        // Skip empty lines
         if (!line->string[0])
         {
             continue;
@@ -1851,9 +1842,10 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
     x1 += elem->x_pos;
     y1 += elem->y_pos;
 
-    // [FG] A list already positions its members, so suppress their own
+    // A list already positions its members, so suppress their own
     // alignment to avoid applying it twice.
-    sbaralignment_t real_alignment = elem->alignment;
+
+    const sbaralignment_t orig_alignment = elem->alignment;
     if (is_list_child)
     {
         elem->alignment = elem->orig_alignment & ~(sbe_h_mask | sbe_v_mask);
@@ -1863,11 +1855,11 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
     {
         case sbe_list:
             DrawListOfElem(x1, y1, x2, y2, dry, elem);
-            elem->alignment = real_alignment;
+            elem->alignment = orig_alignment;
             return;
 
         case sbe_canvas:
-            // [FG] No visual of its own; just position the anchor for
+            // No visual of its own; just position the anchor for
             // the children loop below.
             x1 = AdjustX(x1, elem->width, elem->alignment);
             x1 = WideShiftX(x1, elem->alignment);
@@ -1951,7 +1943,7 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
             break;
     }
 
-    elem->alignment = real_alignment;
+    elem->alignment = orig_alignment;
 
     sbarelem_t *child;
     array_foreach(child, elem->children)
@@ -1975,20 +1967,11 @@ static void UpdateListOfElem(sbarelem_t *elem, player_t *player)
         {
             if (child->type == sbe_widget)
             {
-                // [FG] UpdateElem() already computed the widget's true
-                // size directly (line count times font maxheight, not a
-                // per-glyph ink measurement), which the dry run below
-                // cannot reproduce for a line with no visible glyphs.
                 width = child->width;
                 height = child->height;
             }
             else
             {
-                // [FG] Seeding width/height with x_pos/y_pos here
-                // (instead of 0) keeps DrawElem()'s x1/y1 += x_pos/y_pos
-                // from making a large negative offset look smaller than
-                // 0 and getting clamped away by MAX() inside the dry
-                // run.
                 DrawElem(0, 0, &width, &height, true, child, true); // Dry run
                 width -= child->x_pos;
                 height -= child->y_pos;
@@ -2012,15 +1995,13 @@ static void UpdateListOfElem(sbarelem_t *elem, player_t *player)
         }
     }
 
-    // [FG] The loop above adds a trailing list->spacing after the last
+    // The loop above adds a trailing list->spacing after the last
     // contributing child, throwing off a bottom/right-aligned list's
     // block shift by that amount.
-    if (list->horizontal)
+
+    if (list->horizontal && listwidth)
     {
-        if (listwidth)
-        {
-            listwidth -= list->spacing;
-        }
+        listwidth -= list->spacing;
     }
     else if (listheight)
     {
@@ -2031,8 +2012,9 @@ static void UpdateListOfElem(sbarelem_t *elem, player_t *player)
     elem->height = listheight;
 }
 
-// [FG] A canvas positions children at their own x_pos/y_pos instead of
+// A canvas positions children at their own x_pos/y_pos instead of
 // stacking them, so its size is the furthest extent any child reaches.
+
 static void UpdateCanvasOfElem(sbarelem_t *elem, player_t *player)
 {
     int width = 0, height = 0;
@@ -2047,19 +2029,11 @@ static void UpdateCanvasOfElem(sbarelem_t *elem, player_t *player)
             int cw, ch;
             if (child->type == sbe_widget)
             {
-                // [FG] As in UpdateListOfElem(): reuse the widget's
-                // directly-computed size instead of a dry run, which
-                // cannot measure a line with no visible glyphs.
                 cw = child->x_pos + child->width;
                 ch = child->y_pos + child->height;
             }
             else
             {
-                // [FG] Seed the accumulator with x_pos/y_pos, not 0 --
-                // since DrawElem() adds x_pos/y_pos before drawing, a
-                // large enough negative offset would otherwise make the
-                // child's true extent look smaller than 0 and get
-                // clamped away by MAX().
                 cw = child->x_pos;
                 ch = child->y_pos;
                 DrawElem(0, 0, &cw, &ch, true, child, true); // Dry run
