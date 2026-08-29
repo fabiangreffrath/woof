@@ -1312,8 +1312,33 @@ static void UpdateElem(sbarelem_t *elem, player_t *player)
             break;
 
         case sbe_widget:
-            ST_UpdateWidget(elem, player);
-            UpdateLines(elem);
+            {
+                sbe_widget_t *widget = elem->subtype.widget;
+                ST_UpdateWidget(elem, player);
+                UpdateLines(elem);
+
+                // [FG] A non-empty line's height doesn't depend on its
+                // content -- DrawWidget() steps by font->maxheight for
+                // any such line regardless of what's in it -- so compute
+                // it directly instead of via a dry run, which silently
+                // measures 0 height for a line whose only character has
+                // no glyph (e.g. a single space), making list members
+                // above/below it jump around as that line's content
+                // changes. A line with an empty string still counts as
+                // 0, matching DrawWidget()'s own skip below.
+                int width = 0, height = 0;
+                stringline_t *line;
+                array_foreach(line, widget->lines)
+                {
+                    width = MAX(width, line->totalwidth);
+                    if (line->string[0])
+                    {
+                        height += widget->font->maxheight;
+                    }
+                }
+                elem->width = width;
+                elem->height = height;
+            }
             break;
 
         case sbe_carousel:
@@ -1752,6 +1777,14 @@ static void DrawWidget(int x1, int y1, int *x2, int *y2, boolean dry,
     array_foreach(line, widget->lines)
     {
         DrawStringLine(x1, y1, x2, y2, dry, line, elem, font);
+
+        // [FG] An empty line occupies no vertical space, matching how
+        // UpdateElem() computes elem->height for this widget.
+        if (!line->string[0])
+        {
+            continue;
+        }
+
         if (elem->alignment & sbe_v_bottom)
         {
             y1 -= font->maxheight;
@@ -1947,13 +1980,26 @@ static void UpdateListOfElem(sbarelem_t *elem, player_t *player)
         int width = child->x_pos, height = child->y_pos;
         if (child->enabled)
         {
-            // [FG] Seeding width/height with x_pos/y_pos here (instead of
-            // 0) keeps DrawElem()'s x1/y1 += x_pos/y_pos from making a
-            // large negative offset look smaller than 0 and getting
-            // clamped away by MAX() inside the dry run below.
-            DrawElem(0, 0, &width, &height, true, child, true); // Dry run
-            width -= child->x_pos;
-            height -= child->y_pos;
+            if (child->type == sbe_widget)
+            {
+                // [FG] UpdateElem() already computed the widget's true
+                // size directly (line count times font maxheight, not a
+                // per-glyph ink measurement), which the dry run below
+                // cannot reproduce for a line with no visible glyphs.
+                width = child->width;
+                height = child->height;
+            }
+            else
+            {
+                // [FG] Seeding width/height with x_pos/y_pos here
+                // (instead of 0) keeps DrawElem()'s x1/y1 += x_pos/y_pos
+                // from making a large negative offset look smaller than
+                // 0 and getting clamped away by MAX() inside the dry
+                // run.
+                DrawElem(0, 0, &width, &height, true, child, true); // Dry run
+                width -= child->x_pos;
+                height -= child->y_pos;
+            }
         }
         else
         {
@@ -2005,12 +2051,26 @@ static void UpdateCanvasOfElem(sbarelem_t *elem, player_t *player)
 
         if (child->enabled)
         {
-            // [FG] Seed the accumulator with x_pos/y_pos, not 0 -- since
-            // DrawElem() adds x_pos/y_pos before drawing, a large enough
-            // negative offset would otherwise make the child's true
-            // extent look smaller than 0 and get clamped away by MAX().
-            int cw = child->x_pos, ch = child->y_pos;
-            DrawElem(0, 0, &cw, &ch, true, child, true); // Dry run
+            int cw, ch;
+            if (child->type == sbe_widget)
+            {
+                // [FG] As in UpdateListOfElem(): reuse the widget's
+                // directly-computed size instead of a dry run, which
+                // cannot measure a line with no visible glyphs.
+                cw = child->x_pos + child->width;
+                ch = child->y_pos + child->height;
+            }
+            else
+            {
+                // [FG] Seed the accumulator with x_pos/y_pos, not 0 --
+                // since DrawElem() adds x_pos/y_pos before drawing, a
+                // large enough negative offset would otherwise make the
+                // child's true extent look smaller than 0 and get
+                // clamped away by MAX().
+                cw = child->x_pos;
+                ch = child->y_pos;
+                DrawElem(0, 0, &cw, &ch, true, child, true); // Dry run
+            }
 
             width = MAX(width, cw);
             height = MAX(height, ch);
