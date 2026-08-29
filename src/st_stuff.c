@@ -1848,7 +1848,7 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
     const sbaralignment_t orig_alignment = elem->alignment;
     if (is_list_child)
     {
-        elem->alignment = elem->orig_alignment & ~(sbe_h_mask | sbe_v_mask);
+        elem->alignment &= ~(sbe_h_mask | sbe_v_mask);
     }
 
     switch (elem->type)
