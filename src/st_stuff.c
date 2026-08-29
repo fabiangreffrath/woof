@@ -1069,6 +1069,58 @@ static void UpdateNumber(sbarelem_t *elem, player_t *player)
     number->numvalues = numvalues;
 }
 
+// [FG] Computes xoffset/totalwidth for h_right/h_middle, ignoring any
+// trailing whitespace so a padded, fixed-width string still right-aligns
+// to its visible content rather than to the full padded buffer.
+static void UpdateStringLine(sbaralignment_t alignment, hudfont_t *font,
+                             stringline_t *line)
+{
+    int totalwidth = 0;
+    int width_at_last_visible = 0;
+
+    const char *str = line->string;
+    while (*str)
+    {
+        int ch = *str++;
+        if (ch == '\x1b' && *str)
+        {
+            ++str;
+            continue;
+        }
+
+        int width;
+        if (font->type == sbf_proportional)
+        {
+            int idx = M_ToUpper(ch) - HU_FONTSTART;
+            patch_t *patch =
+                (idx < 0 || idx >= HU_FONTSIZE) ? NULL : font->characters[idx];
+            width = patch ? SHORT(patch->width) : SPACEWIDTH;
+        }
+        else
+        {
+            width = font->monowidth;
+        }
+
+        totalwidth += width;
+
+        if (ch != ' ')
+        {
+            width_at_last_visible = totalwidth;
+        }
+    }
+
+    line->xoffset = 0;
+    if (alignment & sbe_h_middle)
+    {
+        line->xoffset -= (width_at_last_visible >> 1);
+    }
+    else if (alignment & sbe_h_right)
+    {
+        line->xoffset -= width_at_last_visible;
+    }
+    line->totalwidth = width_at_last_visible;
+}
+
 static void UpdateLines(sbarelem_t *elem)
 {
     sbe_widget_t *widget = elem->subtype.widget;
@@ -1077,50 +1129,7 @@ static void UpdateLines(sbarelem_t *elem)
     stringline_t *line;
     array_foreach(line, widget->lines)
     {
-        int totalwidth = 0;
-
-        const char *str = line->string;
-        while (*str)
-        {
-            int ch = *str++;
-            if (ch == '\x1b' && *str)
-            {
-                ++str;
-                continue;
-            }
-
-            if (font->type == sbf_proportional)
-            {
-                ch = M_ToUpper(ch) - HU_FONTSTART;
-                if (ch < 0 || ch >= HU_FONTSIZE)
-                {
-                    totalwidth += SPACEWIDTH;
-                    continue;
-                }
-                patch_t *patch = font->characters[ch];
-                if (patch == NULL)
-                {
-                    totalwidth += SPACEWIDTH;
-                    continue;
-                }
-                totalwidth += SHORT(patch->width);
-            }
-            else
-            {
-                totalwidth += font->monowidth;
-            }
-        }
-
-        line->xoffset = 0;
-        if (elem->alignment & sbe_h_middle)
-        {
-            line->xoffset -= (totalwidth >> 1);
-        }
-        else if (elem->alignment & sbe_h_right)
-        {
-            line->xoffset -= totalwidth;
-        }
-        line->totalwidth = totalwidth;
+        UpdateStringLine(elem->alignment, font, line);
     }
 }
 
@@ -1263,6 +1272,8 @@ static void UpdateString(sbarelem_t *elem)
         default:
             break;
     }
+
+    UpdateStringLine(elem->alignment, string->font, &string->line);
 }
 
 static void UpdateListOfElem(sbarelem_t *elem, player_t *player);
@@ -1653,21 +1664,6 @@ static void DrawNumber(int x1, int y1, int *x2, int *y2, boolean dry,
                        sbarelem_t *elem)
 {
     sbe_number_t *number = elem->subtype.number;
-    sbaralignment_t real_alignment = elem->alignment;
-
-    if (!dry && (real_alignment & (sbe_h_middle | sbe_h_right)))
-    {
-        // [FG] The per-glyph shift below cancels itself out against
-        // DrawPatch(), so measure the true width via a dry run (widescreen
-        // bits masked too, or WideShiftX() would skew it) and shift once.
-        elem->alignment =
-            real_alignment & ~(sbe_h_mask | sbe_wide_left | sbe_wide_right);
-        int width = 0;
-        DrawNumber(0, y1, &width, NULL, true, elem);
-        x1 -= (real_alignment & sbe_h_middle) ? width / 2 : width;
-    }
-
-    elem->alignment = real_alignment & ~sbe_h_mask;
 
     int value = number->value;
     int base_xoffset = number->xoffset;
@@ -1700,29 +1696,12 @@ static void DrawNumber(int x1, int y1, int *x2, int *y2, boolean dry,
     }
 
     number->xoffset = base_xoffset;
-    elem->alignment = real_alignment;
 }
 
 static void DrawStringLine(int x1, int y1, int *x2, int *y2, boolean dry,
                            stringline_t *line, sbarelem_t *elem,
                            hudfont_t *font)
 {
-    sbaralignment_t real_alignment = elem->alignment;
-
-    if (!dry && (real_alignment & (sbe_h_middle | sbe_h_right)))
-    {
-        // [FG] The per-glyph shift below cancels itself out against
-        // DrawPatch(), so measure the true width via a dry run (widescreen
-        // bits masked too, or WideShiftX() would skew it) and shift once.
-        elem->alignment =
-            real_alignment & ~(sbe_h_mask | sbe_wide_left | sbe_wide_right);
-        int width = 0;
-        DrawStringLine(0, y1, &width, NULL, true, line, elem, font);
-        x1 -= (real_alignment & sbe_h_middle) ? width / 2 : width;
-    }
-
-    elem->alignment = real_alignment & ~sbe_h_mask;
-
     int base_xoffset = line->xoffset;
 
     int cr = elem->cr;
@@ -1761,7 +1740,6 @@ static void DrawStringLine(int x1, int y1, int *x2, int *y2, boolean dry,
     }
 
     line->xoffset = base_xoffset;
-    elem->alignment = real_alignment;
 }
 
 static void DrawWidget(int x1, int y1, int *x2, int *y2, boolean dry,
