@@ -1966,12 +1966,21 @@ static void UpdateListOfElem(sbarelem_t *elem, player_t *player)
     {
         UpdateElem(child, player);
 
-        int width = 0, height = 0;
+        int width = child->x_pos, height = child->y_pos;
         if (child->enabled)
         {
+            // [FG] Seeding width/height with x_pos/y_pos here (instead of
+            // 0) keeps DrawElem()'s x1/y1 += x_pos/y_pos from making a
+            // large negative offset look smaller than 0 and getting
+            // clamped away by MAX() inside the dry run below.
             DrawElem(0, 0, &width, &height, true, child, true); // Dry run
             width -= child->x_pos;
             height -= child->y_pos;
+        }
+        else
+        {
+            width = 0;
+            height = 0;
         }
         child->width = width;
         child->height = height;
@@ -2018,13 +2027,12 @@ static void UpdateCanvasOfElem(sbarelem_t *elem, player_t *player)
 
         if (child->enabled)
         {
-            sbaralignment_t real_alignment = child->alignment;
-            child->alignment = child->orig_alignment & ~(sbe_h_mask | sbe_v_mask);
-
-            int cw = 0, ch = 0;
+            // [FG] Seed the accumulator with x_pos/y_pos, not 0 -- since
+            // DrawElem() adds x_pos/y_pos before drawing, a large enough
+            // negative offset would otherwise make the child's true
+            // extent look smaller than 0 and get clamped away by MAX().
+            int cw = child->x_pos, ch = child->y_pos;
             DrawElem(0, 0, &cw, &ch, true, child, true); // Dry run
-
-            child->alignment = real_alignment;
 
             width = MAX(width, cw);
             height = MAX(height, ch);
