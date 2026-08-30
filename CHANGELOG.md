@@ -7,6 +7,7 @@
   - Added support for an exclusive `Woof Bits = x` thing property in `DEHACKED`. Monsters in Legacy of Rust now respect corpse flipping.
   - Added support for ID24 0.99.2 line specials (sector tinting, pistol-start exits, music changers, scrollers, offsets).
   - Added support for ID24 flat rotation.
+  - Added initial support for the `TX_START`/`TX_END` namespace.
   - Added support for visual-only Boom scrollers in vanilla complevels.
   - Added support for a dedicated Rekkr autoload directory (via `rekkr-all/`) (thanks @MelodicSpaceship).
   - Added support for ID24 per-state TRANMAPs in `DEHACKED`, via the `Tranmap = "x"` thing property.
@@ -18,12 +19,23 @@
   - Improved Freedoom support:
     - Added support for `freedoom-all`, `freedoom1-all` and `freedoom2-all` autoload directories.
     - Setup program now uses Freedoom skill descriptions when applicable.
+  - Added support for `HELP2` graphic in Ultimate Doom PWADs.
 
 * Quality of Life:
+  - Added rewinding, similar to DSDA-Doom.
   - Added a custom skill menu.
+  - Combined "Free Look" and "Direct Vertical Aiming" menu items (settings are still separate).
+  - Disabled free look in strict mode.
   - Added a "Previous Map" button.
   - Reworked handling of strict mode, now more akin to DSDA-Doom:
     - Now only applicable to demo recording, and enabled by default in it; can be disabled via the `-tas` parameter.
+  - Reworked "Exit Sequence" and "PWAD ENDOOM Only" settings into the following settings:
+    - "Show Quit Prompt"
+    - "Play Quit Sound"
+    - "Show ENDOOM Screen"
+  - Added "Pause Demos in Menu" setting.
+  - Added a net-game stats overlay button (<kbd>F1</kbd> by default).
+  - Added `input_msgreview` binding for message review.
 
 * Audio:
   - Improved sound limiter: limits the volume when too many channels are playing the same sound, and omits low-priority sounds.
@@ -35,18 +47,24 @@
     - TRANMAPs are now cached locally on-disk.
     - Generator now uses linear sRGB blending, as opposed to gamma sRGB, for more accurate color mixing.
     - The "transparent ghost monsters" feature now uses additive transparency.
-  - Added built-in magenta-and-black checkerboard fallback flat to missing floor or ceiling flats.
+  - Added built-in magenta-and-black checkerboard fallback flat for missing flats.
   - Added support for rendering of translucent translated sprites (enables e.g. translucent colored blood).
+  - Optimized rendering of plane rendering.
   - Optimized rendering of very small and/or distant sprites.
   - Interpolated rotation of transferred skies.
+  - Made automap colors be converted to the current palette.
 
 * Miscellaneous:
-  - Updated Woof! from SDL2 to SDL3:
-    - Removed "Exclusive Fullscreen" setting.
   - Improved detection of installed (Steam, GOG) IWADs.
+  - Turned `no button slots left!` error into a warning (fixes `SPECHITS` cheat on Box Doom MAP02).
 
 * Build:
-  - Added `WITH_FLUIDSYNTH` flag, and disabled it by default.
+  - Replaced SDL2 with SDL3:
+    - Removed "Exclusive Fullscreen" setting.
+  - Replaced SDL_net with netlib.
+  - Replaced libsndfile with minimp3 for MP3 playback.
+  - Added universal macOS builds to continuous integration.
+  - Added `WITH_FLUIDSYNTH`, `WITH_XMP`, `ENABLE_LTO`, and various debugging compile-time flags.
   - Removed `woof.com` executable; console output is now shown by `woof.exe` directly, but only with debug builds.
   - Removed extraneous example WADs and documentation files from final builds.
 
@@ -76,4 +94,7 @@
 * Made long quit messages be broken into new lines.
 * Made some door code consistent with DSDA-Doom (`atce2x722.lmp` now plays back identically in both ports).
 * Included player weapon-switching state in savegames (fixes some visual bugs with weapons when loading savegames).
+* Fixed demo progress bar remaining on screen when using "End Game" to stop demos.
+* Made transparent pixels on fullscreen graphics be drawn as black (fixes HOM in `ETERNALL.WAD`'s credits screen).
+* Fixed `-uncapped` and `-nouncapped` parameters not being respected.
 * Ensured that savegame description strings are null-terminated.
