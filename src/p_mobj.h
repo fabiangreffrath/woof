@@ -245,6 +245,7 @@ typedef enum
   // cosmetic
   MIF_FLIP            = 0x00000010,
   MIF_SPAWNED_BY_ICON = 0x00000020,
+  MIF_GHOST           = 0x00000040,
 } mobjflag_int_t;
 
 // Map Object definition.
