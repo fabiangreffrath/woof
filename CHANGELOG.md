@@ -27,6 +27,8 @@
   - Combined "Free Look" and "Direct Vertical Aiming" menu items (settings are still separate).
   - Disabled free look in strict mode.
   - Added a "Previous Map" button.
+  - Replaced "[HUD] Layout" setting with "HUD Anchoring" setting.
+  - Added "Reduced" option for palette-changes setting.
   - Reworked handling of strict mode, now more akin to DSDA-Doom:
     - Now only applicable to demo recording, and enabled by default in it; can be disabled via the `-tas` parameter.
   - Reworked "Exit Sequence" and "PWAD ENDOOM Only" settings into the following settings:
@@ -39,23 +41,34 @@
 
 * Audio:
   - Improved sound limiter: limits the volume when too many channels are playing the same sound, and omits low-priority sounds.
+  - Improved pitch shifting to match Chocolate Doom.
   - Sounds from linedefs now use the midpoint of the linedef as the origin, instead of the midpoint of the line's front sector, matching DSDA's behavior.
   - Replaced Nuked-OPL3 with Nuked-OPL3-fast, a byte-identical and faster implementation of the original.
+  - Updated FluidSynth:
+    - Removed `TimGM6mb.sf2` from Windows builds; FluidSynth now uses `gm.dls` instead.
+    - Added support for `.dls` files in the `soundfonts/` directory.
+    - Added FluidSynth "note cut" setting.
 
 * Rendering:
   - Reworked internal handling of transparency tables:
     - TRANMAPs are now cached locally on-disk.
     - Generator now uses linear sRGB blending, as opposed to gamma sRGB, for more accurate color mixing.
-    - The "transparent ghost monsters" feature now uses additive transparency.
-  - Added built-in magenta-and-black checkerboard fallback flat for missing flats.
+    - Transparent fullbright sprites and the "transparent ghost monsters" feature now use additive transparency.
   - Added support for rendering of translucent translated sprites (enables e.g. translucent colored blood).
-  - Optimized rendering of plane rendering.
-  - Optimized rendering of very small and/or distant sprites.
   - Interpolated rotation of transferred skies.
   - Made automap colors be converted to the current palette.
+  - Optimized rendering of plane rendering.
+  - Optimized rendering of very small and/or distant sprites.
+  - Improved changes of voxel-rendering distance upon dynamic resolution changes.
+  - Missing flats and invalid PNG flats are now rendered as a magenta-and-black checkerboard.
 
 * Miscellaneous:
+  - New savegames now use a compressed JSON key-frame format. Old savegames can still be loaded.
+  - Restored silent BFG trick for complevels below MBF.
+  - Implemented Discord Rich Presence.
+  - Replaced ENDOOM font with an improved font by Zokum.
   - Improved detection of installed (Steam, GOG) IWADs.
+  - Improved HUD stats widget on some non-Doom games (e.g. on Chex it now reads 'F/I/S' instead of 'K/I/S').
   - Turned `no button slots left!` error into a warning (fixes `SPECHITS` cheat on Box Doom MAP02).
 
 * Build:
@@ -66,6 +79,7 @@
   - Added universal macOS builds to continuous integration.
   - Added `WITH_FLUIDSYNTH`, `WITH_XMP`, `ENABLE_LTO`, and various debugging compile-time flags.
   - Removed `woof.com` executable; console output is now shown by `woof.exe` directly, but only with debug builds.
+  - Added update information to AppImages (thanks @electricbrass).
   - Removed extraneous example WADs and documentation files from final builds.
 
 * Refactor:
@@ -81,20 +95,25 @@
 * Fixed interpolation of Boom scrolling floors/ceilings and textures.
 * Fixed how friendly monsters count towards the kill count to match DSDA demo behavior (fixes kill counts in 'Fast Food 2' and 'One Of Everything').
 * Fixed MBF Helper Dog spawning behavior to match DSDA-Doom.
+* Fixed crash when loading invalid `REJECT` tables (fixes 'PUSS IV' MAP01).
 * Fixed obtuse crash when encountering unknown thing types in UMAPINFO `bossaction` definitions (now crashes with a readable error message).
 * Fixed weapon carousel appearing and staying on screen when trying to switch weapons as a zombie player.
 * Fixed MBF21 homing player projectiles misbehaving when using Direct Vertical Aiming.
 * Fixed voodoo dolls becoming invisible when voxels were enabled.
 * Fixed rotation of entities mirrored by the Randomly Mirrored Corpses feature.
-* Fixed "Bobbing" Weapon Alignment misbehaving with DeHackEd-set weapon sprite offsets (fixes jittering weapons in D4V.wad).
-* Disabled interpolation of weapon sprites when sprite and DeHackEd offsets change simultaneously (fixes jittering pistol in DoomZero.wad).
+* Fixed "Bobbing" Weapon Alignment misbehaving with DeHackEd-set weapon sprite offsets (fixes jittering weapons in `D4V.wad`).
+* Disabled interpolation of weapon sprites when sprite and DeHackEd offsets change simultaneously (fixes jittering pistol in `DoomZero.wad`).
+* Fixed height calculation of level-title graphics on intermission (fixes intermission on 'Hell Revealations').
 * Fixed SBARDEF game-mode condition checks.
-* Fixed buffer overflow when parsing MBF21 thing flags.
+* Fixed crosshair appearing on clean screenshots.
 * Fixed obscure crash related to voxel rendering on certain systems.
+* Fixed `A_MonsterMeleeAttack` triggering normal obituaries instead of melee obituaries.
+* Fixed synchronization of weapon carousel and weapon switching when switching with the previous/next-weapon buttons.
 * Made long quit messages be broken into new lines.
 * Made some door code consistent with DSDA-Doom (`atce2x722.lmp` now plays back identically in both ports).
 * Included player weapon-switching state in savegames (fixes some visual bugs with weapons when loading savegames).
 * Fixed demo progress bar remaining on screen when using "End Game" to stop demos.
 * Made transparent pixels on fullscreen graphics be drawn as black (fixes HOM in `ETERNALL.WAD`'s credits screen).
 * Fixed `-uncapped` and `-nouncapped` parameters not being respected.
+* Fixed potential crash in net code.
 * Ensured that savegame description strings are null-terminated.
