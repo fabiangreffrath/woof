@@ -1745,13 +1745,6 @@ static void DrawWidget(int x1, int y1, int *x2, int *y2, boolean dry,
             y1 += font->maxheight;
         }
     }
-
-    // If chat is enabled, add spacing even if it has no text
-    if (y2 && widget->type == sbw_chat && chat_on)
-    {
-        y1 = AdjustY(y1, font->maxheight, elem->alignment);
-        *y2 = MAX(*y2, y1);
-    }
 }
 
 static void DrawMiniMap(int x1, int y1, int *x2, int *y2, boolean dry,
