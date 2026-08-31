@@ -68,7 +68,7 @@
     - Transparent fullbright sprites now use additive transparency.
   - Added support for rendering of translucent translated sprites (enables e.g. translucent colored blood).
   - Interpolated rotation of transferred skies.
-  - Optimized rendering of plane rendering.
+  - Optimized rendering of planes.
   - Optimized rendering of very small and/or distant sprites.
   - Improved changes of voxel-rendering distance upon dynamic resolution changes.
   - Missing flats and invalid PNG flats are now rendered as a magenta-and-black checkerboard.
@@ -99,9 +99,8 @@
   - Replaced SDL2 with SDL3 for modernized input and display support:
     - Removed "Exclusive Fullscreen" setting.
   - Replaced SDL_net with netlib.
-  - Replaced libsndfile with minimp3 for MP3 playback.
+  - Added minimp3 as a fallback for MP3 files not supported by libsndfile.
   - Added universal macOS builds to continuous integration.
-  - Added `WITH_FLUIDSYNTH`, `WITH_XMP`, `ENABLE_LTO`, and various debugging compile-time flags.
   - Removed `woof.com` executable; console output is now shown by `woof.exe` directly, but only with debug builds.
   - Added update information to AppImages (thanks @electricbrass).
   - Removed extraneous example WADs and documentation files from final builds.
@@ -138,7 +137,7 @@
 * Fixed `A_MonsterMeleeAttack` triggering normal obituaries instead of melee obituaries.
 * Fixed synchronization of weapon carousel and weapon switching when switching with the previous/next-weapon buttons.
 * Fixed multiple cheats with identical cheat codes being applied simultaneously.
-* Allowed `TRAKINFO` lumps to update previous `TRAKINFO` records.
+* Allowed `TRAKINFO` lump definitions to stack, overwriting previous definitions.
 * Made long quit messages be broken into new lines.
 * Made some door code consistent with DSDA-Doom (`atce2x722.lmp` now plays back identically in both ports).
 * Included player weapon-switching state in savegames (fixes some visual bugs with weapons when loading savegames).
