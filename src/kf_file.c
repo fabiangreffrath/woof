@@ -2368,14 +2368,12 @@ void P_ArchiveKeyframe(json_mut_doc_t *doc, json_mut_t *root_mut)
 {
     PrepareArchiveThinkers();
 
-    json_mut_t *thinkercap_obj = write_thinker_t(&thinkercap, doc);
-    JS_SetObject(doc, root_mut, "thinkercap", thinkercap_obj);
+    JS_SetObject(doc, root_mut, "thinkercap", write_thinker_t(&thinkercap, doc));
 
     json_mut_t *thinkerclasscaps_arr = JS_NewArray(doc);
     for (int i = 0; i < NUMTHCLASS; ++i)
     {
-        json_mut_t *thinkerclasscap_obj = write_thinker_t(&thinkerclasscap[i], doc);
-        JS_ArrayAddObject(doc, thinkerclasscaps_arr, thinkerclasscap_obj);
+        JS_ArrayAddObject(doc, thinkerclasscaps_arr, write_thinker_t(&thinkerclasscap[i], doc));
     }
     JS_SetArray(doc, root_mut, "thinkerclasscaps", thinkerclasscaps_arr);
     JS_SetInt(doc, root_mut, "headsecnode", writep_msecnode(headsecnode));
@@ -2409,8 +2407,7 @@ void P_ArchiveKeyframe(json_mut_doc_t *doc, json_mut_t *root_mut)
     JS_SetInt(doc, root_mut, "openrange", openrange);
     JS_SetInt(doc, root_mut, "lowfloor", lowfloor);
 
-    json_mut_t *trace_obj = write_divline_t(&trace, doc);
-    JS_SetObject(doc, root_mut, "trace", trace_obj);
+    JS_SetObject(doc, root_mut, "trace", write_divline_t(&trace, doc));
 
     // p_setup.h
     ArchiveBlocklinks(doc, root_mut);
@@ -2427,8 +2424,7 @@ void P_ArchiveKeyframe(json_mut_doc_t *doc, json_mut_t *root_mut)
               writep_activeplats(activeplats));
     ArchivePlatList(doc, root_mut);
 
-    json_mut_t *rng_obj = write_rng_t(&rng, doc);
-    JS_SetObject(doc, root_mut, "rng", rng_obj);
+    JS_SetObject(doc, root_mut, "rng", write_rng_t(&rng, doc));
 
     ArchiveButtons(doc, root_mut);
     ArchiveAutoMap(doc, root_mut);
@@ -2443,11 +2439,9 @@ void P_UnArchiveKeyframe(json_t *root)
     json_t *thinkers_obj = JS_GetObject(root, "thinkers");
     PrepareUnArchiveThinkers(thinkers_obj);
 
-    json_t *thinkercap_obj = JS_GetObject(root, "thinkercap");
-    read_thinker_t(&thinkercap, tc_none, thinkercap_obj);
+    read_thinker_t(&thinkercap, tc_none, JS_GetObject(root, "thinkercap"));
 
-    json_t *thinkerclasscaps_arr = JS_GetObject(root, "thinkerclasscaps");
-    json_arr_iter_t *tcc_iter = JS_ArrayIterator(thinkerclasscaps_arr);
+    json_arr_iter_t *tcc_iter = JS_ArrayIterator(JS_GetObject(root, "thinkerclasscaps"));
     for (int i = 0; i < NUMTHCLASS; ++i)
     {
         read_thinker_t(&thinkerclasscap[i], tc_none, JS_ArrayNext(tcc_iter));
@@ -2460,7 +2454,6 @@ void P_UnArchiveKeyframe(json_t *root)
     headsecnode = readp_msecnode(JS_GetIntegerValue(root, "headsecnode"));
 
     UnArchiveDirty(root);
-
     UnArchiveWorld(root);
 
     // p_map.h
@@ -2476,8 +2469,7 @@ void P_UnArchiveKeyframe(json_t *root)
     sector_list = readp_msecnode(JS_GetIntegerValue(root, "sector_list"));
     JS_GetIdx(blockline, lines, root, "blockline");
 
-    json_t *tmbbox_arr = JS_GetObject(root, "tmbbox");
-    json_arr_iter_t *tmbbox_iter = JS_ArrayIterator(tmbbox_arr);
+    json_arr_iter_t *tmbbox_iter = JS_ArrayIterator(JS_GetObject(root, "tmbbox"));
     for (int i = 0; i < arrlen(tmbbox); ++i)
     {
         tmbbox[i] = JS_GetInteger(JS_ArrayNext(tmbbox_iter));
@@ -2490,8 +2482,7 @@ void P_UnArchiveKeyframe(json_t *root)
     openrange = JS_GetIntegerValue(root, "openrange");
     lowfloor = JS_GetIntegerValue(root, "lowfloor");
 
-    json_t *trace_obj = JS_GetObject(root, "trace");
-    read_divline_t(&trace, trace_obj);
+    read_divline_t(&trace, JS_GetObject(root, "trace"));
 
     // p_setup.h
     UnArchiveBlocklinks(root);
@@ -2503,21 +2494,17 @@ void P_UnArchiveKeyframe(json_t *root)
     PrepareUnArchivePlatList(platlist_arr);
 
     UnArchivePlayers(root);
-
     UnArchiveThinkers(thinkers_obj);
-
     UnArchiveMSecNodes(msecnodes_arr);
 
     activeceilings = readp_activeceilings(JS_GetIntegerValue(root, "activeceilings"));
     UnArchiveCeilingList(ceilinglist_arr);
-
     activeplats = readp_activeplats(JS_GetIntegerValue(root, "activeplats"));
     UnArchivePlatList(platlist_arr);
 
-    json_t *rng_obj = JS_GetObject(root, "rng");
-    read_rng_t(&rng, rng_obj);
-    UnArchiveButtons(root);
+    read_rng_t(&rng, JS_GetObject(root, "rng"));
 
+    UnArchiveButtons(root);
     UnArchiveAutoMap(root);
 
     EndUnArchive();
