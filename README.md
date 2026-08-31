@@ -73,7 +73,7 @@ If you turn the [Doom logo upside down](https://www.reddit.com/r/Doom/comments/8
 
 Source code, Windows binaries (MSVC builds for Windows 7 and newer) and Linux AppImages for the latest release can be found on the [Release](https://github.com/fabiangreffrath/woof/releases/latest) page.
 
-The most recent list of changes can be found in the current [Changelog](https://github.com/fabiangreffrath/woof/blob/master/CHANGELOG.md).
+The current work in progress since the latest release can be found in the [Changelog](https://github.com/fabiangreffrath/woof/blob/master/CHANGELOG.md).
 
 # Compiling
 
