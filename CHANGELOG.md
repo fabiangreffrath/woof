@@ -12,12 +12,15 @@
   - Added initial support for the `TX_START`/`TX_END` namespace.
   - Added support for visual-only Boom scrollers in vanilla complevels.
   - Added support for a dedicated Rekkr autoload directory (via `rekkr-all/`) (thanks @MelodicSpaceship).
-  - Added support for ID24 per-state TRANMAPs in `DEHACKED`, via the `Tranmap = "x"` thing property.
+  - Added support for ID24 per-state `TRANMAP`s in `DEHACKED`, via the `Tranmap = "x"` thing property.
   - Added support for custom screen wipes defined in `DEMOLOOP`.
   - Added support for the new XBM1 blockmap lump format.
   - Added support for the ID24 `endfinale` lump, used for custom cast sequences in Legacy of Rust and Dominus Diabolicus.
   - Added support for SKYDEFS flatmapping.
   - Updated SBARDEF up to [version 1.2.0](https://github.com/doom-cross-port-collab/id24/blob/e96a9e1c9ee34621b03a4894f4053c2a3426496e/community_version/SBARDEF-v1.2.0.md)
+  - Added support for [DECLARATE](https://github.com/doom-cross-port-collab/declarate/blob/f72fee1b0e38a13b0cdb2eb2fb596f3d6ef4fdfa/declarate.md).
+    See examples in `woof.pk3/all-all/actors/`.
+    - Added support for (ambient) sounds through DECLARATE, using `SNDINFO`-like syntax.
   - Improved Freedoom support:
     - Added support for `freedoom-all`, `freedoom1-all` and `freedoom2-all` autoload directories.
     - Setup program now uses Freedoom skill descriptions when applicable.
@@ -47,6 +50,7 @@
   - Improved pitch shifting to match Chocolate Doom.
   - Sounds from linedefs now use the midpoint of the linedef as the origin,
     instead of the midpoint of the line's front sector, matching DSDA's behavior.
+  - The game is now muted when the window loses focus. This can be toggled via the `mute_unfocused` config key.
   - Replaced Nuked-OPL3 with Nuked-OPL3-fast, a byte-identical and faster implementation of the original.
   - Updated FluidSynth:
     - Removed `TimGM6mb.sf2` from Windows builds; FluidSynth now uses `gm.dls` instead.
@@ -59,26 +63,37 @@
 
 * Rendering:
   - Reworked internal handling of transparency tables:
-    - TRANMAPs are now cached locally on-disk.
+    - Generated `TRANMAP` lumps are now cached locally on-disk.
     - Generator now uses linear sRGB blending, as opposed to gamma sRGB, for more accurate color mixing.
     - Transparent fullbright sprites now use additive transparency.
   - Added support for rendering of translucent translated sprites (enables e.g. translucent colored blood).
   - Interpolated rotation of transferred skies.
-  - Made automap colors be converted to the current palette.
   - Optimized rendering of plane rendering.
   - Optimized rendering of very small and/or distant sprites.
   - Improved changes of voxel-rendering distance upon dynamic resolution changes.
   - Missing flats and invalid PNG flats are now rendered as a magenta-and-black checkerboard.
 
+* Automap:
+  - Added minimap mode.
+  - Added "[Automap] Line Thickness" setting.
+  - Made automap colors be converted to the current palette.
+  - Made `IDDKT` cheat skip monsters spawned by Icon of Sin.
+  - Replaced automap player arrow with new one from KEX, and made it customizable through an `AMAPDEF` lump.
+
 * Miscellaneous:
   - New savegames now use a compressed JSON key-frame format. Old savegames can still be loaded.
   - Restored silent BFG trick for complevels below MBF.
+  - Changed DeHackEd loading order to match DSDA-Doom:
+    patches loaded through `-deh` are now processed after everything else.
+  - Removed side-loading of `extras.wad`.
   - Implemented Discord Rich Presence.
   - Improved text-screen rendering (for ENDOOM screen and setup executable).
-  - Replaced ENDOOM font with an improved font by Zokum.
+  - Replaced ENDOOM font with improved "Hauge" font by Zokum.
   - Improved detection of installed (Steam, GOG) IWADs.
   - Improved HUD stats widget on some non-Doom games (e.g. on Chex it now reads 'F/I/S' instead of 'K/I/S').
   - Turned `no button slots left!` error into a warning (fixes `SPECHITS` cheat on Box Doom MAP02).
+  - Program window position isn't saved anymore; it now appears centered upon every launch.
+  - Removed "Smooth Diminishing Lighting" feature.
 
 * Build:
   - Replaced SDL2 with SDL3 for modernized input and display support:
@@ -129,6 +144,10 @@
 * Included player weapon-switching state in savegames (fixes some visual bugs with weapons when loading savegames).
 * Fixed demo progress bar remaining on screen when using "End Game" to stop demos.
 * Made transparent pixels on fullscreen graphics be drawn as black (fixes HOM in `ETERNALL.WAD`'s credits screen).
+* Fixed loading disk icon changing size upon dynamic resolution changes.
+* Fixed `.pk3` files not being loaded through drag-and-drop.
 * Fixed `-uncapped` and `-nouncapped` parameters not being respected.
+* Fixed potential vulnerability in "scanner" parsing code (UMAPINFO, MUSINFO, etc.).
+* Fixed potential crash in PNG conversion code.
 * Fixed potential crash in net code.
 * Ensured that savegame description strings are null-terminated.
