@@ -3,6 +3,10 @@
 #cmakedefine PROJECT_STRING "@PROJECT_STRING@"
 #cmakedefine PROJECT_SHORTNAME "@PROJECT_SHORTNAME@"
 #cmakedefine PROJECT_APPID "@PROJECT_APPID@"
+#cmakedefine GIT_BRANCH "@GIT_BRANCH@"
+#cmakedefine GIT_REV_COUNT "@GIT_REV_COUNT@"
+#cmakedefine GIT_HASH "@GIT_HASH@"
+#cmakedefine GIT_HASH_SHORT "@GIT_HASH_SHORT@"
 #cmakedefine HAVE_LIBM
 #cmakedefine01 HAVE_DECL_STRCASECMP
 #cmakedefine01 HAVE_DECL_STRNCASECMP

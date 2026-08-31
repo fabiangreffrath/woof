@@ -69,7 +69,7 @@ endif()
 
 # Hardcoded defines added to configure and resource files.
 set(PROJECT_COMPANY "Fabian Greffrath and contributors")
-set(PROJECT_COPYRIGHT "Copyright (C) 1993-2025")
+set(PROJECT_COPYRIGHT "Copyright (C) 1993-2026")
 set(PROJECT_LICENSE "GNU General Public License, version 2")
 set(PROJECT_STRING "${PROJECT_NAME} ${PROJECT_VERSION}")
 set(PROJECT_SHORTNAME "woof")
@@ -79,6 +79,15 @@ set(WOOF_ICON "woof.ico")
 set(SETUP_ICON "setup.ico")
 set(PROJECT_VERSION_RC
     "${PROJECT_VERSION_MAJOR},${PROJECT_VERSION_MINOR},${PROJECT_VERSION_PATCH},0")
+
+include(GetGitBranch)
+include(GetGitRevisionDescription)
+include(GetGitRevisionNumber)
+git_branch(HEAD GIT_BRANCH)
+git_rev_count(HEAD GIT_REV_COUNT)
+get_git_head_revision(HEAD GIT_HASH)
+git_describe(GIT_DESCRIBE --all --long --abbrev=8)
+string(REGEX REPLACE "^(heads\/|tags\/)(.+)(-0-g)([0-9a-f]+)" "\\4" GIT_HASH_SHORT "${GIT_DESCRIBE}")
 
 if(ENABLE_LTO)
     include(CheckIPOSupported)

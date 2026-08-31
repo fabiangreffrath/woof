@@ -52,6 +52,11 @@ int main(int argc, char **argv)
 
    if (M_ParmExists("-version") || M_ParmExists("--version"))
    {
+      I_Printf(VB_ALWAYS, "Build info:");
+      I_Printf(VB_ALWAYS, "* Branch: %s", GIT_BRANCH);
+      I_Printf(VB_ALWAYS, "* Revisions: %s", GIT_REV_COUNT);
+      I_Printf(VB_ALWAYS, "* Commit Hash: %s", GIT_HASH);
+      I_Printf(VB_ALWAYS, "* Short Commit Hash: %s", GIT_HASH_SHORT);
       exit(0);
    }
 
