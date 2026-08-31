@@ -96,7 +96,6 @@
 #include "sounds.h"
 #include "st_stuff.h"
 #include "st_widgets.h"
-#include "statdump.h" // [FG] StatCopy()
 #include "tables.h"
 #include "v_video.h"
 #include "w_wad.h"
@@ -1958,12 +1957,6 @@ frommapinfo:
   gamestate = GS_INTERMISSION;
   viewactive = false;
   automapactive = false;
-
-  // [FG] -statdump implementation from Chocolate Doom
-  if (gamemode == commercial || gamemap != 8)
-  {
-    StatCopy(&wminfo);
-  }
 
   for (int i = 0; i < MAXPLAYERS; ++i)
   {
