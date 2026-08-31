@@ -552,11 +552,8 @@ static void UpdateChat(sbe_widget_t *widget)
     if (chat_on)
     {
         M_StringCopy(string, chatline.string, sizeof(string));
-
-        if (leveltime & 16)
-        {
-            M_StringConcat(string, "_", sizeof(string));
-        }
+        // make sure active chat line is at least one char wide
+        M_StringConcat(string, (leveltime & 16) ? "_" : " ", sizeof(string));
         ST_AddLine(widget, string);
     }
 }
