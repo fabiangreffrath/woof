@@ -48,6 +48,10 @@
     - Removed `TimGM6mb.sf2` from Windows builds; FluidSynth now uses `gm.dls` instead.
     - Added support for `.dls` files in the `soundfonts/` directory.
     - Added FluidSynth "note cut" setting.
+  - The `soundfont_dir` config key was removed. Formerly, this key contained a hard-coded, architecture-dependent list
+    of search directories for soundfonts. Now, a list of common search directories is created dynamically at run-time.
+    In order to override this list, point the new `soundfont_dirs` (mind the plural) config key to a custom soundfont
+    directory (or a list thereof).
 
 * Rendering:
   - Reworked internal handling of transparency tables:
@@ -66,13 +70,14 @@
   - New savegames now use a compressed JSON key-frame format. Old savegames can still be loaded.
   - Restored silent BFG trick for complevels below MBF.
   - Implemented Discord Rich Presence.
+  - Improved text-screen rendering (for ENDOOM screen and setup executable).
   - Replaced ENDOOM font with an improved font by Zokum.
   - Improved detection of installed (Steam, GOG) IWADs.
   - Improved HUD stats widget on some non-Doom games (e.g. on Chex it now reads 'F/I/S' instead of 'K/I/S').
   - Turned `no button slots left!` error into a warning (fixes `SPECHITS` cheat on Box Doom MAP02).
 
 * Build:
-  - Replaced SDL2 with SDL3:
+  - Replaced SDL2 with SDL3 for modernized input and display support:
     - Removed "Exclusive Fullscreen" setting.
   - Replaced SDL_net with netlib.
   - Replaced libsndfile with minimp3 for MP3 playback.
@@ -109,6 +114,8 @@
 * Fixed obscure crash related to voxel rendering on certain systems.
 * Fixed `A_MonsterMeleeAttack` triggering normal obituaries instead of melee obituaries.
 * Fixed synchronization of weapon carousel and weapon switching when switching with the previous/next-weapon buttons.
+* Fixed multiple cheats with identical cheat codes being applied simultaneously.
+* Allowed `TRAKINFO` lumps to update previous `TRAKINFO` records.
 * Made long quit messages be broken into new lines.
 * Made some door code consistent with DSDA-Doom (`atce2x722.lmp` now plays back identically in both ports).
 * Included player weapon-switching state in savegames (fixes some visual bugs with weapons when loading savegames).
