@@ -61,7 +61,7 @@
   - Reworked internal handling of transparency tables:
     - TRANMAPs are now cached locally on-disk.
     - Generator now uses linear sRGB blending, as opposed to gamma sRGB, for more accurate color mixing.
-    - Transparent fullbright sprites and the "transparent ghost monsters" feature now use additive transparency.
+    - Transparent fullbright sprites now use additive transparency.
   - Added support for rendering of translucent translated sprites (enables e.g. translucent colored blood).
   - Interpolated rotation of transferred skies.
   - Made automap colors be converted to the current palette.
