@@ -3,8 +3,10 @@
 * Mod Support:
   - Added support for the base UDMF spec, and the new exclusive `"woof"` UDMF namespace.
   - Added support for XGL2, XGL3, ZGL2 and ZGL3 node formats.
-  - Added support for UZDoom-style obituary assignments in `DEHACKED`, with `Obituary = "x"`, `Melee Obituary = "x"` and `Self Obituary = "x"`.
-  - Added support for an exclusive `Woof Bits = x` thing property in `DEHACKED`. Monsters in Legacy of Rust now respect corpse flipping.
+  - Added support for UZDoom-style obituary assignments in `DEHACKED`,
+    with `Obituary = "x"`, `Melee Obituary = "x"` and `Self Obituary = "x"`.
+  - Added support for an exclusive `Woof Bits = x` thing property in `DEHACKED`.
+    Monsters in Legacy of Rust now respect corpse flipping.
   - Added support for ID24 0.99.2 line specials (sector tinting, pistol-start exits, music changers, scrollers, offsets).
   - Added support for ID24 flat rotation.
   - Added initial support for the `TX_START`/`TX_END` namespace.
@@ -40,9 +42,11 @@
   - Added `input_msgreview` binding for message review.
 
 * Audio:
-  - Improved sound limiter: limits the volume when too many channels are playing the same sound, and omits low-priority sounds.
+  - Improved sound limiter: limits the volume when too many channels are playing the same sound,
+    and omits low-priority sounds.
   - Improved pitch shifting to match Chocolate Doom.
-  - Sounds from linedefs now use the midpoint of the linedef as the origin, instead of the midpoint of the line's front sector, matching DSDA's behavior.
+  - Sounds from linedefs now use the midpoint of the linedef as the origin,
+    instead of the midpoint of the line's front sector, matching DSDA's behavior.
   - Replaced Nuked-OPL3 with Nuked-OPL3-fast, a byte-identical and faster implementation of the original.
   - Updated FluidSynth:
     - Removed `TimGM6mb.sf2` from Windows builds; FluidSynth now uses `gm.dls` instead.
@@ -50,8 +54,8 @@
     - Added FluidSynth "note cut" setting.
   - The `soundfont_dir` config key was removed. Formerly, this key contained a hard-coded, architecture-dependent list
     of search directories for soundfonts. Now, a list of common search directories is created dynamically at run-time.
-    In order to override this list, point the new `soundfont_dirs` (mind the plural) config key to a custom soundfont
-    directory (or a list thereof).
+    In order to override this list, point the new `soundfont_dirs` (mind the plural) config key
+    to a custom soundfont directory (or a list thereof).
 
 * Rendering:
   - Reworked internal handling of transparency tables:
@@ -98,16 +102,20 @@
 * Fixed many SKYDEFS incongruencies to better match ID24 spec.
 * Fixed MBF high-precision scroller math to match DSDA demo behavior.
 * Fixed interpolation of Boom scrolling floors/ceilings and textures.
-* Fixed how friendly monsters count towards the kill count to match DSDA demo behavior (fixes kill counts in 'Fast Food 2' and 'One Of Everything').
+* Fixed how friendly monsters count towards the kill count to match DSDA demo behavior
+  (fixes kill counts in 'Fast Food 2' and 'One Of Everything').
 * Fixed MBF Helper Dog spawning behavior to match DSDA-Doom.
 * Fixed crash when loading invalid `REJECT` tables (fixes 'PUSS IV' MAP01).
-* Fixed obtuse crash when encountering unknown thing types in UMAPINFO `bossaction` definitions (now crashes with a readable error message).
+* Fixed obtuse crash when encountering unknown thing types in UMAPINFO `bossaction` definitions
+  (now crashes with a readable error message).
 * Fixed weapon carousel appearing and staying on screen when trying to switch weapons as a zombie player.
 * Fixed MBF21 homing player projectiles misbehaving when using Direct Vertical Aiming.
 * Fixed voodoo dolls becoming invisible when voxels were enabled.
 * Fixed rotation of entities mirrored by the Randomly Mirrored Corpses feature.
-* Fixed "Bobbing" Weapon Alignment misbehaving with DeHackEd-set weapon sprite offsets (fixes jittering weapons in `D4V.wad`).
-* Disabled interpolation of weapon sprites when sprite and DeHackEd offsets change simultaneously (fixes jittering pistol in `DoomZero.wad`).
+* Fixed "Bobbing" Weapon Alignment misbehaving with DeHackEd-set weapon sprite offsets
+  (fixes jittering weapons in `D4V.wad`).
+* Disabled interpolation of weapon sprites when sprite and DeHackEd offsets change simultaneously
+  (fixes jittering pistol in `DoomZero.wad`).
 * Fixed height calculation of level-title graphics on intermission (fixes intermission on 'Hell Revealations').
 * Fixed SBARDEF game-mode condition checks.
 * Fixed crosshair appearing on clean screenshots.
