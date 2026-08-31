@@ -1069,6 +1069,51 @@ static void UpdateNumber(sbarelem_t *elem, player_t *player)
     number->numvalues = numvalues;
 }
 
+// Calculate xoffset/totalwidth for h_right/h_middle-aligned strings.
+
+static void UpdateStringLine(sbaralignment_t alignment, hudfont_t *font,
+                             stringline_t *line)
+{
+    int totalwidth = 0;
+
+    const char *str = line->string;
+    while (*str)
+    {
+        int ch = *str++;
+        if (ch == '\x1b' && *str)
+        {
+            ++str;
+            continue;
+        }
+
+        int width;
+        if (font->type == sbf_proportional)
+        {
+            int idx = M_ToUpper(ch) - HU_FONTSTART;
+            patch_t *patch =
+                (idx < 0 || idx >= HU_FONTSIZE) ? NULL : font->characters[idx];
+            width = patch ? SHORT(patch->width) : SPACEWIDTH;
+        }
+        else
+        {
+            width = font->monowidth;
+        }
+
+        totalwidth += width;
+    }
+
+    line->xoffset = 0;
+    if (alignment & sbe_h_middle)
+    {
+        line->xoffset -= (totalwidth >> 1);
+    }
+    else if (alignment & sbe_h_right)
+    {
+        line->xoffset -= totalwidth;
+    }
+    line->totalwidth = totalwidth;
+}
+
 static void UpdateLines(sbarelem_t *elem)
 {
     sbe_widget_t *widget = elem->subtype.widget;
@@ -1077,50 +1122,7 @@ static void UpdateLines(sbarelem_t *elem)
     stringline_t *line;
     array_foreach(line, widget->lines)
     {
-        int totalwidth = 0;
-
-        const char *str = line->string;
-        while (*str)
-        {
-            int ch = *str++;
-            if (ch == '\x1b' && *str)
-            {
-                ++str;
-                continue;
-            }
-
-            if (font->type == sbf_proportional)
-            {
-                ch = M_ToUpper(ch) - HU_FONTSTART;
-                if (ch < 0 || ch >= HU_FONTSIZE)
-                {
-                    totalwidth += SPACEWIDTH;
-                    continue;
-                }
-                patch_t *patch = font->characters[ch];
-                if (patch == NULL)
-                {
-                    totalwidth += SPACEWIDTH;
-                    continue;
-                }
-                totalwidth += SHORT(patch->width);
-            }
-            else
-            {
-                totalwidth += font->monowidth;
-            }
-        }
-
-        line->xoffset = 0;
-        if (elem->alignment & sbe_h_middle)
-        {
-            line->xoffset -= (totalwidth >> 1);
-        }
-        else if (elem->alignment & sbe_h_right)
-        {
-            line->xoffset -= totalwidth;
-        }
-        line->totalwidth = totalwidth;
+        UpdateStringLine(elem->alignment, font, line);
     }
 }
 
@@ -1263,9 +1265,12 @@ static void UpdateString(sbarelem_t *elem)
         default:
             break;
     }
+
+    UpdateStringLine(elem->alignment, string->font, &string->line);
 }
 
 static void UpdateListOfElem(sbarelem_t *elem, player_t *player);
+static void UpdateCanvasOfElem(sbarelem_t *elem, player_t *player);
 
 static void UpdateElem(sbarelem_t *elem, player_t *player)
 {
@@ -1279,6 +1284,10 @@ static void UpdateElem(sbarelem_t *elem, player_t *player)
     {
         case sbe_list:
             UpdateListOfElem(elem, player);
+            return;
+
+        case sbe_canvas:
+            UpdateCanvasOfElem(elem, player);
             return;
 
         case sbe_face:
@@ -1296,8 +1305,25 @@ static void UpdateElem(sbarelem_t *elem, player_t *player)
             break;
 
         case sbe_widget:
-            ST_UpdateWidget(elem, player);
-            UpdateLines(elem);
+            {
+                sbe_widget_t *widget = elem->subtype.widget;
+                ST_UpdateWidget(elem, player);
+                UpdateLines(elem);
+
+                // Calculate widget's width/height, skip empty lines.
+                int width = 0, height = 0;
+                stringline_t *line;
+                array_foreach(line, widget->lines)
+                {
+                    width = MAX(width, line->totalwidth);
+                    if (line->string[0])
+                    {
+                        height += widget->font->maxheight;
+                    }
+                }
+                elem->width = width;
+                elem->height = height;
+            }
             break;
 
         case sbe_carousel:
@@ -1515,10 +1541,6 @@ static void DrawPatch(int x1, int y1, int *x2, int *y2, boolean dry,
     if (alignment & sbe_h_middle)
     {
         x1 += xoffset;
-        if (crop.center)
-        {
-            x1 += width / 2 + crop.left;
-        }
     }
     x1 = WideShiftX(x1, alignment);
 
@@ -1736,6 +1758,13 @@ static void DrawWidget(int x1, int y1, int *x2, int *y2, boolean dry,
     array_foreach(line, widget->lines)
     {
         DrawStringLine(x1, y1, x2, y2, dry, line, elem, font);
+
+        // Skip empty lines
+        if (!line->string[0])
+        {
+            continue;
+        }
+
         if (elem->alignment & sbe_v_bottom)
         {
             y1 -= font->maxheight;
@@ -1799,7 +1828,7 @@ static void DrawListOfElem(int x1, int y1, int *x2, int *y2, boolean dry,
                            sbarelem_t *elem);
 
 static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
-                     sbarelem_t *elem)
+                     sbarelem_t *elem, boolean is_list_child)
 {
     if (!elem->enabled)
     {
@@ -1809,11 +1838,29 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
     x1 += elem->x_pos;
     y1 += elem->y_pos;
 
+    // A list already positions its members, so suppress their own
+    // alignment to avoid applying it twice.
+
+    const sbaralignment_t orig_alignment = elem->alignment;
+    if (is_list_child)
+    {
+        elem->alignment &= ~(sbe_h_mask | sbe_v_mask);
+    }
+
     switch (elem->type)
     {
         case sbe_list:
             DrawListOfElem(x1, y1, x2, y2, dry, elem);
+            elem->alignment = orig_alignment;
             return;
+
+        case sbe_canvas:
+            // No visual of its own; just position the anchor for
+            // the children loop below.
+            x1 = AdjustX(x1, elem->width, elem->alignment);
+            x1 = WideShiftX(x1, elem->alignment);
+            y1 = AdjustY(y1, elem->height, elem->alignment);
+            break;
 
         case sbe_graphic:
             {
@@ -1892,10 +1939,12 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
             break;
     }
 
+    elem->alignment = orig_alignment;
+
     sbarelem_t *child;
     array_foreach(child, elem->children)
     {
-        DrawElem(x1, y1, x2, y2, dry, child);
+        DrawElem(x1, y1, x2, y2, dry, child, false);
     }
 }
 
@@ -1909,12 +1958,25 @@ static void UpdateListOfElem(sbarelem_t *elem, player_t *player)
     {
         UpdateElem(child, player);
 
-        int width = 0, height = 0;
+        int width = child->x_pos, height = child->y_pos;
         if (child->enabled)
         {
-            DrawElem(0, 0, &width, &height, true, child); // Dry run
-            width -= child->x_pos;
-            height -= child->y_pos;
+            if (child->type == sbe_widget)
+            {
+                width = child->width;
+                height = child->height;
+            }
+            else
+            {
+                DrawElem(0, 0, &width, &height, true, child, true); // Dry run
+                width -= child->x_pos;
+                height -= child->y_pos;
+            }
+        }
+        else
+        {
+            width = 0;
+            height = 0;
         }
         child->width = width;
         child->height = height;
@@ -1929,8 +1991,57 @@ static void UpdateListOfElem(sbarelem_t *elem, player_t *player)
         }
     }
 
+    // The loop above adds a trailing list->spacing after the last
+    // contributing child, throwing off a bottom/right-aligned list's
+    // block shift by that amount.
+
+    if (list->horizontal && listwidth)
+    {
+        listwidth -= list->spacing;
+    }
+    else if (listheight)
+    {
+        listheight -= list->spacing;
+    }
+
     elem->width = listwidth;
     elem->height = listheight;
+}
+
+// A canvas positions children at their own x_pos/y_pos instead of
+// stacking them, so its size is the furthest extent any child reaches.
+
+static void UpdateCanvasOfElem(sbarelem_t *elem, player_t *player)
+{
+    int width = 0, height = 0;
+
+    sbarelem_t *child;
+    array_foreach(child, elem->children)
+    {
+        UpdateElem(child, player);
+
+        if (child->enabled)
+        {
+            int cw, ch;
+            if (child->type == sbe_widget)
+            {
+                cw = child->x_pos + child->width;
+                ch = child->y_pos + child->height;
+            }
+            else
+            {
+                cw = child->x_pos;
+                ch = child->y_pos;
+                DrawElem(0, 0, &cw, &ch, true, child, true); // Dry run
+            }
+
+            width = MAX(width, cw);
+            height = MAX(height, ch);
+        }
+    }
+
+    elem->width = width;
+    elem->height = height;
 }
 
 static void DrawListOfElem(int x1, int y1, int *x2, int *y2, boolean dry,
@@ -1962,7 +2073,7 @@ static void DrawListOfElem(int x1, int y1, int *x2, int *y2, boolean dry,
             x1adj = AdjustX(x1, child->width, elem->alignment);
         }
 
-        DrawElem(x1adj, y1adj, x2, y2, dry, child);
+        DrawElem(x1adj, y1adj, x2, y2, dry, child, true);
 
         if (list->horizontal && child->width)
         {
@@ -2109,7 +2220,7 @@ static void DrawStatusBar(void)
     int y1 = statusbar->fullscreenrender ? 0 : SCREENHEIGHT - statusbar->height;
     array_foreach(child, statusbar->children)
     {
-        DrawElem(0, y1, NULL, NULL, false, child);
+        DrawElem(0, y1, NULL, NULL, false, child, false);
     }
 
     DrawCenteredMessage();
