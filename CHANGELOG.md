@@ -1,11 +1,11 @@
-**New Features and Improvements**
+## New Features and Improvements
 
-* Mod Support:
+* **Mod Support:**
   - Added support for the base UDMF spec, and the new exclusive `"woof"` UDMF namespace.
   - Added support for ID24 0.99.2 line specials (sector tinting, pistol-start exits, music changers, scrollers, offsets).
   - Added support for ID24 flat rotation.
   - Added support for ID24 per-state `TRANMAP`s in `DEHACKED`, via the `Tranmap = "x"` state property.
-  - Updated `SBARDEF` support up to [version 1.2.0](https://github.com/doom-cross-port-collab/id24/blob/e96a9e1c9ee34621b03a4894f4053c2a3426496e/community_version/SBARDEF-v1.2.0.md)
+  - Updated `SBARDEF` support up to [version 1.2.0](https://github.com/doom-cross-port-collab/id24/blob/e96a9e1c9ee34621b03a4894f4053c2a3426496e/community_version/SBARDEF-v1.2.0.md).
   - Added initial experimental support for [DECLARATE](https://github.com/doom-cross-port-collab/declarate/blob/f72fee1b0e38a13b0cdb2eb2fb596f3d6ef4fdfa/declarate.md).
     See examples in `woof.pk3/all-all/actors/`.
     - Added support for (ambient) sounds through DECLARATE, using `SNDINFO`-like syntax.
@@ -27,7 +27,7 @@
   - Added support for vanilla game version `final2` (Final Doom with teleporter bug fixed).
   - Added support for `HELP2` graphic in Ultimate Doom PWADs.
 
-* Quality of Life:
+* **Quality of Life:**
   - Added rewinding, similar to DSDA-Doom.
   - Added a custom skill menu.
   - Combined "Free Look" and "Direct Vertical Aiming" menu items (settings are still separate).
@@ -46,7 +46,7 @@
   - Added "Pause Demos in Menu" setting.
   - Added a dedicated binding for message review (`input_msgreview` config key).
 
-* Rendering:
+* **Rendering:**
   - Improved rounding of rendering resolutions:
     the game can now render at the display's native width exactly in most cases.
   - Added support for rendering of translucent translated sprites (enables e.g. translucent colored blood).
@@ -60,7 +60,7 @@
   - Improved changes of voxel-rendering distance upon dynamic resolution changes.
   - Missing flats and invalid PNG flats are now rendered as magenta-and-black checkerboards.
 
-* Audio:
+* **Audio:**
   - Improved sound limiter: limits the volume when too many channels are playing the same sound,
     and omits low-priority sounds.
   - Made pitch shifting match Chocolate Doom. Removed `pitch_bend_range` config key.
@@ -78,14 +78,14 @@
     to a custom soundfont directory (or a list thereof).
   - Replaced Nuked-OPL3 with Nuked-OPL3-fast, a byte-identical faster implementation of the original.
 
-* Automap:
+* **Automap:**
   - Added minimap mode.
   - Added "[Automap] Line Thickness" setting.
   - Made automap colors be converted to the current palette.
   - Made `IDDKT` cheat skip monsters spawned by Icon of Sin.
   - Replaced automap player arrow with the new one from KEX, and made it customizable through an `AMAPDEF` lump.
 
-* Miscellaneous:
+* **Miscellaneous:**
   - New savegames are stored as key-frames in a compressed JSON format. Old savegames can still be loaded.
   - Restored silent BFG trick for complevels below MBF.
   - Changed DeHackEd loading order to match DSDA-Doom:
@@ -112,7 +112,7 @@
     - Added extra warnings when in debug mode on the terminal.
     - Removed `-dehout`, `-bexout`, and `-bex` CLI options.
 
-* Build:
+* **Build:**
   - Added universal macOS builds to continuous integration.
   - Replaced SDL2 with SDL3 for modernized input and display support:
     - Removed "Exclusive Fullscreen" setting.
@@ -122,7 +122,7 @@
   - Added update information to AppImages. (By @electricbrass)
   - Removed extraneous example WADs and documentation files from final builds.
 
-**Bug Fixes**
+## Bug Fixes
 
 * Fixed crash when loading invalid `REJECT` tables (fixes 'PUSS IV' MAP01).
 * Fixed many SKYDEFS incongruencies to better match the ID24 spec.
