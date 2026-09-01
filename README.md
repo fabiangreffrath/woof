@@ -177,14 +177,14 @@ Copyright:
  © 2017 Christoph Oelckers;  
  © 2020 Alex Mayfield;  
  © 2020 Ethan Watson;  
- © 2020-2024 Fabian Greffrath;  
- © 2020-2024 Roman Fomin;  
+ © 2020-2026 Fabian Greffrath;  
+ © 2020-2026 Roman Fomin;  
  © 2021-2022 Ryan Krafnick;  
- © 2022-2024 Alaux;  
- © 2022-2024 ceski;  
+ © 2022-2026 Alaux;  
+ © 2022-2025 ceski;  
  © 2023 Andrew Apted;  
  © 2023 liPillON;  
- © 2025 Guilherme Miranda.  
+ © 2025-2026 Guilherme Miranda.  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
 Files: `src/i_flickstick.*, src/i_gyro.*`  
