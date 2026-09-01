@@ -90,7 +90,7 @@
   - Changed DeHackEd loading order to match DSDA-Doom:
     patches loaded through `-deh` are now processed after everything else.
   - Optimized search of teleport destinations when using teleport specials.
-  - Added DSDA's `ssline` optimization for `P_CrossSubsector()`.
+  - Optimized line-of-sight checks upon map load (by Andrey Budko, from PrBoom+).
   - Removed side-loading of `extras.wad`.
   - Implemented Discord Rich Presence.
   - Improved detection of installed (Steam, GOG) IWADs.
