@@ -4,9 +4,9 @@
   - Added support for the base UDMF spec, and the new exclusive `"woof"` UDMF namespace.
   - Added support for ID24 0.99.2 line specials (sector tinting, pistol-start exits, music changers, scrollers, offsets).
   - Added support for ID24 flat rotation.
-  - Added support for ID24 per-state `TRANMAP`s in `DEHACKED`, via the `Tranmap = "x"` thing property.
+  - Added support for ID24 per-state `TRANMAP`s in `DEHACKED`, via the `Tranmap = "x"` state property.
   - Updated `SBARDEF` support up to [version 1.2.0](https://github.com/doom-cross-port-collab/id24/blob/e96a9e1c9ee34621b03a4894f4053c2a3426496e/community_version/SBARDEF-v1.2.0.md)
-  - Added initial support for [DECLARATE](https://github.com/doom-cross-port-collab/declarate/blob/f72fee1b0e38a13b0cdb2eb2fb596f3d6ef4fdfa/declarate.md).
+  - Added initial experimental support for [DECLARATE](https://github.com/doom-cross-port-collab/declarate/blob/f72fee1b0e38a13b0cdb2eb2fb596f3d6ef4fdfa/declarate.md).
     See examples in `woof.pk3/all-all/actors/`.
     - Added support for (ambient) sounds through DECLARATE, using `SNDINFO`-like syntax.
   - Added support for `SKYDEFS` flatmapping.
