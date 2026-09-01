@@ -24,6 +24,7 @@
   - Improved Freedoom support:
     - Added support for `freedoom-all`, `freedoom1-all` and `freedoom2-all` autoload directories.
     - Setup program now uses Freedoom skill descriptions when applicable.
+  - Added support for vanilla game version `final2` (Final Doom with teleporter bug fixed).
   - Added support for `HELP2` graphic in Ultimate Doom PWADs.
 
 * Quality of Life:
@@ -34,6 +35,7 @@
   - Added a "Previous Map" button.
   - Replaced "[HUD] Layout" setting with "HUD Anchoring" setting.
   - Added "Reduced" option for palette-changes setting.
+  - Made savegame slot used for quick saves be highlighted in save/load menus.
   - Reworked handling of strict mode, now more akin to DSDA-Doom:
     - Now only applicable to demo recording, and enabled by default in it; can be disabled via the `-tas` parameter.
   - Reworked "Exit Sequence" and "PWAD ENDOOM Only" settings into the following settings:
@@ -62,6 +64,8 @@
     to a custom soundfont directory (or a list thereof).
 
 * Rendering:
+  - Improved rounding of rendering resolutions:
+    the game can now render at the display's native width exactly in most cases.
   - Reworked internal handling of transparency tables:
     - Generated `TRANMAP` lumps are now cached locally on-disk.
     - Generator now uses linear sRGB blending, as opposed to gamma sRGB, for more accurate color mixing.
@@ -85,11 +89,19 @@
   - Restored silent BFG trick for complevels below MBF.
   - Changed DeHackEd loading order to match DSDA-Doom:
     patches loaded through `-deh` are now processed after everything else.
+  - Optimized search of teleport destinations when using teleport specials.
   - Removed side-loading of `extras.wad`.
   - Implemented Discord Rich Presence.
+  - Replaced built-in `PLS2` sprites with red replacements, to better match the original press-beta sprites.
+  - Added freely licensed sprites for the following:
+    - `SMFLAM*` (carousel icon for Legacy of Rust's incinerator).
+    - `SMHEAT*` (carousel icon for Legacy of Rust's calamity blade).
+    - `BON3A0` (beta evil-sceptre pickup).
+    - `BON4A0` (beta unholy-bible pickup).
   - Improved text-screen rendering (for ENDOOM screen and setup executable).
   - Replaced ENDOOM font with improved "Hauge" font by Zokum.
   - Improved detection of installed (Steam, GOG) IWADs.
+  - Slightly improved palettization of PNG graphics.
   - Improved HUD stats widget on some non-Doom games (e.g. on Chex it now reads 'F/I/S' instead of 'K/I/S').
   - Turned `no button slots left!` error into a warning (fixes `SPECHITS` cheat on Box Doom MAP02).
   - Program window position isn't saved anymore; it now appears centered upon every launch.
@@ -133,11 +145,18 @@
 * Fixed height calculation of level-title graphics on intermission (fixes intermission on 'Hell Revealations').
 * Fixed SBARDEF game-mode condition checks.
 * Fixed crosshair appearing on clean screenshots.
+* Fixed direct switch to SSG in demos being mistaken as a demo-join command.
 * Fixed obscure crash related to voxel rendering on certain systems.
 * Fixed `A_MonsterMeleeAttack` triggering normal obituaries instead of melee obituaries.
+* Improved calculation of HUD font size (fixes text widgets in 'RUST').
+* Fixed incorrect culling of off-screen text in finale text screens (fixes such screens in 'RUST').
+* Fixed state of HUD messages being tied to HUD layouts.
 * Fixed synchronization of weapon carousel and weapon switching when switching with the previous/next-weapon buttons.
 * Fixed multiple cheats with identical cheat codes being applied simultaneously.
+* Made chat messages from other players be displayed even if messages are disabled, to match vanilla Doom behavior.
+* Allowed player starts with an angle of 360 degrees, to match vanilla Doom behavior.
 * Allowed `TRAKINFO` lump definitions to stack, overwriting previous definitions.
+* Fixed quick-save slot being cleared when changing to a different save/load page.
 * Made long quit messages be broken into new lines.
 * Made some door code consistent with DSDA-Doom (`atce2x722.lmp` now plays back identically in both ports).
 * Included player weapon-switching state in savegames (fixes some visual bugs with weapons when loading savegames).
@@ -146,6 +165,7 @@
 * Fixed loading disk icon changing size upon dynamic resolution changes.
 * Fixed `.pk3` files not being loaded through drag-and-drop.
 * Fixed `-uncapped` and `-nouncapped` parameters not being respected.
+* Fixed some instances of music incorrectly being resumed when it should be paused.
 * Fixed potential vulnerability in "scanner" parsing code (UMAPINFO, MUSINFO, etc.).
 * Fixed potential crash in PNG conversion code.
 * Fixed potential crash in net code.
