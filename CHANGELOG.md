@@ -17,10 +17,10 @@
   - Added support for custom screen wipes defined in `DEMOLOOP`.
   - Added support for visual-only Boom scrollers in vanilla complevels.
   - Added support for UZDoom-style obituary assignments in `DEHACKED`,
-    via `Obituary = "x"`, `Melee Obituary = "x"`, and `Self Obituary = "x"`.
+    via `Obituary = "x"`, `Melee Obituary = "x"`, and `Self Obituary = "x"`. (By @soppyMann)
   - Added support for an exclusive `Woof Bits = x` thing property in `DEHACKED`.
     Monsters in Legacy of Rust now respect corpse flipping.
-  - Added support for a dedicated `rekkr-all/` autoload directory for Rekkr (by @MelodicSpaceship).
+  - Added support for a dedicated `rekkr-all/` autoload directory for Rekkr. (By @MelodicSpaceship)
   - Improved Freedoom support:
     - Added support for `freedoom-all`, `freedoom1-all`, and `freedoom2-all` autoload directories.
     - Setup program now uses Freedoom skill descriptions when applicable.
@@ -65,6 +65,7 @@
     and omits low-priority sounds.
   - Made pitch shifting match Chocolate Doom. Removed `pitch_bend_range` config key.
   - The game is now muted when the window loses focus. This can be toggled via the `mute_unfocused` config key.
+    (By @soppyMann)
   - Sounds from linedefs now use the midpoint of the linedef as the origin,
     instead of the midpoint of the line's front sector, matching DSDA's behavior.
   - Updated FluidSynth:
@@ -85,7 +86,7 @@
   - Replaced automap player arrow with the new one from KEX, and made it customizable through an `AMAPDEF` lump.
 
 * Miscellaneous:
-  - New savegames now use a compressed JSON key-frame format. Old savegames can still be loaded.
+  - New savegames are stored as key-frames in a compressed JSON format. Old savegames can still be loaded.
   - Restored silent BFG trick for complevels below MBF.
   - Changed DeHackEd loading order to match DSDA-Doom:
     patches loaded through `-deh` are now processed after everything else.
@@ -118,7 +119,7 @@
   - Replaced SDL_net with netlib.
   - Added minimp3 as a fallback for MP3 files not supported by libsndfile.
   - Removed `woof.com` executable; console output is now shown by `woof.exe` directly, but only with debug builds.
-  - Added update information to AppImages (by @electricbrass).
+  - Added update information to AppImages. (By @electricbrass)
   - Removed extraneous example WADs and documentation files from final builds.
 
 **Bug Fixes**
@@ -154,12 +155,14 @@
 * Improved calculation of HUD font size (fixes text widgets in 'RUST').
 * Fixed incorrect culling of off-screen text in finale text screens (fixes such screens in 'RUST').
 * Fixed height calculation of level-title graphics on intermission (fixes intermission on 'Hell Revealations').
+* Made the program not error out upon encountering DeHackEd things with `Dropped Item` lesser than zero.
 * Made transparent pixels on fullscreen graphics be drawn as black (fixes HOM in `ETERNALL.WAD`'s credits screen).
 * Made long quit messages be broken into multiple lines.
 * Made some door code consistent with DSDA-Doom (`atce2x722.lmp` now plays back identically in both ports).
 * Fixed loading disk icon changing size upon dynamic resolution changes.
 * Fixed demo progress bar remaining on screen when using "End Game" to stop demos.
 * Fixed some instances of music incorrectly being resumed when it should be paused.
+* Fixed config file failing to be created in some cases (e.g. cross-device).
 * Fixed `-uncapped` and `-nouncapped` parameters not being respected.
 * Fixed obtuse crash when encountering unknown thing types in UMAPINFO `bossaction` definitions
   (now crashes with a readable error message).
