@@ -165,7 +165,7 @@
 * Fixed config file failing to be created in some cases (e.g. cross-device).
 * Fixed `-uncapped` and `-nouncapped` parameters not being respected.
 * Fixed obtuse crash when encountering unknown thing types in UMAPINFO `bossaction` definitions
-  (now crashes with a readable error message).
+  (now quits with a readable error message).
 * Fixed obscure crash related to voxel rendering on certain systems.
 * Fixed potential vulnerability in "scanner" parsing code (UMAPINFO, MUSINFO, etc.).
 * Fixed potential crash in PNG conversion code.
