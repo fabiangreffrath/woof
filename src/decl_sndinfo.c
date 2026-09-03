@@ -41,8 +41,8 @@
 typedef enum
 {
     SNDINFO_SYNTAX_UNKNOWN,
-    SNDINFO_SYNTAX_OLD,  // logicalname lumpname
-    SNDINFO_SYNTAX_NEW,  // logicalname = lumpname
+    SNDINFO_SYNTAX_OLD, // logicalname lumpname
+    SNDINFO_SYNTAX_NEW, // logicalname = lumpname
 } sndinfo_syntax_t;
 
 // Non-fatal counterpart to SC_MustGetToken(): on a mismatch it warns,
@@ -73,7 +73,8 @@ static char *ReadLogicalName(scanner_t *sc, const char *first)
         {
             I_Printf(VB_WARNING,
                      "SNDINFO: Name '%s' has a trailing '/' with nothing "
-                     "after it, skipping.", name);
+                     "after it, skipping.",
+                     name);
             free(name);
             return NULL;
         }
@@ -132,7 +133,7 @@ static void SkipDirective(scanner_t *sc)
 }
 
 static void ParseSoundAssignment(scanner_t *sc, const char *name,
-                                  sndinfo_syntax_t *syntax)
+                                 sndinfo_syntax_t *syntax)
 {
     boolean has_equals = SC_CheckToken(sc, '=');
 
@@ -144,7 +145,8 @@ static void ParseSoundAssignment(scanner_t *sc, const char *name,
     {
         I_Printf(VB_WARNING,
                  "SNDINFO: Sound '%s' uses a different assignment syntax "
-                 "than the rest of the lump, skipping.", name);
+                 "than the rest of the lump, skipping.",
+                 name);
         SC_GetNextLineToken(sc);
         return;
     }
@@ -155,7 +157,8 @@ static void ParseSoundAssignment(scanner_t *sc, const char *name,
         // /sounds/ namespace to resolve it against.
         I_Printf(VB_WARNING,
                  "SNDINFO: Sound '%s' uses a file path instead of a "
-                 "lump name, which is not supported, skipping.", name);
+                 "lump name, which is not supported, skipping.",
+                 name);
         return;
     }
 
@@ -169,7 +172,8 @@ static void ParseSoundAssignment(scanner_t *sc, const char *name,
     {
         I_Printf(VB_WARNING,
                  "SNDINFO: Sound '%s' references lump '%s', which does "
-                 "not exist, skipping.", name, lump);
+                 "not exist, skipping.",
+                 name, lump);
         return;
     }
 
@@ -187,7 +191,8 @@ static void ParseAmbientDirective(scanner_t *sc)
     {
         I_Printf(VB_WARNING,
                  "SNDINFO: Ambient index %d not in range 1 to %d, "
-                 "skipping.", index, MAX_AMBIENT_DATA);
+                 "skipping.",
+                 index, MAX_AMBIENT_DATA);
         SC_GetNextLineToken(sc);
         return;
     }
@@ -214,7 +219,8 @@ static void ParseAmbientDirective(scanner_t *sc)
     {
         I_Printf(VB_WARNING,
                  "SNDINFO: Ambient sound '%s' has an unknown type, "
-                 "expected 'point' or 'world', skipping.", sound_name);
+                 "expected 'point' or 'world', skipping.",
+                 sound_name);
         SC_GetNextLineToken(sc);
         free(sound_name);
         return;
@@ -232,17 +238,16 @@ static void ParseAmbientDirective(scanner_t *sc)
         free(sound_name);
         return;
     }
-    static const char *keywords[] = {
-        [AMB_MODE_CONTINUOUS] = "continuous",
-        [AMB_MODE_RANDOM] = "random",
-        [AMB_MODE_PERIODIC] = "periodic"
-    };
+    static const char *keywords[] = {[AMB_MODE_CONTINUOUS] = "continuous",
+                                     [AMB_MODE_RANDOM] = "random",
+                                     [AMB_MODE_PERIODIC] = "periodic"};
     int mode_index = SC_CheckKeywordInternal(sc, keywords, arrlen(keywords));
     if (mode_index < 0)
     {
         I_Printf(VB_WARNING,
                  "SNDINFO: Ambient sound '%s' has an unknown mode, "
-                 "skipping.", sound_name);
+                 "skipping.",
+                 sound_name);
         SC_GetNextLineToken(sc);
         free(sound_name);
         return;
@@ -283,8 +288,8 @@ static void ParseAmbientDirective(scanner_t *sc)
     }
     double volume = SC_GetDecimal(sc);
 
-    DECL_AddSndInfoAmbient(index, mode, sound_name, attenuation, param1,
-                           param2, volume);
+    DECL_AddSndInfoAmbient(index, mode, sound_name, attenuation, param1, param2,
+                           volume);
 
     free(sound_name);
 }
@@ -336,9 +341,8 @@ static void ParseSndInfo(scanner_t *sc)
 
 void SNDINFO_Parse(int lumpnum)
 {
-    I_Printf(VB_WARNING,
-             "SNDINFO is deprecated and only partially supported. "
-             "Please consider switching to DECLARATE instead.");
+    I_Printf(VB_WARNING, "SNDINFO is deprecated and only partially supported. "
+                         "Please consider switching to DECLARATE instead.");
 
     char lumpname[9] = {0};
     M_CopyLumpName(lumpname, lumpinfo[lumpnum].name);
