@@ -39,6 +39,8 @@
 #include "d_player.h"
 #include "d_ticcmd.h"
 #include "decl_main.h"
+#include "decl_sndinfo.h"
+#include "decl_sounds.h"
 #include "deh_main.h"
 #include "deh_strings.h"
 #include "deh_thing.h"
@@ -2114,6 +2116,11 @@ void D_DoomMain(void)
   //
 
   W_ProcessInWads("DECLARE", DECL_Parse, PROCESS_IWAD | PROCESS_PWAD);
+
+  if (!DECL_HasAmbientSounds())
+  {
+    W_ProcessInWads("SNDINFO", SNDINFO_Parse, PROCESS_IWAD | PROCESS_PWAD);
+  }
 
   DECL_Install();
 
