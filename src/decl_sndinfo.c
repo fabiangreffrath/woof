@@ -53,7 +53,7 @@ static boolean ExpectToken(scanner_t *sc, char token, const char *what)
     {
         return true;
     }
-    I_Printf(VB_WARNING, "SNDINFO: Expected %s, skipping entry.", what);
+    SC_Warning(sc, "Expected %s, skipping entry.", what);
     SC_GetNextLineToken(sc);
     return false;
 }
@@ -71,10 +71,10 @@ static char *ReadLogicalName(scanner_t *sc, const char *first)
     {
         if (!SC_CheckToken(sc, TK_Identifier))
         {
-            I_Printf(VB_WARNING,
-                     "SNDINFO: Name '%s' has a trailing '/' with nothing "
-                     "after it, skipping.",
-                     name);
+            SC_Warning(sc,
+                       "Name '%s' has a trailing '/' with nothing "
+                       "after it, skipping.",
+                       name);
             free(name);
             return NULL;
         }
@@ -143,10 +143,10 @@ static void ParseSoundAssignment(scanner_t *sc, const char *name,
     }
     else if (has_equals != (*syntax == SNDINFO_SYNTAX_NEW))
     {
-        I_Printf(VB_WARNING,
-                 "SNDINFO: Sound '%s' uses a different assignment syntax "
-                 "than the rest of the lump, skipping.",
-                 name);
+        SC_Warning(sc,
+                   "Sound '%s' uses a different assignment syntax "
+                   "than the rest of the lump, skipping.",
+                   name);
         SC_GetNextLineToken(sc);
         return;
     }
@@ -155,10 +155,10 @@ static void ParseSoundAssignment(scanner_t *sc, const char *name,
     {
         // A quoted value is a file-system path; Woof has no virtual
         // /sounds/ namespace to resolve it against.
-        I_Printf(VB_WARNING,
-                 "SNDINFO: Sound '%s' uses a file path instead of a "
-                 "lump name, which is not supported, skipping.",
-                 name);
+        SC_Warning(sc,
+                   "Sound '%s' uses a file path instead of a "
+                   "lump name, which is not supported, skipping.",
+                   name);
         return;
     }
 
@@ -170,10 +170,10 @@ static void ParseSoundAssignment(scanner_t *sc, const char *name,
     const char *lump = SC_GetString(sc);
     if (W_CheckNumForName(lump) < 0)
     {
-        I_Printf(VB_WARNING,
-                 "SNDINFO: Sound '%s' references lump '%s', which does "
-                 "not exist, skipping.",
-                 name, lump);
+        SC_Warning(sc,
+                   "Sound '%s' references lump '%s', which does "
+                   "not exist, skipping.",
+                   name, lump);
         return;
     }
 
@@ -189,10 +189,10 @@ static void ParseAmbientDirective(scanner_t *sc)
     int index = SC_GetNumber(sc);
     if (index < 1 || index > MAX_AMBIENT_DATA)
     {
-        I_Printf(VB_WARNING,
-                 "SNDINFO: Ambient index %d not in range 1 to %d, "
-                 "skipping.",
-                 index, MAX_AMBIENT_DATA);
+        SC_Warning(sc,
+                   "Ambient index %d not in range 1 to %d, "
+                   "skipping.",
+                   index, MAX_AMBIENT_DATA);
         SC_GetNextLineToken(sc);
         return;
     }
@@ -217,10 +217,10 @@ static void ParseAmbientDirective(scanner_t *sc)
     }
     if (SC_CheckKeyword(sc, "point", "world") < 0)
     {
-        I_Printf(VB_WARNING,
-                 "SNDINFO: Ambient sound '%s' has an unknown type, "
-                 "expected 'point' or 'world', skipping.",
-                 sound_name);
+        SC_Warning(sc,
+                   "Ambient sound '%s' has an unknown type, "
+                   "expected 'point' or 'world', skipping.",
+                   sound_name);
         SC_GetNextLineToken(sc);
         free(sound_name);
         return;
@@ -244,10 +244,10 @@ static void ParseAmbientDirective(scanner_t *sc)
     int mode_index = SC_CheckKeywordInternal(sc, keywords, arrlen(keywords));
     if (mode_index < 0)
     {
-        I_Printf(VB_WARNING,
-                 "SNDINFO: Ambient sound '%s' has an unknown mode, "
-                 "skipping.",
-                 sound_name);
+        SC_Warning(sc,
+                   "Ambient sound '%s' has an unknown mode, "
+                   "skipping.",
+                   sound_name);
         SC_GetNextLineToken(sc);
         free(sound_name);
         return;
@@ -312,9 +312,8 @@ static void ParseSndInfo(scanner_t *sc)
             }
             else
             {
-                I_Printf(VB_WARNING,
-                         "SNDINFO: Unknown directive '$%s', skipping.",
-                         SC_GetString(sc));
+                SC_Warning(sc, "Unknown directive '$%s', skipping.",
+                           SC_GetString(sc));
                 SkipDirective(sc);
             }
         }
@@ -333,7 +332,7 @@ static void ParseSndInfo(scanner_t *sc)
         }
         else
         {
-            I_Printf(VB_WARNING, "SNDINFO: Unexpected token, skipping.");
+            SC_Warning(sc, "Unexpected token, skipping.");
             SC_GetNextLineToken(sc);
         }
     }
