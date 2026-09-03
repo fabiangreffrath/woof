@@ -17,6 +17,9 @@
 
 #include "doomtype.h"
 
+// DoomEd numbers 14001 to 14064 are supported.
+#define MAX_AMBIENT_DATA 64
+
 int S_RandomSound(int sfx_number);
 
 typedef enum

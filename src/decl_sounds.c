@@ -267,9 +267,6 @@ int S_RandomSound(int sfx_number)
     return sfx_None;
 }
 
-// DoomEd numbers 14001 to 14064 are supported.
-#define MAX_AMBIENT_DATA 64
-
 static hashmap_t *ambient_sounds;
 static hashmap_t *ambient_data;
 

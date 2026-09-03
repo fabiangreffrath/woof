@@ -38,9 +38,6 @@
 #include "w_wad.h"
 #include "z_zone.h"
 
-// DoomEd numbers 14001 to 14064 are supported (see decl_sounds.c).
-#define MAX_AMBIENT_DATA 64
-
 typedef enum
 {
     SNDINFO_SYNTAX_UNKNOWN,
