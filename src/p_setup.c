@@ -537,6 +537,7 @@ static int32_t GetMusicOrTexture(int32_t *out, const char *texture_name)
   {
     texture_index = 0;
   }
+
   *out = music_index;
   return texture_index;
 }
