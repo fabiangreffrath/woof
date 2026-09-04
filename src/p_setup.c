@@ -508,12 +508,12 @@ void P_LoadLineDefs2(int lump)
 
 static int32_t GetColormapOrTexture(int32_t *out, const char *texture_name)
 {
-  int texture_index = 0;
-  int32_t colormap_index = -1;
-  if ((colormap_index = R_ColormapNumForName(texture_name)) < 0)
+  int32_t texture_index = R_TextureNumForName(texture_name);
+  int32_t colormap_index = R_ColormapNumForName(texture_name);
+
+  if (colormap_index < 0)
   {
     colormap_index = 0;
-    texture_index = R_TextureNumForName(texture_name);
   }
   else
   {
@@ -526,12 +526,12 @@ static int32_t GetColormapOrTexture(int32_t *out, const char *texture_name)
 
 static int32_t GetMusicOrTexture(int32_t *out, const char *texture_name)
 {
-  int texture_index = 0;
-  int32_t music_index = -1;
-  if ((music_index = W_CheckNumForName(texture_name)) < 0)
+  int32_t texture_index = R_TextureNumForName(texture_name);
+  int32_t music_index = W_CheckNumForName(texture_name);
+
+  if (music_index < 0)
   {
     music_index = 0;
-    texture_index = R_TextureNumForName(texture_name);
   }
   else
   {
