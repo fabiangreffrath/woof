@@ -80,6 +80,15 @@ set(SETUP_ICON "setup.ico")
 set(PROJECT_VERSION_RC
     "${PROJECT_VERSION_MAJOR},${PROJECT_VERSION_MINOR},${PROJECT_VERSION_PATCH},0")
 
+include(GetGitBranch)
+include(GetGitRevisionDescription)
+include(GetGitRevisionNumber)
+git_branch(HEAD GIT_BRANCH)
+git_rev_count(HEAD GIT_REV_COUNT)
+get_git_head_revision(HEAD GIT_HASH)
+git_describe(GIT_DESCRIBE --all --long --abbrev=8)
+string(REGEX REPLACE "^(heads\/|tags\/)(.+)(-0-g)([0-9a-f]+)" "\\4" GIT_HASH_SHORT "${GIT_DESCRIBE}")
+
 if(ENABLE_LTO)
     include(CheckIPOSupported)
     check_ipo_supported(RESULT HAVE_LTO OUTPUT output)
