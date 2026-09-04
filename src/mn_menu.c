@@ -156,7 +156,7 @@ typedef enum
 typedef struct
 {
     short status; // 0 = no cursor here, 1 = ok, 2 = arrows ok
-    char name[10];
+    char name[9];
 
     // choice = menu item #.
     // if status = 2,
@@ -565,8 +565,7 @@ void MN_AddEpisode(const char *map, const char *gfx, const char *txt, char key)
     G_ValidateMapName(map, &epi, &mapnum);
     EpiMenuEpi[EpiDef.numitems] = epi;
     EpiMenuMap[EpiDef.numitems] = mapnum;
-    strncpy(EpisodeMenu[EpiDef.numitems].name, gfx, 8);
-    EpisodeMenu[EpiDef.numitems].name[9] = 0;
+    M_CopyLumpName(EpisodeMenu[EpiDef.numitems].name, gfx);
     EpisodeMenu[EpiDef.numitems].alttext = txt ? strdup(txt) : NULL;
     EpisodeMenu[EpiDef.numitems].alphaKey = key;
     EpiDef.numitems++;

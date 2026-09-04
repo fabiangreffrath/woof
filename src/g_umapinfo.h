@@ -16,26 +16,32 @@
 #define G_UMAPINFO_H
 
 #include "doomtype.h"
-#include "f_finale.h"
+#include "d_player.h"
+#include "doomtype.h"
+#include "p_mobj.h"
+#include "r_defs.h"
+#include "wi_stuff.h"
 
 typedef enum
 {
     MapInfo_LabelClear = (1u << 0),
 
+    MapInfo_EndGameClear = (1u << 1),
     MapInfo_EndGameArt = (1u << 2),
     MapInfo_EndGameStandard = (1u << 3),
     MapInfo_EndGameCast = (1u << 4),
     MapInfo_EndGameBunny = (1u << 5),
     MapInfo_EndGameCustomFinale = (1u << 6),
-    MapInfo_EndGame = (MapInfo_EndGameArt | MapInfo_EndGameStandard
-                       | MapInfo_EndGameCast | MapInfo_EndGameBunny),
-    MapInfo_EndGameClear = (1u << 7),
 
-    MapInfo_NoIntermission = (1u << 8),
-    MapInfo_InterTextClear = (1u << 9),
-    MapInfo_InterTextSecretClear = (1u << 10),
+    MapInfo_NoIntermission = (1u << 7),
+    MapInfo_InterTextClear = (1u << 8),
+    MapInfo_InterTextSecretClear = (1u << 9),
 
-    MapInfo_BossActionClear = (1u << 11)
+    MapInfo_BossActionClear = (1u << 10),
+
+    MapInfo_EndGame = (MapInfo_EndGameArt|MapInfo_EndGameStandard|
+                      MapInfo_EndGameCast|MapInfo_EndGameBunny|
+                      MapInfo_EndGameCustomFinale),
 } mapinfo_flags_t;
 
 typedef struct
@@ -47,7 +53,7 @@ typedef struct
 
 typedef struct mapentry_s
 {
-    char *mapname;
+    char *lumpname;
     char *levelname;
     char *label;
     char *intertext;
@@ -75,12 +81,52 @@ extern mapentry_t *umapinfo;
 
 extern boolean EpiCustom;
 
-mapentry_t *G_LookupMapinfo(int episode, int map);
-
 boolean G_ValidateMapName(const char *mapname, int *episode, int *map);
 
 void G_ParseMapInfo(int lumpnum);
 
 boolean G_IsSecretMap(int episode, int map);
+
+//
+// Abstract away map information calls
+//
+
+typedef enum MI_ShowNext_e
+{
+    WI_ShowNextLoc = (1u << 0),
+    WI_ShowNextDone = (1u << 1),
+    WI_ShowNextEpisodal = (1u << 2),
+} MI_ShowNext_t;
+
+typedef enum MI_Completion_e
+{
+    DC_Victory = (1u << 0),
+} MI_Completion_t;
+
+typedef enum MI_WinDisplay_e
+{
+    WD_Victory = (1u << 0),
+    WD_StartFinale = (1u << 1),
+} MI_WinDisplay_t;
+
+mapentry_t *MI_MapEntry(int episode, int map);
+void MI_UpdateGameMap(int epi, int map);
+void MI_UpdateLastMapInfo(wbstartstruct_t *wminfo);
+void MI_UpdateNextMapInfo(wbstartstruct_t *wminfo);
+void MI_NextMap(int *episode, int *map);
+MI_ShowNext_t MI_ShowNextLoc(void);
+boolean MI_SkipShowNextLoc(void);
+boolean MI_BossAction(mobj_t *mo);
+const char *MI_GetLevelTitle(void);
+int MI_SkyTexture(void);
+MI_Completion_t MI_PrepareIntermission(wbstartstruct_t *wminfo);
+void MI_VisitLevel(void);
+MI_WinDisplay_t MI_PrepareFinale(void);
+void MI_WI_Start(wbstartstruct_t *wbs, const char **exitpic,
+                 const char **enterpic, wi_animation_t **animation);
+void MI_MapAnnouncement(char announce_string[120], char author_string[120],
+                        const char string[120], size_t str_size);
+void MI_SpecHits(line_t *dummy, int *speciallines, boolean *trigger_keen);
+void MI_ChangeMusic(void);
 
 #endif
