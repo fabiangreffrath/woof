@@ -1631,8 +1631,8 @@ void D_DoomMain(void)
   {
     const char* setup_path = M_StringJoin(D_DoomExeDir(), DIR_SEPARATOR_S, "woof-setup");
     const char* args[] = { setup_path, NULL };
-    SDL_CreateProcess(args, false);
-    I_SafeExit(0);
+    SDL_Process* process = SDL_CreateProcess(args, false);
+    I_SafeExit(process ? 0 : 1);
   }
 
   #endif
