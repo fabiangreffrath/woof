@@ -1627,15 +1627,12 @@ void D_DoomMain(void)
   // Launch woof-setup.
   //
 
-  if (M_getenv("APPIMAGE"))
+  if (M_ParmExists("-setup"))
   {
-    if (M_ParmExists("-setup"))
-    {
-      const char* setup_path = M_StringJoin(D_DoomExeDir(), DIR_SEPARATOR_S, "woof-setup");
-      const char* args[] = { setup_path, NULL };
-      SDL_CreateProcess(args, false);
-      I_SafeExit(0);
-    }
+    const char* setup_path = M_StringJoin(D_DoomExeDir(), DIR_SEPARATOR_S, "woof-setup");
+    const char* args[] = { setup_path, NULL };
+    SDL_CreateProcess(args, false);
+    I_SafeExit(0);
   }
 
   #endif
