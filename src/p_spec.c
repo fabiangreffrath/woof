@@ -1142,7 +1142,8 @@ void EV_ChangeMusic(line_t *line, int side)
   boolean loops = false;
   boolean resets = false;
 
-  int music = side ? line->backmusic : line->frontmusic;
+  side_t *sidedef = &sides[line->sidenum[0]];
+  int music = side ? sidedef->bottomindex : sidedef->topindex;
 
   switch (line->special)
   {
@@ -1814,7 +1815,8 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
 
     case 2077:
     {
-      int colormap_index = side ? line->backtint : line->fronttint;
+      side_t *sidedef = &sides[line->sidenum[0]];
+      int colormap_index = side ? sidedef->bottomindex : sidedef->topindex;
       for (int s = -1; (s = P_FindSectorFromLineTag(line, s)) >= 0;)
       {
         sectors[s].tint = colormap_index;
@@ -2305,7 +2307,8 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line, int side)
       else
         P_ChangeSwitchTexture(line,1);
 
-      int colormap_index = side ? line->backtint : line->fronttint;
+      side_t *sidedef = &sides[line->sidenum[0]];
+      int colormap_index = side ? sidedef->bottomindex : sidedef->topindex;
       for (int s = -1; (s = P_FindSectorFromLineTag(line, s)) >= 0;)
       {
         sectors[s].tint = colormap_index;
@@ -2942,7 +2945,8 @@ void P_SpawnSpecials (void)
       case 2075:
         for (int s = -1; (s = P_FindSectorFromLineTag(&lines[i], s)) >= 0;)
         {
-          sectors[s].tint = lines[i].fronttint;
+          side_t *side = &sides[lines[i].sidenum[0]];
+          sectors[s].tint = side->topindex;
         }
         break;
       }
