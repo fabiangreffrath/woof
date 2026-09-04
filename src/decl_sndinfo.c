@@ -215,11 +215,12 @@ static void ParseAmbientDirective(scanner_t *sc)
         free(sound_name);
         return;
     }
-    if (SC_CheckKeyword(sc, "point") < 0)
+    int type_index = SC_CheckKeyword(sc, "point", "world");
+    if (type_index != 0) // not "point"
     {
         SC_Warning(sc,
-                   "Ambient sound '%s' has an unsupported type '%s', "
-                   "skipping.",
+                   "Ambient sound '%s' uses unsupported type "
+                   "'%s', skipping.",
                    sound_name, SC_GetString(sc));
         SC_GetNextLineToken(sc);
         free(sound_name);
