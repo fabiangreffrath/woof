@@ -484,7 +484,7 @@ void P_LoadLineDefs2(int lump)
       {
         case 260: // killough 4/11/98: translucent 2s textures
         {
-          int32_t lump = sides[*ld->sidenum].special; // translucency from sidedef
+          int32_t lump = sides[*ld->sidenum].midindex; // translucency from sidedef
           const byte *tranmap =
               !lump ? main_tranmap : W_CacheLumpNum(lump - 1, PU_STATIC);
           if (!ld->args[0])
@@ -542,6 +542,31 @@ static int32_t GetMusicOrTexture(int32_t *out, const char *texture_name)
   return texture_index;
 }
 
+static int32_t GetTranmapOrTexture(int32_t *out, const char *texture_name)
+{
+  int32_t tranmap_index = 0;
+  int32_t texture_index = 0;
+
+  if (strncasecmp("TRANMAP", texture_name, 8) != 0)
+  {
+    tranmap_index = W_CheckNumForName(texture_name);
+
+    if (tranmap_index >= 0 && W_LumpLength(tranmap_index) == 65536)
+    {
+      tranmap_index++;
+      texture_index = 0;
+    }
+    else
+    {
+      tranmap_index = 0;
+      texture_index = R_TextureNumForName(texture_name);
+    }
+  }
+
+  *out = tranmap_index;
+  return texture_index;
+}
+
 void P_ProcessSideDefs(side_t *side, int i, char *bottomtexture, char *midtexture, char *toptexture)
 {
   sector_t *sec = side->sector;
@@ -551,41 +576,41 @@ void P_ProcessSideDefs(side_t *side, int i, char *bottomtexture, char *midtextur
     case 2063: case 2064: case 2065: case 2066: case 2067: case 2068:
     case 2087: case 2088: case 2089: case 2090: case 2091: case 2092:
     case 2093: case 2094: case 2095: case 2096: case 2097: case 2098:
-      side->bottomtexture = GetMusicOrTexture(&side->bottomindex, bottomtexture);
       side->toptexture = GetMusicOrTexture(&side->topindex, toptexture);
       side->midtexture = R_TextureNumForName(midtexture);
+      side->bottomtexture = GetMusicOrTexture(&side->bottomindex, bottomtexture);
       break;
 
     case 2076: case 2077: case 2078: case 2079: case 2080: case 2081:
+      side->toptexture = GetColormapOrTexture(&side->topindex, toptexture);
+      side->midtexture = R_TextureNumForName(midtexture);
       side->bottomtexture = GetColormapOrTexture(&side->bottomindex, bottomtexture);
-      // fallthrough
+      break;
+
     case 2075:
       side->toptexture = GetColormapOrTexture(&side->topindex, toptexture);
       side->midtexture = R_TextureNumForName(midtexture);
+      side->bottomtexture = R_TextureNumForName(bottomtexture);
       break;
 
     // variable colormap via 242 linedef
     case 242:
-      side->bottomtexture = GetColormapOrTexture(&sec->bottommap, bottomtexture);
-      side->midtexture = GetColormapOrTexture(&sec->midmap, midtexture);
       side->toptexture = GetColormapOrTexture(&sec->topmap, toptexture);
+      side->midtexture = GetColormapOrTexture(&sec->midmap, midtexture);
+      side->bottomtexture = GetColormapOrTexture(&sec->bottommap, bottomtexture);
       break;
 
     // killough 4/11/98: apply translucency to 2s normal texture
     case 260:
-      side->midtexture = strncasecmp("TRANMAP", midtexture, 8) ?
-        (side->special = W_CheckNumForName(midtexture)) < 0 ||
-        W_LumpLength(side->special) != 65536 ?
-        side->special=0, R_TextureNumForName(midtexture) :
-          (side->special++, 0) : (side->special=0);
       side->toptexture = R_TextureNumForName(toptexture);
+      side->midtexture = GetTranmapOrTexture(&side->midindex, midtexture);
       side->bottomtexture = R_TextureNumForName(bottomtexture);
       break;
 
     // normal cases
     default:
-      side->midtexture = R_TextureNumForName(midtexture);
       side->toptexture = R_TextureNumForName(toptexture);
+      side->midtexture = R_TextureNumForName(midtexture);
       side->bottomtexture = R_TextureNumForName(bottomtexture);
       break;
   }
