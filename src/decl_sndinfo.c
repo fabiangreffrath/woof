@@ -74,7 +74,7 @@ static boolean ExpectToken(scanner_t *sc, char token, const char *what)
     {
         return true;
     }
-    SC_Warning(sc, "Expected %s, skipping entry.", what);
+    SC_Warning(sc, "Expected %s, skipping.", what);
     SkipMismatchAndRestOfLine(sc);
     return false;
 }
@@ -92,10 +92,7 @@ static char *ReadLogicalName(scanner_t *sc, const char *first)
     {
         if (!SC_CheckToken(sc, TK_Identifier))
         {
-            SC_Warning(sc,
-                       "Name '%s' has a trailing '/' with nothing "
-                       "after it, skipping.",
-                       name);
+            SC_Warning(sc, "Name '%s' ends with '/', skipping.", name);
             free(name);
             return NULL;
         }
@@ -164,10 +161,7 @@ static void ParseSoundAssignment(scanner_t *sc, const char *name,
     }
     else if (has_equals != (*syntax == SNDINFO_SYNTAX_NEW))
     {
-        SC_Warning(sc,
-                   "Sound '%s' uses a different assignment syntax "
-                   "than the rest of the lump, skipping.",
-                   name);
+        SC_Warning(sc, "Sound '%s': mixed syntax, skipping.", name);
         SkipMismatchAndRestOfLine(sc);
         return;
     }
@@ -176,10 +170,7 @@ static void ParseSoundAssignment(scanner_t *sc, const char *name,
     {
         // A quoted value is a file-system path; Woof has no virtual
         // /sounds/ namespace to resolve it against.
-        SC_Warning(sc,
-                   "Sound '%s' uses a file path instead of a "
-                   "lump name, which is not supported, skipping.",
-                   name);
+        SC_Warning(sc, "Sound '%s': file path unsupported.", name);
         SkipRestOfLine(sc);
         return;
     }
@@ -192,10 +183,7 @@ static void ParseSoundAssignment(scanner_t *sc, const char *name,
     const char *lump = SC_GetString(sc);
     if (W_CheckNumForName(lump) < 0)
     {
-        SC_Warning(sc,
-                   "Sound '%s' references lump '%s', which does "
-                   "not exist, skipping.",
-                   name, lump);
+        SC_Warning(sc, "Sound '%s': lump '%s' missing.", name, lump);
         SkipRestOfLine(sc);
         return;
     }
@@ -206,11 +194,7 @@ static void ParseSoundAssignment(scanner_t *sc, const char *name,
     {
         // SNDINFO supports trailing per-sound modifiers here (e.g.
         // "volume <float>"), which Woof doesn't support.
-        SC_Warning(sc,
-                   "Sound '%s' has extra content after the lump "
-                   "name, which is not supported, skipping the "
-                   "rest of the line.",
-                   name);
+        SC_Warning(sc, "Sound '%s': extra content, skipping.", name);
         SkipRestOfLine(sc);
     }
 }
@@ -224,10 +208,8 @@ static void ParseAmbientDirective(scanner_t *sc)
     int index = SC_GetNumber(sc);
     if (index < 1 || index > MAX_AMBIENT_DATA)
     {
-        SC_Warning(sc,
-                   "Ambient index %d not in range 1 to %d, "
-                   "skipping.",
-                   index, MAX_AMBIENT_DATA);
+        SC_Warning(sc, "Ambient index %d out of range (1-%d).", index,
+                   MAX_AMBIENT_DATA);
         SkipRestOfLine(sc);
         return;
     }
@@ -253,10 +235,8 @@ static void ParseAmbientDirective(scanner_t *sc)
     int type_index = SC_CheckKeyword(sc, "point", "world");
     if (type_index != 0) // not "point"
     {
-        SC_Warning(sc,
-                   "Ambient sound '%s' uses unsupported type "
-                   "'%s', skipping.",
-                   sound_name, SC_GetString(sc));
+        SC_Warning(sc, "Ambient '%s': bad type '%s'.", sound_name,
+                   SC_GetString(sc));
         SkipRestOfLine(sc);
         free(sound_name);
         return;
@@ -280,10 +260,7 @@ static void ParseAmbientDirective(scanner_t *sc)
     int mode_index = SC_CheckKeywordInternal(sc, keywords, arrlen(keywords));
     if (mode_index < 0)
     {
-        SC_Warning(sc,
-                   "Ambient sound '%s' has an unknown mode, "
-                   "skipping.",
-                   sound_name);
+        SC_Warning(sc, "Ambient '%s': unknown mode.", sound_name);
         SkipRestOfLine(sc);
         free(sound_name);
         return;
