@@ -1620,6 +1620,23 @@ void D_DoomMain(void)
     I_SafeExit(0);
   }
 
+  #ifdef __linux__
+
+  //!
+  //
+  // Launch woof-setup.
+  //
+
+  if (M_ParmExists("-setup"))
+  {
+    const char* setup_path = M_StringJoin(D_DoomExeDir(), DIR_SEPARATOR_S, "woof-setup");
+    const char* args[] = { setup_path, NULL };
+    SDL_Process* process = SDL_CreateProcess(args, false);
+    I_SafeExit(process ? 0 : 1);
+  }
+
+  #endif
+
   // [FG] initialize logging verbosity early to decide
   //      if the following lines will get printed or not
 

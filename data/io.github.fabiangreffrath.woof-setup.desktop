@@ -6,3 +6,4 @@ Type=Application
 Comment=Setup tool for Woof!
 Categories=Settings;
 Keywords=first;person;shooter;vanilla;doom;boom;mbf;
+StartupWMClass=io.github.fabiangreffrath.woof
