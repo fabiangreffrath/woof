@@ -34,6 +34,7 @@
 #include <string.h>
 
 #include "doomtype.h"
+#include "i_printf.h"
 #include "i_system.h"
 #include "m_misc.h"
 
@@ -542,16 +543,28 @@ boolean SC_CheckToken(scanner_t *s, char token)
     return false;
 }
 
-void SC_Error(scanner_t *s, const char *msg, ...)
+static char msg_buffer[1024];
+
+void SC_Warning(scanner_t *s, const char *msg, ...)
 {
-    char buffer[1024];
     va_list args;
     va_start(args, msg);
-    M_vsnprintf(buffer, sizeof(buffer), msg, args);
+    M_vsnprintf(msg_buffer, sizeof(msg_buffer), msg, args);
+    va_end(args);
+
+    I_Printf(VB_WARNING, "%s(%d:%d): %s", s->scriptname, s->state.tokenline,
+            s->state.tokenlinepos + 1, msg_buffer);
+}
+
+void SC_Error(scanner_t *s, const char *msg, ...)
+{
+    va_list args;
+    va_start(args, msg);
+    M_vsnprintf(msg_buffer, sizeof(msg_buffer), msg, args);
     va_end(args);
 
     I_Error("%s(%d:%d): %s", s->scriptname, s->state.tokenline,
-            s->state.tokenlinepos + 1, buffer);
+            s->state.tokenlinepos + 1, msg_buffer);
 }
 
 void SC_MustGetToken(scanner_t *s, char token)
