@@ -2211,7 +2211,7 @@ static void DrawStatusBar(void)
 {
     ST_SetSTHeight();
 
-    if (st_height && (screenblocks <= 10 || automap_on))
+    if (st_height && (screenblocks <= 10 || !statusbar->fullscreenrender || automap_on))
     {
         DrawBackground(statusbar->fillflat);
     }
@@ -2228,7 +2228,7 @@ static void DrawStatusBar(void)
 
 void ST_Erase(void)
 {
-    if (!sbardef || screenblocks >= 10)
+    if (!sbardef || (screenblocks >= 10 && statusbar->fullscreenrender))
     {
         return;
     }
