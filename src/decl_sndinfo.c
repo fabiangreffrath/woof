@@ -45,6 +45,27 @@ typedef enum
     SNDINFO_SYNTAX_NEW, // logicalname = lumpname
 } sndinfo_syntax_t;
 
+// Skips whatever remains on the current line, one token at a time,
+// without touching the next line (unlike SC_GetNextLineToken()).
+static void SkipRestOfLine(scanner_t *sc)
+{
+    while (SC_TokensLeft(sc) && SC_SameLine(sc))
+    {
+        SC_GetNextToken(sc, true);
+    }
+}
+
+// Like SkipRestOfLine(), but first force-consumes a pending mismatched
+// token so SC_SameLine()'s reference point can't be stale.
+static void SkipMismatchAndRestOfLine(scanner_t *sc)
+{
+    if (SC_TokensLeft(sc))
+    {
+        SC_GetNextToken(sc, true);
+    }
+    SkipRestOfLine(sc);
+}
+
 // Non-fatal counterpart to SC_MustGetToken(): on a mismatch it warns,
 // skips to the next line, and returns false instead of aborting.
 static boolean ExpectToken(scanner_t *sc, char token, const char *what)
@@ -54,7 +75,7 @@ static boolean ExpectToken(scanner_t *sc, char token, const char *what)
         return true;
     }
     SC_Warning(sc, "Expected %s, skipping entry.", what);
-    SC_GetNextLineToken(sc);
+    SkipMismatchAndRestOfLine(sc);
     return false;
 }
 
@@ -147,7 +168,7 @@ static void ParseSoundAssignment(scanner_t *sc, const char *name,
                    "Sound '%s' uses a different assignment syntax "
                    "than the rest of the lump, skipping.",
                    name);
-        SC_GetNextLineToken(sc);
+        SkipMismatchAndRestOfLine(sc);
         return;
     }
 
@@ -159,6 +180,7 @@ static void ParseSoundAssignment(scanner_t *sc, const char *name,
                    "Sound '%s' uses a file path instead of a "
                    "lump name, which is not supported, skipping.",
                    name);
+        SkipRestOfLine(sc);
         return;
     }
 
@@ -174,10 +196,23 @@ static void ParseSoundAssignment(scanner_t *sc, const char *name,
                    "Sound '%s' references lump '%s', which does "
                    "not exist, skipping.",
                    name, lump);
+        SkipRestOfLine(sc);
         return;
     }
 
     DECL_AddSndInfoSound(name, lump);
+
+    if (SC_TokensLeft(sc) && SC_SameLine(sc))
+    {
+        // SNDINFO supports trailing per-sound modifiers here (e.g.
+        // "volume <float>"), which Woof doesn't support.
+        SC_Warning(sc,
+                   "Sound '%s' has extra content after the lump "
+                   "name, which is not supported, skipping the "
+                   "rest of the line.",
+                   name);
+        SkipRestOfLine(sc);
+    }
 }
 
 static void ParseAmbientDirective(scanner_t *sc)
@@ -193,7 +228,7 @@ static void ParseAmbientDirective(scanner_t *sc)
                    "Ambient index %d not in range 1 to %d, "
                    "skipping.",
                    index, MAX_AMBIENT_DATA);
-        SC_GetNextLineToken(sc);
+        SkipRestOfLine(sc);
         return;
     }
 
@@ -204,7 +239,7 @@ static void ParseAmbientDirective(scanner_t *sc)
     char *sound_name = ReadLogicalName(sc, SC_GetString(sc));
     if (!sound_name)
     {
-        SC_GetNextLineToken(sc);
+        SkipMismatchAndRestOfLine(sc);
         return;
     }
 
@@ -222,7 +257,7 @@ static void ParseAmbientDirective(scanner_t *sc)
                    "Ambient sound '%s' uses unsupported type "
                    "'%s', skipping.",
                    sound_name, SC_GetString(sc));
-        SC_GetNextLineToken(sc);
+        SkipRestOfLine(sc);
         free(sound_name);
         return;
     }
@@ -249,7 +284,7 @@ static void ParseAmbientDirective(scanner_t *sc)
                    "Ambient sound '%s' has an unknown mode, "
                    "skipping.",
                    sound_name);
-        SC_GetNextLineToken(sc);
+        SkipRestOfLine(sc);
         free(sound_name);
         return;
     }
@@ -328,13 +363,13 @@ static void ParseSndInfo(scanner_t *sc)
             }
             else
             {
-                SC_GetNextLineToken(sc);
+                SkipMismatchAndRestOfLine(sc);
             }
         }
         else
         {
             SC_Warning(sc, "Unexpected token, skipping.");
-            SC_GetNextLineToken(sc);
+            SkipMismatchAndRestOfLine(sc);
         }
     }
 }
