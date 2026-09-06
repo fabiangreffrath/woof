@@ -1157,7 +1157,7 @@ static inline int WRAP(int i, int w)
     return i % w;
 }
 
-void S_Start(void)
+void S_Start(boolean from_savegame)
 {
     int cnum, mnum;
 
@@ -1174,6 +1174,12 @@ void S_Start(void)
                 S_StopChannel(cnum);
             }
         }
+    }
+
+    // do not start level music yet
+    if (from_savegame)
+    {
+        return;
     }
 
     // [crispy] reset musinfo data at the start of a new map

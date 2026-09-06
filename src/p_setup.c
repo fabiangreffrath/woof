@@ -1176,7 +1176,7 @@ static void CheckMapFormat(int lumpnum, map_t *map)
     }
 }
 
-void P_SetupLevel(int episode, int map_num, skill_t skill)
+void P_SetupLevel(int episode, int map_num, skill_t skill, boolean from_savegame)
 {
   char  lumpname[9];
   int   lumpnum;
@@ -1204,7 +1204,7 @@ void P_SetupLevel(int episode, int map_num, skill_t skill)
   }
 
   // Make sure all sounds are stopped before Z_FreeTags.
-  S_Start();
+  S_Start(from_savegame);
 
   Z_FreeTag(PU_LEVEL);
   M_ArenaClear(world_arena);
