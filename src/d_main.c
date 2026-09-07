@@ -1622,11 +1622,6 @@ void D_DoomMain(void)
 
   #ifdef __linux__
 
-  //!
-  //
-  // Launch setup utility.
-  //
-
   if (M_ParmExists("-setup"))
   {
     const char* setup_path = M_StringJoin(D_DoomExeDir(), DIR_SEPARATOR_S, PROJECT_SHORTNAME "-setup");

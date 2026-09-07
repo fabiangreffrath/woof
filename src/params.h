@@ -1,9 +1,6 @@
 
 static const char *params[] = {
 "-devparm",
-#ifdef __linux__
-"-setup",
-#endif
 "-help",
 "-nomusic",
 "-nosfx",
