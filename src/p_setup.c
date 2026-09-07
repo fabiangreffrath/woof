@@ -1203,6 +1203,10 @@ void P_SetupLevel(int episode, int map_num, skill_t skill, boolean from_savegame
     playback_nextlevel = false;
   }
 
+  // [crispy] reset musinfo data at the start of a new map
+  memset(&musinfo, 0, sizeof(musinfo));
+  musinfo.current_item = -1;
+
   // Make sure all sounds are stopped before Z_FreeTags.
   S_Start(from_savegame);
 
