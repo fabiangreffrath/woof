@@ -258,6 +258,21 @@ sfxinfo_t original_S_sfx[NUMSFX] = {
   SOUND("plosml", sg_oof,    96),
   SOUND("lavsml", sg_oof,    96),
 
+  // optional menu and intermission sounds
+  SOUND("dsmnuopn", sg_none, 60),
+  SOUND("dsmnucls", sg_none, 60),
+  SOUND("dsmnuact", sg_none, 60),
+  SOUND("dsmnubak", sg_none, 60),
+  SOUND("dsmnumov", sg_none, 60),
+  SOUND("dsmnusli", sg_none, 60),
+  SOUND("dsmnusel", sg_none, 60),
+  SOUND("dsmnuerr", sg_none, 60),
+  SOUND("dsinttic", sg_none, 60),
+  SOUND("dsinttot", sg_none, 60),
+  SOUND("dsintnex", sg_none, 60),
+  SOUND("dsintnet", sg_none, 60),
+  SOUND("dsintdms", sg_none, 60),
+
   [500] = SOUND("fre000", sg_none, 127),
   [501] = SOUND("fre001", sg_none, 127),
   [502] = SOUND("fre002", sg_none, 127),
