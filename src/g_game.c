@@ -2852,7 +2852,7 @@ static boolean DoLoadGameJSON(boolean do_load_autosave, json_t *root)
     else
     {
         // start level music now
-        S_Start(false);
+        S_Start();
     }
 
     max_kill_requirement = JS_GetIntegerValue(root, "max_kill_requirement");
@@ -3017,7 +3017,7 @@ static boolean DoLoadGameBinary(boolean do_load_autosave)
   if (!musinfo_music)
   {
     // start level music now
-    S_Start(false);
+    S_Start();
   }
 
   // restore max_kill_requirement

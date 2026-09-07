@@ -43,7 +43,8 @@ void S_Init(int sfxVolume, int musicVolume);
 // Kills playing sounds at start of level,
 //  determines music if any, changes music.
 //
-void S_Start(boolean from_savegame);
+void S_Reset(void);
+void S_Start(void);
 
 void S_EvictChannels(void);
 
