@@ -2583,6 +2583,12 @@ static void DoSaveGame(char *name)
     // [FG] save total time for all completed levels
     JS_SetInt(doc, root_mut, "totalleveltimes", totalleveltimes);
 
+    // fast-process pending MUSINFO music change
+    if (musinfo.tics > 0)
+    {
+        musinfo.tics = 0;
+        T_MusInfo();
+    }
     // save lump name for current MUSINFO item
     char lumpname[9] = {0};
     if (musinfo.current_item > 0)
