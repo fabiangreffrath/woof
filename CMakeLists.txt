@@ -44,7 +44,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 
 project(
     "Woof"
-    VERSION 15.2.0
+    VERSION 16.0.0
     LANGUAGES C CXX
 )
 
