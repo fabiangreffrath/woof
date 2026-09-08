@@ -3151,10 +3151,7 @@ static boolean DoLoadGame(boolean do_load_autosave)
                                 // loaded.
         }
 
-    // TODO: Why does `AM_MiniStart()` set `automapactive = false`?
-    const boolean saved_automapactive = automapactive;
     ST_Start();
-    AM_EnableFullAutomap(saved_automapactive);
 
     return true;
 }
