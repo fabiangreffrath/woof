@@ -4,7 +4,7 @@
 
 ## Bug Fixes
 
-* Do not restart musinfo level music when restoring a savegame.
+* Do not restart MUSINFO level music when restoring a savegame.
 * 
 
 ## Miscellaneous
