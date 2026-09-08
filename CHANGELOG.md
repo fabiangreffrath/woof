@@ -97,7 +97,7 @@
   - Improved detection of installed (Steam, GOG) IWADs.
   - Improved text-screen rendering (for ENDOOM screen and setup executable).
   - Replaced ENDOOM font with improved "Hauge" font by Zokum.
-  - Slightly improved palettization of PNG graphics.
+  - Slightly improved palettization of true-color PNG graphics.
   - Replaced built-in `PLS2` sprites with red replacements, to better match the original press-beta sprites.
   - Added freely licensed sprites for the following:
     - `SMFLAM*` (carousel icon for Legacy of Rust's incinerator).
