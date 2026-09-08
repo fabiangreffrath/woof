@@ -457,8 +457,9 @@ void DEH_ParseCommandLine(void)
     //!
     // @category mod
     // @arg <files>
+    // @help
     //
-    // Load the given dehacked/bex patch(es)
+    // Load the given dehacked/bex patch(es).
     //
     int p = M_CheckParm("-deh");
 

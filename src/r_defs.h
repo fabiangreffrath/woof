@@ -212,6 +212,9 @@ typedef struct side_s
   sector_t* sector;      // Sector the SideDef is facing.
   int32_t tint;          // colormap-based tinting
   sidedef_flags_t flags;
+  int32_t topindex;
+  int32_t bottomindex;
+  int32_t midindex;
 
   // killough 4/4/98, 4/11/98: highest referencing special linedef's type,
   // or lump number of special effect. Allows texture names to be overloaded
@@ -296,10 +299,6 @@ typedef struct line_s
 
   // ID24 line specials
   angle_t angle;
-  int frontmusic; // Front upper texture -- activated from the front side
-  int backmusic; // Front lower texture -- activated from the back side
-  int fronttint; // Front upper texture -- activated from the front side
-  int backtint; // Front lower texture -- activated from the back side
 
   boolean dirty;
 } line_t;
