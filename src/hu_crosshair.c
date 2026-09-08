@@ -126,11 +126,6 @@ void HU_UpdateCrosshair(void)
 {
     plr = &players[displayplayer];
 
-    if (screenblocks == 11)
-    {
-        ST_SetSTHeight();
-    }
-
     crosshair.x = SCREENWIDTH / 2;
     crosshair.y = (SCREENHEIGHT - st_height) / 2;
 
