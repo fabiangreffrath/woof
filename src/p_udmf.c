@@ -1252,7 +1252,7 @@ static void UDMF_LoadLineDefs_Post(void)
             case 260:
             {
                 // translucency from sidedef
-                int32_t lump = sides[*lines[i].sidenum].special;
+                int32_t lump = sides[*lines[i].sidenum].midindex;
                 const byte *tranmap =
                     !lump ? main_tranmap : W_CacheLumpNum(lump - 1, PU_STATIC);
                 if (!lines[i].args[0])
