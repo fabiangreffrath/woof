@@ -531,9 +531,11 @@ void R_ExecuteSetViewSize (void)
 
   if (setblocks == 11)
     {
+      ST_SetSTHeight();
+
       scaledviewwidth_nonwide = NONWIDEWIDTH;
       scaledviewwidth = video.unscaledw;
-      scaledviewheight = SCREENHEIGHT;                    // killough 11/98
+      scaledviewheight = SCREENHEIGHT - st_height; // killough 11/98
     }
   // [crispy] hard-code to SCREENWIDTH and SCREENHEIGHT minus status bar height
   else if (setblocks == 10)
