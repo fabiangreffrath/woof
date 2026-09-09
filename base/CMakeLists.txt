@@ -218,7 +218,7 @@ set(BASE_SOURCES
     all-all/cryellow.lmp
     all-all/declare.txt
     all-all/dmxopl.op2
-    all-all/hacx.lmp
+    all-all/hacxdeh.lmp
     all-all/sbardef.json
     all-all/sbhuddef.json
     all-all/skytran.lmp
