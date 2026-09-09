@@ -216,7 +216,7 @@ sfxinfo_t original_S_sfx[NUMSFX] = {
   SOUND("punch",  sg_none,   64),
   SOUND("hoof",   sg_none,   70),
   SOUND("metal",  sg_none,   70),
-  SOUND_LINK("chgun", sg_none, 64, sfx_pistol),
+  SOUND("chgun",  sg_none,   64),
   SOUND("tink",   sg_none,   60),
   SOUND("bdopn",  sg_none,  100),
   SOUND("bdcls",  sg_none,  100),

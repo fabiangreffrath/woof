@@ -489,6 +489,11 @@ static void LinkOptionalSounds(void)
         {sfx_getpow, sfx_itemup},
         {sfx_itemup, sfx_None  },
 
+        // some wads include DSCHGUN.
+        // note that hacx.wad's own DSCHGUN
+        // was never really meant to be heard :P
+        {sfx_chgun,  sfx_pistol},
+
         // sounds when hitting animated floor
         {sfx_splash, sfx_oof   },
         {sfx_ploosh, sfx_oof   },
@@ -521,6 +526,15 @@ static void LinkOptionalSounds(void)
         if (from->lumpnum == -1)
         {
             from->link = to;
+            // FIXME: remove me once load order issue is resolved
+            I_Printf(VB_DEBUG, "OPTIONAL: SFX Info Link for sound '%s' is set to '%s'.", from->name, to->name);
+        }
+
+        if (from->link_num != -1)
+        {
+            from->link = &S_sfx[from->link_num];
+            // FIXME: remove me once load order issue is resolved
+            I_Printf(VB_DEBUG, "FORCED: SFX Info Link for sound '%s' is set to '%s'.", from->name, S_sfx[from->link_num].name);
         }
     }
 }

@@ -429,6 +429,8 @@ void DEH_LoadLump(int lumpnum)
         return;
     }
 
+    // FIXME: remove me once load order issue is resolved
+    DEH_Debug(context, "Parsing");
     DEH_ParseContext(context);
 
     // If there was an error while parsing, abort.
