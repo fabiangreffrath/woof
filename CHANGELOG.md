@@ -12,4 +12,4 @@
 
 ## Miscellaneous
 
-* 
+* Allow "Centered Messages" feature only if the `SBARDEF` lump is from the IWAD or the port's own base file
