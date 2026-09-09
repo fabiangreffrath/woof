@@ -595,6 +595,18 @@ boolean W_IsIWADLump (const int lump)
 	return W_LumpExists(lump) && lumpinfo[lump].wad_file == wadfiles[0];
 }
 
+// lump is from a WAD file, but not the IWAD,
+// or from a ZIP/PK3 file, but not our own base file
+boolean W_IsPWADLump(const int lump)
+{
+    return W_LumpExists(lump)
+           && ((lumpinfo[lump].wad_file
+                && lumpinfo[lump].wad_file != wadfiles[0])
+               || (lumpinfo[lump].module == &w_zip_module
+                   && lumpinfo[lump].handle.p1.descriptor
+                          != base_handle.p1.descriptor));
+}
+
 // check if lump is from WAD
 boolean W_IsWADLump (const int lump)
 {

@@ -1078,18 +1078,23 @@ void ST_InitWidgets(void)
 sbarelem_t *st_time_elem = NULL, *st_cmd_elem = NULL;
 
 boolean message_centered;
-sbarelem_t *st_msg_elem = NULL;
+boolean allow_message_centered = false;
 
 static void ForceCenterMessage(sbarelem_t *elem)
 {
-    static sbaralignment_t default_alignment;
-    if (!st_msg_elem)
+    if (allow_message_centered)
     {
-        default_alignment = elem->orig_alignment;
-        st_msg_elem = elem;
+        if (message_centered)
+        {
+            elem->x_pos = SCREENWIDTH / 2;
+            elem->alignment = sbe_h_middle;
+        }
+        else
+        {
+            elem->x_pos = elem->orig_x_pos;
+            elem->alignment = elem->orig_alignment;
+        }
     }
-
-    elem->alignment = message_centered ? sbe_h_middle : default_alignment;
 }
 
 void ST_UpdateWidget(sbarelem_t *elem, player_t *player)

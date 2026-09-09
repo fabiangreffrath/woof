@@ -1372,7 +1372,6 @@ static void UpdateStatusBar(player_t *player)
     {
         st_time_elem = NULL;
         st_cmd_elem = NULL;
-        st_msg_elem = NULL;
         oldbarindex = barindex;
     }
 
@@ -1909,10 +1908,6 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
                 st_cmd_x = x1;
                 st_cmd_y = y1;
             }
-            if (message_centered && elem == st_msg_elem)
-            {
-                break;
-            }
             DrawWidget(x1, y1, x2, y2, dry, elem);
             break;
 
@@ -2187,14 +2182,6 @@ static void DrawBackground(const char *name)
     V_CopyRect(0, 0, st_backing_screen, video.unscaledw, st_height, 0, ST_Y);
 }
 
-static void DrawCenteredMessage(void)
-{
-    if (message_centered && st_msg_elem)
-    {
-        DrawWidget(SCREENWIDTH / 2, 0, NULL, NULL, false, st_msg_elem);
-    }
-}
-
 void ST_SetSTHeight(void)
 {
     if (statusbar && !statusbar->fullscreenrender)
@@ -2222,8 +2209,6 @@ static void DrawStatusBar(void)
     {
         DrawElem(0, y1, NULL, NULL, false, child, false);
     }
-
-    DrawCenteredMessage();
 }
 
 void ST_Erase(void)

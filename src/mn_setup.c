@@ -2005,6 +2005,13 @@ static setup_menu_t stat_settings4[] = {
     MI_END
 };
 
+static void UpdateAllowMessageCentered(void)
+{
+    int lump = W_CheckNumForName("SBARDEF");
+    allow_message_centered = W_LumpExists(lump) && !W_IsPWADLump(lump);
+    DisableItem(!allow_message_centered, stat_settings4, "message_centered");
+}
+
 static setup_menu_t *stat_settings[] = {stat_settings1, stat_settings2,
                                         stat_settings3, stat_settings4, NULL};
 
@@ -5147,6 +5154,7 @@ void MN_SetupResetMenu(void)
     DisableItem(!trakinfo_found, gen_settings2, "extra_music");
     DisableItem(M_ParmExists("-save"), gen_settings6, "organize_savefiles");
     DisableItem(!map_smooth_lines, auto_settings1, "map_line_thickness");
+    UpdateAllowMessageCentered();
     UpdateInterceptsEmuItem();
     UpdateStatsFormatItem();
     UpdateCrosshairItems();

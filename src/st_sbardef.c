@@ -123,6 +123,9 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
     out->x_pos = JS_GetInteger(x_pos);
     out->y_pos = JS_GetInteger(y_pos);
     out->alignment = JS_GetInteger(alignment);
+
+    // required for centered messages
+    out->orig_x_pos = out->x_pos;
     out->orig_alignment = out->alignment;
 
     json_t *translucency = JS_GetObject(json, "translucency");

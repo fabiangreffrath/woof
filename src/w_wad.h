@@ -157,6 +157,7 @@ void I_BeginRead(unsigned int bytes), I_EndRead(void); // killough 10/98
 const char *W_WadNameForLump (const int lump);
 boolean W_LumpExists(const int lump);
 boolean W_IsIWADLump (const int lump);
+boolean W_IsPWADLump (const int lump);
 // check if lump is from WAD
 boolean W_IsWADLump (const int lump);
 boolean W_LumpExistsWithName(int lump, char *name);
