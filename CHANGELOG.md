@@ -6,6 +6,7 @@
 * Added saving button states in savegames (from Doom Retro).
 * Added support for alternative music tracks for Final Doom introduced in DoomMetalVol5.wad (from Crispy Doom).
 * Added vertical option for level stats and player coords widgets in SBARDEF, rearranged widgets in automap mode.
+* Added support for UDMF ambient sound player 14065.
 
 **Bug Fixes**
 
