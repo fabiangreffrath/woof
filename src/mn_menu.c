@@ -82,6 +82,7 @@
 int screenblocks, maxscreenblocks; // has default
 
 static int quickSavePage, quickSaveSlot; // -1 = no quicksave slot picked!
+static char *quickSaveConfig;
 
 static int messageToPrint; // 1 = message to be printed
 
@@ -888,6 +889,65 @@ static void M_DrawBorderedSnapshot(int slot)
     R_DrawBorder(snapshot_x, snapshot_y, snapshot_width, snapshot_height);
 }
 
+static struct
+{
+    const char *key;
+    int *value;
+} const quicksaveconfigs[] = {
+    {"page", &quickSavePage},
+    {"slot", &quickSaveSlot},
+};
+
+static void GetQuickSaveConfig(void)
+{
+    if (!quickSaveConfig)
+    {
+        quickSaveConfig =
+            M_StringJoin(basesavegame, DIR_SEPARATOR_S, "quicksave.cfg");
+    }
+
+    FILE *file;
+    if ((file = M_fopen(quickSaveConfig, "r")))
+    {
+        char line[16];
+        while (fgets(line, sizeof(line), file))
+        {
+            char key[8] = {0};
+            int value;
+            if (sscanf(line, "%7s %d", key, &value) == 2)
+            {
+                for (int i = 0; i < arrlen(quicksaveconfigs); i++)
+                {
+                    if (strcmp(quicksaveconfigs[i].key, key) == 0)
+                    {
+                        *quicksaveconfigs[i].value = value;
+                    }
+                }
+            }
+        }
+
+        fclose(file);
+    }
+}
+
+static void SetQuickSaveConfig(void)
+{
+    if (quickSaveConfig)
+    {
+        FILE *file;
+        if ((file = M_fopen(quickSaveConfig, "w")))
+        {
+            for (int i = 0; i < arrlen(quicksaveconfigs); i++)
+            {
+                fprintf(file, "%s %d\n", quicksaveconfigs[i].key,
+                        *quicksaveconfigs[i].value);
+            }
+
+            fclose(file);
+        }
+    }
+}
+
 // [FG] delete a savegame
 
 static boolean delete_verify = false;
@@ -909,6 +969,7 @@ static void DeleteSaveGame(int slot)
     {
         quickSavePage = -1;
         quickSaveSlot = -1;
+        SetQuickSaveConfig();
     }
 
     if (slot == savegameslot)
@@ -1435,6 +1496,7 @@ void MN_SetQuickSaveSlot(int choice)
     {
         quickSavePage = savepage;
         quickSaveSlot = slot;
+        SetQuickSaveConfig();
     }
 }
 
@@ -1881,6 +1943,7 @@ static void M_EndGameResponse(int ch)
     // [crispy] clear quicksave slot
     quickSavePage = -1;
     quickSaveSlot = -1;
+    SetQuickSaveConfig();
 
     currentMenu->lastOn = itemOn;
     S_EvictChannels();
@@ -2403,6 +2466,7 @@ void M_Init(void)
     quickSavePage = -1;
     quickSaveSlot = -1;
     M_ResetAutoSave();
+    GetQuickSaveConfig();
 
     int lumpnum = W_CheckNumForName("DBIGFONT");
     if (lumpnum >= 0)
