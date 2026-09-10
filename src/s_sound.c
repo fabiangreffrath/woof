@@ -1157,17 +1157,15 @@ static inline int WRAP(int i, int w)
     return i % w;
 }
 
-void S_Start(void)
+void S_Reset(void)
 {
-    int cnum, mnum;
-
     // kill all playing sounds at start of level
     //  (trust me - a good idea)
 
     // jff 1/22/98 skip sound init if sound not enabled
     if (!nosfxparm)
     {
-        for (cnum = 0; cnum < snd_channels; ++cnum)
+        for (int cnum = 0; cnum < snd_channels; ++cnum)
         {
             if (channels[cnum].sfxinfo)
             {
@@ -1179,6 +1177,11 @@ void S_Start(void)
     // [crispy] reset musinfo data at the start of a new map
     memset(&musinfo, 0, sizeof(musinfo));
     musinfo.current_item = -1;
+}
+
+void S_Start(void)
+{
+    int mnum;
 
     // start new music for the level
     mus_paused = 0;

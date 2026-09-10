@@ -44,7 +44,7 @@ boolean G_Responder(struct event_s *ev);
 boolean G_CheckDemoStatus(void);
 void G_CheckDemoRecordingStatus(void);
 void G_DeathMatchSpawnPlayer(int playernum);
-void G_InitNew(skill_t skill, int episode, int map);
+void G_InitNew(skill_t skill, int episode, int map, boolean from_savegame);
 void G_SimplifiedInitNew(int episode, int map);
 void G_DeferedInitNew(skill_t skill, int episode, int map);
 void G_DeferedPlayDemo(const char *demo);

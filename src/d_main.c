@@ -2457,7 +2457,7 @@ void D_DoomMain(void)
     {
       if (autostart || netgame)
 	{
-	  G_InitNew(startskill, startepisode, startmap);
+	  G_InitNew(startskill, startepisode, startmap, false);
 	  // [crispy] no need to write a demo header in demo continue mode
 	  if (demorecording && gameaction != ga_playdemo)
 	  {

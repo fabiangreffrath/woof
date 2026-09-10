@@ -10,6 +10,7 @@
 ## Bug Fixes
 
 * Fixed setup desktop action exiting immediately when run from the AppImage
+* Do not restart MUSINFO level music when restoring a savegame.
 
 ## Miscellaneous
 
