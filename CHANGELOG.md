@@ -14,4 +14,4 @@
 
 ## Miscellaneous
 
-* 
+* Renamed MacOS build from "`Woof-<version>-uni.zip`" to "`Woof-<version>-MacOS-universal.zip`"
