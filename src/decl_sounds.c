@@ -130,6 +130,29 @@ void DECL_ParseSound(scanner_t *sc)
     hashmap_put_str(sounds, sound.name, &sound);
 }
 
+// Adds a single logical-name -> lump mapping to the same table that
+// DECL_ParseSound() populates from DECLARE. Used by the SNDINFO parser,
+// where a name only ever maps to a single lump (no "prefix" keyword,
+// no comma-separated random variants).
+void DECL_AddSndInfoSound(const char *name, const char *lump)
+{
+    decl_sound_t sound = {0};
+
+    char *sound_name = M_StringDuplicate(name);
+    M_StringToLower(sound_name);
+    sound.name = sound_name;
+
+    char *lumpname = M_StringDuplicate(lump);
+    M_StringToLower(lumpname);
+    array_push(sound.lumps, lumpname);
+
+    if (!sounds)
+    {
+        sounds = hashmap_init_str(32, sizeof(decl_sound_t));
+    }
+    hashmap_put_str(sounds, sound.name, &sound);
+}
+
 typedef struct
 {
     int *sfx;
@@ -244,9 +267,6 @@ int S_RandomSound(int sfx_number)
     return sfx_None;
 }
 
-// DoomEd numbers 14001 to 14064 are supported.
-#define MAX_AMBIENT_DATA 64
-
 static hashmap_t *ambient_sounds;
 static hashmap_t *ambient_data;
 
@@ -334,6 +354,63 @@ void DECL_ParseAmbient(scanner_t *sc)
         ambient_sounds = hashmap_init(16, sizeof(decl_ambient_t));
     }
     hashmap_put(ambient_sounds, ambient.index, &ambient);
+}
+
+// Adds a single ambient entry to the same table that DECL_ParseAmbient()
+// populates from DECLARE. Used by the SNDINFO parser. mode determines
+// how param1/param2 are interpreted:
+//   AMB_MODE_CONTINUOUS: param1, param2 unused
+//   AMB_MODE_RANDOM:     param1 = minperiod, param2 = maxperiod
+//   AMB_MODE_PERIODIC:   param1 = period,    param2 unused
+void DECL_AddSndInfoAmbient(int index, ambient_mode_t mode,
+                             const char *sound_name, double attenuation,
+                             double param1, double param2, double volume)
+{
+    decl_ambient_t ambient = {0};
+    ambient.index = index;
+    ambient.mode = mode;
+
+    ambproperty_t prop;
+
+    prop.type = prop_amb_sound;
+    prop.value.string = M_StringDuplicate(sound_name);
+    array_push(ambient.props, prop);
+
+    prop.type = prop_amb_attenuation;
+    prop.value.decimal = attenuation;
+    array_push(ambient.props, prop);
+
+    if (mode == AMB_MODE_RANDOM)
+    {
+        prop.type = prop_amb_minperiod;
+        prop.value.decimal = param1;
+        array_push(ambient.props, prop);
+
+        prop.type = prop_amb_maxperiod;
+        prop.value.decimal = param2;
+        array_push(ambient.props, prop);
+    }
+    else if (mode == AMB_MODE_PERIODIC)
+    {
+        prop.type = prop_amb_period;
+        prop.value.decimal = param1;
+        array_push(ambient.props, prop);
+    }
+
+    prop.type = prop_amb_volume;
+    prop.value.decimal = volume;
+    array_push(ambient.props, prop);
+
+    if (!ambient_sounds)
+    {
+        ambient_sounds = hashmap_init(16, sizeof(decl_ambient_t));
+    }
+    hashmap_put(ambient_sounds, ambient.index, &ambient);
+}
+
+boolean DECL_HasAmbientSounds(void)
+{
+    return ambient_sounds != NULL;
 }
 
 // Limit the range based on max value from M_Random().
