@@ -24,6 +24,10 @@
 #include <ctype.h>
 #endif
 
+#ifdef __linux__
+#include <unistd.h>
+#endif
+
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -1626,10 +1630,10 @@ void D_DoomMain(void)
 
   if (M_ParmExists("-setup"))
   {
-    const char* setup_path = M_StringJoin(D_DoomExeDir(), DIR_SEPARATOR_S, PROJECT_SHORTNAME "-setup");
-    const char* args[] = { setup_path, NULL };
-    SDL_Process* process = SDL_CreateProcess(args, false);
-    I_SafeExit(process ? 0 : 1);
+    char* setup_path = M_StringJoin(D_DoomExeDir(), DIR_SEPARATOR_S, PROJECT_SHORTNAME "-setup");
+    char* args[] = { setup_path, NULL };
+    execv(setup_path, args);
+    I_SafeExit(1);
   }
 
   #endif
