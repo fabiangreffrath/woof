@@ -2118,11 +2118,6 @@ void D_DoomMain(void)
   }
   AutoloadIWadDir(DEH_AutoLoadPatches);
 
-  if (gamemission == pack_hacx)
-  {
-    DEH_LoadLumpByName("HACXDEH");
-  }
-
   if (!M_ParmExists("-nodeh"))
   {
     W_ProcessInWads("DEHACKED", DEH_LoadLump, PROCESS_PWAD);

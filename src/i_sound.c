@@ -526,15 +526,11 @@ static void LinkOptionalSounds(void)
         if (from->lumpnum == -1)
         {
             from->link = to;
-            // FIXME: remove me once load order issue is resolved
-            I_Printf(VB_DEBUG, "OPTIONAL: SFX Info Link for sound '%s' is set to '%s'.", from->name, to->name);
         }
 
         if (from->link_num != -1)
         {
             from->link = &S_sfx[from->link_num];
-            // FIXME: remove me once load order issue is resolved
-            I_Printf(VB_DEBUG, "FORCED: SFX Info Link for sound '%s' is set to '%s'.", from->name, S_sfx[from->link_num].name);
         }
     }
 }

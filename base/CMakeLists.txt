@@ -218,7 +218,6 @@ set(BASE_SOURCES
     all-all/cryellow.lmp
     all-all/declare.txt
     all-all/dmxopl.op2
-    all-all/hacxdeh.lmp
     all-all/sbardef.json
     all-all/sbhuddef.json
     all-all/skytran.lmp
@@ -240,6 +239,7 @@ set(BASE_SOURCES
     e1m8b.wad/dehacked.lmp
 
     hacx.wad/brghtmps.lmp
+    hacx.wad/dehacked.lmp
 
     id1.wad/dehacked.lmp
     id1.wad/smflam0.png

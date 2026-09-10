@@ -94,12 +94,9 @@ static void DEH_SoundParseLine(deh_context_t *context, char *line, int tag)
     {
         if (ivalue < sfx_None || ivalue > sfx_MaxIncluded)
         {
-            // FIXME: remove me once load order issue is resolved
             DEH_Debug(context, "DEHACKED: SFX Info Link for sound '%s' is out of bounds. Check your dehacked.", sfx->name);
             return;
         }
-        // FIXME: remove me once load order issue is resolved
-        DEH_Debug(context, "DEHACKED: SFX Info Link for sound '%s' is set to '%s'.", sfx->name, S_sfx[ivalue].name);
     }
 
     // Set the field value
