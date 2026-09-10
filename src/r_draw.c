@@ -140,8 +140,7 @@ void R_DrawColumn(void)
         do
         {
             src = source[frac >> 16];
-            *dest = colormap[brightmap[src]][src];
-            dest++;
+            *dest++ = colormap[brightmap[src]][src];
 
             if ((frac += fracstep) >= heightmask)
             {
@@ -160,8 +159,7 @@ void R_DrawColumn(void)
         while (count--)
         {
             src = source[(frac >> FRACBITS) & heightmask];
-            *dest = colormap[brightmap[src]][src];
-            dest++;
+            *dest++ = colormap[brightmap[src]][src];
             frac += fracstep;
         }
     }
@@ -296,8 +294,7 @@ void R_DrawSkyColumn(void)
 
         for (i = 0; i < n; ++i)
         {
-            *dest = colormap[skycolor];
-            dest++;
+            *dest++ = colormap[skycolor];
             frac += fracstep;
         }
 
@@ -317,12 +314,11 @@ void R_DrawSkyColumn(void)
 
         for (i = 0; i < n; ++i)
         {
-            *dest = main_tranmap
+            *dest++ = main_tranmap
                 [(main_tranmap[(colormap[source[0]] << 8) + colormap[skycolor]]
                   << 8)
                  + colormap[skycolor]];
 
-            dest++;
             frac += fracstep;
         }
 
@@ -343,10 +339,9 @@ void R_DrawSkyColumn(void)
 
         for (i = 0; i < n; ++i)
         {
-            *dest =
+            *dest++ =
                 main_tranmap[(colormap[source[0]] << 8) + colormap[skycolor]];
 
-            dest++;
             frac += fracstep;
         }
 
@@ -370,8 +365,7 @@ void R_DrawSkyColumn(void)
 
         do
         {
-            *dest = colormap[source[frac >> FRACBITS]];
-            dest++;
+            *dest++ = colormap[source[frac >> FRACBITS]];
 
             if ((frac += fracstep) >= heightmask)
             {
@@ -384,8 +378,7 @@ void R_DrawSkyColumn(void)
         UNROLL_LOOP_BY(2)
         while (count--)
         {
-            *dest = colormap[source[(frac >> FRACBITS) & heightmask]];
-            dest++;
+            *dest++ = colormap[source[(frac >> FRACBITS) & heightmask]];
             frac += fracstep;
         }
     }
@@ -845,8 +838,7 @@ void R_DrawTranslatedColumn(void)
         do
         {
             src = source[frac >> 16];
-            *dest = colormap[brightmap[src]][translation[src]];
-            dest++;
+            *dest++ = colormap[brightmap[src]][translation[src]];
 
             if ((frac += fracstep) >= heightmask)
             {
@@ -865,8 +857,7 @@ void R_DrawTranslatedColumn(void)
         while (count--)
         {
             src = source[(frac >> FRACBITS) & heightmask];
-            *dest = colormap[brightmap[src]][translation[src]];
-            dest++;
+            *dest++ = colormap[brightmap[src]][translation[src]];
             frac += fracstep;
         }
     }
