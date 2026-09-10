@@ -239,7 +239,7 @@ set(BASE_SOURCES
     e1m8b.wad/dehacked.lmp
 
     hacx.wad/brghtmps.lmp
-    hacx.wad/dehacked.deh
+    hacx.wad/dehacked.lmp
 
     id1.wad/dehacked.lmp
     id1.wad/smflam0.png
