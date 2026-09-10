@@ -11,6 +11,7 @@
 
 * Fixed setup desktop action exiting immediately when run from the AppImage
 * Do not restart MUSINFO level music when restoring a savegame.
+* Fixed autoloading of the DEHACKED lump that fixed colored blood for HACX
 
 ## Miscellaneous
 
