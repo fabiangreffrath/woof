@@ -22,7 +22,7 @@ elseif(LINUX OR APPLE)
 endif()
 
 if(APPLE)
-    set(CPACK_SYSTEM_NAME "uni")
+    set(CPACK_SYSTEM_NAME "Mac-uni")
 endif()
 
 include(CPack)
