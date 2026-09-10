@@ -8,3 +8,9 @@ Comment=Continuation of the Boom/MBF bloodline of Doom source ports
 Categories=Game;ActionGame;
 MimeType=application/x-doom-wad;
 Keywords=first;person;shooter;vanilla;doom;boom;mbf;
+StartupWMClass=io.github.fabiangreffrath.woof
+Actions=launch-setup
+
+[Desktop Action launch-setup]
+Name=Woof! Setup
+Exec=woof -setup

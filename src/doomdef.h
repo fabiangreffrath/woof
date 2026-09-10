@@ -31,6 +31,15 @@ typedef enum {
   indetermined  // Well, no IWAD found.
 } GameMode_t;
 
+// GAMECONF defines a different ordering for game modes
+typedef enum {
+  gc_registered,
+  gc_retail,
+  gc_commercial
+} gameconf_gamemode_t;
+
+gameconf_gamemode_t D_ModeToGameconfMode(GameMode_t mode);
+
 // Mission packs - might be useful for TC stuff?
 typedef enum {
   doom,          // DOOM 1
@@ -53,6 +62,7 @@ typedef enum
     exe_doom_1_9,    // Doom 1.9: for shareware, registered and commercial
     exe_ultimate,    // Ultimate Doom (retail)
     exe_final,       // Final Doom
+    exe_final2,      // Final Doom (alternate exe)
     exe_chex,        // Chex Quest
 } GameVersion_t;
 

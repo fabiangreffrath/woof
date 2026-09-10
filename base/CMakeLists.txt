@@ -242,6 +242,10 @@ set(BASE_SOURCES
     hacx.wad/dehacked.deh
 
     id1.wad/dehacked.lmp
+    id1.wad/smflam0.png
+    id1.wad/smflam1.png
+    id1.wad/smheat0.png
+    id1.wad/smheat1.png
 
     rekkr-all/dehacked.lmp
 

@@ -14,6 +14,8 @@
 #ifndef P_KEYFRAME_H
 #define P_KEYFRAME_H
 
+#include "m_json.h"
+
 typedef struct
 {
     struct keyframe_data_s *data;
@@ -26,7 +28,7 @@ keyframe_t *P_SaveKeyframe(int tic);
 void P_LoadKeyframe(const keyframe_t *keyframe);
 void P_FreeKeyframe(keyframe_t *keyframe);
 
-void P_ArchiveKeyframe(void);
-void P_UnArchiveKeyframe(void);
+void P_ArchiveKeyframe(json_mut_doc_t *doc, json_mut_t *root_mut);
+void P_UnArchiveKeyframe(json_t *root);
 
 #endif

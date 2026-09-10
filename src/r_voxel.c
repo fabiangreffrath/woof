@@ -502,7 +502,7 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 		return false;
 
 	// skip the player thing we are viewing from
-	if (thing->player == viewplayer)
+	if (thing == viewplayer->mo)
 		return true;
 
 	// does the voxel model exist?
@@ -687,9 +687,9 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 	{
 		vis->colormap[0] = vis->colormap[1] = NULL;
 	}
-	else if (fixedcolormap != NULL)
+	else if (fixedcolormapoffset)
 	{
-		vis->colormap[0] = vis->colormap[1] = thiscolormap + fixedcolormapindex * 256;
+		vis->colormap[0] = vis->colormap[1] = thiscolormap + fixedcolormapoffset;
 	}
 	else if (thing->frame & FF_FULLBRIGHT)
 	{
@@ -698,18 +698,19 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 	else
 	{
 		// diminished light
-		const int index = R_GetLightIndex(xscale);
-		int lightnum = (demo_version >= DV_MBF)
-				? (lightlevel_override >> LIGHTSEGSHIFT)
-				: (thing->subsector->sector->lightlevel >> LIGHTSEGSHIFT);
 
-		lightnum = CLAMP(lightnum + extralight, 0, LIGHTLEVELS - 1);
-		int* spritelightoffsets = &scalelightoffset[MAXLIGHTSCALE * lightnum];
+		int lightnum = (demo_version >= DV_MBF)
+		             ? (lightlevel_override >> LIGHTSEGSHIFT)
+		             : (thing->subsector->sector->lightlevel >> LIGHTSEGSHIFT);
+
+		lightnum += extralight;
+		lightnum = CLAMP(lightnum, 0, LIGHTLEVELS - 1);
+
+		const int *const spritelightoffsets = scalelightoffset[lightnum];
+		const int index = R_GetLightIndex(xscale);
 
 		vis->colormap[0] = thiscolormap + spritelightoffsets[index];
-		vis->colormap[1] = (STRICTMODE(brightmaps) || force_brightmaps)
-				? thiscolormap
-				: dc_colormap[0];
+		vis->colormap[1] = thiscolormap;
 	}
 
 	// ID24 per-state tranmap

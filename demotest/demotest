@@ -53,6 +53,7 @@ def build_command_line(record):
     if 'deh' in record:
         cmd += ['-deh', record['deh']]
     if 'gameversion' in record:
+        cmd += ['-complevel', 'vanilla']
         cmd += ['-gameversion', record['gameversion']]
     cmd += ['-timedemo', record['demo']]
     if 'statdump' in record:

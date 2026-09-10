@@ -1,5 +1,9 @@
 include(WoofSettings)
 
+add_library(base64 STATIC base64/base64.c)
+target_woof_settings(base64)
+target_include_directories(base64 INTERFACE base64)
+
 add_library(md5 STATIC md5/md5.c)
 target_woof_settings(md5)
 target_include_directories(md5 INTERFACE md5)
@@ -46,8 +50,7 @@ if(NOT yyjson_FOUND)
     add_library(yyjson STATIC yyjson/yyjson.c)
     target_woof_settings(yyjson)
     target_compile_definitions(
-        yyjson PRIVATE YYJSON_DISABLE_WRITER=1
-                       YYJSON_DISABLE_UTILS=1
+        yyjson PRIVATE YYJSON_DISABLE_UTILS=1
     )
     target_include_directories(yyjson INTERFACE yyjson)
     add_library(yyjson::yyjson ALIAS yyjson)

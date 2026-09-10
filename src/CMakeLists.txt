@@ -231,6 +231,7 @@ target_link_libraries(
             miniz::miniz
             spng::spng
             netlib
+            base64
             md5
             sha1
             opl

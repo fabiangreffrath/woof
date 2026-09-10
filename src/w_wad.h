@@ -155,6 +155,7 @@ void I_BeginRead(unsigned int bytes), I_EndRead(void); // killough 10/98
 
 // [FG] name of the WAD file that contains the lump
 const char *W_WadNameForLump (const int lump);
+boolean W_LumpExists(const int lump);
 boolean W_IsIWADLump (const int lump);
 // check if lump is from WAD
 boolean W_IsWADLump (const int lump);

@@ -24,6 +24,10 @@
 #include <ctype.h>
 #endif
 
+#ifdef __linux__
+#include <unistd.h>
+#endif
+
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -224,7 +228,7 @@ void D_ProcessEvents (void)
 
 // wipegamestate can be set to -1 to force a wipe on the next draw
 gamestate_t wipegamestate = GS_DEMOSCREEN;
-wipefx_t    screen_wipe_internal = wipe_Invalid;
+wipefx_t    screen_wipe_internal = wipe_Default;
 wipefx_t    screen_wipe = wipe_None;
 
 void D_Display (void)
@@ -262,7 +266,7 @@ void D_Display (void)
   wipe = false;
 
   // save the current screen if about to wipe
-  if (gamestate != wipegamestate && screen_wipe_internal)
+  if (gamestate != wipegamestate)
     {
       wipe = true;
       wipe_StartScreen(0, 0, video.width, video.height);
@@ -818,7 +822,7 @@ static void InitGameVersion(void)
     // @category compat
     //
     // Emulate a specific version of Doom. Valid values are "1.9",
-    // "ultimate", "final", "chex". Implies -complevel vanilla.
+    // "ultimate", "final", "final2", "chex". Requires -complevel vanilla.
     //
 
     p = M_CheckParm("-gameversion");
@@ -1260,7 +1264,8 @@ static void LoadIWadBase(void)
     D_GetModeAndMissionByIWADName(M_BaseName(wadfiles[0]), &local_gamemode,
                                   &local_gamemission);
 
-    if (local_gamemission == none || local_gamemode == indetermined)
+    if (local_gamemission == none
+        || (local_gamemode == indetermined && local_gamemission != doom))
     {
         return;
     }
@@ -1618,6 +1623,18 @@ void D_DoomMain(void)
     M_PrintHelpString();
     I_SafeExit(0);
   }
+
+  #ifdef __linux__
+
+  if (M_ParmExists("-setup"))
+  {
+    char* setup_path = M_StringJoin(D_DoomExeDir(), DIR_SEPARATOR_S, PROJECT_SHORTNAME "-setup");
+    char* args[] = { setup_path, NULL };
+    execv(setup_path, args);
+    I_SafeExit(1);
+  }
+
+  #endif
 
   // [FG] initialize logging verbosity early to decide
   //      if the following lines will get printed or not
@@ -2436,7 +2453,11 @@ void D_DoomMain(void)
 	  G_InitNew(startskill, startepisode, startmap);
 	  // [crispy] no need to write a demo header in demo continue mode
 	  if (demorecording && gameaction != ga_playdemo)
+	  {
 	    G_BeginRecording();
+	    // enforce melt as first screen wipe for demorecording
+	    screen_wipe_internal = wipe_Melt;
+	  }
 	}
       else
 	D_StartTitle();                 // start up intro loop

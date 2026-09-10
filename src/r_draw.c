@@ -142,10 +142,12 @@ void R_DrawColumn(void)
             src = source[frac >> 16];
             *dest = colormap[brightmap[src]][src];
             dest++;
+
             if ((frac += fracstep) >= heightmask)
             {
                 frac -= heightmask;
             }
+
             if (frac < 0)
             {
                 frac += heightmask;
@@ -154,21 +156,13 @@ void R_DrawColumn(void)
     }
     else
     {
-        while ((count -= 2) >= 0)
+        UNROLL_LOOP_BY(2)
+        while (count--)
         {
             src = source[(frac >> FRACBITS) & heightmask];
             *dest = colormap[brightmap[src]][src];
             dest++;
             frac += fracstep;
-            src = source[(frac >> FRACBITS) & heightmask];
-            *dest = colormap[brightmap[src]][src];
-            dest++;
-            frac += fracstep;
-        }
-        if (count & 1)
-        {
-            src = source[(frac >> FRACBITS) & heightmask];
-            *dest = colormap[brightmap[src]][src];
         }
     }
 }
@@ -233,10 +227,12 @@ void R_DrawTLColumn(void)
             src = source[frac >> 16];
             *dest = tranmap[(*dest << 8) + colormap[brightmap[src]][src]];
             dest++;
+
             if ((frac += fracstep) >= heightmask)
             {
                 frac -= heightmask;
             }
+
             if (frac < 0)
             {
                 frac += heightmask;
@@ -245,21 +241,13 @@ void R_DrawTLColumn(void)
     }
     else
     {
-        while ((count -= 2) >= 0)
+        UNROLL_LOOP_BY(2)
+        while (count--)
         {
             src = source[(frac >> FRACBITS) & heightmask];
             *dest = tranmap[(*dest << 8) + colormap[brightmap[src]][src]];
             dest++;
             frac += fracstep;
-            src = source[(frac >> FRACBITS) & heightmask];
-            *dest = tranmap[(*dest << 8) + colormap[brightmap[src]][src]];
-            dest++;
-            frac += fracstep;
-        }
-        if (count & 1)
-        {
-            src = source[(frac >> FRACBITS) & heightmask];
-            *dest = tranmap[(*dest << 8) + colormap[brightmap[src]][src]];
         }
     }
 }
@@ -333,6 +321,7 @@ void R_DrawSkyColumn(void)
                 [(main_tranmap[(colormap[source[0]] << 8) + colormap[skycolor]]
                   << 8)
                  + colormap[skycolor]];
+
             dest++;
             frac += fracstep;
         }
@@ -356,6 +345,7 @@ void R_DrawSkyColumn(void)
         {
             *dest =
                 main_tranmap[(colormap[source[0]] << 8) + colormap[skycolor]];
+
             dest++;
             frac += fracstep;
         }
@@ -382,6 +372,7 @@ void R_DrawSkyColumn(void)
         {
             *dest = colormap[source[frac >> FRACBITS]];
             dest++;
+
             if ((frac += fracstep) >= heightmask)
             {
                 frac -= heightmask;
@@ -390,18 +381,12 @@ void R_DrawSkyColumn(void)
     }
     else
     {
-        while ((count -= 2) >= 0) // texture height is a power of 2 -- killough
+        UNROLL_LOOP_BY(2)
+        while (count--)
         {
             *dest = colormap[source[(frac >> FRACBITS) & heightmask]];
             dest++;
             frac += fracstep;
-            *dest = colormap[source[(frac >> FRACBITS) & heightmask]];
-            dest++;
-            frac += fracstep;
-        }
-        if (count & 1)
-        {
-            *dest = colormap[source[(frac >> FRACBITS) & heightmask]];
         }
     }
 }
@@ -862,10 +847,12 @@ void R_DrawTranslatedColumn(void)
             src = source[frac >> 16];
             *dest = colormap[brightmap[src]][translation[src]];
             dest++;
+
             if ((frac += fracstep) >= heightmask)
             {
                 frac -= heightmask;
             }
+
             if (frac < 0)
             {
                 frac += heightmask;
@@ -874,21 +861,13 @@ void R_DrawTranslatedColumn(void)
     }
     else
     {
-        while ((count -= 2) >= 0)
+        UNROLL_LOOP_BY(2)
+        while (count--)
         {
             src = source[(frac >> FRACBITS) & heightmask];
             *dest = colormap[brightmap[src]][translation[src]];
             dest++;
             frac += fracstep;
-            src = source[(frac >> FRACBITS) & heightmask];
-            *dest = colormap[brightmap[src]][translation[src]];
-            dest++;
-            frac += fracstep;
-        }
-        if (count & 1)
-        {
-            src = source[(frac >> FRACBITS) & heightmask];
-            *dest = colormap[brightmap[src]][translation[src]];
         }
     }
 }
@@ -979,10 +958,12 @@ void R_DrawTRTLColumn(void)
             src = source[frac >> 16];
             *dest = SRCPIXEL;
             dest++;
+
             if ((frac += fracstep) >= heightmask)
             {
                 frac -= heightmask;
             }
+
             if (frac < 0)
             {
                 frac += heightmask;
@@ -991,21 +972,13 @@ void R_DrawTRTLColumn(void)
     }
     else
     {
-        while ((count -= 2) >= 0)
+        UNROLL_LOOP_BY(2)
+        while (count--)
         {
             src = source[(frac >> FRACBITS) & heightmask];
             *dest = SRCPIXEL;
             dest++;
             frac += fracstep;
-            src = source[(frac >> FRACBITS) & heightmask];
-            *dest = SRCPIXEL;
-            dest++;
-            frac += fracstep;
-        }
-        if (count & 1)
-        {
-            src = source[(frac >> FRACBITS) & heightmask];
-            *dest = SRCPIXEL;
         }
     }
 
@@ -1060,39 +1033,12 @@ void R_DrawSpan(void)
 
     byte src;
 
-    while (count >= 4)
+    UNROLL_LOOP_BY(4)
+    while (count--)
     {
         // SoM: Why didn't I see this earlier? the spot variable is a waste now
         // because we don't have the uber complicated math to calculate it now,
         // so that was a memory write we didn't need!
-        src = source[((yf >> YSHIFT) & YMASK) | (xf >> XSHIFT)];
-        *dest = colormap[brightmap[src]][src];
-        dest += linesize;
-        xf += xs;
-        yf += ys;
-
-        src = source[((yf >> YSHIFT) & YMASK) | (xf >> XSHIFT)];
-        *dest = colormap[brightmap[src]][src];
-        dest += linesize;
-        xf += xs;
-        yf += ys;
-
-        src = source[((yf >> YSHIFT) & YMASK) | (xf >> XSHIFT)];
-        *dest = colormap[brightmap[src]][src];
-        dest += linesize;
-        xf += xs;
-        yf += ys;
-
-        src = source[((yf >> YSHIFT) & YMASK) | (xf >> XSHIFT)];
-        *dest = colormap[brightmap[src]][src];
-        dest += linesize;
-        xf += xs;
-        yf += ys;
-
-        count -= 4;
-    }
-    while (count--)
-    {
         src = source[((yf >> YSHIFT) & YMASK) | (xf >> XSHIFT)];
         *dest = colormap[brightmap[src]][src];
         dest += linesize;

@@ -1695,21 +1695,36 @@ mobj_t* P_SpawnPlayerMissile(mobj_t* source,mobjtype_t type)
     {
       // killough 8/2/98: prefer autoaiming at enemies
       int mask = demo_version < DV_MBF ? 0 : MF_FRIEND;
+
       if (direct_vertical_aiming)
       {
         slope = source->player->slope;
+
+        // [Alaux] Even though we're aiming directly,
+        // we still need to set a linetarget,
+        // because it might be used for MBF21 homing projectiles
+
+        mask |= CROSSHAIR_AIM; // Prefer target aimed at by the player
+
+        P_AimLineAttack(source, an, 16*64*FRACUNIT, mask);
+
+        if (!linetarget && mask & MF_FRIEND)
+        {
+          mask &= ~MF_FRIEND;
+          P_AimLineAttack(source, an, 16*64*FRACUNIT, mask);
+        }
       }
       else
       do
-	{
-	  slope = P_AimLineAttack(source, an, 16*64*FRACUNIT, mask);
-	  if (!linetarget)
-	    slope = P_AimLineAttack(source, an += 1<<26, 16*64*FRACUNIT, mask);
-	  if (!linetarget)
-	    slope = P_AimLineAttack(source, an -= 2<<26, 16*64*FRACUNIT, mask);
-	  if (!linetarget)
-	    an = source->angle, slope = 0;
-	}
+      {
+        slope = P_AimLineAttack(source, an, 16*64*FRACUNIT, mask);
+        if (!linetarget)
+          slope = P_AimLineAttack(source, an += 1<<26, 16*64*FRACUNIT, mask);
+        if (!linetarget)
+          slope = P_AimLineAttack(source, an -= 2<<26, 16*64*FRACUNIT, mask);
+        if (!linetarget)
+          an = source->angle, slope = 0;
+      }
       while (mask && (mask=0, !linetarget));  // killough 8/2/98
     }
 

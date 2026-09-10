@@ -1,5 +1,6 @@
 //
 // Copyright(C) 2024 Roman Fomin
+// Copyright(C) 2026 Fabian Greffrath
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -14,6 +15,7 @@
 #include "m_json.h"
 
 #include <string.h>
+#include "doomdata.h"
 #include "doomtype.h"
 #include "i_printf.h"
 #include "m_array.h"
@@ -47,6 +49,27 @@ typedef struct
 } doc_t;
 
 static doc_t *docs;
+
+json_t *JS_OpenString(char *string, size_t length)
+{
+    yyjson_read_err err;
+    yyjson_doc *json_doc = yyjson_read_opts(string, length, YYJSON_READ_NOFLAG, NULL, &err);
+
+    if (!json_doc)
+    {
+        size_t line, col, chr;
+        yyjson_locate_pos(string, length, err.pos, &line, &col, &chr);
+        I_Printf(VB_ERROR, "%s(%d:%d): read error: %s\n", __func__, (int)line,
+                 (int)col, err.msg);
+        return NULL;
+    }
+
+    array_push(docs, ((doc_t){json_doc, NO_INDEX}));
+
+    json_t *json = yyjson_doc_get_root(json_doc);
+
+    return json;
+}
 
 json_t *JS_OpenOptions(int lumpnum, boolean comments)
 {
@@ -184,6 +207,11 @@ json_t *JS_GetObject(json_t *json, const char *string)
     return yyjson_obj_get(json, string);
 }
 
+int JS_GetObjectSize(json_t *json)
+{
+    return yyjson_obj_size(json);
+}
+
 int JS_GetArraySize(json_t *json)
 {
     return yyjson_arr_size(json);
@@ -209,6 +237,11 @@ json_t *JS_ArrayNext(json_arr_iter_t *iter)
         free(iter);
     }
     return value;
+}
+
+void JS_ArrayIteratorFree(json_arr_iter_t *iter)
+{
+    free(iter);
 }
 
 boolean JS_GetBoolean(json_t *json)
@@ -256,6 +289,21 @@ int JS_GetIntegerValue(json_t *json, const char *string)
     return 0;
 }
 
+uint64_t JS_GetUInteger(json_t *json)
+{
+    return yyjson_get_uint(json);
+}
+
+uint64_t JS_GetUIntegerValue(json_t *json, const char *string)
+{
+    json_t *obj = JS_GetObject(json, string);
+    if (JS_IsNumber(obj))
+    {
+        return JS_GetUInteger(obj);
+    }
+    return 0;
+}
+
 const char *JS_GetString(json_t *json)
 {
     return yyjson_get_str(json);
@@ -292,4 +340,88 @@ boolean JS_ObjectNext(json_obj_iter_t *iter, json_t **key, json_t **value)
     }
     *value = yyjson_obj_iter_get_val(*key);
     return true;
+}
+
+// Write API
+
+json_mut_doc_t *JS_NewDoc(void)
+{
+    return yyjson_mut_doc_new(NULL);
+}
+
+void JS_FreeDoc(json_mut_doc_t *doc)
+{
+    yyjson_mut_doc_free(doc);
+}
+
+json_mut_t *JS_NewObject(json_mut_doc_t *doc)
+{
+    return yyjson_mut_obj(doc);
+}
+
+json_mut_t *JS_NewArray(json_mut_doc_t *doc)
+{
+    return yyjson_mut_arr(doc);
+}
+
+void JS_SetRoot(json_mut_doc_t *doc, json_mut_t *root)
+{
+    yyjson_mut_doc_set_root(doc, root);
+}
+
+void JS_SetInt(json_mut_doc_t *doc, json_mut_t *obj,
+               const char *key, int val)
+{
+    yyjson_mut_obj_add_int(doc, obj, key, val);
+}
+
+void JS_SetUInt(json_mut_doc_t *doc, json_mut_t *obj,
+               const char *key, uint64_t val)
+{
+    yyjson_mut_obj_add_uint(doc, obj, key, val);
+}
+
+void JS_SetObject(json_mut_doc_t *doc, json_mut_t *parent,
+                  const char *key, json_mut_t *child)
+{
+    yyjson_mut_obj_add_val(doc, parent, key, child);
+}
+
+void JS_SetString(json_mut_doc_t *doc, json_mut_t *parent,
+                  const char *key, const char *str)
+{
+    yyjson_mut_obj_add_str(doc, parent, key, str);
+}
+
+void JS_SetArray(json_mut_doc_t *doc, json_mut_t *parent,
+                 const char *key, json_mut_t *arr)
+{
+    yyjson_mut_obj_add_val(doc, parent, key, arr);
+}
+
+void JS_ArrayAddInt(json_mut_doc_t *doc, json_mut_t *arr, int val)
+{
+    yyjson_mut_arr_add_int(doc, arr, val);
+}
+
+void JS_ArrayAddObject(json_mut_doc_t *doc, json_mut_t *arr, json_mut_t *obj)
+{
+    (void)doc;
+    yyjson_mut_arr_add_val(arr, obj);
+}
+
+void JS_ArrayAddString(json_mut_doc_t *doc, json_mut_t *arr, const char *str)
+{
+    yyjson_mut_arr_add_str(doc, arr, str);
+}
+
+#ifndef SAVEGAME_NO_COMPRESS
+#define YYJSON_WRITE_FLAG YYJSON_WRITE_NOFLAG
+#else
+#define YYJSON_WRITE_FLAG YYJSON_WRITE_PRETTY
+#endif
+
+char *JS_DocWriteString(json_mut_doc_t *doc, size_t *len)
+{
+    return yyjson_mut_write(doc, YYJSON_WRITE_FLAG, len);
 }
