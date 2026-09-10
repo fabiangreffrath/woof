@@ -15,6 +15,11 @@
 #ifndef DECL_SOUNDS_H
 #define DECL_SOUNDS_H
 
+#include "doomtype.h"
+
+// DoomEd numbers 14001 to 14064 are supported.
+#define MAX_AMBIENT_DATA 64
+
 int S_RandomSound(int sfx_number);
 
 typedef enum
@@ -43,5 +48,16 @@ typedef struct ambient_data_s
 } ambient_data_t;
 
 const ambient_data_t *S_GetAmbientData(int index);
+
+// Query function used to decide whether a SNDINFO fallback should be
+// loaded: skipped whenever DECLARE already defined ambient sounds.
+boolean DECL_HasAmbientSounds(void);
+
+// Feed-in functions used by the SNDINFO parser (decl_sndinfo.c) to
+// populate the same internal sound/ambient tables that DECLARE uses.
+void DECL_AddSndInfoSound(const char *name, const char *lump);
+void DECL_AddSndInfoAmbient(int index, ambient_mode_t mode,
+                             const char *sound_name, double attenuation,
+                             double param1, double param2, double volume);
 
 #endif
