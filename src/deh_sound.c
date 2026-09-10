@@ -94,7 +94,7 @@ static void DEH_SoundParseLine(deh_context_t *context, char *line, int tag)
     {
         if (ivalue < sfx_None || ivalue > sfx_MaxIncluded)
         {
-            DEH_Debug(context, "DEHACKED: SFX Info Link for sound '%s' is out of bounds. Check your dehacked.", sfx->name);
+            DEH_Debug(context, "SFX Info Link for sound '%s' is out of bounds. Check your dehacked.", sfx->name);
             return;
         }
     }
