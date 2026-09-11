@@ -489,9 +489,7 @@ static void LinkOptionalSounds(void)
         {sfx_getpow, sfx_itemup},
         {sfx_itemup, sfx_None  },
 
-        // some wads include DSCHGUN.
-        // note that hacx.wad's own DSCHGUN
-        // was never really meant to be heard :P
+        // optional chaingun firing sound
         {sfx_chgun,  sfx_pistol},
 
         // sounds when hitting animated floor
