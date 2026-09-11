@@ -24,24 +24,24 @@
 
 typedef enum
 {
-    MapInfo_LabelClear = (1u << 0),
+    MI_LabelClear = (1u << 0),
 
-    MapInfo_EndGameClear = (1u << 1),
-    MapInfo_EndGameArt = (1u << 2),
-    MapInfo_EndGameStandard = (1u << 3),
-    MapInfo_EndGameCast = (1u << 4),
-    MapInfo_EndGameBunny = (1u << 5),
-    MapInfo_EndGameCustomFinale = (1u << 6),
+    MI_EndGameClear = (1u << 1),
+    MI_EndGameArt = (1u << 2),
+    MI_EndGameStandard = (1u << 3),
+    MI_EndGameCast = (1u << 4),
+    MI_EndGameBunny = (1u << 5),
+    MI_EndGameCustomFinale = (1u << 6),
 
-    MapInfo_NoIntermission = (1u << 7),
-    MapInfo_InterTextClear = (1u << 8),
-    MapInfo_InterTextSecretClear = (1u << 9),
+    MI_NoIntermission = (1u << 7),
+    MI_InterTextClear = (1u << 8),
+    MI_InterTextSecretClear = (1u << 9),
 
-    MapInfo_BossActionClear = (1u << 10),
+    MI_BossActionClear = (1u << 10),
 
-    MapInfo_EndGameAny = (MapInfo_EndGameArt|MapInfo_EndGameStandard|
-                          MapInfo_EndGameCast|MapInfo_EndGameBunny|
-                          MapInfo_EndGameCustomFinale),
+    MI_EndGameAny = (MI_EndGameArt | MI_EndGameStandard | MI_EndGameCast
+                     | MI_EndGameBunny | MI_EndGameCustomFinale),
+    MI_EndGameAll = (MI_EndGameAny | MI_EndGameClear)
 } mapinfo_flags_t;
 
 typedef struct
@@ -81,12 +81,6 @@ extern mapentry_t *umapinfo;
 
 extern boolean EpiCustom;
 
-boolean G_ValidateMapName(const char *mapname, int *episode, int *map);
-
-void G_ParseMapInfo(int lumpnum);
-
-boolean G_IsSecretMap(int episode, int map);
-
 //
 // Abstract away map information calls
 //
@@ -109,11 +103,24 @@ typedef enum MI_WinDisplay_e
     WD_StartFinale = (1u << 1),
 } MI_WinDisplay_t;
 
+// Parser
+void MI_ParseUniversalMapInfo(int lumpnum);
+
+// Slot handling
 mapentry_t *MI_MapEntry(int episode, int map);
+boolean MI_MapName(const char *mapname, int *episode, int *map);
+boolean MI_IsSecretMap(int episode, int map);
+void MI_NextMap(int *episode, int *map);
+boolean MI_PreviousMap(int *episode, int *map);
+
+// Display data
+// Death action
+// Intermission sequence
+// Finale
+
 void MI_UpdateGameMap(int epi, int map);
 void MI_UpdateLastMapInfo(wbstartstruct_t *wminfo);
 void MI_UpdateNextMapInfo(wbstartstruct_t *wminfo);
-void MI_NextMap(int *episode, int *map);
 MI_ShowNext_t MI_ShowNextLoc(void);
 boolean MI_SkipShowNextLoc(void);
 boolean MI_BossAction(mobj_t *mo);

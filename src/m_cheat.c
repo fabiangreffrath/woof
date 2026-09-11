@@ -616,7 +616,7 @@ static void cheat_clev0(void)
 
   cur = M_StringDuplicate(MapName(gameepisode, gamemap));
 
-  G_GotoNextLevel(&epsd, &map);
+  MI_NextMap(&epsd, &map);
   next = MapName(epsd, map);
 
   if (W_CheckNumForName(next) != -1)

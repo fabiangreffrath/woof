@@ -1053,39 +1053,31 @@ static void G_ReloadLevel(void)
 
 // [FG] reload current level / go to next level
 // adapted from prboom-plus/src/e6y.c:369-449
-int G_GotoNextLevel(int *pEpi, int *pMap)
+int G_GotoNextLevel(void)
 {
-  int epsd = -1, map = -1;
-  MI_NextMap(&epsd, &map);
-
-  // [FG] report next level without changing
-  if (pEpi || pMap)
-  {
-    if (pEpi)
-      *pEpi = epsd;
-    if (pMap)
-      *pMap = map;
-  }
-  else if ((gamestate == GS_LEVEL) &&
-            !deathmatch && !netgame &&
-            !demorecording && !demoplayback &&
-            !menuactive)
-  {
-    char *name = MapName(epsd, map);
-
-    if (map == -1 || W_CheckNumForName(name) == -1)
+    if (gamestate != GS_LEVEL || deathmatch || netgame || demorecording
+        || demoplayback || menuactive)
     {
-      name = MapName(gameepisode, gamemap);
-      displaymsg("Next level not found for %s", name);
+        return false;
+    }
+
+    int next_episode = -1, next_map = -1;
+    MI_NextMap(&next_episode, &next_map);
+
+    char *name = MapName(next_episode, next_map);
+    boolean ret = !(next_map == -1 || W_CheckNumForName(name) == -1);
+
+    if (ret == false)
+    {
+        name = MapName(gameepisode, gamemap);
+        displaymsg("Next level not found for %s", name);
     }
     else
     {
-      G_DeferedInitNew(gameskill, epsd, map);
-      return true;
+        G_DeferedInitNew(gameskill, next_episode, next_map);
     }
-  }
 
-  return false;
+    return ret;
 }
 
 int G_GotoPrevLevel(void)
@@ -1096,53 +1088,18 @@ int G_GotoPrevLevel(void)
         return false;
     }
 
-    const int cur_epsd = gameepisode;
-    const int cur_map = gamemap;
-    struct mapentry_s *const cur_gamemapinfo = gamemapinfo;
-    int ret = false;
-
-    do
-    {
-        gamemap = cur_map;
-
-        while ((gamemap = (gamemap + 99) % 100) != cur_map)
-        {
-            int next_epsd, next_map;
-            gamemapinfo = MI_MapEntry(gameepisode, gamemap);
-            G_GotoNextLevel(&next_epsd, &next_map);
-
-            // do not let linear and UMAPINFO maps cross
-            if ((cur_gamemapinfo == NULL && gamemapinfo != NULL) ||
-                (cur_gamemapinfo != NULL && gamemapinfo == NULL))
-            {
-                continue;
-            }
-
-            if (next_epsd == cur_epsd && next_map == cur_map)
-            {
-                char *name = MapName(gameepisode, gamemap);
-
-                if (W_CheckNumForName(name) != -1)
-                {
-                    G_DeferedInitNew(gameskill, gameepisode, gamemap);
-                    ret = true;
-                    break;
-                }
-            }
-        }
-    } while (ret == false
-             // only check one episode in Doom 2
-             && gamemode != commercial
-             && (gameepisode = (gameepisode + 9) % 10) != cur_epsd);
-
-    gameepisode = cur_epsd;
-    gamemap = cur_map;
-    gamemapinfo = cur_gamemapinfo;
+    int previous_episode = -1;
+    int previous_map = -1;
+    boolean ret = MI_PreviousMap(&previous_episode, &previous_map);
 
     if (ret == false)
     {
         char *name = MapName(gameepisode, gamemap);
         displaymsg("Previous level not found for %s", name);
+    }
+    else
+    {
+        G_DeferedInitNew(gameskill, previous_episode, previous_map);
     }
 
     return ret;

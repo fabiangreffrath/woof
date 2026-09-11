@@ -562,7 +562,7 @@ void MN_AddEpisode(const char *map, const char *gfx, const char *txt, char key)
         return;
     }
 
-    G_ValidateMapName(map, &epi, &mapnum);
+    MI_MapName(map, &epi, &mapnum);
     EpiMenuEpi[EpiDef.numitems] = epi;
     EpiMenuMap[EpiDef.numitems] = mapnum;
     M_CopyLumpName(EpisodeMenu[EpiDef.numitems].name, gfx);
@@ -1444,7 +1444,7 @@ static void SetDefaultSaveName(char *name, const char *append)
     int maplumpnum = W_CheckNumForName(maplump);
 
     if (gamemapinfo && gamemapinfo->label
-        && !(gamemapinfo->flags & MapInfo_LabelClear))
+        && !(gamemapinfo->flags & MI_LabelClear))
     {
         maplump = gamemapinfo->label;
     }
@@ -2781,7 +2781,7 @@ boolean M_ShortcutResponder(const event_t *ev)
             G_EnableWarp(true);
             return true;
         }
-        else if (G_GotoNextLevel(NULL, NULL))
+        else if (G_GotoNextLevel())
         {
             return true;
         }
