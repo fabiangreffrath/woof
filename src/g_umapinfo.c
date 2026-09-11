@@ -589,7 +589,9 @@ void MI_ParseUniversalMapInfo(int lumpnum)
             else if (!strcasecmp(parsed.lumpname, "E1M8"))
             {
                 parsed.flags |= MI_EndGameArt;
-                M_CopyLumpName(parsed.endpic, gamemode == retail && !pwad_help2 ? "CREDIT" : "HELP2");
+                const char *lump =
+                    (gamemode == retail && !pwad_help2) ? "CREDIT" : "HELP2";
+                M_CopyLumpName(parsed.endpic, lump);
             }
             else if (!strcasecmp(parsed.lumpname, "E2M8"))
             {
