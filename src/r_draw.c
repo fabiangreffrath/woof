@@ -989,37 +989,33 @@ void R_DrawTRTLColumn(void)
 //  and the inner loop has to step in texture space u and v.
 //
 
-int ds_y;
-int ds_x1;
-int ds_x2;
+// [Alaux] Converted to vertical slices for improved cache locality with transposed rendering
 
-const lighttable_t *ds_colormap[2];
+int ds_x;
+int ds_y1; // Top
+int ds_y2; // Bottom
+int ds_step;
+
+const lighttable_t *(*ds_colormap)[2];
 const byte *ds_brightmap;
 
-uint32_t ds_xfrac;
-uint32_t ds_yfrac;
-uint32_t ds_xstep;
-uint32_t ds_ystep;
+const uint32_t *ds_xfrac;
+const uint32_t *ds_yfrac;
+const uint32_t *ds_xstep;
+const uint32_t *ds_ystep;
 
 // start of a 64*64 tile image
 byte *ds_source;
 
 void R_DrawSpan(void)
 {
-    int count = ds_x2 - ds_x1 + 1;
-    pixel_t *dest = xlookup[ds_x1] + rowofs[ds_y];
+    int count = ds_y2 - ds_y1 + 1;
+    pixel_t *dest = xlookup[ds_x] + rowofs[ds_y1];
     const byte *source = ds_source;
-    const lighttable_t *const *colormap = ds_colormap;
     const byte *brightmap = ds_brightmap;
 
-    // SoM: we only need 6 bits for the integer part (0 thru 63) so the rest
-    // can be used for the fraction part. This allows calculation of the memory
-    // address in the texture with two shifts, an OR and one AND.
-    unsigned int       xf = ds_xfrac << 10, yf = ds_yfrac << 10;
-    const unsigned int xs = ds_xstep << 10, ys = ds_ystep << 10;
-
     #define XSHIFT (32 - 6)
-    #define YSHIFT (32 - 6 - 6)
+    #define YSHIFT (32 - 6 - 16)
     #define YMASK  (63 * 64) // 0x0FC0
 
     byte src;
@@ -1027,14 +1023,17 @@ void R_DrawSpan(void)
     UNROLL_LOOP_BY(4)
     while (count--)
     {
+        const uint32_t
+            xfrac = (*ds_xfrac++ + *ds_xstep++ * ds_step),
+            yfrac = (*ds_yfrac++ + *ds_ystep++ * ds_step);
+
         // SoM: Why didn't I see this earlier? the spot variable is a waste now
         // because we don't have the uber complicated math to calculate it now,
         // so that was a memory write we didn't need!
-        src = source[((yf >> YSHIFT) & YMASK) | (xf >> XSHIFT)];
-        *dest = colormap[brightmap[src]][src];
-        dest += linesize;
-        xf += xs;
-        yf += ys;
+        src = source[((yfrac >> YSHIFT) & YMASK) | (xfrac >> XSHIFT)];
+        *dest++ = (*ds_colormap)[brightmap[src]][src];
+
+        ds_colormap++;
     }
 
     #undef YSHIFT

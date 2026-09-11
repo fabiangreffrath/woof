@@ -68,18 +68,19 @@ void R_DrawSkyColumnMasked(void);
 void R_DrawTranslatedColumn(void);
 void R_DrawTRTLColumn(void);
 
-extern const lighttable_t *ds_colormap[2];
+extern const lighttable_t *(*ds_colormap)[2];
 
-extern int     ds_y;
-extern int     ds_x1;
-extern int     ds_x2;
-extern uint32_t ds_xfrac;
-extern uint32_t ds_yfrac;
-extern uint32_t ds_xstep;
-extern uint32_t ds_ystep;
+extern int ds_x;
+extern int ds_y1;
+extern int ds_y2;
+extern int ds_step;
+extern const uint32_t *ds_xfrac;
+extern const uint32_t *ds_yfrac;
+extern const uint32_t *ds_xstep;
+extern const uint32_t *ds_ystep;
 
 // start of a 64*64 tile image
-extern byte *ds_source;              
+extern byte *ds_source;
 extern byte *translationtables;
 extern byte *dc_translation;
 extern const byte *ds_brightmap;
