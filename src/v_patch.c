@@ -465,6 +465,8 @@ static boolean DecodePNG(png_t *png)
         const int indexed_size = image_size / 4;
         byte *const indexed_image = malloc(indexed_size);
 
+        InitRGB2Pal();
+
         const byte *roller = image;
 
         static unsigned *alpha_pixels = NULL;
