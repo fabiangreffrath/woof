@@ -66,6 +66,42 @@ static int finalecount;
 #define NEWTEXTSPEED 0.01f // new value                         // phares
 #define NEWTEXTWAIT  1000  // new value                         // phares
 
+typedef struct
+{
+    GameMission_t mission;
+    int episode, level;
+    const char *background;
+    const char *text;
+} textscreen_t;
+
+static textscreen_t textscreens[] = {
+    {doom,      1, 8,  "FLOOR4_8", E1TEXT},
+    {doom,      2, 8,  "SFLR6_1",  E2TEXT},
+    {doom,      3, 8,  "MFLR8_4",  E3TEXT},
+    {doom,      4, 8,  "MFLR8_3",  E4TEXT},
+
+    {doom2,     1, 6,  "SLIME16",  C1TEXT},
+    {doom2,     1, 11, "RROCK14",  C2TEXT},
+    {doom2,     1, 20, "RROCK07",  C3TEXT},
+    {doom2,     1, 30, "RROCK17",  C4TEXT},
+    {doom2,     1, 15, "RROCK13",  C5TEXT},
+    {doom2,     1, 31, "RROCK19",  C6TEXT},
+
+    {pack_tnt,  1, 6,  "SLIME16",  T1TEXT},
+    {pack_tnt,  1, 11, "RROCK14",  T2TEXT},
+    {pack_tnt,  1, 20, "RROCK07",  T3TEXT},
+    {pack_tnt,  1, 30, "RROCK17",  T4TEXT},
+    {pack_tnt,  1, 15, "RROCK13",  T5TEXT},
+    {pack_tnt,  1, 31, "RROCK19",  T6TEXT},
+
+    {pack_plut, 1, 6,  "SLIME16",  P1TEXT},
+    {pack_plut, 1, 11, "RROCK14",  P2TEXT},
+    {pack_plut, 1, 20, "RROCK07",  P3TEXT},
+    {pack_plut, 1, 30, "RROCK17",  P4TEXT},
+    {pack_plut, 1, 15, "RROCK13",  P5TEXT},
+    {pack_plut, 1, 31, "RROCK19",  P6TEXT},
+};
+
 static const char *finaletext;
 static const char *finaleflat;
 
@@ -512,105 +548,25 @@ void F_StartFinale (void)
   finaletext = NULL;
   finaleflat = NULL;
 
-  // Okay - IWAD dependend stuff.
-  // This has been changed severly, and
-  //  some stuff might have changed in the process.
-  switch ( gamemode )
+  for (size_t i = 0; i < arrlen(textscreens); ++i)
   {
-    // DOOM 1 - E1, E3 or E4, but each nine missions
-    case shareware:
-    case registered:
-    case retail:
+    textscreen_t *screen = &textscreens[i];
+
+    // Hack for Chex Quest
+    if (gameversion == exe_chex && screen->mission == doom)
     {
-      music_id = mus_victor;
-      
-      switch (gameepisode)
-      {
-        case 1:
-          finaleflat = DEH_String(BGFLATE1);
-          finaletext = DEH_String(E1TEXT);
-          break;
-        case 2:
-          finaleflat = DEH_String(BGFLATE2);
-          finaletext = DEH_String(E2TEXT);
-          break;
-        case 3:
-          finaleflat = DEH_String(BGFLATE3);
-          finaletext = DEH_String(E3TEXT);
-          break;
-        case 4:
-          finaleflat = DEH_String(BGFLATE4);
-          finaletext = DEH_String(E4TEXT);
-          break;
-        default:
-          // Ouch.
-          break;
-      }
-      break;
+      screen->level = 5;
     }
-    
-    // DOOM II and missions packs with E1, M34
-    case commercial:
+
+    if (gamemission == screen->mission
+      && (gamemission != doom || gameepisode == screen->episode)
+      && gamemap == screen->level)
     {
-      music_id = mus_read_m;
-
-      // Ty 08/27/98 - added the gamemission logic
-
-      switch (gamemap)      /* This is regular Doom II */
-      {
-        case 6:
-          finaleflat = DEH_String(BGFLAT06);
-          finaletext = gamemission == pack_tnt  ? DEH_String(T1TEXT) :
-                       gamemission == pack_plut ? DEH_String(P1TEXT) :
-                                                  DEH_String(C1TEXT);
-          break;
-        case 11:
-          finaleflat = DEH_String(BGFLAT11);
-          finaletext = gamemission == pack_tnt  ? DEH_String(T2TEXT) :
-                       gamemission == pack_plut ? DEH_String(P2TEXT) :
-                                                  DEH_String(C2TEXT);
-          break;
-        case 20:
-          finaleflat = DEH_String(BGFLAT20);
-          finaletext = gamemission == pack_tnt  ? DEH_String(T3TEXT) :
-                       gamemission == pack_plut ? DEH_String(P3TEXT) :
-                                                  DEH_String(C3TEXT);
-          break;
-        case 30:
-          finaleflat = DEH_String(BGFLAT30);
-          finaletext = gamemission == pack_tnt  ? DEH_String(T4TEXT) :
-                       gamemission == pack_plut ? DEH_String(P4TEXT) :
-                                                  DEH_String(C4TEXT);
-          break;
-        case 15:
-          finaleflat = DEH_String(BGFLAT15);
-          finaletext = gamemission == pack_tnt  ? DEH_String(T5TEXT) :
-                       gamemission == pack_plut ? DEH_String(P5TEXT) :
-                                                  DEH_String(C5TEXT);
-          break;
-        case 31:
-          finaleflat = DEH_String(BGFLAT31);
-          finaletext = gamemission == pack_tnt  ? DEH_String(T6TEXT) :
-                       gamemission == pack_plut ? DEH_String(P6TEXT) :
-                                                  DEH_String(C6TEXT);
-          break;
-        default:
-             // Ouch.
-             break;
-      }
-      // Ty 08/27/98 - end gamemission logic
-
-      break;
-    } 
-
-    // Indeterminate.
-    default:  // Ty 03/30/98 - not externalized
-      music_id = mus_read_m;
-      finaleflat = "F_SKY1"; // Not used anywhere else.
-      finaletext = DEH_String(C1TEXT);  // FIXME - other text, music?
-      break;
+      finaletext = screen->text;
+      finaleflat = screen->background;
+    }
   }
-  
+
   if (!MapInfo_StartFinale())
   {
       S_ChangeMusic(music_id, true);
