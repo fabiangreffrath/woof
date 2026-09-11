@@ -493,7 +493,7 @@ static boolean DecodePNG(png_t *png)
                 b = *roller++,
                 a = *roller++;
 
-            if (a < 255)
+            if (a < 128)
             {
                 alpha_pixels[num_alpha_pixels++] = i;
                 continue;
