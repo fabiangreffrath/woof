@@ -444,7 +444,7 @@ static boolean CheckConditions(interlevelcond_t *conditions,
                 break;
 
             case AnimCondition_MapNotSecret:
-                conditionsmet &= !G_IsSecretMap(episode, map);
+                conditionsmet &= !MI_IsSecretMap(episode, map);
                 break;
 
             case AnimCondition_SecretVisited:
