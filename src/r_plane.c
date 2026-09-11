@@ -104,6 +104,9 @@ static fixed_t *cachedheight = NULL;
 static fixed_t *cacheddistance = NULL;
 static fixed_t *cachedxstep = NULL;
 static fixed_t *cachedystep = NULL;
+static fixed_t *cachedxbase = NULL;
+static fixed_t *cachedybase = NULL;
+static const lighttable_t *(*cachedcolormap)[2] = NULL;
 static fixed_t *cachedrotation = NULL;
 static fixed_t xoffs,yoffs;    // killough 2/28/98: flat offsets
 static angle_t rotation;
@@ -141,6 +144,9 @@ void R_InitPlanesRes(void)
   cacheddistance = Z_Calloc(video.height, sizeof(*cacheddistance), PU_RENDERER, NULL);
   cachedxstep = Z_Calloc(video.height, sizeof(*cachedxstep), PU_RENDERER, NULL);
   cachedystep = Z_Calloc(video.height, sizeof(*cachedystep), PU_RENDERER, NULL);
+  cachedxbase = Z_Calloc(video.height, sizeof(*cachedxbase), PU_RENDERER, NULL);
+  cachedybase = Z_Calloc(video.height, sizeof(*cachedybase), PU_RENDERER, NULL);
+  cachedcolormap = Z_Calloc(video.height, sizeof(*cachedcolormap), PU_RENDERER, NULL);
   cachedrotation = Z_Calloc(video.height, sizeof(*cachedrotation), PU_RENDERER, NULL);
 
   yslope = Z_Calloc(video.height, sizeof(*yslope), PU_RENDERER, NULL);
@@ -164,6 +170,7 @@ void R_InitVisplanesRes(void)
   }
 }
 
+/*
 //
 // R_MapPlane
 //
@@ -245,6 +252,7 @@ static void R_MapPlane(int y, int x1, int x2, const lighttable_t * const thiscol
 
   R_DrawSpan();
 }
+*/
 
 //
 // R_ClearPlanes
@@ -396,6 +404,7 @@ visplane_t *R_CheckPlane(visplane_t *pl, int start, int stop)
   return pl;
 }
 
+/*
 //
 // R_MakeSpans
 //
@@ -414,6 +423,7 @@ static void R_MakeSpans(int x, unsigned int t1, unsigned int b1,
   while (b2 > b1 && b2 >= t2)
     spanstart[b2--] = x;
 }
+*/
 
 static void DrawSkyTex(visplane_t *pl, sky_t *sky, skytex_t *skytex)
 {
@@ -537,6 +547,134 @@ static void DrawSkyDef(visplane_t *pl, sky_t *sky)
 
 // New function, by Lee Killough
 
+static void R_DrawPlaneColumns(const visplane_t *pl, const lighttable_t * const thiscolormap)
+{
+  // [R&R] Scale the interpolation interval with resolution.
+  const int leap =
+    video.height >= 566  ?  (1 << 4) :
+    video.height >= 283  ?  (1 << 3) : 
+                            (1 << 2);
+  int x, y;
+  int miny = viewheight;
+  int maxy = -1;
+
+  for (x = pl->minx; x <= pl->maxx; x++)
+  {
+    if (pl->top[x] != USHRT_MAX && pl->top[x] <= pl->bottom[x])
+    {
+      if (pl->top[x] < miny)
+        miny = pl->top[x];
+      if (pl->bottom[x] > maxy)
+        maxy = pl->bottom[x];
+    }
+  }
+
+  for (y = miny; y <= maxy; y++)
+  {
+    if (y == centery)
+    {
+      cachedcolormap[y][0] = NULL;
+      continue;
+    }
+
+    int64_t den;
+
+    if (y < centery)
+      den = (abs(centery - y) << FRACBITS) - FRACUNIT / 2;
+    else
+      den = (abs(centery - y) << FRACBITS) + FRACUNIT / 2;
+
+    const fixed_t distance = FixedMul(planeheight, yslope[y]);
+
+    cachedxstep[y] = (fixed_t)((int64_t)angle_sin * planeheight / den);
+    cachedystep[y] = (fixed_t)((int64_t)angle_cos * planeheight / den);
+    cachedxbase[y] = viewx_trans + FixedMul(angle_cos, distance);
+    cachedybase[y] = viewy_trans - FixedMul(angle_sin, distance);
+
+    if (fixedcolormap)
+    {
+      cachedcolormap[y][0] = cachedcolormap[y][1] = fixedcolormap;
+    }
+    else
+    {
+      unsigned index = distance >> LIGHTZSHIFT;
+      index = MIN(index, MAXLIGHTZ - 1);
+
+      cachedcolormap[y][0] = thiscolormap + planezlightoffset[index];
+      cachedcolormap[y][1] = thiscolormap;
+    }
+  }
+
+  extern pixel_t **xlookup;
+  extern int *rowofs;
+
+  for (x = pl->minx; x <= pl->maxx; x++)
+  {
+    if (pl->top[x] == USHRT_MAX || pl->top[x] > pl->bottom[x])
+      continue;
+
+    y = pl->top[x];
+
+    byte *dest = xlookup[x] + rowofs[y];
+    const int xoffset = x - centerx;
+
+    fixed_t block_xfrac = 0;
+    fixed_t block_yfrac = 0;
+    boolean block_start_valid = false;
+    int remaining = pl->bottom[x] - y + 1;
+
+    while ((remaining > leap) && (y != centery) && (y + leap != centery) && ((y < centery) == (y + leap < centery)))
+    {
+      if (!block_start_valid)
+      {
+        block_xfrac = cachedxbase[y] + xoffset * cachedxstep[y];
+        block_yfrac = cachedybase[y] + xoffset * cachedystep[y];
+        block_start_valid = true;
+      }
+
+      fixed_t xfrac = block_xfrac, yfrac = block_yfrac;
+
+      const fixed_t
+        nextxfrac = cachedxbase[y + leap] + xoffset * cachedxstep[y + leap],
+        nextyfrac = cachedybase[y + leap] + xoffset * cachedystep[y + leap],
+        xfracstep = (nextxfrac - xfrac) / leap,
+        yfracstep = (nextyfrac - yfrac) / leap;
+
+      int count = leap;
+
+      do
+      {
+        const byte src = ds_source[((xfrac >> 16) & 63) | ((yfrac >> 10) & 4032)];
+        *dest++ = cachedcolormap[y][ds_brightmap[src]][src];
+
+        y++;
+        xfrac += xfracstep;
+        yfrac += yfracstep;
+      } while (--count);
+
+      block_xfrac = nextxfrac;
+      block_yfrac = nextyfrac;
+      remaining -= leap;
+    }
+
+    // Draw the tail from exact R_MapPlane values instead of interpolating
+    while (remaining--)
+    {
+      if (cachedcolormap[y][0])
+      {
+        fixed_t
+          xfrac = cachedxbase[y] + xoffset * cachedxstep[y],
+          yfrac = cachedybase[y] + xoffset * cachedystep[y];
+
+        const byte src = ds_source[((xfrac >> 16) & 63) | ((yfrac >> 10) & 4032)];
+        *dest++ = cachedcolormap[y][ds_brightmap[src]][src];
+      }
+
+      y++;
+    }
+  }
+}
+
 static void do_draw_plane(visplane_t *pl)
 {
     if (pl->minx > pl->maxx)
@@ -609,8 +747,10 @@ static void do_draw_plane(visplane_t *pl)
 
     planeheight = abs(pl->height - viewz);
 
+    /*
     const int stop = pl->maxx + 1;
     pl->top[pl->minx - 1] = pl->top[stop] = USHRT_MAX;
+    */
 
     int light = (pl->lightlevel >> LIGHTSEGSHIFT) + extralight;
     light = CLAMP(light, 0, LIGHTLEVELS - 1);
@@ -621,11 +761,15 @@ static void do_draw_plane(visplane_t *pl)
                                             ? colormaps[pl->tint]
                                             : fullcolormap;
 
+    R_DrawPlaneColumns(pl, thiscolormap);
+
+    /*
     for (int x = pl->minx; x <= stop; x++)
     {
         R_MakeSpans(x, pl->top[x - 1], pl->bottom[x - 1], pl->top[x],
                     pl->bottom[x], thiscolormap);
     }
+    */
 
     if (!swirling)
     {

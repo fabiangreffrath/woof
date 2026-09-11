@@ -54,8 +54,8 @@ int viewwidth;
 int viewheight;
 int viewwindowx;
 int viewwindowy;
-static pixel_t **xlookup = NULL;
-static int *rowofs = NULL;
+pixel_t **xlookup = NULL;
+int *rowofs = NULL;
 static int linesize; // killough 11/98
 
 // Backing buffer containing the bezel drawn around the screen and surrounding
