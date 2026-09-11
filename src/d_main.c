@@ -24,6 +24,10 @@
 #include <ctype.h>
 #endif
 
+#ifdef __linux__
+#include <unistd.h>
+#endif
+
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,6 +43,8 @@
 #include "d_player.h"
 #include "d_ticcmd.h"
 #include "decl_main.h"
+#include "decl_sndinfo.h"
+#include "decl_sounds.h"
 #include "deh_main.h"
 #include "deh_strings.h"
 #include "deh_thing.h"
@@ -1260,7 +1266,8 @@ static void LoadIWadBase(void)
     D_GetModeAndMissionByIWADName(M_BaseName(wadfiles[0]), &local_gamemode,
                                   &local_gamemission);
 
-    if (local_gamemission == none || local_gamemode == indetermined)
+    if (local_gamemission == none
+        || (local_gamemode == indetermined && local_gamemission != doom))
     {
         return;
     }
@@ -1618,6 +1625,18 @@ void D_DoomMain(void)
     M_PrintHelpString();
     I_SafeExit(0);
   }
+
+  #ifdef __linux__
+
+  if (M_ParmExists("-setup"))
+  {
+    char* setup_path = M_StringJoin(D_DoomExeDir(), DIR_SEPARATOR_S, PROJECT_SHORTNAME "-setup");
+    char* args[] = { setup_path, NULL };
+    execv(setup_path, args);
+    I_SafeExit(1);
+  }
+
+  #endif
 
   // [FG] initialize logging verbosity early to decide
   //      if the following lines will get printed or not
@@ -2115,6 +2134,11 @@ void D_DoomMain(void)
 
   W_ProcessInWads("DECLARE", DECL_Parse, PROCESS_IWAD | PROCESS_PWAD);
 
+  if (!DECL_HasAmbientSounds())
+  {
+    W_ProcessInWads("SNDINFO", SNDINFO_Parse, PROCESS_IWAD | PROCESS_PWAD);
+  }
+
   DECL_Install();
 
   // Ambient
@@ -2433,10 +2457,14 @@ void D_DoomMain(void)
     {
       if (autostart || netgame)
 	{
-	  G_InitNew(startskill, startepisode, startmap);
+	  G_InitNew(startskill, startepisode, startmap, false);
 	  // [crispy] no need to write a demo header in demo continue mode
 	  if (demorecording && gameaction != ga_playdemo)
+	  {
 	    G_BeginRecording();
+	    // enforce melt as first screen wipe for demorecording
+	    screen_wipe_internal = wipe_Melt;
+	  }
 	}
       else
 	D_StartTitle();                 // start up intro loop

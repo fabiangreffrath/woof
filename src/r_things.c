@@ -758,7 +758,7 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
   {
     vis->tranmap = main_addimap;
   }
-  else if (thing->flags & MF_TRANSLUCENT)
+  else if ((thing->flags & MF_TRANSLUCENT) || (thing->intflags & MIF_GHOST))
   {
     vis->tranmap = main_tranmap;
   }
@@ -989,7 +989,7 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
   {
     vis->tranmap = main_addimap;
   }
-  else if (viewplayer->mo->flags & MF_TRANSLUCENT)
+  else if (viewplayer->mo->flags & MF_TRANSLUCENT /* || (thing->intflags & MIF_GHOST) */)
   {
     vis->tranmap = main_tranmap;
   }

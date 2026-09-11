@@ -73,7 +73,7 @@ If you turn the [Doom logo upside down](https://www.reddit.com/r/Doom/comments/8
 
 Source code, Windows binaries (MSVC builds for Windows 7 and newer) and Linux AppImages for the latest release can be found on the [Release](https://github.com/fabiangreffrath/woof/releases/latest) page.
 
-The most recent list of changes can be found in the current [Changelog](https://github.com/fabiangreffrath/woof/blob/master/CHANGELOG.md).
+The changes currently in progress since the latest release can be found in the [Changelog](https://github.com/fabiangreffrath/woof/blob/master/CHANGELOG.md).
 
 # Compiling
 
@@ -177,14 +177,14 @@ Copyright:
  © 2017 Christoph Oelckers;  
  © 2020 Alex Mayfield;  
  © 2020 Ethan Watson;  
- © 2020-2024 Fabian Greffrath;  
- © 2020-2024 Roman Fomin;  
+ © 2020-2026 Fabian Greffrath;  
+ © 2020-2026 Roman Fomin;  
  © 2021-2022 Ryan Krafnick;  
- © 2022-2024 Alaux;  
- © 2022-2024 ceski;  
+ © 2022-2026 Alaux;  
+ © 2022-2025 ceski;  
  © 2023 Andrew Apted;  
  © 2023 liPillON;  
- © 2025 Guilherme Miranda.  
+ © 2025-2026 Guilherme Miranda.  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
 Files: `src/i_flickstick.*, src/i_gyro.*`  
@@ -248,14 +248,20 @@ Copyright:
  © 2017 Shannon Freeman.  
 License: [MIT](https://github.com/sneakernets/DMXOPL/blob/DMXOPL3/LICENSE)
 
-Files: `base/all-all/sm*.png, data/setup.ico, data/woof-setup.png, data/woof.ico, data/woof.png, setup/setup_icon.c, src/icon.c`  
+Files: `base/all-all/sm*.png, data/woof.ico, data/woof.png, src/icon.c`  
 Copyright:  
- © 2020-2024 Julia Nechaevskaya.  
+ © 2020-2026 Julia Nechaevskaya.  
 License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/)
 
 Files: `base/id1.wad/sm*.png`  
 Copyright:  
  © 2026 DragonKnightKX.  
+License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/)
+
+Files: `data/setup.ico, data/woof-setup.png, setup/setup_icon.c`  
+Copyright:  
+ © 2026 Julia Nechaevskaya;  
+ © 2026 Terraformer9x.  
 License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/)
 
 Files: `data/io.github.fabiangreffrath.woof.metainfo.*`  

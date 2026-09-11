@@ -519,10 +519,10 @@ static inline void DrawPatchInternal(int x, int y, int xoffset, int yoffset,
                 : (trans)          ? DrawPatchColumnTL
                                    : DrawPatchColumn;
 
-    const int left_crop = (crop.center && crop.left) ? patch_width / 2 + crop.left : crop.left;
+    const int left_crop = crop.center ? patch_width / 2 + crop.left : crop.left;
     const int final_width = crop.width ? MIN(patch_width, crop.width) : patch_width;
 
-    patchcol.top_crop = (crop.center && crop.top) ? patch_height / 2 + crop.top : crop.top;
+    patchcol.top_crop = crop.center ? patch_height / 2 + crop.top : crop.top;
     patchcol.height = crop.height ? MIN(patch_height, crop.height) : patch_height;
 
     // Adjust for arbitrary resolution
