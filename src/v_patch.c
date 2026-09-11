@@ -310,7 +310,7 @@ static void InitRGB2Pal(void)
             {
                 const int sb = b << RGB2PAL_IBPC;
 
-                rgb2pal_g[b] = I_GetNearestColor(playpal, sr, sg, sb);
+                rgb2pal_g[b] = I_GetNearestColorLinear(playpal, sr, sg, sb);
             }
         }
     }
@@ -567,7 +567,7 @@ static boolean DecodePNG(png_t *png)
 
             need_translation = true;
             translate[i] =
-                I_GetNearestColor(playpal, e->red, e->green, e->blue);
+                I_GetNearestColorLinear(playpal, e->red, e->green, e->blue);
         }
 
         if (need_translation)
