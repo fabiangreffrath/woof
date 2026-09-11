@@ -39,9 +39,9 @@ typedef enum
 
     MapInfo_BossActionClear = (1u << 10),
 
-    MapInfo_EndGame = (MapInfo_EndGameArt|MapInfo_EndGameStandard|
-                      MapInfo_EndGameCast|MapInfo_EndGameBunny|
-                      MapInfo_EndGameCustomFinale),
+    MapInfo_EndGameAny = (MapInfo_EndGameArt|MapInfo_EndGameStandard|
+                          MapInfo_EndGameCast|MapInfo_EndGameBunny|
+                          MapInfo_EndGameCustomFinale),
 } mapinfo_flags_t;
 
 typedef struct

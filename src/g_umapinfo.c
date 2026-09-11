@@ -367,52 +367,39 @@ static void ParseStandardProperty(scanner_t *s, mapentry_t *mape)
     }
     else if (!strcasecmp(prop, "endpic"))
     {
-        mape->flags |= MapInfo_EndGameArt;
         ParseLumpName(s, mape->endpic);
+        mape->flags &= ~MapInfo_EndGameAny;
+        mape->flags |= MapInfo_EndGameArt;
     }
     else if (!strcasecmp(prop, "endcast"))
     {
         SC_MustGetToken(s, TK_BoolConst);
-        if (SC_GetBoolean(s))
-        {
-            mape->flags |= MapInfo_EndGameCast;
-        }
-        else
-        {
-            mape->flags &= ~MapInfo_EndGameCast;
-            mape->flags |= MapInfo_EndGameClear;
-        }
+        mape->flags &= ~MapInfo_EndGameAny;
+        mape->flags |= SC_GetBoolean(s)
+                    ? MapInfo_EndGameCast
+                    : MapInfo_EndGameClear;
     }
     else if (!strcasecmp(prop, "endbunny"))
     {
         SC_MustGetToken(s, TK_BoolConst);
-        if (SC_GetBoolean(s))
-        {
-            mape->flags |= MapInfo_EndGameBunny;
-        }
-        else
-        {
-            mape->flags &= ~MapInfo_EndGameBunny;
-            mape->flags |= MapInfo_EndGameClear;
-        }
+        mape->flags &= ~MapInfo_EndGameAny;
+        mape->flags |= SC_GetBoolean(s)
+                    ? MapInfo_EndGameBunny
+                    : MapInfo_EndGameClear;
     }
     else if (!strcasecmp(prop, "endfinale"))
     {
-        mape->flags |= MapInfo_EndGameCustomFinale;
         ParseLumpName(s, mape->endfinale);
+        mape->flags &= ~MapInfo_EndGameAny;
+        mape->flags |= MapInfo_EndGameCustomFinale;
     }
     else if (!strcasecmp(prop, "endgame"))
     {
         SC_MustGetToken(s, TK_BoolConst);
-        if (SC_GetBoolean(s))
-        {
-            mape->flags |= MapInfo_EndGameStandard;
-        }
-        else
-        {
-            mape->flags &= ~MapInfo_EndGameStandard;
-            mape->flags |= MapInfo_EndGameClear;
-        }
+        mape->flags &= ~MapInfo_EndGameAny;
+        mape->flags |= SC_GetBoolean(s)
+                    ? MapInfo_EndGameStandard
+                    : MapInfo_EndGameClear;
     }
     else if (!strcasecmp(prop, "exitpic"))
     {
@@ -590,11 +577,11 @@ void G_ParseMapInfo(int lumpnum)
         // Set default level progression here to simplify the checks elsewhere.
         // Doing this lets us skip all normal code for this if nothing has been
         // defined.
-        if (parsed.flags & MapInfo_EndGame)
+        if (parsed.flags & (MapInfo_EndGameAny|MapInfo_EndGameClear))
         {
             parsed.nextmap[0] = 0;
         }
-        else if (!parsed.nextmap[0] && !(parsed.flags & MapInfo_EndGameClear))
+        else if (!parsed.nextmap[0] && !(parsed.flags & (MapInfo_EndGameAny|MapInfo_EndGameClear)))
         {
             if (!strcasecmp(parsed.lumpname, "MAP30"))
             {
@@ -618,6 +605,12 @@ void G_ParseMapInfo(int lumpnum)
             {
                 parsed.flags |= MapInfo_EndGameArt;
                 M_CopyLumpName(parsed.endpic, "ENDPIC");
+            }
+            else if (gamemission == pack_chex
+                     && !strcasecmp(parsed.lumpname, "E1M5"))
+            {
+                parsed.flags |= MapInfo_EndGameArt;
+                strcpy(parsed.endpic, "CREDIT");
             }
             else
             {
@@ -828,7 +821,7 @@ MI_ShowNext_t MI_ShowNextLoc(void)
     // UMAPINFO
     if (gamemapinfo)
     {
-        if (gamemapinfo->flags & MapInfo_EndGame)
+        if (gamemapinfo->flags & MapInfo_EndGameAny)
         {
             return WI_ShowNextDone;
         }
@@ -855,7 +848,7 @@ boolean MI_SkipShowNextLoc(void)
     // UMAPINFO
     if (gamemapinfo)
     {
-        return (gamemapinfo->flags & MapInfo_EndGame) != 0;
+        return (gamemapinfo->flags & MapInfo_EndGameAny) != 0;
     }
 
     // Legacy
@@ -1285,7 +1278,7 @@ MI_Completion_t MI_PrepareIntermission(wbstartstruct_t *wminfo)
     {
         const char *next = "";
 
-        if (gamemapinfo->flags & MapInfo_EndGame
+        if (gamemapinfo->flags & MapInfo_EndGameAny
             && gamemapinfo->flags & MapInfo_NoIntermission)
         {
             return DC_Victory;
@@ -1441,26 +1434,26 @@ MI_WinDisplay_t MI_PrepareFinale(void)
     {
         MI_WinDisplay_t res = 0;
         if (gamemapinfo->flags & MapInfo_InterTextClear
-            && gamemapinfo->flags & MapInfo_EndGame)
+            && gamemapinfo->flags & MapInfo_EndGameAny)
         {
             I_Printf(
                 VB_DEBUG,
                 "UMAPINFO: 'intertext = clear' with one of the end game keys.");
         }
 
-        if (gamemapinfo->intertextsecret && secretexit)
+        if (secretexit && (gamemapinfo->intertextsecret || gamemapinfo->flags & MapInfo_InterTextSecretClear))
         {
             res = (gamemapinfo->flags & MapInfo_InterTextSecretClear)
                       ? 0
                       : WD_StartFinale;
         }
-        else if (gamemapinfo->intertext && !secretexit)
+        else if (!secretexit && (gamemapinfo->intertext || gamemapinfo->flags & MapInfo_InterTextClear))
         {
             res = (gamemapinfo->flags & MapInfo_InterTextClear)
                       ? 0
                       : WD_StartFinale;
         }
-        else if (gamemapinfo->flags & MapInfo_EndGame && !secretexit)
+        else if (gamemapinfo->flags & MapInfo_EndGameAny && !secretexit)
         {
             res = WD_Victory;
         }

@@ -314,11 +314,11 @@ static boolean MapInfo_StartFinale(void)
         return false;
     }
 
-    if (secretexit && !(gamemapinfo->flags & MapInfo_InterTextSecretClear))
+    if (secretexit && gamemapinfo->intertextsecret && !(gamemapinfo->flags & MapInfo_InterTextSecretClear))
     {
         finaletext = gamemapinfo->intertextsecret;
     }
-    else if (!secretexit && !(gamemapinfo->flags & MapInfo_InterTextClear))
+    else if (!secretexit && gamemapinfo->intertext && !(gamemapinfo->flags & MapInfo_InterTextClear))
     {
         finaletext = gamemapinfo->intertext;
     }
@@ -410,7 +410,7 @@ static boolean MapInfo_Ticker()
 
     if (next_level)
     {
-        if (!secretexit && gamemapinfo->flags & MapInfo_EndGame)
+        if (!secretexit && gamemapinfo->flags & (MapInfo_EndGameAny|MapInfo_EndGameClear))
         {
             if (gamemapinfo->flags & MapInfo_EndGameCustomFinale)
             {
