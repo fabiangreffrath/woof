@@ -160,7 +160,7 @@ void V_UseBuffer(pixel_t *buffer, int pitch);
 void V_RestoreBuffer(void);
 
 void V_CopyRect(int srcx, int srcy, pixel_t *source, int width, int height,
-                int destx, int desty);
+                int pitch, int destx, int desty);
 
 typedef struct
 {
