@@ -54,6 +54,7 @@
 #include "r_defs.h"
 #include "r_draw.h"
 #include "r_main.h"
+#include "r_srgb.h"
 #include "r_state.h"
 #include "s_sound.h"
 #include "st_carousel.h"
@@ -2134,7 +2135,11 @@ static void DrawSolidBackground(void)
         b /= 2 * depth * (v1 - v0);
 
         // [FG] tune down to half saturation (for empiric reasons)
-        col = I_GetNearestColor(pal, r / 2, g / 2, b / 2);
+        r = linear_to_byte(byte_to_linear(r) / 2.0);
+        g = linear_to_byte(byte_to_linear(g) / 2.0);
+        b = linear_to_byte(byte_to_linear(b) / 2.0);
+
+        col = I_GetNearestColor(pal, r, g, b);
 
         V_FillRect(0, v0, video.unscaledw, v1 - v0, col);
     }
