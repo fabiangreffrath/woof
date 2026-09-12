@@ -84,6 +84,11 @@ typedef struct sfxinfo_s
   // referenced sound if a link
   struct sfxinfo_s *link;
 
+  // delayed link
+  // checked only after optional sound fallbacks are loaded
+  // see: `static void LinkOptionalSounds(void)`
+  int link_num;
+
   // OpenAL buffer id
   unsigned int buffer;
 
@@ -342,6 +347,8 @@ typedef enum {
   sfx_dgact,
   sfx_dgdth,
   sfx_dgpain,
+
+  sfx_MaxIncluded = sfx_dgpain,
 
   // [crispy] play DSSECRET if available
   sfx_secret,

@@ -33,6 +33,8 @@ void DSDH_SoundsInit(void)
     memcpy(S_sfx, original_S_sfx, NUMSFX * sizeof(*S_sfx));
     for (int i = 0; i < NUMSFX; ++i)
     {
+        S_sfx[i].link_num = -1;
+
         if (original_S_sfx[i].name)
         {
             S_sfx[i].name = M_StringDuplicate(original_S_sfx[i].name);
@@ -63,7 +65,7 @@ int DSDH_SoundTranslate(int sfx_number)
     int new_index = num_sfx;
     hashmap_put(translate, sfx_number, &new_index);
 
-    sfxinfo_t sfx = {.priority = 127, .lumpnum = -1};
+    sfxinfo_t sfx = {.priority = 127, .lumpnum = -1, .link_num = -1};
     array_push(S_sfx, sfx);
     ++num_sfx;
 

@@ -489,6 +489,9 @@ static void LinkOptionalSounds(void)
         {sfx_getpow, sfx_itemup},
         {sfx_itemup, sfx_None  },
 
+        // optional chaingun firing sound
+        {sfx_chgun,  sfx_pistol},
+
         // sounds when hitting animated floor
         {sfx_splash, sfx_oof   },
         {sfx_ploosh, sfx_oof   },
@@ -521,6 +524,11 @@ static void LinkOptionalSounds(void)
         if (from->lumpnum == -1)
         {
             from->link = to;
+        }
+
+        if (from->link_num != -1)
+        {
+            from->link = &S_sfx[from->link_num];
         }
     }
 }

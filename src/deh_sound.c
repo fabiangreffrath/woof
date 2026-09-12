@@ -44,6 +44,8 @@ DEH_BEGIN_MAPPING(sound_mapping, sfxinfo_t)
     DEH_UNSUPPORTED_MAPPING("Zero 4")
     DEH_UNSUPPORTED_MAPPING("Neg. One 1")
     DEH_UNSUPPORTED_MAPPING("Neg. One 2")
+    // Woof!
+    DEH_MAPPING_SOUND("Link", link_num)
 DEH_END_MAPPING
 
 static int DEH_SoundStart(deh_context_t *context, char *line)
@@ -87,6 +89,15 @@ static void DEH_SoundParseLine(deh_context_t *context, char *line, int tag)
 
     // all values are integers
     int ivalue = atoi(value);
+
+    if (!strcasecmp(variable_name, "Link"))
+    {
+        if (ivalue < sfx_None || ivalue > sfx_MaxIncluded)
+        {
+            DEH_Debug(context, "SFX Info Link for sound '%s' is out of bounds. Check your dehacked.", sfx->name);
+            return;
+        }
+    }
 
     // Set the field value
     DEH_SetMapping(context, &sound_mapping, sfx, variable_name, ivalue, value);
