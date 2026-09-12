@@ -14,7 +14,7 @@ from multiprocessing import Pool
 EXTRACT_DIR = 'extract'
 EXPECTED_DIR = 'expected'
 OUTPUT_DIR = 'output'
-CMD_BASE = ['-iwad', 'miniwad.wad', '-nodraw', '-noblit', '-nosound', '-nogui']
+CMD_BASE = ['-iwad', 'miniwad.wad', '-noautoload', '-nodraw', '-noblit', '-nosound', '-nogui']
 
 
 def download(url):
@@ -56,10 +56,7 @@ def build_command_line(record):
         cmd += ['-complevel', 'vanilla']
         cmd += ['-gameversion', record['gameversion']]
     cmd += ['-timedemo', record['demo']]
-    if 'statdump' in record:
-        cmd += ['-statdump', Path(OUTPUT_DIR, record['statdump'])]
-    if 'levelstat' in record:
-        cmd += ['-levelstat']
+    cmd += ['-levelstat']
     return cmd
 
 
@@ -67,27 +64,21 @@ def call_port(args):
     source_port, record = args
     cmd = [source_port] + build_command_line(record)
 
-    if 'levelstat' in record:
-        base_dir = record['levelstat']
-        Path(base_dir).mkdir(exist_ok=True)
+    base_dir = record['levelstat']
+    Path(base_dir).mkdir(exist_ok=True)
 
-        subprocess.run(cmd, cwd=base_dir, capture_output=True)
+    subprocess.run(cmd, cwd=base_dir, capture_output=True)
 
-        path = Path(base_dir, 'levelstat.txt')
-        if not path.exists():
-            with open(path, 'w') as f:
-                pass
-        shutil.copyfile(path, Path(OUTPUT_DIR, record['levelstat']))
-        shutil.rmtree(base_dir)
-    else:
-        subprocess.run(cmd, capture_output=True)
+    path = Path(base_dir, 'levelstat.txt')
+    if not path.exists():
+        with open(path, 'w') as f:
+            pass
+    shutil.copyfile(path, Path(OUTPUT_DIR, record['levelstat']))
+    shutil.rmtree(base_dir)
 
 
 def compare_output(record):
-    if 'levelstat' in record:
-        name = record['levelstat']
-    else:
-        name = record['statdump']
+    name = record['levelstat']
 
     with open(Path(EXPECTED_DIR, name), 'r') as f:
         expected = f.read().splitlines()
