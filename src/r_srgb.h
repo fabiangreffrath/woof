@@ -23,13 +23,12 @@
 //
 // So, RGB triplets are normally stored in Gamma sRGB format, this is needed to
 // counteract the inherent non-linearity (exponentiality) of the human eye's
-// light sensitivity. However, this conversion is unsiutable for any manner of
-// color operations, as the colorspace becomes "stratched" from what it should
-// be. This means we need to "unstretch" the colorspace into a _linear_ one, and
-// perform the color operations on _that_. See the timestamped YouTube video
-// below demonstrating the effect in a visual format
+// light sensitivity. However, this conversion is unsuitable for any manner of
+// color operations, as the colorspace becomes "stretched" from what it should
+// be. This means we need to perform the color operations on an "unstretched"
+// form of the sRGB colorspace, aka linear sRGB. See the timestamped YouTube
+// video below demonstrating the effect in a visual format:
 //
-// References for gamma adjustment:
 // * https://en.wikipedia.org/wiki/SRGB#Definition
 // * https://www.youtube.com/watch?v=e0HM_vfSuDw&t=130
 //
