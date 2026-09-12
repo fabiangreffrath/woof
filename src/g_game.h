@@ -84,10 +84,8 @@ void G_Rewind(void);
 demo_version_t G_GetNamedComplevel(const char *arg);
 const char *G_GetCurrentComplevelName(void);
 
-int G_GotoNextLevel(int *pEpi, int *pMap);
+int G_GotoNextLevel(void);
 int G_GotoPrevLevel(void);
-
-const char *G_GetLevelTitle(void);
 
 void G_BindGameInputVariables(void);
 void G_BindGameVariables(void);

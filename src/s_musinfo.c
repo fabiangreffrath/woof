@@ -67,7 +67,7 @@ void S_ParseMusInfo(const char *mapid)
     {
         if (SC_CheckToken(s, TK_Identifier))
         {
-            if (G_ValidateMapName(SC_GetString(s), NULL, NULL))
+            if (MI_MapName(SC_GetString(s), NULL, NULL))
             {
                 break;
             }

@@ -14,7 +14,7 @@ from multiprocessing import Pool
 EXTRACT_DIR = 'extract'
 EXPECTED_DIR = 'expected'
 OUTPUT_DIR = 'output'
-CMD_BASE = ['-iwad', 'miniwad.wad', '-nodraw', '-noblit', '-nosound', '-nogui']
+CMD_BASE = ['-iwad', 'miniwad.wad', '-noautoload', '-nodraw', '-noblit', '-nosound', '-nogui']
 
 
 def download(url):
