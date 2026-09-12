@@ -52,6 +52,7 @@
 #include "r_draw.h"
 #include "r_main.h"
 #include "r_plane.h"
+#include "r_srgb.h"
 #include "r_voxel.h"
 #include "s_sound.h"
 #include "st_stuff.h"
@@ -1056,7 +1057,7 @@ void I_SetPalette(byte *playpal)
 
 // Taken from Chocolate Doom chocolate-doom/src/i_video.c:L841-867
 
-byte I_GetNearestColor(byte *palette, int r, int g, int b)
+byte I_GetNearestColor(const byte *palette, int r, int g, int b)
 {
     byte best;
     int best_diff, diff;
@@ -1072,6 +1073,60 @@ byte I_GetNearestColor(byte *palette, int r, int g, int b)
         db = b - *palette++;
 
         diff = dr * dr + dg * dg + db * db;
+
+        if (diff < best_diff)
+        {
+            if (!diff)
+            {
+                return i;
+            }
+
+            best = i;
+            best_diff = diff;
+        }
+    }
+
+    return best;
+}
+
+static boolean linear_palette_init = false;
+static double linear_palette[768];
+
+byte I_GetNearestColorLinear(const byte *palette, int red, int green, int blue)
+{
+    if (!linear_palette_init)
+    {
+        linear_palette_init = true;
+
+        // We assume that all calls to this function pass the same palette
+
+        const byte *palette_rover = palette;
+        double *linear_palette_rover = linear_palette;
+
+        for (int i = 0; i < 768; i++)
+        {
+            *linear_palette_rover++ = byte_to_linear(*palette_rover++);
+        }
+    }
+
+    const double
+        linear_red   = byte_to_linear(red),
+        linear_green = byte_to_linear(green),
+        linear_blue  = byte_to_linear(blue);
+
+    byte best = 0;
+    double best_diff = INT_MAX;
+
+    const double *linear_palette_rover = linear_palette;
+
+    for (int i = 0; i < 256; ++i)
+    {
+        const double
+            dr = linear_red   - *linear_palette_rover++,
+            dg = linear_green - *linear_palette_rover++,
+            db = linear_blue  - *linear_palette_rover++;
+
+        const double diff = dr * dr + dg * dg + db * db;
 
         if (diff < best_diff)
         {
