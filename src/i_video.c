@@ -1070,14 +1070,14 @@ byte I_GetNearestColor(const byte *palette, int red, int green, int blue)
 
         for (int i = 0; i < 768; i++)
         {
-            *linear_palette_rover++ = byte_to_linear(*palette_rover++);
+            *linear_palette_rover++ = sRGB_ByteToLinear(*palette_rover++);
         }
     }
 
     const double
-        linear_red   = byte_to_linear(red),
-        linear_green = byte_to_linear(green),
-        linear_blue  = byte_to_linear(blue);
+        linear_red   = sRGB_ByteToLinear(red),
+        linear_green = sRGB_ByteToLinear(green),
+        linear_blue  = sRGB_ByteToLinear(blue);
 
     byte best = 0;
     double best_diff = INT_MAX;

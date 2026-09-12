@@ -190,9 +190,9 @@ byte V_Colorize(byte *playpal, int cr, byte source)
 {
     vect rgb, hsv;
 
-    rgb.x = byte_to_linear(playpal[3 * source + 0]);
-    rgb.y = byte_to_linear(playpal[3 * source + 1]);
-    rgb.z = byte_to_linear(playpal[3 * source + 2]);
+    rgb.x = sRGB_ByteToLinear(playpal[3 * source + 0]);
+    rgb.y = sRGB_ByteToLinear(playpal[3 * source + 1]);
+    rgb.z = sRGB_ByteToLinear(playpal[3 * source + 2]);
 
     rgb_to_hsv(&rgb, &hsv);
 
@@ -282,9 +282,9 @@ byte V_Colorize(byte *playpal, int cr, byte source)
 
     hsv_to_rgb(&hsv, &rgb);
 
-    rgb.x = linear_to_byte(rgb.x);
-    rgb.y = linear_to_byte(rgb.y);
-    rgb.z = linear_to_byte(rgb.z);
+    rgb.x = sRGB_LinearToByte(rgb.x);
+    rgb.y = sRGB_LinearToByte(rgb.y);
+    rgb.z = sRGB_LinearToByte(rgb.z);
 
     return I_GetNearestColor(playpal, (int)rgb.x, (int)rgb.y, (int)rgb.z);
 }

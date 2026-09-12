@@ -212,10 +212,13 @@ void V_InitColorTranslation(void)
     byte *palsrc = playpal;
     for (int i = 0; i < 256; ++i)
     {
-        double red   = byte_to_linear(*palsrc++);
-        double green = byte_to_linear(*palsrc++);
-        double blue  = byte_to_linear(*palsrc++);
-        int gray = linear_to_byte(red * 0.2126 + green * 0.7152 + blue * 0.0722);
+        // Use linear sRGB coefficients to get accurate grayscale.
+        // * https://30fps.net/pages/better-srgb-to-greyscale/
+        // * https://en.wikipedia.org/wiki/Rec._709#Luma_coefficients
+        double red   = sRGB_ByteToLinear(*palsrc++);
+        double green = sRGB_ByteToLinear(*palsrc++);
+        double blue  = sRGB_ByteToLinear(*palsrc++);
+        int gray = sRGB_LinearToByte(red * 0.2126 + green * 0.7152 + blue * 0.0722);
         invul_gray[i] = I_GetNearestColor(playpal, gray, gray, gray);
     }
 }

@@ -2135,9 +2135,9 @@ static void DrawSolidBackground(void)
         b /= 2 * depth * (v1 - v0);
 
         // [FG] tune down to half saturation (for empiric reasons)
-        r = linear_to_byte(byte_to_linear(r) / 2.0);
-        g = linear_to_byte(byte_to_linear(g) / 2.0);
-        b = linear_to_byte(byte_to_linear(b) / 2.0);
+        r = sRGB_LinearToByte(sRGB_ByteToLinear(r) / 2.0);
+        g = sRGB_LinearToByte(sRGB_ByteToLinear(g) / 2.0);
+        b = sRGB_LinearToByte(sRGB_ByteToLinear(b) / 2.0);
 
         col = I_GetNearestColor(pal, r, g, b);
 
