@@ -1537,7 +1537,7 @@ static boolean GamepadSave(int choice)
     {
         // Immediately save game using a default name.
         SetDefaultSaveName(savegamestrings[choice], NULL);
-        M_DoSave(choice, savepage, false);
+        M_DoSave(choice, savepage, quickSaveSlot == -2);
         LoadDef.lastOn = choice;
         QuickLoadDef.lastOn = choice;
         LoadAutoSaveDef.lastOn = choice + 1;
