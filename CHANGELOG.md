@@ -6,6 +6,7 @@
 
 * **Quality of Life:**
   - Player view no longer abruptly jolts when running across very shallow floor height changes
+  - Remember Quicksave page and slot across gaming sessions
 
 * **Rendering:**
   - Improved palettization of PNG graphics.
