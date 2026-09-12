@@ -9,6 +9,7 @@
 
 * **Rendering:**
   - Improved palettization of PNG graphics.
+  - Implemented transposed rendering for improved rendering performance in general.
 
 ## Bug Fixes
 
