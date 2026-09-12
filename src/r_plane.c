@@ -102,9 +102,13 @@ static fixed_t planeheight;
 
 static fixed_t *cachedheight = NULL;
 static fixed_t *cacheddistance = NULL;
-static fixed_t *cachedxstep = NULL;
-static fixed_t *cachedystep = NULL;
+static uint32_t *cachedxfrac = NULL;
+static uint32_t *cachedyfrac = NULL;
+static uint32_t *cachedxstep = NULL;
+static uint32_t *cachedxstep2 = NULL;
+static uint32_t *cachedystep = NULL;
 static fixed_t *cachedrotation = NULL;
+static const lighttable_t *(*cachedcolormap)[2] = NULL;
 static fixed_t xoffs,yoffs;    // killough 2/28/98: flat offsets
 static angle_t rotation;
 
@@ -139,9 +143,13 @@ void R_InitPlanesRes(void)
 
   cachedheight = Z_Calloc(video.height, sizeof(*cachedheight), PU_RENDERER, NULL);
   cacheddistance = Z_Calloc(video.height, sizeof(*cacheddistance), PU_RENDERER, NULL);
+  cachedxfrac = Z_Calloc(video.height, sizeof(*cachedxfrac), PU_RENDERER, NULL);
+  cachedyfrac = Z_Calloc(video.height, sizeof(*cachedyfrac), PU_RENDERER, NULL);
   cachedxstep = Z_Calloc(video.height, sizeof(*cachedxstep), PU_RENDERER, NULL);
+  cachedxstep2 = Z_Calloc(video.height, sizeof(*cachedxstep2), PU_RENDERER, NULL);
   cachedystep = Z_Calloc(video.height, sizeof(*cachedystep), PU_RENDERER, NULL);
   cachedrotation = Z_Calloc(video.height, sizeof(*cachedrotation), PU_RENDERER, NULL);
+  cachedcolormap = Z_Calloc(video.height, sizeof(*cachedcolormap), PU_RENDERER, NULL);
 
   yslope = Z_Calloc(video.height, sizeof(*yslope), PU_RENDERER, NULL);
 
@@ -178,6 +186,7 @@ void R_InitVisplanesRes(void)
 // BASIC PRIMITIVE
 //
 
+/*
 static void R_MapPlane(int y, int x1, int x2, const lighttable_t * const thiscolormap)
 {
   fixed_t distance;
@@ -245,6 +254,7 @@ static void R_MapPlane(int y, int x1, int x2, const lighttable_t * const thiscol
 
   R_DrawSpan();
 }
+*/
 
 //
 // R_ClearPlanes
@@ -304,6 +314,8 @@ visplane_t *R_DupPlane(const visplane_t *pl, int start, int stop)
     new_pl->minx = start;
     new_pl->maxx = stop;
     new_pl->tint = pl->tint;
+
+    // Implicitly initializes to USHRT_MAX
     memset(new_pl->top, UCHAR_MAX, video.width * sizeof(*new_pl->top));
 
     return new_pl;
@@ -363,6 +375,7 @@ visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
   check->rotation = rotation;
   check->tint = tint;
 
+  // Implicitly initializes to USHRT_MAX
   memset(check->top, UCHAR_MAX, video.width * sizeof(*check->top));
 
   return check;
@@ -400,6 +413,7 @@ visplane_t *R_CheckPlane(visplane_t *pl, int start, int stop)
 // R_MakeSpans
 //
 
+/*
 // [FG] 32-bit integer math
 static void R_MakeSpans(int x, unsigned int t1, unsigned int b1,
                         unsigned int t2, unsigned int b2,
@@ -414,6 +428,7 @@ static void R_MakeSpans(int x, unsigned int t1, unsigned int b1,
   while (b2 > b1 && b2 >= t2)
     spanstart[b2--] = x;
 }
+*/
 
 static void DrawSkyTex(visplane_t *pl, sky_t *sky, skytex_t *skytex)
 {
@@ -609,9 +624,6 @@ static void do_draw_plane(visplane_t *pl)
 
     planeheight = abs(pl->height - viewz);
 
-    const int stop = pl->maxx + 1;
-    pl->top[pl->minx - 1] = pl->top[stop] = USHRT_MAX;
-
     int light = (pl->lightlevel >> LIGHTSEGSHIFT) + extralight;
     light = CLAMP(light, 0, LIGHTLEVELS - 1);
 
@@ -621,10 +633,107 @@ static void do_draw_plane(visplane_t *pl)
                                             ? colormaps[pl->tint]
                                             : fullcolormap;
 
-    for (int x = pl->minx; x <= stop; x++)
+    int topmost = USHRT_MAX, bottommost = -1;
+
+    for (int x = pl->minx; x <= pl->maxx; x++)
     {
-        R_MakeSpans(x, pl->top[x - 1], pl->bottom[x - 1], pl->top[x],
-                    pl->bottom[x], thiscolormap);
+        topmost = MIN(pl->top[x], topmost);
+        bottommost = MAX(pl->bottom[x], bottommost);
+    }
+
+    // Compute texture-mapping parameters and lighting for each row
+    for (int y = topmost; y <= bottommost; y++)
+    {
+        fixed_t dy;
+
+        // [FG] calculate flat coordinates relative to screen center
+        //
+        // SoM: because centery is an actual row of pixels (and it isn't really the
+        // center row because there are an even number of rows) some corrections need
+        // to be made depending on where the row lies relative to the centery row.
+        if (centery == y)
+          continue;
+        else if (y < centery)
+          dy = (abs(centery - y) << FRACBITS) - FRACUNIT / 2;
+        else
+          dy = (abs(centery - y) << FRACBITS) + FRACUNIT / 2;
+
+        fixed_t distance;
+
+        // plane math updated for accounting flat rotation, thanks to Odamex
+        if (planeheight != cachedheight[y] || rotation != cachedrotation[y])
+          {
+            cachedheight[y] = planeheight;
+            cachedrotation[y] = rotation;
+            distance = cacheddistance[y] = FixedMul(planeheight, yslope[y]);
+            // [FG] avoid right-shifting in FixedMul() followed by left-shifting in FixedDiv()
+            cachedxstep[y] = (fixed_t)((int64_t)angle_sin * planeheight / dy);
+            cachedystep[y] = (fixed_t)((int64_t)angle_cos * planeheight / dy);
+
+            // SoM: we only need 6 bits for the integer part (0 thru 63) so the rest
+            // can be used for the fraction part. This allows calculation of the memory
+            // address in the texture with two shifts, an OR and one AND.
+            cachedxstep2[y] = cachedxstep[y] << 10;
+          }
+        else
+          {
+            distance = cacheddistance[y];
+          }
+
+        const int dx = pl->minx - centerx;
+
+        // killough 2/28/98: Add offsets
+        cachedxfrac[y] = viewx_trans + FixedMul(angle_cos, distance) + dx * cachedxstep[y];
+        cachedyfrac[y] = viewy_trans - FixedMul(angle_sin, distance) + dx * cachedystep[y];
+
+        cachedxfrac[y] <<= 10;
+
+        // ID24 per-sector colormaps
+        if (fixedcolormapoffset)
+        {
+          cachedcolormap[y][0] = thiscolormap + fixedcolormapoffset;
+          cachedcolormap[y][1] = cachedcolormap[y][0];
+        }
+        else
+        {
+          unsigned index = distance >> LIGHTZSHIFT;
+          index = MIN(index, MAXLIGHTZ - 1);
+
+          cachedcolormap[y][0] = thiscolormap + planezlightoffset[index];
+          cachedcolormap[y][1] = thiscolormap;
+        }
+    }
+
+    ds_step = 0;
+
+    // Draw the columns
+    for (int x = pl->minx; x <= pl->maxx; x++, ds_step++)
+    {
+        ds_y1 = pl->top[x];
+
+        if (ds_y1 == USHRT_MAX)
+        {
+            continue;
+        }
+
+        ds_y2 = pl->bottom[x];
+        ds_x = x;
+
+#ifdef RANGECHECK
+        if (ds_y2 < ds_y1 || ds_y1 < 0 || ds_y2 >= viewheight ||
+            (unsigned) ds_x > viewwidth)
+        {
+            I_Error("%i, %i at %i", ds_y1, ds_y2, ds_x);
+        }
+#endif
+
+        ds_xfrac = cachedxfrac + ds_y1,
+        ds_yfrac = cachedyfrac + ds_y1,
+        ds_xstep = cachedxstep2 + ds_y1,
+        ds_ystep = cachedystep + ds_y1;
+        ds_colormap = cachedcolormap + ds_y1;
+
+        R_DrawSpan();
     }
 
     if (!swirling)
