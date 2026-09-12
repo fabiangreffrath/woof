@@ -3369,6 +3369,12 @@ static const char *invul_mode_strings[] = {"Vanilla", "MBF", "Gray"};
 
 static const char *endoom_strings[] = {"Off", "PWAD Only", "Always"};
 
+static void UpdateSavegameDirectory(void)
+{
+    D_SetSavegameDirectory();
+    M_GetQuickSaveConfig();
+}
+
 static setup_menu_t gen_settings6[] = {
 
     {"Quality of life", S_SKIP | S_TITLE, OFF_CNTR_X, M_SPC},
@@ -3393,7 +3399,7 @@ static setup_menu_t gen_settings6[] = {
      .action = M_ResetAutoSave},
 
     {"Organize save files", S_ONOFF | S_PRGWARN, OFF_CNTR_X, M_SPC,
-     {"organize_savefiles"}, .action = D_SetSavegameDirectory},
+     {"organize_savefiles"}, .action = UpdateSavegameDirectory},
 
     MI_GAP,
 

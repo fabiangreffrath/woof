@@ -898,12 +898,27 @@ static struct
     {"slot", &quickSaveSlot},
 };
 
-static void GetQuickSaveConfig(void)
+void M_GetQuickSaveConfig(void)
 {
-    if (!quickSaveConfig)
+    quickSavePage = -1;
+    quickSaveSlot = -1;
+
+    if (organize_savefiles)
     {
-        quickSaveConfig =
-            M_StringJoin(basesavegame, DIR_SEPARATOR_S, "quicksave.cfg");
+        if (!quickSaveConfig)
+        {
+            quickSaveConfig =
+                M_StringJoin(basesavegame, DIR_SEPARATOR_S, "quicksave.cfg");
+        }
+    }
+    else
+    {
+        if (quickSaveConfig)
+        {
+            free(quickSaveConfig);
+            quickSaveConfig = NULL;
+        }
+        return;
     }
 
     FILE *file;
@@ -2463,10 +2478,8 @@ void M_Init(void)
     messageToPrint = 0;
     messageString = NULL;
     messageLastMenuActive = menuactive;
-    quickSavePage = -1;
-    quickSaveSlot = -1;
     M_ResetAutoSave();
-    GetQuickSaveConfig();
+    M_GetQuickSaveConfig();
 
     int lumpnum = W_CheckNumForName("DBIGFONT");
     if (lumpnum >= 0)
