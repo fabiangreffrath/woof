@@ -2447,9 +2447,10 @@ void D_DoomMain(void)
   }
   else if (startloadgame >= 0 && startloadgame <= 77) // Page 0-7, slot 0-7.
   {
+    const int slot = startloadgame % 10, page = startloadgame / 10;
     char *file;
-    file = G_SaveGameName(startloadgame);
-    G_LoadGame(file, startloadgame, true); // killough 5/15/98: add command flag
+    file = G_SaveGameName(slot, page);
+    G_LoadGame(file, slot, page, true); // killough 5/15/98: add command flag
     free(file);
   }
   else

@@ -901,7 +901,7 @@ static void DeleteAutoSave(void)
 
 static void DeleteSaveGame(int slot)
 {
-    char *name = G_SaveGameName(slot);
+    char *name = G_SaveGameName(slot, savepage);
     M_remove(name);
     free(name);
 
@@ -911,10 +911,7 @@ static void DeleteSaveGame(int slot)
         quickSaveSlot = -1;
     }
 
-    if (slot == savegameslot)
-    {
-        savegameslot = -1;
-    }
+    G_ClearPendingSaveSlot(slot);
 }
 
 static void M_DeleteGame(int choice)
@@ -1049,9 +1046,32 @@ static void M_LoadAutoSaveSelect(int choice)
     //SaveDef.lastOn = choice;
 }
 
+// Loads the savegame at slot/page without relying on the live savepage
+// global, so quickload can target its own page independently of whatever
+// page the save/load menu currently has open.
+static void LoadGameAtSlot(int slot, int page)
+{
+    char *name = G_SaveGameName(slot, page);
+    saveg_compat = saveg_woof510;
+
+    if (!M_FileExistsNotDir(name))
+    {
+        free(name);
+        name = G_MBFSaveGameName(slot, page);
+        saveg_compat = saveg_mbf;
+    }
+
+    G_LoadGame(name, slot, page, false); // killough 3/16/98, 5/15/98: add slot, cmd
+
+    MN_ClearMenus();
+    free(name);
+
+    // [crispy] save the last game you loaded
+    SaveDef.lastOn = slot;
+}
+
 static void M_LoadSelect(int choice)
 {
-    char *name = NULL; // killough 3/22/98
     int slot = choice;
 
     if (menuactive && currentMenu == &LoadAutoSaveDef)
@@ -1059,29 +1079,7 @@ static void M_LoadSelect(int choice)
         slot--;
     }
 
-    name = G_SaveGameName(slot);
-    saveg_compat = saveg_woof510;
-
-    if (!M_FileExistsNotDir(name))
-    {
-        if (name)
-        {
-            free(name);
-        }
-        name = G_MBFSaveGameName(slot);
-        saveg_compat = saveg_mbf;
-    }
-
-    G_LoadGame(name, slot, false); // killough 3/16/98, 5/15/98: add slot, cmd
-
-    MN_ClearMenus();
-    if (name)
-    {
-        free(name);
-    }
-
-    // [crispy] save the last game you loaded
-    SaveDef.lastOn = slot;
+    LoadGameAtSlot(slot, savepage);
 }
 
 //
@@ -1211,29 +1209,26 @@ static void EmptySaveString(char *name, boolean is_autosave)
     }
 }
 
-static void M_ReadSaveString(char *name, int menu_slot, int save_slot,
-                             boolean is_autosave)
+// Parses the already-resolved save file `name` and stores description and
+// (optionally) screenshot at menu index `slot`.
+static void ReadSaveGameContents(char *name, int slot, boolean is_autosave,
+                                  boolean read_screenshot)
 {
-    MN_ReadSavegameTime(menu_slot, name);
-    MN_ResetSnapshot(menu_slot);
+    MN_ReadSavegameTime(slot, name);
+
+    if (read_screenshot)
+    {
+        MN_ResetSnapshot(slot);
+    }
 
     // Check if file exists
 
     if (!M_FileExistsNotDir(name))
     {
-        if (!is_autosave)
-        {
-            free(name);
-            name = G_MBFSaveGameName(save_slot);
-        }
-
-        if (!M_FileExistsNotDir(name))
-        {
-            EmptySaveString(savegamestrings[menu_slot], is_autosave);
-            SetLoadSlotStatus(menu_slot, 0);
-            free(name);
-            return;
-        }
+        EmptySaveString(savegamestrings[slot], is_autosave);
+        SetLoadSlotStatus(slot, 0);
+        free(name);
+        return;
     }
 
     // Open file and read content
@@ -1244,8 +1239,8 @@ static void M_ReadSaveString(char *name, int menu_slot, int save_slot,
 
     if (savegamesize < SAVESTRINGSIZE)
     {
-        EmptySaveString(savegamestrings[menu_slot], is_autosave);
-        SetLoadSlotStatus(menu_slot, 0);
+        EmptySaveString(savegamestrings[slot], is_autosave);
+        SetLoadSlotStatus(slot, 0);
         Z_Free(save_p);
         return;
     }
@@ -1298,26 +1293,29 @@ static void M_ReadSaveString(char *name, int menu_slot, int save_slot,
     if (root)
     {
         const char *savegamestring = JS_GetStringValue(root, "savedescription");
-        const char *snapshot = JS_GetStringValue(root, "snapshot");
 
-        M_snprintf(savegamestrings[menu_slot], SAVESTRINGSIZE, "%s",
+        M_snprintf(savegamestrings[slot], SAVESTRINGSIZE, "%s",
                    savegamestring ? savegamestring : DEH_String(EMPTYSTRING));
 
-        if (!MN_ReadSnapshot(menu_slot, (byte *)snapshot, 0))
+        if (read_screenshot)
         {
-            MN_ResetSnapshot(menu_slot);
+            const char *snapshot = JS_GetStringValue(root, "snapshot");
+            if (!MN_ReadSnapshot(slot, (byte *)snapshot, 0))
+            {
+                MN_ResetSnapshot(slot);
+            }
         }
 
         JS_CloseOptions(NO_INDEX);
     }
     else
     {
-        M_snprintf(savegamestrings[menu_slot], SAVESTRINGSIZE, "%s",
+        M_snprintf(savegamestrings[slot], SAVESTRINGSIZE, "%s",
                    (char *)savebuffer);
 
-        if (!MN_ReadSnapshot(menu_slot, savebuffer, savegamesize))
+        if (read_screenshot && !MN_ReadSnapshot(slot, savebuffer, savegamesize))
         {
-            MN_ResetSnapshot(menu_slot);
+            MN_ResetSnapshot(slot);
         }
     }
 
@@ -1332,7 +1330,31 @@ static void M_ReadSaveString(char *name, int menu_slot, int save_slot,
         savebuffer = save_p = NULL;
     }
 
-    SetLoadSlotStatus(menu_slot, 1);
+    SetLoadSlotStatus(slot, 1);
+}
+
+// Reads name/screenshot for the numbered savegame menu slot `slot` on `page`,
+// applying the same LoadAutoSaveDef slot offset as M_LoadSelect and friends.
+// Used both to refresh a whole page (M_ReadSaveStrings) and to preload a
+// single slot's existing description (e.g. before overwriting a quicksave).
+static void ReadSaveGameInfo(int slot, int page, boolean read_screenshot)
+{
+    int file_slot = slot;
+
+    if (menuactive && currentMenu == &LoadAutoSaveDef)
+    {
+        file_slot--;
+    }
+
+    char *name = G_SaveGameName(file_slot, page);
+
+    if (!M_FileExistsNotDir(name))
+    {
+        free(name);
+        name = G_MBFSaveGameName(file_slot, page);
+    }
+
+    ReadSaveGameContents(name, slot, false, read_screenshot);
 }
 
 static void UpdateRectX(menu_t *menu, int x)
@@ -1367,8 +1389,7 @@ static void M_ReadSaveStrings(void)
 
     if (currentMenu == &LoadAutoSaveDef)
     {
-        char *name = G_AutoSaveName();
-        M_ReadSaveString(name, 0, 0, true);
+        ReadSaveGameContents(G_AutoSaveName(), 0, true, true);
         start_slot = 1;
     }
 
@@ -1376,9 +1397,7 @@ static void M_ReadSaveStrings(void)
 
     for (int menu_slot = start_slot; menu_slot < num_slots; menu_slot++)
     {
-        const int save_slot = menu_slot - start_slot;
-        char *name = G_SaveGameName(save_slot);
-        M_ReadSaveString(name, menu_slot, save_slot, false);
+        ReadSaveGameInfo(menu_slot, savepage, true);
     }
 }
 
@@ -1416,13 +1435,13 @@ static void M_DrawSave(void)
 //
 // M_Responder calls this when user is finished
 //
-static void M_DoSave(int slot)
+static void M_DoSave(int slot, int page, boolean quicksave)
 {
-    G_SaveGame(slot, savegamestrings[slot]);
+    G_SaveGame(slot, page, savegamestrings[slot], quicksave);
     MN_ClearMenus();
 }
 
-void MN_SetQuickSaveSlot(int choice)
+void MN_SetQuickSaveSlot(int choice, int page)
 {
     int slot = choice;
 
@@ -1433,7 +1452,7 @@ void MN_SetQuickSaveSlot(int choice)
 
     if (quickSaveSlot == -2)
     {
-        quickSavePage = savepage;
+        quickSavePage = page;
         quickSaveSlot = slot;
     }
 }
@@ -1518,7 +1537,7 @@ static boolean GamepadSave(int choice)
     {
         // Immediately save game using a default name.
         SetDefaultSaveName(savegamestrings[choice], NULL);
-        M_DoSave(choice);
+        M_DoSave(choice, savepage, false);
         LoadDef.lastOn = choice;
         QuickLoadDef.lastOn = choice;
         LoadAutoSaveDef.lastOn = choice + 1;
@@ -1775,18 +1794,15 @@ static void M_QuickSaveResponse(int ch)
 {
     if (ch == 'y')
     {
-        if (currentMenu != &SaveDef || savepage != quickSavePage)
-        {
-            savepage = quickSavePage;
-            SetNextMenu(&SaveDef);
-            M_ReadSaveStrings();
-        }
+        // load the quicksave slot's current description directly, on
+        // whatever page it lives on, without switching the visible menu page
+        ReadSaveGameInfo(quickSaveSlot, quickSavePage, false);
 
         if (MN_StartsWithMapIdentifier(savegamestrings[quickSaveSlot]))
         {
             SetDefaultSaveName(savegamestrings[quickSaveSlot], NULL);
         }
-        M_DoSave(quickSaveSlot);
+        M_DoSave(quickSaveSlot, quickSavePage, true);
         M_StartSound(sfx_mnucls);
     }
 }
@@ -1824,8 +1840,7 @@ static void M_QuickLoadResponse(int ch)
 {
     if (ch == 'y')
     {
-        savepage = quickSavePage;
-        M_LoadSelect(quickSaveSlot);
+        LoadGameAtSlot(quickSaveSlot, quickSavePage);
         M_StartSound(sfx_mnucls);
     }
 }
@@ -3232,7 +3247,7 @@ boolean M_Responder(event_t *ev)
             saveStringEnter = 0;
             if (savegamestrings[saveSlot][0])
             {
-                M_DoSave(saveSlot);
+                M_DoSave(saveSlot, savepage, quickSaveSlot == -2);
             }
         }
         else if (ev->type == ev_text)
