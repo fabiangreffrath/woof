@@ -2532,6 +2532,10 @@ static void DoSaveGame(char *name)
     JS_SetString(doc, root_mut, "savedescription", savedescription);
     // killough 2/22/98: "proprietary" version string :-)
     JS_SetString(doc, root_mut, "version_name", PROJECT_STRING);
+    JS_SetString(doc, root_mut, "git_branch", GIT_BRANCH);
+    JS_SetString(doc, root_mut, "git_revision_count", GIT_REV_COUNT);
+    JS_SetString(doc, root_mut, "git_hash", GIT_HASH);
+    JS_SetString(doc, root_mut, "git_hash_short", GIT_HASH_SHORT);
 
     saveg_compat = saveg_current;
 
