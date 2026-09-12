@@ -161,7 +161,7 @@ void RestartTextscreen(void)
 
 static void RunGUI(void)
 {
-    I_SetMetadata(PROJECT_NAME " Setup", PROJECT_VERSION, PROJECT_APPID);
+    I_SetMetadata(PROJECT_NAME " Setup", PROJECT_VERSION, PROJECT_APPID_SETUP);
 
     I_InitTimer();
 
