@@ -95,7 +95,7 @@ void HU_StartCrosshair(void)
 
 mobj_t *crosshair_target; // [Alaux] Lock crosshair on target
 
-static crange_idx_e CRByHealth(int health, int maxhealth, boolean invul)
+static xlat_index_t CRByHealth(int health, int maxhealth, boolean invul)
 {
     if (invul)
     {
@@ -175,7 +175,7 @@ void HU_UpdateCrosshair(void)
             // [Alaux] Color crosshair by target health
             if (hud_crosshair_target == crosstarget_health)
             {
-                crange_idx_e cr =
+                xlat_index_t cr =
                     CRByHealth(crosshair_target->health,
                                crosshair_target->info->spawnhealth, false);
                 crosshair.cr = xlat[cr].table;

@@ -69,7 +69,7 @@ byte *cr_shaded;
 // provided in v_video.h.
 //
 
-crdef_t xlat[CR_LIMIT] =
+xlat_t xlat[CR_LIMIT] =
 {
     [CR_BRICK]  = { .name = "CRBRICK",  .str = "\x1b\x30" },
     [CR_TAN]    = { .name = "CRTAN",    .str = "\x1b\x31" },
@@ -110,9 +110,9 @@ int V_BloodColor(int blood)
     return bloodcolor[blood];
 }
 
-crange_idx_e V_CRByName(const char *name)
+xlat_index_t V_CRByName(const char *name)
 {
-    for (const crdef_t *p = xlat; p->name; ++p)
+    for (const xlat_t *p = xlat; p->name; ++p)
     {
         if (!strcmp(p->name, name))
         {
@@ -138,9 +138,9 @@ void V_InitColorTranslation(void)
     // [crispy] preserve gray drop shadow in IWAD status bar numbers
     boolean keepgray = W_IsIWADLump(W_GetNumForName("sttnum0"));
 
-    for (crange_idx_e cr = CR_BRICK; cr < CR_NONE; cr++)
+    for (xlat_index_t cr = CR_BRICK; cr < CR_NONE; cr++)
     {
-        crdef_t *cr_p = &xlat[cr];
+        xlat_t *cr_p = &xlat[cr];
         int lumpnum = (cr_p->name) ? W_CheckNumForName(cr_p->name) : -1;
         cr_p->lump = (lumpnum != -1) ? W_CacheLumpNum(lumpnum, PU_STATIC) : NULL;
 

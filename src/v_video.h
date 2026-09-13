@@ -40,7 +40,7 @@ extern byte *cr_shaded;
 extern byte invul_gray[];
 
 // symbolic indices into color translation table pointer array
-typedef enum
+typedef enum xlat_index_e
 {
     CR_ORIG = -1,
     CR_BRICK,  // 0
@@ -60,7 +60,7 @@ typedef enum
     CR_BRIGHT, // 14
     CR_NONE,   // 15 // [FG] dummy
     CR_LIMIT   // 16 //jff 2/27/98 added for range check
-} crange_idx_e;
+} xlat_index_t;
 
 typedef struct
 {
@@ -68,9 +68,9 @@ typedef struct
     const char *str;
     byte *lump;
     byte *table;
-} crdef_t;
+} xlat_t;
 
-extern crdef_t xlat[CR_LIMIT];
+extern xlat_t xlat[CR_LIMIT];
 
 #define ORIG_S  "\x1b\x2f"
 #define BRICK_S "\x1b\x30"
@@ -85,7 +85,7 @@ extern crdef_t xlat[CR_LIMIT];
 
 // jff 1/16/98 end palette color range additions
 
-crange_idx_e V_CRByName(const char *name);
+xlat_index_t V_CRByName(const char *name);
 
 extern pixel_t *I_VideoBuffer;
 
