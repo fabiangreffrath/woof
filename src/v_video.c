@@ -144,12 +144,6 @@ void V_InitColorTranslation(void)
         int lumpnum = (cr_p->name) ? W_CheckNumForName(cr_p->name) : -1;
         cr_p->lump = (lumpnum != -1) ? W_CacheLumpNum(lumpnum, PU_STATIC) : NULL;
 
-        // [FG] color translation table provided by PWAD
-        if (W_IsWADLump(lumpnum) && !force_rebuild)
-        {
-            cr_p->table = cr_p->lump;
-            continue;
-        }
 
         // [FG] allocate new color translation table
         cr_p->table = malloc(256);
