@@ -84,11 +84,6 @@ typedef struct sfxinfo_s
   // referenced sound if a link
   struct sfxinfo_s *link;
 
-  // delayed link
-  // checked only after optional sound fallbacks are loaded
-  // see: `static void LinkOptionalSounds(void)`
-  int link_num;
-
   // OpenAL buffer id
   unsigned int buffer;
 

@@ -521,14 +521,13 @@ static void LinkOptionalSounds(void)
         sfxinfo_t *from = &S_sfx[sfx_subst[i].from],
                   *to = &S_sfx[sfx_subst[i].to];
 
-        if (from->lumpnum == -1)
+        if (from->link)
+        {
+            from->link = &S_sfx[(size_t)from->link];
+        }
+        else if (from->lumpnum == -1)
         {
             from->link = to;
-        }
-
-        if (from->link_num != -1)
-        {
-            from->link = &S_sfx[from->link_num];
         }
     }
 }

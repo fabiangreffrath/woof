@@ -114,6 +114,9 @@ boolean DEH_SetMapping(deh_context_t *context, deh_mapping_t *mapping,
         case 4:
             *((uint32_t *)location) = ivalue;
             break;
+        case 8:
+            *((uint64_t *)location) = ivalue;
+            break;
         default:
             DEH_Error(context, "Unknown field type for '%s' (BUG)", name);
             return false;

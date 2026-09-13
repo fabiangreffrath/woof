@@ -45,7 +45,7 @@ DEH_BEGIN_MAPPING(sound_mapping, sfxinfo_t)
     DEH_UNSUPPORTED_MAPPING("Neg. One 1")
     DEH_UNSUPPORTED_MAPPING("Neg. One 2")
     // Woof!
-    DEH_MAPPING_SOUND("Link", link_num)
+    DEH_MAPPING_SOUND("Link", link)
 DEH_END_MAPPING
 
 static int DEH_SoundStart(deh_context_t *context, char *line)
