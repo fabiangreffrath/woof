@@ -3,7 +3,7 @@
 * **Mod Support:**
   - Add support for optional menu and intermission sounds.
   - Add support for ambient sound definitions by SNDINFO lumps.
-  - Color transpation tables from PWADs are extended but never overridden.
+  - Color translation tables from PWADs are extended but never overridden.
 
 * **Quality of Life:**
   - Player view no longer abruptly jolts when running across very shallow floor height changes
