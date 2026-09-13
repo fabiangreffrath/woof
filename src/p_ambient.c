@@ -50,10 +50,49 @@ static float GetEffectiveOffset(ambient_t *ambient)
 
 void P_GetAmbientSoundParams(ambient_t *ambient, sfxparams_t *params)
 {
-    params->close_dist = ambient->data.close_dist;
-    params->clipping_dist = ambient->data.clipping_dist;
-    params->stop_dist = params->clipping_dist + AMB_KEEP_ALIVE_DIST;
-    params->volume_scale = ambient->data.volume_scale;
+    if (ambient->source->intflags & MIF_PARAMSOUND)
+    {
+        int volume_scale = 127;
+        int close_dist = S_CLOSE_DIST;
+        int clipping_dist = S_CLIPPING_DIST;
+        int distance_multiplier = 1;
+
+        // args[1]: Volume, represented as a percentile value.
+        // If zero, default to 100%.
+
+        if (ambient->source->args[1] > 0) volume_scale = lround(ambient->source->args[1] * 100 / 127.0);
+        if (volume_scale > 127) volume_scale = 127; // do not exceed maximum value
+
+        // args[2]: Min. Fading Distance, in map units.
+        // args[3]: Max. Distance, in map units.
+        // If either is zero or Min. Fading Distance is larger, use the standard rolloff.
+
+        if (ambient->source->args[2] > 0 && ambient->source->args[3] > 0 && ambient->source->args[2] <= ambient->source->args[3] )
+        {
+            close_dist = ambient->source->args[2];
+            clipping_dist = ambient->source->args[3];
+        }
+
+        // args[4]: Distance Scalar.
+        // If non-zero, acts as a multiplier to the previous two args.
+
+        if (ambient->source->args[4] > 0)
+        {
+            distance_multiplier = ambient->source->args[4];
+        }
+
+        params->volume_scale = volume_scale;
+        params->close_dist = close_dist * distance_multiplier;
+        params->clipping_dist = clipping_dist * distance_multiplier;
+        params->stop_dist = params->clipping_dist + AMB_KEEP_ALIVE_DIST;
+    }
+    else
+    {
+        params->close_dist = ambient->data.close_dist;
+        params->clipping_dist = ambient->data.clipping_dist;
+        params->stop_dist = params->clipping_dist + AMB_KEEP_ALIVE_DIST;
+        params->volume_scale = ambient->data.volume_scale;
+    }
 }
 
 float P_GetAmbientSoundOffset(ambient_t *ambient)

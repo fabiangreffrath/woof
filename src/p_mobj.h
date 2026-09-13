@@ -246,6 +246,7 @@ typedef enum
   MIF_FLIP            = 0x00000010,
   MIF_SPAWNED_BY_ICON = 0x00000020,
   MIF_GHOST           = 0x00000040,
+  MIF_PARAMSOUND      = 0x00000080, // Object is a parameterized SNDINFO / MUSINFO player
 } mobjflag_int_t;
 
 // Map Object definition.

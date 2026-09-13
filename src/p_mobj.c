@@ -1185,6 +1185,8 @@ void P_SpawnPlayer (mapthing_t* mthing)
 void P_SpawnMapThing (mapthing_t* mthing)
 {
   int    i;
+  boolean paramsound = false;
+  boolean nogravsound = false;
   mobj_t *mobj;
   fixed_t x, y, z;
 
@@ -1289,15 +1291,35 @@ void P_SpawnMapThing (mapthing_t* mthing)
   }
 
   // [crispy] support MUSINFO lump (dynamic music changing)
-  if (mthing->type >= 14100 && mthing->type <= 14164)
+  if (mthing->type >= 14100 && mthing->type <= 14165)
   {
+    if (mthing->type < 14165)
+    {
       mthing->args[0] = mthing->type - 14100;
-      mthing->type = mobjinfo[MT_MUSICSOURCE].doomednum;
+    }
+    else
+    {
+      paramsound = true;
+    }
+    mthing->type = mobjinfo[MT_MUSICSOURCE].doomednum;
   }
-  else if (mthing->type >= 14001 && mthing->type <= 14064)
+  else if (mthing->type >= 14001 && mthing->type <= 14065)
   {
+    if (mthing->type < 14065)
+    {
       mthing->args[0] = mthing->type - 14000;
-      mthing->type = mobjinfo[zmt_ambientsound].doomednum;
+    }
+    else
+    {
+      paramsound = true;
+    }
+    mthing->type = mobjinfo[zmt_ambientsound].doomednum;
+  }
+  else if (mthing->type == 14067)
+  {
+    mthing->type = mobjinfo[zmt_ambientsound].doomednum;
+    nogravsound = true;
+    paramsound = true;
   }
 
   // find which type to spawn
@@ -1350,6 +1372,13 @@ spawnit:
   // NOLINTNEXTLINE(clang-analyzer-optin.core.EnumCastOutOfRange)
   mobj = P_SpawnMobj (x,y,z, i);
   mobj->spawnpoint = *mthing;
+
+  // Since all ambient sound players will share a doomednum, we'll have to
+  // force certain properties.
+
+  if (paramsound) mobj->intflags &= MIF_PARAMSOUND;
+
+  if (nogravsound) mobj->flags &= MF_NOGRAVITY;
 
   if (mobj->tics > 0)
     mobj->tics = 1 + (P_Random (pr_spawnthing) % mobj->tics);

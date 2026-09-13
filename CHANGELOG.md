@@ -3,6 +3,7 @@
 * **Mod Support:**
   - Add support for optional menu and intermission sounds.
   - Add support for ambient sound definitions by SNDINFO lumps.
+  - Add support for UDMF ambient sound player 14065.
 
 * **Quality of Life:**
   - Player view no longer abruptly jolts when running across very shallow floor height changes
