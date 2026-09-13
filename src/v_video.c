@@ -131,12 +131,12 @@ void V_InitColorTranslation(void)
 {
     int playpal_lump = W_GetNumForName("PLAYPAL");
     byte *playpal = W_CacheLumpNum(playpal_lump, PU_STATIC);
-    boolean iwad_playpal = W_IsIWADLump(playpal_lump);
+    const boolean iwad_playpal = W_IsIWADLump(playpal_lump);
 
     int force_rebuild = M_CheckParm("-tranmap");
 
     // [crispy] preserve gray drop shadow in IWAD status bar numbers
-    boolean keepgray = W_IsIWADLump(W_GetNumForName("sttnum0"));
+    const boolean keepgray = W_IsIWADLump(W_GetNumForName("sttnum0"));
 
     for (xlat_index_t cr = CR_BRICK; cr < CR_NONE; cr++)
     {
@@ -148,22 +148,23 @@ void V_InitColorTranslation(void)
         // [FG] allocate new color translation table
         cr_p->table = malloc(256);
 
-        // [FG] translate all colors to target color
+        // keep original translation table entries if they apply
+        // against the original palette or if they are from a PWAD
+        const boolean keeporig =
+            (iwad_playpal || W_IsWADLump(lumpnum)) && !force_rebuild;
+
+        // [FG] translate to target color
         for (int i = 0; i < 256; i++)
         {
-            cr_p->table[i] = V_Colorize(playpal, cr, (byte)i);
-        }
-
-        // [FG] override with original color translations
-        if (iwad_playpal && !force_rebuild)
-        {
-            for (int i = 0; i < 256; i++)
+            // keep only entries that are not identity anyway
+            if (keeporig
+                && (cr_p->lump[i] != (byte)i || (keepgray && i == 109)))
             {
-                if (cr_p->lump
-                    && ((cr_p->lump[i] != (byte)i) || (keepgray && i == 109)))
-                {
-                    cr_p->table[i] = cr_p->lump[i];
-                }
+                cr_p->table[i] = cr_p->lump[i];
+            }
+            else
+            {
+                cr_p->table[i] = V_Colorize(playpal, cr, (byte)i);
             }
         }
     }
