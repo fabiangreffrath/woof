@@ -914,6 +914,26 @@ const char *MI_GetLevelTitle(void)
     return result;
 }
 
+const char *MI_GetLevelLabel(void)
+{
+    const char *label = NULL;
+    if (gamemapinfo && gamemapinfo->label)
+    {
+        label = gamemapinfo->label;
+    }
+    return label;
+}
+
+const char *MI_GetLevelAuthor(void)
+{
+    const char *author = NULL;
+    if (gamemapinfo && gamemapinfo->author)
+    {
+        author = gamemapinfo->author;
+    }
+    return author;
+}
+
 void MI_MapAnnouncement(char announce_string[120], char author_string[120],
                         const char string[120], size_t str_size)
 {

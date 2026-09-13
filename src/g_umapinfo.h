@@ -115,6 +115,8 @@ boolean MI_PreviousMap(int *episode, int *map);
 
 // Display data
 const char *MI_GetLevelTitle(void);
+const char *MI_GetLevelLabel(void);
+const char *MI_GetLevelAuthor(void);
 void MI_MapAnnouncement(char announce_string[120], char author_string[120],
                         const char string[120], size_t str_size);
 int MI_SkyTexture(void);
