@@ -52,31 +52,9 @@ pixel_t *I_VideoBuffer = NULL;
 
 static pixel_t *dest_screen = NULL;
 
-// jff 2/18/98 palette color ranges for translation
-// jff 4/24/98 now pointers set to predefined lumps to allow overloading
-
-byte *cr_brick;
-byte *cr_tan;
-byte *cr_gray;
-byte *cr_green;
-byte *cr_brown;
-byte *cr_gold;
-byte *cr_red;
-byte *cr_blue;
-byte *cr_blue2;
-byte *cr_orange;
-byte *cr_yellow;
-byte *cr_black;
-byte *cr_purple;
-byte *cr_white;
 // [FG] dark/shaded color translation table
 byte *cr_dark;
 byte *cr_shaded;
-byte *cr_bright;
-
-// jff 4/24/98 initialize this at runtime
-byte *colrngs[CR_LIMIT] = {0};
-byte *red2col[CR_LIMIT] = {0};
 
 //
 // V_InitColorTranslation
@@ -91,24 +69,24 @@ byte *red2col[CR_LIMIT] = {0};
 // provided in v_video.h.
 //
 
-// killough 5/2/98: table-driven approach
-const crdef_t crdefs[] =
+crdef_t xlat[CR_LIMIT] =
 {
-    {"CRBRICK",  "\x1b\x30", &cr_brick,  &colrngs[CR_BRICK],  &red2col[CR_BRICK]},
-    {"CRTAN",    "\x1b\x31", &cr_tan,    &colrngs[CR_TAN],    &red2col[CR_TAN]},
-    {"CRGRAY",   "\x1b\x32", &cr_gray,   &colrngs[CR_GRAY],   &red2col[CR_GRAY]},
-    {"CRGREEN",  "\x1b\x33", &cr_green,  &colrngs[CR_GREEN],  &red2col[CR_GREEN]},
-    {"CRBROWN",  "\x1b\x34", &cr_brown,  &colrngs[CR_BROWN],  &red2col[CR_BROWN]},
-    {"CRGOLD",   "\x1b\x35", &cr_gold,   &colrngs[CR_GOLD],   &red2col[CR_GOLD]},
-    {"CRRED",    "\x1b\x36", &cr_red,    &colrngs[CR_RED],    &red2col[CR_RED]},
-    {"CRBLUE",   "\x1b\x37", &cr_blue,   &colrngs[CR_BLUE1],  &red2col[CR_BLUE1]},
-    {"CRORANGE", "\x1b\x38", &cr_orange, &colrngs[CR_ORANGE], &red2col[CR_ORANGE]},
-    {"CRYELLOW", "\x1b\x39", &cr_yellow, &colrngs[CR_YELLOW], &red2col[CR_YELLOW]},
-    {"CRBLUE2",  "\x1b\x3a", &cr_blue2,  &colrngs[CR_BLUE2],  &red2col[CR_BLUE2]},
-    {"CRBLACK",  "\x1b\x3b", &cr_black,  &colrngs[CR_BLACK],  &red2col[CR_BLACK]},
-    {"CRPURPLE", "\x1b\x3c", &cr_purple, &colrngs[CR_PURPLE], &red2col[CR_PURPLE]},
-    {"CRWHITE",  "\x1b\x3d", &cr_white,  &colrngs[CR_WHITE],  &red2col[CR_WHITE]},
-    {NULL}
+    [CR_BRICK]  = { .name = "CRBRICK",  .str = "\x1b\x30" },
+    [CR_TAN]    = { .name = "CRTAN",    .str = "\x1b\x31" },
+    [CR_GRAY]   = { .name = "CRGRAY",   .str = "\x1b\x32" },
+    [CR_GREEN]  = { .name = "CRGREEN",  .str = "\x1b\x33" },
+    [CR_BROWN]  = { .name = "CRBROWN",  .str = "\x1b\x34" },
+    [CR_GOLD]   = { .name = "CRGOLD",   .str = "\x1b\x35" },
+    [CR_RED]    = { .name = "CRRED",    .str = "\x1b\x36" },
+    [CR_BLUE1]  = { .name = "CRBLUE",   .str = "\x1b\x37" },
+    [CR_ORANGE] = { .name = "CRORANGE", .str = "\x1b\x38" },
+    [CR_YELLOW] = { .name = "CRYELLOW", .str = "\x1b\x39" },
+    [CR_BLUE2]  = { .name = "CRBLUE2",  .str = "\x1b\x3a" },
+    [CR_BLACK]  = { .name = "CRBLACK",  .str = "\x1b\x3b" },
+    [CR_PURPLE] = { .name = "CRPURPLE", .str = "\x1b\x3c" },
+    [CR_WHITE]  = { .name = "CRWHITE",  .str = "\x1b\x3d" },
+    [CR_BRIGHT] = { .name = NULL,       .str = NULL },
+    [CR_NONE]   = { .name = NULL,       .str = NULL },
 };
 
 // [FG] translate between blood color value as per EE spec
@@ -134,11 +112,11 @@ int V_BloodColor(int blood)
 
 crange_idx_e V_CRByName(const char *name)
 {
-    for (const crdef_t *p = crdefs; p->name; ++p)
+    for (const crdef_t *p = xlat; p->name; ++p)
     {
         if (!strcmp(p->name, name))
         {
-            return p - crdefs;
+            return p - xlat;
         }
     }
     return CR_NONE;
@@ -151,8 +129,6 @@ byte invul_gray[256];
 // killough 5/2/98: tiny engine driven by table above
 void V_InitColorTranslation(void)
 {
-    register const crdef_t *p;
-
     int playpal_lump = W_GetNumForName("PLAYPAL");
     byte *playpal = W_CacheLumpNum(playpal_lump, PU_STATIC);
     boolean iwad_playpal = W_IsIWADLump(playpal_lump);
@@ -162,47 +138,40 @@ void V_InitColorTranslation(void)
     // [crispy] preserve gray drop shadow in IWAD status bar numbers
     boolean keepgray = W_IsIWADLump(W_GetNumForName("sttnum0"));
 
-    for (p = crdefs; p->name; p++)
+    for (crange_idx_e cr = CR_BRICK; cr < CR_NONE; cr++)
     {
-        int i, lumpnum = W_GetNumForName(p->name);
-
-        *p->map_orig = W_CacheLumpNum(lumpnum, PU_STATIC);
+        crdef_t *cr_p = &xlat[cr];
+        int lumpnum = (cr_p->name) ? W_CheckNumForName(cr_p->name) : -1;
+        cr_p->lump = (lumpnum != -1) ? W_CacheLumpNum(lumpnum, PU_STATIC) : NULL;
 
         // [FG] color translation table provided by PWAD
         if (W_IsWADLump(lumpnum) && !force_rebuild)
         {
-            *p->map1 = *p->map2 = *p->map_orig;
+            cr_p->table = cr_p->lump;
             continue;
         }
 
         // [FG] allocate new color translation table
-        *p->map2 = malloc(256);
+        cr_p->table = malloc(256);
 
         // [FG] translate all colors to target color
-        for (i = 0; i < 256; i++)
+        for (int i = 0; i < 256; i++)
         {
-            (*p->map2)[i] = V_Colorize(playpal, p - crdefs, (byte)i);
+            cr_p->table[i] = V_Colorize(playpal, cr, (byte)i);
         }
 
         // [FG] override with original color translations
         if (iwad_playpal && !force_rebuild)
         {
-            for (i = 0; i < 256; i++)
+            for (int i = 0; i < 256; i++)
             {
-                if (((*p->map_orig)[i] != (byte)i) || (keepgray && i == 109))
+                if (cr_p->lump
+                    && ((cr_p->lump[i] != (byte)i) || (keepgray && i == 109)))
                 {
-                    (*p->map2)[i] = (*p->map_orig)[i];
+                    cr_p->table[i] = cr_p->lump[i];
                 }
             }
         }
-
-        *p->map1 = *p->map2;
-    }
-
-    cr_bright = malloc(256);
-    for (int i = 0; i < 256; ++i)
-    {
-        cr_bright[i] = V_Colorize(playpal, CR_BRIGHT, (byte)i);
     }
 
     v_lightest_color = I_GetNearestColor(playpal, 0xFF, 0xFF, 0xFF);

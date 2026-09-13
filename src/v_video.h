@@ -33,33 +33,11 @@
 
 extern int v_lightest_color, v_darkest_color;
 
-// jff 2/16/98 palette color ranges for translation
-// jff 2/18/98 conversion to palette lookups for speed
-// jff 4/24/98 now pointers to lumps loaded
-extern byte *cr_brick;
-extern byte *cr_tan;
-extern byte *cr_gray;
-extern byte *cr_green;
-extern byte *cr_brown;
-extern byte *cr_gold;
-extern byte *cr_red;
-extern byte *cr_blue;
-extern byte *cr_blue2;
-extern byte *cr_orange;
-extern byte *cr_yellow;
-extern byte *cr_black;
-extern byte *cr_purple;
-extern byte *cr_white;
 // [FG] dark/shaded color translation table
 extern byte *cr_dark;
 extern byte *cr_shaded;
-extern byte *cr_bright;
 
 extern byte invul_gray[];
-
-// array of pointers to color translation tables
-extern byte *colrngs[];
-extern byte *red2col[];
 
 // symbolic indices into color translation table pointer array
 typedef enum
@@ -79,8 +57,8 @@ typedef enum
     CR_BLACK,  // 11
     CR_PURPLE, // 12
     CR_WHITE,  // 13
-    CR_NONE,   // 14 // [FG] dummy
-    CR_BRIGHT, // 15
+    CR_BRIGHT, // 14
+    CR_NONE,   // 15 // [FG] dummy
     CR_LIMIT   // 16 //jff 2/27/98 added for range check
 } crange_idx_e;
 
@@ -88,10 +66,11 @@ typedef struct
 {
     const char *name;
     const char *str;
-    byte **map1, **map2, **map_orig;
+    byte *lump;
+    byte *table;
 } crdef_t;
 
-extern const crdef_t crdefs[];
+extern crdef_t xlat[CR_LIMIT];
 
 #define ORIG_S  "\x1b\x2f"
 #define BRICK_S "\x1b\x30"

@@ -1027,7 +1027,7 @@ boolean ST_DemoProgressBar(boolean force)
 static void ColorizeString(const char *haystack, const char *needle, crange_idx_e cr)
 {
     char replacement[18];
-    M_snprintf(replacement, sizeof(replacement), "%s%s%s", crdefs[cr].str, needle, ORIG_S);
+    M_snprintf(replacement, sizeof(replacement), "%s%s%s", xlat[cr].str, needle, ORIG_S);
     char * colorized = M_StringReplaceWord(DEH_String(haystack), needle, replacement);
     DEH_AddStringColorizedReplacement(haystack, colorized);
     free(colorized);

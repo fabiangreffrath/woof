@@ -134,11 +134,11 @@ void HU_UpdateCrosshair(void)
 
     if (hud_crosshair_health)
     {
-        crosshair.cr = colrngs[CRByHealth(plr->health, 100, invul)];
+        crosshair.cr = xlat[CRByHealth(plr->health, 100, invul)].table;
     }
     else
     {
-        crosshair.cr = colrngs[hud_crosshair_color];
+        crosshair.cr = xlat[hud_crosshair_color].table;
     }
 
     if (STRICTMODE(hud_crosshair_target || hud_crosshair_lockon))
@@ -175,13 +175,14 @@ void HU_UpdateCrosshair(void)
             // [Alaux] Color crosshair by target health
             if (hud_crosshair_target == crosstarget_health)
             {
-                crosshair.cr = colrngs[CRByHealth(
-                    crosshair_target->health,
-                    crosshair_target->info->spawnhealth, false)];
+                crange_idx_e cr =
+                    CRByHealth(crosshair_target->health,
+                               crosshair_target->info->spawnhealth, false);
+                crosshair.cr = xlat[cr].table;
             }
             else
             {
-                crosshair.cr = colrngs[hud_crosshair_target_color];
+                crosshair.cr = xlat[hud_crosshair_target_color].table;
             }
         }
     }

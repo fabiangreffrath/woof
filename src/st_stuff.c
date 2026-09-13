@@ -1564,7 +1564,7 @@ static void DrawPatch(int x1, int y1, int *x2, int *y2, boolean dry,
         return;
     }
 
-    byte *outr = colrngs[cr];
+    byte *outr = xlat[cr].table;
 
     V_DrawPatchGeneral(x1, y1, xoffset, yoffset, tl, outr, patch, crop);
 }
