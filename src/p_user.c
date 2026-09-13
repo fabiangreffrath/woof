@@ -31,6 +31,7 @@
 #include "g_nextweapon.h"
 #include "info.h"
 #include "m_cheat.h"
+#include "m_fixed.h"
 #include "p_map.h"
 #include "p_mobj.h"
 #include "p_pspr.h"
@@ -56,6 +57,8 @@ static fixed_t PlayerSlope(player_t *player)
 #define MAXBOB  0x100000
 
 boolean onground; // whether player is on ground or in air
+int offgroundtics; // how many frames the player has been in the air
+#define AIRBOBFADETICS 4 // how many frames over which to reduce bob to 0 in midair
 
 //
 // P_Thrust
@@ -96,7 +99,7 @@ void P_Bob(player_t *player, angle_t angle, fixed_t move)
 void P_CalcHeight (player_t* player)
 {
   int     angle;
-  fixed_t bob;
+  fixed_t bob, totalviewoffset;
 
   // Regular movement bobbing
   // (needs to be calculated for gun swing
@@ -132,7 +135,9 @@ void P_CalcHeight (player_t* player)
     player->bob = MAXBOB;
   }
 
-  if (!onground || player->cheats & CF_NOMOMENTUM)
+  offgroundtics = onground ? 0 : (offgroundtics+1);
+
+  if (player->cheats & CF_NOMOMENTUM || (!onground && (offgroundtics > AIRBOBFADETICS)) )
     {
       player->viewz = player->mo->z + VIEWHEIGHT;
 
@@ -156,7 +161,7 @@ void P_CalcHeight (player_t* player)
 
   // move viewheight
 
-  if (player->playerstate == PST_LIVE)
+  if (player->playerstate == PST_LIVE && onground)
     {
       player->viewheight += player->deltaviewheight;
 
@@ -181,7 +186,10 @@ void P_CalcHeight (player_t* player)
 	}
     }
 
-  player->viewz = player->mo->z + player->viewheight + bob;
+  totalviewoffset = player->viewheight + bob - VIEWHEIGHT;
+  if (!onground)
+    totalviewoffset = totalviewoffset * (AIRBOBFADETICS-offgroundtics+1) / AIRBOBFADETICS;
+  player->viewz = player->mo->z + VIEWHEIGHT + totalviewoffset;
 
   if (player->viewz > player->mo->ceilingz-4*FRACUNIT)
     player->viewz = player->mo->ceilingz-4*FRACUNIT;
@@ -199,9 +207,9 @@ void P_MovePlayer (player_t* player)
   ticcmd_t *cmd = &player->cmd;
   mobj_t *mo = player->mo;
 
-  mo->angle += cmd->angleturn << 16;
+  mo->angle += IntToFixed(cmd->angleturn);
   onground = mo->z <= mo->floorz;
-  player->ticangle += cmd->ticangleturn << FRACBITS;
+  player->ticangle += IntToFixed(cmd->ticangleturn);
 
   // killough 10/98:
   //
@@ -245,7 +253,7 @@ void P_MovePlayer (player_t* player)
 
   if (!menuactive && !demoplayback && !player->centering)
   {
-    player->pitch += cmd->pitch << FRACBITS;
+    player->pitch += IntToFixed(cmd->pitch);
     player->pitch = CLAMP(player->pitch, -max_pitch_angle, max_pitch_angle);
     player->slope = PlayerSlope(player);
   }

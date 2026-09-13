@@ -1,0 +1,83 @@
+metadata { type "declarate" version "1.0.0" }
+
+//===========================================================================
+//
+// Pink Demon
+//
+//===========================================================================
+
+sound DemonSight  { prefix lump "SGTSIT" }
+sound DemonActive { prefix lump "DMACT" }
+sound DemonPain   { prefix lump "DMPAIN" }
+sound DemonMelee  { prefix lump "SGTATK" }
+sound DemonDeath  { prefix lump "SGTDTH" }
+
+thing Demon 3002 native
+{
+    Health 150
+    PainChance 180
+    Speed 10
+    Radius 30
+    Height 56
+    Mass 400
+    MONSTER
+    SeeSound DemonSight
+    AttackSound DemonMelee
+    PainSound DemonPain
+    DeathSound DemonDeath
+    ActiveSound DemonActive
+    Obituary "%o was bit by a demon."
+    States
+    {
+    Spawn:
+        SARG AB 10 A_Look
+        Loop
+    See:
+        SARG AABBCCDD 2 Fast A_Chase
+        Loop
+    Melee:
+        SARG EF 8 Fast A_FaceTarget
+        SARG G 8 Fast A_SargAttack
+        Goto See
+    Pain:
+        SARG H 2 Fast
+        SARG H 2 Fast A_Pain
+        Goto See
+    Death:
+        SARG I 8
+        SARG J 8 A_Scream
+        SARG K 4
+        SARG L 4 A_Fall
+        SARG M 4
+        SARG N -1
+        Stop
+    Raise:
+        SARG N 5
+        SARG MLKJI 5
+        Goto See
+    }
+}
+
+//===========================================================================
+//
+// Spectre
+//
+//===========================================================================
+
+sound SpectreSight  { prefix lump "SGTSIT" }
+sound SpectreActive { prefix lump "DMACT" }
+sound SpectrePain   { prefix lump "DMPAIN" }
+sound SpectreMelee  { prefix lump "SGTATK" }
+sound SpectreDeath  { prefix lump "SGTDTH" }
+
+thing Spectre : Demon 58 native
+{
+    +SHADOW
+    RenderStyle "Fuzzy"
+    SeeSound SpectreSight
+    AttackSound SpectreMelee
+    PainSound SpectrePain
+    DeathSound SpectreDeath
+    ActiveSound SpectreActive
+    HitObituary "%o was eaten by a spectre."
+}

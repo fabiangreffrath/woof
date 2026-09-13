@@ -20,102 +20,22 @@
 
 #include <ctype.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "deh_defs.h"
 #include "deh_io.h"
 #include "deh_main.h"
+#include "dsdh_main.h"
 #include "info.h"
-#include "m_array.h"
+#include "m_misc.h"
 
-//
-// DSDHacked Sprites
-//
-
-char **sprnames = NULL;
-int num_sprites;
-static char **deh_spritenames = NULL;
-static byte *sprnames_state = NULL;
-
-void DEH_InitSprites(void)
+static int SpritesGetIndex(const char *key)
 {
-    sprnames = original_sprnames;
-    num_sprites = NUMSPRITES;
-
-    array_grow(deh_spritenames, num_sprites);
-    for (int i = 0; i < num_sprites; i++)
+    for (int i = 0; i < NUMSPRITES; ++i)
     {
-        deh_spritenames[i] = strdup(sprnames[i]);
-    }
-
-    array_grow(sprnames_state, num_sprites);
-    memset(sprnames_state, 0, num_sprites * sizeof(*sprnames_state));
-}
-
-void DEH_FreeSprites(void)
-{
-    for (int i = 0; i < array_capacity(deh_spritenames); i++)
-    {
-        if (deh_spritenames[i])
-        {
-            free(deh_spritenames[i]);
-        }
-    }
-    array_free(deh_spritenames);
-    array_free(sprnames_state);
-}
-
-static void SpritesEnsureCapacity(int limit)
-{
-    if (limit < num_sprites)
-    {
-        return;
-    }
-
-    const int old_num_sprites = num_sprites;
-
-    static boolean first_allocation = true;
-    if (first_allocation)
-    {
-        sprnames = NULL;
-        array_grow(sprnames, old_num_sprites + limit);
-        memcpy(sprnames, original_sprnames, old_num_sprites * sizeof(*sprnames));
-        first_allocation = false;
-    }
-    else
-    {
-        array_grow(sprnames, limit);
-    }
-
-    num_sprites = array_capacity(sprnames);
-    const int size_delta = num_sprites - old_num_sprites;
-    memset(sprnames + old_num_sprites, 0, size_delta * sizeof(*sprnames));
-
-    array_grow(sprnames_state, size_delta);
-    memset(sprnames_state + old_num_sprites, 0, size_delta * sizeof(*sprnames_state));
-}
-
-int DEH_SpritesGetIndex(const char *key)
-{
-    for (int i = 0; i < num_sprites; ++i)
-    {
-        if (sprnames[i]
-            && !strncasecmp(sprnames[i], key, 4)
-            && !sprnames_state[i])
-        {
-            sprnames_state[i] = true; // sprite has been edited
-            return i;
-        }
-    }
-
-    return -1;
-}
-
-int DEH_SpritesGetOriginalIndex(const char *key)
-{
-    for (int i = 0; i < array_capacity(deh_spritenames); ++i)
-    {
-        if (deh_spritenames[i] && !strncasecmp(deh_spritenames[i], key, 4))
+        if (original_sprnames[i]
+            && !strncasecmp(original_sprnames[i], key, 4))
         {
             return i;
         }
@@ -131,16 +51,12 @@ int DEH_SpritesGetOriginalIndex(const char *key)
     }
 
     int i = atoi(key);
-    SpritesEnsureCapacity(i);
+    i = DSDH_SpriteTranslate(i);
 
     return i;
 }
 
-//
-// The actual parser
-//
-
-static void *DEH_BEXSpritesStart(deh_context_t *context, char *line)
+static int DEH_BEXSpritesStart(deh_context_t *context, char *line)
 {
     char s[10];
 
@@ -149,30 +65,34 @@ static void *DEH_BEXSpritesStart(deh_context_t *context, char *line)
         DEH_Warning(context, "Parse error on section start");
     }
 
-    return NULL;
+    return 0;
 }
 
-static void DEH_BEXSpritesParseLine(deh_context_t *context, char *line, void *tag)
+static void DEH_BEXSpritesParseLine(deh_context_t *context, char *line, int tag)
 {
-    char *spritenum, *value;
+    char *sprite_key, *sprite_name;
 
-    if (!DEH_ParseAssignment(line, &spritenum, &value))
+    if (!DEH_ParseAssignment(line, &sprite_key, &sprite_name))
     {
         DEH_Warning(context, "Failed to parse sound assignment");
         return;
     }
 
-    const int len = strlen(value);
+    const int len = strlen(sprite_name);
     if (len != 4)
     {
         DEH_Warning(context, "Invalid sprite string length");
         return;
     }
 
-    const int match = DEH_SpritesGetOriginalIndex(spritenum);
+    const int match = SpritesGetIndex(sprite_key);
     if (match >= 0)
     {
-        sprnames[match] = strdup(value);
+        if (sprnames[match])
+        {
+            free(sprnames[match]);
+        }
+        sprnames[match] = M_StringDuplicate(sprite_name);
     }
 }
 

@@ -22,7 +22,6 @@
 
 #include "i_sound.h"
 
-#include "deh_bex_sounds.h"
 #include "deh_strings.h"
 #include "doomstat.h"
 #include "doomtype.h"
@@ -84,7 +83,7 @@ typedef struct
 
 static channel_info_t channelinfo[MAX_CHANNELS];
 
-boolean snd_ambient, default_snd_ambient;
+boolean snd_ambient;
 boolean snd_limiter;
 int snd_channels_per_sfx;
 int snd_volume_per_sfx;
@@ -263,9 +262,17 @@ int I_GetSfxLumpNum(sfxinfo_t *sfx)
 {
     if (sfx->lumpnum == -1)
     {
-        char namebuf[9] = {0};
-        M_snprintf(namebuf, sizeof(namebuf), "ds%s", DEH_String(sfx->name));
-        sfx->lumpnum = W_CheckNumForName(namebuf);
+        if (sfx->flags & SFX_NoPrefix)
+        {
+            sfx->lumpnum = W_CheckNumForName(sfx->name);
+        }
+        else
+        {
+            char namebuf[9] = {0};
+            M_snprintf(namebuf, sizeof(namebuf), "ds%s", DEH_String(sfx->name));
+            sfx->lumpnum = W_CheckNumForName(namebuf);
+        }
+
     }
 
     return sfx->lumpnum;
@@ -392,6 +399,26 @@ void I_ResumeSound(int channel)
     }
 }
 
+void I_MuteSound(void)
+{
+    if (!snd_init || !sound_module->MuteSound)
+    {
+        return;
+    }
+
+    sound_module->MuteSound();
+}
+
+void I_UnmuteSound(void)
+{
+    if (!snd_init || !sound_module->UnmuteSound)
+    {
+        return;
+    }
+
+    sound_module->UnmuteSound();
+}
+
 //
 // I_SoundIsPlaying
 //
@@ -448,28 +475,44 @@ void I_ShutdownSound(void)
     snd_init = false;
 }
 
-// [FG] add links for likely missing sounds
+// add links for optional sounds
 
-struct
+static void LinkOptionalSounds(void)
 {
-    const int from, to;
-} static const sfx_subst[] = {
-    {sfx_secret, sfx_itmbk },
-    {sfx_itmbk,  sfx_getpow},
-    {sfx_getpow, sfx_itemup},
-    {sfx_itemup, sfx_None  },
+    struct
+    {
+        const int from, to;
+    } const sfx_subst[] = {
+        // "a secret is revealed" sound
+        {sfx_secret, sfx_itmbk },
+        {sfx_itmbk,  sfx_getpow},
+        {sfx_getpow, sfx_itemup},
+        {sfx_itemup, sfx_None  },
 
-    {sfx_splash, sfx_oof   },
-    {sfx_ploosh, sfx_oof   },
-    {sfx_lvsiz,  sfx_oof   },
-    {sfx_splsml, sfx_None  },
-    {sfx_plosml, sfx_None  },
-    {sfx_lavsml, sfx_None  },
-};
+        // sounds when hitting animated floor
+        {sfx_splash, sfx_oof   },
+        {sfx_ploosh, sfx_oof   },
+        {sfx_lvsiz,  sfx_oof   },
+        {sfx_splsml, sfx_None  },
+        {sfx_plosml, sfx_None  },
+        {sfx_lavsml, sfx_None  },
 
-static void LinkSounds(void)
-{
-    // [FG] add links for likely missing sounds
+        // optional menu and intermission sounds
+        {sfx_mnuopn, sfx_swtchn},
+        {sfx_mnucls, sfx_swtchx},
+        {sfx_mnuact, sfx_pistol},
+        {sfx_mnubak, sfx_swtchn},
+        {sfx_mnumov, sfx_pstop },
+        {sfx_mnusli, sfx_stnmov},
+        {sfx_mnusel, sfx_itemup},
+        {sfx_mnuerr, sfx_oof   },
+        {sfx_inttic, sfx_pistol},
+        {sfx_inttot, sfx_barexp},
+        {sfx_intnex, sfx_sgcock},
+        {sfx_intnet, sfx_pldeth},
+        {sfx_intdms, sfx_slop  },
+    };
+
     for (int i = 0; i < arrlen(sfx_subst); i++)
     {
         sfxinfo_t *from = &S_sfx[sfx_subst[i].from],
@@ -531,7 +574,7 @@ void I_InitSound(void)
     I_Printf(VB_INFO, " Precaching all sound effects... ");
     CacheSounds();
     I_Printf(VB_INFO, "done.");
-    LinkSounds();
+    LinkOptionalSounds();
 }
 
 boolean I_AllowReinitSound(void)
@@ -791,8 +834,6 @@ void I_BindSoundVariables(void)
         "Sound effects volume");
     M_BindNum("music_volume", &snd_MusicVolume, NULL, 8, 0, 15, ss_none, wad_no,
         "Music volume");
-    M_BindBool("snd_ambient", &default_snd_ambient, &snd_ambient, true, ss_none, wad_no,
-        "Play SNDINFO ambient sounds");
     BIND_BOOL_SFX(pitched_sounds, false,
         "Variable pitch for sound effects");
     BIND_BOOL_SFX(full_sounds, false, "Play sounds in full length (prevent cutoffs)");

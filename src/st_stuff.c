@@ -41,9 +41,11 @@
 #include "m_array.h"
 #include "m_cheat.h"
 #include "m_config.h"
+#include "m_input.h"
 #include "m_misc.h"
 #include "m_random.h"
 #include "m_swap.h"
+#include "mn_menu.h"
 #include "p_inter.h"
 #include "p_mobj.h"
 #include "p_user.h"
@@ -130,6 +132,8 @@ static int armor_green;   // armor amount above is blue, below is green
 static boolean hud_armor_type; // color of armor depends on type
 
 static boolean weapon_carousel;
+
+static boolean minimap;
 
 static sbardef_t *sbardef;
 
@@ -381,11 +385,11 @@ static boolean CheckConditions(sbarcondition_t *conditions, player_t *player)
                 break;
 
             case sbc_modeeequal:
-                result &= gamemode == (cond->param + 1);
+                result &= D_ModeToGameconfMode(gamemode) == cond->param;
                 break;
 
             case sbc_modenotequal:
-                result &= gamemode != (cond->param + 1);
+                result &= D_ModeToGameconfMode(gamemode) != cond->param;
                 break;
 
             case sbc_hudmodeequal:
@@ -1024,7 +1028,11 @@ static void UpdateNumber(sbarelem_t *elem, player_t *player)
     {
         if (elem->type == sbe_percent && font->percent != NULL)
         {
-            totalwidth += SHORT(font->percent->width) - font->monowidth;
+            const int extrawidth = SHORT(font->percent->width) - font->monowidth;
+            if (extrawidth > 0)
+            {
+                totalwidth += extrawidth;
+            }
         }
     }
     else if (font->type == sbf_proportional)
@@ -1038,7 +1046,7 @@ static void UpdateNumber(sbarelem_t *elem, player_t *player)
         while (tempnum > 0)
         {
             int workingnum = tempnum % 10;
-            totalwidth = SHORT(font->numbers[workingnum]->width);
+            totalwidth += SHORT(font->numbers[workingnum]->width);
             tempnum /= 10;
         }
         if (elem->type == sbe_percent && font->percent != NULL)
@@ -1061,6 +1069,51 @@ static void UpdateNumber(sbarelem_t *elem, player_t *player)
     number->numvalues = numvalues;
 }
 
+// Calculate xoffset/totalwidth for h_right/h_middle-aligned strings.
+
+static void UpdateStringLine(sbaralignment_t alignment, hudfont_t *font,
+                             stringline_t *line)
+{
+    int totalwidth = 0;
+
+    const char *str = line->string;
+    while (*str)
+    {
+        int ch = *str++;
+        if (ch == '\x1b' && *str)
+        {
+            ++str;
+            continue;
+        }
+
+        int width;
+        if (font->type == sbf_proportional)
+        {
+            int idx = M_ToUpper(ch) - HU_FONTSTART;
+            patch_t *patch =
+                (idx < 0 || idx >= HU_FONTSIZE) ? NULL : font->characters[idx];
+            width = patch ? SHORT(patch->width) : SPACEWIDTH;
+        }
+        else
+        {
+            width = font->monowidth;
+        }
+
+        totalwidth += width;
+    }
+
+    line->xoffset = 0;
+    if (alignment & sbe_h_middle)
+    {
+        line->xoffset -= (totalwidth >> 1);
+    }
+    else if (alignment & sbe_h_right)
+    {
+        line->xoffset -= totalwidth;
+    }
+    line->totalwidth = totalwidth;
+}
+
 static void UpdateLines(sbarelem_t *elem)
 {
     sbe_widget_t *widget = elem->subtype.widget;
@@ -1069,50 +1122,7 @@ static void UpdateLines(sbarelem_t *elem)
     stringline_t *line;
     array_foreach(line, widget->lines)
     {
-        int totalwidth = 0;
-
-        const char *str = line->string;
-        while (*str)
-        {
-            int ch = *str++;
-            if (ch == '\x1b' && *str)
-            {
-                ++str;
-                continue;
-            }
-
-            if (font->type == sbf_proportional)
-            {
-                ch = M_ToUpper(ch) - HU_FONTSTART;
-                if (ch < 0 || ch >= HU_FONTSIZE)
-                {
-                    totalwidth += SPACEWIDTH;
-                    continue;
-                }
-                patch_t *patch = font->characters[ch];
-                if (patch == NULL)
-                {
-                    totalwidth += SPACEWIDTH;
-                    continue;
-                }
-                totalwidth += SHORT(patch->width);
-            }
-            else
-            {
-                totalwidth += font->monowidth;
-            }
-        }
-
-        line->xoffset = 0;
-        if (elem->alignment & sbe_h_middle)
-        {
-            line->xoffset -= (totalwidth >> 1);
-        }
-        else if (elem->alignment & sbe_h_right)
-        {
-            line->xoffset -= totalwidth;
-        }
-        line->totalwidth = totalwidth;
+        UpdateStringLine(elem->alignment, font, line);
     }
 }
 
@@ -1255,9 +1265,12 @@ static void UpdateString(sbarelem_t *elem)
         default:
             break;
     }
+
+    UpdateStringLine(elem->alignment, string->font, &string->line);
 }
 
 static void UpdateListOfElem(sbarelem_t *elem, player_t *player);
+static void UpdateCanvasOfElem(sbarelem_t *elem, player_t *player);
 
 static void UpdateElem(sbarelem_t *elem, player_t *player)
 {
@@ -1271,6 +1284,10 @@ static void UpdateElem(sbarelem_t *elem, player_t *player)
     {
         case sbe_list:
             UpdateListOfElem(elem, player);
+            return;
+
+        case sbe_canvas:
+            UpdateCanvasOfElem(elem, player);
             return;
 
         case sbe_face:
@@ -1288,8 +1305,25 @@ static void UpdateElem(sbarelem_t *elem, player_t *player)
             break;
 
         case sbe_widget:
-            ST_UpdateWidget(elem, player);
-            UpdateLines(elem);
+            {
+                sbe_widget_t *widget = elem->subtype.widget;
+                ST_UpdateWidget(elem, player);
+                UpdateLines(elem);
+
+                // Calculate widget's width/height, skip empty lines.
+                int width = 0, height = 0;
+                stringline_t *line;
+                array_foreach(line, widget->lines)
+                {
+                    width = MAX(width, line->totalwidth);
+                    if (line->string[0])
+                    {
+                        height += widget->font->maxheight;
+                    }
+                }
+                elem->width = width;
+                elem->height = height;
+            }
             break;
 
         case sbe_carousel:
@@ -1301,6 +1335,10 @@ static void UpdateElem(sbarelem_t *elem, player_t *player)
 
         case sbe_string:
             UpdateString(elem);
+            break;
+
+        case sbe_minimap:
+            elem->enabled = (minimap && !automapactive && !strictmode);
             break;
 
         default:
@@ -1384,10 +1422,6 @@ static void ResetElem(sbarelem_t *elem, player_t *player)
             }
             break;
 
-        case sbe_widget:
-            elem->subtype.widget->duration_left = 0;
-            break;
-
         case sbe_string:
             {
                 sbe_string_t *string = elem->subtype.string;
@@ -1396,6 +1430,10 @@ static void ResetElem(sbarelem_t *elem, player_t *player)
                     string->line.string = "";
                 }
             }
+            break;
+
+        case sbe_minimap:
+            AM_MiniStart();
             break;
 
         default:
@@ -1503,10 +1541,6 @@ static void DrawPatch(int x1, int y1, int *x2, int *y2, boolean dry,
     if (alignment & sbe_h_middle)
     {
         x1 += xoffset;
-        if (crop.center)
-        {
-            x1 += width / 2 + crop.left;
-        }
     }
     x1 = WideShiftX(x1, alignment);
 
@@ -1565,7 +1599,7 @@ static void DrawGlyphNumber(int x1, int y1, int *x2, int *y2, boolean dry,
 
     if (glyph)
     {
-        DrawPatch(x1 + number->xoffset, y1, x2, y2, dry, zero_crop,
+        DrawPatch(x1 + number->xoffset, y1, x2, y2, dry, no_crop,
                   font->maxheight, elem->alignment, glyph,
                   elem->crboom == CR_NONE ? elem->cr : elem->crboom,
                   elem->tranmap);
@@ -1613,7 +1647,7 @@ static void DrawGlyphLine(int x1, int y1, int *x2, int *y2, boolean dry,
 
     if (glyph)
     {
-        DrawPatch(x1 + line->xoffset, y1, x2, y2, dry, zero_crop,
+        DrawPatch(x1 + line->xoffset, y1, x2, y2, dry, no_crop,
                   font->maxheight, elem->alignment, glyph, elem->cr,
                   elem->tranmap);
     }
@@ -1724,6 +1758,13 @@ static void DrawWidget(int x1, int y1, int *x2, int *y2, boolean dry,
     array_foreach(line, widget->lines)
     {
         DrawStringLine(x1, y1, x2, y2, dry, line, elem, font);
+
+        // Skip empty lines
+        if (!line->string[0])
+        {
+            continue;
+        }
+
         if (elem->alignment & sbe_v_bottom)
         {
             y1 -= font->maxheight;
@@ -1735,11 +1776,59 @@ static void DrawWidget(int x1, int y1, int *x2, int *y2, boolean dry,
     }
 }
 
+static void DrawMiniMap(int x1, int y1, int *x2, int *y2, boolean dry,
+                        sbarelem_t *elem)
+{
+    if (automapactive)
+    {
+        return;
+    }
+
+    sbe_minimap_t *mm = elem->subtype.minimap;
+
+    int width = mm->width;
+    int height = mm->height;
+
+    x1 = AdjustX(x1, width, elem->alignment);
+    x1 = WideShiftX(x1, elem->alignment);
+    y1 = AdjustY(y1, height, elem->alignment);
+
+    if (x2)
+    {
+        *x2 = MAX(*x2, x1 + width);
+    }
+    if (y2)
+    {
+        *y2 = MAX(*y2, y1 + height);
+    }
+
+    if (dry)
+    {
+        return;
+    }
+
+    x1 += video.deltaw;
+
+    if (mm->background == sbmm_background_black)
+    {
+        V_FillRect(x1, y1, width, height, v_darkest_color);
+    }
+    else if (mm->background == sbmm_background_dark && !MN_MenuIsShaded())
+    {
+        V_ShadeRect(x1, y1, width, height);
+    }
+
+    vrect_t rect = {.x = x1, .y = y1, .w = width, .h = height};
+    V_ScaleRect(&rect);
+
+    AM_MiniDrawer(rect.sx, rect.sy, rect.sw, rect.sh, mm->scale);
+}
+
 static void DrawListOfElem(int x1, int y1, int *x2, int *y2, boolean dry,
                            sbarelem_t *elem);
 
 static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
-                     sbarelem_t *elem)
+                     sbarelem_t *elem, boolean is_list_child)
 {
     if (!elem->enabled)
     {
@@ -1749,11 +1838,29 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
     x1 += elem->x_pos;
     y1 += elem->y_pos;
 
+    // A list already positions its members, so suppress their own
+    // alignment to avoid applying it twice.
+
+    const sbaralignment_t orig_alignment = elem->alignment;
+    if (is_list_child)
+    {
+        elem->alignment &= ~(sbe_h_mask | sbe_v_mask);
+    }
+
     switch (elem->type)
     {
         case sbe_list:
             DrawListOfElem(x1, y1, x2, y2, dry, elem);
+            elem->alignment = orig_alignment;
             return;
+
+        case sbe_canvas:
+            // No visual of its own; just position the anchor for
+            // the children loop below.
+            x1 = AdjustX(x1, elem->width, elem->alignment);
+            x1 = WideShiftX(x1, elem->alignment);
+            y1 = AdjustY(y1, elem->height, elem->alignment);
+            break;
 
         case sbe_graphic:
             {
@@ -1786,7 +1893,7 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
                 sbe_animation_t *animation = elem->subtype.animation;
                 patch_t *patch =
                     animation->frames[animation->frame_index].patch;
-                DrawPatch(x1, y1, x2, y2, dry, zero_crop, 0, elem->alignment,
+                DrawPatch(x1, y1, x2, y2, dry, no_crop, 0, elem->alignment,
                           patch, elem->cr, elem->tranmap);
             }
             break;
@@ -1824,14 +1931,20 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
             }
             break;
 
+        case sbe_minimap:
+            DrawMiniMap(x1, y1, x2, y2, dry, elem);
+            break;
+
         default:
             break;
     }
 
+    elem->alignment = orig_alignment;
+
     sbarelem_t *child;
     array_foreach(child, elem->children)
     {
-        DrawElem(x1, y1, x2, y2, dry, child);
+        DrawElem(x1, y1, x2, y2, dry, child, false);
     }
 }
 
@@ -1845,8 +1958,26 @@ static void UpdateListOfElem(sbarelem_t *elem, player_t *player)
     {
         UpdateElem(child, player);
 
-        int width = 0, height = 0;
-        DrawElem(0, 0, &width, &height, true, child); // Dry run
+        int width = child->x_pos, height = child->y_pos;
+        if (child->enabled)
+        {
+            if (child->type == sbe_widget)
+            {
+                width = child->width;
+                height = child->height;
+            }
+            else
+            {
+                DrawElem(0, 0, &width, &height, true, child, true); // Dry run
+                width -= child->x_pos;
+                height -= child->y_pos;
+            }
+        }
+        else
+        {
+            width = 0;
+            height = 0;
+        }
         child->width = width;
         child->height = height;
 
@@ -1860,8 +1991,57 @@ static void UpdateListOfElem(sbarelem_t *elem, player_t *player)
         }
     }
 
+    // The loop above adds a trailing list->spacing after the last
+    // contributing child, throwing off a bottom/right-aligned list's
+    // block shift by that amount.
+
+    if (list->horizontal && listwidth)
+    {
+        listwidth -= list->spacing;
+    }
+    else if (listheight)
+    {
+        listheight -= list->spacing;
+    }
+
     elem->width = listwidth;
     elem->height = listheight;
+}
+
+// A canvas positions children at their own x_pos/y_pos instead of
+// stacking them, so its size is the furthest extent any child reaches.
+
+static void UpdateCanvasOfElem(sbarelem_t *elem, player_t *player)
+{
+    int width = 0, height = 0;
+
+    sbarelem_t *child;
+    array_foreach(child, elem->children)
+    {
+        UpdateElem(child, player);
+
+        if (child->enabled)
+        {
+            int cw, ch;
+            if (child->type == sbe_widget)
+            {
+                cw = child->x_pos + child->width;
+                ch = child->y_pos + child->height;
+            }
+            else
+            {
+                cw = child->x_pos;
+                ch = child->y_pos;
+                DrawElem(0, 0, &cw, &ch, true, child, true); // Dry run
+            }
+
+            width = MAX(width, cw);
+            height = MAX(height, ch);
+        }
+    }
+
+    elem->width = width;
+    elem->height = height;
 }
 
 static void DrawListOfElem(int x1, int y1, int *x2, int *y2, boolean dry,
@@ -1893,7 +2073,7 @@ static void DrawListOfElem(int x1, int y1, int *x2, int *y2, boolean dry,
             x1adj = AdjustX(x1, child->width, elem->alignment);
         }
 
-        DrawElem(x1adj, y1adj, x2, y2, dry, child);
+        DrawElem(x1adj, y1adj, x2, y2, dry, child, true);
 
         if (list->horizontal && child->width)
         {
@@ -1932,17 +2112,18 @@ static void DrawSolidBackground(void)
         unsigned r = 0, g = 0, b = 0;
         byte col;
 
-        for (y = v0; y < v1; y++)
+        for (x = 0; x < depth; x++)
         {
-            int line = V_ScaleY(y) * video.width;
-            for (x = 0; x < depth; x++)
+            const int line = V_ScaleX(x) * V_ScaleY(st_height);
+
+            for (y = v0; y < v1; y++)
             {
-                pixel_t *c = st_backing_screen + line + V_ScaleX(x);
+                pixel_t *c = st_backing_screen + line + V_ScaleY(y);
                 r += pal[3 * c[0] + 0];
                 g += pal[3 * c[0] + 1];
                 b += pal[3 * c[0] + 2];
 
-                c += V_ScaleX(width - 2 * x - 1);
+                c += V_ScaleX(width - 2 * x - 1) * V_ScaleY(st_height);
                 r += pal[3 * c[0] + 0];
                 g += pal[3 * c[0] + 1];
                 b += pal[3 * c[0] + 2];
@@ -1966,15 +2147,9 @@ static void DrawBackground(const char *name)
 {
     if (st_refresh_background)
     {
-        static int old_st_height;
+        ST_InitRes();
 
-        if (old_st_height < st_height)
-        {
-            old_st_height = st_height;
-            ST_InitRes();
-        }
-
-        V_UseBuffer(st_backing_screen);
+        V_UseBuffer(st_backing_screen, V_ScaleY(st_height));
 
         if (st_solidbackground && st_height > 3)
         {
@@ -2010,7 +2185,7 @@ static void DrawBackground(const char *name)
         st_refresh_background = false;
     }
 
-    V_CopyRect(0, 0, st_backing_screen, video.unscaledw, st_height, 0, ST_Y);
+    V_CopyRect(0, 0, st_backing_screen, video.unscaledw, st_height, V_ScaleY(st_height), 0, ST_Y);
 }
 
 static void DrawCenteredMessage(void)
@@ -2021,9 +2196,9 @@ static void DrawCenteredMessage(void)
     }
 }
 
-static void DrawStatusBar(void)
+void ST_SetSTHeight(void)
 {
-    if (!statusbar->fullscreenrender)
+    if (statusbar && !statusbar->fullscreenrender)
     {
         st_height = CLAMP(statusbar->height, 0, SCREENHEIGHT) & ~1;
     }
@@ -2031,6 +2206,11 @@ static void DrawStatusBar(void)
     {
         st_height = 0;
     }
+}
+
+static void DrawStatusBar(void)
+{
+    ST_SetSTHeight();
 
     if (st_height && (screenblocks <= 10 || automap_on))
     {
@@ -2041,7 +2221,7 @@ static void DrawStatusBar(void)
     int y1 = statusbar->fullscreenrender ? 0 : SCREENHEIGHT - statusbar->height;
     array_foreach(child, statusbar->children)
     {
-        DrawElem(0, y1, NULL, NULL, false, child);
+        DrawElem(0, y1, NULL, NULL, false, child, false);
     }
 
     DrawCenteredMessage();
@@ -2061,10 +2241,10 @@ void ST_Erase(void)
 //  intercept cheats.
 boolean ST_Responder(event_t *ev)
 {
-    // Filter automap on/off.
-    if (ev->type == ev_keyup && (ev->data1.i & 0xffff0000) == AM_MSGHEADER)
+    if (M_InputActivated(input_map_mini))
     {
-        return false;
+        minimap = !minimap;
+        return true;
     }
     else if (ST_MessagesResponder(ev))
     {
@@ -2123,7 +2303,7 @@ static void DoPaletteStuff(player_t *player)
             // tune down a bit so the menu remains legible
             if (menuactive || paused || STRICTMODE(palette_changes == PAL_CHANGE_REDUCED))
             {
-                palette /= 2;
+                palette = (palette + 1) / 2;
             }
             palette += STARTREDPALS;
         }
@@ -2137,7 +2317,7 @@ static void DoPaletteStuff(player_t *player)
         }
         if (STRICTMODE(palette_changes == PAL_CHANGE_REDUCED))
         {
-            palette /= 2;
+            palette = (palette + 1) / 2;
         }
         palette += STARTBONUSPALS;
     }
@@ -2253,10 +2433,14 @@ void ST_Init(void)
 
 void ST_InitRes(void)
 {
-    if (!st_height)
+    static int old_st_size;
+    const int st_size = video.width * V_ScaleY(st_height);
+
+    if (old_st_size >= st_size)
     {
         return;
     }
+    old_st_size = st_size;
 
     if (st_backing_screen)
     {
@@ -2264,7 +2448,7 @@ void ST_InitRes(void)
     }
     // killough 11/98: allocate enough for hires
     st_backing_screen =
-        Z_Malloc(video.width * V_ScaleY(st_height) * sizeof(*st_backing_screen),
+        Z_Malloc(st_size * sizeof(*st_backing_screen),
                  PU_STATIC, 0);
 }
 
@@ -2282,16 +2466,19 @@ const char **ST_StatusbarList(void)
         return strings;
     }
 
-    statusbar_t *item;
-    array_foreach(item, sbardef->statusbars)
+    for (int i = 0; i < array_size(sbardef->statusbars); ++i)
     {
-        if (item->fullscreenrender)
+        statusbar_t *sb = &sbardef->statusbars[i];
+        if (sb->name)
         {
-            array_push(strings, "Fullscreen");
+            array_push(strings, sb->name);
         }
         else
         {
-            array_push(strings, "Status Bar");
+            char buf[16];
+            buf[0] = '\0';
+            M_snprintf(buf, sizeof(buf), "HUD #%d", i + 1);
+            array_push(strings, M_StringDuplicate(buf));
         }
     }
     return strings;
@@ -2379,6 +2566,8 @@ void ST_BindSTSVariables(void)
 
   M_BindBool("weapon_carousel", &weapon_carousel, NULL,
              true, ss_weap, wad_no, "Show weapon carousel");
+
+  M_BindBool("minimap", &minimap, NULL, false, ss_auto, wad_no, "Show minimap");
 }
 
 //----------------------------------------------------------------------------

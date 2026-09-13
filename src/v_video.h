@@ -155,12 +155,12 @@ int V_ScaleY(int y);
 // Allocates buffer screens, call before R_Init.
 void V_Init(void);
 
-void V_UseBuffer(pixel_t *buffer);
+void V_UseBuffer(pixel_t *buffer, int pitch);
 
 void V_RestoreBuffer(void);
 
 void V_CopyRect(int srcx, int srcy, pixel_t *source, int width, int height,
-                int destx, int desty);
+                int pitch, int destx, int desty);
 
 typedef struct
 {
@@ -170,7 +170,7 @@ typedef struct
     int width;
     int height;
 } crop_t;
-extern crop_t zero_crop;
+extern crop_t no_crop;
 
 // On-screen patch drawing functions for specific purposes
 void V_DrawPatch(int x, int y, patch_t *patch);
@@ -200,6 +200,8 @@ void V_TileBlock64(int line, int width, int height, const byte *src);
 void V_DrawBackground(const char *patchname);
 
 void V_ShadeScreen(void);
+
+void V_ShadeRect(int x, int y, int width, int height);
 
 // [FG] colored blood and gibs
 

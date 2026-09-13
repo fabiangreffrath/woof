@@ -21,7 +21,6 @@
 
 #include <string.h>
 
-#include "deh_bex_sounds.h"
 #include "deh_strings.h"
 #include "doomstat.h"
 #include "doomtype.h"
@@ -112,7 +111,7 @@ static void GetFreq(int *duration, int *freq)
 
 static int GetLumpNum(sfxinfo_t *sfx)
 {
-    if (sfx->lumpnum == -1)
+    if (sfx->lumpnum == -1 && !(sfx->flags & SFX_NoPrefix))
     {
         char namebuf[9];
         M_snprintf(namebuf, sizeof(namebuf), "dp%s", DEH_String(sfx->name));
@@ -170,7 +169,7 @@ static boolean CachePCSLump(sfxinfo_t *sfxinfo)
 
 static boolean IsAmbientSound(sfxinfo_t *sfx)
 {
-    if (sfx->ambient)
+    if (sfx->flags & SFX_Ambient)
     {
         if (!sfx->cached)
         {
@@ -375,7 +374,7 @@ static void I_PCS_ShutdownModule(void)
 
     for (i = 0; i < num_sfx; ++i)
     {
-        if (!S_sfx[i].ambient) // Keep ambient sound lumpnums.
+        if (!(S_sfx[i].flags & SFX_Ambient)) // Keep ambient sound lumpnums.
         {
             S_sfx[i].lumpnum = -1;
         }
@@ -523,6 +522,8 @@ const sound_module_t sound_pcs_module =
     I_PCS_StopSound,
     NULL,
     NULL,
+    I_OAL_MuteSound,
+    I_OAL_UnmuteSound,
     I_PCS_SoundIsPlaying,
     NULL,
     I_PCS_ShutdownSound,

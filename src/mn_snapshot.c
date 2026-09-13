@@ -1,5 +1,5 @@
 //
-//  Copyright (C) 2022 Fabian Greffrath
+//  Copyright (C) 2022-2026 Fabian Greffrath
 //
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU General Public License
@@ -15,19 +15,20 @@
 //      Savegame snapshots
 //
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h>
 #include <time.h>
 
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
 #include "m_fixed.h"
+#include "m_misc.h"
 #include "m_io.h"
 #include "r_main.h"
 #include "v_video.h"
+
+#include "base64/base64.h"
 
 static const char snapshot_str[] = "WOOF_SNAPSHOT";
 static const int snapshot_len = arrlen(snapshot_str);
@@ -36,11 +37,6 @@ static const int snapshot_size = (SCREENWIDTH * SCREENHEIGHT) * sizeof(pixel_t);
 static pixel_t *snapshots[10];
 static pixel_t *current_snapshot;
 static char savegametimes[10][32];
-
-const int MN_SnapshotDataSize(void)
-{
-    return snapshot_len + snapshot_size;
-}
 
 void MN_ResetSnapshot(int i)
 {
@@ -53,35 +49,69 @@ void MN_ResetSnapshot(int i)
 
 // [FG] try to read snapshot data from the end of a savegame file
 
-boolean MN_ReadSnapshot(int i, FILE *fp)
+boolean MN_ReadSnapshot(int i, const byte *buf, int len)
 {
-    char str[16] = {0};
-
     MN_ResetSnapshot(i);
 
-    if (fseek(fp, -MN_SnapshotDataSize(), SEEK_END) != 0)
+    if (buf == NULL)
     {
         return false;
     }
 
-    if (fread(str, 1, snapshot_len, fp) != snapshot_len)
+    // Check if base64-encoded or legacy
+    if (len == 0)
     {
-        return false;
-    }
+        byte *str;
+        len = strlen((char *)buf);
 
-    if (strncasecmp(str, snapshot_str, snapshot_len) != 0)
-    {
-        return false;
-    }
+        if ((snapshots[i] = malloc(snapshot_size * sizeof(**snapshots))) == NULL)
+        {
+            return false;
+        }
 
-    if ((snapshots[i] = malloc(snapshot_size * sizeof(**snapshots))) == NULL)
-    {
-        return false;
-    }
+        size_t decoded_size;
+        if ((str = base64_decode(buf, len, &decoded_size)) == NULL)
+        {
+            return false;
+        }
 
-    if (fread(snapshots[i], 1, snapshot_size, fp) != snapshot_size)
+        if (decoded_size != snapshot_size)
+        {
+            free(str);
+            return false;
+        }
+
+        if (memcpy(snapshots[i], str, snapshot_size) == NULL)
+        {
+            free(str);
+            return false;
+        }
+
+        free(str);
+    }
+    else
     {
-        return false;
+        const byte *str;
+
+        if ((str = buf + len - (snapshot_len + snapshot_size)) < buf)
+        {
+            return false;
+        }
+
+        if (strncasecmp((char *)str, snapshot_str, snapshot_len) != 0)
+        {
+            return false;
+        }
+
+        if ((snapshots[i] = malloc(snapshot_size * sizeof(**snapshots))) == NULL)
+        {
+            return false;
+        }
+
+        if (memcpy(snapshots[i], str + snapshot_len, snapshot_size) == NULL)
+        {
+            return false;
+        }
     }
 
     return true;
@@ -89,9 +119,9 @@ boolean MN_ReadSnapshot(int i, FILE *fp)
 
 void MN_ReadSavegameTime(int i, char *name)
 {
-    struct stat st;
+    time_t mtime = (time_t)M_FileMTime(name);
 
-    if (M_stat(name, &st) == -1)
+    if (mtime == 0)
     {
         savegametimes[i][0] = '\0';
     }
@@ -103,7 +133,7 @@ void MN_ReadSavegameTime(int i, char *name)
 #  pragma GCC diagnostic ignored "-Wformat-y2k"
 #endif
         strftime(savegametimes[i], sizeof(savegametimes[i]), "%x %X",
-                 localtime(&st.st_mtime));
+                 localtime(&mtime));
 #if defined(__GNUC__)
 #  pragma GCC diagnostic pop
 #endif
@@ -134,27 +164,29 @@ static void TakeSnapshot(void)
 
     pixel_t *p = current_snapshot;
     const pixel_t *s = I_VideoBuffer;
-    int x, y;
-    for (y = 0; y < SCREENHEIGHT; y++)
+
+    for (int x = video.deltaw; x < NONWIDEWIDTH + video.deltaw; x++)
     {
-        int line = V_ScaleY(y) * video.width;
-        for (x = video.deltaw; x < NONWIDEWIDTH + video.deltaw; x++)
+        const int line = V_ScaleX(x) * video.height;
+        pixel_t *p2 = p;
+
+        for (int y = 0; y < SCREENHEIGHT; y++)
         {
-            *p++ = s[line + V_ScaleX(x)];
+            *p2 = s[line + V_ScaleY(y)];
+            p2 += SCREENWIDTH;
         }
+
+        p++;
     }
 
     R_SetViewSize(old_screenblocks);
 }
 
-void MN_WriteSnapshot(pixel_t *p)
+char *MN_WriteSnapshot(void)
 {
     TakeSnapshot();
 
-    memcpy(p, snapshot_str, snapshot_len);
-    p += snapshot_len;
-
-    memcpy(p, current_snapshot, snapshot_size);
+    return (char*)base64_encode(current_snapshot, snapshot_size, NULL);
 }
 
 // [FG] draw snapshot for the n'th savegame, if no snapshot is found
@@ -180,20 +212,20 @@ boolean MN_DrawSnapshot(int n, int x, int y, int w, int h)
     const fixed_t step_x = (SCREENWIDTH << FRACBITS) / rect.sw;
     const fixed_t step_y = (SCREENHEIGHT << FRACBITS) / rect.sh;
 
-    pixel_t *dest = I_VideoBuffer + rect.sy * video.width + rect.sx;
+    pixel_t *dest = I_VideoBuffer + (rect.sx * video.height) + rect.sy;
 
     fixed_t srcx, srcy;
     int destx, desty;
-    pixel_t *destline, *srcline;
+    pixel_t *destcol, *srcline;
 
-    for (desty = 0, srcy = 0; desty < rect.sh; desty++, srcy += step_y)
+    for (destx = 0, srcx = 0; destx < rect.sw; destx++, srcx += step_x)
     {
-        destline = dest + desty * video.width;
-        srcline = snapshots[n] + (srcy >> FRACBITS) * SCREENWIDTH;
+        destcol = dest + (destx * video.height);
+        srcline = snapshots[n] + (srcx >> FRACBITS);
 
-        for (destx = 0, srcx = 0; destx < rect.sw; destx++, srcx += step_x)
+        for (desty = 0, srcy = 0; desty < rect.sh; desty++, srcy += step_y)
         {
-            *destline++ = srcline[srcx >> FRACBITS];
+            *destcol++ = srcline[(srcy >> FRACBITS) * SCREENWIDTH];
         }
     }
 

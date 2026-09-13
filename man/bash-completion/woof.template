@@ -31,13 +31,13 @@ _@PROJECT_SHORTNAME@()
 
     case $prev in
         -gameversion)
-            COMPREPLY=(1.9 ultimate final hacx chex)
+            COMPREPLY=($(compgen -W "1.9 ultimate final hacx chex" -- "$cur"))
             ;;
         -complevel)
-            COMPREPLY=(vanilla boom mbf mbf21)
+            COMPREPLY=($(compgen -W "vanilla boom mbf mbf21" -- "$cur"))
             ;;
         -setmem)
-            COMPREPLY=(dos622 dos71 dosbox)
+            COMPREPLY=($(compgen -W "dos622 dos71 dosbox" -- "$cur"))
             ;;
     esac
 

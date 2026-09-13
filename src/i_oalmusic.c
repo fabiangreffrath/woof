@@ -42,7 +42,9 @@ static stream_module_t *all_modules[] =
     &stream_fl_module,
 #endif
     &stream_opl_module,
+#if defined (HAVE_SNDFILE)
     &stream_snd_module,
+#endif
 #if defined(HAVE_LIBXMP)
     &stream_xmp_module,
 #endif
@@ -51,7 +53,9 @@ static stream_module_t *all_modules[] =
 
 static stream_module_t *stream_modules[] =
 {
+#if defined (HAVE_SNDFILE)
     &stream_snd_module,
+#endif
 #if defined(HAVE_LIBXMP)
     &stream_xmp_module,
 #endif
@@ -76,6 +80,7 @@ typedef struct
 
     byte *data;
     boolean looping;
+    boolean paused;
 
     ALfloat gain;
     ALfloat auto_gain;
@@ -280,11 +285,14 @@ static boolean UpdatePlayer(void)
             return false;
         }
 
-        alSourcePlay(player.source);
-        if (alGetError() != AL_NO_ERROR)
+        if (!player.paused)
         {
-            I_Printf(VB_ERROR, "UpdatePlayer: Error restarting playback");
-            return false;
+            alSourcePlay(player.source);
+            if (alGetError() != AL_NO_ERROR)
+            {
+                I_Printf(VB_ERROR, "UpdatePlayer: Error restarting playback");
+                return false;
+            }
         }
     }
 
@@ -481,6 +489,7 @@ static void I_OAL_PauseSong(void *handle)
     }
 
     alSourcePause(player.source);
+    player.paused = true;
 }
 
 static void I_OAL_ResumeSong(void *handle)
@@ -491,6 +500,7 @@ static void I_OAL_ResumeSong(void *handle)
     }
 
     alSourcePlay(player.source);
+    player.paused = false;
 }
 
 static void I_OAL_PlaySong(void *handle, boolean looping)
@@ -502,11 +512,14 @@ static void I_OAL_PlaySong(void *handle, boolean looping)
 
     player.looping = looping;
 
-    alSourcePlay(player.source);
-    if (alGetError() != AL_NO_ERROR)
+    if (!player.paused)
     {
-        I_Printf(VB_ERROR, "I_OAL_PlaySong: Error starting playback.");
-        return;
+        alSourcePlay(player.source);
+        if (alGetError() != AL_NO_ERROR)
+        {
+            I_Printf(VB_ERROR, "I_OAL_PlaySong: Error starting playback.");
+            return;
+        }
     }
 
     SDL_SetAtomicInt(&player_thread_running, 1);

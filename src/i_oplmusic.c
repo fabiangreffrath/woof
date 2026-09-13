@@ -1459,7 +1459,7 @@ static void StartTrack(midi_file_t *file, unsigned int track_num)
 
 static boolean I_OPL_InitStream(int device)
 {
-    char *dmxoption;
+    const char *dmxoption;
     opl_init_result_t chip_type;
 
     chip_type = OPL_Init(opl_io_port, num_opl_chips);

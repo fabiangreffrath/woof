@@ -32,7 +32,7 @@
 #include "m_arena.h"
 #include "m_bbox.h"
 #include "m_fixed.h"
-#include "p_extnodes.h"
+#include "p_bsp.h"
 #include "r_defs.h"
 #include "r_main.h"
 #include "r_state.h"

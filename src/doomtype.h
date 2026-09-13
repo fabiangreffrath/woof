@@ -110,6 +110,11 @@ inline static float clampf(float x, float min, float max)
     return (min > x ? min : x > max ? max : x);
 }
 
+inline static double clamp(double x, double min, double max)
+{
+    return (min > x ? min : x > max ? max : x);
+}
+
 #define DIV_ROUND_FLOOR(n, d) (((n) - (d) / 2) / (d))
 
 #define DIV_ROUND_CEIL(n, d)  (((n) + (d) / 2) / (d))
@@ -135,6 +140,16 @@ inline static float clampf(float x, float min, float max)
   #define NORETURN __declspec(noreturn)
 #else
   #define NORETURN
+#endif
+
+#if defined(__GNUC__) && !defined(__clang__)
+  #define PRAGMA(x) _Pragma(#x)
+  #define UNROLL_LOOP_BY(n) PRAGMA(GCC unroll n)
+#elif defined(__clang__)
+  #define PRAGMA(x) _Pragma(#x)
+  #define UNROLL_LOOP_BY(n) PRAGMA(clang loop unroll_count(n))
+#else
+  #define UNROLL_LOOP_BY(n)
 #endif
 
 // The packed attribute forces structures to be packed into the minimum

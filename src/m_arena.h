@@ -25,14 +25,10 @@ typedef struct arena_s arena_t;
 #define arena_alloc(arena, type) \
     (type *)M_ArenaAlloc(arena, sizeof(type), alignof(type))
 
-#define arena_calloc(arena, type) \
-    (type *)M_ArenaCalloc(arena, sizeof(type), alignof(type))
-
 #define arena_alloc_num(arena, type, num) \
     (type *)M_ArenaAlloc(arena, sizeof(type) * (num), alignof(type))
 
 void *M_ArenaAlloc(arena_t *arena, int size, int align);
-void *M_ArenaCalloc(arena_t *arena, int size, int align);
 
 void arena_free(arena_t *arena, void *ptr);
 
@@ -45,7 +41,8 @@ arena_copy_t *M_ArenaCopy(const arena_t *arena);
 void M_ArenaRestore(arena_t *arena, const arena_copy_t *copy);
 void M_ArenaFreeCopy(arena_copy_t *copy);
 
-struct hashmap_s *M_ArenaHashMap(const arena_t *arena);
+int M_ArenaTableIndex(const arena_t *arena, uintptr_t key);
+int M_ArenaTableSize(const arena_t *arena);
 uintptr_t *M_ArenaTable(const arena_t *arena);
 
 #endif

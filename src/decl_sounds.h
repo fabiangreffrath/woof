@@ -1,5 +1,6 @@
 //
 // Copyright(C) 2025 ceski
+// Copyright(C) 2026, Roman Fomin
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -10,21 +11,24 @@
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-//
-// DESCRIPTION:
-//      SNDINFO
-//
 
-#ifndef __S_SNDINFO__
-#define __S_SNDINFO__
+#ifndef DECL_SOUNDS_H
+#define DECL_SOUNDS_H
 
-typedef enum ambient_type_e
+#include "doomtype.h"
+
+// DoomEd numbers 14001 to 14064 are supported.
+#define MAX_AMBIENT_DATA 64
+
+int S_RandomSound(int sfx_number);
+
+typedef enum
 {
     AMB_TYPE_POINT,
     AMB_TYPE_WORLD,
 } ambient_type_t;
 
-typedef enum ambient_mode_e
+typedef enum
 {
     AMB_MODE_CONTINUOUS,
     AMB_MODE_RANDOM,
@@ -44,7 +48,16 @@ typedef struct ambient_data_s
 } ambient_data_t;
 
 const ambient_data_t *S_GetAmbientData(int index);
-void S_ParseSndInfo(int lumpnum);
-void S_PostParseSndInfo(void);
+
+// Query function used to decide whether a SNDINFO fallback should be
+// loaded: skipped whenever DECLARE already defined ambient sounds.
+boolean DECL_HasAmbientSounds(void);
+
+// Feed-in functions used by the SNDINFO parser (decl_sndinfo.c) to
+// populate the same internal sound/ambient tables that DECLARE uses.
+void DECL_AddSndInfoSound(const char *name, const char *lump);
+void DECL_AddSndInfoAmbient(int index, ambient_mode_t mode,
+                             const char *sound_name, double attenuation,
+                             double param1, double param2, double volume);
 
 #endif

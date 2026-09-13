@@ -1,0 +1,721 @@
+metadata { type "declarate" version "1.0.0" }
+
+// Tech lamp ---------------------------------------------------------------
+
+thing TechLamp 85 native
+{
+    Radius 16
+    Height 80
+    +SOLID
+    States
+    {
+    Spawn:
+        TLMP ABCD 4 BRIGHT
+        Loop
+    }
+}
+
+// Tech lamp 2 -------------------------------------------------------------
+
+thing TechLamp2 86 native
+{
+    Radius 16
+    Height 60
+    +SOLID
+    States
+    {
+    Spawn:
+        TLP2 ABCD 4 BRIGHT
+        Loop
+    }
+}
+
+// Column ------------------------------------------------------------------
+
+thing Column 2028 native
+{
+    Radius 16
+    Height 48
+    +SOLID
+    States
+    {
+    Spawn:
+        COLU A -1 BRIGHT
+        Stop
+    }
+}
+
+// Tall green column -------------------------------------------------------
+
+thing TallGreenColumn 30 native
+{
+    Radius 16
+    Height 52
+    +SOLID
+    States
+    {
+    Spawn:
+        COL1 A -1
+        Stop
+    }
+}
+
+// Short green column ------------------------------------------------------
+
+thing ShortGreenColumn 31 native
+{
+    Radius 16
+    Height 40
+    +SOLID
+    States
+    {
+    Spawn:
+        COL2 A -1
+        Stop
+    }
+}
+
+// Tall red column ---------------------------------------------------------
+
+thing TallRedColumn 32 native
+{
+    Radius 16
+    Height 52
+    +SOLID
+    States
+    {
+    Spawn:
+        COL3 A -1
+        Stop
+    }
+}
+
+// Short red column --------------------------------------------------------
+
+thing ShortRedColumn 33 native
+{
+    Radius 16
+    Height 40
+    +SOLID
+    States
+    {
+    Spawn:
+        COL4 A -1
+        Stop
+    }
+}
+
+// Skull column ------------------------------------------------------------
+
+thing SkullColumn 37 native
+{
+    Radius 16
+    Height 40
+    +SOLID
+    States
+    {
+    Spawn:
+        COL6 A -1
+        Stop
+    }
+}
+
+// Heart column ------------------------------------------------------------
+
+thing HeartColumn 36 native
+{
+    Radius 16
+    Height 40
+    +SOLID
+    States
+    {
+    Spawn:
+        COL5 AB 14
+        Loop
+    }
+}
+
+// Evil eye ----------------------------------------------------------------
+
+thing EvilEye 41 native
+{
+    Radius 16
+    Height 54
+    +SOLID
+    States
+    {
+    Spawn:
+        CEYE ABCB 6 BRIGHT
+        Loop
+    }
+}
+
+// Floating skull ----------------------------------------------------------
+
+thing FloatingSkull 42 native
+{
+    Radius 16
+    Height 26
+    +SOLID
+    States
+    {
+    Spawn:
+        FSKU ABC 6 BRIGHT
+        Loop
+    }
+}
+
+// Torch tree --------------------------------------------------------------
+
+thing TorchTree 43 native
+{
+    Radius 16
+    Height 56
+    +SOLID
+    States
+    {
+    Spawn:
+        TRE1 A -1
+        Stop
+    }
+}
+
+// Blue torch --------------------------------------------------------------
+
+thing BlueTorch 44 native
+{
+    Radius 16
+    Height 68
+    +SOLID
+    States
+    {
+    Spawn:
+        TBLU ABCD 4 BRIGHT
+        Loop
+    }
+}
+
+// Green torch -------------------------------------------------------------
+
+thing GreenTorch 45 native
+{
+    Radius 16
+    Height 68
+    +SOLID
+    States
+    {
+    Spawn:
+        TGRN ABCD 4 BRIGHT
+        Loop
+    }
+}
+
+// Red torch ---------------------------------------------------------------
+
+thing RedTorch 46 native
+{
+    Radius 16
+    Height 68
+    +SOLID
+    States
+    {
+    Spawn:
+        TRED ABCD 4 BRIGHT
+        Loop
+    }
+}
+
+// Short blue torch --------------------------------------------------------
+
+thing ShortBlueTorch 55 native
+{
+    Radius 16
+    Height 37
+    +SOLID
+    States
+    {
+    Spawn:
+        SMBT ABCD 4 BRIGHT
+        Loop
+    }
+}
+
+// Short green torch -------------------------------------------------------
+
+thing ShortGreenTorch 56 native
+{
+    Radius 16
+    Height 37
+    +SOLID
+    States
+    {
+    Spawn:
+        SMGT ABCD 4 BRIGHT
+        Loop
+    }
+}
+
+// Short red torch ---------------------------------------------------------
+
+thing ShortRedTorch 57 native
+{
+    Radius 16
+    Height 37
+    +SOLID
+    States
+    {
+    Spawn:
+        SMRT ABCD 4 BRIGHT
+        Loop
+    }
+}
+
+// Stalagtite --------------------------------------------------------------
+
+thing Stalagtite 47 native
+{
+    Radius 16
+    Height 40
+    +SOLID
+    States
+    {
+    Spawn:
+        SMIT A -1
+        Stop
+    }
+}
+
+// Tech pillar -------------------------------------------------------------
+
+thing TechPillar 48 native
+{
+    Radius 16
+    Height 128
+    +SOLID
+    States
+    {
+    Spawn:
+        ELEC A -1
+        Stop
+    }
+}
+
+// Candle stick ------------------------------------------------------------
+
+thing Candlestick 34 native
+{
+    Radius 20
+    Height 14
+    States
+    {
+    Spawn:
+        CAND A -1 BRIGHT
+        Stop
+    }
+}
+
+// Candelabra --------------------------------------------------------------
+
+thing Candelabra 35 native
+{
+    Radius 16
+    Height 60
+    +SOLID
+    States
+    {
+    Spawn:
+        CBRA A -1 BRIGHT
+        Stop
+    }
+}
+
+// Bloody twitch -----------------------------------------------------------
+
+thing BloodyTwitch 49 native
+{
+    Radius 16
+    Height 68
+    +SOLID
+    +NOGRAVITY
+    +SPAWNCEILING
+    States
+    {
+    Spawn:
+        GOR1 A 10
+        GOR1 B 15
+        GOR1 C 8
+        GOR1 B 6
+        Loop
+    }
+}
+
+// Meat 2 ------------------------------------------------------------------
+
+thing Meat2 50 native
+{
+    Radius 16
+    Height 84
+    +SOLID
+    +NOGRAVITY
+    +SPAWNCEILING
+    States
+    {
+    Spawn:
+        GOR2 A -1
+        Stop
+    }
+}
+
+// Meat 3 ------------------------------------------------------------------
+
+thing Meat3 51 native
+{
+    Radius 16
+    Height 84
+    +SOLID
+    +NOGRAVITY
+    +SPAWNCEILING
+    States
+    {
+    Spawn:
+        GOR3 A -1
+        Stop
+    }
+}
+
+// Meat 4 ------------------------------------------------------------------
+
+thing Meat4 52 native
+{
+    Radius 16
+    Height 68
+    +SOLID
+    +NOGRAVITY
+    +SPAWNCEILING
+    States
+    {
+    Spawn:
+        GOR4 A -1
+        Stop
+    }
+}
+
+// Meat 5 ------------------------------------------------------------------
+
+thing Meat5 53 native
+{
+    Radius 16
+    Height 52
+    +SOLID
+    +NOGRAVITY
+    +SPAWNCEILING
+    States
+    {
+    Spawn:
+        GOR5 A -1
+        Stop
+    }
+}
+
+// Nonsolid meat -----------------------------------------------------------
+
+thing NonsolidMeat2 : Meat2 59 native
+{
+    -SOLID
+    Radius 20
+}
+
+thing NonsolidMeat3 : Meat3 61 native
+{
+    -SOLID
+    Radius 20
+}
+
+thing NonsolidMeat4 : Meat4 60 native
+{
+    -SOLID
+    Radius 20
+}
+
+thing NonsolidMeat5 : Meat5 62 native
+{
+    -SOLID
+    Radius 20
+}
+
+// Nonsolid bloody twitch --------------------------------------------------
+
+thing NonsolidTwitch : BloodyTwitch 63 native
+{
+    -SOLID
+    Radius 20
+}
+
+// Head on a stick ---------------------------------------------------------
+
+thing HeadOnAStick 27 native
+{
+    Radius 16
+    Height 56
+    +SOLID
+    States
+    {
+    Spawn:
+        POL4 A -1
+        Stop
+    }
+}
+
+// Heads (plural!) on a stick ----------------------------------------------
+
+thing HeadsOnAStick 28 native
+{
+    Radius 16
+    Height 64
+    +SOLID
+    States
+    {
+    Spawn:
+        POL2 A -1
+        Stop
+    }
+}
+
+// Head candles ------------------------------------------------------------
+
+thing HeadCandles 29 native
+{
+    Radius 16
+    Height 42
+    +SOLID
+    States
+    {
+    Spawn:
+        POL3 AB 6 BRIGHT
+        Loop
+    }
+}
+
+// Dead on a stick ---------------------------------------------------------
+
+thing DeadStick 25 native
+{
+    Radius 16
+    Height 64
+    +SOLID
+    States
+    {
+    Spawn:
+        POL1 A -1
+        Stop
+    }
+}
+
+// Still alive on a stick --------------------------------------------------
+
+thing LiveStick 26 native
+{
+    Radius 16
+    Height 64
+    +SOLID
+    States
+    {
+    Spawn:
+        POL6 A 6
+        POL6 B 8
+        Loop
+    }
+}
+
+// Big tree ----------------------------------------------------------------
+
+thing BigTree 54 native
+{
+    Radius 32
+    Height 108
+    +SOLID
+    States
+    {
+    Spawn:
+        TRE2 A -1
+        Stop
+    }
+}
+
+// Burning barrel ----------------------------------------------------------
+
+thing BurningBarrel 70 native
+{
+    Radius 16
+    Height 32
+    +SOLID
+    States
+    {
+    Spawn:
+        FCAN ABC 4 BRIGHT
+        Loop
+    }
+}
+
+// Hanging with no guts ----------------------------------------------------
+
+thing HangNoGuts 73 native
+{
+    Radius 16
+    Height 88
+    +SOLID
+    +NOGRAVITY
+    +SPAWNCEILING
+    States
+    {
+    Spawn:
+        HDB1 A -1
+        Stop
+    }
+}
+
+// Hanging from bottom with no brain ---------------------------------------
+
+thing HangBNoBrain 74 native
+{
+    Radius 16
+    Height 88
+    +SOLID
+    +NOGRAVITY
+    +SPAWNCEILING
+    States
+    {
+    Spawn:
+        HDB2 A -1
+        Stop
+    }
+}
+
+// Hanging from top, looking down ------------------------------------------
+
+thing HangTLookingDown 75 native
+{
+    Radius 16
+    Height 64
+    +SOLID
+    +NOGRAVITY
+    +SPAWNCEILING
+    States
+    {
+    Spawn:
+        HDB3 A -1
+        Stop
+    }
+}
+
+// Hanging from top, looking up --------------------------------------------
+
+thing HangTLookingUp 77 native
+{
+    Radius 16
+    Height 64
+    +SOLID
+    +NOGRAVITY
+    +SPAWNCEILING
+    States
+    {
+    Spawn:
+        HDB5 A -1
+        Stop
+    }
+}
+
+// Hanging from top, skully ------------------------------------------------
+
+thing HangTSkull 76 native
+{
+    Radius 16
+    Height 64
+    +SOLID
+    +NOGRAVITY
+    +SPAWNCEILING
+    States
+    {
+    Spawn:
+        HDB4 A -1
+        Stop
+    }
+}
+
+// Hanging from top without a brain ----------------------------------------
+
+thing HangTNoBrain 78 native
+{
+    Radius 16
+    Height 64
+    +SOLID
+    +NOGRAVITY
+    +SPAWNCEILING
+    States
+    {
+    Spawn:
+        HDB6 A -1
+        Stop
+    }
+}
+
+// Colon gibs --------------------------------------------------------------
+
+thing ColonGibs 79 native
+{
+    Radius 20
+    Height 4
+    +NOBLOCKMAP
+    States
+    {
+    Spawn:
+        POB1 A -1
+        Stop
+    }
+}
+
+// Small pool o' blood -----------------------------------------------------
+
+thing SmallBloodPool 80 native
+{
+    Radius 20
+    Height 1
+    +NOBLOCKMAP
+    States
+    {
+    Spawn:
+        POB2 A -1
+        Stop
+    }
+}
+
+// brain stem lying on the ground ------------------------------------------
+
+thing BrainStem 81 native
+{
+    Radius 20
+    Height 4
+    +NOBLOCKMAP
+    States
+    {
+    Spawn:
+        BRS1 A -1
+        Stop
+    }
+}
+
+
+// Grey stalagmite (unused Doom sprite, definition taken from Skulltag -----
+
+thing Stalagmite 5050 native
+{
+    Radius 16
+    Height 48
+    +SOLID
+    States
+    {
+    Spawn:
+        SMT2 A -1
+        Stop
+    }
+}

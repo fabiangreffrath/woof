@@ -1,5 +1,9 @@
 include(WoofSettings)
 
+add_library(base64 STATIC base64/base64.c)
+target_woof_settings(base64)
+target_include_directories(base64 INTERFACE base64)
+
 add_library(md5 STATIC md5/md5.c)
 target_woof_settings(md5)
 target_include_directories(md5 INTERFACE md5)
@@ -7,6 +11,12 @@ target_include_directories(md5 INTERFACE md5)
 add_library(sha1 STATIC sha1/sha1.c)
 target_woof_settings(sha1)
 target_include_directories(sha1 INTERFACE sha1)
+
+if(NOT libebur128_FOUND)
+    add_subdirectory(libebur128)
+    target_include_directories(ebur128 INTERFACE libebur128)
+    add_library(libebur128::libebur128 ALIAS ebur128)
+endif()
 
 if(NOT MINIMP3_INCLUDE_DIRS)
     set(MINIMP3_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
@@ -27,18 +37,20 @@ if(NOT pffft_FOUND)
     add_library(pffft::pffft ALIAS pffft)
 endif()
 
-add_library(spng STATIC spng/spng.c)
-target_woof_settings(spng)
-target_compile_definitions(spng PRIVATE SPNG_USE_MINIZ INTERFACE SPNG_STATIC)
-target_include_directories(spng INTERFACE spng)
-target_link_libraries(spng miniz::miniz)
+if(NOT spng_FOUND)
+    add_library(spng STATIC spng/spng.c)
+    target_woof_settings(spng)
+    target_compile_definitions(spng PRIVATE SPNG_USE_MINIZ INTERFACE SPNG_STATIC)
+    target_include_directories(spng INTERFACE spng)
+    target_link_libraries(spng miniz::miniz)
+    add_library(spng::spng ALIAS spng)
+endif()
 
 if(NOT yyjson_FOUND)
     add_library(yyjson STATIC yyjson/yyjson.c)
     target_woof_settings(yyjson)
     target_compile_definitions(
-        yyjson PRIVATE YYJSON_DISABLE_WRITER=1
-                       YYJSON_DISABLE_UTILS=1
+        yyjson PRIVATE YYJSON_DISABLE_UTILS=1
     )
     target_include_directories(yyjson INTERFACE yyjson)
     add_library(yyjson::yyjson ALIAS yyjson)

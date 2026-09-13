@@ -71,6 +71,10 @@ void I_OAL_PauseSound(int channel);
 
 void I_OAL_ResumeSound(int channel);
 
+void I_OAL_MuteSound(void);
+
+void I_OAL_UnmuteSound(void);
+
 boolean I_OAL_SoundIsPlaying(int channel);
 
 boolean I_OAL_SoundIsPaused(int channel);

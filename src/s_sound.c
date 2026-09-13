@@ -22,8 +22,6 @@
 
 #include <string.h>
 
-#include "deh_bex_music.h"
-#include "deh_bex_sounds.h"
 #include "deh_strings.h"
 #include "doomdef.h"
 #include "doomstat.h"
@@ -464,6 +462,12 @@ static boolean StartSoundEx(const mobj_t *origin, int sfx_id,
 
     sfx = &S_sfx[sfx_id];
 
+    if (sfx->flags & SFX_Random)
+    {
+        sfx_id = S_RandomSound(sfx_id);
+        sfx = &S_sfx[sfx_id];
+    }
+
     // Initialize sound parameters
     if (ambient)
     {
@@ -805,6 +809,26 @@ void S_ResumeSound(void)
     I_ProcessSoundUpdates();
 }
 
+void S_MuteSound(void)
+{
+    if (nosfxparm)
+    {
+        return;
+    }
+
+    I_MuteSound();
+}
+
+void S_UnmuteSound(void)
+{
+    if (nosfxparm)
+    {
+        return;
+    }
+
+    I_UnmuteSound();
+}
+
 //
 // Stop and resume music, during game PAUSE.
 //
@@ -820,7 +844,7 @@ void S_PauseMusic(void)
 
 void S_ResumeMusic(void)
 {
-    if (mus_playing && mus_paused)
+    if (mus_playing && mus_paused && !paused)
     {
         I_ResumeSong(mus_playing->handle);
         mus_paused = false;
@@ -1076,6 +1100,11 @@ void S_RestartMusic(void)
     {
         S_ChangeMusic(current_musicnum, true);
     }
+
+    if (paused)
+    {
+        S_PauseMusic();
+    }
 }
 
 //
@@ -1096,6 +1125,7 @@ void S_StopMusic(void)
     if (mus_paused)
     {
         I_ResumeSong(mus_playing->handle);
+        mus_paused = false;
     }
 
     I_StopSong((void *)mus_playing->handle);
@@ -1127,17 +1157,15 @@ static inline int WRAP(int i, int w)
     return i % w;
 }
 
-void S_Start(void)
+void S_Reset(void)
 {
-    int cnum, mnum;
-
     // kill all playing sounds at start of level
     //  (trust me - a good idea)
 
     // jff 1/22/98 skip sound init if sound not enabled
     if (!nosfxparm)
     {
-        for (cnum = 0; cnum < snd_channels; ++cnum)
+        for (int cnum = 0; cnum < snd_channels; ++cnum)
         {
             if (channels[cnum].sfxinfo)
             {
@@ -1149,6 +1177,11 @@ void S_Start(void)
     // [crispy] reset musinfo data at the start of a new map
     memset(&musinfo, 0, sizeof(musinfo));
     musinfo.current_item = -1;
+}
+
+void S_Start(void)
+{
+    int mnum;
 
     // start new music for the level
     mus_paused = 0;
@@ -1362,7 +1395,6 @@ static void InitPitchStepTable(void)
 void S_Init(int sfxVolume, int musicVolume)
 {
     ResetActive();
-    S_PostParseSndInfo();
 
     // jff 1/22/98 skip sound init if sound not enabled
     if (!nosfxparm)

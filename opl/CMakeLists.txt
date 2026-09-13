@@ -5,7 +5,8 @@ add_library(opl STATIC
                             opl_internal.h
             opl_queue.c     opl_queue.h
             opl_emu.c
-            opl3.c          opl3.h)
+            opl3.c          opl3.h
+            wf_rom.h)
 
 target_woof_settings(opl)
 

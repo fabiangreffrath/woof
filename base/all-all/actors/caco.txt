@@ -1,0 +1,91 @@
+metadata { type "declarate" version "1.0.0" }
+
+//===========================================================================
+//
+// Cacodemon
+//
+//===========================================================================
+
+sound CacoSight  { prefix lump "CACSIT" }
+sound CacoActive { prefix lump "DMACT" }
+sound CacoPain   { prefix lump "DMPAIN" }
+sound CacoDeath  { prefix lump "CACDTH" }
+sound CacoAttack { prefix lump "FIRSHT" }
+sound CacoShotx  { prefix lump "FIRXPL" }
+
+thing Cacodemon 3005 native
+{
+    Health 400
+    Radius 31
+    Height 56
+    Mass 400
+    Speed 8
+    PainChance 128
+    MONSTER
+    +FLOAT
+    +NOGRAVITY
+    SeeSound CacoSight
+    PainSound CacoPain
+    DeathSound CacoDeath
+    ActiveSound CacoActive
+    Obituary "%o was smitten by a cacodemon."
+    HitObituary "%o got too close to a cacodemon."
+    States
+    {
+    Spawn:
+        HEAD A 10 A_Look
+        Loop
+    See:
+        HEAD A 3 A_Chase
+        Loop
+    Missile:
+        HEAD B 5 A_FaceTarget
+        HEAD C 5 A_FaceTarget
+        HEAD D 5 Bright A_HeadAttack
+        Goto See
+    Pain:
+        HEAD E 3
+        HEAD E 3 A_Pain
+        HEAD F 6
+        Goto See
+    Death:
+        HEAD G 8
+        HEAD H 8 A_Scream
+        HEAD I 8
+        HEAD J 8
+        HEAD K 8 A_Fall
+        HEAD L -1
+        Stop
+    Raise:
+        HEAD LKJIHG 8
+        Goto See
+    }
+}
+
+//===========================================================================
+//
+// Cacodemon plasma ball
+//
+//===========================================================================
+
+thing CacodemonBall native
+{
+    Radius 6
+    Height 8
+    Speed 10
+    AltSpeed 20
+    Damage 5
+    PROJECTILE
+    //RenderStyle "Add"
+    SeeSound CacoAttack
+    DeathSound CacoShotx
+    States
+    {
+    Spawn:
+        BAL2 AB 4 BRIGHT
+        Loop
+    Death:
+        BAL2 CDE 6 BRIGHT
+        Stop
+    }
+}

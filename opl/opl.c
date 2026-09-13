@@ -87,7 +87,7 @@ static opl_init_result_t AutoSelectDriver(unsigned int port_base, int num_chips)
 
 opl_init_result_t OPL_Init(unsigned int port_base, int num_chips)
 {
-    char *driver_name;
+    const char *driver_name;
     int i;
     int result;
 

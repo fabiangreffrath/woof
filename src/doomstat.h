@@ -30,6 +30,7 @@
 #include "doomdata.h"
 #include "doomdef.h"
 #include "doomtype.h"
+#include "f_wipe.h"
 
 struct mapentry_s;
 
@@ -203,6 +204,8 @@ extern boolean halfplayerdamage, cshalfplayerdamage;
 extern boolean doubleammo, csdoubleammo;
 extern boolean aggromonsters, csaggromonsters;
 
+extern int cshelperdogs;
+
 // Netgame? Only true if >1 player.
 extern  boolean netgame;
 extern  boolean solonet;
@@ -230,11 +233,6 @@ extern int snd_MusicVolume;    // maximum volume for music
 // -------------------------
 // Status flags for refresh.
 //
-
-// Depending on view size - no status bar?
-// Note that there is no way to disable the
-//  status bar explicitely.
-extern  boolean statusbaractive;
 
 extern  boolean automapactive; // In AutoMap mode?
 
@@ -377,6 +375,8 @@ extern  boolean precache;
 // wipegamestate can be set to -1
 //  to force a wipe on the next draw
 extern  gamestate_t     wipegamestate;
+extern  wipefx_t        screen_wipe_internal;
+extern  wipefx_t        screen_wipe;
 
 // debug flag to cancel adaptiveness
 extern  boolean         singletics;
@@ -459,7 +459,7 @@ typedef enum {
 void doomprintf(player_t *player, msg_category_t category,
               const char *, ...) PRINTF_ATTR(3, 4);
 #define displaymsg(...) doomprintf(NULL, MESSAGES_NONE, __VA_ARGS__)
-#define pickupmsg(player, ...) doomprintf(player, MESSAGES_PICKUP, __VA_ARGS__)
+#define pickupmsg(player, ...) doomprintf(player, MESSAGES_PICKUP, "%s", __VA_ARGS__)
 #define togglemsg(...) doomprintf(NULL, MESSAGES_TOGGLE, __VA_ARGS__)
 
 #endif

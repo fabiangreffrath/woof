@@ -23,7 +23,7 @@
 #include "doomtype.h"
 #include "m_fixed.h"
 
-extern lighttable_t *dc_colormap[2];
+extern const lighttable_t *dc_colormap[2];
 extern int      dc_x;
 extern int      dc_yl;
 extern int      dc_yh;
@@ -66,8 +66,9 @@ void R_DrawSkyColumnMasked(void);
 //  Green/Red/Blue/Indigo shirts.
 
 void R_DrawTranslatedColumn(void);
+void R_DrawTRTLColumn(void);
 
-extern lighttable_t *ds_colormap[2];
+extern const lighttable_t *ds_colormap[2];
 
 extern int     ds_y;
 extern int     ds_x1;

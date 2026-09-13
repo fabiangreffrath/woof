@@ -15,7 +15,7 @@
 
 #include "doomstat.h"
 #include "doomtype.h"
-#include "r_defs.h"
+#include "r_state.h"
 
 #define M_ARRAY_INIT_CAPACITY 64
 #include "m_array.h"
@@ -25,13 +25,18 @@ dirty_side_t *dirty_sides = NULL;
 
 void P_DirtyLine(line_t *line)
 {
-    line->dirty = true;
+    const int linenum = (int)(line - lines);
 
-    dirty_line_t dirty_line = {
-        .line = line,
-        .clean_line.special = line->special
-    };
-    array_push(dirty_lines, dirty_line);
+    if (linenum >= 0 && linenum < numlines)
+    {
+        line->dirty = true;
+
+        dirty_line_t dirty_line = {
+            .line = line,
+            .clean_line.special = line->special
+        };
+        array_push(dirty_lines, dirty_line);
+    }
 }
 
 void P_DirtySide(side_t *side)

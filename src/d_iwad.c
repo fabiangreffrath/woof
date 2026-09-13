@@ -59,17 +59,37 @@ static const char *const gamemode_str[] = {
     "Unknown mode"
 };
 
+gameconf_gamemode_t D_ModeToGameconfMode(const GameMode_t mode)
+{
+  switch (mode)
+  {
+    case shareware:
+    case registered:
+      return gc_registered;
+
+    case retail:
+      return gc_retail;
+
+    case commercial:
+      return gc_commercial;
+
+    default:
+      // Fall back to commercial
+      return gc_commercial;
+  }
+}
+
 #define SUB_DIRS(str, ...) (char *[]){str, ##__VA_ARGS__, NULL}
 
 // Array of locations to search for IWAD files
 #define M_ARRAY_INIT_CAPACITY 32
 #include "m_array.h"
 
-static char **iwad_dirs;
+static const char **iwad_dirs;
 
 // Return the path where the executable lies -- Lee Killough
 
-char *D_DoomExeDir(void)
+const char *D_DoomExeDir(void)
 {
     static char *base;
 
@@ -92,9 +112,9 @@ char *D_DoomExeDir(void)
 
 // [FG] get the path to the default configuration dir to use
 
-char *D_DoomPrefDir(void)
+const char *D_DoomPrefDir(void)
 {
-    static char *dir;
+    static const char *dir;
 
     if (dir == NULL)
     {
@@ -461,7 +481,7 @@ static void AddIWADPath(const char *path, const char *suffix)
 // <http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html>
 static void AddXdgDirs(void)
 {
-    char *env = M_DataDir();
+    const char *env = M_DataDir();
 
     // We support $XDG_DATA_HOME/games/doom (which will usually be
     // ~/.local/share/games/doom) as a user-writeable extension to
@@ -538,7 +558,8 @@ static const root_path_t steam_paths[] =
 
 static void AddSteamDirs(void)
 {
-    char *homedir, *steampath, *subpath;
+    const char *homedir;
+    char *steampath, *subpath;
 
     homedir = M_HomeDir();
     steampath = M_StringJoin(homedir, "/.steam/root/steamapps/common");
@@ -562,11 +583,11 @@ static void AddSteamDirs(void)
 // Build a list of IWAD files
 //
 
-static char **iwad_dirs_append;
+static const char **iwad_dirs_append;
 
 void BuildIWADDirList(void)
 {
-    char *env;
+    const char *env;
 
     if (array_size(iwad_dirs) > 0)
     {
@@ -613,7 +634,7 @@ void BuildIWADDirList(void)
 #  endif
 #endif
 
-    char **dir;
+    const char **dir;
     array_foreach(dir, iwad_dirs_append)
     {
         array_push(iwad_dirs, *dir);
@@ -640,7 +661,7 @@ char *D_FindWADByName(const char *name)
 
     // Search through all IWAD paths for a file with the given name.
 
-    char **dir;
+    const char **dir;
     array_foreach(dir, iwad_dirs)
     {
         // As a special case, if this is in DOOMWADDIR or DOOMWADPATH,

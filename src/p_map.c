@@ -32,6 +32,7 @@
 #include "m_arena.h"
 #include "m_argv.h"
 #include "m_bbox.h"
+#include "m_fixed.h"
 #include "m_misc.h"
 #include "m_random.h"
 #include "p_inter.h"
@@ -1999,7 +2000,7 @@ boolean PIT_RadiusAttack(mobj_t *thing)
 
 void P_RadiusAttack(mobj_t *spot, mobj_t *source, int damage, int distance)
 {
-  fixed_t dist = (distance+MAXRADIUS)<<FRACBITS;
+  fixed_t dist = IntToFixed(distance + MAXRADIUS);
   int yh = (spot->y + dist - bmaporgy)>>MAPBLOCKSHIFT;
   int yl = (spot->y - dist - bmaporgy)>>MAPBLOCKSHIFT;
   int xh = (spot->x + dist - bmaporgx)>>MAPBLOCKSHIFT;

@@ -64,35 +64,26 @@ void R_BindRenderVariables(void);
 
 // Lighting constants.
 
-extern int LIGHTLEVELS;
-extern int LIGHTSEGSHIFT;
-extern int LIGHTBRIGHT;
-extern int MAXLIGHTSCALE;
-extern int LIGHTSCALESHIFT;
-extern int MAXLIGHTZ;
-extern int LIGHTZSHIFT;
+#define LIGHTLEVELS 16
+#define LIGHTSEGSHIFT 4
+#define MAXLIGHTSCALE 48
+#define LIGHTSCALESHIFT 12
+#define MAXLIGHTZ 128
+#define LIGHTZSHIFT 20
 
 // killough 3/20/98: Allow colormaps to be dynamic (e.g. underwater)
 extern int numcolormaps;    // killough 4/4/98: dynamic number of maps
 
-// updated thanks to Rum-and-Raisin Doom, Ethan Watson
-extern int* scalelightoffset;
-extern int* scalelightindex;
-extern int* zlightoffset;
-extern int* zlightindex;
-extern int* planezlightoffset;
-extern int  planezlightindex;
-extern int* walllightoffset;
-extern int  walllightindex;
+extern int       ** scalelightoffset;
+extern int       ** zlightoffset;
+extern int const *  planezlightoffset;
+extern int const *  walllightoffset;
 
 // killough 3/20/98, 4/4/98: end dynamic colormaps
 
-extern boolean setsmoothlight;
-void R_SmoothLight(void);
-
-extern int          extralight;
-extern lighttable_t *fixedcolormap;
-extern int           fixedcolormapindex;
+extern int extralight;
+extern const lighttable_t *fixedcolormap;
+extern int fixedcolormapoffset;
 
 // Number of diminishing brightness levels.
 // There a 0-31, i.e. 32 LUT in the COLORMAP lump.
@@ -110,11 +101,9 @@ extern void (*colfunc)(void);
 //
 
 extern int (*R_PointOnSide)(fixed_t x, fixed_t y, struct node_s *node);
-int R_PointOnSideClassic(fixed_t x, fixed_t y, struct node_s *node);
-int R_PointOnSidePrecise(fixed_t x, fixed_t y, struct node_s *node);
-extern int (*R_PointOnSegSide)(fixed_t x, fixed_t y, struct seg_s *line);
-int R_PointOnSegSideClassic(fixed_t x, fixed_t y, struct seg_s *line);
-int R_PointOnSegSidePrecise(fixed_t x, fixed_t y, struct seg_s *line);
+int R_PointOnSide_Classic(fixed_t x, fixed_t y, struct node_s *node);
+int R_PointOnSide_Precise(fixed_t x, fixed_t y, struct node_s *node);
+int R_PointOnSegSide(fixed_t x, fixed_t y, struct seg_s *line);
 angle_t R_PointToAngle(fixed_t x, fixed_t y);
 angle_t R_PointToAngle2(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2);
 angle_t R_PointToAngleCrispy(fixed_t x, fixed_t y);

@@ -1,0 +1,99 @@
+metadata { type "declarate" version "1.0.0" }
+
+// The barrel of green goop ------------------------------------------------
+
+sound WorldBarrelx { prefix lump "BAREXP" }
+
+thing ExplosiveBarrel 2035 native
+{
+    Health 20
+    Radius 10
+    Height 42
+    +SOLID
+    +SHOOTABLE
+    +NOBLOOD
+    DeathSound WorldBarrelx
+    Obituary "%o went boom."
+    States
+    {
+    Spawn:
+        BAR1 AB 6
+        Loop
+    Death:
+        BEXP A 5 BRIGHT
+        BEXP B 5 BRIGHT A_Scream
+        BEXP C 5 BRIGHT
+        BEXP D 10 BRIGHT A_Explode
+        BEXP E 10 BRIGHT
+        Stop
+    }
+}
+
+// Bullet puff -------------------------------------------------------------
+
+thing BulletPuff native
+{
+    +NOBLOCKMAP
+    +NOGRAVITY
+    //RenderStyle "Translucent"
+    Mass 5
+    States
+    {
+    Spawn:
+        PUFF A 4 Bright
+        PUFF BCD 4
+        Stop
+    }
+}
+
+// MBF Beta emulation items
+
+thing EvilSceptre 2016 native
+{
+    States
+    {
+    Spawn:
+        BON3 A 6
+        Loop
+    }
+}
+
+thing UnholyBible 2017 native
+{
+    States
+    {
+    Spawn:
+        BON4 A 6
+        Loop
+    }
+}
+
+// Gibbed marine -----------------------------------------------------------
+
+thing GibbedMarine 10 native
+{
+    States
+    {
+    Spawn:
+        PLAY W -1
+        Stop
+    }
+}
+
+// Gibbed marine (extra copy) ----------------------------------------------
+
+thing GibbedMarineExtra : GibbedMarine 12 native
+{
+}
+
+// Dead marine -------------------------------------------------------------
+
+thing DeadMarine 15 native
+{
+    States
+    {
+    Spawn:
+        PLAY N -1
+        Stop
+    }
+}

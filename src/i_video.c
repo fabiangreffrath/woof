@@ -52,7 +52,9 @@
 #include "r_draw.h"
 #include "r_main.h"
 #include "r_plane.h"
+#include "r_srgb.h"
 #include "r_voxel.h"
+#include "s_sound.h"
 #include "st_stuff.h"
 #include "v_patch.h"
 #include "v_video.h"
@@ -114,13 +116,13 @@ static SDL_Window *screen;
 static SDL_Renderer *renderer;
 static SDL_Palette *palette;
 static SDL_Texture *texture;
-static SDL_Rect rect = {0};
-static SDL_FRect frect = {0.0f};
+static SDL_Rect src_rect = {0}, dst_rect = {0};
+static SDL_FRect src_frect = {0.0f}, dst_frect = {0.0f};
 
 static int window_width, window_height;
 static int default_window_width, default_window_height;
-static int window_position_x, window_position_y;
 static boolean window_focused = true;
+static boolean mute_unfocused;
 static int scalefactor;
 
 static int actualheight;
@@ -339,11 +341,21 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
         case SDL_EVENT_WINDOW_FOCUS_GAINED:
             window_focused = true;
             I_UpdatePriority(true);
+            if (mute_unfocused)
+            {
+                S_UnmuteSound();
+                S_ResumeMusic();
+            }
             break;
 
         case SDL_EVENT_WINDOW_FOCUS_LOST:
             window_focused = false;
             I_UpdatePriority(false);
+            if (mute_unfocused)
+            {
+                S_MuteSound();
+                S_PauseMusic();
+            }
             break;
 
         // We want to save the user's preferred monitor to use for running the
@@ -576,22 +588,24 @@ static void UpdateMouseMenu(void)
     float x, y;
     SDL_GetMouseState(&x, &y);
 
-    SDL_FRect rect;
-    SDL_GetRenderLogicalPresentationRect(renderer, &rect);
+    SDL_FRect mouse_rect;
+    SDL_GetRenderLogicalPresentationRect(renderer, &mouse_rect);
 
     static SDL_FRect old_rect;
-    if (SDL_RectsEqualFloat(&rect, &old_rect))
+    if (SDL_RectsEqualFloat(&mouse_rect, &old_rect))
     {
         ev.data1.i = 0;
     }
     else
     {
-        old_rect = rect;
+        old_rect = mouse_rect;
         ev.data1.i = EV_RESIZE_VIEWPORT;
     }
 
-    x = clampf((x - rect.x) / rect.w, 0.0f, 1.0f) * video.unscaledw;
-    y = clampf((y - rect.y) / rect.h, 0.0f, 1.0f) * SCREENHEIGHT;
+    const float scale = SDL_GetWindowPixelDensity(screen);
+
+    x = clampf((x * scale - mouse_rect.x) / mouse_rect.w, 0.0f, 1.0f) * video.unscaledw;
+    y = clampf((y * scale - mouse_rect.y) / mouse_rect.h, 0.0f, 1.0f) * SCREENHEIGHT;
 
     static float oldx, oldy;
     if (x != oldx || y != oldy)
@@ -672,21 +686,25 @@ static void UpdateRender(void)
     // video buffer in order to emulate HOM effects.
     void *pixels;
     int dst_pitch;
-    SDL_LockTexture(texture, &rect, &pixels, &dst_pitch);
-    int h = rect.h;
-    int src_pitch = video.width;
+
+    SDL_LockTexture(texture, &src_rect, &pixels, &dst_pitch);
+
+    int h = src_rect.h;
+    const int src_pitch = video.height;
     pixel_t *dst = pixels;
     pixel_t *src = I_VideoBuffer;
+
     while (h--)
     {
         memcpy(dst, src, src_pitch);
-        dst += dst_pitch;        
+        dst += dst_pitch;
         src += src_pitch;
     }
+
     SDL_UnlockTexture(texture);
 
     SDL_RenderClear(renderer);
-    SDL_RenderTexture(renderer, texture, &frect, NULL);
+    SDL_RenderTextureRotated(renderer, texture, &src_frect, &dst_frect, 90.0, NULL, SDL_FLIP_VERTICAL);
 }
 
 static uint64_t frametime_start, frametime_withoutpresent;
@@ -927,8 +945,6 @@ static vrect_t disk;
 
 static void I_InitDiskFlash(void)
 {
-    pixel_t *temp;
-
     disk.x = 0;
     disk.y = 0;
     disk.w = 16;
@@ -936,23 +952,18 @@ static void I_InitDiskFlash(void)
 
     V_ScaleRect(&disk);
 
-    temp = Z_Malloc(disk.sw * disk.sh * sizeof(*temp), PU_STATIC, 0);
-
     if (diskflash)
     {
         Z_Free(diskflash);
         Z_Free(old_data);
     }
 
-    diskflash = Z_Malloc(disk.sw * disk.sh * sizeof(*diskflash), PU_STATIC, 0);
-    old_data = Z_Malloc(disk.sw * disk.sh * sizeof(*old_data), PU_STATIC, 0);
+    diskflash = Z_Calloc(disk.sw * disk.sh, sizeof(*diskflash), PU_STATIC, 0);
+    old_data = Z_Calloc(disk.sw * disk.sh, sizeof(*old_data), PU_STATIC, 0);
 
-    V_GetBlock(0, 0, disk.sw, disk.sh, temp);
+    V_UseBuffer(diskflash, disk.sh);
     V_DrawPatch(-video.deltaw, 0, V_CachePatchName("STDISK", PU_CACHE));
-    V_GetBlock(0, 0, disk.sw, disk.sh, diskflash);
-    V_PutBlock(0, 0, disk.sw, disk.sh, temp);
-
-    Z_Free(temp);
+    V_RestoreBuffer();
 }
 
 //
@@ -1046,7 +1057,7 @@ void I_SetPalette(byte *playpal)
 
 // Taken from Chocolate Doom chocolate-doom/src/i_video.c:L841-867
 
-byte I_GetNearestColor(byte *palette, int r, int g, int b)
+byte I_GetNearestColor(const byte *palette, int r, int g, int b)
 {
     byte best;
     int best_diff, diff;
@@ -1062,6 +1073,60 @@ byte I_GetNearestColor(byte *palette, int r, int g, int b)
         db = b - *palette++;
 
         diff = dr * dr + dg * dg + db * db;
+
+        if (diff < best_diff)
+        {
+            if (!diff)
+            {
+                return i;
+            }
+
+            best = i;
+            best_diff = diff;
+        }
+    }
+
+    return best;
+}
+
+static boolean linear_palette_init = false;
+static double linear_palette[768];
+
+byte I_GetNearestColorLinear(const byte *palette, int red, int green, int blue)
+{
+    if (!linear_palette_init)
+    {
+        linear_palette_init = true;
+
+        // We assume that all calls to this function pass the same palette
+
+        const byte *palette_rover = palette;
+        double *linear_palette_rover = linear_palette;
+
+        for (int i = 0; i < 768; i++)
+        {
+            *linear_palette_rover++ = byte_to_linear(*palette_rover++);
+        }
+    }
+
+    const double
+        linear_red   = byte_to_linear(red),
+        linear_green = byte_to_linear(green),
+        linear_blue  = byte_to_linear(blue);
+
+    byte best = 0;
+    double best_diff = INT_MAX;
+
+    const double *linear_palette_rover = linear_palette;
+
+    for (int i = 0; i < 256; ++i)
+    {
+        const double
+            dr = linear_red   - *linear_palette_rover++,
+            dg = linear_green - *linear_palette_rover++,
+            db = linear_blue  - *linear_palette_rover++;
+
+        const double diff = dr * dr + dg * dg + db * db;
 
         if (diff < best_diff)
         {
@@ -1161,46 +1226,20 @@ void I_InitWindowIcon(void)
     SDL_DestroySurface(surface);
 }
 
-static boolean WindowOutOfBounds(void)
-{
-    SDL_Rect bounds;
-
-    if (!SDL_GetDisplayBounds(video_display_id, &bounds))
-    {
-        I_Printf(VB_WARNING, "Failed to read display bounds for display #%d!",
-                 video_display);
-        return true;
-    }
-
-    return ((window_position_x + window_width > bounds.x + bounds.w)
-            || window_position_x < bounds.x
-            || (window_position_y + window_height > bounds.y + bounds.h)
-            || window_position_y < bounds.y);
-}
-
 static void SetWindowPosition(void)
 {
-    // in fullscreen mode, the window "position" still matters, because
-    // we use it to control which display we run fullscreen on.
+    const int pos = (int)SDL_WINDOWPOS_CENTERED_DISPLAY(video_display_id);
 
-    int x, y;
-
-    if (fullscreen || (window_position_x == 0 && window_position_y == 0)
-        || WindowOutOfBounds())
-    {
-        x = y = (int)SDL_WINDOWPOS_CENTERED_DISPLAY(video_display_id);
-    }
-    else
-    {
-        x = window_position_x;
-        y = window_position_y;
-    }
-
-    SDL_SetWindowPosition(screen, x, y);
+    SDL_SetWindowPosition(screen, pos, pos);
     SDL_SyncWindow(screen);
 }
 
-static double CurrentAspectRatio(void)
+typedef struct
+{
+    int w, h;
+} aspect_ratio_t;
+
+static aspect_ratio_t CurrentAspectRatio(void)
 {
     int w, h;
 
@@ -1236,29 +1275,28 @@ static double CurrentAspectRatio(void)
             break;
     }
 
-    double aspect_ratio = (double)w / (double)h;
+    if (w > ASPECT_RATIO_MAX * h)
+    {
+        return (aspect_ratio_t){.w = 36, .h = 10};
+    }
+    else if (w < ASPECT_RATIO_MIN * h)
+    {
+        return (aspect_ratio_t){.w = 4, .h = 3};
+    }
 
-    aspect_ratio = CLAMP(aspect_ratio, ASPECT_RATIO_MIN, ASPECT_RATIO_MAX);
-
-    return aspect_ratio;
+    return (aspect_ratio_t){.w = w, .h = h};
 }
 
 static void ResetResolution(int height)
 {
-    double aspect_ratio = CurrentAspectRatio();
+    const aspect_ratio_t aspect_ratio = CurrentAspectRatio();
 
-    actualheight = correct_aspect_ratio ? (int)(height * 1.2) : height;
+    actualheight = correct_aspect_ratio ? (6 * height / 5) : height;
     video.height = height;
 
-    video.unscaledw = (int)(unscaled_actualheight * aspect_ratio);
-
-    // Unscaled widescreen 16:9 resolution truncates to 426x240, which is not
-    // quite 16:9. To avoid visual instability, we calculate the scaled width
-    // without the actual aspect ratio. For example, at 1280x720 we get
-    // 1278x720.
-
-    double vertscale = (double)actualheight / (double)unscaled_actualheight;
-    video.width = (int)ceil(video.unscaledw * vertscale);
+    video.unscaledw = unscaled_actualheight * aspect_ratio.w / aspect_ratio.h;
+    video.width = actualheight * aspect_ratio.w / aspect_ratio.h;
+    video.width &= (int)~1;
 
     video.deltaw = (video.unscaledw - NONWIDEWIDTH) / 2;
 
@@ -1269,10 +1307,9 @@ static void ResetResolution(int height)
     R_SetFuzzColumnMode();
     setsizeneeded = true; // run R_ExecuteSetViewSize
 
-    if (automapactive)
-    {
-        AM_ResetScreenSize();
-    }
+    AM_ResetScreenSize();
+
+    I_InitDiskFlash();
 
     I_Printf(VB_DEBUG, "ResetResolution: %dx%d (%s)", video.width, video.height,
              widescreen_strings[widescreen]);
@@ -1282,9 +1319,15 @@ static void ResetResolution(int height)
 
 static void ResetLogicalSize(void)
 {
-    rect.w = video.width;
-    rect.h = video.height;
-    SDL_RectToFRect(&rect, &frect);
+    src_rect.w = video.height;
+    src_rect.h = video.width;
+    SDL_RectToFRect(&src_rect, &src_frect);
+
+    dst_rect.x = (video.width - actualheight) / 2;
+    dst_rect.y = (actualheight - video.width) / 2;
+    dst_rect.w = actualheight;
+    dst_rect.h = video.width;
+    SDL_RectToFRect(&dst_rect, &dst_frect);
 
     if (!SDL_SetRenderLogicalPresentation(renderer, video.width, actualheight,
         SDL_LOGICAL_PRESENTATION_LETTERBOX))
@@ -1389,9 +1432,7 @@ static void I_InitVideoParms(void)
             I_Error("The vertical resolution is too low, turn off the aspect "
                     "ratio correction.");
         }
-        double aspect_ratio =
-            (double)max_video_width / (double)max_video_height;
-        if (aspect_ratio < ASPECT_RATIO_MIN)
+        if (max_video_width < ASPECT_RATIO_MIN * max_video_height)
         {
             I_Printf(VB_ERROR, "Aspect ratio not supported, set other resolution");
             max_video_width = mode->w;
@@ -1408,7 +1449,7 @@ static void I_InitVideoParms(void)
 
     if (correct_aspect_ratio)
     {
-        max_height_adjusted = (int)(max_height / 1.2);
+        max_height_adjusted = 5 * max_height / 6;
         unscaled_actualheight = ACTUALHEIGHT;
     }
     else
@@ -1537,26 +1578,16 @@ static void I_InitGraphicsMode(void)
     // [FG] create rendering window
 
     char *title = M_StringJoin(gamedescription, " - ", PROJECT_STRING);
-    screen = SDL_CreateWindow(title, window_width, window_height, flags);
-    free(title);
-
-    if (screen == NULL)
+    if (!SDL_CreateWindowAndRenderer(title, window_width, window_height, flags,
+                                     &screen, &renderer))
     {
         I_Error("Error creating window for video startup: %s", SDL_GetError());
     }
+    free(title);
 
     SetWindowPosition();
 
     I_InitWindowIcon();
-
-    // [FG] create renderer
-    renderer = SDL_CreateRenderer(screen, NULL);
-
-    if (renderer == NULL)
-    {
-        I_Error("Error creating renderer for screen window: %s",
-                SDL_GetError());
-    }
 
     if (use_vsync && !timingdemo)
     {
@@ -1611,7 +1642,7 @@ static void CreateVideoBuffer(void)
 
     texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_INDEX8,
                                 SDL_TEXTUREACCESS_STREAMING,
-                                video.width, video.height);
+                                video.height, video.width);
     if (!texture)
     {
         I_Error("Failed to create texture: %s", SDL_GetError());
@@ -1629,14 +1660,12 @@ static void CreateVideoBuffer(void)
     {
         free(I_VideoBuffer);
     }
-    I_VideoBuffer = malloc(video.width * video.height);
+    I_VideoBuffer = calloc(video.width * video.height, sizeof(pixel_t));
     V_RestoreBuffer();
 
     Z_FreeTag(PU_RENDERER);
     R_InitAnyRes();
     ST_InitRes();
-
-    I_InitDiskFlash();
 
     int n = (scalefactor == 1 ? 1 : 2);
     SDL_SetWindowMinimumSize(screen, video.unscaledw * n,
@@ -1706,11 +1735,6 @@ void I_ResetScreen(void)
 
 void I_ShutdownGraphics(void)
 {
-    if (!fullscreen)
-    {
-        SDL_GetWindowPosition(screen, &window_position_x, &window_position_y);
-    }
-
     if (scalefactor == 0)
     {
         default_window_width = window_width;
@@ -1789,8 +1813,6 @@ void I_BindVideoVariables(void)
         "Maximum horizontal resolution (0 = Native)");
     BIND_NUM(max_video_height, 0, SCREENHEIGHT, UL,
         "Maximum vertical resolution (0 = Native)");
-    BIND_NUM(window_position_x, 0, UL, UL, "Window position X (0 = Center)");
-    BIND_NUM(window_position_y, 0, UL, UL, "Window position Y (0 = Center)");
     M_BindNum("window_width", &default_window_width, &window_width, 1065, 0, UL,
         ss_none, wad_no, "Window width");
     M_BindNum("window_height", &default_window_height, &window_height, 600, 0, UL,
@@ -1798,6 +1820,8 @@ void I_BindVideoVariables(void)
 
     M_BindBool("grabmouse", &default_grabmouse, &grabmouse, true, ss_none,
                wad_no, "Grab mouse during play");
+    BIND_BOOL_GENERAL(mute_unfocused, true,
+                      "Mute audio when the window is not focused");
 }
 
 //----------------------------------------------------------------------------

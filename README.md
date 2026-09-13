@@ -10,7 +10,7 @@
 [![Downloads (latest)](https://img.shields.io/github/downloads/fabiangreffrath/woof/latest/total.svg)](https://github.com/fabiangreffrath/woof/releases/latest)
 [![Commits](https://img.shields.io/github/commits-since/fabiangreffrath/woof/latest.svg)](https://github.com/fabiangreffrath/woof/commits/master)
 [![Last Commit](https://img.shields.io/github/last-commit/fabiangreffrath/woof.svg)](https://github.com/fabiangreffrath/woof/commits/master)
-[![Build Status](https://github.com/fabiangreffrath/woof/actions/workflows/main.yml/badge.svg)](https://github.com/fabiangreffrath/woof/actions/workflows/main.yml)
+[![Build Status](https://github.com/fabiangreffrath/woof/actions/workflows/build.yml/badge.svg)](https://github.com/fabiangreffrath/woof/actions/workflows/main.yml)
 
 Woof! is a continuation of Lee Killough's Doom source port MBF targeted at modern systems.
 
@@ -73,7 +73,7 @@ If you turn the [Doom logo upside down](https://www.reddit.com/r/Doom/comments/8
 
 Source code, Windows binaries (MSVC builds for Windows 7 and newer) and Linux AppImages for the latest release can be found on the [Release](https://github.com/fabiangreffrath/woof/releases/latest) page.
 
-The most recent list of changes can be found in the current [Changelog](https://github.com/fabiangreffrath/woof/blob/master/CHANGELOG.md).
+The changes currently in progress since the latest release can be found in the [Changelog](https://github.com/fabiangreffrath/woof/blob/master/CHANGELOG.md).
 
 # Compiling
 
@@ -118,11 +118,12 @@ The following build system and libraries need to be installed:
  * [CMake](https://cmake.org) (>= 3.15)
  * [SDL3](https://github.com/libsdl-org/SDL) (>= 3.4.0)
  * [openal-soft](https://github.com/kcat/openal-soft) (>= 1.22.0 for PC Speaker emulation)
- * [libsndfile](https://github.com/libsndfile/libsndfile) (>= 1.1.0 for MPEG support)
- * [libebur128](https://github.com/jiixyj/libebur128) (>= 1.2.0)
+ * [libsndfile](https://github.com/libsndfile/libsndfile) (>= 1.1.0 for MPEG support, optional)
  * [yyjson](https://github.com/ibireme/yyjson) (>= 0.10.0, optional)
  * [fluidsynth](https://github.com/FluidSynth/fluidsynth) (>= 2.2.0, optional)
+ * [libebur128](https://github.com/jiixyj/libebur128) (optional)
  * [libxmp](https://github.com/libxmp/libxmp) (optional)
+ * [libspng](https://github.com/randy408/libspng) (optional)
  * [discord-rpc](https://github.com/discord/discord-rpc) (optional)
  
 Usually your distribution should have the corresponding packages in its repositories. If "development" ("dev") versions of these libraries are available, make sure to install them.
@@ -176,14 +177,14 @@ Copyright:
  © 2017 Christoph Oelckers;  
  © 2020 Alex Mayfield;  
  © 2020 Ethan Watson;  
- © 2020-2024 Fabian Greffrath;  
- © 2020-2024 Roman Fomin;  
+ © 2020-2026 Fabian Greffrath;  
+ © 2020-2026 Roman Fomin;  
  © 2021-2022 Ryan Krafnick;  
- © 2022-2024 Alaux;  
- © 2022-2024 ceski;  
+ © 2022-2026 Alaux;  
+ © 2022-2025 ceski;  
  © 2023 Andrew Apted;  
  © 2023 liPillON;  
- © 2025 Guilherme Miranda;  
+ © 2025-2026 Guilherme Miranda;  
  © 2026 bofu.
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
@@ -233,6 +234,11 @@ Copyright:
  © TobiasKosmos.  
 License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/) and [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/)
 
+Files: `base/all-all/sprites/bon*`  
+Copyright:  
+ © 2026 Amaruq Wulfe.  
+License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/)
+
 Files: `base/all-all/sbardef.lmp`  
 Copyright:  
  © 2024 Ethan Watson.  
@@ -243,9 +249,20 @@ Copyright:
  © 2017 Shannon Freeman.  
 License: [MIT](https://github.com/sneakernets/DMXOPL/blob/DMXOPL3/LICENSE)
 
-Files: `base/all-all/sm*.png, data/setup.ico, data/woof-setup.png, data/woof.ico, data/woof.png, setup/setup_icon.c, src/icon.c`  
+Files: `base/all-all/sm*.png, data/woof.ico, data/woof.png, src/icon.c`  
 Copyright:  
- © 2020-2024 Julia Nechaevskaya.  
+ © 2020-2026 Julia Nechaevskaya.  
+License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/)
+
+Files: `base/id1.wad/sm*.png`  
+Copyright:  
+ © 2026 DragonKnightKX.  
+License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/)
+
+Files: `data/setup.ico, data/woof-setup.png, setup/setup_icon.c`  
+Copyright:  
+ © 2026 Julia Nechaevskaya;  
+ © 2026 Terraformer9x.  
 License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/)
 
 Files: `data/io.github.fabiangreffrath.woof.metainfo.*`  
@@ -256,7 +273,8 @@ License: [CC0-1.0](https://creativecommons.org/publicdomain/zero/1.0/)
 Files: `opl/*`  
 Copyright:  
  © 2005-2014 Simon Howard;  
- © 2013-2018 Alexey Khokholov (Nuke.YKT).  
+ © 2013-2018 Alexey Khokholov (Nuke.YKT);  
+ © 2026 Tony Gies.  
 License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
 Files: `soundfonts/TimGM6mb.sf2`  
@@ -282,6 +300,16 @@ Copyright:
  © 1997-2025 Sam Lantinga;  
  © 2012 Simeon Maxein.  
 License: [zlib](https://opensource.org/license/zlib)
+
+Files: `third-party/libebur128/*`  
+Copyright:  
+ © 2011 Jan Kokemüller.  
+License: [MIT](https://opensource.org/licenses/MIT)
+
+Files: `third-party/base64/*`  
+Copyright:  
+ © 2002-2012 Jouni Malinen.  
+License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
 
 Files: `third-party/md5/*`  
 License: public-domain

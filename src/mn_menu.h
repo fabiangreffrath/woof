@@ -69,6 +69,7 @@ void MN_UpdateEqualizerItems(void);
 void MN_UpdateAdvancedSoundItems(boolean toggle);
 void MN_SetHUFontKerning(void);
 void MN_DisableVoxelsRenderingItem(void);
+void MN_DisableBrightmapsItem(void);
 void MN_UpdateDynamicResolutionItem(void);
 void MN_DisableResolutionScaleItem(void);
 void MN_UpdateFpsLimitItem(void);
