@@ -155,12 +155,12 @@ void V_InitColorTranslation(void)
 
     int playpal_lump = W_GetNumForName("PLAYPAL");
     byte *playpal = W_CacheLumpNum(playpal_lump, PU_STATIC);
-    boolean iwad_playpal = W_IsIWADLump(playpal_lump);
+    const boolean iwad_playpal = W_IsIWADLump(playpal_lump);
 
     int force_rebuild = M_CheckParm("-tranmap");
 
     // [crispy] preserve gray drop shadow in IWAD status bar numbers
-    boolean keepgray = W_IsIWADLump(W_GetNumForName("sttnum0"));
+    const boolean keepgray = W_IsIWADLump(W_GetNumForName("sttnum0"));
 
     for (p = crdefs; p->name; p++)
     {
@@ -168,31 +168,26 @@ void V_InitColorTranslation(void)
 
         *p->map_orig = W_CacheLumpNum(lumpnum, PU_STATIC);
 
-        // [FG] color translation table provided by PWAD
-        if (W_IsWADLump(lumpnum) && !force_rebuild)
-        {
-            *p->map1 = *p->map2 = *p->map_orig;
-            continue;
-        }
-
         // [FG] allocate new color translation table
         *p->map2 = malloc(256);
 
-        // [FG] translate all colors to target color
+        // keep original translation table entries if they apply
+        // against the original palette or if they are from a PWAD
+        const boolean keeporig =
+            ((iwad_playpal || W_IsWADLump(lumpnum)) && !force_rebuild);
+
+        // [FG] translate to target color
         for (i = 0; i < 256; i++)
         {
-            (*p->map2)[i] = V_Colorize(playpal, p - crdefs, (byte)i);
-        }
-
-        // [FG] override with original color translations
-        if (iwad_playpal && !force_rebuild)
-        {
-            for (i = 0; i < 256; i++)
+            // keep only entries that are not identity anyway
+            if (keeporig
+                && ((*p->map_orig)[i] != (byte)i || (keepgray && i == 109)))
             {
-                if (((*p->map_orig)[i] != (byte)i) || (keepgray && i == 109))
-                {
-                    (*p->map2)[i] = (*p->map_orig)[i];
-                }
+                (*p->map2)[i] = (*p->map_orig)[i];
+            }
+            else
+            {
+                (*p->map2)[i] = V_Colorize(playpal, p - crdefs, (byte)i);
             }
         }
 
