@@ -157,7 +157,7 @@ void V_InitColorTranslation(void)
         for (int i = 0; i < 256; i++)
         {
             // keep only entries that are not identity anyway
-            if (keeporig
+            if (keeporig && cr_p->lump
                 && (cr_p->lump[i] != (byte)i || (keepgray && i == 109)))
             {
                 cr_p->table[i] = cr_p->lump[i];
