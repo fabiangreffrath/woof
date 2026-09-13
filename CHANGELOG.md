@@ -3,6 +3,7 @@
 * **Mod Support:**
   - Add support for optional menu and intermission sounds.
   - Add support for ambient sound definitions by SNDINFO lumps.
+  - Leave some more space in the HUD menu for the layout description.
 
 * **Quality of Life:**
   - Player view no longer abruptly jolts when running across very shallow floor height changes
