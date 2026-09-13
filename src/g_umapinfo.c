@@ -840,68 +840,197 @@ boolean MI_PreviousMap(int *episode, int *map)
 }
 
 // Display data
-// Death action
-// Intermission sequence
-// Finale
-
-void MI_UpdateGameMap(int epi, int map)
+static boolean IsVanillaMap(int e, int m)
 {
-    gameepisode = epi;
-    gamemap = map;
-    gamemapinfo = MI_MapEntry(gameepisode, gamemap);
-}
-
-void MI_UpdateLastMapInfo(wbstartstruct_t *wminfo)
-{
-    wminfo->lastmapinfo = gamemapinfo;
-    wminfo->nextmapinfo = NULL;
-}
-
-void MI_UpdateNextMapInfo(wbstartstruct_t *wminfo)
-{
-    wminfo->nextmapinfo = MI_MapEntry(wminfo->nextep + 1, wminfo->next + 1);
-}
-
-MI_ShowNext_t MI_ShowNextLoc(void)
-{
-    // UMAPINFO
-    if (gamemapinfo)
+    if (gamemode == commercial)
     {
-        if (gamemapinfo->flags & MI_EndGameAny)
-        {
-            return WI_ShowNextDone;
-        }
-        else
-        {
-            return WI_ShowNextLoc | WI_ShowNextEpisodal;
-        }
-    }
-
-    // Legacy
-    if (gamemode != commercial
-        && (gamemap == 8 || (gamemission == pack_chex && gamemap == 5)))
-    {
-        return WI_ShowNextDone;
+        return (e == 1 && m > 0 && m <= 32);
     }
     else
     {
-        return WI_ShowNextLoc;
+        return (e > 0 && e <= 4 && m > 0 && m <= 9);
     }
 }
 
-boolean MI_SkipShowNextLoc(void)
+static inline const char *GetVanillaMapname()
+{
+    return (gamemode != commercial)
+               ? mapnames[(gameepisode - 1) * 9 + gamemap - 1]
+           : (gamemission == pack_tnt)  ? mapnamest[gamemap - 1]
+           : (gamemission == pack_plut) ? mapnamesp[gamemap - 1]
+                                        : mapnames2[gamemap - 1];
+}
+
+static inline const char *GetVanillaMapnameOverflow()
+{
+    return (gamemission == doom2)       ? mapnamesp[gamemap - 33]
+           : (gamemission == pack_plut) ? mapnamest[gamemap - 33]
+                                        : "";
+}
+
+const char *MI_GetLevelTitle(void)
+{
+    const char *result = "";
+
+    if (gamemapinfo && gamemapinfo->levelname)
+    {
+        if (!(gamemapinfo->flags & MI_LabelClear))
+        {
+            static char *string;
+            if (string)
+            {
+                free(string);
+            }
+            string = M_StringJoin(gamemapinfo->label ? gamemapinfo->label
+                                                     : gamemapinfo->lumpname,
+                                  ": ", gamemapinfo->levelname);
+            result = string;
+        }
+        else
+        {
+            result = gamemapinfo->levelname;
+        }
+    }
+    else if (gamestate == GS_LEVEL)
+    {
+        if (IsVanillaMap(gameepisode, gamemap))
+        {
+            result = DEH_String(GetVanillaMapname());
+        }
+        // WADs like pl2.wad have a MAP33, and rely on the layout in the
+        // Vanilla executable, where it is possible to overflow the end of one
+        // array into the next.
+        else if (gamemode == commercial && gamemap >= 33 && gamemap <= 35)
+        {
+            result = DEH_String(GetVanillaMapnameOverflow());
+        }
+        else
+        {
+            // initialize the map title widget with the generic map lump name
+            result = MapName(gameepisode, gamemap);
+        }
+    }
+
+    return result;
+}
+
+void MI_MapAnnouncement(char announce_string[120], char author_string[120],
+                        const char string[120], size_t str_size)
 {
     // UMAPINFO
-    if (gamemapinfo)
+    if (gamemapinfo && gamemapinfo->author)
     {
-        return (gamemapinfo->flags & MI_EndGameAny) != 0;
+        M_snprintf(announce_string, str_size, "%s by %s", string,
+                   gamemapinfo->author);
+        if (MN_StringWidth(announce_string) > SCREENWIDTH)
+        {
+            M_StringCopy(announce_string, string, str_size);
+            M_snprintf(author_string, str_size, "by %s", gamemapinfo->author);
+        }
+        return;
     }
 
     // Legacy
-    return false;
+    M_StringCopy(announce_string, string, str_size);
 }
 
-boolean CheckBossDeath(mobj_t *mo)
+int MI_SkyTexture(void)
+{
+    // UMAPINFO
+    if (gamemapinfo && gamemapinfo->skytexture[0])
+    {
+        return R_TextureNumForName(gamemapinfo->skytexture);
+    }
+
+    // Legacy
+
+    // DOOM determines the sky texture to be used
+    // depending on the current episode, and the game version.
+    int skytexture = NO_INDEX;
+    if (gamemode == commercial)
+    // || gamemode == pack_tnt   // jff 3/27/98 sorry guys pack_tnt,pack_plut
+    // || gamemode == pack_plut) // aren't gamemodes, this was matching retail
+    {
+        skytexture = R_TextureNumForName("SKY3");
+        if (gamemap < 12)
+        {
+            skytexture = R_TextureNumForName("SKY1");
+        }
+        else if (gamemap < 21)
+        {
+            skytexture = R_TextureNumForName("SKY2");
+        }
+    }
+    else // jff 3/27/98 and lets not forget about DOOM and Ultimate DOOM huh?
+    {
+        switch (gameepisode)
+        {
+            default:
+            case 1:
+                skytexture = R_TextureNumForName("SKY1");
+                break;
+            case 2:
+                // killough 10/98: beta version had different sky orderings
+                skytexture =
+                    R_TextureNumForName(beta_emulation ? "SKY1" : "SKY2");
+                break;
+            case 3:
+                skytexture = R_TextureNumForName("SKY3");
+                break;
+            case 4: // Special Edition sky
+                skytexture = R_TextureNumForName("SKY4");
+                break;
+        } // jff 3/27/98 end sky setting fix
+    }
+
+    return skytexture;
+}
+
+static inline int WRAP(int i, int w)
+{
+    while (i < 0)
+    {
+        i += w;
+    }
+
+    return i % w;
+}
+
+void MI_ChangeMusic(void)
+{
+    // UMAPINFO
+    if (gamemapinfo && gamemapinfo->music[0])
+    {
+        int muslump = W_CheckNumForName(gamemapinfo->music);
+        if (muslump >= 0)
+        {
+            S_ChangeMusInfoMusic(muslump, true);
+            return;
+        }
+    }
+
+    // Legacy
+    int mnum;
+    if (idmusnum != -1)
+    {
+        mnum = idmusnum; // jff 3/17/98 reload IDMUS music if not -1
+    }
+    else if (gamemode == commercial)
+    {
+        mnum = mus_runnin + WRAP(gamemap - 1, NUMMUSIC - mus_runnin);
+    }
+    else
+    {
+        mnum =
+            mus_e1m1
+            + WRAP((gameepisode - 1) * 9 + gamemap - 1, mus_runnin - mus_e1m1);
+    }
+
+    S_ChangeMusic(mnum, true);
+}
+
+// Death action
+static boolean CheckBossDeath(mobj_t *mo)
 {
     int i;
     thinker_t *th;
@@ -1156,130 +1285,133 @@ boolean MI_BossAction(mobj_t *mo)
     return false;
 }
 
-static boolean IsVanillaMap(int e, int m)
-{
-    if (gamemode == commercial)
-    {
-        return (e == 1 && m > 0 && m <= 32);
-    }
-    else
-    {
-        return (e > 0 && e <= 4 && m > 0 && m <= 9);
-    }
-}
-
-static inline const char *GetVanillaMapname()
-{
-    return (gamemode != commercial)
-               ? mapnames[(gameepisode - 1) * 9 + gamemap - 1]
-           : (gamemission == pack_tnt)  ? mapnamest[gamemap - 1]
-           : (gamemission == pack_plut) ? mapnamesp[gamemap - 1]
-                                        : mapnames2[gamemap - 1];
-}
-
-static inline const char *GetVanillaMapnameOverflow()
-{
-    return (gamemission == doom2)       ? mapnamesp[gamemap - 33]
-           : (gamemission == pack_plut) ? mapnamest[gamemap - 33]
-                                        : "";
-}
-
-const char *MI_GetLevelTitle(void)
-{
-    const char *result = "";
-
-    if (gamemapinfo && gamemapinfo->levelname)
-    {
-        if (!(gamemapinfo->flags & MI_LabelClear))
-        {
-            static char *string;
-            if (string)
-            {
-                free(string);
-            }
-            string = M_StringJoin(gamemapinfo->label ? gamemapinfo->label
-                                                     : gamemapinfo->lumpname,
-                                  ": ", gamemapinfo->levelname);
-            result = string;
-        }
-        else
-        {
-            result = gamemapinfo->levelname;
-        }
-    }
-    else if (gamestate == GS_LEVEL)
-    {
-        if (IsVanillaMap(gameepisode, gamemap))
-        {
-            result = DEH_String(GetVanillaMapname());
-        }
-        // WADs like pl2.wad have a MAP33, and rely on the layout in the
-        // Vanilla executable, where it is possible to overflow the end of one
-        // array into the next.
-        else if (gamemode == commercial && gamemap >= 33 && gamemap <= 35)
-        {
-            result = DEH_String(GetVanillaMapnameOverflow());
-        }
-        else
-        {
-            // initialize the map title widget with the generic map lump name
-            result = MapName(gameepisode, gamemap);
-        }
-    }
-
-    return result;
-}
-
-int MI_SkyTexture(void)
+void MI_SpecHits(line_t *dummy, int *speciallines, boolean *trigger_keen)
 {
     // UMAPINFO
-    if (gamemapinfo && gamemapinfo->skytexture[0])
+    if (gamemapinfo && array_size(gamemapinfo->bossactions))
     {
-        return R_TextureNumForName(gamemapinfo->skytexture);
+        for (thinker_t *th = thinkercap.next; th != &thinkercap; th = th->next)
+        {
+            if (th->function.p1 == P_MobjThinker)
+            {
+                mobj_t *mo = (mobj_t *)th;
+
+                bossaction_t *bossaction;
+                array_foreach(bossaction, gamemapinfo->bossactions)
+                {
+                    if (bossaction->type == mo->type)
+                    {
+                        dummy = lines;
+                        dummy->special = (short)bossaction->special;
+                        dummy->args[0] = (short)bossaction->tag;
+                        // use special semantics for line activation to block
+                        // problem types.
+                        if (!P_UseSpecialLine(mo, dummy, 0, true))
+                        {
+                            P_CrossSpecialLine(dummy, 0, mo, true);
+                        }
+
+                        (*speciallines)++;
+
+                        if (dummy->args[0] == 666)
+                        {
+                            *trigger_keen = false;
+                        }
+                    }
+                }
+            }
+        }
+        return;
     }
 
     // Legacy
 
-    // DOOM determines the sky texture to be used
-    // depending on the current episode, and the game version.
-    int skytexture = NO_INDEX;
+    // [crispy] trigger tag 666/667 events
     if (gamemode == commercial)
-    // || gamemode == pack_tnt   // jff 3/27/98 sorry guys pack_tnt,pack_plut
-    // || gamemode == pack_plut) // aren't gamemodes, this was matching retail
     {
-        skytexture = R_TextureNumForName("SKY3");
-        if (gamemap < 12)
+        if (gamemap == 7)
         {
-            skytexture = R_TextureNumForName("SKY1");
-        }
-        else if (gamemap < 21)
-        {
-            skytexture = R_TextureNumForName("SKY2");
-        }
-    }
-    else // jff 3/27/98 and lets not forget about DOOM and Ultimate DOOM huh?
-    {
-        switch (gameepisode)
-        {
-            default:
-            case 1:
-                skytexture = R_TextureNumForName("SKY1");
-                break;
-            case 2:
-                // killough 10/98: beta version had different sky orderings
-                skytexture =
-                    R_TextureNumForName(beta_emulation ? "SKY1" : "SKY2");
-                break;
-            case 3:
-                skytexture = R_TextureNumForName("SKY3");
-                break;
-            case 4: // Special Edition sky
-                skytexture = R_TextureNumForName("SKY4");
-                break;
-        } // jff 3/27/98 end sky setting fix
-    }
+            // Mancubi
+            dummy->args[0] = 666;
+            (*speciallines) += EV_DoFloor(dummy, lowerFloorToLowest);
+            *trigger_keen = false;
 
-    return skytexture;
+            // Arachnotrons
+            dummy->args[0] = 667;
+            (*speciallines) += EV_DoFloor(dummy, raiseToTexture);
+        }
+    }
+    else
+    {
+        if (gameepisode == 1)
+        {
+            // Barons of Hell
+            dummy->args[0] = 666;
+            (*speciallines) += EV_DoFloor(dummy, lowerFloorToLowest);
+            *trigger_keen = false;
+        }
+        else if (gameepisode == 4)
+        {
+            if (gamemap == 6)
+            {
+                // Cyberdemons
+                dummy->args[0] = 666;
+                (*speciallines) += EV_DoDoor(dummy, blazeOpen);
+                *trigger_keen = false;
+            }
+            else if (gamemap == 8)
+            {
+                // Spider Masterminds
+                dummy->args[0] = 666;
+                (*speciallines) += EV_DoFloor(dummy, lowerFloorToLowest);
+                *trigger_keen = false;
+            }
+        }
+    }
+}
+
+// Complete level
+void MI_UpdateLastMapInfo(wbstartstruct_t *wminfo)
+{
+    wminfo->lastmapinfo = gamemapinfo;
+    wminfo->nextmapinfo = NULL;
+}
+
+void MI_UpdateNextMapInfo(wbstartstruct_t *wminfo)
+{
+    wminfo->nextmapinfo = MI_MapEntry(wminfo->nextep + 1, wminfo->next + 1);
+}
+
+void MI_UpdateGameMap(int epi, int map)
+{
+    gameepisode = epi;
+    gamemap = map;
+    gamemapinfo = MI_MapEntry(gameepisode, gamemap);
+}
+
+void MI_VisitLevel(void)
+{
+    for (int i = 0; i < MAXPLAYERS; ++i)
+    {
+        if (playeringame[i])
+        {
+            level_t *level;
+            array_foreach(level, players[i].visitedlevels)
+            {
+                if (level->episode == gameepisode && level->map == gamemap)
+                {
+                    break;
+                }
+            }
+            if (level == array_end(players[i].visitedlevels))
+            {
+                level_t newlevel = {gameepisode, gamemap};
+                array_push(players[i].visitedlevels, newlevel);
+            }
+            players[i].num_visitedlevels = array_size(players[i].visitedlevels);
+        }
+    }
+    wminfo.visitedlevels = players[consoleplayer].visitedlevels;
 }
 
 static int LegacyParTimes(void)
@@ -1448,31 +1580,6 @@ MI_Completion_t MI_PrepareIntermission(wbstartstruct_t *wminfo)
     return 0;
 }
 
-void MI_VisitLevel(void)
-{
-    for (int i = 0; i < MAXPLAYERS; ++i)
-    {
-        if (playeringame[i])
-        {
-            level_t *level;
-            array_foreach(level, players[i].visitedlevels)
-            {
-                if (level->episode == gameepisode && level->map == gamemap)
-                {
-                    break;
-                }
-            }
-            if (level == array_end(players[i].visitedlevels))
-            {
-                level_t newlevel = {gameepisode, gamemap};
-                array_push(players[i].visitedlevels, newlevel);
-            }
-            players[i].num_visitedlevels = array_size(players[i].visitedlevels);
-        }
-    }
-    wminfo.visitedlevels = players[consoleplayer].visitedlevels;
-}
-
 MI_WinDisplay_t MI_PrepareFinale(void)
 {
     // UMAPINFO
@@ -1540,6 +1647,7 @@ MI_WinDisplay_t MI_PrepareFinale(void)
     return res;
 }
 
+// Intermission sequence
 void MI_WI_Start(wbstartstruct_t *wbs, const char **exitpic,
                  const char **enterpic, wi_animation_t **animation)
 {
@@ -1581,150 +1689,41 @@ void MI_WI_Start(wbstartstruct_t *wbs, const char **exitpic,
     // Legacy
 }
 
-void MI_MapAnnouncement(char announce_string[120], char author_string[120],
-                        const char string[120], size_t str_size)
+MI_ShowNext_t MI_ShowNextLoc(void)
 {
     // UMAPINFO
-    if (gamemapinfo && gamemapinfo->author)
+    if (gamemapinfo)
     {
-        M_snprintf(announce_string, str_size, "%s by %s", string,
-                   gamemapinfo->author);
-        if (MN_StringWidth(announce_string) > SCREENWIDTH)
+        if (gamemapinfo->flags & MI_EndGameAny)
         {
-            M_StringCopy(announce_string, string, str_size);
-            M_snprintf(author_string, str_size, "by %s", gamemapinfo->author);
+            return WI_ShowNextDone;
         }
-        return;
+        else
+        {
+            return WI_ShowNextLoc | WI_ShowNextEpisodal;
+        }
     }
 
     // Legacy
-    M_StringCopy(announce_string, string, str_size);
-}
-
-void MI_SpecHits(line_t *dummy, int *speciallines, boolean *trigger_keen)
-{
-    // UMAPINFO
-    if (gamemapinfo && array_size(gamemapinfo->bossactions))
+    if (gamemode != commercial
+        && (gamemap == 8 || (gamemission == pack_chex && gamemap == 5)))
     {
-        for (thinker_t *th = thinkercap.next; th != &thinkercap; th = th->next)
-        {
-            if (th->function.p1 == P_MobjThinker)
-            {
-                mobj_t *mo = (mobj_t *)th;
-
-                bossaction_t *bossaction;
-                array_foreach(bossaction, gamemapinfo->bossactions)
-                {
-                    if (bossaction->type == mo->type)
-                    {
-                        dummy = lines;
-                        dummy->special = (short)bossaction->special;
-                        dummy->args[0] = (short)bossaction->tag;
-                        // use special semantics for line activation to block
-                        // problem types.
-                        if (!P_UseSpecialLine(mo, dummy, 0, true))
-                        {
-                            P_CrossSpecialLine(dummy, 0, mo, true);
-                        }
-
-                        (*speciallines)++;
-
-                        if (dummy->args[0] == 666)
-                        {
-                            *trigger_keen = false;
-                        }
-                    }
-                }
-            }
-        }
-        return;
-    }
-
-    // Legacy
-
-    // [crispy] trigger tag 666/667 events
-    if (gamemode == commercial)
-    {
-        if (gamemap == 7)
-        {
-            // Mancubi
-            dummy->args[0] = 666;
-            (*speciallines) += EV_DoFloor(dummy, lowerFloorToLowest);
-            *trigger_keen = false;
-
-            // Arachnotrons
-            dummy->args[0] = 667;
-            (*speciallines) += EV_DoFloor(dummy, raiseToTexture);
-        }
+        return WI_ShowNextDone;
     }
     else
     {
-        if (gameepisode == 1)
-        {
-            // Barons of Hell
-            dummy->args[0] = 666;
-            (*speciallines) += EV_DoFloor(dummy, lowerFloorToLowest);
-            *trigger_keen = false;
-        }
-        else if (gameepisode == 4)
-        {
-            if (gamemap == 6)
-            {
-                // Cyberdemons
-                dummy->args[0] = 666;
-                (*speciallines) += EV_DoDoor(dummy, blazeOpen);
-                *trigger_keen = false;
-            }
-            else if (gamemap == 8)
-            {
-                // Spider Masterminds
-                dummy->args[0] = 666;
-                (*speciallines) += EV_DoFloor(dummy, lowerFloorToLowest);
-                *trigger_keen = false;
-            }
-        }
+        return WI_ShowNextLoc;
     }
 }
 
-static inline int WRAP(int i, int w)
-{
-    while (i < 0)
-    {
-        i += w;
-    }
-
-    return i % w;
-}
-
-void MI_ChangeMusic(void)
+boolean MI_SkipShowNextLoc(void)
 {
     // UMAPINFO
-    if (gamemapinfo && gamemapinfo->music[0])
+    if (gamemapinfo)
     {
-        int muslump = W_CheckNumForName(gamemapinfo->music);
-        if (muslump >= 0)
-        {
-            S_ChangeMusInfoMusic(muslump, true);
-            return;
-        }
+        return (gamemapinfo->flags & MI_EndGameAny) != 0;
     }
 
     // Legacy
-    int mnum;
-    if (idmusnum != -1)
-    {
-        mnum = idmusnum; // jff 3/17/98 reload IDMUS music if not -1
-    }
-    else if (gamemode == commercial)
-    {
-        mnum = mus_runnin + WRAP(gamemap - 1, NUMMUSIC - mus_runnin);
-    }
-    else
-    {
-        mnum =
-            mus_e1m1
-            + WRAP((gameepisode - 1) * 9 + gamemap - 1, mus_runnin - mus_e1m1);
-    }
-
-    S_ChangeMusic(mnum, true);
+    return false;
 }

@@ -114,26 +114,28 @@ void MI_NextMap(int *episode, int *map);
 boolean MI_PreviousMap(int *episode, int *map);
 
 // Display data
-// Death action
-// Intermission sequence
-// Finale
-
-void MI_UpdateGameMap(int epi, int map);
-void MI_UpdateLastMapInfo(wbstartstruct_t *wminfo);
-void MI_UpdateNextMapInfo(wbstartstruct_t *wminfo);
-MI_ShowNext_t MI_ShowNextLoc(void);
-boolean MI_SkipShowNextLoc(void);
-boolean MI_BossAction(mobj_t *mo);
 const char *MI_GetLevelTitle(void);
-int MI_SkyTexture(void);
-MI_Completion_t MI_PrepareIntermission(wbstartstruct_t *wminfo);
-void MI_VisitLevel(void);
-MI_WinDisplay_t MI_PrepareFinale(void);
-void MI_WI_Start(wbstartstruct_t *wbs, const char **exitpic,
-                 const char **enterpic, wi_animation_t **animation);
 void MI_MapAnnouncement(char announce_string[120], char author_string[120],
                         const char string[120], size_t str_size);
-void MI_SpecHits(line_t *dummy, int *speciallines, boolean *trigger_keen);
+int MI_SkyTexture(void);
 void MI_ChangeMusic(void);
+
+// Death action
+boolean MI_BossAction(mobj_t *mo);
+void MI_SpecHits(line_t *dummy, int *speciallines, boolean *trigger_keen);
+
+// Complete level
+void MI_UpdateLastMapInfo(wbstartstruct_t *wminfo);
+void MI_UpdateNextMapInfo(wbstartstruct_t *wminfo);
+void MI_UpdateGameMap(int epi, int map);
+void MI_VisitLevel(void);
+MI_Completion_t MI_PrepareIntermission(wbstartstruct_t *wminfo);
+MI_WinDisplay_t MI_PrepareFinale(void);
+
+// Intermission sequence
+void MI_WI_Start(wbstartstruct_t *wbs, const char **exitpic,
+                 const char **enterpic, wi_animation_t **animation);
+MI_ShowNext_t MI_ShowNextLoc(void);
+boolean MI_SkipShowNextLoc(void);
 
 #endif
