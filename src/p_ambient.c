@@ -50,7 +50,7 @@ static float GetEffectiveOffset(ambient_t *ambient)
 
 void P_GetAmbientSoundParams(ambient_t *ambient, sfxparams_t *params)
 {
-    if (ambient->source->intflags && MIF_PARAMSOUND)
+    if (ambient->source->intflags & MIF_PARAMSOUND)
     {
         int volume_scale = 127;
         int close_dist = S_CLOSE_DIST;
