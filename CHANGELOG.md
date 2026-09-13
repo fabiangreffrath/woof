@@ -6,12 +6,14 @@
 
 * **Quality of Life:**
   - Player view no longer abruptly jolts when running across very shallow floor height changes
+  - The Quicksave message now explicitly states page and slot
 
 ## Bug Fixes
 
 * Fixed setup desktop action exiting immediately when run from the AppImage
 * Do not restart MUSINFO level music when restoring a savegame.
 * Fixed autoloading of the DEHACKED lump that fixed colored blood for HACX
+* Quicksave does not change the active Load Game / Save Game menu page anymore
 
 ## Miscellaneous
 
