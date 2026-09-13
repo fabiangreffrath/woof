@@ -535,7 +535,7 @@ static boolean MapInfo_Drawer(void)
 //
 void F_StartFinale (void)
 {
-  musicenum_t music_id = mus_None;
+  musicenum_t music_id = (gamemission == doom) ? mus_victor : mus_read_m;
 
   gameaction = ga_nothing;
   gamestate = GS_FINALE;
