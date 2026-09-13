@@ -79,6 +79,13 @@ static int MAPCOLOR(plyr[4]); // colors for player arrows in multiplayer
 static int MAPCOLOR(frnd);    // colors for friends of player
 static int MAPCOLOR(item);    // item sprite color
 static int MAPCOLOR(enemy);   // enemy sprite color
+// MBF2Y
+static int MAPCOLOR(rsku);    // red skull key color
+static int MAPCOLOR(bsku);    // blue skull key color
+static int MAPCOLOR(ysku);    // yellow skull key color
+static int MAPCOLOR(rsdr);    // red skull door color
+static int MAPCOLOR(bsdr);    // blue skull door color
+static int MAPCOLOR(ysdr);    // yellow skull door color
 #undef MAPCOLOR
 
 //jff 3/9/98 add option to not show secret sectors until entered
@@ -96,6 +103,12 @@ static int key_color_Y;
 static int door_color_R;
 static int door_color_B;
 static int door_color_Y;
+static int key_color_RS;
+static int key_color_BS;
+static int key_color_YS;
+static int door_color_RS;
+static int door_color_BS;
+static int door_color_YS;
 static int door_color_misc;
 
 static int map_keyed_door; // keyed doors are colored or flashing
@@ -110,7 +123,7 @@ static int thickness;
 #define MAPUNIT (1<<MAPBITS)
 #define FRACTOMAPBITS (FRACBITS-MAPBITS)
 
-// [Woof!] New radius to use with FRACTOMAPBITS, since orginal 
+// [Woof!] New radius to use with FRACTOMAPBITS, since orginal
 // PLAYERRADIUS macro can't be used in this implementation.
 #define MAPPLAYERRADIUS (16*(1<<MAPBITS))
 
@@ -276,7 +289,7 @@ static int64_t  m_h;
 
 // based on level size
 static fixed_t  min_x;
-static fixed_t  min_y; 
+static fixed_t  min_y;
 static fixed_t  max_x;
 static fixed_t  max_y;
 
@@ -577,7 +590,7 @@ void AM_initVariables(void)
 
 //
 // AM_loadPics()
-// 
+//
 // Load the patches for the mark numbers
 //
 // Sets the marknums[i] variables to the patches for each digit
@@ -773,7 +786,7 @@ static void SwapScale(void)
         }
         min_scale_mtof = max_scale_mtof = scale_mtof
             = FixedDiv(f_w << FRACBITS, minimap.scale << MAPBITS);
-        scale_ftom = FixedDiv(FRACUNIT, scale_mtof); 
+        scale_ftom = FixedDiv(FRACUNIT, scale_mtof);
     }
     else if (!last_full_automap)
     {
@@ -789,8 +802,8 @@ static void SwapScale(void)
 
 //
 // AM_Start()
-// 
-// Start up automap operations, 
+//
+// Start up automap operations,
 //  if a new level, or game start, (re)initialize level variables
 //  init map variables
 //  load mark patches
@@ -1256,7 +1269,7 @@ static boolean AM_clipMline
   int   dx;
   int   dy;
 
-    
+
 #define DOOUTCODE(oc, mx, my) \
   (oc) = 0; \
   if ((my) < 0) (oc) |= TOP; \
@@ -1264,7 +1277,7 @@ static boolean AM_clipMline
   if ((mx) < 0) (oc) |= LEFT; \
   else if ((mx) >= f_x + f_w) (oc) |= RIGHT;
 
-    
+
   // do trivial rejects and outcodes
   if (ml->a.y > m_y2)
   outcode1 = TOP;
@@ -1817,6 +1830,9 @@ typedef enum DoorType_e
     DoorType_Red,
     DoorType_Blue,
     DoorType_Yellow,
+    DoorType_RedSkull,
+    DoorType_BlueSkull,
+    DoorType_YellowSkull,
     DoorType_Multiple
 } DoorType_t;
 
@@ -1828,6 +1844,8 @@ static int DoorType(const line_t *line)
     }
 
     int special = line->special;
+    // does this line special distinguish between skulls and keys?
+    int skulliscard = (line->special & LockedNKeys)>>LockedNKeysShift;
 
     if (GenLockedBase <= special && special < GenDoorBase)
     {
@@ -1839,7 +1857,30 @@ static int DoorType(const line_t *line)
         }
         else
         {
+          if (skulliscard)
+          {
             return (special - 1) % 3;
+          }
+          else
+          {
+            switch((line->special & LockedKey)>>LockedKeyShift)
+            {
+              case RCard:
+                return DoorType_Red;
+              case BCard:
+                return DoorType_Blue;
+              case YCard:
+                return DoorType_Yellow;
+              case RSkull:
+                return DoorType_RedSkull;
+              case BSkull:
+                return DoorType_BlueSkull;
+              case YSkull:
+                return DoorType_YellowSkull;
+              default:
+                return DoorType_Multiple;
+            }
+          }
         }
     }
 
@@ -2050,6 +2091,15 @@ static int ColorForStyle(line_t *line, amls_t style)
                     break;
                 case DoorType_Yellow:
                     return door_color_Y;
+                    break;
+                case DoorType_RedSkull:
+                    return door_color_RS;
+                    break;
+                case DoorType_BlueSkull:
+                    return door_color_BS;
+                    break;
+                case DoorType_YellowSkull:
+                    return door_color_YS;
                     break;
                 default:
                     return door_color_misc;
@@ -2279,7 +2329,7 @@ static void AM_drawLineCharacter
 //
 // AM_drawPlayers()
 //
-// Draws the player arrow in single player, 
+// Draws the player arrow in single player,
 // or all the player arrows in a netgame.
 //
 // Passed nothing, returns nothing
@@ -2321,7 +2371,7 @@ static void AM_drawPlayers(void)
         cur_mapcolor_sngl,      //jff color
         pt.x,
         pt.y
-      ); 
+      );
     else
       AM_drawLineCharacter
       (
@@ -2331,7 +2381,7 @@ static void AM_drawPlayers(void)
         smoothangle,
         cur_mapcolor_sngl,      //jff color
         pt.x,
-        pt.y);        
+        pt.y);
     return;
   }
 
@@ -2432,12 +2482,12 @@ static void AM_drawThings
       AM_transformPoint(&pt);
 
       //jff 1/5/98 case over doomednum of thing being drawn
-      if (key_color_R || key_color_B || key_color_Y)
+      if (key_color_R || key_color_B || key_color_Y || key_color_BS || key_color_RS || key_color_YS)
       {
         switch(t->info->doomednum)
         {
           //jff 1/5/98 treat keys special
-          case 38: case 13: //jff  red key
+          case 13: //jff  red key
             AM_drawLineCharacter
             (
               amdef->key,
@@ -2450,7 +2500,20 @@ static void AM_drawThings
             );
             t = t->snext;
             continue;
-          case 39: case 6: //jff yellow key
+          case 38: //mbf2y  red skull key
+            AM_drawLineCharacter
+            (
+              amdef->key,
+              array_size(amdef->key),
+              16<<MAPBITS,
+              t->angle,
+              key_color_RS,
+              pt.x,
+              pt.y
+            );
+            t = t->snext;
+            continue;
+          case 6: //jff yellow key
             AM_drawLineCharacter
             (
               amdef->key,
@@ -2463,7 +2526,20 @@ static void AM_drawThings
             );
             t = t->snext;
             continue;
-          case 40: case 5: //jff blue key
+          case 39: //mbf2y yellow skull key
+            AM_drawLineCharacter
+            (
+              amdef->key,
+              array_size(amdef->key),
+              16<<MAPBITS,
+              t->angle,
+              key_color_YS,
+              pt.x,
+              pt.y
+            );
+            t = t->snext;
+            continue;
+          case 5: //jff blue key
             AM_drawLineCharacter
             (
               amdef->key,
@@ -2471,6 +2547,19 @@ static void AM_drawThings
               16<<MAPBITS,
               t->angle,
               key_color_B,
+              pt.x,
+              pt.y
+            );
+            t = t->snext;
+            continue;
+          case 40: //mbf2y blue skull key
+            AM_drawLineCharacter
+            (
+              amdef->key,
+              array_size(amdef->key),
+              16<<MAPBITS,
+              t->angle,
+              key_color_BS,
               pt.x,
               pt.y
             );
@@ -2682,6 +2771,12 @@ static struct
     {MAPCOLOR(rdor),    {176, 174, 175, 176}}, // P_GetMapColorForLock()
     {MAPCOLOR(bdor),    {200, 200, 204, 200}}, // P_GetMapColorForLock()
     {MAPCOLOR(ydor),    {231, 229, 231, 231}}, // P_GetMapColorForLock()
+    {MAPCOLOR(rsku),    {176, 176, 175, 176}}, // P_GetMapColorForLock()
+    {MAPCOLOR(bsku),    {200, 200, 204, 200}}, // P_GetMapColorForLock()
+    {MAPCOLOR(ysku),    {231, 231, 231, 231}}, // P_GetMapColorForLock()
+    {MAPCOLOR(rsdr),    {176, 174, 175, 176}}, // P_GetMapColorForLock()
+    {MAPCOLOR(bsdr),    {200, 200, 204, 200}}, // P_GetMapColorForLock()
+    {MAPCOLOR(ysdr),    {231, 229, 231, 231}}, // P_GetMapColorForLock()
     {MAPCOLOR(tele),    {  0, 120, 119, 200}}, // am_intralevelcolor
     {MAPCOLOR(secr),    {  0, 251, 252, 251}}, // am_unexploredsecretcolor
     {MAPCOLOR(revsecr), {  0, 112, 112, 251}}, // am_secretsectorcolor
@@ -2754,6 +2849,14 @@ void AM_ApplyColors(boolean force)
     door_color_R = cur_mapcolor_rdor ? cur_mapcolor_rdor : cur_mapcolor_cchg;
     door_color_B = cur_mapcolor_bdor ? cur_mapcolor_bdor : cur_mapcolor_cchg;
     door_color_Y = cur_mapcolor_ydor ? cur_mapcolor_ydor : cur_mapcolor_cchg;
+
+    key_color_RS = cur_mapcolor_rsku ? cur_mapcolor_rsku : cur_mapcolor_sprt;
+    key_color_BS = cur_mapcolor_bsku ? cur_mapcolor_bsku : cur_mapcolor_sprt;
+    key_color_YS = cur_mapcolor_ysku ? cur_mapcolor_ysku : cur_mapcolor_sprt;
+
+    door_color_RS = cur_mapcolor_rsdr ? cur_mapcolor_rsdr : cur_mapcolor_cchg;
+    door_color_BS = cur_mapcolor_bsdr ? cur_mapcolor_bsdr : cur_mapcolor_cchg;
+    door_color_YS = cur_mapcolor_ysdr ? cur_mapcolor_ysdr : cur_mapcolor_cchg;
     door_color_misc = cur_mapcolor_clsd ? cur_mapcolor_clsd : cur_mapcolor_cchg;
 
     Z_ChangeTag(playpal, PU_CACHE);
@@ -2827,9 +2930,15 @@ void AM_BindAutomapVariables(void)
   BIND_CR(mapcolor_rkey, 175, "Color used for red-key sprites");
   BIND_CR(mapcolor_bkey, 204, "Color used for blue-key sprites");
   BIND_CR(mapcolor_ykey, 231, "Color used for yellow-key sprites");
+  BIND_CR(mapcolor_rsku, 175, "color used for red skull sprites");
+  BIND_CR(mapcolor_bsku, 204, "color used for blue skull sprites");
+  BIND_CR(mapcolor_ysku, 231, "color used for yellow skull sprites");
   BIND_CR(mapcolor_rdor, 175, "Color used for closed red doors");
   BIND_CR(mapcolor_bdor, 204, "Color used for closed blue doors");
   BIND_CR(mapcolor_ydor, 231, "Color used for closed yellow doors");
+  BIND_CR(mapcolor_rsdr, 175, "Color used for closed red skull doors");
+  BIND_CR(mapcolor_bsdr, 204, "Color used for closed blue skull doors");
+  BIND_CR(mapcolor_ysdr, 231, "Color used for closed yellow skull doors");
   BIND_CR(mapcolor_tele, 119, "Color used for teleporter lines");
   BIND_CR(mapcolor_secr, 252, "Color used for lines around secret sectors");
   BIND_CR(mapcolor_revsecr, 112, "Color used for lines around revealed secret sectors");
