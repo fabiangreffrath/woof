@@ -1884,26 +1884,26 @@ static const char *hud_anchoring_strings[] = {
     "Wide", "4:3", "16:9", "21:9"
 };
 
-#define H_X_THRM8 (M_X_THRM8 - 14)
-#define H_X       (M_X - 14)
+#define ST_X_THRM4 (M_X_THRM4 - 48)
+#define ST_X       (M_X - 48)
 
 static setup_menu_t stat_settings1[] = {
 
-    {"HUD Layout", S_THERMO, H_X_THRM8, M_THRM_SPC, {"screenblocks"},
+    {"HUD Layout", S_THERMO | S_THRM_SIZE4, ST_X_THRM4, M_THRM_SPC, {"screenblocks"},
      .strings_id = str_screensize, .action = SizeDisplayAlt},
 
     MI_GAP,
 
-    {"HUD Anchoring", S_CHOICE, H_X, M_SPC, {"hud_anchoring"},
+    {"HUD Anchoring", S_CHOICE, ST_X, M_SPC, {"hud_anchoring"},
      .strings_id = str_hud_anchoring, .action = I_UpdateHudAnchoring},
 
     MI_GAP,
 
-    {"Status Bar", S_SKIP | S_TITLE, H_X, M_SPC},
+    {"Status Bar", S_SKIP | S_TITLE, ST_X, M_SPC},
 
-    {"Colored Numbers", S_ONOFF | S_COSMETIC, H_X, M_SPC, {"sts_colored_numbers"}},
+    {"Colored Numbers", S_ONOFF | S_COSMETIC, ST_X, M_SPC, {"sts_colored_numbers"}},
 
-    {"Solid Background Color", S_ONOFF, H_X, M_SPC, {"st_solidbackground"},
+    {"Solid Background", S_ONOFF, ST_X, M_SPC, {"st_solidbackground"},
      .action = RefreshSolidBackground},
 
     MI_RESET,
@@ -1925,6 +1925,8 @@ static const char *show_adv_widgets_strings[] = {"Off", "Automap", "HUD",
 static const char *stats_format_strings[] = {
   "Ratio", "Boolean", "Percent", "Remaining", "Count"
 };
+
+#define H_X       (M_X - 14)
 
 static setup_menu_t stat_settings2[] = {
 
