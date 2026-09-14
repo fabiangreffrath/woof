@@ -10,6 +10,7 @@
   - Player view no longer abruptly jolts when running across very shallow floor height changes
 
 * **Rendering:**
+  - Made the SDL renderer not be cleared every frame, for improved rendering performance in general.
   - Improved palettization of PNG graphics, and general color approximation in the engine.
   - Implemented transposed rendering for improved rendering performance in general.
 
