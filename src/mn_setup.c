@@ -564,7 +564,7 @@ static void DrawTabs(void)
         {
             DrawMenuStringEx(tabs[i].flags, x, rect->y, CR_TITLE);
             V_FillRect(x + video.deltaw, rect->y + M_SPC, rect->w, 1,
-                       colrngs[CR_TITLE][cr_shaded[v_lightest_color]]);
+                       xlat[CR_TITLE].table[cr_shaded[v_lightest_color]]);
         }
         else
         {
@@ -696,9 +696,9 @@ static void DrawIndicator_Meter(const setup_menu_t *s, int x, int y, int width)
         if (scale > 0.0f)
         {
             const byte shade = cr_shaded[v_lightest_color];
-            const byte color = scale < limit    ? cr_green[shade]
-                               : scale >= 0.99f ? cr_red[shade]
-                                                : cr_gold[shade];
+            const byte color = scale < limit    ? xlat[CR_GREEN].table[shade]
+                               : scale >= 0.99f ? xlat[CR_RED].table[shade]
+                                                : xlat[CR_GOLD].table[shade];
             V_FillRect(x, y, lroundf(width * scale), 1, color);
         }
     }
@@ -1043,7 +1043,7 @@ static void DrawSetting(setup_menu_t *s, int accum_y)
         }
         else if (flags & S_HILITE)
         {
-            cr = cr_bright;
+            cr = xlat[CR_BRIGHT].table;
         }
         else
         {
@@ -2061,7 +2061,7 @@ void MN_DrawStatusHUD(void)
         int x = XH_X + 85 - SHORT(patch->width) / 2;
         int y = M_Y + M_SPC / 2 - SHORT(patch->height) / 2 - 1;
 
-        V_DrawPatchTranslated(x, y, patch, colrngs[hud_crosshair_color]);
+        V_DrawPatchTranslated(x, y, patch, xlat[hud_crosshair_color].table);
     }
 
     // If the Reset Button has been selected, an "Are you sure?" message
@@ -3902,7 +3902,7 @@ void MN_DrawStringCR(int cx, int cy, byte *cr1, byte *cr2, const char *ch)
             c = *ch++;
             if (c >= '0' && c <= '0' + CR_NONE)
             {
-                cr = colrngs[c - '0'];
+                cr = xlat[c - '0'].table;
             }
             else if (c == '0' + CR_ORIG)
             {
@@ -3948,7 +3948,7 @@ void MN_DrawStringCR(int cx, int cy, byte *cr1, byte *cr2, const char *ch)
 
 void MN_DrawString(int cx, int cy, int color, const char *ch)
 {
-    MN_DrawStringCR(cx, cy, colrngs[color], NULL, ch);
+    MN_DrawStringCR(cx, cy, xlat[color].table, NULL, ch);
 }
 
 static void DrawMenuString(int cx, int cy, int color)
@@ -3967,11 +3967,11 @@ static void DrawMenuStringBuffer(int flags, int x, int y, int color,
     {
         if (color == CR_NONE)
         {
-            MN_DrawStringCR(x, y, cr_bright, NULL, buffer);
+            MN_DrawStringCR(x, y, xlat[CR_BRIGHT].table, NULL, buffer);
         }
         else
         {
-            MN_DrawStringCR(x, y, colrngs[color], cr_bright, buffer);
+            MN_DrawStringCR(x, y, xlat[color].table, xlat[CR_BRIGHT].table, buffer);
         }
     }
     else
