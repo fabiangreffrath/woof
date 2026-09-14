@@ -54,7 +54,6 @@ static int fade_tick;
 
 static int wipe_init(int width, int height, int ticks)
 {
-    V_PutBlock(0, 0, width, height, wipe_scr_start);
     fade_tick = 0;
     return 0;
 }
@@ -109,9 +108,6 @@ static int wipe_initMelt(int width, int height, int ticks)
 
     curry = ybuff1;
     prevy = ybuff2;
-
-    // copy start screen to main screen
-    V_PutBlock(0, 0, width, height, wipe_scr_start);
 
     // setup initial column positions (y<0 => not ready to scroll yet)
     curry[0] = -(M_Random() % 16);
@@ -268,7 +264,6 @@ int wipe_EndScreen(int x, int y, int width, int height)
     int size = width * height;
     wipe_scr_end = Z_Malloc(size * sizeof(*wipe_scr_end), PU_STATIC, NULL);
     I_ReadScreen(wipe_scr_end);
-    V_DrawBlock(x, y, width, height, wipe_scr_start); // restore start scr.
     return 0;
 }
 
