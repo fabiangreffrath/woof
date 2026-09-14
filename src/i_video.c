@@ -1709,6 +1709,8 @@ void I_ResetScreen(void)
 
     SDL_SetTextureScaleMode(texture, smooth_scaling ? SDL_SCALEMODE_PIXELART
                                                     : SDL_SCALEMODE_NEAREST);
+
+    clearneeded = true;
 }
 
 void I_ShutdownGraphics(void)
