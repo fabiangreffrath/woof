@@ -1155,7 +1155,7 @@ static void UpdateBoomColors(sbarelem_t *elem, player_t *player)
 
     boolean invul = ST_PlayerInvulnerable(player);
 
-    crange_idx_e cr;
+    xlat_index_t cr;
 
     switch (number->type)
     {
@@ -1505,7 +1505,7 @@ static int AdjustY(int y, int height, sbaralignment_t alignment)
 
 static void DrawPatch(int x1, int y1, int *x2, int *y2, boolean dry,
                       crop_t crop, int maxheight, sbaralignment_t alignment,
-                      patch_t *patch, crange_idx_e cr, const byte *tl)
+                      patch_t *patch, xlat_index_t cr, const byte *tl)
 {
     if (!patch)
     {
@@ -1564,7 +1564,7 @@ static void DrawPatch(int x1, int y1, int *x2, int *y2, boolean dry,
         return;
     }
 
-    byte *outr = colrngs[cr];
+    byte *outr = xlat[cr].table;
 
     V_DrawPatchGeneral(x1, y1, xoffset, yoffset, tl, outr, patch, crop);
 }
@@ -1692,7 +1692,7 @@ static void DrawNumber(int x1, int y1, int *x2, int *y2, boolean dry,
 
     if (elem->type == sbe_percent && font->percent != NULL)
     {
-        crange_idx_e oldcr = elem->crboom;
+        xlat_index_t oldcr = elem->crboom;
         if (sts_pct_always_gray)
         {
             elem->crboom = CR_GRAY;
