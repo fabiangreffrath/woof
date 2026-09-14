@@ -562,8 +562,8 @@ void F_StartFinale (void)
       && (gamemission != doom || gameepisode == screen->episode)
       && gamemap == screen->level)
     {
-      finaletext = screen->text;
-      finaleflat = screen->background;
+      finaletext = DEH_String(screen->text);
+      finaleflat = DEH_String(screen->background);
     }
   }
 
