@@ -2202,6 +2202,10 @@ void ST_SetSTHeight(void)
     {
         st_height = CLAMP(statusbar->height, 0, SCREENHEIGHT) & ~1;
     }
+    else if (screenblocks == 10)
+    {
+        st_height = st_height_screenblocks10;
+    }
     else
     {
         st_height = 0;
