@@ -81,10 +81,10 @@ inline static const int BlendChannel(const byte fg, const byte bg,
                                      const double fg_alpha,
                                      const double bg_alpha)
 {
-    const double fg_linear = byte_to_linear(fg);
-    const double bg_linear = byte_to_linear(bg);
+    const double fg_linear = sRGB_ByteToLinear(fg);
+    const double bg_linear = sRGB_ByteToLinear(bg);
     const double r_linear = (fg_linear * fg_alpha) + (bg_linear * bg_alpha);
-    return linear_to_byte(r_linear);
+    return sRGB_LinearToByte(r_linear);
 }
 
 inline static const int ColorBlend(byte *playpal, const byte *fg,
