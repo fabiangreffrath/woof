@@ -36,6 +36,7 @@
 #include "m_swap.h"
 #include "r_data.h"
 #include "r_defs.h"
+#include "r_srgb.h"
 #include "r_state.h"
 #include "r_tranmap.h"
 #include "s_sound.h"
@@ -175,13 +176,13 @@ void V_InitColorTranslation(void)
     byte *palsrc = playpal;
     for (int i = 0; i < 256; ++i)
     {
-        double red   = *palsrc++ / 256.0;
-        double green = *palsrc++ / 256.0;
-        double blue  = *palsrc++ / 256.0;
-
-        // formula is taken from dcolors.c preseving "Carmack's typo"
-        // https://doomwiki.org/wiki/Carmack%27s_typo
-        int gray = (red * 0.299 + green * 0.587 + blue * 0.144) * 255;
+        // Use linear sRGB coefficients to get accurate grayscale.
+        // * https://30fps.net/pages/better-srgb-to-greyscale/
+        // * https://en.wikipedia.org/wiki/Rec._709#Luma_coefficients
+        double red   = sRGB_ByteToLinear(*palsrc++);
+        double green = sRGB_ByteToLinear(*palsrc++);
+        double blue  = sRGB_ByteToLinear(*palsrc++);
+        int gray = sRGB_LinearToByte(red * 0.2126 + green * 0.7152 + blue * 0.0722);
         invul_gray[i] = I_GetNearestColor(playpal, gray, gray, gray);
     }
 }

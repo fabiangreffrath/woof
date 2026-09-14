@@ -1056,43 +1056,12 @@ void I_SetPalette(byte *playpal)
 }
 
 // Taken from Chocolate Doom chocolate-doom/src/i_video.c:L841-867
-
-byte I_GetNearestColor(const byte *palette, int r, int g, int b)
-{
-    byte best;
-    int best_diff, diff;
-    int i, dr, dg, db;
-
-    best = 0;
-    best_diff = INT_MAX;
-
-    for (i = 0; i < 256; ++i)
-    {
-        dr = r - *palette++;
-        dg = g - *palette++;
-        db = b - *palette++;
-
-        diff = dr * dr + dg * dg + db * db;
-
-        if (diff < best_diff)
-        {
-            if (!diff)
-            {
-                return i;
-            }
-
-            best = i;
-            best_diff = diff;
-        }
-    }
-
-    return best;
-}
+// Adapted to use Linear sRGB instead of Gamma sRGB
 
 static boolean linear_palette_init = false;
 static double linear_palette[768];
 
-byte I_GetNearestColorLinear(const byte *palette, int red, int green, int blue)
+byte I_GetNearestColor(const byte *palette, int red, int green, int blue)
 {
     if (!linear_palette_init)
     {
@@ -1105,14 +1074,14 @@ byte I_GetNearestColorLinear(const byte *palette, int red, int green, int blue)
 
         for (int i = 0; i < 768; i++)
         {
-            *linear_palette_rover++ = byte_to_linear(*palette_rover++);
+            *linear_palette_rover++ = sRGB_ByteToLinear(*palette_rover++);
         }
     }
 
     const double
-        linear_red   = byte_to_linear(red),
-        linear_green = byte_to_linear(green),
-        linear_blue  = byte_to_linear(blue);
+        linear_red   = sRGB_ByteToLinear(red),
+        linear_green = sRGB_ByteToLinear(green),
+        linear_blue  = sRGB_ByteToLinear(blue);
 
     byte best = 0;
     double best_diff = INT_MAX;

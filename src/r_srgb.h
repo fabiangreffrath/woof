@@ -19,11 +19,18 @@
 //   liability, whether in an action of contract, tort or otherwise, arising from,
 //   out of or in connection with the Software or the use or other dealings in the
 //   Software.
+
 //
-// References for gamma adjustment:
-//   https://en.wikipedia.org/wiki/SRGB#Definition
-//   https://www.youtube.com/watch?v=LKnqECcg6Gw
-//   https://www.nayuki.io/page/srgb-transform-library
+// So, RGB triplets are normally stored in Gamma sRGB format, this is needed to
+// counteract the inherent non-linearity (exponentiality) of the human eye's
+// light sensitivity. However, this conversion is unsuitable for any manner of
+// color operations, as the colorspace becomes "stretched" from what it should
+// be. This means we need to perform the color operations on an "unstretched"
+// form of the sRGB colorspace, aka linear sRGB. See the timestamped YouTube
+// video below demonstrating the effect in a visual format:
+//
+// * https://en.wikipedia.org/wiki/SRGB#Definition
+// * https://www.youtube.com/watch?v=e0HM_vfSuDw&t=130
 //
 
 #ifndef __R_SRGB_TRANSFORM__
@@ -32,7 +39,7 @@
 #include <math.h>
 #include "doomtype.h"
 
-inline static const double byte_to_linear(const byte c)
+inline static const double sRGB_ByteToLinear(const byte c)
 {
     double cs = c / 255.0;
     if (cs <= 0.04045)
@@ -45,7 +52,7 @@ inline static const double byte_to_linear(const byte c)
     }
 }
 
-inline static const byte linear_to_byte(double x)
+inline static const byte sRGB_LinearToByte(double x)
 {
     if (x <= 0.0031308)
     {

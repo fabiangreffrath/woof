@@ -22,6 +22,7 @@
 #include "doomtype.h"
 #include "i_video.h"
 #include "v_trans.h"
+#include "r_srgb.h"
 #include "v_video.h"
 
 /*
@@ -189,9 +190,9 @@ byte V_Colorize(byte *playpal, int cr, byte source)
 {
     vect rgb, hsv;
 
-    rgb.x = playpal[3 * source + 0] / 255.;
-    rgb.y = playpal[3 * source + 1] / 255.;
-    rgb.z = playpal[3 * source + 2] / 255.;
+    rgb.x = sRGB_ByteToLinear(playpal[3 * source + 0]);
+    rgb.y = sRGB_ByteToLinear(playpal[3 * source + 1]);
+    rgb.z = sRGB_ByteToLinear(playpal[3 * source + 2]);
 
     rgb_to_hsv(&rgb, &hsv);
 
@@ -281,9 +282,9 @@ byte V_Colorize(byte *playpal, int cr, byte source)
 
     hsv_to_rgb(&hsv, &rgb);
 
-    rgb.x *= 255.0;
-    rgb.y *= 255.0;
-    rgb.z *= 255.0;
+    rgb.x = sRGB_LinearToByte(rgb.x);
+    rgb.y = sRGB_LinearToByte(rgb.y);
+    rgb.z = sRGB_LinearToByte(rgb.z);
 
     return I_GetNearestColor(playpal, (int)rgb.x, (int)rgb.y, (int)rgb.z);
 }

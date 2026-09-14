@@ -9,7 +9,7 @@
   - Player view no longer abruptly jolts when running across very shallow floor height changes
 
 * **Rendering:**
-  - Improved palettization of PNG graphics.
+  - Improved palettization of PNG graphics, and general color approximation in the engine.
   - Implemented transposed rendering for improved rendering performance in general.
 
 ## Bug Fixes
