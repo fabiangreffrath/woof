@@ -119,6 +119,8 @@ static SDL_Texture *texture;
 static SDL_Rect src_rect = {0}, dst_rect = {0};
 static SDL_FRect src_frect = {0.0f}, dst_frect = {0.0f};
 
+static boolean clearneeded = false;
+
 static int window_width, window_height;
 static int default_window_width, default_window_height;
 static boolean window_focused = true;
@@ -703,7 +705,12 @@ static void UpdateRender(void)
 
     SDL_UnlockTexture(texture);
 
-    SDL_RenderClear(renderer);
+    if (clearneeded)
+    {
+        SDL_RenderClear(renderer);
+        clearneeded = false;
+    }
+
     SDL_RenderTextureRotated(renderer, texture, &src_frect, &dst_frect, 90.0, NULL, SDL_FLIP_VERTICAL);
 }
 
@@ -1052,6 +1059,8 @@ void I_SetPalette(byte *playpal)
         // emulating VGA "porch" behaviour
         SDL_SetRenderDrawColor(renderer, colors[0].r, colors[0].g, colors[0].b,
                                SDL_ALPHA_OPAQUE);
+
+        clearneeded = true;
     }
 }
 
@@ -1700,6 +1709,8 @@ void I_ResetScreen(void)
 
     SDL_SetTextureScaleMode(texture, smooth_scaling ? SDL_SCALEMODE_PIXELART
                                                     : SDL_SCALEMODE_NEAREST);
+
+    clearneeded = true;
 }
 
 void I_ShutdownGraphics(void)
