@@ -22,36 +22,37 @@
 #include "r_defs.h"
 #include "wi_stuff.h"
 
+typedef enum MI_Finale_e
+{
+  EG_Clear = -1,
+  EG_None,
+  EG_Basic,
+  EG_ArtScreen,
+  EG_CastRollCall,
+  EG_BunnyScroll,
+  EG_CustomFinale,
+} MI_Finale_t;
+
+
 typedef enum
 {
     MI_LabelClear = (1u << 0),
 
-    MI_EndGameClear = (1u << 1),
-    MI_EndGameArt = (1u << 2),
-    MI_EndGameStandard = (1u << 3),
-    MI_EndGameCast = (1u << 4),
-    MI_EndGameBunny = (1u << 5),
-    MI_EndGameCustomFinale = (1u << 6),
+    MI_NoIntermission = (1u << 1),
+    MI_InterTextClear = (1u << 2),
+    MI_InterTextSecretClear = (1u << 3),
 
-    MI_NoIntermission = (1u << 7),
-    MI_InterTextClear = (1u << 8),
-    MI_InterTextSecretClear = (1u << 9),
-
-    MI_BossActionClear = (1u << 10),
-
-    MI_EndGameAny = (MI_EndGameArt | MI_EndGameStandard | MI_EndGameCast
-                     | MI_EndGameBunny | MI_EndGameCustomFinale),
-    MI_EndGameAll = (MI_EndGameAny | MI_EndGameClear)
-} mapinfo_flags_t;
+    MI_BossActionClear = (1u << 4),
+} MI_flags_t;
 
 typedef struct
 {
     int type;
     int special;
     int tag;
-} bossaction_t;
+} MI_BossAction_t;
 
-typedef struct mapentry_s
+typedef struct MI_Entry_s
 {
     char *lumpname;
     char *levelname;
@@ -73,11 +74,12 @@ typedef struct mapentry_s
     char interbackdrop[9];
     char intermusic[9];
     int partime;
-    bossaction_t *bossactions;
-    mapinfo_flags_t flags;
-} mapentry_t;
+    MI_BossAction_t *bossactions;
+    MI_flags_t flags;
+    MI_Finale_t finale;
+} MI_Entry_t;
 
-extern mapentry_t *umapinfo;
+extern MI_Entry_t *umapinfo;
 
 extern boolean EpiCustom;
 
@@ -107,7 +109,7 @@ typedef enum MI_WinDisplay_e
 void MI_ParseUniversalMapInfo(int lumpnum);
 
 // Slot handling
-mapentry_t *MI_MapEntry(int episode, int map);
+MI_Entry_t *MI_MapEntry(int episode, int map);
 boolean MI_MapName(const char *mapname, int *episode, int *map);
 boolean MI_IsSecretMap(int episode, int map);
 void MI_NextMap(int *episode, int *map);

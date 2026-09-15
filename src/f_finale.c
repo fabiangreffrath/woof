@@ -446,9 +446,9 @@ static boolean MapInfo_Ticker()
 
     if (next_level)
     {
-        if (!secretexit && gamemapinfo->flags & MI_EndGameAll)
+        if (!secretexit && gamemapinfo->finale != EG_None)
         {
-            if (gamemapinfo->flags & MI_EndGameCustomFinale)
+            if (gamemapinfo->finale == EG_CustomFinale)
             {
                 if (endfinale->type == END_CAST)
                 {
@@ -467,7 +467,7 @@ static boolean MapInfo_Ticker()
                     }
                 }
             }
-            else if (gamemapinfo->flags & MI_EndGameCast)
+            else if (gamemapinfo->finale == EG_CastRollCall)
             {
                 F_StartCast();
             }
@@ -476,11 +476,11 @@ static boolean MapInfo_Ticker()
                 finalecount = 0;
                 finalestage = FINALE_STAGE_ART;
                 F_SetWipe(); // force a wipe
-                if (gamemapinfo->flags & MI_EndGameBunny)
+                if (gamemapinfo->finale == EG_BunnyScroll)
                 {
                     S_StartMusic(mus_bunny);
                 }
-                else if (gamemapinfo->flags & MI_EndGameStandard)
+                else if (gamemapinfo->finale == EG_Basic)
                 {
                     mapinfo_finale = false;
                 }
@@ -511,7 +511,7 @@ static boolean MapInfo_Drawer(void)
             }
             break;
         case FINALE_STAGE_ART:
-            if (gamemapinfo->flags & MI_EndGameBunny)
+            if (gamemapinfo->finale == EG_BunnyScroll)
             {
                 F_BunnyScroll();
             }
@@ -901,7 +901,7 @@ static void F_StartCast(void)
   F_SetWipe(); // force a screen wipe
   finalestage = FINALE_STAGE_CAST;
 
-  if (gamemapinfo && gamemapinfo->flags & MI_EndGameCustomFinale)
+  if (gamemapinfo && gamemapinfo->finale == EG_CustomFinale)
   {
     EndFinaleCast_SetupCall();
     return;
@@ -946,7 +946,7 @@ static boolean F_CastTicker(void)
   int st;
   int sfx;
 
-  if (gamemapinfo && gamemapinfo->flags & MI_EndGameCustomFinale)
+  if (gamemapinfo && gamemapinfo->finale == EG_CustomFinale)
     return EndFinaleCast_Ticker();
 
   if (--casttics > 0)
@@ -1054,7 +1054,7 @@ static boolean F_CastTicker(void)
 
 static boolean F_CastResponder(event_t* ev)
 {
-  if (gamemapinfo && gamemapinfo->flags & MI_EndGameCustomFinale)
+  if (gamemapinfo && gamemapinfo->finale == EG_CustomFinale)
     return EndFinaleCast_Responder(ev);
 
   if (ev->type != ev_keydown && ev->type != ev_mouseb_down && ev->type != ev_joyb_down)
@@ -1132,7 +1132,7 @@ static void F_CastPrint(const char* text)
 
 static void F_CastDrawer(void)
 {
-  if (gamemapinfo && gamemapinfo->flags & MI_EndGameCustomFinale)
+  if (gamemapinfo && gamemapinfo->finale == EG_CustomFinale)
   {
       EndFinaleCast_Drawer();
       return;

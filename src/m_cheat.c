@@ -359,7 +359,7 @@ static void cheat_autoaim(void)
 static void cheat_mus(char *buf)
 {
   int musnum;
-  mapentry_t* entry;
+  MI_Entry_t* entry;
   
   //jff 3/20/98 note: this cheat allowed in netgame/demorecord
 
@@ -630,7 +630,7 @@ static void cheat_clev0(void)
 static void cheat_clev(char *buf)
 {
   int epsd, map;
-  mapentry_t* entry;
+  MI_Entry_t* entry;
 
   if (gamemode == commercial)
   {

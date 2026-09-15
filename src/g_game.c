@@ -127,7 +127,7 @@ skill_t         gameskill;
 boolean         respawnmonsters;
 int             gameepisode;
 int             gamemap;
-mapentry_t*     gamemapinfo;
+MI_Entry_t*     gamemapinfo;
 
 // If non-zero, exit the level after this number of minutes.
 int             timelimit;

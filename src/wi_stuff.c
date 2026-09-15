@@ -732,7 +732,7 @@ static void WI_drawLF(void)
 {
     int y = WI_TITLEY;
 
-    const mapentry_t *mapinfo = wbs->lastmapinfo;
+    const MI_Entry_t *mapinfo = wbs->lastmapinfo;
 
     // The level defines a new name but no texture for the name.
     if (mapinfo && mapinfo->levelname && !mapinfo->levelpic[0])
@@ -783,7 +783,7 @@ static void WI_drawEL(void)
     // draw "Entering"
     V_DrawPatch((SCREENWIDTH - SHORT(entering->width)) / 2, y, entering);
 
-    const mapentry_t *mapinfo = wbs->nextmapinfo;
+    const MI_Entry_t *mapinfo = wbs->nextmapinfo;
 
     // The level defines a new name but no texture for the name
     if (mapinfo && mapinfo->levelname && !mapinfo->levelpic[0])

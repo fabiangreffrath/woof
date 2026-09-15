@@ -41,7 +41,7 @@
 #include "w_wad.h"
 #include "z_zone.h"
 
-mapentry_t *umapinfo = NULL;
+MI_Entry_t *umapinfo = NULL;
 
 static level_t *secretlevels;
 
@@ -191,7 +191,7 @@ static void ReplaceString(char **to, const char *from)
     *to = M_StringDuplicate(from);
 }
 
-static void FreeMapEntry(mapentry_t *mape)
+static void FreeMapEntry(MI_Entry_t *mape)
 {
     if (mape->levelname)
     {
@@ -259,7 +259,7 @@ static void ParseLumpName(scanner_t *s, char *buffer)
 // These do not get stored in the property list
 // but in dedicated struct member variables.
 
-static void ParseStandardProperty(scanner_t *s, mapentry_t *mape)
+static void ParseStandardProperty(scanner_t *s, MI_Entry_t *mape)
 {
     SC_MustGetToken(s, TK_Identifier);
     char *prop = M_StringDuplicate(SC_GetString(s));
@@ -368,32 +368,27 @@ static void ParseStandardProperty(scanner_t *s, mapentry_t *mape)
     else if (!strcasecmp(prop, "endpic"))
     {
         ParseLumpName(s, mape->endpic);
-        mape->flags &= ~MI_EndGameAny;
-        mape->flags |= MI_EndGameArt;
+        mape->finale = EG_ArtScreen;
     }
     else if (!strcasecmp(prop, "endcast"))
     {
         SC_MustGetToken(s, TK_BoolConst);
-        mape->flags &= ~MI_EndGameAny;
-        mape->flags |= SC_GetBoolean(s) ? MI_EndGameCast : MI_EndGameClear;
+        mape->finale = SC_GetBoolean(s) ? EG_CastRollCall : EG_Clear;
     }
     else if (!strcasecmp(prop, "endbunny"))
     {
         SC_MustGetToken(s, TK_BoolConst);
-        mape->flags &= ~MI_EndGameAny;
-        mape->flags |= SC_GetBoolean(s) ? MI_EndGameBunny : MI_EndGameClear;
+        mape->finale = SC_GetBoolean(s) ? EG_BunnyScroll : EG_Clear;
     }
     else if (!strcasecmp(prop, "endfinale"))
     {
         ParseLumpName(s, mape->endfinale);
-        mape->flags &= ~MI_EndGameAny;
-        mape->flags |= MI_EndGameCustomFinale;
+        mape->finale = EG_CustomFinale;
     }
     else if (!strcasecmp(prop, "endgame"))
     {
         SC_MustGetToken(s, TK_BoolConst);
-        mape->flags &= ~MI_EndGameAny;
-        mape->flags |= SC_GetBoolean(s) ? MI_EndGameStandard : MI_EndGameClear;
+        mape->finale = SC_GetBoolean(s) ? EG_Basic : EG_Clear;
     }
     else if (!strcasecmp(prop, "exitpic"))
     {
@@ -519,7 +514,7 @@ static void ParseStandardProperty(scanner_t *s, mapentry_t *mape)
                 || special == 2074)
             {
                 type = DSDH_ThingTranslate(type);
-                bossaction_t bossaction = {type, special, tag};
+                MI_BossAction_t bossaction = {type, special, tag};
                 array_push(mape->bossactions, bossaction);
             }
         }
@@ -537,7 +532,7 @@ static void ParseStandardProperty(scanner_t *s, mapentry_t *mape)
     free(prop);
 }
 
-static void ParseMapEntry(scanner_t *s, mapentry_t *entry)
+static void ParseMapEntry(scanner_t *s, MI_Entry_t *entry)
 {
     SC_MustGetToken(s, TK_Identifier);
     if (strcasecmp(SC_GetString(s), "map"))
@@ -570,47 +565,47 @@ void MI_ParseUniversalMapInfo(int lumpnum)
                            W_LumpLength(lumpnum));
     while (SC_TokensLeft(s))
     {
-        mapentry_t parsed = {0};
+        MI_Entry_t parsed = {0};
         ParseMapEntry(s, &parsed);
 
         // Set default level progression here to simplify the checks elsewhere.
         // Doing this lets us skip all normal code for this if nothing has been
         // defined.
-        if (parsed.flags & MI_EndGameAll)
+        if (parsed.finale != EG_None)
         {
             parsed.nextmap[0] = 0;
         }
-        else if (!parsed.nextmap[0] && !(parsed.flags & MI_EndGameAll))
+        else if (!parsed.nextmap[0] && (parsed.finale != EG_Clear))
         {
             if (!strcasecmp(parsed.lumpname, "MAP30"))
             {
-                parsed.flags |= MI_EndGameCast;
+                parsed.finale = EG_CastRollCall;
             }
             else if (!strcasecmp(parsed.lumpname, "E1M8"))
             {
-                parsed.flags |= MI_EndGameArt;
+                parsed.finale = EG_ArtScreen;
                 const char *lump =
                     (gamemode == retail && !pwad_help2) ? "CREDIT" : "HELP2";
                 M_CopyLumpName(parsed.endpic, lump);
             }
             else if (!strcasecmp(parsed.lumpname, "E2M8"))
             {
-                parsed.flags |= MI_EndGameArt;
+                parsed.finale = EG_ArtScreen;
                 M_CopyLumpName(parsed.endpic, "VICTORY2");
             }
             else if (!strcasecmp(parsed.lumpname, "E3M8"))
             {
-                parsed.flags |= MI_EndGameBunny;
+                parsed.finale = EG_BunnyScroll;
             }
             else if (!strcasecmp(parsed.lumpname, "E4M8"))
             {
-                parsed.flags |= MI_EndGameArt;
+                parsed.finale = EG_ArtScreen;
                 M_CopyLumpName(parsed.endpic, "ENDPIC");
             }
             else if (gamemission == pack_chex
                      && !strcasecmp(parsed.lumpname, "E1M5"))
             {
-                parsed.flags |= MI_EndGameArt;
+                parsed.finale = EG_ArtScreen;
                 strcpy(parsed.endpic, "CREDIT");
             }
             else
@@ -645,12 +640,12 @@ void MI_ParseUniversalMapInfo(int lumpnum)
 }
 
 // Slot handling
-mapentry_t *MI_MapEntry(int episode, int map)
+MI_Entry_t *MI_MapEntry(int episode, int map)
 {
     char lumpname[9] = {0};
     M_StringCopy(lumpname, MapName(episode, map), sizeof(lumpname));
 
-    mapentry_t *entry;
+    MI_Entry_t *entry;
     array_foreach(entry, umapinfo)
     {
         if (!strcasecmp(lumpname, entry->lumpname))
@@ -798,7 +793,7 @@ boolean MI_PreviousMap(int *episode, int *map)
     boolean ret = false;
     int cur_episode = gameepisode;
     int cur_map = gamemap;
-    mapentry_t *cur_gamemapinfo = gamemapinfo;
+    MI_Entry_t *cur_gamemapinfo = gamemapinfo;
 
     do
     {
@@ -1114,7 +1109,7 @@ boolean MI_BossAction(mobj_t *mo)
             return true; // no one left alive, so do not end game
         }
 
-        bossaction_t *bossaction;
+        MI_BossAction_t *bossaction;
         array_foreach(bossaction, gamemapinfo->bossactions)
         {
             if (bossaction->type == mo->type)
@@ -1316,7 +1311,7 @@ void MI_SpecHits(line_t *dummy, int *speciallines, boolean *trigger_keen)
             {
                 mobj_t *mo = (mobj_t *)th;
 
-                bossaction_t *bossaction;
+                MI_BossAction_t *bossaction;
                 array_foreach(bossaction, gamemapinfo->bossactions)
                 {
                     if (bossaction->type == mo->type)
@@ -1476,7 +1471,7 @@ MI_Completion_t MI_PrepareIntermission(wbstartstruct_t *wminfo)
     {
         const char *next = "";
 
-        if (gamemapinfo->flags & MI_EndGameAny
+        if (gamemapinfo->finale >= EG_Basic
             && gamemapinfo->flags & MI_NoIntermission)
         {
             return DC_Victory;
@@ -1607,7 +1602,7 @@ MI_WinDisplay_t MI_PrepareFinale(void)
     {
         MI_WinDisplay_t res = 0;
         if (gamemapinfo->flags & MI_InterTextClear
-            && gamemapinfo->flags & MI_EndGameAny)
+            && gamemapinfo->finale >= EG_Basic)
         {
             I_Printf(
                 VB_DEBUG,
@@ -1627,7 +1622,7 @@ MI_WinDisplay_t MI_PrepareFinale(void)
         {
             res = gamemapinfo->flags & MI_InterTextClear ? 0 : WD_StartFinale;
         }
-        else if (gamemapinfo->flags & MI_EndGameAny && !secretexit)
+        else if (gamemapinfo->finale >= EG_Basic && !secretexit)
         {
             res = WD_Victory;
         }
@@ -1714,7 +1709,7 @@ MI_ShowNext_t MI_ShowNextLoc(void)
     // UMAPINFO
     if (gamemapinfo)
     {
-        if (gamemapinfo->flags & MI_EndGameAny)
+        if (gamemapinfo->finale >= EG_Basic)
         {
             return WI_ShowNextDone;
         }
@@ -1741,7 +1736,7 @@ boolean MI_SkipShowNextLoc(void)
     // UMAPINFO
     if (gamemapinfo)
     {
-        return (gamemapinfo->flags & MI_EndGameAny) != 0;
+        return (gamemapinfo->finale >= EG_Basic);
     }
 
     // Legacy
