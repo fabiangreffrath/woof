@@ -354,6 +354,21 @@ typedef enum {
   sfx_plosml,
   sfx_lavsml,
 
+  // optional menu and intermission sounds
+  sfx_mnuopn,
+  sfx_mnucls,
+  sfx_mnuact,
+  sfx_mnubak,
+  sfx_mnumov,
+  sfx_mnusli,
+  sfx_mnusel,
+  sfx_mnuerr,
+  sfx_inttic,
+  sfx_inttot,
+  sfx_intnex,
+  sfx_intnet,
+  sfx_intdms,
+
   sfx_fre000 = 500,
   sfx_fre001,
   sfx_fre002,

@@ -442,7 +442,7 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
     // [FG] colored blood and gibs
     if (vis->mobjflags_extra & MFX_COLOREDBLOOD)
     {
-      dc_translation = red2col[vis->color];
+      dc_translation = xlat[vis->color].lump;
     }
     else if (vis->mobjflags & MF_TRANSLATION)
     {

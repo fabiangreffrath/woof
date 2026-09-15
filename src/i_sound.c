@@ -475,28 +475,44 @@ void I_ShutdownSound(void)
     snd_init = false;
 }
 
-// [FG] add links for likely missing sounds
+// add links for optional sounds
 
-struct
+static void LinkOptionalSounds(void)
 {
-    const int from, to;
-} static const sfx_subst[] = {
-    {sfx_secret, sfx_itmbk },
-    {sfx_itmbk,  sfx_getpow},
-    {sfx_getpow, sfx_itemup},
-    {sfx_itemup, sfx_None  },
+    struct
+    {
+        const int from, to;
+    } const sfx_subst[] = {
+        // "a secret is revealed" sound
+        {sfx_secret, sfx_itmbk },
+        {sfx_itmbk,  sfx_getpow},
+        {sfx_getpow, sfx_itemup},
+        {sfx_itemup, sfx_None  },
 
-    {sfx_splash, sfx_oof   },
-    {sfx_ploosh, sfx_oof   },
-    {sfx_lvsiz,  sfx_oof   },
-    {sfx_splsml, sfx_None  },
-    {sfx_plosml, sfx_None  },
-    {sfx_lavsml, sfx_None  },
-};
+        // sounds when hitting animated floor
+        {sfx_splash, sfx_oof   },
+        {sfx_ploosh, sfx_oof   },
+        {sfx_lvsiz,  sfx_oof   },
+        {sfx_splsml, sfx_None  },
+        {sfx_plosml, sfx_None  },
+        {sfx_lavsml, sfx_None  },
 
-static void LinkSounds(void)
-{
-    // [FG] add links for likely missing sounds
+        // optional menu and intermission sounds
+        {sfx_mnuopn, sfx_swtchn},
+        {sfx_mnucls, sfx_swtchx},
+        {sfx_mnuact, sfx_pistol},
+        {sfx_mnubak, sfx_swtchn},
+        {sfx_mnumov, sfx_pstop },
+        {sfx_mnusli, sfx_stnmov},
+        {sfx_mnusel, sfx_itemup},
+        {sfx_mnuerr, sfx_oof   },
+        {sfx_inttic, sfx_pistol},
+        {sfx_inttot, sfx_barexp},
+        {sfx_intnex, sfx_sgcock},
+        {sfx_intnet, sfx_pldeth},
+        {sfx_intdms, sfx_slop  },
+    };
+
     for (int i = 0; i < arrlen(sfx_subst); i++)
     {
         sfxinfo_t *from = &S_sfx[sfx_subst[i].from],
@@ -558,7 +574,7 @@ void I_InitSound(void)
     I_Printf(VB_INFO, " Precaching all sound effects... ");
     CacheSounds();
     I_Printf(VB_INFO, "done.");
-    LinkSounds();
+    LinkOptionalSounds();
 }
 
 boolean I_AllowReinitSound(void)
