@@ -1236,6 +1236,19 @@ static void M_ReadSaveString(char *name, int menu_slot, int save_slot,
         }
     }
 
+    // Try to read description and snapshot from the companion file first
+
+    char *json_name = M_StringJoin(name, SAVEGAME_SNAPSHOT_EXT);
+    if (M_FileExistsNotDir(json_name))
+    {
+        free(name);
+        name = json_name;
+    }
+    else
+    {
+        free(json_name);
+    }
+
     // Open file and read content
 
     int savegamesize = M_ReadFile(name, &save_p);

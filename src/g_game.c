@@ -2518,6 +2518,34 @@ static uint64_t G_Signature(int sig_epi, int sig_map)
   return s;
 }
 
+static void DoSaveSnapshot(char *name)
+{
+    json_mut_doc_t *doc = JS_NewDoc();
+    json_mut_t *root_mut = JS_NewObject(doc);
+    JS_SetRoot(doc, root_mut);
+
+    JS_SetString(doc, root_mut, "savedescription", savedescription);
+    JS_SetString(doc, root_mut, "version_name", PROJECT_STRING);
+
+    char *snapshot = MN_WriteSnapshot();
+    JS_SetString(doc, root_mut, "snapshot", snapshot);
+
+    size_t json_len;
+    char *json_str = JS_DocWriteString(doc, &json_len);
+    JS_FreeDoc(doc);
+    free(snapshot);
+
+    json_len++; // include null-terminator
+    char *json_buf = malloc(json_len);
+    M_StringCopy(json_buf, json_str, json_len);
+    free(json_str);
+
+    char *json_filename = M_StringJoin(name, SAVEGAME_SNAPSHOT_EXT);
+    M_WriteFile(json_filename, json_buf, json_len);
+    free(json_filename);
+    free(json_buf);
+}
+
 static json_mut_t *WriteOptionsJSON(json_mut_doc_t * doc);
 static json_mut_t *WriteCustomSkillOptionsJSON(json_mut_doc_t *doc);
 
@@ -2600,20 +2628,11 @@ static void DoSaveGame(char *name)
     // save max_kill_requirement
     JS_SetInt(doc, root_mut, "max_kill_requirement", max_kill_requirement);
 
-#ifndef SAVEGAME_NO_SNAPSHOT
-    char *snapshot = MN_WriteSnapshot();
-    JS_SetString(doc, root_mut, "snapshot", snapshot);
-#endif
-
     // Serialise the document to a JSON string, then free it – the string
     // owns its own memory and is independent of the JSON document.
     size_t json_len;
     char *json_str = JS_DocWriteString(doc, &json_len);
     JS_FreeDoc(doc);
-
-#ifndef SAVEGAME_NO_SNAPSHOT
-    free(snapshot);
-#endif
 
     // Compress the JSON string with miniz and write the result to the save
     // buffer as: [uint32 json_len][zlib stream].
@@ -2688,6 +2707,10 @@ static void DoSaveGame(char *name)
 
     Z_Free(savebuffer); // killough
     savebuffer = save_p = NULL;
+
+#ifndef SAVEGAME_NO_SNAPSHOT
+    DoSaveSnapshot(name);
+#endif
 
     gameaction = ga_nothing;
     savedescription[0] = 0;
