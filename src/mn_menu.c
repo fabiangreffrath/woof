@@ -949,7 +949,7 @@ static void M_DrawSaveLoadBottomLine(void)
     int index = (menu_input == mouse_mode ? highlight_item : itemOn);
 
     int flags = currentMenu->menuitems[index].flags;
-    byte *cr = (flags & MF_PAGE) ? cr_bright : NULL;
+    byte *cr = (flags & MF_PAGE) ? xlat[CR_BRIGHT].table : NULL;
 
     M_DrawSaveLoadBorder(x, y, cr);
 
@@ -985,12 +985,12 @@ static void M_DrawSaveLoadBorders(void)
         const int y = currentMenu->y + LINEHEIGHT * i;
 
         const menuitem_t *item = &currentMenu->menuitems[i];
-        byte *cr = (item->flags & MF_HILITE) ? cr_bright : NULL;
+        byte *cr = (item->flags & MF_HILITE) ? xlat[CR_BRIGHT].table : NULL;
 
         M_DrawSaveLoadBorder(x, y, cr);
 
         byte *cr2 =
-            (savepage == quickSavePage && i == slot) ? cr_gold : NULL;
+            (savepage == quickSavePage && i == slot) ? xlat[CR_GOLD].table : NULL;
         WriteTextCR(x, y, cr2, savegamestrings[i]);
     }
 }
@@ -1397,7 +1397,7 @@ static void M_DrawSave(void)
     {
         i = MN_StringWidth(savegamestrings[saveSlot]);
         byte *cr = (savepage == quickSavePage && itemOn == quickSaveSlot)
-                       ? cr_gold
+                       ? xlat[CR_GOLD].table
                        : NULL;
         WriteTextCR(currentMenu->x + i, currentMenu->y + LINEHEIGHT * saveSlot,
                     cr, "_");
@@ -1682,7 +1682,7 @@ static void M_DrawSound(void)
 
     if (index == sfx_vol_thermo && (item->flags & MF_HILITE))
     {
-        cr = cr_bright;
+        cr = xlat[CR_BRIGHT].table;
     }
     else
     {
@@ -1694,7 +1694,7 @@ static void M_DrawSound(void)
 
     if (index == music_vol_thermo && (item->flags & MF_HILITE))
     {
-        cr = cr_bright;
+        cr = xlat[CR_BRIGHT].table;
     }
     else
     {
@@ -3695,7 +3695,7 @@ void M_Drawer(void)
         }
         else if (item->flags & MF_HILITE)
         {
-            cr = cr_bright;
+            cr = xlat[CR_BRIGHT].table;
         }
         else
         {
