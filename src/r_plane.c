@@ -114,6 +114,7 @@ static fixed_t viewx_trans, viewy_trans;
 fixed_t *yslope = NULL;
 
 // [Nugget] Sky projection
+skyprojection_t sky_projection;
 static angle_t *xtoskyangle;
 
 // Hexen-style foreground sky rendering

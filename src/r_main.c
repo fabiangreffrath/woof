@@ -120,9 +120,6 @@ int extralight;                           // bumped light from gun blasts
 
 int extra_level_brightness;               // level brightness feature
 
-// [Nugget] Sky projection
-skyprojection_t sky_projection;
-
 void (*colfunc)(void);                    // current column draw function
 
 //

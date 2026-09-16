@@ -36,6 +36,7 @@
 #define SKYSTRETCH_HEIGHT 228
 extern boolean stretchsky;
 
+// [Nugget] Sky projection
 typedef enum skyprojection_s {
   SKYPROJ_VANILLA,
   SKYPROJ_LINEAR,
