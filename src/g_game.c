@@ -224,7 +224,6 @@ boolean joybuttons[NUM_GAMEPAD_BUTTONS];
 
 static int   savegameslot = -1;
 static int   savegamepage;
-static boolean savegamequick;
 char  savedescription[32];
 
 static boolean save_autosave;
@@ -2421,11 +2420,10 @@ void G_SaveAutoSave(char *description)
   save_autosave = true;
 }
 
-void G_SaveGame(int slot, int page, char *description, boolean quicksave)
+void G_SaveGame(int slot, int page, char *description)
 {
   savegameslot = slot;
   savegamepage = page;
-  savegamequick = quicksave;
   strcpy(savedescription, description);
   sendsave = true;
 }
@@ -2536,7 +2534,7 @@ static uint64_t G_Signature(int sig_epi, int sig_map)
 static json_mut_t *WriteOptionsJSON(json_mut_doc_t * doc);
 static json_mut_t *WriteCustomSkillOptionsJSON(json_mut_doc_t *doc);
 
-static void DoSaveGame(char *name, const char *success_msg)
+static void DoSaveGame(char *name)
 {
     json_mut_doc_t *doc = JS_NewDoc();
     json_mut_t *root_mut = JS_NewObject(doc);
@@ -2698,7 +2696,7 @@ static void DoSaveGame(char *name, const char *success_msg)
     }
     else
     {
-        displaymsg("%s", success_msg);
+        displaymsg("%s", DEH_String(GGSAVED));
     }
 
     Z_Free(savebuffer); // killough
@@ -2713,19 +2711,7 @@ static void DoSaveGame(char *name, const char *success_msg)
 static void G_DoSaveGame(void)
 {
   char *name = G_SaveGameName(savegameslot, savegamepage);
-  char msg[64];
-
-  if (savegamequick)
-  {
-    M_snprintf(msg, sizeof(msg), "quicksave on page %d slot %d",
-               savegamepage + 1, savegameslot + 1);
-  }
-  else
-  {
-    M_snprintf(msg, sizeof(msg), "%s", DEH_String(GGSAVED));
-  }
-
-  DoSaveGame(name, msg);
+  DoSaveGame(name);
   MN_SetQuickSaveSlot(savegameslot, savegamepage);
   free(name);
 }
@@ -2733,7 +2719,7 @@ static void G_DoSaveGame(void)
 static void G_DoSaveAutoSave(void)
 {
   char *name = G_AutoSaveName();
-  DoSaveGame(name, DEH_String(GGSAVED));
+  DoSaveGame(name);
   free(name);
 }
 

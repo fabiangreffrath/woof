@@ -53,7 +53,7 @@ void G_LoadGame(char *name, int slot, int page, boolean is_command); // killough
 void G_ForcedLoadAutoSave(void);
 void G_ForcedLoadGame(void);           // killough 5/15/98: forced loadgames
 void G_SaveAutoSave(char *description);
-void G_SaveGame(int slot, int page, char *description, boolean quicksave); // Called by M_Responder.
+void G_SaveGame(int slot, int page, char *description); // Called by M_Responder.
 boolean G_AutoSaveEnabled(void);
 boolean G_LoadAutoSaveDeathUse(void);
 boolean G_LoadGameDeathUse(void);

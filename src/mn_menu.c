@@ -1435,9 +1435,9 @@ static void M_DrawSave(void)
 //
 // M_Responder calls this when user is finished
 //
-static void M_DoSave(int slot, int page, boolean quicksave)
+static void M_DoSave(int slot, int page)
 {
-    G_SaveGame(slot, page, savegamestrings[slot], quicksave);
+    G_SaveGame(slot, page, savegamestrings[slot]);
     MN_ClearMenus();
 }
 
@@ -1537,7 +1537,7 @@ static boolean GamepadSave(int choice)
     {
         // Immediately save game using a default name.
         SetDefaultSaveName(savegamestrings[choice], NULL);
-        M_DoSave(choice, savepage, quickSaveSlot == -2);
+        M_DoSave(choice, savepage);
         LoadDef.lastOn = choice;
         QuickLoadDef.lastOn = choice;
         LoadAutoSaveDef.lastOn = choice + 1;
@@ -1802,7 +1802,7 @@ static void M_QuickSaveResponse(int ch)
         {
             SetDefaultSaveName(savegamestrings[quickSaveSlot], NULL);
         }
-        M_DoSave(quickSaveSlot, quickSavePage, true);
+        M_DoSave(quickSaveSlot, quickSavePage);
         M_StartSound(sfx_mnucls);
     }
 }
@@ -3247,7 +3247,7 @@ boolean M_Responder(event_t *ev)
             saveStringEnter = 0;
             if (savegamestrings[saveSlot][0])
             {
-                M_DoSave(saveSlot, savepage, quickSaveSlot == -2);
+                M_DoSave(saveSlot, savepage);
             }
         }
         else if (ev->type == ev_text)
