@@ -11,9 +11,9 @@
   - The Minimap now always follows the player
 
 * **Rendering:**
-  - Made the SDL renderer not be cleared every frame, for improved rendering performance in general.
   - Improved palettization of PNG graphics, and general color approximation in the engine.
   - Implemented transposed rendering for improved rendering performance in general.
+  - Added the `clear_every_frame` config key to disable clearing of SDL's renderer every frame.
 
 ## Bug Fixes
 
