@@ -502,6 +502,8 @@ static void AM_findMinMaxBoundaries(am_viewstate_t *am)
   AM_setMinMaxScale(am);
 }
 
+// Let the IDDST/IDDKT/IDDIT cheat codes center the map around the x/y coordinate
+// (full Automap only)
 void AM_SetMapCenter(fixed_t x, fixed_t y)
 {
   am_viewstate_t *am = &am_view[AM_VIEW_FULL];
@@ -1195,6 +1197,7 @@ static void AM_doFollowPlayer(am_viewstate_t *am)
 //
 // killough 10/98: return coordinates, to allow use of a non-follow-mode
 // pointer. Allows map inspection without moving player to the location.
+// (full Automap only)
 //
 
 static boolean map_point_coord;

@@ -8,6 +8,7 @@
 
 * **Quality of Life:**
   - Player view no longer abruptly jolts when running across very shallow floor height changes
+  - The Minimap now always follows the player
 
 * **Rendering:**
   - Improved palettization of PNG graphics, and general color approximation in the engine.
