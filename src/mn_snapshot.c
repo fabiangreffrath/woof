@@ -49,20 +49,19 @@ void MN_ResetSnapshot(int i)
 
 // [FG] try to read snapshot data from the end of a savegame file
 
-boolean MN_ReadSnapshot(int i, const byte *buf, int len)
+boolean MN_ReadSnapshot(int i, const byte *buf, int len, boolean decode)
 {
     MN_ResetSnapshot(i);
 
-    if (buf == NULL)
+    if (buf == NULL ||len <= 0)
     {
         return false;
     }
 
     // Check if base64-encoded or legacy
-    if (len == 0)
+    if (decode)
     {
         byte *str;
-        len = strlen((char *)buf);
 
         if ((snapshots[i] = malloc(snapshot_size * sizeof(**snapshots))) == NULL)
         {

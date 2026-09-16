@@ -1311,12 +1311,14 @@ static void M_ReadSaveString(char *name, int menu_slot, int save_slot,
     if (root)
     {
         const char *savegamestring = JS_GetStringValue(root, "savedescription");
-        const char *snapshot = JS_GetStringValue(root, "snapshot");
+        json_t *snapshot_obj = JS_GetObject(root, "snapshot");
+        const char *snapshot = JS_GetString(snapshot_obj);
+        const int snapshot_len = JS_GetStringLen(snapshot_obj);
 
         M_snprintf(savegamestrings[menu_slot], SAVESTRINGSIZE, "%s",
                    savegamestring ? savegamestring : DEH_String(EMPTYSTRING));
 
-        if (!MN_ReadSnapshot(menu_slot, (byte *)snapshot, 0))
+        if (!MN_ReadSnapshot(menu_slot, (byte *)snapshot, snapshot_len, true))
         {
             MN_ResetSnapshot(menu_slot);
         }
@@ -1328,7 +1330,7 @@ static void M_ReadSaveString(char *name, int menu_slot, int save_slot,
         M_snprintf(savegamestrings[menu_slot], SAVESTRINGSIZE, "%s",
                    (char *)savebuffer);
 
-        if (!MN_ReadSnapshot(menu_slot, savebuffer, savegamesize))
+        if (!MN_ReadSnapshot(menu_slot, savebuffer, savegamesize, false))
         {
             MN_ResetSnapshot(menu_slot);
         }

@@ -21,7 +21,7 @@
 #include "doomtype.h"
 
 void MN_ResetSnapshot(int i);
-boolean MN_ReadSnapshot(int i, const byte *buf, int len);
+boolean MN_ReadSnapshot(int i, const byte *buf, int len, boolean decode);
 char *MN_WriteSnapshot(void);
 boolean MN_DrawSnapshot(int i, int x, int y, int w, int h);
 
