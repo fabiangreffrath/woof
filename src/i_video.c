@@ -499,9 +499,9 @@ static void DeferredRenderClear(void)
     // thus, we queue multiple clears for the following frames
 
     // We don't know the specifics of SDL's current renderer,
-    // so we'll assume that 4 frames is enough
+    // so we'll assume that 60 frames is enough to clear all buffers
 
-    clearneeded = 4;
+    clearneeded = 60;
 }
 
 static void ProcessEvent(SDL_Event *ev)
