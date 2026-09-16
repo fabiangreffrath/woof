@@ -53,7 +53,7 @@ boolean MN_ReadSnapshot(int i, const byte *buf, int len, boolean decode)
 {
     MN_ResetSnapshot(i);
 
-    if (buf == NULL ||len <= 0)
+    if (buf == NULL || len <= 0)
     {
         return false;
     }
