@@ -132,48 +132,53 @@ void (*colfunc)(void);                    // current column draw function
 //
 int (*R_PointOnSide)(fixed_t x, fixed_t y, struct node_s *node) = R_PointOnSide_Classic;
 
-// Workaround for optimization bug in clang
-// fixes desync in competn/doom/fp2-3655.lmp and in dmnsns.wad dmn01m909.lmp
-#if defined(__clang__)
-int R_PointOnSide_Classic(volatile fixed_t x, volatile fixed_t y, node_t *node)
-#else
 int R_PointOnSide_Classic(fixed_t x, fixed_t y, node_t *node)
-#endif
 {
-  if (!node->dx)
-    return x <= node->x ? node->dy > 0 : node->dy < 0;
+    if (!node->dx)
+    {
+        return x <= node->x ? node->dy > 0 : node->dy < 0;
+    }
 
-  if (!node->dy)
-    return y <= node->y ? node->dx < 0 : node->dx > 0;
-        
-  x -= node->x;
-  y -= node->y;
-  
-  // Try to quickly decide by looking at sign bits.
-  if ((node->dy ^ node->dx ^ x ^ y) < 0)
-    return (node->dy ^ x) < 0;  // (left is negative)
-  return FixedMul(y, node->dx>>FRACBITS) >= FixedMul(node->dy>>FRACBITS, x);
+    if (!node->dy)
+    {
+        return y <= node->y ? node->dx < 0 : node->dx > 0;
+    }
+
+    // Workaround for optimization bug in clang
+    // fixes desync in competn/doom/fp2-3655.lmp and in dmnsns.wad dmn01m909.lmp
+    x = (fixed_t)((unsigned int)x - (unsigned int)node->x);
+    y = (fixed_t)((unsigned int)y - (unsigned int)node->y);
+
+    // Try to quickly decide by looking at sign bits.
+    if ((node->dy ^ node->dx ^ x ^ y) < 0)
+    {
+        return (node->dy ^ x) < 0; // (left is negative)
+    }
+    return FixedMul(y, node->dx >> FRACBITS)
+           >= FixedMul(node->dy >> FRACBITS, x);
 }
 
-#if defined(__clang__)
-int R_PointOnSide_Precise(volatile fixed_t x, volatile fixed_t y, node_t *node)
-#else
 int R_PointOnSide_Precise(fixed_t x, fixed_t y, node_t *node)
-#endif
 {
-   if(!node->dx)
-      return x <= node->x ? node->dy > 0 : node->dy < 0;
+    if (!node->dx)
+    {
+        return x <= node->x ? node->dy > 0 : node->dy < 0;
+    }
 
-   if(!node->dy)
-      return y <= node->y ? node->dx < 0 : node->dx > 0;
+    if (!node->dy)
+    {
+        return y <= node->y ? node->dx < 0 : node->dx > 0;
+    }
 
-   x -= node->x;
-   y -= node->y;
+    x = (fixed_t)((unsigned int)x - (unsigned int)node->x);
+    y = (fixed_t)((unsigned int)y - (unsigned int)node->y);
 
-   // Try to quickly decide by looking at sign bits.
-   if((node->dy ^ node->dx ^ x ^ y) < 0)
-      return (node->dy ^ x) < 0;  // (left is negative)
-   return (int64_t)y * node->dx >= (int64_t)node->dy * x;
+    // Try to quickly decide by looking at sign bits.
+    if ((node->dy ^ node->dx ^ x ^ y) < 0)
+    {
+        return (node->dy ^ x) < 0; // (left is negative)
+    }
+    return (int64_t)y * node->dx >= (int64_t)node->dy * x;
 }
 
 // killough 5/2/98: reformatted
@@ -524,26 +529,18 @@ void R_ExecuteSetViewSize (void)
 
   setsizeneeded = false;
 
-  if (setblocks <= 10)
-  {
-    st_height = st_height_screenblocks10;
-  }
+  if (setblocks >= 10)
+    {
+      ST_SetSTHeight();
 
-  if (setblocks == 11)
-    {
       scaledviewwidth_nonwide = NONWIDEWIDTH;
       scaledviewwidth = video.unscaledw;
-      scaledviewheight = SCREENHEIGHT;                    // killough 11/98
-    }
-  // [crispy] hard-code to SCREENWIDTH and SCREENHEIGHT minus status bar height
-  else if (setblocks == 10)
-    {
-      scaledviewwidth_nonwide = NONWIDEWIDTH;
-      scaledviewwidth = video.unscaledw;
-      scaledviewheight = SCREENHEIGHT - st_height;
+      scaledviewheight = SCREENHEIGHT - st_height; // killough 11/98
     }
   else
     {
+      st_height = st_height_screenblocks10;
+
       const int st_screen = SCREENHEIGHT - st_height;
 
       scaledviewwidth_nonwide = setblocks * 32;
