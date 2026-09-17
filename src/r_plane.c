@@ -113,8 +113,8 @@ static fixed_t viewx_trans, viewy_trans;
 
 fixed_t *yslope = NULL;
 
-// [FG] linear horizontal sky scrolling
-boolean linearsky;
+// [Nugget] Sky projection
+skyprojection_t sky_projection;
 static angle_t *xtoskyangle;
 
 // Hexen-style foreground sky rendering
@@ -127,7 +127,8 @@ static byte *skytran;
 //
 void R_InitPlanes (void)
 {
-  xtoskyangle = linearsky ? linearskyangle : xtoviewangle;
+  // [Nugget] Sky projection
+  xtoskyangle = (sky_projection == SKYPROJ_LINEAR) ? linearskyangle : xtoviewangle;
   skytran = W_CacheLumpName("SKYTRAN", PU_STATIC);
 }
 
@@ -490,11 +491,20 @@ static void DrawSkyTex(visplane_t *pl, sky_t *sky, skytex_t *skytex)
 
     const angle_t an = viewangle + deltax;
 
+    // [Nugget] Sky projection
+    const fixed_t base_iscale = dc_iscale;
+
     for (int x = pl->minx; x <= pl->maxx; x++)
     {
         dc_x = x;
         dc_yl = pl->top[x];
         dc_yh = pl->bottom[x];
+
+        // [Nugget] Sky projection
+        if (sky_projection == SKYPROJ_CYLINDRICAL)
+        {
+            dc_iscale = FixedMul(base_iscale, finecosine[xtoviewangle[x] >> ANGLETOFINESHIFT]);
+        }
 
         if (dc_yl != USHRT_MAX && dc_yl <= dc_yh)
         {

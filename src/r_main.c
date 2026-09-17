@@ -966,7 +966,9 @@ void R_BindRenderVariables(void)
   BIND_NUM_GENERAL(fuzzmode, FUZZ_BLOCKY, FUZZ_BLOCKY, FUZZ_ORIGINAL,
     "Partial Invisibility (0 = Blocky; 1 = Refraction; 2 = Shadow, 3 = Original)");
   BIND_BOOL_GENERAL(stretchsky, false, "Stretch short skies");
-  BIND_BOOL_GENERAL(linearsky, false, "Linear horizontal scrolling for skies");
+  M_BindNum("sky_projection", &sky_projection, NULL,
+            SKYPROJ_VANILLA, SKYPROJ_VANILLA, NUM_SKYPROJS-1, ss_gen, wad_no,
+            "Sky projection (0 = Vanilla; 1 = Linear; 2 = Cylindrical)");
   BIND_BOOL_GENERAL(r_swirl, false, "Swirling animated flats");
   M_BindBool("voxels_rendering", &default_voxels_rendering, &voxels_rendering,
              true, ss_none, wad_no, "Allow voxel models");
