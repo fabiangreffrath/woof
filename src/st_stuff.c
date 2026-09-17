@@ -832,7 +832,7 @@ static void UpdateFace(sbe_face_t *face, player_t *player)
     if (priority < 10)
     {
         // dead
-        if (!player->health && player->mo)
+        if (!player->health)
         {
             priority = 9;
             face->faceindex = DeadFace(player);
@@ -1276,7 +1276,7 @@ static void UpdateCanvasOfElem(sbarelem_t *elem, player_t *player);
 static void UpdateElem(sbarelem_t *elem, player_t *player)
 {
     elem->enabled = CheckConditions(elem->conditions, player);
-    if (!elem->enabled)
+    if (!elem->enabled || !player->mo)
     {
         return;
     }
