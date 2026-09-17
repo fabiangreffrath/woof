@@ -832,7 +832,7 @@ static void UpdateFace(sbe_face_t *face, player_t *player)
     if (priority < 10)
     {
         // dead
-        if (!player->health)
+        if (!player->health && player->mo)
         {
             priority = 9;
             face->faceindex = DeadFace(player);
@@ -2491,6 +2491,22 @@ const char **ST_StatusbarList(void)
         }
     }
     return strings;
+}
+
+int ST_FullscreenStatusbar(void)
+{
+    if (sbardef)
+    {
+        for (int i = 0; i < array_size(sbardef->statusbars); ++i)
+        {
+            if (sbardef->statusbars[i].fullscreenrender)
+            {
+                return 10 + i;
+            }
+        }
+    }
+
+    return screenblocks; // default to current view
 }
 
 void ST_ResetPalette(void)

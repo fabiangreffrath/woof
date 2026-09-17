@@ -3297,13 +3297,14 @@ void G_CleanScreenshot(void)
   if (gamestate != GS_LEVEL)
       return;
 
+  screenblocks = ST_FullscreenStatusbar();
   hud_crosshair = 0;
   hide_weapon = true;
 
-  R_SetViewSize(11);
+  R_SetViewSize(screenblocks);
   R_ExecuteSetViewSize();
   R_RenderPlayerView(&players[displayplayer]);
-  R_SetViewSize(old_screenblocks);
+  R_SetViewSize(screenblocks = old_screenblocks);
 
   hud_crosshair = old_hud_crosshair;
   hide_weapon = old_hide_weapon;
