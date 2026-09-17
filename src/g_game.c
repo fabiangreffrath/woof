@@ -3095,6 +3095,7 @@ static boolean DoLoadGame(boolean do_load_autosave)
     if (!CheckStreamLength((int32_t)decomp_len) || !CheckZlibHeader(save_p))
     {
         save_p = savebuffer;
+        decomp_len = (mz_ulong)saveg_read32();
     }
 
     if (CheckStreamLength((int32_t)decomp_len) && CheckZlibHeader(save_p))
