@@ -329,13 +329,7 @@ void P_DeathThink (player_t* player)
 
     if (!G_AutoSaveEnabled() || !G_LoadAutoSaveDeathUse())
     {
-      if (savegameslot >= 0)
-      {
-        char *file = G_SaveGameName(savegameslot);
-        G_LoadGame(file, savegameslot, false);
-        free(file);
-      }
-      else
+      if (!G_LoadGameDeathUse())
       {
         player->playerstate = PST_REBORN;
       }
