@@ -20,9 +20,10 @@
 
 #include "doomtype.h"
 
+const int MN_SnapshotDataSize(void);
 void MN_ResetSnapshot(int i);
 boolean MN_ReadSnapshot(int i, const byte *buf, int len, boolean decode);
-char *MN_WriteSnapshot(void);
+char *MN_WriteSnapshot(byte *p);
 boolean MN_DrawSnapshot(int i, int x, int y, int w, int h);
 
 void MN_ReadSavegameTime(int i, char *name);

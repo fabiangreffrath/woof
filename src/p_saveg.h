@@ -24,8 +24,6 @@
 #include "doomtype.h"
 #include "z_zone.h"
 
-#define SAVEGAME_SNAPSHOT_EXT ".snapshot"
-
 static inline int CheckStreamLength(int32_t length)
 {
     return length > 0 && length < (1 << 28); // 256 MiB

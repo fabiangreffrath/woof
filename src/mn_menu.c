@@ -896,9 +896,6 @@ static void DeleteAutoSave(void)
 {
     char *name = G_AutoSaveName();
     M_remove(name);
-    char *snapshot = M_StringJoin(name, SAVEGAME_SNAPSHOT_EXT);
-    M_remove(snapshot);
-    free(snapshot);
     free(name);
 }
 
@@ -906,9 +903,6 @@ static void DeleteSaveGame(int slot)
 {
     char *name = G_SaveGameName(slot, savepage);
     M_remove(name);
-    char *snapshot = M_StringJoin(name, SAVEGAME_SNAPSHOT_EXT);
-    M_remove(snapshot);
-    free(snapshot);
     free(name);
 
     if (savepage == quickSavePage && slot == quickSaveSlot)
@@ -1235,19 +1229,6 @@ static void ReadSaveGameContents(char *name, int slot, boolean is_autosave,
         SetLoadSlotStatus(slot, 0);
         free(name);
         return;
-    }
-
-    // Try to read description and snapshot from the companion file first
-
-    char *json_name = M_StringJoin(name, SAVEGAME_SNAPSHOT_EXT);
-    if (M_FileExistsNotDir(json_name))
-    {
-        free(name);
-        name = json_name;
-    }
-    else
-    {
-        free(json_name);
     }
 
     // Open file and read content

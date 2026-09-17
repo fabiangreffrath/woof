@@ -26,6 +26,7 @@
 #include "m_misc.h"
 #include "m_io.h"
 #include "r_main.h"
+#include "st_stuff.h"
 #include "v_video.h"
 
 #include "base64/base64.h"
@@ -37,6 +38,11 @@ static const int snapshot_size = (SCREENWIDTH * SCREENHEIGHT) * sizeof(pixel_t);
 static pixel_t *snapshots[10];
 static pixel_t *current_snapshot;
 static char savegametimes[10][32];
+
+const int MN_SnapshotDataSize(void)
+{
+    return snapshot_len + snapshot_size;
+}
 
 void MN_ResetSnapshot(int i)
 {
@@ -152,7 +158,8 @@ static void TakeSnapshot(void)
 {
     int old_screenblocks = screenblocks;
 
-    R_SetViewSize(11);
+    screenblocks = ST_FullscreenStatusbar();
+    R_SetViewSize(screenblocks);
     R_ExecuteSetViewSize();
     R_RenderPlayerView(&players[displayplayer]);
 
@@ -178,14 +185,25 @@ static void TakeSnapshot(void)
         p++;
     }
 
-    R_SetViewSize(old_screenblocks);
+    R_SetViewSize(screenblocks = old_screenblocks);
 }
 
-char *MN_WriteSnapshot(void)
+char *MN_WriteSnapshot(byte *p)
 {
     TakeSnapshot();
 
-    return (char*)base64_encode(current_snapshot, snapshot_size, NULL);
+    // encode
+    if (p == NULL)
+    {
+         return (char*)base64_encode(current_snapshot, snapshot_size, NULL);
+    }
+
+    memcpy(p, snapshot_str, snapshot_len);
+    p += snapshot_len;
+
+    memcpy(p, current_snapshot, snapshot_size);
+
+    return NULL;
 }
 
 // [FG] draw snapshot for the n'th savegame, if no snapshot is found

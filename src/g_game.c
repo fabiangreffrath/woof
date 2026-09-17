@@ -2531,34 +2531,6 @@ static uint64_t G_Signature(int sig_epi, int sig_map)
   return s;
 }
 
-static void DoSaveSnapshot(char *name)
-{
-    json_mut_doc_t *doc = JS_NewDoc();
-    json_mut_t *root_mut = JS_NewObject(doc);
-    JS_SetRoot(doc, root_mut);
-
-    JS_SetString(doc, root_mut, "savedescription", savedescription);
-    JS_SetString(doc, root_mut, "version_name", PROJECT_STRING);
-
-    char *snapshot = MN_WriteSnapshot();
-    JS_SetString(doc, root_mut, "snapshot", snapshot);
-
-    size_t json_len;
-    char *json_str = JS_DocWriteString(doc, &json_len);
-    JS_FreeDoc(doc);
-    free(snapshot);
-
-    json_len++; // include null-terminator
-    char *json_buf = malloc(json_len);
-    M_StringCopy(json_buf, json_str, json_len);
-    free(json_str);
-
-    char *json_filename = M_StringJoin(name, SAVEGAME_SNAPSHOT_EXT);
-    M_WriteFile(json_filename, json_buf, json_len);
-    free(json_filename);
-    free(json_buf);
-}
-
 static json_mut_t *WriteOptionsJSON(json_mut_doc_t * doc);
 static json_mut_t *WriteCustomSkillOptionsJSON(json_mut_doc_t *doc);
 
@@ -2657,17 +2629,20 @@ static void DoSaveGame(char *name)
     mz_ulong compressed_len = mz_compressBound((mz_ulong)json_len);
     if ((compressed = malloc((size_t)compressed_len)))
     {
-        int mz_ret =
-            mz_compress2(compressed, &compressed_len,
-                        (const unsigned char *)json_str, (mz_ulong)json_len,
-                        MZ_BEST_SPEED);
+        int mz_ret = mz_compress2(compressed, &compressed_len,
+                                  (const unsigned char *)json_str,
+                                  (mz_ulong)json_len, MZ_BEST_SPEED);
 
         if (mz_ret == MZ_OK && CheckStreamLength((int32_t)json_len)
             && CheckStreamLength((int32_t)compressed_len))
         {
             free(json_str);
             save_p = savebuffer =
-                Z_Malloc(compressed_len + sizeof(int32_t), PU_STATIC, 0);
+                Z_Malloc(SAVESTRINGSIZE + sizeof(int32_t) + compressed_len
+                             + MN_SnapshotDataSize(),
+                         PU_STATIC, 0);
+            strncpy((char *)save_p, savedescription, SAVESTRINGSIZE);
+            save_p += SAVESTRINGSIZE;
             saveg_write32((int32_t)json_len);
             memcpy(save_p, compressed, (size_t)compressed_len);
             save_p += compressed_len;
@@ -2703,6 +2678,9 @@ static void DoSaveGame(char *name)
     else
     {
         free(compressed);
+
+        (void)MN_WriteSnapshot(save_p);
+        save_p += MN_SnapshotDataSize();
     }
 
     int length = save_p - savebuffer;
@@ -2720,10 +2698,6 @@ static void DoSaveGame(char *name)
 
     Z_Free(savebuffer); // killough
     savebuffer = save_p = NULL;
-
-#ifndef SAVEGAME_NO_SNAPSHOT
-    DoSaveSnapshot(name);
-#endif
 
     gameaction = ga_nothing;
     savedescription[0] = 0;
@@ -3108,12 +3082,20 @@ static boolean DoLoadGame(boolean do_load_autosave)
 
     // Check for zlib-compressed JSON stream
     //
-    // Compressed: [uint32 decomp_len][zlib stream]
+    // Compressed: [char[24] description][uint32 decomp_len][zlib stream]["WOOF_SNAPSHOT"][uint8[320*200] snapshot]
+    // Woof 16.0.0: [uint32 decomp_len][zlib stream]
     // Plain JSON: [JSON text][NUL]
     // Legacy: [char[24] description][binary stream]
 
     unsigned char *decomp_str = NULL;
-    mz_ulong decomp_len = (mz_ulong)saveg_read32();
+    mz_ulong decomp_len = 0;
+
+    save_p = savebuffer + SAVESTRINGSIZE;
+    decomp_len = (mz_ulong)saveg_read32();
+    if (!CheckStreamLength((int32_t)decomp_len) || !CheckZlibHeader(save_p))
+    {
+        save_p = savebuffer;
+    }
 
     if (CheckStreamLength((int32_t)decomp_len) && CheckZlibHeader(save_p))
     {
