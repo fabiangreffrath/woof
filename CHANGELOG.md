@@ -5,6 +5,8 @@
   - Add support for ambient sound definitions by SNDINFO lumps.
   - Color translation tables from PWADs are extended but never overridden.
   - Leave some more space in the HUD menu for the layout description.
+  - Add support for optional chaingun sound, via `DSCHGUN`.
+
 
 * **Quality of Life:**
   - Player view no longer abruptly jolts when running across very shallow floor height changes

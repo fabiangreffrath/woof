@@ -343,6 +343,8 @@ typedef enum {
   sfx_dgdth,
   sfx_dgpain,
 
+  sfx_MaxIncluded = sfx_dgpain,
+
   // [crispy] play DSSECRET if available
   sfx_secret,
 
