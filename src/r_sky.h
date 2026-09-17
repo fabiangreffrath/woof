@@ -36,8 +36,15 @@
 #define SKYSTRETCH_HEIGHT 228
 extern boolean stretchsky;
 
-// [FG] linear horizontal sky scrolling
-extern boolean linearsky;
+// [Nugget] Sky projection
+typedef enum skyprojection_s {
+  SKYPROJ_VANILLA,
+  SKYPROJ_LINEAR,
+  SKYPROJ_CYLINDRICAL,
+
+  NUM_SKYPROJS
+} skyprojection_t;
+extern skyprojection_t sky_projection;
 
 extern sky_t *levelskies;
 void R_ClearLevelskies(void);

@@ -396,7 +396,8 @@ enum
     str_palette_changes,
     str_invul_mode,
     str_skill,
-    str_freelook
+    str_freelook,
+    str_sky_projection,
 };
 
 static const char **GetStrings(int id);
@@ -3332,6 +3333,11 @@ static const char *fuzzmode_strings[] = {
     "Blocky", "Refraction", "Shadow", "Original"
 };
 
+// [Nugget] Sky projection
+static const char *sky_projection_strings[] = {
+  "Vanilla", "Linear", "Cylindrical"
+};
+
 static setup_menu_t gen_settings5[] = {
 
     {"Smooth Pixel Scaling", S_ONOFF, OFF_CNTR_X, M_SPC, {"smooth_scaling"},
@@ -3352,8 +3358,8 @@ static setup_menu_t gen_settings5[] = {
     {"Stretch Short Skies", S_ONOFF, OFF_CNTR_X, M_SPC, {"stretchsky"},
      .action = R_UpdateStretchSkies},
 
-    {"Linear Sky Scrolling", S_ONOFF, OFF_CNTR_X, M_SPC, {"linearsky"},
-     .action = R_InitPlanes},
+    {"Sky Projection", S_CHOICE, OFF_CNTR_X, M_SPC, {"sky_projection"},
+     .action = R_InitPlanes, .strings_id = str_sky_projection},
 
     {"Swirling Flats", S_ONOFF, OFF_CNTR_X, M_SPC, {"r_swirl"}},
 
@@ -5061,6 +5067,7 @@ static const char **selectstrings[] = {
     [str_invul_mode] = invul_mode_strings,
     [str_skill] = skill_strings,
     [str_freelook] = free_look_strings,
+    [str_sky_projection] = sky_projection_strings,
 };
 
 static const char **GetStrings(int id)

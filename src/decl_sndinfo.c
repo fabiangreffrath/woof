@@ -55,15 +55,15 @@ static void SkipRestOfLine(scanner_t *sc)
     }
 }
 
-// Like SkipRestOfLine(), but first force-consumes a pending mismatched
-// token so SC_SameLine()'s reference point can't be stale.
-static void SkipMismatchAndRestOfLine(scanner_t *sc)
+// Force-commits a pending mismatched token, if any, so SC_Warning()'s
+// position (which always reports the last *committed* token) points
+// at the actual problem instead of whatever was consumed before it.
+static void CommitPendingToken(scanner_t *sc)
 {
     if (SC_TokensLeft(sc))
     {
         SC_GetNextToken(sc, true);
     }
-    SkipRestOfLine(sc);
 }
 
 // Non-fatal counterpart to SC_MustGetToken(): on a mismatch it warns,
@@ -74,8 +74,9 @@ static boolean ExpectToken(scanner_t *sc, char token, const char *what)
     {
         return true;
     }
+    CommitPendingToken(sc);
     SC_Warning(sc, "Expected %s, skipping.", what);
-    SkipMismatchAndRestOfLine(sc);
+    SkipRestOfLine(sc);
     return false;
 }
 
@@ -92,6 +93,7 @@ static char *ReadLogicalName(scanner_t *sc, const char *first)
     {
         if (!SC_CheckToken(sc, TK_Identifier))
         {
+            CommitPendingToken(sc);
             SC_Warning(sc, "Name '%s' ends with '/', skipping.", name);
             free(name);
             return NULL;
@@ -161,8 +163,9 @@ static void ParseSoundAssignment(scanner_t *sc, const char *name,
     }
     else if (has_equals != (*syntax == SNDINFO_SYNTAX_NEW))
     {
+        CommitPendingToken(sc);
         SC_Warning(sc, "Sound '%s': mixed syntax, skipping.", name);
-        SkipMismatchAndRestOfLine(sc);
+        SkipRestOfLine(sc);
         return;
     }
 
@@ -221,7 +224,7 @@ static void ParseAmbientDirective(scanner_t *sc)
     char *sound_name = ReadLogicalName(sc, SC_GetString(sc));
     if (!sound_name)
     {
-        SkipMismatchAndRestOfLine(sc);
+        SkipRestOfLine(sc);
         return;
     }
 
@@ -340,13 +343,14 @@ static void ParseSndInfo(scanner_t *sc)
             }
             else
             {
-                SkipMismatchAndRestOfLine(sc);
+                SkipRestOfLine(sc);
             }
         }
         else
         {
+            CommitPendingToken(sc);
             SC_Warning(sc, "Unexpected token, skipping.");
-            SkipMismatchAndRestOfLine(sc);
+            SkipRestOfLine(sc);
         }
     }
 }
