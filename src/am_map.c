@@ -2551,6 +2551,7 @@ static void AM_drawThings
           case 38: //mbf2y  red skull key
             AM_drawLineCharacter
             (
+              am,
               amdef->key,
               array_size(amdef->key),
               16<<MAPBITS,
@@ -2578,6 +2579,7 @@ static void AM_drawThings
           case 39: //mbf2y yellow skull key
             AM_drawLineCharacter
             (
+              am,
               amdef->key,
               array_size(amdef->key),
               16<<MAPBITS,
@@ -2605,6 +2607,7 @@ static void AM_drawThings
           case 40: //mbf2y blue skull key
             AM_drawLineCharacter
             (
+              am,
               amdef->key,
               array_size(amdef->key),
               16<<MAPBITS,
