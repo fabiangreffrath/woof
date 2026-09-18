@@ -21,6 +21,7 @@
 #define __WI_STUFF__
 
 #include "doomtype.h"
+#include "wi_interlvl.h"
 
 struct wbstartstruct_s;
 
@@ -51,6 +52,25 @@ void WI_slamBackground(void);          // killough 11/98
 
 extern boolean wi_overlay;
 void WI_drawOverlayStats(void);
+
+typedef struct
+{
+    interlevelframe_t *frames;
+    int x_pos;
+    int y_pos;
+    int frame_index;
+    boolean frame_start;
+    int duration_left;
+} wi_animationstate_t;
+
+typedef struct
+{
+    interlevel_t *interlevel_exiting;
+    interlevel_t *interlevel_entering;
+
+    wi_animationstate_t *states;
+    char *background_lump;
+} wi_animation_t;
 
 #endif
 
