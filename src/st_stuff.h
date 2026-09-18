@@ -98,6 +98,7 @@ extern hud_anchoring_t hud_anchoring;
 extern int st_wide_shift;
 
 const char **ST_StatusbarList(void);
+int ST_FullscreenStatusbar(void);
 
 void ST_BindSTSVariables(void);
 

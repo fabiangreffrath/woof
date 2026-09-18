@@ -119,6 +119,8 @@ static SDL_Texture *texture;
 static SDL_Rect src_rect = {0}, dst_rect = {0};
 static SDL_FRect src_frect = {0.0f}, dst_frect = {0.0f};
 
+static boolean clearneeded = false;
+
 static int window_width, window_height;
 static int default_window_width, default_window_height;
 static boolean window_focused = true;
@@ -703,7 +705,12 @@ static void UpdateRender(void)
 
     SDL_UnlockTexture(texture);
 
-    SDL_RenderClear(renderer);
+    if (clearneeded)
+    {
+        SDL_RenderClear(renderer);
+        clearneeded = false;
+    }
+
     SDL_RenderTextureRotated(renderer, texture, &src_frect, &dst_frect, 90.0, NULL, SDL_FLIP_VERTICAL);
 }
 
@@ -1052,47 +1059,18 @@ void I_SetPalette(byte *playpal)
         // emulating VGA "porch" behaviour
         SDL_SetRenderDrawColor(renderer, colors[0].r, colors[0].g, colors[0].b,
                                SDL_ALPHA_OPAQUE);
+
+        clearneeded = true;
     }
 }
 
 // Taken from Chocolate Doom chocolate-doom/src/i_video.c:L841-867
-
-byte I_GetNearestColor(const byte *palette, int r, int g, int b)
-{
-    byte best;
-    int best_diff, diff;
-    int i, dr, dg, db;
-
-    best = 0;
-    best_diff = INT_MAX;
-
-    for (i = 0; i < 256; ++i)
-    {
-        dr = r - *palette++;
-        dg = g - *palette++;
-        db = b - *palette++;
-
-        diff = dr * dr + dg * dg + db * db;
-
-        if (diff < best_diff)
-        {
-            if (!diff)
-            {
-                return i;
-            }
-
-            best = i;
-            best_diff = diff;
-        }
-    }
-
-    return best;
-}
+// Adapted to use Linear sRGB instead of Gamma sRGB
 
 static boolean linear_palette_init = false;
 static double linear_palette[768];
 
-byte I_GetNearestColorLinear(const byte *palette, int red, int green, int blue)
+byte I_GetNearestColor(const byte *palette, int red, int green, int blue)
 {
     if (!linear_palette_init)
     {
@@ -1105,14 +1083,14 @@ byte I_GetNearestColorLinear(const byte *palette, int red, int green, int blue)
 
         for (int i = 0; i < 768; i++)
         {
-            *linear_palette_rover++ = byte_to_linear(*palette_rover++);
+            *linear_palette_rover++ = sRGB_ByteToLinear(*palette_rover++);
         }
     }
 
     const double
-        linear_red   = byte_to_linear(red),
-        linear_green = byte_to_linear(green),
-        linear_blue  = byte_to_linear(blue);
+        linear_red   = sRGB_ByteToLinear(red),
+        linear_green = sRGB_ByteToLinear(green),
+        linear_blue  = sRGB_ByteToLinear(blue);
 
     byte best = 0;
     double best_diff = INT_MAX;
@@ -1731,6 +1709,8 @@ void I_ResetScreen(void)
 
     SDL_SetTextureScaleMode(texture, smooth_scaling ? SDL_SCALEMODE_PIXELART
                                                     : SDL_SCALEMODE_NEAREST);
+
+    clearneeded = true;
 }
 
 void I_ShutdownGraphics(void)

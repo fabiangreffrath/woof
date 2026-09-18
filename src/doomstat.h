@@ -330,8 +330,6 @@ extern  boolean   critical;
 
 #define CRITICAL(x) (critical || strictmode ? 0 : (x))
 
-extern  int       savegameslot;
-
 extern  gamestate_t  gamestate;
 
 //-----------------------------

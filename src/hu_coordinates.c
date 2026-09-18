@@ -182,7 +182,7 @@ void HU_BuildCoordinatesEx(sbe_widget_t *widget, const mobj_t *mo)
 {
     int pos;
     double magnitude;
-    crange_idx_e color;
+    xlat_index_t color;
 
     widget->font = widget->default_font;
 
