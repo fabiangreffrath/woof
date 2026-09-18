@@ -11,6 +11,7 @@
 * **Quality of Life:**
   - Player view no longer abruptly jolts when running across very shallow floor height changes
   - The Minimap now always follows the player
+  - The Automap player arrow has been widened for better visibility
 
 * **Rendering:**
   - Made the SDL renderer not be cleared every frame, for improved rendering performance in general.
