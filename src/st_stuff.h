@@ -64,6 +64,7 @@ extern boolean st_refresh_background;
 
 void ST_InitRes(void);
 void ST_SetSTHeight(void);
+void ST_UpdateStatusBar(void);
 
 extern int health_red;    // health amount less than which status is red
 extern int health_yellow; // health amount less than which status is yellow

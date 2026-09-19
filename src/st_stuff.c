@@ -1276,7 +1276,7 @@ static void UpdateCanvasOfElem(sbarelem_t *elem, player_t *player);
 static void UpdateElem(sbarelem_t *elem, player_t *player)
 {
     elem->enabled = CheckConditions(elem->conditions, player);
-    if (!elem->enabled || !player->mo)
+    if (!elem->enabled)
     {
         return;
     }
@@ -1353,7 +1353,7 @@ static void UpdateElem(sbarelem_t *elem, player_t *player)
     }
 }
 
-static void UpdateStatusBar(player_t *player)
+void ST_UpdateStatusBar(void)
 {
     static int oldbarindex = -1;
 
@@ -1378,12 +1378,6 @@ static void UpdateStatusBar(player_t *player)
     }
 
     statusbar = &sbardef->statusbars[barindex];
-
-    sbarelem_t *child;
-    array_foreach(child, statusbar->children)
-    {
-        UpdateElem(child, player);
-    }
 }
 
 static void ResetElem(sbarelem_t *elem, player_t *player)
@@ -2370,7 +2364,13 @@ void ST_Ticker(void)
 
     player_t *player = &players[displayplayer];
 
-    UpdateStatusBar(player);
+    ST_UpdateStatusBar();
+
+    sbarelem_t *child;
+    array_foreach(child, statusbar->children)
+    {
+        UpdateElem(child, player);
+    }
 
     if (hud_crosshair)
     {
