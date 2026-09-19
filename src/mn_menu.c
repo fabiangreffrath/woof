@@ -1299,8 +1299,10 @@ static void ReadSaveGameContents(char *name, int slot, boolean is_autosave,
 
         if (read_screenshot)
         {
-            const char *snapshot = JS_GetStringValue(root, "snapshot");
-            if (!MN_ReadSnapshot(slot, (byte *)snapshot, 0))
+            json_t *snapshot_obj = JS_GetObject(root, "snapshot");
+            const char *snapshot = JS_GetString(snapshot_obj);
+            const int snapshot_len = JS_GetStringLen(snapshot_obj);
+            if (!MN_ReadSnapshot(slot, (byte *)snapshot, snapshot_len, true))
             {
                 MN_ResetSnapshot(slot);
             }
@@ -1313,7 +1315,7 @@ static void ReadSaveGameContents(char *name, int slot, boolean is_autosave,
         M_snprintf(savegamestrings[slot], SAVESTRINGSIZE, "%s",
                    (char *)savebuffer);
 
-        if (read_screenshot && !MN_ReadSnapshot(slot, savebuffer, savegamesize))
+        if (read_screenshot && !MN_ReadSnapshot(slot, savebuffer, savegamesize, false))
         {
             MN_ResetSnapshot(slot);
         }
