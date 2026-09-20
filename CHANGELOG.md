@@ -27,6 +27,7 @@
 * The status bar border is now draw for all non-fullscreen HUDs
 * [Linux] Fixed "Woof Setup" icon erroneously displaying on main "Woof" executable.
 * Quicksave does not change the active Load Game / Save Game menu page anymore
+* Custom skill options no longer stay active on regular skills.
 
 ## Miscellaneous
 
