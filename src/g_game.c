@@ -4243,16 +4243,31 @@ void G_ReloadDefaults(boolean keep_demover)
 
   // jff 1/24/98 reset play mode to command line spec'd version
   // killough 3/1/98: moved to here
-  respawnparm = clrespawnparm;
-  fastparm = clfastparm;
-  nomonsters = clnomonsters;
-  pistolstart = clpistolstart;
-  coopspawns = clcoopspawns;
+  if (custom_skill == true)
+  {
+    respawnparm = csrespawnmonsters;
+    fastparm = csfastmonsters;
+    nomonsters = csnomonsters;
+    pistolstart = cspistolstart;
+    coopspawns = cscoopspawns;
 
-  halfplayerdamage = cshalfplayerdamage;
-  doubleammo = csdoubleammo;
-  aggromonsters = csaggromonsters;
-  dogs = cshelperdogs;
+    halfplayerdamage = cshalfplayerdamage;
+    doubleammo = csdoubleammo;
+    aggromonsters = csaggromonsters;
+    dogs = cshelperdogs;
+  }
+  else
+  {
+    respawnparm = clrespawnparm;
+    fastparm = clfastparm;
+    nomonsters = clnomonsters;
+    pistolstart = clpistolstart;
+    coopspawns = clcoopspawns;
+
+    halfplayerdamage = false;
+    doubleammo = false;
+    aggromonsters = false;
+  }
 
   //jff 3/24/98 set startskill from defaultskill in config file, unless
   // it has already been set by a -skill parameter

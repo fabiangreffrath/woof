@@ -3543,17 +3543,17 @@ static void SelectSkillLevel(void);
 
 static void StartGame(void)
 {
-    clfastparm = csmenu.fastparm;
-    clrespawnparm = csmenu.respawnparm;
-    clnomonsters = csmenu.nomonsters;
-    clcoopspawns = csmenu.coopspawns;
-    clpistolstart = csmenu.pistolstart;
+    csfastmonsters = csmenu.fastparm;
+    csrespawnmonsters = csmenu.respawnparm;
+    csnomonsters = csmenu.nomonsters;
+    cscoopspawns = csmenu.coopspawns;
+    cspistolstart = csmenu.pistolstart;
     cshalfplayerdamage = csmenu.halfplayerdamage;
     csdoubleammo = csmenu.doubleammo;
     csaggromonsters = csmenu.aggromonsters;
     cshelperdogs = csmenu.helperdogs;
 
-    M_ChooseSkill(csmenu_skill);
+    M_ChooseSkillCustom(csmenu_skill);
     setup_active = false;
 }
 

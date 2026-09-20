@@ -714,6 +714,8 @@ static void M_VerifyNightmare(int ch)
 
 void M_ChooseSkill(int choice)
 {
+    custom_skill = false;
+
     if (choice == nightmare)
     {
         M_StartMessage(DEH_String(NIGHTMARE), M_VerifyNightmare, true);
@@ -723,6 +725,22 @@ void M_ChooseSkill(int choice)
     //jff 3/24/98 remember last skill selected
     // killough 10/98 moved to here
     default_skill = choice + 1;
+
+    if (!EpiCustom)
+    {
+        G_DeferedInitNew(choice, epiChoice + 1, 1);
+    }
+    else
+    {
+        G_DeferedInitNew(choice, EpiMenuEpi[epiChoice], EpiMenuMap[epiChoice]);
+    }
+
+    MN_ClearMenus();
+}
+
+void M_ChooseSkillCustom(int choice)
+{
+    custom_skill = true;
 
     if (!EpiCustom)
     {

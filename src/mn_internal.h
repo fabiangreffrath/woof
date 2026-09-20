@@ -46,6 +46,7 @@ typedef enum
 } menu_input_mode_t;
 
 void M_ChooseSkill(int choice);
+void M_ChooseSkillCustom(int choice);
 
 extern int maxscreenblocks;
 

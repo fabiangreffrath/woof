@@ -200,6 +200,13 @@ extern  int             timelimit;
 extern  boolean         respawnmonsters;
 
 // Custom skill flags
+extern boolean custom_skill;
+
+extern boolean csfastmonsters;
+extern boolean csrespawnmonsters;
+extern boolean csnomonsters;
+extern boolean cscoopspawns;
+extern boolean cspistolstart;
 extern boolean halfplayerdamage, cshalfplayerdamage;
 extern boolean doubleammo, csdoubleammo;
 extern boolean aggromonsters, csaggromonsters;

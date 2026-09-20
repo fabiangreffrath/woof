@@ -108,6 +108,13 @@ boolean clcoopspawns;   // checkparm of -coop_spawns
 // jff 1/24/98 end definition of command line version of play mode switches
 
 // custom skill options
+boolean custom_skill = false;
+
+boolean csfastmonsters = false;
+boolean csrespawnmonsters = false;
+boolean csnomonsters = false;
+boolean cscoopspawns = false;
+boolean cspistolstart = false;
 boolean cshalfplayerdamage = false;
 boolean csdoubleammo = false;
 boolean csaggromonsters = false;
