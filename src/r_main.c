@@ -49,7 +49,7 @@
 #include "r_voxel.h"
 #include "m_config.h"
 #include "st_stuff.h"
-#include "v_flextran.h"
+#include "r_flextran.h"
 #include "v_video.h"
 #include "z_zone.h"
 

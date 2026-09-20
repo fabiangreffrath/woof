@@ -163,6 +163,7 @@ set(WOOF_SOURCES
     r_data.c               r_data.h
                            r_defs.h
     r_draw.c               r_draw.h
+    r_flextran.c           r_flextran.h
     r_main.c               r_main.h
     r_plane.c              r_plane.h
     r_segs.c               r_segs.h
@@ -185,7 +186,6 @@ set(WOOF_SOURCES
     st_widgets.c           st_widgets.h
     statdump.c             statdump.h
     tables.c               tables.h
-    v_flextran.c           v_flextran.h
     v_patch.c              v_patch.h
     v_video.c              v_video.h
     w_wad.c                w_wad.h

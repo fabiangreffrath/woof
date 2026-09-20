@@ -209,7 +209,7 @@ Copyright:
  © 2017 Project Nayuki.  
 License: [MIT](https://opensource.org/licenses/MIT)
 
-Files: `src/v_flextran.*`  
+Files: `src/r_flextran.*`  
 Copyright:  
  © 2013 James Haley et al.;  
  © 1998-2012 Marisa Heit.  

@@ -29,7 +29,7 @@
 //
 
 #include "i_video.h"
-#include "v_flextran.h"
+#include "r_flextran.h"
 
 unsigned int Col2RGB8[65][256];
 unsigned int *Col2RGB8_LessPrecision[65];
