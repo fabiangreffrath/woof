@@ -30,21 +30,17 @@
 #include "doomtype.h"
 #include "i_system.h"
 #include "i_video.h"
-#include "m_argv.h"
 #include "m_io.h"
 #include "m_misc.h"
 #include "m_swap.h"
 #include "r_data.h"
 #include "r_defs.h"
-#include "r_srgb.h"
 #include "r_state.h"
 #include "r_tranmap.h"
 #include "s_sound.h"
 #include "sounds.h"
 #include "v_patch.h"
-#include "v_trans.h"
 #include "v_video.h"
-#include "w_wad.h" // needed for color translation lump lookup
 #include "z_zone.h"
 
 pixel_t *I_VideoBuffer = NULL;
@@ -52,139 +48,6 @@ pixel_t *I_VideoBuffer = NULL;
 // The screen buffer that the v_video.c code draws to.
 
 static pixel_t *dest_screen = NULL;
-
-// [FG] dark/shaded color translation table
-byte *cr_dark;
-byte *cr_shaded;
-
-//
-// V_InitColorTranslation
-//
-// Loads the color translation tables from predefined lumps at game start
-// No return value
-//
-// Used for translating text colors from the red palette range
-// to other colors. The first nine entries can be used to dynamically
-// switch the output of text color thru the HUlib_drawText routine
-// by embedding ESCn in the text to obtain color n. Symbols for n are
-// provided in v_video.h.
-//
-
-xlat_t xlat[CR_LIMIT] =
-{
-    [CR_BRICK]  = { .name = "CRBRICK",  .str = "\x1b\x30" },
-    [CR_TAN]    = { .name = "CRTAN",    .str = "\x1b\x31" },
-    [CR_GRAY]   = { .name = "CRGRAY",   .str = "\x1b\x32" },
-    [CR_GREEN]  = { .name = "CRGREEN",  .str = "\x1b\x33" },
-    [CR_BROWN]  = { .name = "CRBROWN",  .str = "\x1b\x34" },
-    [CR_GOLD]   = { .name = "CRGOLD",   .str = "\x1b\x35" },
-    [CR_RED]    = { .name = "CRRED",    .str = "\x1b\x36" },
-    [CR_BLUE1]  = { .name = "CRBLUE",   .str = "\x1b\x37" },
-    [CR_ORANGE] = { .name = "CRORANGE", .str = "\x1b\x38" },
-    [CR_YELLOW] = { .name = "CRYELLOW", .str = "\x1b\x39" },
-    [CR_BLUE2]  = { .name = "CRBLUE2",  .str = "\x1b\x3a" },
-    [CR_BLACK]  = { .name = "CRBLACK",  .str = "\x1b\x3b" },
-    [CR_PURPLE] = { .name = "CRPURPLE", .str = "\x1b\x3c" },
-    [CR_WHITE]  = { .name = "CRWHITE",  .str = "\x1b\x3d" },
-    [CR_BRIGHT] = { .name = NULL,       .str = NULL },
-    [CR_NONE]   = { .name = NULL,       .str = NULL },
-};
-
-// [FG] translate between blood color value as per EE spec
-//      and actual color translation table index
-
-static const int bloodcolor[] =
-{
-    CR_RED,     // 0 - Red (normal)
-    CR_GRAY,    // 1 - Grey
-    CR_GREEN,   // 2 - Green
-    CR_BLUE2,   // 3 - Blue
-    CR_YELLOW,  // 4 - Yellow
-    CR_BLACK,   // 5 - Black
-    CR_PURPLE,  // 6 - Purple
-    CR_WHITE,   // 7 - White
-    CR_ORANGE,  // 8 - Orange
-};
-
-int V_BloodColor(int blood)
-{
-    return bloodcolor[blood];
-}
-
-xlat_index_t V_CRByName(const char *name)
-{
-    for (const xlat_t *p = xlat; p->name; ++p)
-    {
-        if (!strcmp(p->name, name))
-        {
-            return p - xlat;
-        }
-    }
-    return CR_NONE;
-}
-
-int v_lightest_color, v_darkest_color;
-
-byte invul_gray[256];
-
-// killough 5/2/98: tiny engine driven by table above
-void V_InitColorTranslation(void)
-{
-    int playpal_lump = W_GetNumForName("PLAYPAL");
-    byte *playpal = W_CacheLumpNum(playpal_lump, PU_STATIC);
-    const boolean iwad_playpal = W_IsIWADLump(playpal_lump);
-
-    int force_rebuild = M_CheckParm("-tranmap");
-
-    // [crispy] preserve gray drop shadow in IWAD status bar numbers
-    const boolean keepgray = W_IsIWADLump(W_GetNumForName("sttnum0"));
-
-    for (xlat_index_t cr = CR_BRICK; cr < CR_NONE; cr++)
-    {
-        xlat_t *cr_p = &xlat[cr];
-        int lumpnum = (cr_p->name) ? W_CheckNumForName(cr_p->name) : -1;
-        cr_p->lump = (lumpnum != -1) ? W_CacheLumpNum(lumpnum, PU_STATIC) : NULL;
-
-        // [FG] allocate new color translation table
-        cr_p->table = malloc(256);
-
-        // keep original translation table entries if they apply
-        // against the original palette or if they are from a PWAD
-        const boolean keeporig =
-            (iwad_playpal || W_IsWADLump(lumpnum)) && !force_rebuild;
-
-        // [FG] translate to target color
-        for (int i = 0; i < 256; i++)
-        {
-            // keep only entries that are not identity anyway
-            if (keeporig && cr_p->lump
-                && (cr_p->lump[i] != (byte)i || (keepgray && i == 109)))
-            {
-                cr_p->table[i] = cr_p->lump[i];
-            }
-            else
-            {
-                cr_p->table[i] = V_Colorize(playpal, cr, (byte)i);
-            }
-        }
-    }
-
-    v_lightest_color = I_GetNearestColor(playpal, 0xFF, 0xFF, 0xFF);
-    v_darkest_color  = I_GetNearestColor(playpal, 0x00, 0x00, 0x00);
-
-    byte *palsrc = playpal;
-    for (int i = 0; i < 256; ++i)
-    {
-        // Use linear sRGB coefficients to get accurate grayscale.
-        // * https://30fps.net/pages/better-srgb-to-greyscale/
-        // * https://en.wikipedia.org/wiki/Rec._709#Luma_coefficients
-        double red   = sRGB_ByteToLinear(*palsrc++);
-        double green = sRGB_ByteToLinear(*palsrc++);
-        double blue  = sRGB_ByteToLinear(*palsrc++);
-        int gray = sRGB_LinearToByte(red * 0.2126 + green * 0.7152 + blue * 0.0722);
-        invul_gray[i] = I_GetNearestColor(playpal, gray, gray, gray);
-    }
-}
 
 video_t video;
 
@@ -665,7 +528,7 @@ void V_DrawPatchFullScreen(const patch_t *patch)
 
     // [crispy] fill pillarboxes in widescreen mode always clear screen, fixes
     // eternall.wad's partly transparent CREDIT in non-widescreen
-    V_FillRect(0, 0, video.unscaledw, SCREENHEIGHT, v_darkest_color);
+    V_FillRect(0, 0, video.unscaledw, SCREENHEIGHT, playpal_global->black);
 
     DrawPatchInternal(
         x - video.deltaw, 0, 0, 0,
@@ -773,7 +636,7 @@ void V_ShadeRect(int x, int y, int width, int height)
 
     pixel_t *col = V_ADDRESS(dest_screen, dstrect.sx, dstrect.sy);
 
-    const byte *darkcolormap = &colormaps[0][20 * 256];
+    const byte *darkcolormap = &colormaps[0][PLAYPAL_SIZE * 20];
 
     while (dstrect.sw--)
     {

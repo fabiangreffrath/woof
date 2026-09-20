@@ -173,6 +173,7 @@ set(WOOF_SOURCES
     r_swirl.c              r_swirl.h
     r_things.c             r_things.h
     r_tranmap.c            r_tranmap.h
+    r_trans.c              r_trans.h
     r_voxel.c              r_voxel.h
     s_musinfo.c            s_musinfo.h
     s_sound.c              s_sound.h
@@ -186,7 +187,6 @@ set(WOOF_SOURCES
     tables.c               tables.h
     v_flextran.c           v_flextran.h
     v_patch.c              v_patch.h
-    v_trans.c              v_trans.h
     v_video.c              v_video.h
     w_wad.c                w_wad.h
                            w_internal.h

@@ -30,7 +30,9 @@
 #include "doomtype.h"
 #include "i_printf.h"
 #include "i_system.h"
+#include "i_video.h"
 #include "info.h"
+#include "m_argv.h"
 #include "m_array.h"
 #include "m_fixed.h"
 #include "m_misc.h"
@@ -42,8 +44,10 @@
 #include "r_main.h"
 #include "r_sky.h"
 #include "r_skydefs.h"
+#include "r_srgb.h"
 #include "r_state.h"
 #include "r_tranmap.h"
+#include "r_trans.h"
 #include "v_patch.h"
 #include "v_video.h" // cr_dark, cr_shaded
 #include "w_wad.h"
@@ -982,6 +986,181 @@ int R_ColormapNumForName(const char *name)
   return i;
 }
 
+// [FG] dark/shaded color translation table
+byte *cr_dark;
+byte *cr_shaded;
+
+//
+// V_InitColorTranslation
+//
+// Loads the color translation tables from predefined lumps at game start
+// No return value
+//
+// Used for translating text colors from the red palette range
+// to other colors. The first nine entries can be used to dynamically
+// switch the output of text color thru the HUlib_drawText routine
+// by embedding ESCn in the text to obtain color n. Symbols for n are
+// provided in v_video.h.
+//
+
+xlat_t xlat[CR_LIMIT] =
+{
+    [CR_BRICK]  = { .name = "CRBRICK",  .str = "\x1b\x30" },
+    [CR_TAN]    = { .name = "CRTAN",    .str = "\x1b\x31" },
+    [CR_GRAY]   = { .name = "CRGRAY",   .str = "\x1b\x32" },
+    [CR_GREEN]  = { .name = "CRGREEN",  .str = "\x1b\x33" },
+    [CR_BROWN]  = { .name = "CRBROWN",  .str = "\x1b\x34" },
+    [CR_GOLD]   = { .name = "CRGOLD",   .str = "\x1b\x35" },
+    [CR_RED]    = { .name = "CRRED",    .str = "\x1b\x36" },
+    [CR_BLUE1]  = { .name = "CRBLUE",   .str = "\x1b\x37" },
+    [CR_ORANGE] = { .name = "CRORANGE", .str = "\x1b\x38" },
+    [CR_YELLOW] = { .name = "CRYELLOW", .str = "\x1b\x39" },
+    [CR_BLUE2]  = { .name = "CRBLUE2",  .str = "\x1b\x3a" },
+    [CR_BLACK]  = { .name = "CRBLACK",  .str = "\x1b\x3b" },
+    [CR_PURPLE] = { .name = "CRPURPLE", .str = "\x1b\x3c" },
+    [CR_WHITE]  = { .name = "CRWHITE",  .str = "\x1b\x3d" },
+    [CR_BRIGHT] = { .name = NULL,       .str = NULL },
+    [CR_NONE]   = { .name = NULL,       .str = NULL },
+};
+
+// [FG] translate between blood color value as per EE spec
+//      and actual color translation table index
+
+static const int bloodcolor[] =
+{
+    CR_RED,     // 0 - Red (normal)
+    CR_GRAY,    // 1 - Grey
+    CR_GREEN,   // 2 - Green
+    CR_BLUE2,   // 3 - Blue
+    CR_YELLOW,  // 4 - Yellow
+    CR_BLACK,   // 5 - Black
+    CR_PURPLE,  // 6 - Purple
+    CR_WHITE,   // 7 - White
+    CR_ORANGE,  // 8 - Orange
+};
+
+int V_BloodColor(int blood)
+{
+    return bloodcolor[blood];
+}
+
+xlat_index_t V_CRByName(const char *name)
+{
+    for (const xlat_t *p = xlat; p->name; ++p)
+    {
+        if (!strcmp(p->name, name))
+        {
+            return p - xlat;
+        }
+    }
+    return CR_NONE;
+}
+
+byte invul_gray[256];
+
+// killough 5/2/98: tiny engine driven by table above
+void R_InitColorTranslation(void)
+{
+    const boolean iwad_playpal = W_IsIWADLump(playpal_global->num);
+
+    int force_rebuild = M_CheckParm("-tranmap");
+
+    // [crispy] preserve gray drop shadow in IWAD status bar numbers
+    const boolean keepgray = W_IsIWADLump(W_GetNumForName("sttnum0"));
+
+    for (xlat_index_t cr = CR_BRICK; cr < CR_NONE; cr++)
+    {
+        xlat_t *cr_p = &xlat[cr];
+        int lumpnum = (cr_p->name) ? W_CheckNumForName(cr_p->name) : -1;
+        cr_p->lump = (lumpnum != -1) ? W_CacheLumpNum(lumpnum, PU_STATIC) : NULL;
+
+        // [FG] allocate new color translation table
+        cr_p->table = malloc(256);
+
+        // keep original translation table entries if they apply
+        // against the original palette or if they are from a PWAD
+        const boolean keeporig =
+            (iwad_playpal || W_IsWADLump(lumpnum)) && !force_rebuild;
+
+        // [FG] translate to target color
+        for (int i = 0; i < PLAYPAL_SIZE; i++)
+        {
+            // keep only entries that are not identity anyway
+            if (keeporig && cr_p->lump
+                && (cr_p->lump[i] != (byte)i || (keepgray && i == 109)))
+            {
+                cr_p->table[i] = cr_p->lump[i];
+            }
+            else
+            {
+                cr_p->table[i] = R_Colorize(PAL_GLOBAL, cr, (byte)i);
+            }
+        }
+    }
+
+    const byte *palsrc = playpal_global->base;
+    for (int i = 0; i < PLAYPAL_SIZE; ++i)
+    {
+        // Use linear sRGB coefficients to get accurate grayscale.
+        // * https://30fps.net/pages/better-srgb-to-greyscale/
+        // * https://en.wikipedia.org/wiki/Rec._709#Luma_coefficients
+        double red   = sRGB_ByteToLinear(*palsrc++);
+        double green = sRGB_ByteToLinear(*palsrc++);
+        double blue  = sRGB_ByteToLinear(*palsrc++);
+        const byte gray = sRGB_LinearToByte(red * 0.2126 + green * 0.7152 + blue * 0.0722);
+        invul_gray[i] = I_GetNearestColor(PAL_GLOBAL, gray, gray, gray);
+    }
+}
+
+// Palette stuff
+static playpal_t *InitPlaypal(palette_t pal, const char* name, int32_t num)
+{
+    playpal_t *playpal = &list_playpal[pal];
+
+    // Order is important
+    M_CopyLumpName(playpal->name, name);
+    playpal->num = num;
+    playpal->data = W_CacheLumpNum(playpal->num, PU_STATIC);
+    for (size_t i = 0; i < PLAYPAL_BYTES; i++)
+    {
+        const byte b = playpal->data[i];
+        playpal->base[i] = b;
+        playpal->base_linear[i] = sRGB_ByteToLinear(b);
+    }
+    playpal->white = I_GetNearestColor(pal, 0xFF, 0xFF, 0xFF);
+    playpal->black = I_GetNearestColor(pal, 0x00, 0x00, 0x00);
+
+    return playpal;
+}
+
+void R_InitPlaypal(void)
+{
+    const char name[9] = "PLAYPAL";
+
+    playpal_global = InitPlaypal(PAL_GLOBAL, name, W_CheckNumForName(name));
+
+    // For later testing, keep track if IWAD PLAYPAL is same as global.
+    playpal_t *playpal_iwad = &list_playpal[PAL_IWAD];
+
+    for (int i = 0; i < numlumps; i++)
+    {
+        if (strcasecmp(lumpinfo[i].name, name) == 0)
+        {
+            playpal_iwad->num = i;
+            break;
+        }
+    }
+
+    if (playpal_global->num == playpal_iwad->num)
+    {
+        memcpy(playpal_iwad, playpal_global, sizeof(playpal_t));
+    }
+    else
+    {
+        playpal_iwad = InitPlaypal(PAL_IWAD, name, playpal_iwad->num);
+    }
+}
+
 //
 // R_InitData
 // Locates all the lumps
@@ -991,6 +1170,7 @@ int R_ColormapNumForName(const char *name)
 
 void R_InitData(void)
 {
+  R_InitPlaypal();
   // [crispy] Moved R_InitFlats() to the top, because it sets firstflat/lastflat
   // which are required by R_InitTextures() to prevent flat lumps from being
   // mistaken as patches and by R_InitFlatBrightmaps() to set brightmaps for
@@ -1002,6 +1182,7 @@ void R_InitData(void)
   R_InitTranMap();                      // killough 2/21/98, 3/6/98
   R_InitColormaps();                    // killough 3/20/98
   R_InitSkyDefs();
+  R_InitColorTranslation(); //jff 4/24/98 load color translation lumps
 }
 
 //
@@ -1028,8 +1209,8 @@ byte *R_MissingFlat(void)
 
     if (buffer == NULL)
     {
-        const byte c1 = xlat[CR_PURPLE].table[v_lightest_color];
-        const byte c2 = v_darkest_color;
+        const byte c1 = xlat[CR_PURPLE].table[playpal_global->white];
+        const byte c2 = playpal_global->black;
 
         buffer = Z_Malloc(FLATSIZE, PU_LEVEL, (void **)&buffer);
 

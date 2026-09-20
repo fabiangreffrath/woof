@@ -38,6 +38,7 @@
 #include "doomstat.h"
 #include "g_game.h"
 #include "i_exit.h"
+#include "i_gamma.h"
 #include "i_input.h"
 #include "i_printf.h"
 #include "i_system.h"
@@ -148,6 +149,11 @@ static boolean grabmouse = true, default_grabmouse;
 boolean screenvisible = true;
 
 static boolean drs_skip_frame;
+
+// Palette stuff
+int gamma2;
+playpal_t list_playpal[PAL_COUNT];
+playpal_t *playpal_global = NULL; // &list_playpal[PAL_GLOBAL];
 
 void *I_GetSDLWindow(void)
 {
@@ -1027,14 +1033,8 @@ static void I_RestoreDiskBackground(void)
     disk_to_draw = 0;
 }
 
-#include "i_gamma.h"
-
-int gamma2;
-
-void I_SetPalette(byte *playpal)
+void I_SetPalette(palette_t pal, palette_layer_t layer)
 {
-    // haleyjd
-    int i;
     const byte *const gamma = gammatable[gamma2];
     SDL_Color colors[256];
 
@@ -1043,15 +1043,16 @@ void I_SetPalette(byte *playpal)
         return;
     }
 
-    for (i = 0; i < 256; ++i)
+    const byte* selected_pal = &list_playpal[pal].data[layer * PLAYPAL_BYTES];
+    for (size_t i = 0; i < PLAYPAL_SIZE; ++i)
     {
-        colors[i].r = gamma[*playpal++];
-        colors[i].g = gamma[*playpal++];
-        colors[i].b = gamma[*playpal++];
+        colors[i].r = gamma[*selected_pal++];
+        colors[i].g = gamma[*selected_pal++];
+        colors[i].b = gamma[*selected_pal++];
         colors[i].a = 0xffu;
     }
 
-    SDL_SetPaletteColors(palette, colors, 0, 256);
+    SDL_SetPaletteColors(palette, colors, 0, PLAYPAL_SIZE);
 
     if (vga_porch_flash)
     {
@@ -1067,26 +1068,8 @@ void I_SetPalette(byte *playpal)
 // Taken from Chocolate Doom chocolate-doom/src/i_video.c:L841-867
 // Adapted to use Linear sRGB instead of Gamma sRGB
 
-static boolean linear_palette_init = false;
-static double linear_palette[768];
-
-byte I_GetNearestColor(const byte *palette, int red, int green, int blue)
+byte I_GetNearestColor(palette_t pal, const byte red, const byte green, const byte blue)
 {
-    if (!linear_palette_init)
-    {
-        linear_palette_init = true;
-
-        // We assume that all calls to this function pass the same palette
-
-        const byte *palette_rover = palette;
-        double *linear_palette_rover = linear_palette;
-
-        for (int i = 0; i < 768; i++)
-        {
-            *linear_palette_rover++ = sRGB_ByteToLinear(*palette_rover++);
-        }
-    }
-
     const double
         linear_red   = sRGB_ByteToLinear(red),
         linear_green = sRGB_ByteToLinear(green),
@@ -1095,9 +1078,9 @@ byte I_GetNearestColor(const byte *palette, int red, int green, int blue)
     byte best = 0;
     double best_diff = INT_MAX;
 
-    const double *linear_palette_rover = linear_palette;
+    const double *linear_palette_rover = list_playpal[pal].base_linear;
 
-    for (int i = 0; i < 256; ++i)
+    for (int i = 0; i < PLAYPAL_SIZE; ++i)
     {
         const double
             dr = linear_red   - *linear_palette_rover++,
@@ -1574,7 +1557,7 @@ static void I_InitGraphicsMode(void)
 
     palette = SDL_CreatePalette(256);
 
-    I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
+    I_SetPalette(PAL_GLOBAL, LAYER_BASE);
 
     // Blank out the full screen area in case there is any junk in
     // the borders that won't otherwise be overwritten.

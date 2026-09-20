@@ -23,7 +23,6 @@
 #include "p_mobj.h"
 #include "st_sbardef.h"
 #include "st_widgets.h"
-#include "v_video.h"
 
 #define THRESH_M1 15.11
 #define THRESH_M2 19.35

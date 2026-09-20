@@ -22,6 +22,7 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
+#include "i_video.h"
 #include "m_fixed.h"
 #include "m_misc.h"
 #include "m_io.h"
@@ -196,7 +197,7 @@ boolean MN_DrawSnapshot(int n, int x, int y, int w, int h)
 {
     if (!snapshots[n])
     {
-        V_FillRect(x, y, w, h, v_darkest_color);
+        V_FillRect(x, y, w, h, playpal_global->black);
         return false;
     }
 

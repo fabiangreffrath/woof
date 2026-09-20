@@ -104,14 +104,13 @@ boolean MN_LoadFon2(const byte *gfx_data, int size)
     }
 
     // Build translation table for palette.
-    byte *playpal = W_CacheLumpName("PLAYPAL", PU_CACHE);
     byte *translate = malloc(header->palsize + 1);
     for (int i = 0; i < header->palsize + 1; ++i)
     {
         int r = *p++;
         int g = *p++;
         int b = *p++;
-        translate[i] = I_GetNearestColor(playpal, r, g, b);
+        translate[i] = I_GetNearestColor(PAL_GLOBAL, r, g, b);
     }
 
     // 0 is transparent, last is border color

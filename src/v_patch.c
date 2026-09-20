@@ -291,8 +291,6 @@ static void InitRGB2Pal(void)
 
     rgb2pal = malloc(sizeof(*rgb2pal) * RGB2PAL_SPC);
 
-    byte *const playpal = W_CacheLumpName("PLAYPAL", PU_CACHE);
-
     for (int r = 0;  r < RGB2PAL_SPC;  r++)
     {
         byte **const rgb2pal_r = rgb2pal[r] = all_rgb2pal_g + (r * RGB2PAL_SPC);
@@ -310,7 +308,7 @@ static void InitRGB2Pal(void)
             {
                 const int sb = b << RGB2PAL_IBPC;
 
-                rgb2pal_g[b] = I_GetNearestColor(playpal, sr, sg, sb);
+                rgb2pal_g[b] = I_GetNearestColor(PAL_GLOBAL, sr, sg, sb);
             }
         }
     }
@@ -511,7 +509,7 @@ static boolean DecodePNG(png_t *png)
             // fall back to 255 as the color key
             int color_key = 255;
 
-            for (int i = 0;  i < 256;  i++)
+            for (int i = 0;  i < PLAYPAL_SIZE;  i++)
             {
                 if (used_colors[i] == 0)
                 {
@@ -567,7 +565,7 @@ static boolean DecodePNG(png_t *png)
 
             need_translation = true;
             translate[i] =
-                I_GetNearestColor(playpal, e->red, e->green, e->blue);
+                I_GetNearestColor(PAL_GLOBAL, e->red, e->green, e->blue);
         }
 
         if (need_translation)

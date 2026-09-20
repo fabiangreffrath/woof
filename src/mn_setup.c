@@ -565,7 +565,7 @@ static void DrawTabs(void)
         {
             DrawMenuStringEx(tabs[i].flags, x, rect->y, CR_TITLE);
             V_FillRect(x + video.deltaw, rect->y + M_SPC, rect->w, 1,
-                       xlat[CR_TITLE].table[cr_shaded[v_lightest_color]]);
+                       xlat[CR_TITLE].table[cr_shaded[playpal_global->white]]);
         }
         else
         {
@@ -696,7 +696,7 @@ static void DrawIndicator_Meter(const setup_menu_t *s, int x, int y, int width)
 
         if (scale > 0.0f)
         {
-            const byte shade = cr_shaded[v_lightest_color];
+            const byte shade = cr_shaded[playpal_global->white];
             const byte color = scale < limit    ? xlat[CR_GREEN].table[shade]
                                : scale >= 0.99f ? xlat[CR_RED].table[shade]
                                                 : xlat[CR_GOLD].table[shade];
@@ -2453,7 +2453,7 @@ const char *gamma_strings[] = {
 
 void MN_ResetGamma(void)
 {
-    I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
+    I_SetPalette(PAL_GLOBAL, LAYER_BASE);
 }
 
 static setup_menu_t gen_settings1[] = {

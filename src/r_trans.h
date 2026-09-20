@@ -17,11 +17,12 @@
 // Color translation tables
 //
 
-#ifndef __V_TRANS__
-#define __V_TRANS__
+#ifndef __R_TRANS__
+#define __R_TRANS__
 
 #include "doomtype.h"
+#include "i_video.h"
 
-byte V_Colorize(byte *playpal, int cr, byte source);
+byte R_Colorize(palette_t pal, int cr, byte source);
 
 #endif // __V_TRANS__

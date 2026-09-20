@@ -881,7 +881,7 @@ void R_InitTranslationTables(void)
     translationtables = Z_Malloc(256 * 3, PU_STATIC, 0);
 
     // translate just the 16 green colors
-    for (i = 0; i < 256; i++)
+    for (i = 0; i < PLAYPAL_SIZE; i++)
     {
         if (i >= 0x70 && i <= 0x7f)
         { // map green ramp to gray, brown, red

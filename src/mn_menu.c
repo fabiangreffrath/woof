@@ -52,6 +52,7 @@
 #include "mn_menu.h"
 #include "mn_snapshot.h"
 #include "p_saveg.h"
+#include "r_data.h"
 #include "r_defs.h"
 #include "r_draw.h"
 #include "r_main.h"

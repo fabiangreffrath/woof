@@ -372,13 +372,6 @@ void R_InitSkyDefs(void)
     skydefs = R_ParseSkyDefs();
 }
 
-typedef struct rgb_s
-{
-    int r;
-    int g;
-    int b;
-} rgb_t;
-
 static int CompareSkyColors(const void *a, const void *b)
 {
     const rgb_t *rgb_a = (const rgb_t *)a;
@@ -417,7 +410,7 @@ static byte R_SkyBlendColor(int tex)
     b = colors[width / 3].b;
     Z_Free(colors);
 
-    return I_GetNearestColor(pal, r, g, b);
+    return I_GetNearestColor(PAL_GLOBAL, r, g, b);
 }
 
 typedef struct skycolor_s

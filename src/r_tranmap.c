@@ -47,8 +47,6 @@
 // By Lee Killough 2/21/98
 //
 
-static const int playpal_base_layer = 256 * 3;    // RGB triplets
-
 static char playpal_string[33];
 static char *tranmap_dir, *playpal_dir;
 static byte *normal_tranmap[100];
@@ -58,7 +56,7 @@ const byte *main_tranmap; // killough 4/11/98
 const byte *main_addimap; // Some things look better with added luminosity :)
 
 //
-// Blending algorthims!
+// Blending algorithms!
 //
 
 enum
@@ -74,7 +72,7 @@ enum
 // * Additive -- alpha is a foreground multiplier, added to (shaded) background
 //
 // TODO, tentative additions:
-// * Subtractive -- alpha is a foreground multiplier, subtracted from unmodifed background
+// * Subtractive -- alpha is a foreground multiplier, subtracted from unmodified background
 //
 
 inline static const int BlendChannel(const byte fg, const byte bg,
@@ -95,7 +93,7 @@ inline static const int ColorBlend(byte *playpal, const byte *fg,
     blend[r] = BlendChannel(fg[r], bg[r], fg_alpha, bg_alpha);
     blend[g] = BlendChannel(fg[g], bg[g], fg_alpha, bg_alpha);
     blend[b] = BlendChannel(fg[b], bg[b], fg_alpha, bg_alpha);
-    return I_GetNearestColor(playpal, blend[r], blend[g], blend[b]);
+    return I_GetNearestColor(PAL_GLOBAL, blend[r], blend[g], blend[b]);
 }
 
 //
@@ -104,12 +102,11 @@ inline static const int ColorBlend(byte *playpal, const byte *fg,
 
 static void CalculatePlaypalChecksum(void)
 {
-    const int lump = W_GetNumForName("PLAYPAL");
     struct MD5Context md5;
     byte playpal_digest[16];
 
     MD5Init(&md5);
-    MD5Update(&md5, W_CacheLumpNum(lump, PU_STATIC), playpal_base_layer);
+    MD5Update(&md5, playpal_global->data, PLAYPAL_BYTES);
     MD5Final(playpal_digest, &md5);
     M_DigestToString(playpal_digest, playpal_string, sizeof(playpal_digest));
 }
@@ -159,7 +156,7 @@ static byte *GenerateTranmapData(double fg_alpha, double bg_alpha)
     byte *tp = buffer;
 
     // Background
-    for (int i = 0; i < 256; i++)
+    for (int i = 0; i < PLAYPAL_SIZE; i++)
     {
         const byte *bg = playpal + 3 * i;
 
@@ -177,7 +174,7 @@ static byte *GenerateTranmapData(double fg_alpha, double bg_alpha)
         }
 
         // Foreground
-        for (int j = 0; j < 256; j++)
+        for (int j = 0; j < PLAYPAL_SIZE; j++)
         {
             const byte *fg = playpal + 3 * j;
 

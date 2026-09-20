@@ -45,9 +45,6 @@ void I_InitGraphics(void);
 void I_ShutdownGraphics(void);
 void I_QuitVideo(void);
 
-// Takes full 8 bit values.
-void I_SetPalette(byte *palette);
-
 void I_FinishUpdate(void);
 
 void I_ReadScreen(pixel_t *dst);
@@ -72,9 +69,6 @@ extern boolean toggle_exclusive_fullscreen;
 extern boolean correct_aspect_ratio;
 extern boolean screenvisible;
 
-extern int gamma2;
-byte I_GetNearestColor(const byte *palette, int r, int g, int b);
-
 boolean I_WritePNGfile(char *filename); // [FG] screenshots in PNG format
 
 void *I_GetSDLWindow(void);
@@ -88,6 +82,65 @@ void I_ResetRelativeMouseState(void);
 void I_UpdatePriority(boolean active);
 
 void I_BindVideoVariables(void);
+
+// Palette stuff
+#define PLAYPAL_SIZE  (256)
+#define PLAYPAL_BYTES (PLAYPAL_SIZE * 3)
+
+typedef struct playpal_s
+{
+  char name[9];
+  uint32_t num;
+  const byte *data;
+
+  byte base[PLAYPAL_BYTES];
+  double base_linear[PLAYPAL_BYTES];
+
+  byte white;
+  byte black;
+} playpal_t;
+
+typedef enum palette_e
+{
+  PAL_GLOBAL,
+  PAL_IWAD,
+  PAL_CUSTOM,
+  PAL_COUNT,
+} palette_t;
+
+typedef struct rgb_s
+{
+    byte r, g, b;
+} rgb_t;
+
+typedef enum palette_layer_e
+{
+  LAYER_BASE,
+  LAYER_DAMAGE0,
+  LAYER_DAMAGE1,
+  LAYER_DAMAGE2,
+  LAYER_DAMAGE3,
+  LAYER_DAMAGE4,
+  LAYER_DAMAGE5,
+  LAYER_DAMAGE6,
+  LAYER_DAMAGE7,
+  LAYER_ITEM0,
+  LAYER_ITEM1,
+  LAYER_ITEM2,
+  LAYER_ITEM3,
+  LAYER_RADSUIT,
+  LAYER_COUNT,
+
+  LAYER_DAMAGE_COUNT = 8,
+  LAYER_ITEM_COUNT = 4,
+} palette_layer_t;
+
+extern int gamma2;
+extern playpal_t list_playpal[PAL_COUNT];
+extern playpal_t *playpal_global;
+
+void I_SetPalette(palette_t pal, palette_layer_t layer);
+byte I_GetNearestColor(palette_t pal, const byte red, const byte green, const byte blue);
 
 #endif
 

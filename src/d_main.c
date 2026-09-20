@@ -321,7 +321,7 @@ void D_Display (void)
 
   // clean up border stuff
   if (gamestate != oldgamestate && gamestate != GS_LEVEL)
-    I_SetPalette (W_CacheLumpName ("PLAYPAL",PU_CACHE));
+    I_SetPalette(PAL_GLOBAL, LAYER_BASE);
 
   // see if the border needs to be initially drawn
   if (gamestate == GS_LEVEL && oldgamestate != GS_LEVEL)
@@ -2185,8 +2185,6 @@ void D_DoomMain(void)
   G_ParseCompDatabase();
 
   D_SetSavegameDirectory();
-
-  V_InitColorTranslation(); //jff 4/24/98 load color translation lumps
 
   // killough 2/22/98: copyright / "modified game" / SPA banners removed
 

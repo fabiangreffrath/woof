@@ -1018,8 +1018,8 @@ boolean ST_DemoProgressBar(boolean force)
         return false;
     }
 
-    V_FillRect(0, SCREENHEIGHT - 2, progress, 1, v_darkest_color);
-    V_FillRect(0, SCREENHEIGHT - 1, progress, 1, v_lightest_color);
+    V_FillRect(0, SCREENHEIGHT - 2, progress, 1, playpal_global->black);
+    V_FillRect(0, SCREENHEIGHT - 1, progress, 1, playpal_global->white);
 
     return true;
 }
