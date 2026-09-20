@@ -25,8 +25,8 @@
 
 #include <SDL3/SDL.h>
 
+#include <float.h>
 #include <limits.h>
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -153,7 +153,7 @@ static boolean drs_skip_frame;
 // Palette stuff
 int gamma2;
 playpal_t list_playpal[PAL_COUNT];
-playpal_t *playpal_global = NULL; // &list_playpal[PAL_GLOBAL];
+playpal_t *playpal_global = NULL;
 
 void *I_GetSDLWindow(void)
 {
@@ -1078,21 +1078,19 @@ byte I_GetNearestColor(palette_t pal, const byte red, const byte green, const by
     return I_GetNearestColorLinear(pal, linear_red, linear_green, linear_blue);
 }
 
-byte I_GetNearestColorLinear(palette_t pal, const double linear_red,
-                             const double linear_green,
-                             const double linear_blue)
+byte I_GetNearestColorLinear(palette_t pal, const double r, const double g, const double b)
 {
     byte best = 0;
-    double best_diff = INT_MAX;
+    double best_diff = DBL_MAX;
 
     const double *linear_palette_rover = list_playpal[pal].base_linear;
 
     for (int i = 0; i < PLAYPAL_SIZE; ++i)
     {
         const double
-            dr = linear_red   - *linear_palette_rover++,
-            dg = linear_green - *linear_palette_rover++,
-            db = linear_blue  - *linear_palette_rover++;
+            dr = r - *linear_palette_rover++,
+            dg = g - *linear_palette_rover++,
+            db = b - *linear_palette_rover++;
 
         const double diff = dr * dr + dg * dg + db * db;
 

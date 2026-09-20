@@ -141,7 +141,7 @@ static boolean ParseSbarElemType(json_t *json, sbarelementtype_t type,
     }
 
     const char *translation = JS_GetStringValue(json, "translation");
-    out->cr = translation ? V_CRByName(translation) : CR_NONE;
+    out->cr = translation ? R_CRByName(translation) : CR_NONE;
     out->crboom = CR_NONE;
 
     json_t *js_conditions = JS_GetObject(json, "conditions");

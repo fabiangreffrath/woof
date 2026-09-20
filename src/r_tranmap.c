@@ -74,8 +74,9 @@ enum
 // * Subtractive -- alpha is a foreground multiplier, subtracted from unmodified background
 //
 
-inline static const int AlphaBlend(const double *fg, const double *bg,
-                                  const double fg_alpha, const double bg_alpha)
+inline static const int AlphaBlendLinear(const double *fg, const double *bg,
+                                         const double fg_alpha,
+                                         const double bg_alpha)
 {
     const double r_blend = (fg[r] * fg_alpha) + (bg[r] * bg_alpha);
     const double g_blend = (fg[g] * fg_alpha) + (bg[g] * bg_alpha);
@@ -136,8 +137,6 @@ static void CreateTranMapPaletteDir(void)
 
 static byte *GenerateTranmapData(double fg_alpha, double bg_alpha)
 {
-    double *playpal_linear = playpal_global->base_linear;
-
     // killough 4/11/98
     byte *buffer = Z_Malloc(tranmap_lump_length, PU_STATIC, 0);
     byte *tp = buffer;
@@ -145,7 +144,7 @@ static byte *GenerateTranmapData(double fg_alpha, double bg_alpha)
     // Background
     for (int i = 0; i < PLAYPAL_SIZE; i++)
     {
-        const double *bg = playpal_linear + 3 * i;
+        const double *bg = &playpal_global->base_linear[i * 3];
 
         // killough 10/98: display flashing disk
         if (!(~i & 15))
@@ -163,9 +162,8 @@ static byte *GenerateTranmapData(double fg_alpha, double bg_alpha)
         // Foreground
         for (int j = 0; j < PLAYPAL_SIZE; j++)
         {
-            const double *fg = playpal_linear + 3 * j;
-
-            *tp++ = AlphaBlend(fg, bg, fg_alpha, bg_alpha);
+            const double *fg = &playpal_global->base_linear[j * 3];
+            *tp++ = AlphaBlendLinear(fg, bg, fg_alpha, bg_alpha);
         }
     }
 

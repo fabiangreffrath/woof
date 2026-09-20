@@ -131,7 +131,7 @@ extern xlat_t xlat[CR_LIMIT];
 #define BLUE1_S "\x1b\x37"
 #define BLUE2_S "\x1b\x3a"
 
-xlat_index_t V_CRByName(const char *name);
+xlat_index_t R_CRByName(const char *name);
 
 void R_InitColorTranslation(void);
 

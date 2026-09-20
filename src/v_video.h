@@ -166,7 +166,7 @@ void V_ShadeRect(int x, int y, int width, int height);
 
 // [FG] colored blood and gibs
 
-int V_BloodColor(int blood);
+int R_BloodColor(int blood);
 
 void V_ScreenShot(void);
 

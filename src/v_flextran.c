@@ -41,8 +41,6 @@ static unsigned int Col2RGB8_2[63][256];
 
 void V_InitFlexTranTable(void)
 {
-    const byte *pal = playpal_global->base;
-
     // build RGB table
     for (int r = 0; r < 32; ++r)
     {
@@ -57,6 +55,7 @@ void V_InitFlexTranTable(void)
     }
 
     // build lookup table
+    const byte *pal = playpal_global->base;
     for (int x = 0; x < 65; ++x)
     {
         for (int y = 0; y < PLAYPAL_SIZE; ++y)

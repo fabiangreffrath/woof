@@ -1039,12 +1039,12 @@ static const int bloodcolor[] =
     CR_ORANGE,  // 8 - Orange
 };
 
-int V_BloodColor(int blood)
+int R_BloodColor(int blood)
 {
     return bloodcolor[blood];
 }
 
-xlat_index_t V_CRByName(const char *name)
+xlat_index_t R_CRByName(const char *name)
 {
     for (const xlat_t *p = xlat; p->name; ++p)
     {

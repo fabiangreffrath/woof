@@ -2054,7 +2054,7 @@ boolean PIT_ChangeSector(mobj_t *thing)
       if (thing->info->bloodcolor)
       {
         thing->flags_extra |= MFX_COLOREDBLOOD;
-        thing->bloodcolor = V_BloodColor(thing->info->bloodcolor);
+        thing->bloodcolor = R_BloodColor(thing->info->bloodcolor);
       }
       return true;      // keep checking
     }
@@ -2094,7 +2094,7 @@ boolean PIT_ChangeSector(mobj_t *thing)
       if (thing->info->bloodcolor)
       {
         mo->flags_extra |= MFX_COLOREDBLOOD;
-        mo->bloodcolor = V_BloodColor(thing->info->bloodcolor);
+        mo->bloodcolor = R_BloodColor(thing->info->bloodcolor);
       }
 
       // killough 8/10/98: remove dependence on order of evaluation
