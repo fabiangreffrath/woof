@@ -34,7 +34,6 @@
 #include "m_io.h"
 #include "m_misc.h"
 #include "md5.h"
-#include "r_srgb.h"
 #include "r_tranmap.h"
 #include "w_wad.h"
 #include "z_zone.h"
@@ -75,25 +74,13 @@ enum
 // * Subtractive -- alpha is a foreground multiplier, subtracted from unmodified background
 //
 
-inline static const int BlendChannel(const byte fg, const byte bg,
-                                     const double fg_alpha,
-                                     const double bg_alpha)
+inline static const int AlphaBlend(const double *fg, const double *bg,
+                                  const double fg_alpha, const double bg_alpha)
 {
-    const double fg_linear = sRGB_ByteToLinear(fg);
-    const double bg_linear = sRGB_ByteToLinear(bg);
-    const double r_linear = (fg_linear * fg_alpha) + (bg_linear * bg_alpha);
-    return sRGB_LinearToByte(r_linear);
-}
-
-inline static const int ColorBlend(byte *playpal, const byte *fg,
-                                   const byte *bg, const double fg_alpha,
-                                   const double bg_alpha)
-{
-    int blend[3] = {0};
-    blend[r] = BlendChannel(fg[r], bg[r], fg_alpha, bg_alpha);
-    blend[g] = BlendChannel(fg[g], bg[g], fg_alpha, bg_alpha);
-    blend[b] = BlendChannel(fg[b], bg[b], fg_alpha, bg_alpha);
-    return I_GetNearestColor(PAL_GLOBAL, blend[r], blend[g], blend[b]);
+    const double r_blend = (fg[r] * fg_alpha) + (bg[r] * bg_alpha);
+    const double g_blend = (fg[g] * fg_alpha) + (bg[g] * bg_alpha);
+    const double b_blend = (fg[b] * fg_alpha) + (bg[b] * bg_alpha);
+    return I_GetNearestColorLinear(PAL_GLOBAL, r_blend, g_blend, b_blend);
 }
 
 //
@@ -149,7 +136,7 @@ static void CreateTranMapPaletteDir(void)
 
 static byte *GenerateTranmapData(double fg_alpha, double bg_alpha)
 {
-    byte *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
+    double *playpal_linear = playpal_global->base_linear;
 
     // killough 4/11/98
     byte *buffer = Z_Malloc(tranmap_lump_length, PU_STATIC, 0);
@@ -158,7 +145,7 @@ static byte *GenerateTranmapData(double fg_alpha, double bg_alpha)
     // Background
     for (int i = 0; i < PLAYPAL_SIZE; i++)
     {
-        const byte *bg = playpal + 3 * i;
+        const double *bg = playpal_linear + 3 * i;
 
         // killough 10/98: display flashing disk
         if (!(~i & 15))
@@ -176,9 +163,9 @@ static byte *GenerateTranmapData(double fg_alpha, double bg_alpha)
         // Foreground
         for (int j = 0; j < PLAYPAL_SIZE; j++)
         {
-            const byte *fg = playpal + 3 * j;
+            const double *fg = playpal_linear + 3 * j;
 
-            *tp++ = ColorBlend(playpal, fg, bg, fg_alpha, bg_alpha);
+            *tp++ = AlphaBlend(fg, bg, fg_alpha, bg_alpha);
         }
     }
 

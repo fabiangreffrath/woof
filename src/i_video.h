@@ -141,6 +141,9 @@ extern playpal_t *playpal_global;
 
 void I_SetPalette(palette_t pal, palette_layer_t layer);
 byte I_GetNearestColor(palette_t pal, const byte red, const byte green, const byte blue);
+byte I_GetNearestColorLinear(palette_t pal, const double linear_red,
+                             const double linear_green,
+                             const double linear_blue);
 
 #endif
 

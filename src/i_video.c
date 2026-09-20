@@ -1043,12 +1043,12 @@ void I_SetPalette(palette_t pal, palette_layer_t layer)
         return;
     }
 
-    const byte* selected_pal = &list_playpal[pal].data[layer * PLAYPAL_BYTES];
+    const byte* playpal = &list_playpal[pal].data[layer * PLAYPAL_BYTES];
     for (size_t i = 0; i < PLAYPAL_SIZE; ++i)
     {
-        colors[i].r = gamma[*selected_pal++];
-        colors[i].g = gamma[*selected_pal++];
-        colors[i].b = gamma[*selected_pal++];
+        colors[i].r = gamma[*playpal++];
+        colors[i].g = gamma[*playpal++];
+        colors[i].b = gamma[*playpal++];
         colors[i].a = 0xffu;
     }
 
@@ -1075,6 +1075,13 @@ byte I_GetNearestColor(palette_t pal, const byte red, const byte green, const by
         linear_green = sRGB_ByteToLinear(green),
         linear_blue  = sRGB_ByteToLinear(blue);
 
+    return I_GetNearestColorLinear(pal, linear_red, linear_green, linear_blue);
+}
+
+byte I_GetNearestColorLinear(palette_t pal, const double linear_red,
+                             const double linear_green,
+                             const double linear_blue)
+{
     byte best = 0;
     double best_diff = INT_MAX;
 
