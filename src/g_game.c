@@ -4243,7 +4243,7 @@ void G_ReloadDefaults(boolean keep_demover)
 
   // jff 1/24/98 reset play mode to command line spec'd version
   // killough 3/1/98: moved to here
-  if (custom_skill == true)
+  if (custom_skill)
   {
     respawnparm = csrespawnmonsters;
     fastparm = csfastmonsters;
