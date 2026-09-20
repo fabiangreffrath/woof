@@ -138,7 +138,7 @@ void V_UseBuffer(pixel_t *buffer, int pitch);
 
 void V_RestoreBuffer(void);
 
-void V_CopyRect(int srcx, int srcy, pixel_t *source, int width, int height,
+void V_CopyRect(int srcx, int srcy, const pixel_t *source, int width, int height,
                 int pitch, int destx, int desty);
 
 typedef struct
@@ -152,17 +152,58 @@ typedef struct
 extern crop_t no_crop;
 
 // On-screen patch drawing functions for specific purposes
-void V_DrawPatch(int x, int y, patch_t *patch);
-void V_DrawPatchCastCall(patch_t *patch, const byte *tranmap, const byte *xlat, boolean flip);
-void V_DrawPatchCropped(int x, int y, patch_t *patch, crop_t crop);
-void V_DrawPatchGeneral(int x, int y, int xoffset, int yoffset, const byte *tranmap, byte *xlat, patch_t *patch, crop_t crop);
-void V_DrawPatchTranslated(int x, int y, patch_t *patch, byte* xlat);
-void V_DrawPatchTranslatedTwice(int x, int y, patch_t *patch, byte* xlat, byte* xlat2);
-void V_DrawPatchFullScreen(patch_t *patch);
+
+void V_DrawPatch(
+    int x,
+    int y,
+    const patch_t *patch
+);
+
+void V_DrawPatchCastCall(
+    const patch_t *patch,
+    const byte *tranmap,
+    const byte *xlat,
+    boolean flip
+);
+
+void V_DrawPatchCropped(
+    int x,
+    int y,
+    const patch_t *patch,
+    const crop_t crop
+);
+
+void V_DrawPatchGeneral(
+    int x,
+    int y,
+    int xoffset,
+    int yoffset,
+    const byte *tranmap,
+    const byte *xlat,
+    const patch_t *patch,
+    const crop_t crop
+);
+
+void V_DrawPatchTranslated(
+    int x,
+    int y,
+    const patch_t *patch,
+    const byte* xlat
+);
+
+void V_DrawPatchTranslatedTwice(
+    int x,
+    int y,
+    const patch_t *patch,
+    const byte* xlat,
+    const byte* xlat2
+);
+
+void V_DrawPatchFullScreen(const patch_t *patch);
 
 // Draw a linear block of pixels into the view buffer.
 
-void V_DrawBlock(int x, int y, int width, int height, pixel_t *src);
+void V_DrawBlock(int x, int y, int width, int height, const pixel_t *src);
 
 // Reads a linear block of pixels into the view buffer.
 
@@ -170,7 +211,7 @@ void V_GetBlock(int x, int y, int width, int height, pixel_t *dest);
 
 // [FG] non hires-scaling variant of V_DrawBlock, used in disk icon drawing
 
-void V_PutBlock(int x, int y, int width, int height, pixel_t *src);
+void V_PutBlock(int x, int y, int width, int height, const pixel_t *src);
 
 void V_FillRect(int x, int y, int width, int height, byte color);
 
