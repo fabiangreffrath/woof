@@ -43,6 +43,7 @@
 #include "doomtype.h"
 #include "f_finale.h"
 #include "g_game.h"
+#include "g_skillinfo.h"
 #include "f_wipe.h"
 #include "g_nextweapon.h"
 #include "g_rewind.h"
@@ -123,6 +124,7 @@ static int G_GameOptionSize(void);
 
 gameaction_t    gameaction;
 gamestate_t     gamestate;
+boolean         in_game;
 skill_t         gameskill;
 boolean         respawnmonsters;
 int             gameepisode;
@@ -4432,10 +4434,13 @@ void G_DoNewGame (void)
 // killough 4/10/98: New function to fix bug which caused Doom
 // lockups when idclev was used in conjunction with -fast.
 
-void G_SetFastParms(int fast_pending)
+void G_RefreshFastMonsters(void)
 {
   static int fast = 0;            // remembers fast state
   int i;
+  int fast_pending;
+
+  fast_pending = !!(skill_info.flags & SI_FAST_MONSTERS);
 
   if (fast != fast_pending)       // only change if necessary
   {
@@ -4470,6 +4475,8 @@ void G_SetFastParms(int fast_pending)
 void G_InitNew(skill_t skill, int episode, int map, boolean from_savegame)
 {
   int i;
+
+  in_game = true;
 
   if (paused)
     {
@@ -4508,7 +4515,7 @@ void G_InitNew(skill_t skill, int episode, int map, boolean from_savegame)
     map = 9;
   }
 
-  G_SetFastParms(fastparm || skill == sk_nightmare);  // killough 4/10/98
+  // G_SetFastParms(fastparm || skill == sk_nightmare);  // killough 4/10/98
 
   M_ClearRandom();
 
