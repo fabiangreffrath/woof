@@ -35,6 +35,7 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "g_game.h"
+#include "g_skillinfo.h"
 #include "g_umapinfo.h"
 #include "i_exit.h"
 #include "i_input.h"
@@ -688,52 +689,54 @@ static void M_NewGame(int choice)
     }
 }
 
-static void M_VerifyNightmare(int ch)
+static int chosen_skill;
+
+static void M_FinishGameSelection(void)
+{
+    //jff 3/24/98 remember last skill selected
+    // killough 10/98 moved to here
+    default_skill = chosen_skill + 1;
+
+    if (!EpiCustom)
+    {
+        G_DeferedInitNew(chosen_skill, epiChoice + 1, 1);
+    }
+    else
+    {
+        G_DeferedInitNew(chosen_skill, EpiMenuEpi[epiChoice], EpiMenuMap[epiChoice]);
+    }
+
+    MN_ClearMenus();
+}
+
+static void M_VerifySkill(int ch)
 {
     if (ch != 'y')
     {
         return;
     }
 
-    //jff 3/24/98 remember last skill selected
-    // killough 10/98 moved to here
-    default_skill = nightmare + 1;
-
-    if (!EpiCustom)
-    {
-        G_DeferedInitNew(nightmare, epiChoice + 1, 1);
-    }
-    else
-    {
-        G_DeferedInitNew(nightmare, EpiMenuEpi[epiChoice],
-                         EpiMenuMap[epiChoice]);
-    }
-
-    MN_ClearMenus();
+    M_FinishGameSelection();
 }
 
 void M_ChooseSkill(int choice)
 {
-    if (choice == nightmare)
+    chosen_skill = choice;
+
+    if (choice < num_skills && skill_infos[choice].flags & SI_MUST_CONFIRM)
     {
-        M_StartMessage(DEH_String(NIGHTMARE), M_VerifyNightmare, true);
+        const char* message;
+
+        if (skill_infos[choice].must_confirm)
+            message = skill_infos[choice].must_confirm;
+        else
+            message = DEH_String(NIGHTMARE);
+
+        M_StartMessage(message, M_VerifySkill, true);
         return;
     }
 
-    //jff 3/24/98 remember last skill selected
-    // killough 10/98 moved to here
-    default_skill = choice + 1;
-
-    if (!EpiCustom)
-    {
-        G_DeferedInitNew(choice, epiChoice + 1, 1);
-    }
-    else
-    {
-        G_DeferedInitNew(choice, EpiMenuEpi[epiChoice], EpiMenuMap[epiChoice]);
-    }
-
-    MN_ClearMenus();
+    M_FinishGameSelection();
 }
 
 static void M_CustomSkill(int choice)
