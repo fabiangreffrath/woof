@@ -74,7 +74,8 @@ typedef struct sfxinfo_s
     sg_itemup,
     sg_wpnup,
     sg_oof,
-    sg_getpow
+    sg_getpow,
+    sg_menu
   }
   singularity;
 
