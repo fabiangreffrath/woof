@@ -290,6 +290,8 @@ extern  boolean usergame;
 extern  boolean demoplayback;
 extern  boolean demorecording;
 
+#define allow_incompatibility (!demorecording && !demoplayback)
+
 // Round angleturn in ticcmds to the nearest 256.  This is used when
 // recording Vanilla demos in netgames.
 extern  boolean lowres_turn;
@@ -331,6 +333,7 @@ extern  boolean   critical;
 #define CRITICAL(x) (critical || strictmode ? 0 : (x))
 
 extern  gamestate_t  gamestate;
+extern  boolean      in_game;
 
 //-----------------------------
 // Internal parameters, fixed.
