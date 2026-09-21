@@ -629,10 +629,10 @@ static menu_t NewDef = {
 static void M_InitializeSkillMenu(void)
 {
     NewDef.lastOn = default_skill - 1;
-    NewDef.numitems = num_skills + 1;  // Custom skill
-    NewDef.menuitems = calloc(num_skills + 1, sizeof(*NewDef.menuitems));
+    NewDef.numitems = num_skills;
+    NewDef.menuitems = calloc(num_skills, sizeof(*NewDef.menuitems));
 
-    for (int i = 0; i < num_skills; ++i)
+    for (int i = 0; i < num_og_skills; ++i)
     {
         NewDef.menuitems[i].status = 1;
         NewDef.menuitems[i].rect = (mrect_t)NEW_GAME_RECT(i);
@@ -648,11 +648,11 @@ static void M_InitializeSkillMenu(void)
         if (skill_infos[i].flags & SI_DEFAULT_SKILL)
             NewDef.lastOn = i;
     }
+    int num_cskill = num_skills - 1;
+    NewDef.menuitems[num_cskill] = (menuitem_t){1, "M_CSTSKL", M_CustomSkill, 'c', "Custom Skill...", NEW_GAME_RECT(num_cskill), MF_OPTLUMP};
 
     if (NewDef.lastOn >= num_skills)
         NewDef.lastOn = num_skills - 1;
-    
-    NewDef.menuitems[num_skills] = (menuitem_t){1, "M_CSTSKL", M_CustomSkill, 'c', "Custom Skill...", NEW_GAME_RECT(num_skills), MF_OPTLUMP};
 }
 
 //

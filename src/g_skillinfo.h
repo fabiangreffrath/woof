@@ -31,6 +31,7 @@
 #define SI_EASY_BOSS_BRAIN  0x0100
 #define SI_MUST_CONFIRM     0x0200
 #define SI_AUTO_USE_HEALTH  0x0400
+#define SI_NO_MONSTERS      0x1000
 
 typedef uint16_t skill_info_flags_t;
 
@@ -55,10 +56,12 @@ extern skill_info_t skill_info;
 extern skill_info_t *skill_infos;
 
 extern int num_skills;
+extern int num_og_skills;
 
 void G_InitSkills(void);
 void G_RefreshGameSkill(void);
 void G_UpdateGameSkill(int skill);
+void G_UpdateCustomSkill(int custom_skill_num);
 
 void G_AlterGameFlags(void);
 void G_InitGameModifiers(void);

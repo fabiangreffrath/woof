@@ -70,17 +70,42 @@ const skill_info_t doom_skill_infos[5] = {
   },
 };
 
-int num_skills = 5;
+int num_skills;
+int num_og_skills;
 skill_info_t* skill_infos;
 
 void G_InitSkills(void) {
   const skill_info_t* original_skill_infos;
+
+  num_skills = 5 + 1; // Custom skill
+  num_og_skills = num_skills - 1;
 
   skill_infos = calloc(num_skills, sizeof(*skill_infos));
 
   original_skill_infos = doom_skill_infos;
   for (int i = 0; i < 5; ++i)
     skill_infos[i] = original_skill_infos[i];
+}
+
+void G_UpdateCustomSkill(int custom_skill_num)
+{
+  skill_infos[custom_skill_num].name = "Custom Skill...";
+  skill_infos[custom_skill_num].flags = 0;
+  skill_infos[custom_skill_num].respawn_time = 0;
+
+  skill_infos[custom_skill_num].spawn_filter = csmenu_skill + 1;
+
+  skill_infos[custom_skill_num].ammo_factor             = csmenu.doubleammo ? FRACUNIT * 2 : FRACUNIT;
+  skill_infos[custom_skill_num].damage_factor           = csmenu.halfplayerdamage ? FRACUNIT / 2: FRACUNIT;
+
+  if (csmenu.respawnparm) skill_infos[custom_skill_num].respawn_time = 12;
+
+  if (csmenu.coopspawns)     skill_infos[custom_skill_num].flags |= SI_SPAWN_MULTI;
+  if (csmenu.nomonsters)     skill_infos[custom_skill_num].flags |= SI_NO_MONSTERS;
+  if (csmenu.fastparm)       skill_infos[custom_skill_num].flags |= SI_FAST_MONSTERS;
+  if (csmenu.aggromonsters)  skill_infos[custom_skill_num].flags |= SI_INSTANT_REACTION;
+
+  G_UpdateGameSkill(custom_skill_num);
 }
 
 // At startup, set-up temp game modifier configs based off args / persistent cfgs
