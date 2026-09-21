@@ -79,7 +79,6 @@
 #include "deh_misc.h" // deh_max_health_bonus
 #include "p_ambient.h"
 #include "p_setup.h"
-#include "r_data.h"
 #include "r_defs.h"
 #include "r_draw.h"
 #include "r_main.h"
@@ -92,6 +91,7 @@
 #include "statdump.h"
 #include "g_umapinfo.h"
 #include "v_patch.h"
+#include "v_palette.h"
 #include "v_video.h"
 #include "w_wad.h"
 #include "wi_stuff.h"
@@ -322,7 +322,7 @@ void D_Display (void)
 
   // clean up border stuff
   if (gamestate != oldgamestate && gamestate != GS_LEVEL)
-    R_ResetPalette();
+    V_ResetPalette();
 
   // see if the border needs to be initially drawn
   if (gamestate == GS_LEVEL && oldgamestate != GS_LEVEL)
@@ -2222,6 +2222,9 @@ void D_DoomMain(void)
 
   W_ProcessInWads("TRAKINFO", S_ParseTrakInfo, PROCESS_IWAD | PROCESS_PWAD);
   D_SetupDemoLoop();
+
+  I_Printf(VB_INFO, "V_InitPalette: Init palette sub system.");
+  V_InitPalette();
 
   I_Printf(VB_INFO, "M_Init: Init miscellaneous info.");
   M_Init();

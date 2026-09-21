@@ -14,7 +14,6 @@
 //  GNU General Public License for more details.
 //
 // DESCRIPTION:
-//  Color range translation support
 //  Functions to draw patches (by post) directly to screen.
 //  Functions to blit a block to the screen.
 //
@@ -163,10 +162,6 @@ void V_DrawBackground(const char *patchname);
 void V_ShadeScreen(void);
 
 void V_ShadeRect(int x, int y, int width, int height);
-
-// [FG] colored blood and gibs
-
-int R_BloodColor(int blood);
 
 void V_ScreenShot(void);
 

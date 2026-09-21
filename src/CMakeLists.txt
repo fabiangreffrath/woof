@@ -163,18 +163,15 @@ set(WOOF_SOURCES
     r_data.c               r_data.h
                            r_defs.h
     r_draw.c               r_draw.h
-    r_flextran.c           r_flextran.h
     r_main.c               r_main.h
     r_plane.c              r_plane.h
     r_segs.c               r_segs.h
     r_sky.c                r_sky.h
     r_skydefs.c            r_skydefs.h
-                           r_srgb.h
                            r_state.h
     r_swirl.c              r_swirl.h
     r_things.c             r_things.h
     r_tranmap.c            r_tranmap.h
-    r_trans.c              r_trans.h
     r_voxel.c              r_voxel.h
     s_musinfo.c            s_musinfo.h
     s_sound.c              s_sound.h
@@ -186,7 +183,11 @@ set(WOOF_SOURCES
     st_widgets.c           st_widgets.h
     statdump.c             statdump.h
     tables.c               tables.h
+    v_flextran.c           v_flextran.h
+    v_palette.c            v_palette.h
     v_patch.c              v_patch.h
+                           v_srgb.h
+    v_trans.c              v_trans.h
     v_video.c              v_video.h
     w_wad.c                w_wad.h
                            w_internal.h

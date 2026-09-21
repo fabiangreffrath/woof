@@ -50,14 +50,13 @@
 #include "m_io.h"
 #include "m_misc.h"
 #include "mn_menu.h"
-#include "r_data.h"
 #include "r_draw.h"
 #include "r_main.h"
 #include "r_plane.h"
-#include "r_srgb.h"
 #include "r_voxel.h"
 #include "s_sound.h"
 #include "st_stuff.h"
+#include "v_palette.h"
 #include "v_patch.h"
 #include "v_video.h"
 #include "w_wad.h"
@@ -150,11 +149,6 @@ static boolean grabmouse = true, default_grabmouse;
 boolean screenvisible = true;
 
 static boolean drs_skip_frame;
-
-// Palette stuff
-int gamma2;
-playpal_t list_playpal[PAL_COUNT];
-playpal_t *playpal_global = NULL;
 
 void *I_GetSDLWindow(void)
 {
@@ -1066,50 +1060,6 @@ void I_SetPalette(palette_t pal, palette_layer_t layer)
     }
 }
 
-// Taken from Chocolate Doom chocolate-doom/src/i_video.c:L841-867
-// Adapted to use Linear sRGB instead of Gamma sRGB
-
-byte I_GetNearestColor(palette_t pal, const byte red, const byte green, const byte blue)
-{
-    const double
-        linear_red   = sRGB_ByteToLinear(red),
-        linear_green = sRGB_ByteToLinear(green),
-        linear_blue  = sRGB_ByteToLinear(blue);
-
-    return I_GetNearestColorLinear(pal, linear_red, linear_green, linear_blue);
-}
-
-byte I_GetNearestColorLinear(palette_t pal, const double r, const double g, const double b)
-{
-    byte best = 0;
-    double best_diff = DBL_MAX;
-
-    const lrgb_t *pal_rover = list_playpal[pal].base_linear;
-
-    for (int i = 0; i < PLAYPAL_SIZE; ++i)
-    {
-        const double
-            dr = r - pal_rover[i].r,
-            dg = g - pal_rover[i].g,
-            db = b - pal_rover[i].b;
-
-        const double diff = dr * dr + dg * dg + db * db;
-
-        if (diff < best_diff)
-        {
-            if (!diff)
-            {
-                return i;
-            }
-
-            best = i;
-            best_diff = diff;
-        }
-    }
-
-    return best;
-}
-
 // [FG] save screenshots in PNG format
 boolean I_WritePNGfile(char *filename)
 {
@@ -1563,7 +1513,7 @@ static void I_InitGraphicsMode(void)
 
     palette = SDL_CreatePalette(256);
 
-    R_ResetPalette();
+    V_ResetPalette();
 
     // Blank out the full screen area in case there is any junk in
     // the borders that won't otherwise be overwritten.

@@ -20,11 +20,10 @@
 
 #include "doomtype.h"
 #include "i_printf.h"
-#include "i_video.h"
 #include "m_swap.h"
 #include "r_data.h"
 #include "r_defs.h"
-#include "v_video.h"
+#include "v_palette.h"
 #include "w_wad.h"
 #include "z_zone.h"
 
@@ -308,7 +307,7 @@ static void InitRGB2Pal(void)
             {
                 const int sb = b << RGB2PAL_IBPC;
 
-                rgb2pal_g[b] = I_GetNearestColor(PAL_GLOBAL, sr, sg, sb);
+                rgb2pal_g[b] = V_GetNearestColor(PAL_GLOBAL, sr, sg, sb);
             }
         }
     }
@@ -546,9 +545,7 @@ static boolean DecodePNG(png_t *png)
         byte *translate = malloc(plte.n_entries);
         boolean need_translation = false;
 
-        byte *playpal = W_CacheLumpName("PLAYPAL", PU_CACHE);
-        byte *palette = playpal;
-
+        const byte *palette = playpal_global->data;
         for (int i = 0; i < plte.n_entries; ++i)
         {
             struct spng_plte_entry *e = &plte.entries[i];
@@ -565,7 +562,7 @@ static boolean DecodePNG(png_t *png)
 
             need_translation = true;
             translate[i] =
-                I_GetNearestColor(PAL_GLOBAL, e->red, e->green, e->blue);
+                V_GetNearestColor(PAL_GLOBAL, e->red, e->green, e->blue);
         }
 
         if (need_translation)

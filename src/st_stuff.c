@@ -54,7 +54,6 @@
 #include "r_defs.h"
 #include "r_draw.h"
 #include "r_main.h"
-#include "r_srgb.h"
 #include "r_state.h"
 #include "s_sound.h"
 #include "st_carousel.h"
@@ -63,6 +62,7 @@
 #include "st_widgets.h"
 #include "tables.h"
 #include "v_patch.h"
+#include "v_srgb.h"
 #include "v_video.h"
 #include "w_wad.h"
 #include "z_zone.h"
@@ -2119,7 +2119,7 @@ static void DrawSolidBackground(void)
         g = sRGB_LinearToByte(sRGB_ByteToLinear(g) / 2.0);
         b = sRGB_LinearToByte(sRGB_ByteToLinear(b) / 2.0);
 
-        col = I_GetNearestColor(PAL_GLOBAL, r, g, b);
+        col = V_GetNearestColor(PAL_GLOBAL, r, g, b);
 
         V_FillRect(0, v0, video.unscaledw, v1 - v0, col);
     }

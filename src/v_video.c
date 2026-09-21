@@ -39,6 +39,7 @@
 #include "r_tranmap.h"
 #include "s_sound.h"
 #include "sounds.h"
+#include "v_palette.h"
 #include "v_patch.h"
 #include "v_video.h"
 #include "z_zone.h"

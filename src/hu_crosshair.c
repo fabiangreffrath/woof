@@ -23,11 +23,11 @@
 #include "m_swap.h"
 #include "p_map.h"
 #include "p_mobj.h"
-#include "r_data.h"
 #include "r_main.h"
 #include "r_state.h"
 #include "st_stuff.h"
 #include "v_patch.h"
+#include "v_trans.h"
 #include "v_video.h"
 
 static player_t *plr = players;

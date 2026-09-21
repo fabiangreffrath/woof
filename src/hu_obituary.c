@@ -28,7 +28,7 @@
 #include "m_misc.h"
 #include "net_client.h"
 #include "p_mobj.h"
-#include "r_data.h"
+#include "v_trans.h"
 
 boolean show_obituary_messages;
 int hudcolor_obituary;

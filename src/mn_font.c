@@ -20,13 +20,12 @@
 #include <string.h>
 
 #include "doomtype.h"
-#include "i_video.h"
 #include "m_misc.h"
 #include "m_swap.h"
 #include "r_defs.h"
+#include "v_palette.h"
 #include "v_patch.h"
 #include "v_video.h"
-#include "w_wad.h"
 #include "z_zone.h"
 
 typedef struct
@@ -110,7 +109,7 @@ boolean MN_LoadFon2(const byte *gfx_data, int size)
         int r = *p++;
         int g = *p++;
         int b = *p++;
-        translate[i] = I_GetNearestColor(PAL_GLOBAL, r, g, b);
+        translate[i] = V_GetNearestColor(PAL_GLOBAL, r, g, b);
     }
 
     // 0 is transparent, last is border color

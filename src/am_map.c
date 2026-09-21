@@ -47,8 +47,9 @@
 #include "st_stuff.h"
 #include "st_widgets.h"
 #include "tables.h"
-#include "r_flextran.h"
+#include "v_flextran.h"
 #include "v_patch.h"
+#include "v_trans.h"
 #include "v_video.h"
 #include "ws_stuff.h"
 #include "z_zone.h"
@@ -2779,7 +2780,7 @@ void AM_ApplyColors(boolean force)
     first_time = false;
 
     const playpal_t *playpal_iwad = &list_playpal[PAL_IWAD];
-    boolean is_same = playpal_iwad->num == playpal_global->num;
+    boolean is_same = (playpal_iwad->num == playpal_global->num);
 
     if (is_same || M_CheckIfDisabled("mapcolor_preset"))
     {
@@ -2797,7 +2798,7 @@ void AM_ApplyColors(boolean force)
                        g = playpal_iwad->base[j].g,
                        b = playpal_iwad->base[j].b;
 
-            *mapcolors[i].cur_var = I_GetNearestColor(PAL_GLOBAL, r, g, b);
+            *mapcolors[i].cur_var = V_GetNearestColor(PAL_GLOBAL, r, g, b);
         }
     }
 

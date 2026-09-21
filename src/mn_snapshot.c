@@ -22,11 +22,10 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
-#include "i_video.h"
 #include "m_fixed.h"
 #include "m_misc.h"
-#include "m_io.h"
 #include "r_main.h"
+#include "v_palette.h"
 #include "v_video.h"
 
 #include "base64/base64.h"

@@ -29,7 +29,7 @@
 //
 
 #include "i_video.h"
-#include "r_flextran.h"
+#include "v_flextran.h"
 
 unsigned int Col2RGB8[65][256];
 unsigned int *Col2RGB8_LessPrecision[65];
@@ -48,7 +48,7 @@ void V_InitFlexTranTable(void)
         {
             for (int b = 0; b < 32; ++b)
             {
-                RGB32k[r][g][b] = I_GetNearestColor(PAL_GLOBAL, MAKECOLOR(r),
+                RGB32k[r][g][b] = V_GetNearestColor(PAL_GLOBAL, MAKECOLOR(r),
                                                     MAKECOLOR(g), MAKECOLOR(b));
             }
         }
