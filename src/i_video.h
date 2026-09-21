@@ -87,19 +87,6 @@ void I_BindVideoVariables(void);
 #define PLAYPAL_SIZE  (256)
 #define PLAYPAL_BYTES (PLAYPAL_SIZE * 3)
 
-typedef struct playpal_s
-{
-  char name[9];
-  uint32_t num;
-  const byte *data;
-
-  byte base[PLAYPAL_BYTES];
-  double base_linear[PLAYPAL_BYTES];
-
-  byte white;
-  byte black;
-} playpal_t;
-
 typedef enum palette_e
 {
   PAL_GLOBAL,
@@ -107,11 +94,6 @@ typedef enum palette_e
   PAL_CUSTOM,
   PAL_COUNT,
 } palette_t;
-
-typedef struct rgb_s
-{
-    byte r, g, b;
-} rgb_t;
 
 typedef enum palette_layer_e
 {
@@ -134,6 +116,30 @@ typedef enum palette_layer_e
   LAYER_DAMAGE_COUNT = 8,
   LAYER_ITEM_COUNT = 4,
 } palette_layer_t;
+
+typedef struct rgb_s
+{
+    byte r, g, b;
+} rgb_t;
+
+typedef struct rgb_linear_s
+{
+    double r, g, b;
+} lrgb_t;
+
+typedef struct playpal_s
+{
+  char name[9];
+  size_t num;
+  size_t length;
+  byte *data;
+
+  rgb_t base[PLAYPAL_SIZE];
+  lrgb_t base_linear[PLAYPAL_SIZE];
+
+  byte white;
+  byte black;
+} playpal_t;
 
 extern int gamma2;
 extern playpal_t list_playpal[PAL_COUNT];

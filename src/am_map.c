@@ -2778,10 +2778,10 @@ void AM_ApplyColors(boolean force)
     }
     first_time = false;
 
-    const byte *playpal = playpal_global->base;
-    const byte *playpal_iwad = list_playpal[PAL_IWAD].base;
+    const playpal_t *playpal_iwad = &list_playpal[PAL_IWAD];
+    boolean is_same = playpal_iwad->num == playpal_global->num;
 
-    if (playpal == playpal_iwad || M_CheckIfDisabled("mapcolor_preset"))
+    if (is_same || M_CheckIfDisabled("mapcolor_preset"))
     {
         for (int i = 0; mapcolors[i].cur_var; i++)
         {
@@ -2793,9 +2793,9 @@ void AM_ApplyColors(boolean force)
         for (int i = 0; mapcolors[i].cur_var; i++)
         {
             const int j = *mapcolors[i].var;
-            const byte r = playpal_iwad[3 * j + 0],
-                       g = playpal_iwad[3 * j + 1],
-                       b = playpal_iwad[3 * j + 2];
+            const byte r = playpal_iwad->base[j].r,
+                       g = playpal_iwad->base[j].g,
+                       b = playpal_iwad->base[j].b;
 
             *mapcolors[i].cur_var = I_GetNearestColor(PAL_GLOBAL, r, g, b);
         }

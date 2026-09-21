@@ -3292,7 +3292,7 @@ void G_CleanScreenshot(void)
   const int old_hud_crosshair = hud_crosshair;
   const boolean old_hide_weapon = hide_weapon;
 
-  ST_ResetPalette();
+  R_ResetPalette();
 
   if (gamestate != GS_LEVEL)
       return;

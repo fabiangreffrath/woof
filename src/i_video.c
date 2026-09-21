@@ -50,6 +50,7 @@
 #include "m_io.h"
 #include "m_misc.h"
 #include "mn_menu.h"
+#include "r_data.h"
 #include "r_draw.h"
 #include "r_main.h"
 #include "r_plane.h"
@@ -1083,14 +1084,14 @@ byte I_GetNearestColorLinear(palette_t pal, const double r, const double g, cons
     byte best = 0;
     double best_diff = DBL_MAX;
 
-    const double *linear_palette_rover = list_playpal[pal].base_linear;
+    const lrgb_t *pal_rover = list_playpal[pal].base_linear;
 
     for (int i = 0; i < PLAYPAL_SIZE; ++i)
     {
         const double
-            dr = r - *linear_palette_rover++,
-            dg = g - *linear_palette_rover++,
-            db = b - *linear_palette_rover++;
+            dr = r - pal_rover[i].r,
+            dg = g - pal_rover[i].g,
+            db = b - pal_rover[i].b;
 
         const double diff = dr * dr + dg * dg + db * db;
 
@@ -1562,7 +1563,7 @@ static void I_InitGraphicsMode(void)
 
     palette = SDL_CreatePalette(256);
 
-    I_SetPalette(PAL_GLOBAL, LAYER_BASE);
+    R_ResetPalette();
 
     // Blank out the full screen area in case there is any junk in
     // the borders that won't otherwise be overwritten.

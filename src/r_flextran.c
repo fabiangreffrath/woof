@@ -55,14 +55,14 @@ void V_InitFlexTranTable(void)
     }
 
     // build lookup table
-    const byte *pal = playpal_global->base;
+    const rgb_t *pal = playpal_global->base;
     for (int x = 0; x < 65; ++x)
     {
         for (int y = 0; y < PLAYPAL_SIZE; ++y)
         {
-            const int32_t r = pal[y * 3 + 0] * x,
-                          g = pal[y * 3 + 1] * x,
-                          b = pal[y * 3 + 2] * x;
+            const int32_t r = pal[y].r * x,
+                          g = pal[y].g * x,
+                          b = pal[y].b * x;
 
             Col2RGB8[x][y] = ((r >> 4) << 20) | (g >> 4) | ((b >> 4) << 10);
         }

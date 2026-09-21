@@ -135,6 +135,8 @@ xlat_index_t R_CRByName(const char *name);
 
 void R_InitColorTranslation(void);
 
+void R_ResetPalette(void);
+
 #endif
 
 //----------------------------------------------------------------------------

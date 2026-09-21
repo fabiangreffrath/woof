@@ -2079,7 +2079,7 @@ static void DrawSolidBackground(void)
     crop_t crop = {.width = SHORT(sbar->width), .height = st_height};
     V_DrawPatchCropped(-video.deltaw, 0, sbar, crop);
 
-    const byte *pal_rover = playpal_global->base;
+    const rgb_t *pal_rover = playpal_global->base;
 
     const int width = MIN(SHORT(sbar->width), video.unscaledw);
     const int depth = 16;
@@ -2099,14 +2099,14 @@ static void DrawSolidBackground(void)
             for (y = v0; y < v1; y++)
             {
                 pixel_t *c = st_backing_screen + line + V_ScaleY(y);
-                r += pal_rover[3 * c[0] + 0];
-                g += pal_rover[3 * c[0] + 1];
-                b += pal_rover[3 * c[0] + 2];
+                r += pal_rover[c[0]].r;
+                g += pal_rover[c[0]].g;
+                b += pal_rover[c[0]].b;
 
                 c += V_ScaleX(width - 2 * x - 1) * V_ScaleY(st_height);
-                r += pal_rover[3 * c[0] + 0];
-                g += pal_rover[3 * c[0] + 1];
-                b += pal_rover[3 * c[0] + 2];
+                r += pal_rover[c[0]].r;
+                g += pal_rover[c[0]].g;
+                b += pal_rover[c[0]].b;
             }
         }
 
@@ -2473,11 +2473,6 @@ int ST_FullscreenStatusbar(void)
     }
 
     return screenblocks; // default to current view
-}
-
-void ST_ResetPalette(void)
-{
-    I_SetPalette(PAL_GLOBAL, LAYER_BASE);
 }
 
 // [FG] draw Time widget on intermission screen

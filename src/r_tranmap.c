@@ -58,13 +58,6 @@ const byte *main_addimap; // Some things look better with added luminosity :)
 // Blending algorithms!
 //
 
-enum
-{
-    r,
-    g,
-    b
-};
-
 //
 // The heart of the calculation, the blending algorithm. Currently supported:
 // * Normal -- applies standard alpha interpolation
@@ -74,13 +67,13 @@ enum
 // * Subtractive -- alpha is a foreground multiplier, subtracted from unmodified background
 //
 
-inline static const int AlphaBlendLinear(const double *fg, const double *bg,
+inline static const int AlphaBlendLinear(const lrgb_t *fg, const lrgb_t *bg,
                                          const double fg_alpha,
                                          const double bg_alpha)
 {
-    const double r_blend = (fg[r] * fg_alpha) + (bg[r] * bg_alpha);
-    const double g_blend = (fg[g] * fg_alpha) + (bg[g] * bg_alpha);
-    const double b_blend = (fg[b] * fg_alpha) + (bg[b] * bg_alpha);
+    const double r_blend = (fg->r * fg_alpha) + (bg->r * bg_alpha);
+    const double g_blend = (fg->g * fg_alpha) + (bg->g * bg_alpha);
+    const double b_blend = (fg->b * fg_alpha) + (bg->b * bg_alpha);
     return I_GetNearestColorLinear(PAL_GLOBAL, r_blend, g_blend, b_blend);
 }
 
@@ -144,7 +137,7 @@ static byte *GenerateTranmapData(double fg_alpha, double bg_alpha)
     // Background
     for (int i = 0; i < PLAYPAL_SIZE; i++)
     {
-        const double *bg = &playpal_global->base_linear[i * 3];
+        const lrgb_t *bg = &playpal_global->base_linear[i];
 
         // killough 10/98: display flashing disk
         if (!(~i & 15))
@@ -162,7 +155,7 @@ static byte *GenerateTranmapData(double fg_alpha, double bg_alpha)
         // Foreground
         for (int j = 0; j < PLAYPAL_SIZE; j++)
         {
-            const double *fg = &playpal_global->base_linear[j * 3];
+            const lrgb_t *fg = &playpal_global->base_linear[j];
             *tp++ = AlphaBlendLinear(fg, bg, fg_alpha, bg_alpha);
         }
     }

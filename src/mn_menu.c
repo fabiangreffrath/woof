@@ -2707,7 +2707,7 @@ boolean M_ShortcutResponder(const event_t *ev)
             gamma2 = 0;
         }
         togglemsg("Gamma correction level %s", gamma_strings[gamma2]);
-        MN_ResetGamma();
+        R_ResetPalette();
         return true;
     }
 

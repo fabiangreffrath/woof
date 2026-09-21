@@ -188,12 +188,11 @@ static void rgb_to_hsv(vect *rgb, vect *hsv)
 
 byte R_Colorize(palette_t pal, int cr, byte source)
 {
-    const byte *playpal = list_playpal[pal].base;
     vect rgb, hsv;
 
-    rgb.x = sRGB_ByteToLinear(playpal[3 * source + 0]);
-    rgb.y = sRGB_ByteToLinear(playpal[3 * source + 1]);
-    rgb.z = sRGB_ByteToLinear(playpal[3 * source + 2]);
+    rgb.x = list_playpal[pal].base_linear[source].r;
+    rgb.y = list_playpal[pal].base_linear[source].g;
+    rgb.z = list_playpal[pal].base_linear[source].b;
 
     rgb_to_hsv(&rgb, &hsv);
 

@@ -1098,15 +1098,15 @@ void R_InitColorTranslation(void)
         }
     }
 
-    const byte *palsrc = playpal_global->base;
+    const rgb_t *pal_rover = playpal_global->base;
     for (int i = 0; i < PLAYPAL_SIZE; ++i)
     {
         // Use linear sRGB coefficients to get accurate grayscale.
         // * https://30fps.net/pages/better-srgb-to-greyscale/
         // * https://en.wikipedia.org/wiki/Rec._709#Luma_coefficients
-        double red   = sRGB_ByteToLinear(*palsrc++);
-        double green = sRGB_ByteToLinear(*palsrc++);
-        double blue  = sRGB_ByteToLinear(*palsrc++);
+        double red   = sRGB_ByteToLinear(pal_rover[i].r);
+        double green = sRGB_ByteToLinear(pal_rover[i].g);
+        double blue  = sRGB_ByteToLinear(pal_rover[i].b);
         const byte gray = sRGB_LinearToByte(red * 0.2126 + green * 0.7152 + blue * 0.0722);
         invul_gray[i] = I_GetNearestColor(PAL_GLOBAL, gray, gray, gray);
     }
@@ -1120,12 +1120,23 @@ static playpal_t *InitPlaypal(palette_t pal, const char* name, int32_t num)
     // Order is important
     M_CopyLumpName(playpal->name, name);
     playpal->num = num;
+    playpal->length = W_LumpLength(playpal->num);
+
     playpal->data = W_CacheLumpNum(playpal->num, PU_STATIC);
-    for (size_t i = 0; i < PLAYPAL_BYTES; i++)
+
+    for (size_t i = 0; i < PLAYPAL_SIZE; i++)
     {
-        const byte b = playpal->data[i];
-        playpal->base[i] = b;
-        playpal->base_linear[i] = sRGB_ByteToLinear(b);
+        const byte r = playpal->data[i * 3 + 0],
+                   g = playpal->data[i * 3 + 1],
+                   b = playpal->data[i * 3 + 2];
+
+        playpal->base[i].r = r;
+        playpal->base[i].g = g;
+        playpal->base[i].b = b;
+
+        playpal->base_linear[i].r = sRGB_ByteToLinear(r);
+        playpal->base_linear[i].g = sRGB_ByteToLinear(g);
+        playpal->base_linear[i].b = sRGB_ByteToLinear(b);
     }
     playpal->white = I_GetNearestColor(pal, 0xFF, 0xFF, 0xFF);
     playpal->black = I_GetNearestColor(pal, 0x00, 0x00, 0x00);
@@ -1159,6 +1170,11 @@ void R_InitPlaypal(void)
     {
         playpal_iwad = InitPlaypal(PAL_IWAD, name, playpal_iwad->num);
     }
+}
+
+void R_ResetPalette(void)
+{
+    I_SetPalette(PAL_GLOBAL, LAYER_BASE);
 }
 
 //

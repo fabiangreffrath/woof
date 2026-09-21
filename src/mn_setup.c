@@ -2451,11 +2451,6 @@ const char *gamma_strings[] = {
     "0.5", "1", "1.5", "2", "2.5", "3", "3.5", "4"
 };
 
-void MN_ResetGamma(void)
-{
-    I_SetPalette(PAL_GLOBAL, LAYER_BASE);
-}
-
 static setup_menu_t gen_settings1[] = {
 
     {"Resolution Scale", S_THERMO | S_THRM_SIZE11 | S_ACTION, CNTR_X,
@@ -2488,7 +2483,7 @@ static setup_menu_t gen_settings1[] = {
      .action = UpdateFOV},
 
     {"Gamma Correction", S_THERMO, CNTR_X, M_THRM_SPC, {"gamma2"},
-     .strings_id = str_gamma, .action = MN_ResetGamma},
+     .strings_id = str_gamma, .action = R_ResetPalette},
 
     {"Extra Lighting", S_THERMO | S_STRICT, CNTR_X,
      M_THRM_SPC, {"extra_level_brightness"}},
