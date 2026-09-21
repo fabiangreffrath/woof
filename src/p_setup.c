@@ -1176,7 +1176,7 @@ static void CheckMapFormat(int lumpnum, map_t *map)
     }
 }
 
-void P_SetupLevel(int episode, int map_num, skill_t skill, boolean from_savegame)
+void P_SetupLevel(int episode, int map_num, int skill, boolean from_savegame)
 {
   char  lumpname[9];
   int   lumpnum;

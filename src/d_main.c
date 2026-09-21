@@ -56,6 +56,7 @@
 #include "f_wipe.h"
 #include "g_compatibility.h"
 #include "g_game.h"
+#include "g_skillinfo.h"
 #include "i_endoom.h"
 #include "i_exit.h"
 #include "i_glob.h"
@@ -129,7 +130,7 @@ boolean singletics = false; // debug flag to cancel adaptiveness
 boolean nosfxparm;
 boolean nomusicparm;
 
-skill_t startskill;
+int     startskill;
 int     startepisode;
 int     startmap;
 boolean autostart;
@@ -1874,7 +1875,7 @@ void D_DoomMain(void)
 
   // get skill / episode / map from parms
 
-  startskill = sk_default; // jff 3/24/98 was sk_medium, just note not picked
+  startskill = default_skill - 1;
   startepisode = 1;
   startmap = 1;
   autostart = false;
@@ -1893,7 +1894,7 @@ void D_DoomMain(void)
    {
      startskill = M_ParmArgToInt(p);
      startskill--;
-     if (startskill >= sk_none && startskill <= sk_nightmare)
+     if (startskill >= -1 && startskill <= num_skills - 1)  // FIXME: magic numbers
       {
         autostart = true;
       }
@@ -1914,7 +1915,7 @@ void D_DoomMain(void)
 
   if (M_ParmExists("-uv"))
   {
-    startskill = sk_hard;
+    startskill = 3;  // FIXME: magic number
     autostart = true;
   }
 
@@ -1927,7 +1928,7 @@ void D_DoomMain(void)
 
   if (M_ParmExists("-nm"))
   {
-    startskill = sk_nightmare;
+    startskill = 4;  // FIXME: magic number
     autostart = true;
   }
 
@@ -2230,6 +2231,8 @@ void D_DoomMain(void)
 
   I_Printf(VB_INFO, "R_Init: Init DOOM refresh daemon.");
   R_Init();
+
+  G_InitSkills();
 
   I_Printf(VB_INFO, "P_Init: Init Playloop state.");
   P_Init();

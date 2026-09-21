@@ -3578,11 +3578,11 @@ static void SelectSkillLevel(void)
 
     switch (csmenu_skill)
     {
-        case sk_baby:
+        case 0:  // FIXME: Magic number
             csmenu.halfplayerdamage = true;
             csmenu.doubleammo = true;
             break;
-        case sk_nightmare:
+        case 4:  // FIXME: Magic number
             csmenu.doubleammo = true;
             csmenu.aggromonsters = true;
             csmenu.fastparm = true;
@@ -3592,11 +3592,11 @@ static void SelectSkillLevel(void)
             break;
     }
 
-    DisableItem(csmenu_skill == sk_baby, customskill_settings1,
+    DisableItem(csmenu_skill == 0, customskill_settings1,   // FIXME: Magic number
                 "csmenu.halfplayerdamage");
-    DisableItem(csmenu_skill == sk_baby || csmenu_skill == sk_nightmare,
+    DisableItem(csmenu_skill == 0 || csmenu_skill == 4,   // FIXME: Magic numbers
                 customskill_settings1, "csmenu.doubleammo");
-    DisableItems(csmenu_skill == sk_nightmare, customskill_settings1,
+    DisableItems(csmenu_skill == 4, customskill_settings1,   // FIXME: Magic number
                  "csmenu.aggromonsters", "csmenu.fastparm",
                  "csmenu.respawnparm");
 }
@@ -5165,7 +5165,7 @@ void MN_BindMenuVariables(void)
         "Menu backdrop (0 = Off; 1 = Dark; 2 = Texture)");
     BIND_NUM_GENERAL(menu_help, MENU_HELP_AUTO, MENU_HELP_OFF, MENU_HELP_PAD,
         "Menu help (0 = Off; 1 = Auto; 2 = Always Keyboard; 3 = Always Gamepad)");
-    BIND_NUM_MENU(csmenu_skill, sk_baby, sk_nightmare);
+    BIND_NUM_MENU(csmenu_skill, 0, 4);   // FIXME: Magic numbers
     BIND_BOOL_MENU(csmenu.nomonsters);
     BIND_BOOL_MENU(csmenu.fastparm);
     BIND_BOOL_MENU(csmenu.respawnparm);

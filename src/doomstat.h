@@ -178,7 +178,7 @@ extern int comp[COMP_TOTAL], default_comp[COMP_TOTAL];
 //
 
 // Defaults for menu, methinks.
-extern  skill_t   startskill;
+extern  int   startskill;
 extern  int             startepisode;
 extern  int   startmap;
 
@@ -188,16 +188,13 @@ extern  int       startloadgame;
 extern  boolean   autostart;
 
 // Selected by user.
-extern  skill_t         gameskill;
+extern  int         gameskill;
 extern  int   gameepisode;
 extern  int   gamemap;
 extern  struct mapentry_s *gamemapinfo;
 
 // If non-zero, exit the level after this number of minutes
 extern  int             timelimit;
-
-// Nightmare mode flag, single player.
-extern  boolean         respawnmonsters;
 
 // Custom skill flags
 extern boolean halfplayerdamage, cshalfplayerdamage;

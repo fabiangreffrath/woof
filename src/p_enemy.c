@@ -29,6 +29,7 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "g_game.h"
+#include "g_skillinfo.h"
 #include "g_umapinfo.h"
 #include "hu_obituary.h"
 #include "i_printf.h"
@@ -1196,7 +1197,7 @@ void A_Chase(mobj_t *actor)
   if (actor->flags & MF_JUSTATTACKED)
     {
       actor->flags &= ~MF_JUSTATTACKED;
-      if (gameskill != sk_nightmare && !fastparm)
+      if (!(skill_info.flags & SI_FAST_MONSTERS))
         P_NewChaseDir(actor);
       return;
     }
@@ -1214,7 +1215,7 @@ void A_Chase(mobj_t *actor)
 
   // check for missile attack
   if (actor->info->missilestate)
-    if (!actor->movecount || gameskill >= sk_nightmare || fastparm)
+    if (!actor->movecount || skill_info.flags & SI_FAST_MONSTERS)
       if (P_CheckMissileRange(actor))
         {
           P_SetMobjState(actor, actor->info->missilestate);
@@ -2631,7 +2632,7 @@ void A_BrainSpit(mobj_t *mo)
     return;
 
   brain.easy ^= 1;          // killough 3/26/98: use brain struct
-  if (gameskill <= sk_easy && !brain.easy)
+  if (skill_info.flags & SI_EASY_BOSS_BRAIN && !brain.easy)
     return;
 
   // shoot a cube at current target

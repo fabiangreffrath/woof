@@ -24,6 +24,7 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "g_game.h"
+#include "g_skillinfo.h"
 #include "i_printf.h"
 #include "info.h"
 #include "m_fixed.h"
@@ -834,7 +835,7 @@ void P_MobjThinker (mobj_t* mobj)
 	P_SetMobjState(mobj, mobj->state->nextstate);
     }
   else                       
-    if (mobj->flags & MF_COUNTKILL && respawnmonsters &&
+    if (mobj->flags & MF_COUNTKILL && skill_info.respawn_time &&
 	++mobj->movecount >= 12*35 && !(leveltime & 31) &&
 	P_Random (pr_respawn) <= 4)
       P_NightmareRespawn(mobj);          // check for nightmare respawn
@@ -871,7 +872,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 
   mobj->health = info->spawnhealth;
 
-  if (gameskill != sk_nightmare && !aggromonsters)
+  if (!(skill_info.flags & SI_INSTANT_REACTION))
     mobj->reactiontime = info->reactiontime;
 
   if (type != zmt_ambientsound)
@@ -1277,12 +1278,12 @@ void P_SpawnMapThing (mapthing_t* mthing)
     return;
 
   // killough 11/98: simplify
-  if ((gameskill == sk_none && demo_compatibility)
-      || (!(mthing->options & MTF_SKILL1) && gameskill == sk_baby)
-      || (!(mthing->options & MTF_SKILL2) && gameskill == sk_easy)
-      || (!(mthing->options & MTF_SKILL3) && gameskill == sk_medium)
-      || (!(mthing->options & MTF_SKILL4) && gameskill == sk_hard)
-      || (!(mthing->options & MTF_SKILL5) && gameskill == sk_nightmare)
+  if ((gameskill == -1 && demo_compatibility)  // FIXME: Magic number
+      || (!(mthing->options & MTF_SKILL1) && skill_info.spawn_filter == 1)
+      || (!(mthing->options & MTF_SKILL2) && skill_info.spawn_filter == 2)
+      || (!(mthing->options & MTF_SKILL3) && skill_info.spawn_filter == 3)
+      || (!(mthing->options & MTF_SKILL4) && skill_info.spawn_filter == 4)
+      || (!(mthing->options & MTF_SKILL5) && skill_info.spawn_filter == 5)
     )
   {
     return;

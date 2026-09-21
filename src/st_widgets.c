@@ -24,6 +24,7 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "g_game.h"
+#include "g_skillinfo.h"
 #include "g_umapinfo.h"
 #include "hu_command.h"
 #include "hu_coordinates.h"
@@ -769,7 +770,7 @@ static void UpdateMonSec(sbe_widget_t *widget)
         }
     }
 
-    if (respawnmonsters)
+    if (skill_info.respawn_time)
     {
         fullkillcount = kill_percent_count;
         max_kill_requirement = totalkills;
