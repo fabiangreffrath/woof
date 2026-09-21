@@ -450,7 +450,7 @@ boolean NET_ValidGameSettings(GameMode_t mode, GameMission_t mission,
         return false;
     }
 
-    if (settings->skill < sk_none || settings->skill > sk_nightmare)
+    if (settings->skill < -1 || settings->skill > 4)  // FIXME: Magic numbers
     {
         return false;
     }

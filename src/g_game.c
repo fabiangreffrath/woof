@@ -126,8 +126,7 @@ static int G_GameOptionSize(void);
 gameaction_t    gameaction;
 gamestate_t     gamestate;
 boolean         in_game;
-skill_t         gameskill;
-boolean         respawnmonsters;
+int             gameskill;
 int             gameepisode;
 int             gamemap;
 MI_Entry_t*     gamemapinfo;
@@ -1746,7 +1745,7 @@ static char *SanitizeSignature(const char *orig, size_t len)
 
 static void G_DoPlayDemo(void)
 {
-  skill_t skill;
+  int skill;
   int i, episode, map;
   demo_version_t demover;
   byte *option_p = NULL;      // killough 11/98
@@ -3557,11 +3556,11 @@ void G_WorldDone(void)
   }
 }
 
-static skill_t d_skill;
+static int     d_skill;
 static int     d_episode;
 static int     d_map;
 
-void G_DeferedInitNew(skill_t skill, int episode, int map)
+void G_DeferedInitNew(int skill, int episode, int map)
 {
   d_skill = skill;
   d_episode = episode;
@@ -3928,11 +3927,6 @@ void G_ReloadDefaults(boolean keep_demover)
   aggromonsters = csaggromonsters;
   dogs = cshelperdogs;
 
-  //jff 3/24/98 set startskill from defaultskill in config file, unless
-  // it has already been set by a -skill parameter
-  if (startskill == sk_default)
-    startskill = (skill_t)(default_skill - 1);
-
   demoplayback = false;
   singledemo = false;            // killough 9/29/98: don't stop after 1 demo
   netdemo = false;
@@ -4043,7 +4037,7 @@ void G_ReloadDefaults(boolean keep_demover)
   if ((M_CheckParm("-dog") || M_CheckParm("-dogs")) && demo_version < DV_MBF)
     I_Error("Helper dogs require complevel MBF or MBF21.");
 
-  if (M_CheckParm("-skill") && startskill == sk_none && !demo_compatibility)
+  if (M_CheckParm("-skill") && startskill == -1 && !demo_compatibility)  // FIXME: magic number
     I_Error("'-skill 0' requires complevel Vanilla.");
 
   if ((p = M_CheckParm("-gameversion")) && named_complevel_id != 0)
@@ -4144,7 +4138,7 @@ void G_RefreshFastMonsters(void)
 // Can be called by the startup code or the menu task,
 // consoleplayer, displayplayer, playeringame[] should be set.
 
-void G_InitNew(skill_t skill, int episode, int map, boolean from_savegame)
+void G_InitNew(int skill, int episode, int map, boolean from_savegame)
 {
   int i;
 
@@ -4156,8 +4150,8 @@ void G_InitNew(skill_t skill, int episode, int map, boolean from_savegame)
       S_ResumeMusic();
     }
 
-  if (skill > sk_nightmare)
-    skill = sk_nightmare;
+  if (skill > num_skills)
+    skill = num_skills;
 
   if (episode < 1)
     episode = 1;
@@ -4187,11 +4181,7 @@ void G_InitNew(skill_t skill, int episode, int map, boolean from_savegame)
     map = 9;
   }
 
-  // G_SetFastParms(fastparm || skill == sk_nightmare);  // killough 4/10/98
-
   M_ClearRandom();
-
-  respawnmonsters = skill == sk_nightmare || respawnparm;
 
   // force players to be initialized upon first level load
   for (i=0 ; i<MAXPLAYERS ; i++)
@@ -4204,7 +4194,7 @@ void G_InitNew(skill_t skill, int episode, int map, boolean from_savegame)
   viewactive = true;
   gameepisode = episode;
   gamemap = map;
-  gameskill = skill;
+  G_UpdateGameSkill(skill);
   gamemapinfo = MI_MapEntry(gameepisode, gamemap);
 
   // [FG] total time for all completed levels
