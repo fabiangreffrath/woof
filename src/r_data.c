@@ -1122,7 +1122,10 @@ static playpal_t *InitPlaypal(palette_t pal, const char* name, int32_t num)
     playpal->num = num;
     playpal->length = W_LumpLength(playpal->num);
 
-    playpal->data = W_CacheLumpNum(playpal->num, PU_STATIC);
+    // Do NOT ask me why this doesn't work, I loathe it.
+    // playpal->data = W_CacheLumpNum(playpal->num, PU_STATIC);
+    playpal->data = malloc(playpal->length);
+    memcpy(playpal->data, W_CacheLumpNum(playpal->num, PU_CACHE), playpal->length);
 
     for (size_t i = 0; i < PLAYPAL_SIZE; i++)
     {
