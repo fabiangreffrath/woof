@@ -104,6 +104,7 @@ void G_UpdateCustomSkill(int custom_skill_num)
   if (csmenu.nomonsters)     skill_infos[custom_skill_num].flags |= SI_NO_MONSTERS;
   if (csmenu.fastparm)       skill_infos[custom_skill_num].flags |= SI_FAST_MONSTERS;
   if (csmenu.aggromonsters)  skill_infos[custom_skill_num].flags |= SI_INSTANT_REACTION;
+  if (csmenu.pistolstart)    skill_infos[custom_skill_num].flags |= SI_PISTOL_START;
 
   G_UpdateGameSkill(custom_skill_num);
 }
@@ -152,12 +153,18 @@ void G_RefreshGameSkill(void) {
 
   if (respawnparm && !skill_info.respawn_time)
     skill_info.respawn_time = 12;
+  
+  if (nomonsters)
+    skill_info.flags |= SI_NO_MONSTERS;
 
   if (fastparm)
     skill_info.flags |= SI_FAST_MONSTERS;
 
   if (coopspawns)
     skill_info.flags |= SI_SPAWN_MULTI;
+  
+  if (pistolstart)
+    skill_info.flags |= SI_PISTOL_START;
 
   G_RefreshFastMonsters();
 }
