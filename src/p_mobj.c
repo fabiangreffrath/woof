@@ -836,7 +836,8 @@ void P_MobjThinker (mobj_t* mobj)
     }
   else                       
     if (mobj->flags & MF_COUNTKILL && skill_info.respawn_time &&
-	++mobj->movecount >= 12*35 && !(leveltime & 31) &&
+	++mobj->movecount >= skill_info.respawn_time * 35
+  && !(leveltime & 31) &&
 	P_Random (pr_respawn) <= 4)
       P_NightmareRespawn(mobj);          // check for nightmare respawn
 }
