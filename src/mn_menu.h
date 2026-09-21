@@ -109,6 +109,23 @@ void M_StartSound(int sound_id);
 
 void MN_BindMenuVariables(void);
 
+extern boolean csmenu_skill;
+
+struct csmenu_s
+{
+    boolean fastparm;
+    boolean respawnparm;
+    boolean nomonsters;
+    boolean coopspawns;
+    boolean pistolstart;
+    boolean halfplayerdamage;
+    boolean doubleammo;
+    boolean aggromonsters;
+    int helperdogs;
+};
+
+extern struct csmenu_s csmenu;
+
 #endif
 
 //----------------------------------------------------------------------------

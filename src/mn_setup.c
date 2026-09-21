@@ -3511,20 +3511,9 @@ void MN_DrawGeneral(void)
     }
 }
 
-static boolean csmenu_skill;
+boolean csmenu_skill;
 
-static struct
-{
-    boolean fastparm;
-    boolean respawnparm;
-    boolean nomonsters;
-    boolean coopspawns;
-    boolean pistolstart;
-    boolean halfplayerdamage;
-    boolean doubleammo;
-    boolean aggromonsters;
-    int helperdogs;
-} csmenu;
+struct csmenu_s csmenu;
 
 const char *skill_strings[] = {
     "I'm too young to die", "Hey, not too rough", "Hurt me plenty",
