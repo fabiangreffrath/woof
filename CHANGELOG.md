@@ -7,7 +7,6 @@
   - Leave some more space in the HUD menu for the layout description.
   - Add support for optional chaingun sound, via `DSCHGUN`.
 
-
 * **Quality of Life:**
   - Player view no longer abruptly jolts when running across very shallow floor height changes
   - The Minimap now always follows the player
@@ -32,4 +31,5 @@
 
 ## Miscellaneous
 
+* Rearranged default HUD layouts: "Nightdive" and "Crispy" layouts swapped places
 * Renamed MacOS build from "`Woof-<version>-uni.zip`" to "`Woof-<version>-MacOS-universal.zip`"
