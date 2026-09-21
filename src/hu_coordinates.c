@@ -190,16 +190,16 @@ void HU_BuildCoordinatesEx(sbe_widget_t *widget, const mobj_t *mo)
     // Coordinates.
 
     static char line1[LINE_SIZE];
-    pos = M_snprintf(line1, sizeof(line1), GREEN_S);
+    pos = M_snprintf(line1, sizeof(line1), "%s", xlat[CR_GREEN].str);
     FixedToString(widget, "X", mo->x, line1, sizeof(line1), pos);
     static char line2[LINE_SIZE];
-    pos = M_snprintf(line2, sizeof(line2), GREEN_S);
+    pos = M_snprintf(line2, sizeof(line2), "%s", xlat[CR_GREEN].str);
     FixedToString(widget, "Y", mo->y, line2, sizeof(line2), pos);
     static char line3[LINE_SIZE];
-    pos = M_snprintf(line3, sizeof(line3), GREEN_S);
+    pos = M_snprintf(line3, sizeof(line3), "%s", xlat[CR_GREEN].str);
     FixedToString(widget, "Z", mo->z, line3, sizeof(line3), pos);
     static char line4[LINE_SIZE];
-    pos = M_snprintf(line4, sizeof(line4), GREEN_S);
+    pos = M_snprintf(line4, sizeof(line4), "%s", xlat[CR_GREEN].str);
     AngleToString(widget, "A", mo->angle, line4, sizeof(line4), pos);
     ST_AddLine(widget, " ");
 

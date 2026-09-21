@@ -32,23 +32,23 @@ extern byte invul_gray[];
 typedef enum xlat_index_e
 {
     CR_ORIG = -1,
-    CR_BRICK,  // 0
-    CR_TAN,    // 1
-    CR_GRAY,   // 2
-    CR_GREEN,  // 3
-    CR_BROWN,  // 4
-    CR_GOLD,   // 5
-    CR_RED,    // 6
-    CR_BLUE1,  // 7
-    CR_ORANGE, // 8
-    CR_YELLOW, // 9
-    CR_BLUE2,  // 10
-    CR_BLACK,  // 11
-    CR_PURPLE, // 12
-    CR_WHITE,  // 13
-    CR_BRIGHT, // 14
-    CR_NONE,   // 15 // [FG] dummy
-    CR_LIMIT   // 16 //jff 2/27/98 added for range check
+    CR_BRICK,
+    CR_TAN,
+    CR_GRAY,
+    CR_GREEN,
+    CR_BROWN,
+    CR_GOLD,
+    CR_RED,
+    CR_BLUE1,
+    CR_ORANGE,
+    CR_YELLOW,
+    CR_BLUE2,
+    CR_BLACK,
+    CR_PURPLE,
+    CR_WHITE,
+    CR_BRIGHT,
+    CR_NONE,
+    CR_LIMIT,
 } xlat_index_t;
 
 typedef struct
@@ -61,13 +61,7 @@ typedef struct
 
 extern xlat_t xlat[CR_LIMIT];
 
-#define ORIG_S  "\x1b\x2f"
-#define GRAY_S  "\x1b\x32"
-#define GREEN_S "\x1b\x33"
-#define BROWN_S "\x1b\x34"
-#define GOLD_S  "\x1b\x35"
-#define BLUE1_S "\x1b\x37"
-#define BLUE2_S "\x1b\x3a"
+#define ORIG_S "\x1b\x2f"
 
 xlat_index_t V_CRByName(const char *name);
 xlat_index_t V_BloodColor(int blood);
