@@ -613,19 +613,6 @@ static void M_Episode(int choice)
 // NEW GAME
 //
 
-// numerical values for the New Game menu items
-
-enum
-{
-    killthings,
-    toorough,
-    hurtme,
-    violence,
-    nightmare,
-    customskill,
-    newg_end
-} newgame_e;
-
 // The definitions of the New Game menu
 
 #define M_Y_NEWGAME 63
@@ -633,23 +620,40 @@ enum
 #define NEW_GAME_RECT(n) \
     {0, M_Y_NEWGAME + (n) * LINEHEIGHT, SCREENWIDTH, LINEHEIGHT}
 
-static menuitem_t NewGameMenu[] = {
-    {1, "M_JKILL", M_ChooseSkill, 'i', "I'm too young to die.", NEW_GAME_RECT(0)},
-    {1, "M_ROUGH", M_ChooseSkill, 'h', "Hey, not too rough.",   NEW_GAME_RECT(1)},
-    {1, "M_HURT",  M_ChooseSkill, 'h', "Hurt me plenty.",       NEW_GAME_RECT(2)},
-    {1, "M_ULTRA", M_ChooseSkill, 'u', "Ultra-Violence.",       NEW_GAME_RECT(3)},
-    {1, "M_NMARE", M_ChooseSkill, 'n', "Nightmare!",            NEW_GAME_RECT(4)},
-    {1, "M_CSTSKL", M_CustomSkill, 'c', "Custom Skill...",      NEW_GAME_RECT(5), MF_OPTLUMP}
+static menu_t NewDef = {
+    .prevMenu = &EpiDef,
+    .routine = M_DrawNewGame,
+    .x = 48, .y =  M_Y_NEWGAME,
 };
 
-static menu_t NewDef = {
-    newg_end,      // # of menu items
-    &EpiDef,       // previous menu
-    NewGameMenu,   // menuitem_t ->
-    M_DrawNewGame, // drawing routine ->
-    48, M_Y_NEWGAME, // x,y
-    hurtme       // lastOn
-};
+static void M_InitializeSkillMenu(void)
+{
+    NewDef.lastOn = default_skill - 1;
+    NewDef.numitems = num_skills + 1;  // Custom skill
+    NewDef.menuitems = calloc(num_skills + 1, sizeof(*NewDef.menuitems));
+
+    for (int i = 0; i < num_skills; ++i)
+    {
+        NewDef.menuitems[i].status = 1;
+        NewDef.menuitems[i].rect = (mrect_t)NEW_GAME_RECT(i);
+
+        if (skill_infos[i].pic_name)
+            strncpy(NewDef.menuitems[i].name, skill_infos[i].pic_name, 8);
+        
+        NewDef.menuitems[i].alttext = skill_infos[i].name;
+
+        NewDef.menuitems[i].routine = M_ChooseSkill;
+        NewDef.menuitems[i].alphaKey = skill_infos[i].key;
+
+        if (skill_infos[i].flags & SI_DEFAULT_SKILL)
+            NewDef.lastOn = i;
+    }
+
+    if (NewDef.lastOn >= num_skills)
+        NewDef.lastOn = num_skills - 1;
+    
+    NewDef.menuitems[num_skills] = (menuitem_t){1, "M_CSTSKL", M_CustomSkill, 'c', "Custom Skill...", NEW_GAME_RECT(num_skills), MF_OPTLUMP};
+}
 
 //
 // M_NewGame
@@ -3570,7 +3574,9 @@ void MN_StartControlPanel(void)
     //  Fix to make "always floating" with menu selections, and to always follow
     //  defaultskill, instead of -skill.
 
-    NewDef.lastOn = default_skill - 1;
+    DO_ONCE
+    M_InitializeSkillMenu();
+    END_ONCE
 
     default_verify = 0; // killough 10/98
     menuactive = 1;

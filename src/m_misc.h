@@ -85,4 +85,7 @@ typedef struct
 int M_CompareVersions(const version_t *v1, const version_t *v2);
 boolean M_ParseVersion(const char *s, version_t *v);
 
+#define DO_ONCE { static int do_once = true; if (do_once) {
+#define END_ONCE do_once = false; } }
+
 #endif
