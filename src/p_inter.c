@@ -108,7 +108,7 @@ boolean P_GiveAmmo(player_t *player, ammotype_t ammo, int num)
     num = clipammo[ammo]/2;
 
   if (skill_info.ammo_factor)
-    num = num * skill_info.ammo_factor / FRACUNIT;
+    num = FixedMul(num, skill_info.ammo_factor);
 
   oldammo = player->ammo[ammo];
   player->ammo[ammo] += num;
