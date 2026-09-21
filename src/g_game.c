@@ -1002,7 +1002,7 @@ static void G_DoLoadLevel(boolean from_savegame)
 
   // ID24 exit line specials
   // [crispy] pistol start
-  if (reset_inventory || CRITICAL(pistolstart))
+  if (reset_inventory || CRITICAL(skill_info.flags & SI_PISTOL_START))
   {
     for (int player = 0; player < MAXPLAYERS; player++)
     {

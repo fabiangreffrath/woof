@@ -1264,7 +1264,7 @@ void P_SpawnMapThing (mapthing_t* mthing)
 
   // check for apropriate skill level
 
-  if (!coopspawns && !netgame
+  if (!(skill_info.flags & SI_SPAWN_MULTI) && !netgame
       && mthing->options & MTF_NOTSINGLE) //jff "not single" thing flag
     return;
 
@@ -1275,7 +1275,7 @@ void P_SpawnMapThing (mapthing_t* mthing)
 
   //jff 3/30/98 implement "not cooperative" thing flag
 
-  if ((coopspawns || netgame) && !deathmatch && mthing->options & MTF_NOTCOOP)
+  if ((skill_info.flags & SI_SPAWN_MULTI || netgame) && !deathmatch && mthing->options & MTF_NOTCOOP)
     return;
 
   // killough 11/98: simplify
@@ -1337,7 +1337,7 @@ void P_SpawnMapThing (mapthing_t* mthing)
 
   // don't spawn any monsters if -nomonsters
 
-  if (nomonsters && (i == MT_SKULL || (mobjinfo[i].flags & MF_COUNTKILL)))
+  if ((skill_info.flags & SI_NO_MONSTERS) && (i == MT_SKULL || (mobjinfo[i].flags & MF_COUNTKILL)))
     return;
 
   // spawn it
