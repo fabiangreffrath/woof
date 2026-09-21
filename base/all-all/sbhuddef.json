@@ -217,28 +217,7 @@
           "conditions": [
             {
               "condition": 19,
-              "param": 1,
-              "param2": 0
-            }
-          ],
-          "children": [],
-          "type": "level_title",
-          "font": "Console",
-          "vertical": false
-        }
-      },
-      {
-        "component": {
-          "x": 0,
-          "y": 154,
-          "alignment": 64,
-          "tranmap": null,
-          "translation": "CRGOLD",
-          "translucency": false,
-          "conditions": [
-            {
-              "condition": 19,
-              "param": 2,
+              "param": 3,
               "param2": 0
             }
           ],
