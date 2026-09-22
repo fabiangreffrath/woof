@@ -22,10 +22,6 @@
 #include "g_game.h"
 #include "mn_menu.h"
 
-// #include "dsda/args.h"
-// #include "dsda/configuration.h"
-// #include "dsda/utility.h"
-
 skill_info_t skill_info;
 
 const skill_info_t doom_skill_infos[5] = {
