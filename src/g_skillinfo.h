@@ -23,27 +23,28 @@
 
 typedef enum
 {
-  SI_SPAWN_MULTI = (1u << 0),
-  SI_FAST_MONSTERS = (1u << 1),
-  SI_INSTANT_REACTION = (1u << 2),
-  SI_DEFAULT_SKILL = (1u << 3),
-  SI_EASY_BOSS_BRAIN = (1u << 4),
-  SI_MUST_CONFIRM = (1u << 5),
-  SI_NO_MONSTERS = (1u << 6),
-  SI_PISTOL_START = (1u << 7),
+    SI_SPAWN_MULTI = (1u << 0),
+    SI_FAST_MONSTERS = (1u << 1),
+    SI_INSTANT_REACTION = (1u << 2),
+    SI_DEFAULT_SKILL = (1u << 3),
+    SI_EASY_BOSS_BRAIN = (1u << 4),
+    SI_MUST_CONFIRM = (1u << 5),
+    SI_NO_MONSTERS = (1u << 6),
+    SI_PISTOL_START = (1u << 7),
 } skill_info_flags_t;
 
-typedef struct {
-  fixed_t ammo_factor;
-  fixed_t damage_factor;
-  int respawn_time;
-  int spawn_filter;
-  char key;
-  const char* must_confirm;
-  const char* name;
-  const char* pic_name;
-  int helper_dogs;
-  skill_info_flags_t flags;
+typedef struct
+{
+    fixed_t ammo_factor;
+    fixed_t damage_factor;
+    int respawn_time;
+    int spawn_filter;
+    char key;
+    const char *must_confirm;
+    const char *name;
+    const char *pic_name;
+    int helper_dogs;
+    skill_info_flags_t flags;
 } skill_info_t;
 
 extern skill_info_t skill_info;
@@ -51,14 +52,14 @@ extern skill_info_t *skill_infos;
 
 typedef enum
 {
-  sk_default = -2,
-  sk_none = -1,  //jff 3/24/98 create unpicked skill setting
-  sk_baby = 0,
-  sk_easy,
-  sk_medium,
-  sk_hard,
-  sk_nightmare,
-  sk_custom,
+    sk_default = -2,
+    sk_none = -1, // jff 3/24/98 create unpicked skill setting
+    sk_baby = 0,
+    sk_easy,
+    sk_medium,
+    sk_hard,
+    sk_nightmare,
+    sk_custom,
 } skill_t;
 
 extern int num_skills;
