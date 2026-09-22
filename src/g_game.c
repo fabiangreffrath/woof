@@ -124,7 +124,6 @@ static int G_GameOptionSize(void);
 
 gameaction_t    gameaction;
 gamestate_t     gamestate;
-boolean         in_game;
 int             gameskill;
 int             gameepisode;
 int             gamemap;
@@ -4469,8 +4468,6 @@ void G_RefreshFastMonsters(void)
 void G_InitNew(int skill, int episode, int map, boolean from_savegame)
 {
   int i;
-
-  in_game = true;
 
   if (paused)
     {
