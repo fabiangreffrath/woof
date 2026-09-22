@@ -2741,7 +2741,6 @@ static json_mut_t *WriteCustomSkillOptionsJSON(json_mut_doc_t *doc)
 {
     json_mut_t *obj = JS_NewObject(doc);
 
-    // JS_SetInt(doc, obj, "skill", csmenu_skill);
     JS_SetInt(doc, obj, "pistolstart", csmenu.pistolstart);
     JS_SetInt(doc, obj, "coopspawns", csmenu.coopspawns);
     JS_SetInt(doc, obj, "halfplayerdamage", csmenu.halfplayerdamage);
