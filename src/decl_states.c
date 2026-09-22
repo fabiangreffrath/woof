@@ -40,6 +40,7 @@
 #include "m_hashmap.h"
 #include "m_misc.h"
 #include "m_scanner.h"
+#include "p_action.h"
 
 typedef struct
 {
@@ -54,236 +55,236 @@ typedef struct
 
 static action_t actions[] = {
 #if 0 //weapons TODO
-    {"A_Light0",          {.p2 = A_Light0}                 },
-    {"A_WeaponReady",     {.p2 = A_WeaponReady}            },
-    {"A_Lower",           {.p2 = A_Lower}                  },
-    {"A_Raise",           {.p2 = A_Raise}                  },
-    {"A_Punch",           {.p2 = A_Punch}                  },
-    {"A_ReFire",          {.p2 = A_ReFire}                 },
-    {"A_FirePistol",      {.p2 = A_FirePistol}             },
-    {"A_Light1",          {.p2 = A_Light1}                 },
-    {"A_FireShotgun",     {.p2 = A_FireShotgun}            },
-    {"A_Light2",          {.p2 = A_Light2}                 },
-    {"A_FireShotgun2",    {.p2 = A_FireShotgun2}           },
-    {"A_CheckReload",     {.p2 = A_CheckReload}            },
-    {"A_OpenShotgun2",    {.p2 = A_OpenShotgun2}           },
-    {"A_LoadShotgun2",    {.p2 = A_LoadShotgun2}           },
-    {"A_CloseShotgun2",   {.p2 = A_CloseShotgun2}          },
-    {"A_FireCGun",        {.p2 = A_FireCGun}               },
-    {"A_GunFlash",        {.p2 = A_GunFlash}               },
-    {"A_FireMissile",     {.p2 = A_FireMissile}            },
-    {"A_Saw",             {.p2 = A_Saw}                    },
-    {"A_FirePlasma",      {.p2 = A_FirePlasma}             },
-    {"A_BFGsound",        {.p2 = A_BFGsound}               },
-    {"A_FireBFG",         {.p2 = A_FireBFG}                },
+    {"A_Light0",          A_Light0                 },
+    {"A_WeaponReady",     A_WeaponReady            },
+    {"A_Lower",           A_Lower                  },
+    {"A_Raise",           A_Raise                  },
+    {"A_Punch",           A_Punch                  },
+    {"A_ReFire",          A_ReFire                 },
+    {"A_FirePistol",      A_FirePistol             },
+    {"A_Light1",          A_Light1                 },
+    {"A_FireShotgun",     A_FireShotgun            },
+    {"A_Light2",          A_Light2                 },
+    {"A_FireShotgun2",    A_FireShotgun2           },
+    {"A_CheckReload",     A_CheckReload            },
+    {"A_OpenShotgun2",    A_OpenShotgun2           },
+    {"A_LoadShotgun2",    A_LoadShotgun2           },
+    {"A_CloseShotgun2",   A_CloseShotgun2          },
+    {"A_FireCGun",        A_FireCGun               },
+    {"A_GunFlash",        A_GunFlash               },
+    {"A_FireMissile",     A_FireMissile            },
+    {"A_Saw",             A_Saw                    },
+    {"A_FirePlasma",      A_FirePlasma             },
+    {"A_BFGsound",        A_BFGsound               },
+    {"A_FireBFG",         A_FireBFG                },
 #endif
-    {"A_BFGSpray",        {.p1 = A_BFGSpray}               },
-    {"A_Explode",         {.p1 = A_Explode}                },
-    {"A_Pain",            {.p1 = A_Pain}                   },
-    {"A_PlayerScream",    {.p1 = A_PlayerScream}           },
-    {"A_Fall",            {.p1 = A_Fall}                   },
-    {"A_XScream",         {.p1 = A_XScream}                },
-    {"A_Look",            {.p1 = A_Look}                   },
-    {"A_Chase",           {.p1 = A_Chase}                  },
-    {"A_FaceTarget",      {.p1 = A_FaceTarget}             },
-    {"A_PosAttack",       {.p1 = A_PosAttack}              },
-    {"A_Scream",          {.p1 = A_Scream}                 },
-    {"A_SPosAttack",      {.p1 = A_SPosAttack}             },
-    {"A_VileChase",       {.p1 = A_VileChase}              },
-    {"A_VileStart",       {.p1 = A_VileStart}              },
-    {"A_VileTarget",      {.p1 = A_VileTarget}             },
-    {"A_VileAttack",      {.p1 = A_VileAttack}             },
-    {"A_StartFire",       {.p1 = A_StartFire}              },
-    {"A_Fire",            {.p1 = A_Fire}                   },
-    {"A_FireCrackle",     {.p1 = A_FireCrackle}            },
-    {"A_Tracer",          {.p1 = A_Tracer}                 },
-    {"A_SkelWhoosh",      {.p1 = A_SkelWhoosh}             },
-    {"A_SkelFist",        {.p1 = A_SkelFist}               },
-    {"A_SkelMissile",     {.p1 = A_SkelMissile}            },
-    {"A_FatRaise",        {.p1 = A_FatRaise}               },
-    {"A_FatAttack1",      {.p1 = A_FatAttack1}             },
-    {"A_FatAttack2",      {.p1 = A_FatAttack2}             },
-    {"A_FatAttack3",      {.p1 = A_FatAttack3}             },
-    {"A_BossDeath",       {.p1 = A_BossDeath}              },
-    {"A_CPosAttack",      {.p1 = A_CPosAttack}             },
-    {"A_CPosRefire",      {.p1 = A_CPosRefire}             },
-    {"A_TroopAttack",     {.p1 = A_TroopAttack}            },
-    {"A_SargAttack",      {.p1 = A_SargAttack}             },
-    {"A_HeadAttack",      {.p1 = A_HeadAttack}             },
-    {"A_BruisAttack",     {.p1 = A_BruisAttack}            },
-    {"A_SkullAttack",     {.p1 = A_SkullAttack}            },
-    {"A_Metal",           {.p1 = A_Metal}                  },
-    {"A_SpidRefire",      {.p1 = A_SpidRefire}             },
-    {"A_BabyMetal",       {.p1 = A_BabyMetal}              },
-    {"A_BspiAttack",      {.p1 = A_BspiAttack}             },
-    {"A_Hoof",            {.p1 = A_Hoof}                   },
-    {"A_CyberAttack",     {.p1 = A_CyberAttack}            },
-    {"A_PainAttack",      {.p1 = A_PainAttack}             },
-    {"A_PainDie",         {.p1 = A_PainDie}                },
-    {"A_KeenDie",         {.p1 = A_KeenDie}                },
-    {"A_BrainPain",       {.p1 = A_BrainPain}              },
-    {"A_BrainScream",     {.p1 = A_BrainScream}            },
-    {"A_BrainDie",        {.p1 = A_BrainDie}               },
-    {"A_BrainAwake",      {.p1 = A_BrainAwake}             },
-    {"A_BrainSpit",       {.p1 = A_BrainSpit}              },
-    {"A_SpawnSound",      {.p1 = A_SpawnSound}             },
-    {"A_SpawnFly",        {.p1 = A_SpawnFly}               },
-    {"A_BrainExplode",    {.p1 = A_BrainExplode}           },
+    {"A_BFGSpray",        A_BFGSpray               },
+    {"A_Explode",         A_Explode                },
+    {"A_Pain",            A_Pain                   },
+    {"A_PlayerScream",    A_PlayerScream           },
+    {"A_Fall",            A_Fall                   },
+    {"A_XScream",         A_XScream                },
+    {"A_Look",            A_Look                   },
+    {"A_Chase",           A_Chase                  },
+    {"A_FaceTarget",      A_FaceTarget             },
+    {"A_PosAttack",       A_PosAttack              },
+    {"A_Scream",          A_Scream                 },
+    {"A_SPosAttack",      A_SPosAttack             },
+    {"A_VileChase",       A_VileChase              },
+    {"A_VileStart",       A_VileStart              },
+    {"A_VileTarget",      A_VileTarget             },
+    {"A_VileAttack",      A_VileAttack             },
+    {"A_StartFire",       A_StartFire              },
+    {"A_Fire",            A_Fire                   },
+    {"A_FireCrackle",     A_FireCrackle            },
+    {"A_Tracer",          A_Tracer                 },
+    {"A_SkelWhoosh",      A_SkelWhoosh             },
+    {"A_SkelFist",        A_SkelFist               },
+    {"A_SkelMissile",     A_SkelMissile            },
+    {"A_FatRaise",        A_FatRaise               },
+    {"A_FatAttack1",      A_FatAttack1             },
+    {"A_FatAttack2",      A_FatAttack2             },
+    {"A_FatAttack3",      A_FatAttack3             },
+    {"A_BossDeath",       A_BossDeath              },
+    {"A_CPosAttack",      A_CPosAttack             },
+    {"A_CPosRefire",      A_CPosRefire             },
+    {"A_TroopAttack",     A_TroopAttack            },
+    {"A_SargAttack",      A_SargAttack             },
+    {"A_HeadAttack",      A_HeadAttack             },
+    {"A_BruisAttack",     A_BruisAttack            },
+    {"A_SkullAttack",     A_SkullAttack            },
+    {"A_Metal",           A_Metal                  },
+    {"A_SpidRefire",      A_SpidRefire             },
+    {"A_BabyMetal",       A_BabyMetal              },
+    {"A_BspiAttack",      A_BspiAttack             },
+    {"A_Hoof",            A_Hoof                   },
+    {"A_CyberAttack",     A_CyberAttack            },
+    {"A_PainAttack",      A_PainAttack             },
+    {"A_PainDie",         A_PainDie                },
+    {"A_KeenDie",         A_KeenDie                },
+    {"A_BrainPain",       A_BrainPain              },
+    {"A_BrainScream",     A_BrainScream            },
+    {"A_BrainDie",        A_BrainDie               },
+    {"A_BrainAwake",      A_BrainAwake             },
+    {"A_BrainSpit",       A_BrainSpit              },
+    {"A_SpawnSound",      A_SpawnSound             },
+    {"A_SpawnFly",        A_SpawnFly               },
+    {"A_BrainExplode",    A_BrainExplode           },
 
     // MBF
 
-    {"A_Detonate", {.p1 = A_Detonate}, .type = func_mbf},
+    {"A_Detonate", A_Detonate, .type = func_mbf},
 
-    {"A_Mushroom", {.p1 = A_Mushroom}, .type = func_mbf,
+    {"A_Mushroom", A_Mushroom, .type = func_mbf,
       // (angle, speed)
      .argcount = 2, .misc1 = {arg_fixed}, .misc2 = {arg_fixed}
     },
 
-    {"A_Die", {.p1 = A_Die}, .type = func_mbf},
+    {"A_Die", A_Die, .type = func_mbf},
 
-    {"A_Spawn", {.p1 = A_Spawn}, .type = func_mbf,
+    {"A_Spawn", A_Spawn, .type = func_mbf,
       // (thing, z_pos)
      .argcount = 2, .misc1 = {arg_thing}, .misc2 = {arg_fixed}
     },
 
-    {"A_Turn", {.p1 = A_Turn}, .type = func_mbf,
+    {"A_Turn", A_Turn, .type = func_mbf,
       // (deg)
      .argcount = 1, .misc1 = {arg_int}
     },
 
-    {"A_Face", {.p1 = A_Face}, .type = func_mbf,
+    {"A_Face", A_Face, .type = func_mbf,
       // (deg)
      .argcount = 1, .misc1 = {arg_int}
     },
 
-    {"A_Scratch", {.p1 = A_Scratch}, .type = func_mbf,
+    {"A_Scratch", A_Scratch, .type = func_mbf,
       // (damage, sound)
      .argcount = 2, .misc1 = {arg_int}, .misc2 = {arg_sound}
     },
 
-    {"A_PlaySound", {.p1 = A_PlaySound}, .type = func_mbf,
+    {"A_PlaySound", A_PlaySound, .type = func_mbf,
       // (sound, fullvolume)
      .argcount = 2, .misc1 = {arg_sound}, .misc2 = {arg_int}
     },
 
-    {"A_RandomJump", {.p1 = A_RandomJump}, .type = func_mbf,
+    {"A_RandomJump", A_RandomJump, .type = func_mbf,
      // (state, probabilty (0-255))
      .argcount = 2, .misc1 = {arg_state}, .misc2 = {arg_int}
     },
 
-    {"A_LineEffect", {.p1 = A_LineEffect}, .type = func_mbf,
+    {"A_LineEffect", A_LineEffect, .type = func_mbf,
      // (boomspecial, tag)
      .argcount = 2, .misc1 = {arg_int}, .misc2 = {arg_int}
     },
 
-    {"A_BetaSkullAttack", {.p1 = A_BetaSkullAttack}, .type = func_mbf},
+    {"A_BetaSkullAttack", A_BetaSkullAttack, .type = func_mbf},
 
-    {"A_Stop", {.p1 = A_Stop}, .type = func_mbf},
+    {"A_Stop", A_Stop, .type = func_mbf},
 
 #if 0 // weapons TODO
-    {"A_FireOldBFG", {.p2 = A_FireOldBFG}},
+    {"A_FireOldBFG", A_FireOldBFG},
 #endif
 
     // MBF21
 
-    {"A_SpawnObject", {.p1 = A_SpawnObject}, .type = func_mbf21,
+    {"A_SpawnObject", A_SpawnObject, .type = func_mbf21,
      // (thing, angle, x_ofs, y_ofs, z_ofs, x_vel, y_vel, z_vel)
      .argcount = 8, .args = {{arg_thing}, {arg_fixed}, {arg_fixed}, {arg_fixed},
                           {arg_fixed}, {arg_fixed}, {arg_fixed}, {arg_fixed}}
     },
 
-    {"A_MonsterProjectile", {.p1 = A_MonsterProjectile}, .type = func_mbf21,
+    {"A_MonsterProjectile", A_MonsterProjectile, .type = func_mbf21,
       // (thing, angle, pitch, hoffset, voffset)
      .argcount = 5, .args= {{arg_thing}, {arg_fixed}, {arg_fixed}, {arg_fixed},
                          {arg_fixed}}
     },
 
-    {"A_MonsterBulletAttack", {.p1 = A_MonsterBulletAttack}, .type = func_mbf21,
+    {"A_MonsterBulletAttack", A_MonsterBulletAttack, .type = func_mbf21,
      // (hspread, vspread, numbullets, damagebase, damagedice)
      .argcount = 5, .args = {{arg_fixed}, {arg_fixed}, {arg_int, 1},
                           {arg_int, 3}, {arg_int, 5}}
     },
 
-    {"A_MonsterMeleeAttack", {.p1 = A_MonsterMeleeAttack}, .type = func_mbf21,
+    {"A_MonsterMeleeAttack", A_MonsterMeleeAttack, .type = func_mbf21,
      // (damagebase, damagedice, sound, range)
      .argcount = 4, .args = {{arg_int, 3}, {arg_int, 8}, {arg_sound}, {arg_fixed}}
     },
 
-    {"A_RadiusDamage", {.p1 = A_RadiusDamage}, .type = func_mbf21,
+    {"A_RadiusDamage", A_RadiusDamage, .type = func_mbf21,
       // (damage, radius)
      .argcount = 2, .args = {{arg_int}, {arg_int}}
     },
 
-    {"A_NoiseAlert", {.p1 = A_NoiseAlert}, .type = func_mbf21},
+    {"A_NoiseAlert", A_NoiseAlert, .type = func_mbf21},
 
-    {"A_HealChase", {.p1 = A_HealChase}, .type = func_mbf21,
+    {"A_HealChase", A_HealChase, .type = func_mbf21,
       // (state, sound)
      .argcount = 2, .args = {{arg_state}, {arg_sound}}
     },
 
-    {"A_SeekTracer", {.p1 = A_SeekTracer}, .type = func_mbf21,
+    {"A_SeekTracer", A_SeekTracer, .type = func_mbf21,
       // (threshold, maxturnangle)
      .argcount = 2, .args = {{arg_fixed}, {arg_fixed}}
     },
 
-    {"A_FindTracer", {.p1 = A_FindTracer}, .type = func_mbf21,
+    {"A_FindTracer", A_FindTracer, .type = func_mbf21,
       // (fov, rangeblocks)
      .argcount = 2, .args = {{arg_fixed}, {arg_int, 10}}
     },
 
-    {"A_ClearTracer", {.p1 = A_ClearTracer}, .type = func_mbf21},
+    {"A_ClearTracer", A_ClearTracer, .type = func_mbf21},
 
-    {"A_JumpIfHealthBelow", {.p1 = A_JumpIfHealthBelow}, .type = func_mbf21,
+    {"A_JumpIfHealthBelow", A_JumpIfHealthBelow, .type = func_mbf21,
       // (state, health)
      .argcount = 2, .args = {{arg_state}, {arg_int}}
     },
 
-    {"A_JumpIfTargetInSight", {.p1 = A_JumpIfTargetInSight}, .type = func_mbf21,
+    {"A_JumpIfTargetInSight", A_JumpIfTargetInSight, .type = func_mbf21,
       // (state, fov)
      .argcount = 2, .args = {{arg_state}, {arg_fixed}}
     },
 
-    {"A_JumpIfTargetCloser", {.p1 = A_JumpIfTargetCloser}, .type = func_mbf21,
+    {"A_JumpIfTargetCloser", A_JumpIfTargetCloser, .type = func_mbf21,
       // (state, distance)
      .argcount = 2, .args = {{arg_state}, {arg_fixed}}
     },
 
-    {"A_JumpIfTracerInSight", {.p1 = A_JumpIfTracerInSight}, .type = func_mbf21,
+    {"A_JumpIfTracerInSight", A_JumpIfTracerInSight, .type = func_mbf21,
       // (state, fov)
      .argcount = 2, .args = {{arg_state}, {arg_fixed}}
     },
 
-    {"A_JumpIfTracerCloser", {.p1 = A_JumpIfTracerCloser}, .type = func_mbf21,
+    {"A_JumpIfTracerCloser", A_JumpIfTracerCloser, .type = func_mbf21,
       // (state, distance)
      .argcount = 2, .args = {{arg_state}, {arg_fixed}}
     },
 
-    {"A_JumpIfFlagsSet", {.p1 = A_JumpIfFlagsSet}, .type = func_mbf21,
+    {"A_JumpIfFlagsSet", A_JumpIfFlagsSet, .type = func_mbf21,
       // (state, flags)
      .argcount = 2, .args = {{arg_state}, {arg_flags}}
     },
 
-    {"A_AddFlags", {.p1 = A_AddFlags}, .type = func_mbf21,
+    {"A_AddFlags", A_AddFlags, .type = func_mbf21,
       // (flags)
      .argcount = 1, .args = {{arg_flags}}
     },
 
-    {"A_RemoveFlags", {.p1 = A_RemoveFlags}, .type = func_mbf21,
+    {"A_RemoveFlags", A_RemoveFlags, .type = func_mbf21,
       // (flags)
      .argcount = 1, .args = {{arg_flags}}
     },
 
 #if 0 // weapons TODO
-    {"A_WeaponProjectile",    {.p2 = A_WeaponProjectile},    5 },
-    {"A_WeaponBulletAttack",  {.p2 = A_WeaponBulletAttack},  5, { 0, 0, 1, 5, 3 } },
-    {"A_WeaponMeleeAttack",   {.p2 = A_WeaponMeleeAttack},   5, { 2, 10, 1 * FRACUNIT, 0, 0 } },
-    {"A_WeaponSound",         {.p2 = A_WeaponSound},         2 },
-    {"A_WeaponAlert",         {.p2 = A_WeaponAlert},         0 },
-    {"A_WeaponJump",          {.p2 = A_WeaponJump},          2 },
-    {"A_ConsumeAmmo",         {.p2 = A_ConsumeAmmo},         1 },
-    {"A_CheckAmmo",           {.p2 = A_CheckAmmo},           2 },
-    {"A_RefireTo",            {.p2 = A_RefireTo},            2 },
-    {"A_GunFlashTo",          {.p2 = A_GunFlashTo},          2 },
+    {"A_WeaponProjectile",    A_WeaponProjectile,    5 },
+    {"A_WeaponBulletAttack",  A_WeaponBulletAttack,  5, { 0, 0, 1, 5, 3 } },
+    {"A_WeaponMeleeAttack",   A_WeaponMeleeAttack,   5, { 2, 10, 1 * FRACUNIT, 0, 0 } },
+    {"A_WeaponSound",         A_WeaponSound,         2 },
+    {"A_WeaponAlert",         A_WeaponAlert,         0 },
+    {"A_WeaponJump",          A_WeaponJump,          2 },
+    {"A_ConsumeAmmo",         A_ConsumeAmmo,         1 },
+    {"A_CheckAmmo",           A_CheckAmmo,           2 },
+    {"A_RefireTo",            A_RefireTo,            2 },
+    {"A_GunFlashTo",          A_GunFlashTo,          2 },
 #endif
 };
 

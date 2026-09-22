@@ -89,8 +89,8 @@ void P_UpdateThinker(thinker_t *thinker)
    // find the class the thinker belongs to
   
    // haleyjd 07/12/03: don't use "class" as a variable name
-   int tclass = (thinker->function.p1 == P_RemoveMobjThinkerDelayed) ? th_delete :
-     thinker->function.p1 == P_MobjThinker &&
+   int tclass = (thinker->function == P_RemoveMobjThinkerDelayed) ? th_delete :
+     thinker->function == P_MobjThinker &&
      ((mobj_t *) thinker)->health > 0 && 
      (((mobj_t *) thinker)->flags & MF_COUNTKILL ||
       ((mobj_t *) thinker)->type == MT_SKULL) ?
@@ -233,43 +233,43 @@ void P_RemoveThinker(thinker_t *thinker)
 
 void P_RemoveMobjThinker(mobj_t *mobj)
 {
-   mobj->thinker.function.p1 = P_RemoveMobjThinkerDelayed;
+   mobj->thinker.function = P_RemoveMobjThinkerDelayed;
    P_UpdateThinker(&mobj->thinker);
 }
 
 void P_RemoveCeilingThinker(ceiling_t *ceiling)
 {
-   ceiling->thinker.function.p1 = P_RemoveCeilingThinkerDelayed;
+   ceiling->thinker.function = P_RemoveCeilingThinkerDelayed;
    P_UpdateThinker(&ceiling->thinker);
 }
 
 void P_RemoveDoorThinker(vldoor_t *door)
 {
-   door->thinker.function.p1 = P_RemoveDoorThinkerDelayed;
+   door->thinker.function = P_RemoveDoorThinkerDelayed;
    P_UpdateThinker(&door->thinker);
 }
 
 void P_RemoveFloorThinker(floormove_t *floor)
 {
-   floor->thinker.function.p1 = P_RemoveFloorThinkerDelayed;
+   floor->thinker.function = P_RemoveFloorThinkerDelayed;
    P_UpdateThinker(&floor->thinker);
 }
 
 void P_RemoveElevatorThinker(elevator_t *elevator)
 {
-   elevator->thinker.function.p1 = P_RemoveElevatorThinkerDelayed;
+   elevator->thinker.function = P_RemoveElevatorThinkerDelayed;
    P_UpdateThinker(&elevator->thinker);
 }
 
 void P_RemovePlatThinker(plat_t *plat)
 {
-   plat->thinker.function.p1 = P_RemovePlatThinkerDelayed;
+   plat->thinker.function = P_RemovePlatThinkerDelayed;
    P_UpdateThinker(&plat->thinker);
 }
 
 void P_RemoveAmbientThinker(ambient_t *ambient)
 {
-   ambient->thinker.function.p1 = P_RemoveAmbientThinkerDelayed;
+   ambient->thinker.function = P_RemoveAmbientThinkerDelayed;
    P_UpdateThinker(&ambient->thinker);
 }
 
@@ -321,8 +321,8 @@ static void P_RunThinkers (void)
   for (currentthinker = thinkercap.next;
        currentthinker != &thinkercap;
        currentthinker = currentthinker->next)
-    if (currentthinker->function.p1)
-      currentthinker->function.p1((mobj_t *)currentthinker);
+    if (currentthinker->function)
+      currentthinker->function((mobj_t *)currentthinker);
 
   // [crispy] support MUSINFO lump (dynamic music changing)
   T_MusInfo();
@@ -348,7 +348,7 @@ static void P_FrozenTicker (void)
         P_MobjThinker(players[i].mo);
 
     for (th = thinkercap.next; th != &thinkercap; th = th->next)
-      if (th->function.p1 == P_MobjThinker)
+      if (th->function == P_MobjThinker)
       {
         mo = (mobj_t *) th;
 

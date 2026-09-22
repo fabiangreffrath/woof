@@ -450,7 +450,7 @@ void P_LinedefInit(line_t * const linedef)
   // Andrey Budko: fix sound origin for large levels
   linedef->soundorg.x = linedef->bbox[BOXLEFT] / 2 + linedef->bbox[BOXRIGHT] / 2;
   linedef->soundorg.y = linedef->bbox[BOXTOP] / 2 + linedef->bbox[BOXBOTTOM] / 2;
-  linedef->soundorg.thinker.function.p1 = P_DegenMobjThinker;
+  linedef->soundorg.thinker.function = P_DegenMobjThinker;
 }
 
 // killough 4/4/98: delay using sidedefs until they are loaded
@@ -733,7 +733,7 @@ int P_GroupLines (void)
       sector->soundorg.y =
           sector->blockbox[BOXTOP] / 2 + sector->blockbox[BOXBOTTOM] / 2;
 
-      sector->soundorg.thinker.function.p1 = P_DegenMobjThinker;
+      sector->soundorg.thinker.function = P_DegenMobjThinker;
 
       // adjust bounding box to map blocks
       block = (sector->blockbox[BOXTOP]-bmaporgy+MAXRADIUS)>>MAPBLOCKSHIFT;

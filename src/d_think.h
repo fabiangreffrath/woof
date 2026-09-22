@@ -22,33 +22,18 @@
 #ifndef __D_THINK__
 #define __D_THINK__
 
-#include "p_action.h"
-
-struct player_s;
-struct pspdef_s;
+struct actionargs_s;
 struct mobj_s;
 
-typedef void (*actionf_v)(void);
-typedef void (*actionf_p1)(struct mobj_s *);
-typedef void (*actionf_p2)(struct player_s *, struct pspdef_s *);
-
-typedef union actionf_u
-{
-  actionf_v v;
-  actionf_p1 p1;
-  actionf_p2 p2;
-} actionf_t;
-
-// Historically, "think_t" is yet another function 
-// pointer to a routine to handle an actor.
-typedef actionf_t think_t;
+typedef void (*actionf_t)(struct actionargs_s *);
+typedef void (*think_t)(struct mobj_s *);
 
 // Doubly linked list of actors.
 typedef struct thinker_s
 {
   struct thinker_s *prev, *next;
   think_t function;
-  
+
   // killough 8/29/98: we maintain thinkers in several equivalence classes,
   // according to various criteria, so as to allow quicker searches.
 

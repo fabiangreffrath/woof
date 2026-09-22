@@ -89,7 +89,7 @@ static mobj_t *P_TeleptFromSector(int i)
          thinker = thinker->next)
     {
         mobj_t *m;
-        if (thinker->function.p1 == P_MobjThinker
+        if (thinker->function == P_MobjThinker
             && (m = (mobj_t *)thinker)->type == MT_TELEPORTMAN
             && m->subsector->sector - sectors == i)
         {

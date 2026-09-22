@@ -19,9 +19,11 @@
 #ifndef __P_ACTION__
 #define __P_ACTION__
 
-struct player_s;
-struct pspdef_s;
-struct mobj_s;
+typedef struct actionargs_s
+{
+    struct mobj_s *actor;
+    struct pspdef_s *psp;
+} actionargs_t;
 
 // ********************************************************************
 // Function addresses or Code Pointers
@@ -30,126 +32,126 @@ struct mobj_s;
 // modified for years by Dehacked enthusiasts.  The new BEX format
 // allows more extensive changes (see d_deh.c)
 
-void A_Light0(struct player_s *, struct pspdef_s *);
-void A_WeaponReady(struct player_s *, struct pspdef_s *);
-void A_Lower(struct player_s *, struct pspdef_s *);
-void A_Raise(struct player_s *, struct pspdef_s *);
-void A_Punch(struct player_s *, struct pspdef_s *);
-void A_ReFire(struct player_s *, struct pspdef_s *);
-void A_FirePistol(struct player_s *, struct pspdef_s *);
-void A_Light1(struct player_s *, struct pspdef_s *);
-void A_FireShotgun(struct player_s *, struct pspdef_s *);
-void A_Light2(struct player_s *, struct pspdef_s *);
-void A_FireShotgun2(struct player_s *, struct pspdef_s *);
-void A_CheckReload(struct player_s *, struct pspdef_s *);
-void A_OpenShotgun2(struct player_s *, struct pspdef_s *);
-void A_LoadShotgun2(struct player_s *, struct pspdef_s *);
-void A_CloseShotgun2(struct player_s *, struct pspdef_s *);
-void A_FireCGun(struct player_s *, struct pspdef_s *);
-void A_GunFlash(struct player_s *, struct pspdef_s *);
-void A_FireMissile(struct player_s *, struct pspdef_s *);
-void A_Saw(struct player_s *, struct pspdef_s *);
-void A_FirePlasma(struct player_s *, struct pspdef_s *);
-void A_BFGsound(struct player_s *, struct pspdef_s *);
-void A_FireBFG(struct player_s *, struct pspdef_s *);
-void A_BFGSpray(struct mobj_s *);
-void A_Explode(struct mobj_s *);
-void A_Pain(struct mobj_s *);
-void A_PlayerScream(struct mobj_s *);
-void A_Fall(struct mobj_s *);
-void A_XScream(struct mobj_s *);
-void A_Look(struct mobj_s *);
-void A_Chase(struct mobj_s *);
-void A_FaceTarget(struct mobj_s *);
-void A_PosAttack(struct mobj_s *);
-void A_Scream(struct mobj_s *);
-void A_SPosAttack(struct mobj_s *);
-void A_VileChase(struct mobj_s *);
-void A_VileStart(struct mobj_s *);
-void A_VileTarget(struct mobj_s *);
-void A_VileAttack(struct mobj_s *);
-void A_StartFire(struct mobj_s *);
-void A_Fire(struct mobj_s *);
-void A_FireCrackle(struct mobj_s *);
-void A_Tracer(struct mobj_s *);
-void A_SkelWhoosh(struct mobj_s *);
-void A_SkelFist(struct mobj_s *);
-void A_SkelMissile(struct mobj_s *);
-void A_FatRaise(struct mobj_s *);
-void A_FatAttack1(struct mobj_s *);
-void A_FatAttack2(struct mobj_s *);
-void A_FatAttack3(struct mobj_s *);
-void A_BossDeath(struct mobj_s *);
-void A_CPosAttack(struct mobj_s *);
-void A_CPosRefire(struct mobj_s *);
-void A_TroopAttack(struct mobj_s *);
-void A_SargAttack(struct mobj_s *);
-void A_HeadAttack(struct mobj_s *);
-void A_BruisAttack(struct mobj_s *);
-void A_SkullAttack(struct mobj_s *);
-void A_Metal(struct mobj_s *);
-void A_SpidRefire(struct mobj_s *);
-void A_BabyMetal(struct mobj_s *);
-void A_BspiAttack(struct mobj_s *);
-void A_Hoof(struct mobj_s *);
-void A_CyberAttack(struct mobj_s *);
-void A_PainAttack(struct mobj_s *);
-void A_PainDie(struct mobj_s *);
-void A_KeenDie(struct mobj_s *);
-void A_BrainPain(struct mobj_s *);
-void A_BrainScream(struct mobj_s *);
-void A_BrainDie(struct mobj_s *);
-void A_BrainAwake(struct mobj_s *);
-void A_BrainSpit(struct mobj_s *);
-void A_SpawnSound(struct mobj_s *);
-void A_SpawnFly(struct mobj_s *);
-void A_BrainExplode(struct mobj_s *);
-void A_Detonate(struct mobj_s *);    // killough 8/9/98
-void A_Mushroom(struct mobj_s *); // killough 10/98
-void A_Die(struct mobj_s *);      // killough 11/98
-void A_Spawn(struct mobj_s *);       // killough 11/98
-void A_Turn(struct mobj_s *);        // killough 11/98
-void A_Face(struct mobj_s *);        // killough 11/98
-void A_Scratch(struct mobj_s *);     // killough 11/98
-void A_PlaySound(struct mobj_s *);   // killough 11/98
-void A_RandomJump(struct mobj_s *);  // killough 11/98
-void A_LineEffect(struct mobj_s *);  // killough 11/98
+void A_Light0(actionargs_t *);
+void A_WeaponReady(actionargs_t *);
+void A_Lower(actionargs_t *);
+void A_Raise(actionargs_t *);
+void A_Punch(actionargs_t *);
+void A_ReFire(actionargs_t *);
+void A_FirePistol(actionargs_t *);
+void A_Light1(actionargs_t *);
+void A_FireShotgun(actionargs_t *);
+void A_Light2(actionargs_t *);
+void A_FireShotgun2(actionargs_t *);
+void A_CheckReload(actionargs_t *);
+void A_OpenShotgun2(actionargs_t *);
+void A_LoadShotgun2(actionargs_t *);
+void A_CloseShotgun2(actionargs_t *);
+void A_FireCGun(actionargs_t *);
+void A_GunFlash(actionargs_t *);
+void A_FireMissile(actionargs_t *);
+void A_Saw(actionargs_t *);
+void A_FirePlasma(actionargs_t *);
+void A_BFGsound(actionargs_t *);
+void A_FireBFG(actionargs_t *);
+void A_BFGSpray(actionargs_t *);
+void A_Explode(actionargs_t *);
+void A_Pain(actionargs_t *);
+void A_PlayerScream(actionargs_t *);
+void A_Fall(actionargs_t *);
+void A_XScream(actionargs_t *);
+void A_Look(actionargs_t *);
+void A_Chase(actionargs_t *);
+void A_FaceTarget(actionargs_t *);
+void A_PosAttack(actionargs_t *);
+void A_Scream(actionargs_t *);
+void A_SPosAttack(actionargs_t *);
+void A_VileChase(actionargs_t *);
+void A_VileStart(actionargs_t *);
+void A_VileTarget(actionargs_t *);
+void A_VileAttack(actionargs_t *);
+void A_StartFire(actionargs_t *);
+void A_Fire(actionargs_t *);
+void A_FireCrackle(actionargs_t *);
+void A_Tracer(actionargs_t *);
+void A_SkelWhoosh(actionargs_t *);
+void A_SkelFist(actionargs_t *);
+void A_SkelMissile(actionargs_t *);
+void A_FatRaise(actionargs_t *);
+void A_FatAttack1(actionargs_t *);
+void A_FatAttack2(actionargs_t *);
+void A_FatAttack3(actionargs_t *);
+void A_BossDeath(actionargs_t *);
+void A_CPosAttack(actionargs_t *);
+void A_CPosRefire(actionargs_t *);
+void A_TroopAttack(actionargs_t *);
+void A_SargAttack(actionargs_t *);
+void A_HeadAttack(actionargs_t *);
+void A_BruisAttack(actionargs_t *);
+void A_SkullAttack(actionargs_t *);
+void A_Metal(actionargs_t *);
+void A_SpidRefire(actionargs_t *);
+void A_BabyMetal(actionargs_t *);
+void A_BspiAttack(actionargs_t *);
+void A_Hoof(actionargs_t *);
+void A_CyberAttack(actionargs_t *);
+void A_PainAttack(actionargs_t *);
+void A_PainDie(actionargs_t *);
+void A_KeenDie(actionargs_t *);
+void A_BrainPain(actionargs_t *);
+void A_BrainScream(actionargs_t *);
+void A_BrainDie(actionargs_t *);
+void A_BrainAwake(actionargs_t *);
+void A_BrainSpit(actionargs_t *);
+void A_SpawnSound(actionargs_t *);
+void A_SpawnFly(actionargs_t *);
+void A_BrainExplode(actionargs_t *);
+void A_Detonate(actionargs_t *);    // killough 8/9/98
+void A_Mushroom(actionargs_t *); // killough 10/98
+void A_Die(actionargs_t *);      // killough 11/98
+void A_Spawn(actionargs_t *);       // killough 11/98
+void A_Turn(actionargs_t *);        // killough 11/98
+void A_Face(actionargs_t *);        // killough 11/98
+void A_Scratch(actionargs_t *);     // killough 11/98
+void A_PlaySound(actionargs_t *);   // killough 11/98
+void A_RandomJump(actionargs_t *);  // killough 11/98
+void A_LineEffect(actionargs_t *);  // killough 11/98
 
 // killough 7/19/98: classic BFG firing function
-void A_FireOldBFG(struct player_s *, struct pspdef_s *);
+void A_FireOldBFG(actionargs_t *);
 // killough 10/98: beta lost souls attacked different
-void A_BetaSkullAttack(struct mobj_s *);
-void A_Stop(struct mobj_s *);
+void A_BetaSkullAttack(actionargs_t *);
+void A_Stop(actionargs_t *);
 
 // [XA] New mbf21 codepointers
 
-void A_SpawnObject(struct mobj_s *);
-void A_MonsterProjectile(struct mobj_s *);
-void A_MonsterBulletAttack(struct mobj_s *);
-void A_MonsterMeleeAttack(struct mobj_s *);
-void A_RadiusDamage(struct mobj_s *);
-void A_NoiseAlert(struct mobj_s *);
-void A_HealChase(struct mobj_s *);
-void A_SeekTracer(struct mobj_s *);
-void A_FindTracer(struct mobj_s *);
-void A_ClearTracer(struct mobj_s *);
-void A_JumpIfHealthBelow(struct mobj_s *);
-void A_JumpIfTargetInSight(struct mobj_s *);
-void A_JumpIfTargetCloser(struct mobj_s *);
-void A_JumpIfTracerInSight(struct mobj_s *);
-void A_JumpIfTracerCloser(struct mobj_s *);
-void A_JumpIfFlagsSet(struct mobj_s *);
-void A_AddFlags(struct mobj_s *);
-void A_RemoveFlags(struct mobj_s *);
-void A_WeaponProjectile(struct player_s *, struct pspdef_s *);
-void A_WeaponBulletAttack(struct player_s *, struct pspdef_s *);
-void A_WeaponMeleeAttack(struct player_s *, struct pspdef_s *);
-void A_WeaponSound(struct player_s *, struct pspdef_s *);
-void A_WeaponAlert(struct player_s *, struct pspdef_s *);
-void A_WeaponJump(struct player_s *, struct pspdef_s *);
-void A_ConsumeAmmo(struct player_s *, struct pspdef_s *);
-void A_CheckAmmo(struct player_s *, struct pspdef_s *);
-void A_RefireTo(struct player_s *, struct pspdef_s *);
-void A_GunFlashTo(struct player_s *, struct pspdef_s *);
+void A_SpawnObject(actionargs_t *);
+void A_MonsterProjectile(actionargs_t *);
+void A_MonsterBulletAttack(actionargs_t *);
+void A_MonsterMeleeAttack(actionargs_t *);
+void A_RadiusDamage(actionargs_t *);
+void A_NoiseAlert(actionargs_t *);
+void A_HealChase(actionargs_t *);
+void A_SeekTracer(actionargs_t *);
+void A_FindTracer(actionargs_t *);
+void A_ClearTracer(actionargs_t *);
+void A_JumpIfHealthBelow(actionargs_t *);
+void A_JumpIfTargetInSight(actionargs_t *);
+void A_JumpIfTargetCloser(actionargs_t *);
+void A_JumpIfTracerInSight(actionargs_t *);
+void A_JumpIfTracerCloser(actionargs_t *);
+void A_JumpIfFlagsSet(actionargs_t *);
+void A_AddFlags(actionargs_t *);
+void A_RemoveFlags(actionargs_t *);
+void A_WeaponProjectile(actionargs_t *);
+void A_WeaponBulletAttack(actionargs_t *);
+void A_WeaponMeleeAttack(actionargs_t *);
+void A_WeaponSound(actionargs_t *);
+void A_WeaponAlert(actionargs_t *);
+void A_WeaponJump(actionargs_t *);
+void A_ConsumeAmmo(actionargs_t *);
+void A_CheckAmmo(actionargs_t *);
+void A_RefireTo(actionargs_t *);
+void A_GunFlashTo(actionargs_t *);
 
 #endif

@@ -103,7 +103,7 @@ manual_floor:
     floor = arena_alloc(thinkers_arena, floormove_t);
     P_AddThinker (&floor->thinker);
     sec->floordata = floor;
-    floor->thinker.function.p1 = T_MoveFloorAdapter;
+    floor->thinker.function = T_MoveFloorAdapter;
     floor->crush = Crsh;
     floor->direction = Dirn? 1 : -1;
     floor->sector = sec;
@@ -306,7 +306,7 @@ manual_ceiling:
     ceiling = arena_alloc(thinkers_arena, ceiling_t);
     P_AddThinker (&ceiling->thinker);
     sec->ceilingdata = ceiling; //jff 2/22/98
-    ceiling->thinker.function.p1 = T_MoveCeilingAdapter;
+    ceiling->thinker.function = T_MoveCeilingAdapter;
     ceiling->crush = Crsh;
     ceiling->direction = Dirn? 1 : -1;
     ceiling->sector = sec;
@@ -519,7 +519,7 @@ manual_lift:
               
     plat->sector = sec;
     plat->sector->floordata = plat;
-    plat->thinker.function.p1 = T_PlatRaiseAdapter;
+    plat->thinker.function = T_PlatRaiseAdapter;
     plat->crush = false;
     plat->tag = line->args[0];
 
@@ -677,7 +677,7 @@ manual_stair:
     floor = arena_alloc(thinkers_arena, floormove_t);
     P_AddThinker (&floor->thinker);
     sec->floordata = floor;
-    floor->thinker.function.p1 = T_MoveFloorAdapter;
+    floor->thinker.function = T_MoveFloorAdapter;
     floor->direction = Dirn? 1 : -1;
     floor->sector = sec;
 
@@ -781,7 +781,7 @@ manual_stair:
         P_AddThinker (&floor->thinker);
 
         sec->floordata = floor;
-        floor->thinker.function.p1 = T_MoveFloorAdapter;
+        floor->thinker.function = T_MoveFloorAdapter;
         floor->direction = Dirn? 1 : -1;
         floor->sector = sec;
         floor->speed = speed;
@@ -863,7 +863,7 @@ manual_crusher:
     ceiling = arena_alloc(thinkers_arena, ceiling_t);
     P_AddThinker (&ceiling->thinker);
     sec->ceilingdata = ceiling; //jff 2/22/98
-    ceiling->thinker.function.p1 = T_MoveCeilingAdapter;
+    ceiling->thinker.function = T_MoveCeilingAdapter;
     ceiling->crush = true;
     ceiling->direction = -1;
     ceiling->sector = sec;
@@ -959,7 +959,7 @@ manual_locked:
     P_AddThinker (&door->thinker);
     sec->ceilingdata = door; //jff 2/22/98
 
-    door->thinker.function.p1 = T_VerticalDoorAdapter;
+    door->thinker.function = T_VerticalDoorAdapter;
     door->sector = sec;
     door->topwait = VDOORWAIT;
     door->line = line;
@@ -1067,7 +1067,7 @@ manual_door:
     P_AddThinker (&door->thinker);
     sec->ceilingdata = door; //jff 2/22/98
 
-    door->thinker.function.p1 = T_VerticalDoorAdapter;
+    door->thinker.function = T_VerticalDoorAdapter;
     door->sector = sec;
     // setup delay for door remaining open/closed
     switch(Dely)

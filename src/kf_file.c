@@ -99,7 +99,7 @@ typedef enum
 
 // Maps each thinker_class_t back to its tick function, used when restoring
 // thinkers from a savegame (the function pointer is never written to disk).
-static actionf_p1 actions[] = {
+static think_t actions[] = {
     [tc_mobj] = P_MobjThinker,
     [tc_mobj_del] = P_RemoveMobjThinkerDelayed,
     [tc_ceiling] = T_MoveCeilingAdapter,
@@ -371,7 +371,7 @@ static void read_thinker_t(thinker_t *str, thinker_class_t tc, json_t *obj)
 {
     str->prev = readp_thinker(JS_GetIntegerValue(obj, "prev"));
     str->next = readp_thinker(JS_GetIntegerValue(obj, "next"));
-    str->function.p1 = actions[tc];
+    str->function = actions[tc];
     str->cnext = readp_thclass(JS_GetIntegerValue(obj, "cnext"));
     str->cprev = readp_thclass(JS_GetIntegerValue(obj, "cprev"));
     str->references = JS_GetIntegerValue(obj, "references");
@@ -1681,7 +1681,7 @@ static void UnArchiveWorld(json_t *root)
 // Thinkers
 //
 
-static thinker_class_t GetThinkerClass(actionf_p1 func)
+static thinker_class_t GetThinkerClass(think_t func)
 {
     thinker_class_t tc;
     for (tc = 0; tc < arrlen(actions); ++tc)
@@ -1703,7 +1703,7 @@ static thinker_class_t CheckCeilingInStasis(thinker_t *thinker)
     for (int i = 0; i < count; ++i)
     {
         ceilinglist_t *cl = (ceilinglist_t *)table[i];
-        if (cl->ceiling->thinker.function.v == NULL
+        if (cl->ceiling->thinker.function == NULL
             && thinker == &cl->ceiling->thinker)
         {
             tc = tc_ceiling;
@@ -1724,7 +1724,7 @@ static thinker_class_t CheckPlatInStasis(thinker_t *thinker)
     for (int i = 0; i < count; ++i)
     {
         platlist_t *cl = (platlist_t *)table[i];
-        if (cl->plat->thinker.function.v == NULL
+        if (cl->plat->thinker.function == NULL
             && thinker == &cl->plat->thinker)
         {
             tc = tc_plat;
@@ -1750,7 +1750,7 @@ static void PrepareArchiveThinkers(void)
     for (int i = 0; i < count; ++i)
     {
         thinker_t *thinker = (thinker_t *)table[i];
-        thinker_class_t tc = GetThinkerClass(thinker->function.p1);
+        thinker_class_t tc = GetThinkerClass(thinker->function);
 
         // killough 2/8/98: fix plat original height bug.
         // Since acv==NULL, this could be a plat in stasis.

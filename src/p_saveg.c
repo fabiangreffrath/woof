@@ -83,7 +83,7 @@ static thinker_t *P_IndexToThinker(int index)
 
     for (th = thinkercap.next, i = 0; th != &thinkercap; th = th->next)
     {
-        if (th->function.p1 == P_MobjThinker)
+        if (th->function == P_MobjThinker)
         {
             i++;
             if (i == index)
@@ -127,7 +127,7 @@ static void saveg_read_thinker_t(thinker_t *str)
     str->next = saveg_readp();
 
     // think_t function;
-    str->function.v = (actionf_v)saveg_readp();
+    str->function = saveg_readp();
 
     // struct thinker_s* cnext;
     str->cnext = saveg_readp();
@@ -1175,7 +1175,7 @@ void P_UnArchiveThinkers(void)
     for (th = thinkercap.next; th != &thinkercap;)
     {
         thinker_t *next = th->next;
-        if (th->function.p1 == P_MobjThinker)
+        if (th->function == P_MobjThinker)
         {
             P_RemoveMobj((mobj_t *)th);
         }
@@ -1229,7 +1229,7 @@ void P_UnArchiveThinkers(void)
         //      mobj->floorz = mobj->subsector->sector->floorheight;
         //      mobj->ceilingz = mobj->subsector->sector->ceilingheight;
 
-        mobj->thinker.function.p1 = P_MobjThinker;
+        mobj->thinker.function = P_MobjThinker;
         P_AddThinker(&mobj->thinker);
 
         // pre Woof 16.0.0 hack
@@ -1349,9 +1349,9 @@ void P_UnArchiveSpecials(void)
                     saveg_read_ceiling_t(ceiling);
                     ceiling->sector->ceilingdata = ceiling; // jff 2/22/98
 
-                    if (ceiling->thinker.function.p1)
+                    if (ceiling->thinker.function)
                     {
-                        ceiling->thinker.function.p1 = T_MoveCeilingAdapter;
+                        ceiling->thinker.function = T_MoveCeilingAdapter;
                     }
 
                     P_AddThinker(&ceiling->thinker);
@@ -1365,7 +1365,7 @@ void P_UnArchiveSpecials(void)
                     vldoor_t *door = arena_alloc(thinkers_arena, vldoor_t);
                     saveg_read_vldoor_t(door);
                     door->sector->ceilingdata = door; // jff 2/22/98
-                    door->thinker.function.p1 = T_VerticalDoorAdapter;
+                    door->thinker.function = T_VerticalDoorAdapter;
                     P_AddThinker(&door->thinker);
                     break;
                 }
@@ -1376,7 +1376,7 @@ void P_UnArchiveSpecials(void)
                     floormove_t *floor = arena_alloc(thinkers_arena, floormove_t);
                     saveg_read_floormove_t(floor);
                     floor->sector->floordata = floor; // jff 2/22/98
-                    floor->thinker.function.p1 = T_MoveFloorAdapter;
+                    floor->thinker.function = T_MoveFloorAdapter;
                     P_AddThinker(&floor->thinker);
                     break;
                 }
@@ -1388,9 +1388,9 @@ void P_UnArchiveSpecials(void)
                     saveg_read_plat_t(plat);
                     plat->sector->floordata = plat; // jff 2/22/98
 
-                    if (plat->thinker.function.p1)
+                    if (plat->thinker.function)
                     {
-                        plat->thinker.function.p1 = T_PlatRaiseAdapter;
+                        plat->thinker.function = T_PlatRaiseAdapter;
                     }
 
                     P_AddThinker(&plat->thinker);
@@ -1403,7 +1403,7 @@ void P_UnArchiveSpecials(void)
                 {
                     lightflash_t *flash = arena_alloc(thinkers_arena, lightflash_t);
                     saveg_read_lightflash_t(flash);
-                    flash->thinker.function.p1 = T_LightFlashAdapter;
+                    flash->thinker.function = T_LightFlashAdapter;
                     P_AddThinker(&flash->thinker);
                     break;
                 }
@@ -1413,7 +1413,7 @@ void P_UnArchiveSpecials(void)
                 {
                     strobe_t *strobe = arena_alloc(thinkers_arena, strobe_t);
                     saveg_read_strobe_t(strobe);
-                    strobe->thinker.function.p1 = T_StrobeFlashAdapter;
+                    strobe->thinker.function = T_StrobeFlashAdapter;
                     P_AddThinker(&strobe->thinker);
                     break;
                 }
@@ -1423,7 +1423,7 @@ void P_UnArchiveSpecials(void)
                 {
                     glow_t *glow = arena_alloc(thinkers_arena, glow_t);
                     saveg_read_glow_t(glow);
-                    glow->thinker.function.p1 = T_GlowAdapter;
+                    glow->thinker.function = T_GlowAdapter;
                     P_AddThinker(&glow->thinker);
                     break;
                 }
@@ -1433,7 +1433,7 @@ void P_UnArchiveSpecials(void)
                 {
                     fireflicker_t *flicker = arena_alloc(thinkers_arena, fireflicker_t);
                     saveg_read_fireflicker_t(flicker);
-                    flicker->thinker.function.p1 = T_FireFlickerAdapter;
+                    flicker->thinker.function = T_FireFlickerAdapter;
                     P_AddThinker(&flicker->thinker);
                     break;
                 }
@@ -1446,7 +1446,7 @@ void P_UnArchiveSpecials(void)
                     saveg_read_elevator_t(elevator);
                     elevator->sector->floordata = elevator;   // jff 2/22/98
                     elevator->sector->ceilingdata = elevator; // jff 2/22/98
-                    elevator->thinker.function.p1 = T_MoveElevatorAdapter;
+                    elevator->thinker.function = T_MoveElevatorAdapter;
                     P_AddThinker(&elevator->thinker);
                     break;
                 }
@@ -1455,7 +1455,7 @@ void P_UnArchiveSpecials(void)
                 {
                     scroll_t *scroll = arena_alloc(thinkers_arena, scroll_t);
                     saveg_read_scroll_t(scroll);
-                    scroll->thinker.function.p1 = T_ScrollAdapter;
+                    scroll->thinker.function = T_ScrollAdapter;
                     P_AddThinker(&scroll->thinker);
                     break;
                 }
@@ -1464,7 +1464,7 @@ void P_UnArchiveSpecials(void)
                 {
                     pusher_t *pusher = arena_alloc(thinkers_arena, pusher_t);
                     saveg_read_pusher_t(pusher);
-                    pusher->thinker.function.p1 = T_PusherAdapter;
+                    pusher->thinker.function = T_PusherAdapter;
                     // can't convert from index to pointer, old save version
                     if (pusher->source == NULL)
                     {
@@ -1485,7 +1485,7 @@ void P_UnArchiveSpecials(void)
                 {
                     friction_t *friction = arena_alloc(thinkers_arena, friction_t);
                     saveg_read_friction_t(friction);
-                    friction->thinker.function.p1 = T_FrictionAdapter;
+                    friction->thinker.function = T_FrictionAdapter;
                     P_AddThinker(&friction->thinker);
                     break;
                 }

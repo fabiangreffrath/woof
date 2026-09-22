@@ -33,133 +33,133 @@
 typedef struct
 {
     const char *mnemonic;
-    const actionf_t pointer;
+    const actionf_t action;
     const int argcount;           // [XA] number of mbf21 args this action uses, if any
     const int args[MAXSTATEARGS]; // default values for mbf21 args
 } bex_codepointer_t;
 
-const bex_codepointer_t bex_pointer_null = {"(NULL)", {NULL}};
+const bex_codepointer_t bex_pointer_null = {"(NULL)", NULL};
 
 static const bex_codepointer_t bex_pointer_table[] =
 {
-    {"Light0",              {.p2 = A_Light0}                 },
-    {"WeaponReady",         {.p2 = A_WeaponReady}            },
-    {"Lower",               {.p2 = A_Lower}                  },
-    {"Raise",               {.p2 = A_Raise}                  },
-    {"Punch",               {.p2 = A_Punch}                  },
-    {"ReFire",              {.p2 = A_ReFire}                 },
-    {"FirePistol",          {.p2 = A_FirePistol}             },
-    {"Light1",              {.p2 = A_Light1}                 },
-    {"FireShotgun",         {.p2 = A_FireShotgun}            },
-    {"Light2",              {.p2 = A_Light2}                 },
-    {"FireShotgun2",        {.p2 = A_FireShotgun2}           },
-    {"CheckReload",         {.p2 = A_CheckReload}            },
-    {"OpenShotgun2",        {.p2 = A_OpenShotgun2}           },
-    {"LoadShotgun2",        {.p2 = A_LoadShotgun2}           },
-    {"CloseShotgun2",       {.p2 = A_CloseShotgun2}          },
-    {"FireCGun",            {.p2 = A_FireCGun}               },
-    {"GunFlash",            {.p2 = A_GunFlash}               },
-    {"FireMissile",         {.p2 = A_FireMissile}            },
-    {"Saw",                 {.p2 = A_Saw}                    },
-    {"FirePlasma",          {.p2 = A_FirePlasma}             },
-    {"BFGsound",            {.p2 = A_BFGsound}               },
-    {"FireBFG",             {.p2 = A_FireBFG}                },
-    {"BFGSpray",            {.p1 = A_BFGSpray}               },
-    {"Explode",             {.p1 = A_Explode}                },
-    {"Pain",                {.p1 = A_Pain}                   },
-    {"PlayerScream",        {.p1 = A_PlayerScream}           },
-    {"Fall",                {.p1 = A_Fall}                   },
-    {"XScream",             {.p1 = A_XScream}                },
-    {"Look",                {.p1 = A_Look}                   },
-    {"Chase",               {.p1 = A_Chase}                  },
-    {"FaceTarget",          {.p1 = A_FaceTarget}             },
-    {"PosAttack",           {.p1 = A_PosAttack}              },
-    {"Scream",              {.p1 = A_Scream}                 },
-    {"SPosAttack",          {.p1 = A_SPosAttack}             },
-    {"VileChase",           {.p1 = A_VileChase}              },
-    {"VileStart",           {.p1 = A_VileStart}              },
-    {"VileTarget",          {.p1 = A_VileTarget}             },
-    {"VileAttack",          {.p1 = A_VileAttack}             },
-    {"StartFire",           {.p1 = A_StartFire}              },
-    {"Fire",                {.p1 = A_Fire}                   },
-    {"FireCrackle",         {.p1 = A_FireCrackle}            },
-    {"Tracer",              {.p1 = A_Tracer}                 },
-    {"SkelWhoosh",          {.p1 = A_SkelWhoosh}             },
-    {"SkelFist",            {.p1 = A_SkelFist}               },
-    {"SkelMissile",         {.p1 = A_SkelMissile}            },
-    {"FatRaise",            {.p1 = A_FatRaise}               },
-    {"FatAttack1",          {.p1 = A_FatAttack1}             },
-    {"FatAttack2",          {.p1 = A_FatAttack2}             },
-    {"FatAttack3",          {.p1 = A_FatAttack3}             },
-    {"BossDeath",           {.p1 = A_BossDeath}              },
-    {"CPosAttack",          {.p1 = A_CPosAttack}             },
-    {"CPosRefire",          {.p1 = A_CPosRefire}             },
-    {"TroopAttack",         {.p1 = A_TroopAttack}            },
-    {"SargAttack",          {.p1 = A_SargAttack}             },
-    {"HeadAttack",          {.p1 = A_HeadAttack}             },
-    {"BruisAttack",         {.p1 = A_BruisAttack}            },
-    {"SkullAttack",         {.p1 = A_SkullAttack}            },
-    {"Metal",               {.p1 = A_Metal}                  },
-    {"SpidRefire",          {.p1 = A_SpidRefire}             },
-    {"BabyMetal",           {.p1 = A_BabyMetal}              },
-    {"BspiAttack",          {.p1 = A_BspiAttack}             },
-    {"Hoof",                {.p1 = A_Hoof}                   },
-    {"CyberAttack",         {.p1 = A_CyberAttack}            },
-    {"PainAttack",          {.p1 = A_PainAttack}             },
-    {"PainDie",             {.p1 = A_PainDie}                },
-    {"KeenDie",             {.p1 = A_KeenDie}                },
-    {"BrainPain",           {.p1 = A_BrainPain}              },
-    {"BrainScream",         {.p1 = A_BrainScream}            },
-    {"BrainDie",            {.p1 = A_BrainDie}               },
-    {"BrainAwake",          {.p1 = A_BrainAwake}             },
-    {"BrainSpit",           {.p1 = A_BrainSpit}              },
-    {"SpawnSound",          {.p1 = A_SpawnSound}             },
-    {"SpawnFly",            {.p1 = A_SpawnFly}               },
-    {"BrainExplode",        {.p1 = A_BrainExplode}           },
+    {"Light0",              A_Light0                 },
+    {"WeaponReady",         A_WeaponReady            },
+    {"Lower",               A_Lower                  },
+    {"Raise",               A_Raise                  },
+    {"Punch",               A_Punch                  },
+    {"ReFire",              A_ReFire                 },
+    {"FirePistol",          A_FirePistol             },
+    {"Light1",              A_Light1                 },
+    {"FireShotgun",         A_FireShotgun            },
+    {"Light2",              A_Light2                 },
+    {"FireShotgun2",        A_FireShotgun2           },
+    {"CheckReload",         A_CheckReload            },
+    {"OpenShotgun2",        A_OpenShotgun2           },
+    {"LoadShotgun2",        A_LoadShotgun2           },
+    {"CloseShotgun2",       A_CloseShotgun2          },
+    {"FireCGun",            A_FireCGun               },
+    {"GunFlash",            A_GunFlash               },
+    {"FireMissile",         A_FireMissile            },
+    {"Saw",                 A_Saw                    },
+    {"FirePlasma",          A_FirePlasma             },
+    {"BFGsound",            A_BFGsound               },
+    {"FireBFG",             A_FireBFG                },
+    {"BFGSpray",            A_BFGSpray               },
+    {"Explode",             A_Explode                },
+    {"Pain",                A_Pain                   },
+    {"PlayerScream",        A_PlayerScream           },
+    {"Fall",                A_Fall                   },
+    {"XScream",             A_XScream                },
+    {"Look",                A_Look                   },
+    {"Chase",               A_Chase                  },
+    {"FaceTarget",          A_FaceTarget             },
+    {"PosAttack",           A_PosAttack              },
+    {"Scream",              A_Scream                 },
+    {"SPosAttack",          A_SPosAttack             },
+    {"VileChase",           A_VileChase              },
+    {"VileStart",           A_VileStart              },
+    {"VileTarget",          A_VileTarget             },
+    {"VileAttack",          A_VileAttack             },
+    {"StartFire",           A_StartFire              },
+    {"Fire",                A_Fire                   },
+    {"FireCrackle",         A_FireCrackle            },
+    {"Tracer",              A_Tracer                 },
+    {"SkelWhoosh",          A_SkelWhoosh             },
+    {"SkelFist",            A_SkelFist               },
+    {"SkelMissile",         A_SkelMissile            },
+    {"FatRaise",            A_FatRaise               },
+    {"FatAttack1",          A_FatAttack1             },
+    {"FatAttack2",          A_FatAttack2             },
+    {"FatAttack3",          A_FatAttack3             },
+    {"BossDeath",           A_BossDeath              },
+    {"CPosAttack",          A_CPosAttack             },
+    {"CPosRefire",          A_CPosRefire             },
+    {"TroopAttack",         A_TroopAttack            },
+    {"SargAttack",          A_SargAttack             },
+    {"HeadAttack",          A_HeadAttack             },
+    {"BruisAttack",         A_BruisAttack            },
+    {"SkullAttack",         A_SkullAttack            },
+    {"Metal",               A_Metal                  },
+    {"SpidRefire",          A_SpidRefire             },
+    {"BabyMetal",           A_BabyMetal              },
+    {"BspiAttack",          A_BspiAttack             },
+    {"Hoof",                A_Hoof                   },
+    {"CyberAttack",         A_CyberAttack            },
+    {"PainAttack",          A_PainAttack             },
+    {"PainDie",             A_PainDie                },
+    {"KeenDie",             A_KeenDie                },
+    {"BrainPain",           A_BrainPain              },
+    {"BrainScream",         A_BrainScream            },
+    {"BrainDie",            A_BrainDie               },
+    {"BrainAwake",          A_BrainAwake             },
+    {"BrainSpit",           A_BrainSpit              },
+    {"SpawnSound",          A_SpawnSound             },
+    {"SpawnFly",            A_SpawnFly               },
+    {"BrainExplode",        A_BrainExplode           },
     // MBF
-    {"Detonate",            {.p1 = A_Detonate}               },
-    {"Mushroom",            {.p1 = A_Mushroom}               },
-    {"Die",                 {.p1 = A_Die}                    },
-    {"Spawn",               {.p1 = A_Spawn}                  },
-    {"Turn",                {.p1 = A_Turn}                   },
-    {"Face",                {.p1 = A_Face}                   },
-    {"Scratch",             {.p1 = A_Scratch}                },
-    {"PlaySound",           {.p1 = A_PlaySound}              },
-    {"RandomJump",          {.p1 = A_RandomJump}             },
-    {"LineEffect",          {.p1 = A_LineEffect}             },
-    {"FireOldBFG",          {.p2 = A_FireOldBFG}             },
-    {"BetaSkullAttack",     {.p1 = A_BetaSkullAttack}        },
-    {"Stop",                {.p1 = A_Stop}                   },
+    {"Detonate",            A_Detonate               },
+    {"Mushroom",            A_Mushroom               },
+    {"Die",                 A_Die                    },
+    {"Spawn",               A_Spawn                  },
+    {"Turn",                A_Turn                   },
+    {"Face",                A_Face                   },
+    {"Scratch",             A_Scratch                },
+    {"PlaySound",           A_PlaySound              },
+    {"RandomJump",          A_RandomJump             },
+    {"LineEffect",          A_LineEffect             },
+    {"FireOldBFG",          A_FireOldBFG             },
+    {"BetaSkullAttack",     A_BetaSkullAttack        },
+    {"Stop",                A_Stop                   },
     // MBF21
-    {"SpawnObject",         {.p1 = A_SpawnObject},         8 },
-    {"MonsterProjectile",   {.p1 = A_MonsterProjectile},   5 },
-    {"MonsterBulletAttack", {.p1 = A_MonsterBulletAttack}, 5, { 0, 0, 1, 3, 5 } },
-    {"MonsterMeleeAttack",  {.p1 = A_MonsterMeleeAttack},  4, { 3, 8, 0, 0 } },
-    {"RadiusDamage",        {.p1 = A_RadiusDamage},        2 },
-    {"NoiseAlert",          {.p1 = A_NoiseAlert},          0 },
-    {"HealChase",           {.p1 = A_HealChase},           2 },
-    {"SeekTracer",          {.p1 = A_SeekTracer},          2 },
-    {"FindTracer",          {.p1 = A_FindTracer},          2, { 0, 10 } },
-    {"ClearTracer",         {.p1 = A_ClearTracer},         0 },
-    {"JumpIfHealthBelow",   {.p1 = A_JumpIfHealthBelow},   2 },
-    {"JumpIfTargetInSight", {.p1 = A_JumpIfTargetInSight}, 2 },
-    {"JumpIfTargetCloser",  {.p1 = A_JumpIfTargetCloser},  2 },
-    {"JumpIfTracerInSight", {.p1 = A_JumpIfTracerInSight}, 2 },
-    {"JumpIfTracerCloser",  {.p1 = A_JumpIfTracerCloser},  2 },
-    {"JumpIfFlagsSet",      {.p1 = A_JumpIfFlagsSet},      3 },
-    {"AddFlags",            {.p1 = A_AddFlags},            2 },
-    {"RemoveFlags",         {.p1 = A_RemoveFlags},         2 },
-    {"WeaponProjectile",    {.p2 = A_WeaponProjectile},    5 },
-    {"WeaponBulletAttack",  {.p2 = A_WeaponBulletAttack},  5, { 0, 0, 1, 5, 3 } },
-    {"WeaponMeleeAttack",   {.p2 = A_WeaponMeleeAttack},   5, { 2, 10, 1 * FRACUNIT, 0, 0 } },
-    {"WeaponSound",         {.p2 = A_WeaponSound},         2 },
-    {"WeaponAlert",         {.p2 = A_WeaponAlert},         0 },
-    {"WeaponJump",          {.p2 = A_WeaponJump},          2 },
-    {"ConsumeAmmo",         {.p2 = A_ConsumeAmmo},         1 },
-    {"CheckAmmo",           {.p2 = A_CheckAmmo},           2 },
-    {"RefireTo",            {.p2 = A_RefireTo},            2 },
-    {"GunFlashTo",          {.p2 = A_GunFlashTo},          2 },
-    {"NULL",                {NULL}                           },
+    {"SpawnObject",         A_SpawnObject,         8 },
+    {"MonsterProjectile",   A_MonsterProjectile,   5 },
+    {"MonsterBulletAttack", A_MonsterBulletAttack, 5, { 0, 0, 1, 3, 5 } },
+    {"MonsterMeleeAttack",  A_MonsterMeleeAttack,  4, { 3, 8, 0, 0 } },
+    {"RadiusDamage",        A_RadiusDamage,        2 },
+    {"NoiseAlert",          A_NoiseAlert,          0 },
+    {"HealChase",           A_HealChase,           2 },
+    {"SeekTracer",          A_SeekTracer,          2 },
+    {"FindTracer",          A_FindTracer,          2, { 0, 10 } },
+    {"ClearTracer",         A_ClearTracer,         0 },
+    {"JumpIfHealthBelow",   A_JumpIfHealthBelow,   2 },
+    {"JumpIfTargetInSight", A_JumpIfTargetInSight, 2 },
+    {"JumpIfTargetCloser",  A_JumpIfTargetCloser,  2 },
+    {"JumpIfTracerInSight", A_JumpIfTracerInSight, 2 },
+    {"JumpIfTracerCloser",  A_JumpIfTracerCloser,  2 },
+    {"JumpIfFlagsSet",      A_JumpIfFlagsSet,      3 },
+    {"AddFlags",            A_AddFlags,            2 },
+    {"RemoveFlags",         A_RemoveFlags,         2 },
+    {"WeaponProjectile",    A_WeaponProjectile,    5 },
+    {"WeaponBulletAttack",  A_WeaponBulletAttack,  5, { 0, 0, 1, 5, 3 } },
+    {"WeaponMeleeAttack",   A_WeaponMeleeAttack,   5, { 2, 10, 1 * FRACUNIT, 0, 0 } },
+    {"WeaponSound",         A_WeaponSound,         2 },
+    {"WeaponAlert",         A_WeaponAlert,         0 },
+    {"WeaponJump",          A_WeaponJump,          2 },
+    {"ConsumeAmmo",         A_ConsumeAmmo,         1 },
+    {"CheckAmmo",           A_CheckAmmo,           2 },
+    {"RefireTo",            A_RefireTo,            2 },
+    {"GunFlashTo",          A_GunFlashTo,          2 },
+    {"NULL",                NULL                     },
 };
 
 typedef enum
@@ -175,38 +175,38 @@ typedef enum
 
 typedef struct
 {
-    const actionf_t pointer;
+    const actionf_t action;
     arg_type_t argtype;
 } translate_args_t;
 
 static translate_args_t translate_states[] = {
-    { {.p1 = A_RandomJump },          arg_misc1 },
-    { {.p1 = A_HealChase },           arg_1 },
-    { {.p1 = A_JumpIfHealthBelow },   arg_1 },
-    { {.p1 = A_JumpIfTargetInSight }, arg_1 },
-    { {.p1 = A_JumpIfTargetCloser },  arg_1 },
-    { {.p1 = A_JumpIfTracerInSight }, arg_1 },
-    { {.p1 = A_JumpIfTracerCloser },  arg_1 },
-    { {.p1 = A_JumpIfFlagsSet },      arg_1 },
-    { {.p2 = A_WeaponJump },          arg_1 },
-    { {.p2 = A_CheckAmmo },           arg_1 },
-    { {.p2 = A_RefireTo },            arg_1 },
-    { {.p2 = A_GunFlashTo },          arg_1 },
+    { A_RandomJump,          arg_misc1 },
+    { A_HealChase,           arg_1 },
+    { A_JumpIfHealthBelow,   arg_1 },
+    { A_JumpIfTargetInSight, arg_1 },
+    { A_JumpIfTargetCloser,  arg_1 },
+    { A_JumpIfTracerInSight, arg_1 },
+    { A_JumpIfTracerCloser,  arg_1 },
+    { A_JumpIfFlagsSet,      arg_1 },
+    { A_WeaponJump,          arg_1 },
+    { A_CheckAmmo,           arg_1 },
+    { A_RefireTo,            arg_1 },
+    { A_GunFlashTo,          arg_1 },
 };
 
 static translate_args_t translate_things[] = {
-    { {.p1 = A_Spawn},              arg_misc1_inc },
-    { {.p1 = A_SpawnObject},        arg_1_inc },
-    { {.p1 = A_MonsterProjectile},  arg_1_inc },
-    { {.p2 = A_WeaponProjectile},   arg_1_inc },
+    { A_Spawn,             arg_misc1_inc },
+    { A_SpawnObject,       arg_1_inc },
+    { A_MonsterProjectile, arg_1_inc },
+    { A_WeaponProjectile,  arg_1_inc },
 };
 
 static translate_args_t translate_sounds[] = {
-    { {.p1 = A_PlaySound},          arg_misc1},
-    { {.p1 = A_MonsterMeleeAttack}, arg_3 },
-    { {.p1 = A_HealChase},          arg_2 },
-    { {.p2 = A_WeaponMeleeAttack},  arg_4 },
-    { {.p2 = A_WeaponSound},        arg_1 },
+    { A_PlaySound,          arg_misc1},
+    { A_MonsterMeleeAttack, arg_3 },
+    { A_HealChase,          arg_2 },
+    { A_WeaponMeleeAttack,  arg_4 },
+    { A_WeaponSound,        arg_1 },
 };
 
 static void TranslateArgs(state_t *state,
@@ -215,7 +215,7 @@ static void TranslateArgs(state_t *state,
 {
     for (int i = 0; i < size; ++i)
     {
-        if (state->action.v == table[i].pointer.v)
+        if (state->action == table[i].action)
         {
             switch (table[i].argtype)
             {
@@ -256,9 +256,9 @@ void DEH_ValidateStateArgs(void)
 
         bex_pointer_match = &bex_pointer_null;
 
-        for (int j = 0; bex_pointer_table[j].pointer.v != NULL; ++j)
+        for (int j = 0; bex_pointer_table[j].action != NULL; ++j)
         {
-            if (state->action.v == bex_pointer_table[j].pointer.v)
+            if (state->action == bex_pointer_table[j].action)
             {
                 bex_pointer_match = &bex_pointer_table[j];
                 break;
@@ -317,19 +317,16 @@ boolean DEH_CheckSafeState(statenum_t state)
             break;
         }
 
-        if (states[s].action.p2)
+        // [FG] A_Light*() considered harmless
+        actionf_t action = states[s].action;
+
+        if (action == A_Light0 || action == A_Light1 || action == A_Light2)
         {
-            // [FG] A_Light*() considered harmless
-            if (states[s].action.p2 == (actionf_p2)A_Light0
-                || states[s].action.p2 == (actionf_p2)A_Light1
-                || states[s].action.p2 == (actionf_p2)A_Light2)
-            {
-                continue;
-            }
-            else
-            {
-                return false;
-            }
+            continue;
+        }
+        else
+        {
+            return false;
         }
     }
 
@@ -383,7 +380,7 @@ static void DEH_BEXPointerParseLine(deh_context_t *context, char *line, int tag)
     {
         if (!strcasecmp(bex_pointer_table[i].mnemonic, value))
         {
-            state->action = bex_pointer_table[i].pointer;
+            state->action = bex_pointer_table[i].action;
             return;
         }
     }

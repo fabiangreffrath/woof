@@ -787,7 +787,7 @@ static void cheat_massacre(void)    // jff 2/01/98 kill all monsters
   P_MapStart();
   do
     while ((currentthinker=currentthinker->next)!=&thinkercap)
-      if (currentthinker->function.p1 == P_MobjThinker &&
+      if (currentthinker->function == P_MobjThinker &&
 	  !(((mobj_t *) currentthinker)->flags & mask) && // killough 7/20/98
 	  (((mobj_t *) currentthinker)->flags & MF_COUNTKILL ||
 	   ((mobj_t *) currentthinker)->type == MT_SKULL))
@@ -799,7 +799,8 @@ static void cheat_massacre(void)    // jff 2/01/98 kill all monsters
 	    }
 	  if (((mobj_t *) currentthinker)->type == MT_PAIN)
 	    {
-	      A_PainDie((mobj_t *) currentthinker);    // killough 2/8/98
+				actionargs_t pain_args = {.actor = (mobj_t *)currentthinker};
+	      A_PainDie(&pain_args);
 	      P_SetMobjState((mobj_t *) currentthinker, S_PAIN_DIE6);
 	    }
 	}
@@ -899,7 +900,7 @@ static void cheat_spechits(void)
 
     for (th = thinkercap.next ; th != &thinkercap ; th = th->next)
     {
-      if (th->function.p1 == P_MobjThinker)
+      if (th->function == P_MobjThinker)
       {
         mobj_t *mo = (mobj_t *) th;
 
@@ -1049,7 +1050,7 @@ static void cheat_cycle_mobj(mobj_t **last_mobj, int *last_count,
   do
   {
     th = th->next;
-    if (th->function.p1 == P_MobjThinker)
+    if (th->function == P_MobjThinker)
     {
       mobj_t *mobj;
 

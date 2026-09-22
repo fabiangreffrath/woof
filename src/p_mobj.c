@@ -28,6 +28,7 @@
 #include "info.h"
 #include "m_fixed.h"
 #include "m_random.h"
+#include "p_action.h"
 #include "p_ambient.h"
 #include "p_inter.h"
 #include "p_map.h"
@@ -81,67 +82,79 @@ void P_SetActualHeight(mobj_t *mobj)
 // Returns true if the mobj is still present.
 //
 
-boolean P_SetMobjState(mobj_t* mobj,statenum_t state)
+boolean P_SetMobjState(mobj_t *mobj, statenum_t state)
 {
-  state_t*  st;
+    state_t *st;
 
-  // killough 4/9/98: remember states seen, to detect cycles:
+    // killough 4/9/98: remember states seen, to detect cycles:
 
-  // fast transition table
-  statenum_t *seenstate = seenstate_tab;      // pointer to table
-  static int recursion;                       // detects recursion
-  statenum_t i = state;                       // initial state
-  boolean ret = true;                         // return value
-  statenum_t* tempstate = NULL;               // for use with recursion
+    // fast transition table
+    statenum_t *seenstate = seenstate_tab; // pointer to table
+    static int recursion;                  // detects recursion
+    statenum_t i = state;                  // initial state
+    boolean ret = true;                    // return value
+    statenum_t *tempstate = NULL;          // for use with recursion
 
-  if (recursion++)                            // if recursion detected,
-    seenstate = tempstate = Z_Calloc(num_states, sizeof(statenum_t), PU_STATIC, 0); // allocate state table
+    // if recursion detected,
+    // allocate state table
+    if (recursion++)
+        seenstate = tempstate = Z_Calloc(num_states, sizeof(statenum_t), PU_STATIC, 0);
 
-  do
+    do
     {
-      if (state == S_NULL)
-	{
-	  mobj->state = (state_t *) S_NULL;
-	  P_RemoveMobj (mobj);
-	  ret = false;
-	  break;                 // killough 4/9/98
-	}
+        if (state == S_NULL)
+        {
+            mobj->state = (state_t *)S_NULL;
+            P_RemoveMobj(mobj);
+            ret = false;
+            break; // killough 4/9/98
+        }
 
-      st = &states[state];
-      mobj->state = st;
-      mobj->tics = st->tics;
-      mobj->sprite = st->sprite;
-      mobj->frame = st->frame;
+        st = &states[state];
+        mobj->state = st;
+        mobj->tics = st->tics;
+        mobj->sprite = st->sprite;
+        mobj->frame = st->frame;
 
-      // Modified handling.
-      // Call action functions when the state is set
+        // Modified handling.
+        // Call action functions when the state is set
 
-      if (st->action.p1)
-	st->action.p1(mobj);
+        if (st->action)
+        {
+            actionargs_t mobj_args = {.actor = mobj};
+            st->action(&mobj_args);
+        }
 
-      seenstate[state] = 1 + st->nextstate;   // killough 4/9/98
+        seenstate[state] = 1 + st->nextstate; // killough 4/9/98
 
-      state = st->nextstate;
-    } 
-  while (!mobj->tics && !seenstate[state]);   // killough 4/9/98
+        state = st->nextstate;
+    } while (!mobj->tics && !seenstate[state]); // killough 4/9/98
 
-  if (ret && !mobj->tics)  // killough 4/9/98: detect state cycles
-    displaymsg("Warning: State Cycle Detected");
+    if (ret && !mobj->tics) // killough 4/9/98: detect state cycles
+    {
+        displaymsg("Warning: State Cycle Detected");
+    }
 
-  if (!--recursion)
-    for (;(state=seenstate[i]);i=state-1)
-      seenstate[i] = 0;  // killough 4/9/98: erase memory of states
+    if (!--recursion)
+    {
+        for (; (state = seenstate[i]); i = state - 1)
+        {
+            seenstate[i] = 0; // killough 4/9/98: erase memory of states
+        }
+    }
 
-  if (tempstate)
-    Z_Free(tempstate);
+    if (tempstate)
+    {
+        Z_Free(tempstate);
+    }
 
-  // [FG] update object's actual height
-  if (ret)
-  {
-    P_SetActualHeight(mobj);
-  }
+    // [FG] update object's actual height
+    if (ret)
+    {
+        P_SetActualHeight(mobj);
+    }
 
-  return ret;
+    return ret;
 }
 
 //
@@ -778,14 +791,14 @@ void P_MobjThinker (mobj_t* mobj)
     {
       P_XYMovement(mobj);
       mobj->intflags &= ~MIF_SCROLLING;
-      if (mobj->thinker.function.p1 == P_RemoveMobjThinkerDelayed) // killough
+      if (mobj->thinker.function == P_RemoveMobjThinkerDelayed) // killough
 	return;       // mobj was removed
     }
 
   if (mobj->z != mobj->floorz || mobj->momz)
     {
       P_ZMovement(mobj);
-      if (mobj->thinker.function.p1 == P_RemoveMobjThinkerDelayed) // killough
+      if (mobj->thinker.function == P_RemoveMobjThinkerDelayed) // killough
 	return;       // mobj was removed
     }
   else
@@ -819,7 +832,7 @@ void P_MobjThinker (mobj_t* mobj)
       P_DamageMobj(mobj, NULL, NULL, 10000);
 
       // must have been removed
-      if (mobj->thinker.function.p1 != P_MobjThinker)
+      if (mobj->thinker.function != P_MobjThinker)
         return;
     }
   }
@@ -922,7 +935,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
   mobj->oldz = mobj->z;
   mobj->oldangle = mobj->angle;
 
-  mobj->thinker.function.p1 = P_MobjThinker;
+  mobj->thinker.function = P_MobjThinker;
   mobj->above_thing = mobj->below_thing = 0;           // phares
 
   // for Boom friction code

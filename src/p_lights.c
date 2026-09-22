@@ -194,7 +194,7 @@ void P_SpawnFireFlicker (sector_t*  sector)
 
   P_AddThinker (&flick->thinker);
 
-  flick->thinker.function.p1 = T_FireFlickerAdapter;
+  flick->thinker.function = T_FireFlickerAdapter;
   flick->sector = sector;
   flick->maxlight = sector->lightlevel;
   flick->minlight = P_FindMinSurroundingLight(sector,sector->lightlevel)+16;
@@ -220,7 +220,7 @@ void P_SpawnLightFlash (sector_t* sector)
 
   P_AddThinker (&flash->thinker);
 
-  flash->thinker.function.p1 = T_LightFlashAdapter;
+  flash->thinker.function = T_LightFlashAdapter;
   flash->sector = sector;
   flash->maxlight = sector->lightlevel;
 
@@ -254,7 +254,7 @@ void P_SpawnStrobeFlash
   flash->sector = sector;
   flash->darktime = fastOrSlow;
   flash->brighttime = STROBEBRIGHT;
-  flash->thinker.function.p1 = T_StrobeFlashAdapter;
+  flash->thinker.function = T_StrobeFlashAdapter;
   flash->maxlight = sector->lightlevel;
   flash->minlight = P_FindMinSurroundingLight(sector, sector->lightlevel);
   
@@ -289,7 +289,7 @@ void P_SpawnGlowingLight(sector_t*  sector)
   g->sector = sector;
   g->minlight = P_FindMinSurroundingLight(sector,sector->lightlevel);
   g->maxlight = sector->lightlevel;
-  g->thinker.function.p1 = T_GlowAdapter;
+  g->thinker.function = T_GlowAdapter;
   g->direction = -1;
 
   sector->special &= ~31; //jff 3/14/98 clear non-generalized sector type

@@ -221,7 +221,7 @@ int EV_DoPlat
     plat->type = type;
     plat->sector = sec;
     plat->sector->floordata = plat; //jff 2/23/98 multiple thinkers
-    plat->thinker.function.p1 = T_PlatRaiseAdapter;
+    plat->thinker.function = T_PlatRaiseAdapter;
     plat->crush = false;
     plat->tag = line->args[0];
 
@@ -347,7 +347,7 @@ void P_ActivateInStasis(int tag)
         plat->status = plat->oldstatus==up? down : up;
       else
         plat->status = plat->oldstatus;
-      plat->thinker.function.p1 = T_PlatRaiseAdapter;
+      plat->thinker.function = T_PlatRaiseAdapter;
     }
   }
 }
@@ -372,7 +372,7 @@ int EV_StopPlat(line_t* line)
     {
       plat->oldstatus = plat->status;    // put it in stasis
       plat->status = in_stasis;
-      plat->thinker.function.v = NULL;
+      plat->thinker.function = NULL;
     }
   }
   return 1;

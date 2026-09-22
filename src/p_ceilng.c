@@ -281,7 +281,7 @@ int EV_DoCeiling
     ceiling = arena_alloc(thinkers_arena, ceiling_t);
     P_AddThinker (&ceiling->thinker);
     sec->ceilingdata = ceiling;               //jff 2/22/98
-    ceiling->thinker.function.p1 = T_MoveCeilingAdapter;
+    ceiling->thinker.function = T_MoveCeilingAdapter;
     ceiling->sector = sec;
     ceiling->crush = false;
   
@@ -375,7 +375,7 @@ int P_ActivateInStasisCeiling(line_t *line)
     if (ceiling->tag == line->args[0] && ceiling->direction == 0)
     {
       ceiling->direction = ceiling->olddirection;
-      ceiling->thinker.function.p1 = T_MoveCeilingAdapter;
+      ceiling->thinker.function = T_MoveCeilingAdapter;
       //jff 4/5/98 return if activated
       rtn=1;
     }
@@ -403,7 +403,7 @@ int EV_CeilingCrushStop(line_t* line)
     {
       ceiling->olddirection = ceiling->direction;
       ceiling->direction = 0;
-      ceiling->thinker.function.v = NULL;
+      ceiling->thinker.function = NULL;
       rtn=1;
     }
   }
