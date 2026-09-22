@@ -28,6 +28,7 @@
 * Quicksave does not change the active Load Game / Save Game menu page anymore
 * Fixed level title missing from the automap when the automap was not in overlay mode.
   * This affected only SBARDEF 1.0.0 HUDs, such as the ones included with D+D2 (id24res.wad/extras.wad)
+* Fixed minimap overlapping chat in Legacy of Rust
 
 ## Miscellaneous
 
