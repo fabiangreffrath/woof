@@ -3523,11 +3523,29 @@ void G_Ticker(void)
   // killough 9/29/98: split up switch statement
   // into pauseable and unpauseable parts.
 
-  gamestate == GS_LEVEL ? P_Ticker(), ST_Ticker(), AM_Ticker() :
-    paused & 2 ? (void) 0 :
-      gamestate == GS_INTERMISSION ? WI_Ticker() :
-	gamestate == GS_FINALE ? F_Ticker() :
-	  gamestate == GS_DEMOSCREEN ? D_PageTicker() : (void) 0;
+  if (gamestate == GS_LEVEL)
+  {
+    P_Ticker();
+    ST_Ticker();
+    AM_Ticker();
+  }
+  else if (paused & 2
+           || ((!demoplayback || menu_pause_demos) && menuactive && !netgame))
+  {
+    // paused, nothing to do
+  }
+  else if (gamestate == GS_INTERMISSION)
+  {
+    WI_Ticker();
+  }
+  else if (gamestate == GS_FINALE)
+  {
+    F_Ticker();
+  }
+  else if (gamestate == GS_DEMOSCREEN)
+  {
+    D_PageTicker();
+  }
 }
 
 //
