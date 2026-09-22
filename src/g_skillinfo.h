@@ -21,16 +21,17 @@
 #include "doomdef.h"
 #include "m_fixed.h"
 
-#define SI_SPAWN_MULTI      0x0001
-#define SI_FAST_MONSTERS    0x0002
-#define SI_INSTANT_REACTION 0x0004
-#define SI_DEFAULT_SKILL    0x0008
-#define SI_EASY_BOSS_BRAIN  0x0010
-#define SI_MUST_CONFIRM     0x0020
-#define SI_NO_MONSTERS      0x0040
-#define SI_PISTOL_START     0x0080
-
-typedef uint16_t skill_info_flags_t;
+typedef enum
+{
+  SI_SPAWN_MULTI = (1u << 0),
+  SI_FAST_MONSTERS = (1u << 1),
+  SI_INSTANT_REACTION = (1u << 2),
+  SI_DEFAULT_SKILL = (1u << 3),
+  SI_EASY_BOSS_BRAIN = (1u << 4),
+  SI_MUST_CONFIRM = (1u << 5),
+  SI_NO_MONSTERS = (1u << 6),
+  SI_PISTOL_START = (1u << 7),
+} skill_info_flags_t;
 
 typedef struct {
   fixed_t ammo_factor;

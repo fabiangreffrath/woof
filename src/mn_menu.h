@@ -106,7 +106,7 @@ void MN_BindMenuVariables(void);
 
 extern boolean csmenu_skill;
 
-struct csmenu_s
+typedef struct csmenu_s
 {
     boolean fastparm;
     boolean respawnparm;
@@ -117,9 +117,9 @@ struct csmenu_s
     boolean doubleammo;
     boolean aggromonsters;
     int helperdogs;
-};
+} csmenu_t;
 
-extern struct csmenu_s csmenu;
+extern csmenu_t csmenu;
 
 void M_InitCustomSkill(void);
 
