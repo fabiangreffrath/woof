@@ -124,7 +124,7 @@ static int G_GameOptionSize(void);
 
 gameaction_t    gameaction;
 gamestate_t     gamestate;
-int             gameskill;
+skill_t         gameskill;
 int             gameepisode;
 int             gamemap;
 mapentry_t*     gamemapinfo;
@@ -2040,7 +2040,7 @@ static char *SanitizeSignature(const char *orig, size_t len)
 
 static void G_DoPlayDemo(void)
 {
-  int skill;
+  skill_t skill;
   int i, episode, map;
   demo_version_t demover;
   byte *option_p = NULL;      // killough 11/98
@@ -2726,7 +2726,7 @@ static void G_DoSaveAutoSave(void)
 static byte *LoadCustomSkillOptions(byte *opt_p)
 {
     // Woof! < 16.0.0 (binary savegame format) had no custom skill options
-    csmenu_skill = 2;  // Hurt me plenty
+    csmenu_skill = sk_medium;
     csmenu.fastparm = clfastparm;
     csmenu.respawnparm = clrespawnparm;
     csmenu.nomonsters = clnomonsters;
@@ -3902,11 +3902,11 @@ void G_WorldDone(void)
     }
 }
 
-static int     d_skill;
+static skill_t d_skill;
 static int     d_episode;
 static int     d_map;
 
-void G_DeferedInitNew(int skill, int episode, int map)
+void G_DeferedInitNew(skill_t skill, int episode, int map)
 {
   d_skill = skill;
   d_episode = episode;
@@ -4378,7 +4378,7 @@ void G_ReloadDefaults(boolean keep_demover)
   if ((M_CheckParm("-dog") || M_CheckParm("-dogs")) && demo_version < DV_MBF)
     I_Error("Helper dogs require complevel MBF or MBF21.");
 
-  if (M_CheckParm("-skill") && startskill == -1 && !demo_compatibility)
+  if (M_CheckParm("-skill") && startskill == sk_none && !demo_compatibility)
     I_Error("'-skill 0' requires complevel Vanilla.");
 
   if ((p = M_CheckParm("-gameversion")) && named_complevel_id != 0)
@@ -4479,7 +4479,7 @@ void G_RefreshFastMonsters(void)
 // Can be called by the startup code or the menu task,
 // consoleplayer, displayplayer, playeringame[] should be set.
 
-void G_InitNew(int skill, int episode, int map, boolean from_savegame)
+void G_InitNew(skill_t skill, int episode, int map, boolean from_savegame)
 {
   int i;
 

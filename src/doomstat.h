@@ -30,6 +30,7 @@
 #include "doomdata.h"
 #include "doomdef.h"
 #include "doomtype.h"
+#include "g_skillinfo.h"
 #include "f_wipe.h"
 
 struct mapentry_s;
@@ -178,7 +179,7 @@ extern int comp[COMP_TOTAL], default_comp[COMP_TOTAL];
 //
 
 // Defaults for menu, methinks.
-extern  int   startskill;
+extern  skill_t   startskill;
 extern  int             startepisode;
 extern  int   startmap;
 
@@ -188,7 +189,7 @@ extern  int       startloadgame;
 extern  boolean   autostart;
 
 // Selected by user.
-extern  int         gameskill;
+extern  skill_t         gameskill;
 extern  int   gameepisode;
 extern  int   gamemap;
 extern  struct mapentry_s *gamemapinfo;

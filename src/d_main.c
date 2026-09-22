@@ -120,7 +120,7 @@ boolean singletics = false; // debug flag to cancel adaptiveness
 boolean nosfxparm;
 boolean nomusicparm;
 
-int     startskill;
+skill_t startskill;
 int     startepisode;
 int     startmap;
 boolean autostart;
@@ -1885,7 +1885,7 @@ void D_DoomMain(void)
    {
      startskill = M_ParmArgToInt(p);
      startskill--;
-     if (startskill >= -1 && startskill < num_og_skills)
+     if (startskill >= sk_none && startskill <= sk_nightmare)
       {
         autostart = true;
       }
@@ -1906,7 +1906,7 @@ void D_DoomMain(void)
 
   if (M_ParmExists("-uv"))
   {
-    startskill = 3;
+    startskill = sk_hard;
     autostart = true;
   }
 
@@ -1919,7 +1919,7 @@ void D_DoomMain(void)
 
   if (M_ParmExists("-nm"))
   {
-    startskill = 4;
+    startskill = sk_nightmare;
     autostart = true;
   }
 

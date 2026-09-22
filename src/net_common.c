@@ -451,7 +451,7 @@ boolean NET_ValidGameSettings(GameMode_t mode, GameMission_t mission,
         return false;
     }
 
-    if (settings->skill < -1 || settings->skill >= num_og_skills)
+    if (settings->skill < sk_none || settings->skill >= num_og_skills)
     {
         return false;
     }

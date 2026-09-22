@@ -22,6 +22,7 @@
 
 #include "doomdef.h"
 #include "doomtype.h"
+#include "g_skillinfo.h"
 #include "info.h"
 #include "m_fixed.h"
 #include "r_defs.h"
@@ -30,7 +31,7 @@ extern statenum_t *seenstate_tab;
 
 extern map_t map;
 
-void P_SetupLevel(int episode, int map, int skill, boolean from_savegame);
+void P_SetupLevel(int episode, int map, skill_t skill, boolean from_savegame);
 void P_Init(void);               // Called by startup code.
 
 extern byte     *rejectmatrix;   // for fast sight rejection
