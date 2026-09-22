@@ -50,6 +50,7 @@ extern skill_info_t *skill_infos;
 
 extern int num_skills;
 extern int num_og_skills;
+extern int num_cskill;
 
 void G_InitSkills(void);
 void G_RefreshGameSkill(void);
