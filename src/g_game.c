@@ -2727,11 +2727,13 @@ static void G_DoSaveAutoSave(void)
 static byte *LoadCustomSkillOptions(byte *opt_p)
 {
     // Woof! < 16.0.0 (binary savegame format) had no custom skill options
-    pistolstart = clpistolstart;
-    coopspawns = clcoopspawns;
-    halfplayerdamage = false;
-    doubleammo = false;
-    aggromonsters = false;
+    csmenu.pistolstart = clpistolstart;
+    csmenu.coopspawns = clcoopspawns;
+    csmenu.halfplayerdamage = false;
+    csmenu.doubleammo = false;
+    csmenu.aggromonsters = false;
+
+    G_UpdateCustomSkill(num_cskill);
 
     return opt_p;
 }
@@ -2740,22 +2742,25 @@ static json_mut_t *WriteCustomSkillOptionsJSON(json_mut_doc_t *doc)
 {
     json_mut_t *obj = JS_NewObject(doc);
 
-    JS_SetInt(doc, obj, "pistolstart", pistolstart);
-    JS_SetInt(doc, obj, "coopspawns", coopspawns);
-    JS_SetInt(doc, obj, "halfplayerdamage", halfplayerdamage);
-    JS_SetInt(doc, obj, "doubleammo", doubleammo);
-    JS_SetInt(doc, obj, "aggromonsters", aggromonsters);
+    // JS_SetInt(doc, obj, "skill", csmenu_skill);
+    JS_SetInt(doc, obj, "pistolstart", csmenu.pistolstart);
+    JS_SetInt(doc, obj, "coopspawns", csmenu.coopspawns);
+    JS_SetInt(doc, obj, "halfplayerdamage", csmenu.halfplayerdamage);
+    JS_SetInt(doc, obj, "doubleammo", csmenu.doubleammo);
+    JS_SetInt(doc, obj, "aggromonsters", csmenu.aggromonsters);
 
     return obj;
 }
 
 static void LoadCustomSkillOptionsJSON(json_t *root)
 {
-    pistolstart = JS_GetIntegerValue(root, "pistolstart");
-    coopspawns = JS_GetIntegerValue(root, "coopspawns");
-    halfplayerdamage = JS_GetIntegerValue(root, "halfplayerdamage");
-    doubleammo = JS_GetIntegerValue(root, "doubleammo");
-    aggromonsters = JS_GetIntegerValue(root, "aggromonsters");
+    csmenu.pistolstart = JS_GetIntegerValue(root, "pistolstart");
+    csmenu.coopspawns = JS_GetIntegerValue(root, "coopspawns");
+    csmenu.halfplayerdamage = JS_GetIntegerValue(root, "halfplayerdamage");
+    csmenu.doubleammo = JS_GetIntegerValue(root, "doubleammo");
+    csmenu.aggromonsters = JS_GetIntegerValue(root, "aggromonsters");
+
+    G_UpdateCustomSkill(num_cskill);
 }
 
 static void ReadOptionsJSON(json_t *root);

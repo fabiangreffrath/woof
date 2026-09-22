@@ -648,7 +648,6 @@ static void M_InitializeSkillMenu(void)
         if (skill_infos[i].flags & SI_DEFAULT_SKILL)
             NewDef.lastOn = i;
     }
-    int num_cskill = num_skills - 1;
     NewDef.menuitems[num_cskill] = (menuitem_t){1, "M_CSTSKL", M_CustomSkill, 'c', "Custom Skill...", NEW_GAME_RECT(num_cskill), MF_OPTLUMP};
     M_InitCustomSkill();
 

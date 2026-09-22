@@ -77,6 +77,7 @@ const skill_info_t doom_skill_infos[5] = {
 
 int num_skills;
 int num_og_skills;
+int num_cskill;
 skill_info_t* skill_infos;
 
 void G_InitSkills(void) {
@@ -84,6 +85,7 @@ void G_InitSkills(void) {
 
   num_skills = 5 + 1; // Custom skill
   num_og_skills = num_skills - 1;
+  num_cskill = num_og_skills;
 
   skill_infos = calloc(num_skills, sizeof(*skill_infos));
 
