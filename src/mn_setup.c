@@ -3518,6 +3518,11 @@ const char *skill_strings[] = {
     "Ultra-Violence", "NIGHTMARE!",
 };
 
+void M_InitCustomSkill(void)
+{
+    csmenu_skill = 2;  // Hurt me plenty
+}
+
 static void CsBarkSound(void)
 {
     if (csmenu.helperdogs)
