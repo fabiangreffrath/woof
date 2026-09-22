@@ -126,6 +126,8 @@ struct csmenu_s
 
 extern struct csmenu_s csmenu;
 
+void M_InitCustomSkill(void);
+
 #endif
 
 //----------------------------------------------------------------------------
