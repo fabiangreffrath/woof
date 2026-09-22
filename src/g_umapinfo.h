@@ -119,8 +119,8 @@ boolean MI_PreviousMap(int *episode, int *map);
 const char *MI_GetLevelTitle(void);
 const char *MI_GetLevelLabel(void);
 const char *MI_GetLevelAuthor(void);
-void MI_MapAnnouncement(char announce_string[120], char author_string[120],
-                        const char string[120], size_t str_size);
+void MI_MapAnnouncement(char *announce_string, char *author_string,
+                        const char *string, size_t str_size);
 int MI_SkyTexture(void);
 void MI_ChangeMusic(void);
 

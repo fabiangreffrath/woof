@@ -1061,7 +1061,8 @@ int G_GotoNextLevel(void)
         return false;
     }
 
-    int next_episode = -1, next_map = -1;
+    int next_episode = -1;
+    int next_map = -1;
     MI_NextMap(&next_episode, &next_map);
 
     char *name = MapName(next_episode, next_map);

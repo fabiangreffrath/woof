@@ -801,7 +801,8 @@ boolean MI_PreviousMap(int *episode, int *map)
 
         while ((gamemap = (gamemap + 99) % 100) != cur_map)
         {
-            int next_episode, next_map;
+            int next_episode = -1;
+            int next_map = - 1;
             gamemapinfo = MI_MapEntry(gameepisode, gamemap);
             MI_NextMap(&next_episode, &next_map);
 
@@ -827,6 +828,9 @@ boolean MI_PreviousMap(int *episode, int *map)
              // only check one episode in Doom 2
              && gamemode != commercial
              && (gameepisode = (gameepisode + 9) % 10) != cur_episode);
+
+    *episode = gameepisode;
+    *map = gamemap;
 
     gameepisode = cur_episode;
     gamemap = cur_map;
@@ -929,8 +933,8 @@ const char *MI_GetLevelAuthor(void)
     return author;
 }
 
-void MI_MapAnnouncement(char announce_string[120], char author_string[120],
-                        const char string[120], size_t str_size)
+void MI_MapAnnouncement(char *announce_string, char *author_string,
+                        const char *string, size_t str_size)
 {
     // UMAPINFO
     if (gamemapinfo && gamemapinfo->author)
@@ -1143,6 +1147,7 @@ boolean MI_BossAction(mobj_t *mo)
                 }
             }
         }
+        return true;
     }
 
     // Legacy
