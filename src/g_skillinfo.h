@@ -49,6 +49,18 @@ typedef struct {
 extern skill_info_t skill_info;
 extern skill_info_t *skill_infos;
 
+typedef enum
+{
+  sk_default = -2,
+  sk_none = -1,  //jff 3/24/98 create unpicked skill setting
+  sk_baby = 0,
+  sk_easy,
+  sk_medium,
+  sk_hard,
+  sk_nightmare,
+  sk_custom,
+} skill_t;
+
 extern int num_skills;
 extern int num_og_skills;
 extern int num_cskill;
