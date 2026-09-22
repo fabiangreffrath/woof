@@ -24,32 +24,23 @@
 #define SI_SPAWN_MULTI      0x0001
 #define SI_FAST_MONSTERS    0x0002
 #define SI_INSTANT_REACTION 0x0004
-#define SI_DISABLE_CHEATS   0x0008
-#define SI_NO_PAIN          0x0010
-#define SI_DEFAULT_SKILL    0x0020
-#define SI_PLAYER_RESPAWN   0x0080
-#define SI_EASY_BOSS_BRAIN  0x0100
-#define SI_MUST_CONFIRM     0x0200
-#define SI_AUTO_USE_HEALTH  0x0400
-#define SI_NO_MONSTERS      0x1000
-#define SI_PISTOL_START     0x2000
+#define SI_DEFAULT_SKILL    0x0008
+#define SI_EASY_BOSS_BRAIN  0x0010
+#define SI_MUST_CONFIRM     0x0020
+#define SI_NO_MONSTERS      0x0040
+#define SI_PISTOL_START     0x0080
 
 typedef uint16_t skill_info_flags_t;
 
 typedef struct {
   fixed_t ammo_factor;
   fixed_t damage_factor;
-  fixed_t armor_factor;
-  fixed_t health_factor;
-  fixed_t monster_health_factor;
-  fixed_t friend_health_factor;
   int respawn_time;
   int spawn_filter;
   char key;
   const char* must_confirm;
   const char* name;
   const char* pic_name;
-  int text_color;
   int helper_dogs;
   skill_info_flags_t flags;
 } skill_info_t;
@@ -64,8 +55,5 @@ void G_InitSkills(void);
 void G_RefreshGameSkill(void);
 void G_UpdateGameSkill(int skill);
 void G_UpdateCustomSkill(int custom_skill_num);
-
-void G_AlterGameFlags(void);
-void G_InitGameModifiers(void);
 
 #endif

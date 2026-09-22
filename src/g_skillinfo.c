@@ -116,46 +116,7 @@ void G_UpdateCustomSkill(int custom_skill_num)
   G_UpdateGameSkill(custom_skill_num);
 }
 
-// At startup, set-up temp game modifier configs based off args / persistent cfgs
-// Only set once, as modifiers can break away from args
-//
-// "Always Pistol Start" is the only persistent cfg (saved in cfg file)
-//
-
-// During demo recording/playback only use args, else use cfgs
-static void ResetGameModifiers(void)
-{
-  pistolstart = (allow_incompatibility ? clpistolstart : false);   // pistolstart not allowed in demos?
-  respawnparm = clrespawnparm;
-  fastparm    = clfastparm;
-  nomonsters  = clnomonsters;
-  coopspawns  = clcoopspawns;
-}
-
-// void G_InitGameModifiers(void)
-// {
-//   if (clpistolstart)
-//       dsda_UpdateIntConfig(dsda_config_pistol_start, true, true);
-//   if (clrespawnparm)
-//       dsda_UpdateIntConfig(dsda_config_respawn_monsters, true, true);
-//   if (clfastparm)
-//       dsda_UpdateIntConfig(dsda_config_fast_monsters, true, true);
-//   if (clnomonsters)
-//       dsda_UpdateIntConfig(dsda_config_no_monsters, true, true);
-//   if (clcoopspawns)
-//       dsda_UpdateIntConfig(dsda_config_coop_spawns, true, true);
-
-//   // Pistol-start config can reset other modifier configs
-//   // Explicitly refresh everything for configs to match args
-//   ResetGameModifiers();
-// }
-
 void G_RefreshGameSkill(void) {
-  void G_RefreshFastMonsters(void);
-
-  if (allow_incompatibility)
-    ResetGameModifiers();
-
   skill_info = skill_infos[gameskill];
 
   if (respawnparm && !skill_info.respawn_time)
@@ -181,13 +142,5 @@ void G_UpdateGameSkill(int skill) {
     skill = num_skills - 1;
 
   gameskill = skill;
-  G_RefreshGameSkill();
-}
-
-void G_AlterGameFlags(void)
-{
-  if (!allow_incompatibility || !in_game)
-    return;
-
   G_RefreshGameSkill();
 }
