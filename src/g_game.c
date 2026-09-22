@@ -4364,7 +4364,7 @@ void G_ReloadDefaults(boolean keep_demover)
   if ((M_CheckParm("-dog") || M_CheckParm("-dogs")) && demo_version < DV_MBF)
     I_Error("Helper dogs require complevel MBF or MBF21.");
 
-  if (M_CheckParm("-skill") && startskill == -1 && !demo_compatibility)  // FIXME: magic number
+  if (M_CheckParm("-skill") && startskill == -1 && !demo_compatibility)
     I_Error("'-skill 0' requires complevel Vanilla.");
 
   if ((p = M_CheckParm("-gameversion")) && named_complevel_id != 0)

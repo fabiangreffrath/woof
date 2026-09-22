@@ -1279,7 +1279,7 @@ void P_SpawnMapThing (mapthing_t* mthing)
     return;
 
   // killough 11/98: simplify
-  if ((gameskill == -1 && demo_compatibility)  // FIXME: Magic number
+  if ((gameskill == -1 && demo_compatibility)
       || (!(mthing->options & MTF_SKILL1) && skill_info.spawn_filter == 1)
       || (!(mthing->options & MTF_SKILL2) && skill_info.spawn_filter == 2)
       || (!(mthing->options & MTF_SKILL3) && skill_info.spawn_filter == 3)
