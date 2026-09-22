@@ -3925,7 +3925,7 @@ void MN_DrawStringCR(int cx, int cy, byte *cr1, byte *cr2, const char *ch)
         }
 
         w = SHORT(hu_font[c]->width);
-        if (cx + w > SCREENWIDTH)
+        if (cx + w > SCREENWIDTH + video.deltaw)
         {
             break;
         }

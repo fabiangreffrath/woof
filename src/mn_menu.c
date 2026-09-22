@@ -763,7 +763,7 @@ enum
     load_end
 } load_e;
 
-#define SAVE_LOAD_RECT_Y(m_y, n) ((m_y) + (n) * LINEHEIGHT - 7)
+#define SAVE_LOAD_RECT_Y(m_y, n) ((m_y) + (n) * LINEHEIGHT - 5)
 
 #define SAVE_LOAD_RECT(n)                                               \
     {M_X_LOADSAVE, SAVE_LOAD_RECT_Y(M_Y_LOADSAVE, n), M_LOADSAVE_WIDTH, \
@@ -3015,7 +3015,7 @@ static boolean MouseResponder(void)
     {
         if (M_InputActivated(input_menu_enter))
         {
-            int dot = mouse_state_x - video.deltaw * 2 - rect->x;
+            int dot = mouse_state_x - video.deltaw - rect->x;
             if (dot >= rect->w / 2)
             {
                 SaveLoadResponder(MENU_RIGHT, 0);
@@ -3851,7 +3851,7 @@ static void WriteTextCR(int x, int y, byte *cr, const char *string)
         }
 
         w = SHORT(hu_font[c]->width);
-        if (cx + w > SCREENWIDTH)
+        if (cx + w > SCREENWIDTH + video.deltaw)
         {
             break;
         }
