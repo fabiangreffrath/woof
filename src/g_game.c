@@ -4255,10 +4255,6 @@ void G_ReloadDefaults(boolean keep_demover)
   pistolstart = clpistolstart;
   coopspawns = clcoopspawns;
 
-  halfplayerdamage = cshalfplayerdamage;
-  doubleammo = csdoubleammo;
-  aggromonsters = csaggromonsters;
-
   demoplayback = false;
   singledemo = false;            // killough 9/29/98: don't stop after 1 demo
   netdemo = false;

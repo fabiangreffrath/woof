@@ -108,21 +108,11 @@ boolean clpistolstart;  // checkparm of -pistolstart
 boolean clcoopspawns;   // checkparm of -coop_spawns
 // jff 1/24/98 end definition of command line version of play mode switches
 
-// custom skill options
-boolean cshalfplayerdamage = false;
-boolean csdoubleammo = false;
-boolean csaggromonsters = false;
-int cshelperdogs = 0;
-
 boolean nomonsters;     // working -nomonsters
 boolean respawnparm;    // working -respawn
 boolean fastparm;       // working -fast
 boolean pistolstart;    // working -pistolstart
 boolean coopspawns;     // working -coop_spawns
-
-boolean halfplayerdamage;
-boolean doubleammo;
-boolean aggromonsters;
 
 boolean singletics = false; // debug flag to cancel adaptiveness
 
