@@ -3514,7 +3514,7 @@ void MN_DrawGeneral(void)
 
 int csmenu_skill;
 
-struct csmenu_s csmenu;
+csmenu_t csmenu;
 
 const char *skill_strings[] = {
     "I'm too young to die", "Hey, not too rough", "Hurt me plenty",

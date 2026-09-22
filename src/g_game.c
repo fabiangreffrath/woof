@@ -4489,8 +4489,7 @@ void G_InitNew(int skill, int episode, int map, boolean from_savegame)
       S_ResumeMusic();
     }
 
-  if (skill > num_skills - 1)
-    skill = num_skills - 1;
+  skill = MIN(skill, num_skills - 1);
 
   if (episode < 1)
     episode = 1;

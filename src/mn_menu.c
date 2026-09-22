@@ -626,7 +626,7 @@ static menu_t NewDef = {
     .x = 48, .y =  M_Y_NEWGAME,
 };
 
-static void M_InitializeSkillMenu(void)
+static void InitializeSkillMenu(void)
 {
     NewDef.lastOn = default_skill - 1;
     NewDef.numitems = num_skills;
@@ -638,7 +638,7 @@ static void M_InitializeSkillMenu(void)
         NewDef.menuitems[i].rect = (mrect_t)NEW_GAME_RECT(i);
 
         if (skill_infos[i].pic_name)
-            strncpy(NewDef.menuitems[i].name, skill_infos[i].pic_name, 8);
+            M_CopyLumpName(NewDef.menuitems[i].name, skill_infos[i].pic_name);
         
         NewDef.menuitems[i].alttext = skill_infos[i].name;
 
@@ -3575,7 +3575,7 @@ void MN_StartControlPanel(void)
     //  defaultskill, instead of -skill.
 
     DO_ONCE
-    M_InitializeSkillMenu();
+    InitializeSkillMenu();
     END_ONCE
 
     default_verify = 0; // killough 10/98

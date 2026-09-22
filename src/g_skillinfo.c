@@ -136,8 +136,7 @@ void G_RefreshGameSkill(void) {
 }
 
 void G_UpdateGameSkill(int skill) {
-  if (skill > num_skills - 1)
-    skill = num_skills - 1;
+  skill = MIN(skill, num_skills - 1);
 
   gameskill = skill;
   G_RefreshGameSkill();
