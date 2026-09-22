@@ -2726,11 +2726,16 @@ static void G_DoSaveAutoSave(void)
 static byte *LoadCustomSkillOptions(byte *opt_p)
 {
     // Woof! < 16.0.0 (binary savegame format) had no custom skill options
-    csmenu.pistolstart = clpistolstart;
+    csmenu_skill = 2;  // Hurt me plenty
+    csmenu.fastparm = clfastparm;
+    csmenu.respawnparm = clrespawnparm;
+    csmenu.nomonsters = clnomonsters;
     csmenu.coopspawns = clcoopspawns;
+    csmenu.pistolstart = clpistolstart;
     csmenu.halfplayerdamage = false;
     csmenu.doubleammo = false;
     csmenu.aggromonsters = false;
+    csmenu.helperdogs = default_dogs;
 
     G_UpdateCustomSkill(num_cskill);
 
@@ -2741,22 +2746,32 @@ static json_mut_t *WriteCustomSkillOptionsJSON(json_mut_doc_t *doc)
 {
     json_mut_t *obj = JS_NewObject(doc);
 
-    JS_SetInt(doc, obj, "pistolstart", csmenu.pistolstart);
+    JS_SetInt(doc, obj, "skill", csmenu_skill);
+    JS_SetInt(doc, obj, "fastparm", csmenu.fastparm);
+    JS_SetInt(doc, obj, "respawnparm", csmenu.respawnparm);
+    JS_SetInt(doc, obj, "nomonsters", csmenu.nomonsters);
     JS_SetInt(doc, obj, "coopspawns", csmenu.coopspawns);
+    JS_SetInt(doc, obj, "pistolstart", csmenu.pistolstart);
     JS_SetInt(doc, obj, "halfplayerdamage", csmenu.halfplayerdamage);
     JS_SetInt(doc, obj, "doubleammo", csmenu.doubleammo);
     JS_SetInt(doc, obj, "aggromonsters", csmenu.aggromonsters);
+    JS_SetInt(doc, obj, "helperdogs", csmenu.helperdogs);
 
     return obj;
 }
 
 static void LoadCustomSkillOptionsJSON(json_t *root)
 {
-    csmenu.pistolstart = JS_GetIntegerValue(root, "pistolstart");
+    csmenu_skill = JS_GetIntegerValue(root, "skill");
+    csmenu.fastparm = JS_GetIntegerValue(root, "fastparm");
+    csmenu.respawnparm = JS_GetIntegerValue(root, "respawnparm");
+    csmenu.nomonsters = JS_GetIntegerValue(root, "nomonsters");
     csmenu.coopspawns = JS_GetIntegerValue(root, "coopspawns");
+    csmenu.pistolstart = JS_GetIntegerValue(root, "pistolstart");
     csmenu.halfplayerdamage = JS_GetIntegerValue(root, "halfplayerdamage");
     csmenu.doubleammo = JS_GetIntegerValue(root, "doubleammo");
     csmenu.aggromonsters = JS_GetIntegerValue(root, "aggromonsters");
+    csmenu.helperdogs = JS_GetIntegerValue(root, "helperdogs");
 
     G_UpdateCustomSkill(num_cskill);
 }
