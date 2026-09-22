@@ -36,6 +36,7 @@ const skill_info_t doom_skill_infos[5] = {
     .key = 'i',
     .name = "I'm too young to die.",
     .pic_name = "M_JKILL",
+    .helper_dogs = -1,
     .flags = SI_EASY_BOSS_BRAIN
   },
   {
@@ -43,6 +44,7 @@ const skill_info_t doom_skill_infos[5] = {
     .key = 'h',
     .name = "Hey, not too rough.",
     .pic_name = "M_ROUGH",
+    .helper_dogs = -1,
     .flags = SI_EASY_BOSS_BRAIN
   },
   {
@@ -50,6 +52,7 @@ const skill_info_t doom_skill_infos[5] = {
     .key = 'h',
     .name = "Hurt me plenty.",
     .pic_name = "M_HURT",
+    .helper_dogs = -1,
     .flags = 0
   },
   {
@@ -57,6 +60,7 @@ const skill_info_t doom_skill_infos[5] = {
     .key = 'u',
     .name = "Ultra-Violence.",
     .pic_name = "M_ULTRA",
+    .helper_dogs = -1,
     .flags = 0
   },
   {
@@ -66,6 +70,7 @@ const skill_info_t doom_skill_infos[5] = {
     .name = "Nightmare!",
     .pic_name = "M_NMARE",
     .respawn_time = 12,
+    .helper_dogs = -1,
     .flags = SI_FAST_MONSTERS | SI_INSTANT_REACTION | SI_MUST_CONFIRM
   },
 };
@@ -95,8 +100,8 @@ void G_UpdateCustomSkill(int custom_skill_num)
 
   skill_infos[custom_skill_num].spawn_filter = csmenu_skill + 1;
 
-  skill_infos[custom_skill_num].ammo_factor             = csmenu.doubleammo ? FRACUNIT * 2 : FRACUNIT;
-  skill_infos[custom_skill_num].damage_factor           = csmenu.halfplayerdamage ? FRACUNIT / 2: FRACUNIT;
+  skill_infos[custom_skill_num].ammo_factor = csmenu.doubleammo ? FRACUNIT * 2 : FRACUNIT;
+  skill_infos[custom_skill_num].damage_factor = csmenu.halfplayerdamage ? FRACUNIT / 2: FRACUNIT;
 
   if (csmenu.respawnparm) skill_infos[custom_skill_num].respawn_time = 12;
 
@@ -105,6 +110,8 @@ void G_UpdateCustomSkill(int custom_skill_num)
   if (csmenu.fastparm)       skill_infos[custom_skill_num].flags |= SI_FAST_MONSTERS;
   if (csmenu.aggromonsters)  skill_infos[custom_skill_num].flags |= SI_INSTANT_REACTION;
   if (csmenu.pistolstart)    skill_infos[custom_skill_num].flags |= SI_PISTOL_START;
+
+  skill_infos[custom_skill_num].helper_dogs = csmenu.helperdogs;
 
   G_UpdateGameSkill(custom_skill_num);
 }
