@@ -50,6 +50,7 @@ typedef struct {
   const char* name;
   const char* pic_name;
   int text_color;
+  int helper_dogs;
   skill_info_flags_t flags;
 } skill_info_t;
 

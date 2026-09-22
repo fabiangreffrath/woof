@@ -3925,7 +3925,6 @@ void G_ReloadDefaults(boolean keep_demover)
   halfplayerdamage = cshalfplayerdamage;
   doubleammo = csdoubleammo;
   aggromonsters = csaggromonsters;
-  dogs = cshelperdogs;
 
   demoplayback = false;
   singledemo = false;            // killough 9/29/98: don't stop after 1 demo
@@ -4196,6 +4195,9 @@ void G_InitNew(int skill, int episode, int map, boolean from_savegame)
   gamemap = map;
   G_UpdateGameSkill(skill);
   gamemapinfo = MI_MapEntry(gameepisode, gamemap);
+
+  if (skill_info.helper_dogs != -1)
+    dogs = skill_info.helper_dogs;
 
   // [FG] total time for all completed levels
   totalleveltimes = 0;
