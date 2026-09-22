@@ -748,7 +748,7 @@ static void cheat_skill(char *buf)
 {
   int skill = buf[0] - '0';
 
-  if (skill >= 1 && skill <= 5)
+  if (skill >= 1 && skill <= num_og_skills)
   {
     gameskill = skill - 1;
     displaymsg("Next Level Skill: %s", skill_strings[gameskill]);

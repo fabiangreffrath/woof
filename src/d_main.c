@@ -1874,6 +1874,8 @@ void D_DoomMain(void)
   LoadPWadBase();
   AutoloadPWadDir(AutoLoadWADs);
 
+  G_InitSkills();
+
   // get skill / episode / map from parms
 
   startskill = default_skill - 1;
@@ -1895,7 +1897,7 @@ void D_DoomMain(void)
    {
      startskill = M_ParmArgToInt(p);
      startskill--;
-     if (startskill >= -1 && startskill <= num_skills - 1)  // FIXME: magic numbers
+     if (startskill >= -1 && startskill < num_og_skills)
       {
         autostart = true;
       }
@@ -1916,7 +1918,7 @@ void D_DoomMain(void)
 
   if (M_ParmExists("-uv"))
   {
-    startskill = 3;  // FIXME: magic number
+    startskill = 3;
     autostart = true;
   }
 
@@ -1929,7 +1931,7 @@ void D_DoomMain(void)
 
   if (M_ParmExists("-nm"))
   {
-    startskill = 4;  // FIXME: magic number
+    startskill = 4;
     autostart = true;
   }
 
@@ -2233,8 +2235,6 @@ void D_DoomMain(void)
 
   I_Printf(VB_INFO, "R_Init: Init DOOM refresh daemon.");
   R_Init();
-
-  G_InitSkills();
 
   I_Printf(VB_INFO, "P_Init: Init Playloop state.");
   P_Init();
