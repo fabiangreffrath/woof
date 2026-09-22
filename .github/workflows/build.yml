@@ -230,7 +230,7 @@ jobs:
       - name: Test
         run: |
           cd demotest
-          python demotest --jobs 4 --port ../build/src/woof
+          python3 demotest --jobs 4 --port ../build/src/woof
 
       - name: Save demotest cache
         if: steps.cache-demotest.outputs.cache-hit != 'true'
