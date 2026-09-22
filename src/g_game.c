@@ -3401,7 +3401,11 @@ void G_Ticker(void)
   // P_Ticker() does not stop netgames if a menu is activated, so
   // we do not need to stop if a menu is pulled up during netgames.
 
-  if (paused & 2 || ((!demoplayback || menu_pause_demos) && menuactive && !netgame))
+  const boolean game_paused =
+      (paused & 2
+       || ((!demoplayback || menu_pause_demos) && menuactive && !netgame));
+
+  if (game_paused)
     {
       boom_basetic++;  // For revenant tracers and RNG -- we must maintain sync
       true_basetic++;
@@ -3529,8 +3533,7 @@ void G_Ticker(void)
     ST_Ticker();
     AM_Ticker();
   }
-  else if (paused & 2
-           || ((!demoplayback || menu_pause_demos) && menuactive && !netgame))
+  else if (game_paused)
   {
     // paused, nothing to do
   }
