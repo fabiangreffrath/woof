@@ -90,8 +90,6 @@ extern int savepage;
 extern const char *skill_strings[];
 extern const char *widescreen_strings[];
 
-void MN_SetQuickSaveSlot(int slot, int page);
-
 void M_SaveAutoSave(void);
 
 void MN_InitMenuStrings(void);
