@@ -2383,19 +2383,6 @@ void G_LoadGame(char *name, int slot, int page, boolean command)
 // killough 5/15/98:
 // Consistency Error when attempting to load savegame.
 
-static void G_LoadAutoSaveErr(const char *msg)
-{
-  Z_Free(savebuffer);
-  MN_ForcedLoadAutoSave(msg);
-
-  if (command_loadgame)
-  {
-    G_CheckDemoStatus();
-    D_StartTitle();
-    gamestate = GS_DEMOSCREEN;
-  }
-}
-
 static void G_LoadGameErr(const char *msg)
 {
   Z_Free(savebuffer);                // Free the savegame buffer
@@ -2799,14 +2786,7 @@ static boolean DoLoadGameJSON(boolean do_load_autosave, json_t *root)
             M_snprintf(msg + offset, str_len - offset, "%s", "\nAre you sure?");
             free(wadfile_names);
 
-            if (do_load_autosave)
-            {
-                G_LoadAutoSaveErr(msg);
-            }
-            else
-            {
-                G_LoadGameErr(msg);
-            }
+            G_LoadGameErr(msg);
             free(msg);
 
             return false;
@@ -2896,10 +2876,7 @@ static boolean DoLoadGameBinary(boolean do_load_autosave)
   if (!forced_loadgame && saveg_compat == saveg_indetermined)
     {
       const char *msg = "Different Savegame Version!!!\n\nAre you sure?";
-      if (do_load_autosave)
-        G_LoadAutoSaveErr(msg);
-      else
-        G_LoadGameErr(msg);
+      G_LoadGameErr(msg);
       return false;
     }
 
@@ -2932,10 +2909,7 @@ static boolean DoLoadGameBinary(boolean do_load_autosave)
 	 if (save_p[sizeof checksum])
 	   strcat(strcat(msg,"Wads expected:\n\n"), (char *) save_p);
 	 strcat(msg, "\nAre you sure?");
-	 if (do_load_autosave)
-	   G_LoadAutoSaveErr(msg);
-	 else
-	   G_LoadGameErr(msg);
+	 G_LoadGameErr(msg);
 	 free(msg);
 	 return false;
        }
