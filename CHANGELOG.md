@@ -34,3 +34,4 @@
 
 * Rearranged default HUD layouts: "Nightdive" and "Crispy" layouts swapped places
 * Renamed MacOS build from "`Woof-<version>-uni.zip`" to "`Woof-<version>-MacOS-universal.zip`"
+* Savegame description and snapshot are now saved outside the compressed keyframe to speed up populating the Load/Save Game menu pages
