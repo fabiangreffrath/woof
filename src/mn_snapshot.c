@@ -26,6 +26,7 @@
 #include "m_misc.h"
 #include "m_io.h"
 #include "r_main.h"
+#include "st_stuff.h"
 #include "v_video.h"
 
 #include "base64/base64.h"
@@ -38,6 +39,11 @@ static pixel_t *snapshots[10];
 static pixel_t *current_snapshot;
 static char savegametimes[10][32];
 
+const int MN_SnapshotDataSize(void)
+{
+    return snapshot_len + snapshot_size;
+}
+
 void MN_ResetSnapshot(int i)
 {
     if (snapshots[i])
@@ -49,20 +55,19 @@ void MN_ResetSnapshot(int i)
 
 // [FG] try to read snapshot data from the end of a savegame file
 
-boolean MN_ReadSnapshot(int i, const byte *buf, int len)
+boolean MN_ReadSnapshot(int i, const byte *buf, int len, boolean decode)
 {
     MN_ResetSnapshot(i);
 
-    if (buf == NULL)
+    if (buf == NULL || len <= 0)
     {
         return false;
     }
 
     // Check if base64-encoded or legacy
-    if (len == 0)
+    if (decode)
     {
         byte *str;
-        len = strlen((char *)buf);
 
         if ((snapshots[i] = malloc(snapshot_size * sizeof(**snapshots))) == NULL)
         {
@@ -153,7 +158,8 @@ static void TakeSnapshot(void)
 {
     int old_screenblocks = screenblocks;
 
-    R_SetViewSize(11);
+    screenblocks = ST_FullscreenStatusbar();
+    R_SetViewSize(screenblocks);
     R_ExecuteSetViewSize();
     R_RenderPlayerView(&players[displayplayer]);
 
@@ -179,14 +185,25 @@ static void TakeSnapshot(void)
         p++;
     }
 
-    R_SetViewSize(old_screenblocks);
+    R_SetViewSize(screenblocks = old_screenblocks);
 }
 
-char *MN_WriteSnapshot(void)
+char *MN_WriteSnapshot(byte *p)
 {
     TakeSnapshot();
 
-    return (char*)base64_encode(current_snapshot, snapshot_size, NULL);
+    // encode
+    if (p == NULL)
+    {
+         return (char*)base64_encode(current_snapshot, snapshot_size, NULL);
+    }
+
+    memcpy(p, snapshot_str, snapshot_len);
+    p += snapshot_len;
+
+    memcpy(p, current_snapshot, snapshot_size);
+
+    return NULL;
 }
 
 // [FG] draw snapshot for the n'th savegame, if no snapshot is found
