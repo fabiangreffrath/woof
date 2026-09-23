@@ -2232,9 +2232,9 @@ boolean ST_Responder(event_t *ev)
     if (M_InputActivated(input_map_mini))
     {
         minimap = !minimap;
-        return true;
     }
-    else if (ST_MessagesResponder(ev))
+
+    if (ST_MessagesResponder(ev))
     {
         return true;
     }

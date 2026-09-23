@@ -30,8 +30,11 @@
   * This affected only SBARDEF 1.0.0 HUDs, such as the ones included with D+D2 (id24res.wad/extras.wad)
 * Fixed minimap overlapping chat in Legacy of Rust
 * Fixed changing Load/Save menu pages with the mouse on wide displays
+* Fixed minimap key binding block cheat codes and chat messages
+* Fixed demo desync by menu-pausing during the intermission screen
 
 ## Miscellaneous
 
 * Rearranged default HUD layouts: "Nightdive" and "Crispy" layouts swapped places
 * Renamed MacOS build from "`Woof-<version>-uni.zip`" to "`Woof-<version>-MacOS-universal.zip`"
+* Savegame description and snapshot are now saved outside the compressed keyframe to speed up populating the Load/Save Game menu pages
