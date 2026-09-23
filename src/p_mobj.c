@@ -121,8 +121,7 @@ boolean P_SetMobjState(mobj_t *mobj, statenum_t state)
 
         if (st->action)
         {
-            actionargs_t mobj_args = {.actor = mobj};
-            st->action(&mobj_args);
+            st->action(mobj, NULL);
         }
 
         seenstate[state] = 1 + st->nextstate; // killough 4/9/98
