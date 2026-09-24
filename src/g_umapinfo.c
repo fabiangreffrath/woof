@@ -1093,26 +1093,11 @@ boolean MI_BossAction(mobj_t *mo)
     // UMAPINFO
     if (gamemapinfo && gamemapinfo->flags & MI_BossActionClear)
     {
-        return true;
+        return false;
     }
 
     if (gamemapinfo && array_size(gamemapinfo->bossactions))
     {
-        // make sure there is a player alive for victory
-        int i;
-        for (i = 0; i < MAXPLAYERS; i++)
-        {
-            if (playeringame[i] && players[i].health > 0)
-            {
-                break;
-            }
-        }
-
-        if (i == MAXPLAYERS)
-        {
-            return true; // no one left alive, so do not end game
-        }
-
         MI_BossAction_t *bossaction;
         array_foreach(bossaction, gamemapinfo->bossactions)
         {
@@ -1124,12 +1109,12 @@ boolean MI_BossAction(mobj_t *mo)
 
         if (bossaction == array_end(gamemapinfo->bossactions))
         {
-            return true; // no matches found
+            return false; // no matches found
         }
 
         if (!CheckBossDeath(mo))
         {
-            return true; // other boss not dead
+            return false; // other boss not dead
         }
 
         array_foreach(bossaction, gamemapinfo->bossactions)
@@ -1147,7 +1132,7 @@ boolean MI_BossAction(mobj_t *mo)
                 }
             }
         }
-        return true;
+        return false;
     }
 
     // Legacy
@@ -1155,12 +1140,12 @@ boolean MI_BossAction(mobj_t *mo)
     {
         if (gamemap != 7)
         {
-            return true;
+            return false;
         }
 
         if (!(mo->flags2 & (MF2_MAP07BOSS1 | MF2_MAP07BOSS2)))
         {
-            return true;
+            return false;
         }
     }
     else
@@ -1170,12 +1155,12 @@ boolean MI_BossAction(mobj_t *mo)
         {
             if (gamemap != 8)
             {
-                return true;
+                return false;
             }
 
             if (mo->flags2 & MF2_E1M8BOSS && gameepisode != 1)
             {
-                return true;
+                return false;
             }
         }
         else
@@ -1185,36 +1170,36 @@ boolean MI_BossAction(mobj_t *mo)
                 case 1:
                     if (gamemap != 8)
                     {
-                        return true;
+                        return false;
                     }
 
                     if (!(mo->flags2 & MF2_E1M8BOSS))
                     {
-                        return true;
+                        return false;
                     }
                     break;
 
                 case 2:
                     if (gamemap != 8)
                     {
-                        return true;
+                        return false;
                     }
 
                     if (!(mo->flags2 & MF2_E2M8BOSS))
                     {
-                        return true;
+                        return false;
                     }
                     break;
 
                 case 3:
                     if (gamemap != 8)
                     {
-                        return true;
+                        return false;
                     }
 
                     if (!(mo->flags2 & MF2_E3M8BOSS))
                     {
-                        return true;
+                        return false;
                     }
 
                     break;
@@ -1225,19 +1210,19 @@ boolean MI_BossAction(mobj_t *mo)
                         case 6:
                             if (!(mo->flags2 & MF2_E4M6BOSS))
                             {
-                                return true;
+                                return false;
                             }
                             break;
 
                         case 8:
                             if (!(mo->flags2 & MF2_E4M8BOSS))
                             {
-                                return true;
+                                return false;
                             }
                             break;
 
                         default:
-                            return true;
+                            return false;
                             break;
                     }
                     break;
@@ -1245,7 +1230,7 @@ boolean MI_BossAction(mobj_t *mo)
                 default:
                     if (gamemap != 8)
                     {
-                        return true;
+                        return false;
                     }
                     break;
             }
@@ -1254,7 +1239,7 @@ boolean MI_BossAction(mobj_t *mo)
 
     if (!CheckBossDeath(mo))
     {
-        return true; // other boss not dead
+        return false; // other boss not dead
     }
 
     // victory!
@@ -1266,14 +1251,14 @@ boolean MI_BossAction(mobj_t *mo)
             {
                 junk.args[0] = 666;
                 EV_DoFloor(&junk, lowerFloorToLowest);
-                return true;
+                return false;
             }
 
             if (mo->flags2 & MF2_MAP07BOSS2)
             {
                 junk.args[0] = 667;
                 EV_DoFloor(&junk, raiseToTexture);
-                return true;
+                return false;
             }
         }
     }
@@ -1284,7 +1269,7 @@ boolean MI_BossAction(mobj_t *mo)
             case 1:
                 junk.args[0] = 666;
                 EV_DoFloor(&junk, lowerFloorToLowest);
-                return true;
+                return false;
 
             case 4:
                 switch (gamemap)
@@ -1292,17 +1277,18 @@ boolean MI_BossAction(mobj_t *mo)
                     case 6:
                         junk.args[0] = 666;
                         EV_DoDoor(&junk, blazeOpen);
-                        return true;
+                        return false;
 
                     case 8:
                         junk.args[0] = 666;
                         EV_DoFloor(&junk, lowerFloorToLowest);
-                        return true;
+                        return false;
                 }
         }
     }
 
-    return false;
+    // Exit the level
+    return true;
 }
 
 void MI_SpecHits(line_t *dummy, int *speciallines, boolean *trigger_keen)

@@ -2297,10 +2297,10 @@ void A_BossDeath(mobj_t *mo)
 {
   if (MI_BossAction(mo))
   {
-      return;
+      G_ExitLevel();
   }
 
-  G_ExitLevel();
+  return;
 }
 
 void A_Hoof (mobj_t* mo)
