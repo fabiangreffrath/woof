@@ -92,7 +92,7 @@ extern const char *widescreen_strings[];
 
 void M_ResetAutoSave(void);
 
-void MN_SetQuickSaveSlot(int slot);
+void MN_SetQuickSaveSlot(int slot, int page);
 
 void M_SaveAutoSave(void);
 

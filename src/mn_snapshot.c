@@ -26,6 +26,7 @@
 #include "m_misc.h"
 #include "m_io.h"
 #include "r_main.h"
+#include "st_stuff.h"
 #include "v_video.h"
 
 #include "base64/base64.h"
@@ -38,6 +39,11 @@ static pixel_t *snapshots[10];
 static pixel_t *current_snapshot;
 static char savegametimes[10][32];
 
+const int MN_SnapshotDataSize(void)
+{
+    return snapshot_len + snapshot_size;
+}
+
 void MN_ResetSnapshot(int i)
 {
     if (snapshots[i])
@@ -49,20 +55,19 @@ void MN_ResetSnapshot(int i)
 
 // [FG] try to read snapshot data from the end of a savegame file
 
-boolean MN_ReadSnapshot(int i, const byte *buf, int len)
+boolean MN_ReadSnapshot(int i, const byte *buf, int len, boolean decode)
 {
     MN_ResetSnapshot(i);
 
-    if (buf == NULL)
+    if (buf == NULL || len <= 0)
     {
         return false;
     }
 
     // Check if base64-encoded or legacy
-    if (len == 0)
+    if (decode)
     {
         byte *str;
-        len = strlen((char *)buf);
 
         if ((snapshots[i] = malloc(snapshot_size * sizeof(**snapshots))) == NULL)
         {
@@ -153,7 +158,8 @@ static void TakeSnapshot(void)
 {
     int old_screenblocks = screenblocks;
 
-    R_SetViewSize(11);
+    screenblocks = ST_FullscreenStatusbar();
+    R_SetViewSize(screenblocks);
     R_ExecuteSetViewSize();
     R_RenderPlayerView(&players[displayplayer]);
 
@@ -164,24 +170,40 @@ static void TakeSnapshot(void)
 
     pixel_t *p = current_snapshot;
     const pixel_t *s = I_VideoBuffer;
-    int x, y;
-    for (y = 0; y < SCREENHEIGHT; y++)
+
+    for (int x = video.deltaw; x < NONWIDEWIDTH + video.deltaw; x++)
     {
-        int line = V_ScaleY(y) * video.width;
-        for (x = video.deltaw; x < NONWIDEWIDTH + video.deltaw; x++)
+        const int line = V_ScaleX(x) * video.height;
+        pixel_t *p2 = p;
+
+        for (int y = 0; y < SCREENHEIGHT; y++)
         {
-            *p++ = s[line + V_ScaleX(x)];
+            *p2 = s[line + V_ScaleY(y)];
+            p2 += SCREENWIDTH;
         }
+
+        p++;
     }
 
-    R_SetViewSize(old_screenblocks);
+    R_SetViewSize(screenblocks = old_screenblocks);
 }
 
-char *MN_WriteSnapshot(void)
+char *MN_WriteSnapshot(byte *p)
 {
     TakeSnapshot();
 
-    return (char*)base64_encode(current_snapshot, snapshot_size, NULL);
+    // encode
+    if (p == NULL)
+    {
+         return (char*)base64_encode(current_snapshot, snapshot_size, NULL);
+    }
+
+    memcpy(p, snapshot_str, snapshot_len);
+    p += snapshot_len;
+
+    memcpy(p, current_snapshot, snapshot_size);
+
+    return NULL;
 }
 
 // [FG] draw snapshot for the n'th savegame, if no snapshot is found
@@ -207,20 +229,20 @@ boolean MN_DrawSnapshot(int n, int x, int y, int w, int h)
     const fixed_t step_x = (SCREENWIDTH << FRACBITS) / rect.sw;
     const fixed_t step_y = (SCREENHEIGHT << FRACBITS) / rect.sh;
 
-    pixel_t *dest = I_VideoBuffer + rect.sy * video.width + rect.sx;
+    pixel_t *dest = I_VideoBuffer + (rect.sx * video.height) + rect.sy;
 
     fixed_t srcx, srcy;
     int destx, desty;
-    pixel_t *destline, *srcline;
+    pixel_t *destcol, *srcline;
 
-    for (desty = 0, srcy = 0; desty < rect.sh; desty++, srcy += step_y)
+    for (destx = 0, srcx = 0; destx < rect.sw; destx++, srcx += step_x)
     {
-        destline = dest + desty * video.width;
-        srcline = snapshots[n] + (srcy >> FRACBITS) * SCREENWIDTH;
+        destcol = dest + (destx * video.height);
+        srcline = snapshots[n] + (srcx >> FRACBITS);
 
-        for (destx = 0, srcx = 0; destx < rect.sw; destx++, srcx += step_x)
+        for (desty = 0, srcy = 0; desty < rect.sh; desty++, srcy += step_y)
         {
-            *destline++ = srcline[srcx >> FRACBITS];
+            *destcol++ = srcline[(srcy >> FRACBITS) * SCREENWIDTH];
         }
     }
 

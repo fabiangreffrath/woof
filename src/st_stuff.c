@@ -54,6 +54,7 @@
 #include "r_defs.h"
 #include "r_draw.h"
 #include "r_main.h"
+#include "r_srgb.h"
 #include "r_state.h"
 #include "s_sound.h"
 #include "st_carousel.h"
@@ -1155,7 +1156,7 @@ static void UpdateBoomColors(sbarelem_t *elem, player_t *player)
 
     boolean invul = ST_PlayerInvulnerable(player);
 
-    crange_idx_e cr;
+    xlat_index_t cr;
 
     switch (number->type)
     {
@@ -1346,7 +1347,7 @@ static void UpdateElem(sbarelem_t *elem, player_t *player)
     }
 }
 
-static void UpdateStatusBar(player_t *player)
+void ST_UpdateStatusBar(void)
 {
     static int oldbarindex = -1;
 
@@ -1366,17 +1367,10 @@ static void UpdateStatusBar(player_t *player)
     {
         st_time_elem = NULL;
         st_cmd_elem = NULL;
-        st_msg_elem = NULL;
         oldbarindex = barindex;
     }
 
     statusbar = &sbardef->statusbars[barindex];
-
-    sbarelem_t *child;
-    array_foreach(child, statusbar->children)
-    {
-        UpdateElem(child, player);
-    }
 }
 
 static void ResetElem(sbarelem_t *elem, player_t *player)
@@ -1499,7 +1493,7 @@ static int AdjustY(int y, int height, sbaralignment_t alignment)
 
 static void DrawPatch(int x1, int y1, int *x2, int *y2, boolean dry,
                       crop_t crop, int maxheight, sbaralignment_t alignment,
-                      patch_t *patch, crange_idx_e cr, const byte *tl)
+                      patch_t *patch, xlat_index_t cr, const byte *tl)
 {
     if (!patch)
     {
@@ -1558,7 +1552,7 @@ static void DrawPatch(int x1, int y1, int *x2, int *y2, boolean dry,
         return;
     }
 
-    byte *outr = colrngs[cr];
+    byte *outr = xlat[cr].table;
 
     V_DrawPatchGeneral(x1, y1, xoffset, yoffset, tl, outr, patch, crop);
 }
@@ -1686,7 +1680,7 @@ static void DrawNumber(int x1, int y1, int *x2, int *y2, boolean dry,
 
     if (elem->type == sbe_percent && font->percent != NULL)
     {
-        crange_idx_e oldcr = elem->crboom;
+        xlat_index_t oldcr = elem->crboom;
         if (sts_pct_always_gray)
         {
             elem->crboom = CR_GRAY;
@@ -1903,10 +1897,6 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
                 st_cmd_x = x1;
                 st_cmd_y = y1;
             }
-            if (message_centered && elem == st_msg_elem)
-            {
-                break;
-            }
             DrawWidget(x1, y1, x2, y2, dry, elem);
             break;
 
@@ -2106,17 +2096,18 @@ static void DrawSolidBackground(void)
         unsigned r = 0, g = 0, b = 0;
         byte col;
 
-        for (y = v0; y < v1; y++)
+        for (x = 0; x < depth; x++)
         {
-            int line = V_ScaleY(y) * video.width;
-            for (x = 0; x < depth; x++)
+            const int line = V_ScaleX(x) * V_ScaleY(st_height);
+
+            for (y = v0; y < v1; y++)
             {
-                pixel_t *c = st_backing_screen + line + V_ScaleX(x);
+                pixel_t *c = st_backing_screen + line + V_ScaleY(y);
                 r += pal[3 * c[0] + 0];
                 g += pal[3 * c[0] + 1];
                 b += pal[3 * c[0] + 2];
 
-                c += V_ScaleX(width - 2 * x - 1);
+                c += V_ScaleX(width - 2 * x - 1) * V_ScaleY(st_height);
                 r += pal[3 * c[0] + 0];
                 g += pal[3 * c[0] + 1];
                 b += pal[3 * c[0] + 2];
@@ -2128,7 +2119,11 @@ static void DrawSolidBackground(void)
         b /= 2 * depth * (v1 - v0);
 
         // [FG] tune down to half saturation (for empiric reasons)
-        col = I_GetNearestColor(pal, r / 2, g / 2, b / 2);
+        r = sRGB_LinearToByte(sRGB_ByteToLinear(r) / 2.0);
+        g = sRGB_LinearToByte(sRGB_ByteToLinear(g) / 2.0);
+        b = sRGB_LinearToByte(sRGB_ByteToLinear(b) / 2.0);
+
+        col = I_GetNearestColor(pal, r, g, b);
 
         V_FillRect(0, v0, video.unscaledw, v1 - v0, col);
     }
@@ -2142,7 +2137,7 @@ static void DrawBackground(const char *name)
     {
         ST_InitRes();
 
-        V_UseBuffer(st_backing_screen, video.width);
+        V_UseBuffer(st_backing_screen, V_ScaleY(st_height));
 
         if (st_solidbackground && st_height > 3)
         {
@@ -2178,15 +2173,7 @@ static void DrawBackground(const char *name)
         st_refresh_background = false;
     }
 
-    V_CopyRect(0, 0, st_backing_screen, video.unscaledw, st_height, 0, ST_Y);
-}
-
-static void DrawCenteredMessage(void)
-{
-    if (message_centered && st_msg_elem)
-    {
-        DrawWidget(SCREENWIDTH / 2, 0, NULL, NULL, false, st_msg_elem);
-    }
+    V_CopyRect(0, 0, st_backing_screen, video.unscaledw, st_height, V_ScaleY(st_height), 0, ST_Y);
 }
 
 void ST_SetSTHeight(void)
@@ -2194,6 +2181,10 @@ void ST_SetSTHeight(void)
     if (statusbar && !statusbar->fullscreenrender)
     {
         st_height = CLAMP(statusbar->height, 0, SCREENHEIGHT) & ~1;
+    }
+    else if (screenblocks == 10)
+    {
+        st_height = st_height_screenblocks10;
     }
     else
     {
@@ -2205,7 +2196,7 @@ static void DrawStatusBar(void)
 {
     ST_SetSTHeight();
 
-    if (st_height && (screenblocks <= 10 || automap_on))
+    if (st_height && (screenblocks < 10 || !statusbar->fullscreenrender || automap_on))
     {
         DrawBackground(statusbar->fillflat);
     }
@@ -2216,13 +2207,11 @@ static void DrawStatusBar(void)
     {
         DrawElem(0, y1, NULL, NULL, false, child, false);
     }
-
-    DrawCenteredMessage();
 }
 
 void ST_Erase(void)
 {
-    if (!sbardef || screenblocks >= 10)
+    if (!sbardef || (screenblocks >= 10 && statusbar->fullscreenrender))
     {
         return;
     }
@@ -2237,9 +2226,9 @@ boolean ST_Responder(event_t *ev)
     if (M_InputActivated(input_map_mini))
     {
         minimap = !minimap;
-        return true;
     }
-    else if (ST_MessagesResponder(ev))
+
+    if (ST_MessagesResponder(ev))
     {
         return true;
     }
@@ -2354,7 +2343,13 @@ void ST_Ticker(void)
 
     player_t *player = &players[displayplayer];
 
-    UpdateStatusBar(player);
+    ST_UpdateStatusBar();
+
+    sbarelem_t *child;
+    array_foreach(child, statusbar->children)
+    {
+        UpdateElem(child, player);
+    }
 
     if (hud_crosshair)
     {
@@ -2475,6 +2470,22 @@ const char **ST_StatusbarList(void)
         }
     }
     return strings;
+}
+
+int ST_FullscreenStatusbar(void)
+{
+    if (sbardef)
+    {
+        for (int i = 0; i < array_size(sbardef->statusbars); ++i)
+        {
+            if (sbardef->statusbars[i].fullscreenrender)
+            {
+                return 10 + i;
+            }
+        }
+    }
+
+    return screenblocks; // default to current view
 }
 
 void ST_ResetPalette(void)

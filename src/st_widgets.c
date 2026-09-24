@@ -1010,10 +1010,10 @@ boolean ST_DemoProgressBar(boolean force)
     return true;
 }
 
-static void ColorizeString(const char *haystack, const char *needle, crange_idx_e cr)
+static void ColorizeString(const char *haystack, const char *needle, xlat_index_t cr)
 {
     char replacement[18];
-    M_snprintf(replacement, sizeof(replacement), "%s%s%s", crdefs[cr].str, needle, ORIG_S);
+    M_snprintf(replacement, sizeof(replacement), "%s%s%s", xlat[cr].str, needle, ORIG_S);
     char * colorized = M_StringReplaceWord(DEH_String(haystack), needle, replacement);
     DEH_AddStringColorizedReplacement(haystack, colorized);
     free(colorized);
@@ -1064,18 +1064,19 @@ void ST_InitWidgets(void)
 sbarelem_t *st_time_elem = NULL, *st_cmd_elem = NULL;
 
 boolean message_centered;
-sbarelem_t *st_msg_elem = NULL;
 
 static void ForceCenterMessage(sbarelem_t *elem)
 {
-    static sbaralignment_t default_alignment;
-    if (!st_msg_elem)
+    if (message_centered)
     {
-        default_alignment = elem->orig_alignment;
-        st_msg_elem = elem;
+        elem->x_pos = SCREENWIDTH / 2;
+        elem->alignment = sbe_h_middle;
     }
-
-    elem->alignment = message_centered ? sbe_h_middle : default_alignment;
+    else
+    {
+        elem->x_pos = elem->orig_x_pos;
+        elem->alignment = elem->orig_alignment;
+    }
 }
 
 void ST_UpdateWidget(sbarelem_t *elem, player_t *player)

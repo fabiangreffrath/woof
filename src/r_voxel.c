@@ -75,31 +75,6 @@ enum VoxelFace
 };
 
 
-static int VX_PaletteIndex (byte * pal, int r, int g, int b)
-{
-	int best = 0;
-	int best_dist = (1 << 30);
-
-	int i;
-	for (i = 0 ; i < 256 ; i++)
-	{
-		int dr = r - (int)*pal++;
-		int dg = g - (int)*pal++;
-		int db = b - (int)*pal++;
-
-		int dist = dr * dr + dg * dg + db * db;
-
-		if (dist < best_dist)
-		{
-			best = i;
-			best_dist = dist;
-		}
-	}
-
-	return best;
-}
-
-
 static void VX_CreateRemapTable (byte * p, byte * table)
 {
 	byte * pal = W_CacheLumpName ("PLAYPAL", PU_CACHE);
@@ -111,7 +86,7 @@ static void VX_CreateRemapTable (byte * p, byte * table)
 		int g = (int)*p++ << 2;
 		int b = (int)*p++ << 2;
 
-		table[c] = VX_PaletteIndex (pal, r, g, b);
+		table[c] = I_GetNearestColor (pal, r, g, b);
 	}
 }
 
@@ -839,8 +814,8 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 
 	boolean shadow = ((spr->mobjflags & MF_SHADOW) != 0);
 
-	int linesize = video.width;
-	pixel_t * dest = I_VideoBuffer + viewwindowy * linesize + viewwindowx;
+	int linesize = video.height;
+	pixel_t * dest = I_VideoBuffer + (viewwindowx * linesize) + viewwindowy;
 
 	// iterate over screen columns
 	fixed_t ux = ((Ax - 1) | FRACMASK) + 1;
@@ -936,7 +911,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 
 				for (; uy < uy1 ; uy += FRACUNIT)
 				{
-					dest[(uy >> FRACBITS) * linesize + (ux >> FRACBITS)] = pix;
+					dest[(ux >> FRACBITS) * linesize + (uy >> FRACBITS)] = pix;
 				}
 			}
 			else if (has_bottom)
@@ -951,7 +926,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 
 				for (; uy > uy2 ; uy -= FRACUNIT)
 				{
-					dest[(uy >> FRACBITS) * linesize + (ux >> FRACBITS)] = pix;
+					dest[(ux >> FRACBITS) * linesize + (uy >> FRACBITS)] = pix;
 				}
 			}
 
@@ -969,7 +944,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 					byte src = slab[i];
 					byte pix = spr->colormap[spr->brightmap[src]][src];
 
-					dest[(uy >> FRACBITS) * linesize + (ux >> FRACBITS)] = pix;
+					dest[(ux >> FRACBITS) * linesize + (uy >> FRACBITS)] = pix;
 				}
 			}
 		}
@@ -1059,7 +1034,7 @@ void VX_DrawVoxel (vissprite_t * spr)
 	if ((spr->mobjflags_extra & MFX_COLOREDBLOOD) && (spr->colormap[0] != NULL))
 	{
 		static const byte * prev_trans = NULL, * prev_map = NULL;
-		const byte * trans = red2col[spr->color], * map = spr->colormap[0];
+		const byte * trans = xlat[spr->color].lump, * map = spr->colormap[0];
 
 		static byte new_colormap[256];
 

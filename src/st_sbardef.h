@@ -323,7 +323,7 @@ typedef struct
 struct sbarelem_s
 {
     sbarelementtype_t type;
-    int x_pos;
+    int x_pos, orig_x_pos;
     int y_pos;
     sbaralignment_t alignment, orig_alignment;
     sbarcondition_t *conditions;
@@ -334,8 +334,8 @@ struct sbarelem_s
     int height;
 
     const byte *tranmap;
-    crange_idx_e cr;
-    crange_idx_e crboom;
+    xlat_index_t cr;
+    xlat_index_t crboom;
 
     union
     {

@@ -54,7 +54,6 @@ static int fade_tick;
 
 static int wipe_init(int width, int height, int ticks)
 {
-    V_PutBlock(0, 0, width, height, wipe_scr_start);
     fade_tick = 0;
     return 0;
 }
@@ -66,22 +65,22 @@ static int wipe_doCrossfade(int width, int height, int ticks)
         return 0;
     }
 
-    for (int y = 0; y < height; y++)
+    for (int x = 0; x < width; x++)
     {
-        pixel_t *sta = wipe_scr_start + y * width;
-        pixel_t *end = wipe_scr_end + y * width;
-        pixel_t *dst = wipe_scr + y * video.width;
+        pixel_t *sta = wipe_scr_start + (x * height);
+        pixel_t *end = wipe_scr_end + (x * height);
+        pixel_t *dst = wipe_scr + (x * height);
 
-        for (int x = 0; x < width; x++)
+        for (int y = 0; y < height; y++)
         {
             unsigned int *fg2rgb = Col2RGB8[fade_tick];
             unsigned int *bg2rgb = Col2RGB8[64 - fade_tick];
             unsigned int fg, bg;
 
-            fg = fg2rgb[end[x]];
-            bg = bg2rgb[sta[x]];
+            fg = fg2rgb[end[y]];
+            bg = bg2rgb[sta[y]];
             fg = (fg + bg) | 0x1f07c1f;
-            dst[x] = RGB32k[0][0][fg & (fg >> 15)];
+            dst[y] = RGB32k[0][0][fg & (fg >> 15)];
         }
     }
 
@@ -109,9 +108,6 @@ static int wipe_initMelt(int width, int height, int ticks)
 
     curry = ybuff1;
     prevy = ybuff2;
-
-    // copy start screen to main screen
-    V_PutBlock(0, 0, width, height, wipe_scr_start);
 
     // setup initial column positions (y<0 => not ready to scroll yet)
     curry[0] = -(M_Random() % 16);
@@ -189,7 +185,7 @@ static int wipe_renderMelt(int width, int height, int ticks)
     int currcolend;
     int currrow;
 
-    V_UseBuffer(wipe_scr, width);
+    V_UseBuffer(wipe_scr, height);
     V_PutBlock(0, 0, width, height, wipe_scr_end);
     V_RestoreBuffer();
 
@@ -212,15 +208,10 @@ static int wipe_renderMelt(int width, int height, int ticks)
             currcolend = (col + 1) * horizblocksize / 100;
             for (; currcol < currcolend; ++currcol)
             {
-                pixel_t *source = wipe_scr_start + currcol;
-                pixel_t *dest = wipe_scr + currcol;
+                pixel_t *source = wipe_scr_start + (currcol * height);
+                pixel_t *dest = wipe_scr + (currcol * height);
 
-                for (int i = 0; i < height; ++i)
-                {
-                    *dest = *source;
-                    dest += width;
-                    source += width;
-                }
+                memcpy(dest, source, height);
             }
         }
         else if (current < WIPE_ROWS)
@@ -232,15 +223,10 @@ static int wipe_renderMelt(int width, int height, int ticks)
 
             for (; currcol < currcolend; ++currcol)
             {
-                pixel_t *source = wipe_scr_start + currcol;
-                pixel_t *dest = wipe_scr + currcol + (currrow * video.width);
+                pixel_t *source = wipe_scr_start + (currcol * height);
+                pixel_t *dest = wipe_scr + (currcol * height) + currrow;
 
-                for (int i = 0; i < height - currrow; ++i)
-                {
-                    *dest = *source;
-                    dest += width;
-                    source += width;
-                }
+                memcpy(dest, source, height - currrow);
             }
 
             done = false;
@@ -249,13 +235,9 @@ static int wipe_renderMelt(int width, int height, int ticks)
 
     for (currcol = wipe_columns * horizblocksize / 100; currcol < width; ++currcol)
     {
-        pixel_t *dest = wipe_scr + currcol;
+        pixel_t *dest = wipe_scr + (currcol * height);
 
-        for (int i = 0; i < height; ++i)
-        {
-            *dest = v_darkest_color;
-            dest += width;
-        }
+        memset(dest, v_darkest_color, height);
     }
 
     return done;
@@ -282,7 +264,6 @@ int wipe_EndScreen(int x, int y, int width, int height)
     int size = width * height;
     wipe_scr_end = Z_Malloc(size * sizeof(*wipe_scr_end), PU_STATIC, NULL);
     I_ReadScreen(wipe_scr_end);
-    V_DrawBlock(x, y, width, height, wipe_scr_start); // restore start scr.
     return 0;
 }
 
@@ -400,14 +381,14 @@ static int wipe_doFizzle(int width, int height, int ticks)
         vrect_t rect = {x, y, 1, 1};
         V_ScaleRect(&rect);
 
-        pixel_t *src = wipe_scr_end + rect.sy * width + rect.sx;
-        pixel_t *dest = wipe_scr + rect.sy * width + rect.sx;
+        pixel_t *src = wipe_scr_end + rect.sx * height + rect.sy;
+        pixel_t *dest = wipe_scr + rect.sx * height + rect.sy;
 
-        while (rect.sh--)
+        while (rect.sw--)
         {
-            memcpy(dest, src, rect.sw);
-            src += width;
-            dest += width;
+            memcpy(dest, src, rect.sh);
+            src += height;
+            dest += height;
         }
 
         if (rndval == 0) // entire sequence has been completed
