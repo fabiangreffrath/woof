@@ -807,7 +807,7 @@ static void M_DrawBorderedSnapshot(int slot)
 
     const char *txt = (!draw_shot) ? "N/A"
                       : (savepage == QUICKSAVEPAGE)
-                          ? (slot == AUTOSAVESLOT) ? "Auto" : "Quick"
+                          ? (slot == AUTOSAVESLOT) ? "Auto Save" : "Quick Save"
                           : NULL;
 
     if (txt)
