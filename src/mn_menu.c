@@ -1027,11 +1027,15 @@ static void SetLoadSlotStatus(int slot, int status)
 
 static void EmptySaveString(char *name, int slot)
 {
-    const char *str =
-        (savepage == QUICKSAVEPAGE)
-            ? (slot == AUTOSAVESLOT) ? "Empty Auto Save" : "Empty Quick Save"
-            : DEH_String(EMPTYSTRING);
-    M_snprintf(name, SAVESTRINGSIZE, "%s", str);
+    if (savepage == QUICKSAVEPAGE)
+    {
+        M_snprintf(name, SAVESTRINGSIZE, "%s %s", DEH_String(EMPTYSTRING),
+                   (slot == AUTOSAVESLOT) ? "(Auto)" : "(Quick)");
+    }
+    else
+    {
+        M_snprintf(name, SAVESTRINGSIZE, "%s", DEH_String(EMPTYSTRING));
+    }
 }
 
 // Parses the already-resolved save file `name` and stores description and
