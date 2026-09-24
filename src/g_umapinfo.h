@@ -36,13 +36,12 @@ typedef enum MI_Finale_e
 
 typedef enum
 {
-    MI_LabelClear = (1u << 0),
-
-    MI_NoIntermission = (1u << 1),
-    MI_InterTextClear = (1u << 2),
+    MI_None,
+    MI_LabelClear           = (1u << 0),
+    MI_NoIntermission       = (1u << 1),
+    MI_InterTextClear       = (1u << 2),
     MI_InterTextSecretClear = (1u << 3),
-
-    MI_BossActionClear = (1u << 4),
+    MI_BossActionClear      = (1u << 4),
 } MI_flags_t;
 
 typedef struct
@@ -89,19 +88,22 @@ extern boolean EpiCustom;
 
 typedef enum MI_ShowNext_e
 {
-    WI_ShowNextLoc = (1u << 0),
-    WI_ShowNextDone = (1u << 1),
+    WI_ShowNextNone,
+    WI_ShowNextLoc      = (1u << 0),
+    WI_ShowNextDone     = (1u << 1),
     WI_ShowNextEpisodal = (1u << 2),
 } MI_ShowNext_t;
 
 typedef enum MI_Completion_e
 {
+    DC_None,
     DC_Victory = (1u << 0),
 } MI_Completion_t;
 
 typedef enum MI_WinDisplay_e
 {
-    WD_Victory = (1u << 0),
+    WD_None,
+    WD_Victory     = (1u << 0),
     WD_StartFinale = (1u << 1),
 } MI_WinDisplay_t;
 
