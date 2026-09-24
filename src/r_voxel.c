@@ -546,7 +546,7 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 	switch (VX_RotateModeForThing (thing))
 	{
 		case 1:
-			angle = viewangle + ANG180;
+			angle = viewangle + (int) (R_PointToAngle(gx, gy) - viewangle) / 3 + ANG180;
 			break;
 
 		case 2:
