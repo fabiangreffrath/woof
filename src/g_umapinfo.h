@@ -112,7 +112,7 @@ void MI_ParseUniversalMapInfo(int lumpnum);
 
 // Slot handling
 MI_Entry_t *MI_MapEntry(int episode, int map);
-boolean MI_MapName(const char *mapname, int *episode, int *map);
+boolean MI_LumpName(const char *mapname, int *episode, int *map);
 boolean MI_IsSecretMap(int episode, int map);
 void MI_NextMap(int *episode, int *map);
 boolean MI_PreviousMap(int *episode, int *map);

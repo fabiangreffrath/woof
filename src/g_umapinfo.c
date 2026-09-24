@@ -338,7 +338,7 @@ static void ParseStandardProperty(scanner_t *s, MI_Entry_t *mape)
     else if (!strcasecmp(prop, "next"))
     {
         ParseLumpName(s, mape->nextmap);
-        if (!MI_MapName(mape->nextmap, NULL, NULL))
+        if (!MI_LumpName(mape->nextmap, NULL, NULL))
         {
             SC_Error(s, "Invalid map name %s.", mape->nextmap);
         }
@@ -347,7 +347,7 @@ static void ParseStandardProperty(scanner_t *s, MI_Entry_t *mape)
     {
         ParseLumpName(s, mape->nextsecret);
         level_t level = {0};
-        if (!MI_MapName(mape->nextsecret, &level.episode, &level.map))
+        if (!MI_LumpName(mape->nextsecret, &level.episode, &level.map))
         {
             SC_Error(s, "Invalid map name %s", mape->nextsecret);
         }
@@ -541,7 +541,7 @@ static void ParseMapEntry(scanner_t *s, MI_Entry_t *entry)
     }
 
     SC_MustGetToken(s, TK_Identifier);
-    if (!MI_MapName(SC_GetString(s), NULL, NULL))
+    if (!MI_LumpName(SC_GetString(s), NULL, NULL))
     {
         SC_Error(s, "Invalid map name %s", SC_GetString(s));
     }
@@ -611,7 +611,7 @@ void MI_ParseUniversalMapInfo(int lumpnum)
             else
             {
                 int ep, map;
-                if (MI_MapName(parsed.lumpname, &ep, &map))
+                if (MI_LumpName(parsed.lumpname, &ep, &map))
                 {
                     M_CopyLumpName(parsed.nextmap, MapName(ep, map + 1));
                 }
@@ -657,7 +657,7 @@ MI_Entry_t *MI_MapEntry(int episode, int map)
     return NULL;
 }
 
-boolean MI_MapName(const char *mapname, int *episode, int *map)
+boolean MI_LumpName(const char *mapname, int *episode, int *map)
 {
     if (strlen(mapname) > 8)
     {
@@ -731,7 +731,7 @@ void MI_NextMap(int *episode, int *map)
 
         if (next)
         {
-            MI_MapName(next, episode, map);
+            MI_LumpName(next, episode, map);
         }
         return;
     }
@@ -1507,7 +1507,7 @@ MI_Completion_t MI_PrepareIntermission(wbstartstruct_t *wminfo)
 
         if (next[0])
         {
-            MI_MapName(next, &wminfo->nextep, &wminfo->next);
+            MI_LumpName(next, &wminfo->nextep, &wminfo->next);
 
             wminfo->nextep--;
             wminfo->next--;

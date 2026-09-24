@@ -562,7 +562,7 @@ void MN_AddEpisode(const char *map, const char *gfx, const char *txt, char key)
         return;
     }
 
-    MI_MapName(map, &epi, &mapnum);
+    MI_LumpName(map, &epi, &mapnum);
     EpiMenuEpi[EpiDef.numitems] = epi;
     EpiMenuMap[EpiDef.numitems] = mapnum;
     M_CopyLumpName(EpisodeMenu[EpiDef.numitems].name, gfx);
