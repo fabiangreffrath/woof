@@ -714,7 +714,7 @@ static boolean FileContainsMaps(const char *filename)
 {
     for (int i = 0; i < array_size(umapinfo); ++i)
     {
-        if (CheckMapLump(umapinfo[i].mapname, filename))
+        if (CheckMapLump(umapinfo[i].lumpname, filename))
         {
             return true;
         }
@@ -2172,7 +2172,7 @@ void D_DoomMain(void)
 
   if (!M_ParmExists("-nomapinfo"))
   {
-    W_ProcessInWads("UMAPINFO", G_ParseMapInfo, PROCESS_IWAD | PROCESS_PWAD);
+    W_ProcessInWads("UMAPINFO", MI_ParseUniversalMapInfo, PROCESS_IWAD | PROCESS_PWAD);
   }
 
   G_ParseCompDatabase();

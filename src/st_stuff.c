@@ -1249,19 +1249,13 @@ static void UpdateString(sbarelem_t *elem)
     switch (string->type)
     {
         case sbstr_maptitle:
-            string->line.string = G_GetLevelTitle();
+            string->line.string = MI_GetLevelTitle();
             break;
         case sbstr_label:
-            if (gamemapinfo && gamemapinfo->label)
-            {
-                string->line.string = gamemapinfo->label;
-            }
+            string->line.string = MI_GetLevelLabel();
             break;
         case sbstr_author:
-            if (gamemapinfo && gamemapinfo->author)
-            {
-                string->line.string = gamemapinfo->author;
-            }
+            string->line.string = MI_GetLevelAuthor();
             break;
         default:
             break;
@@ -2232,9 +2226,9 @@ boolean ST_Responder(event_t *ev)
     if (M_InputActivated(input_map_mini))
     {
         minimap = !minimap;
-        return true;
     }
-    else if (ST_MessagesResponder(ev))
+
+    if (ST_MessagesResponder(ev))
     {
         return true;
     }
