@@ -300,7 +300,7 @@ void P_SetThingPosition(mobj_t *thing)
   // An already-removed mobj (S_NULL state) must never be linked back in.
   if (!thing->state)
   {
-    I_Printf(VB_ERROR, "%s: already-removed mobj linked back in", __func__);
+    I_Printf(VB_ERROR, "%s: already-removed mobj linked back into the blockmap", __func__);
     return;
   }
 
