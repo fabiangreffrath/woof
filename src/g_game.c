@@ -2345,12 +2345,6 @@ static char *savename = NULL;
 static boolean forced_loadgame = false;
 static boolean command_loadgame = false;
 
-void G_ForcedLoadAutoSave(void)
-{
-  gameaction = ga_loadautosave;
-  forced_loadgame = true;
-}
-
 void G_ForcedLoadGame(void)
 {
   gameaction = ga_loadgame;
