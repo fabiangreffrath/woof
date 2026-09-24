@@ -2681,9 +2681,10 @@ static boolean SaveLoadResponder(menu_action_t action, int ch)
 
     // [FG] support up to 8 pages of savegames
 
+    const int savepage_min = (currentMenu == &SaveDef) ? 0 : QUICKSAVEPAGE;
     if (action == MENU_LEFT)
     {
-        if (savepage > QUICKSAVEPAGE)
+        if (savepage > savepage_min)
         {
             savepage--;
             M_ReadSaveStrings();
