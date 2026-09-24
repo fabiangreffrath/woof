@@ -49,7 +49,7 @@
 #define RETURN_IF_NO_PLAYER \
     if (!player) \
     { \
-        I_Printf(VB_ERROR, "%s: called as mobj thinker function", __func__); \
+        I_Printf(VB_ERROR, "%s: weapon code pointer called as a mobj thinker function (check your dehacked)", __func__); \
         return; \
     }
 
