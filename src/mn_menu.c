@@ -2750,6 +2750,7 @@ static boolean MouseResponder(void)
             {
                 savepage--;
             }
+            M_ReadSaveStrings();
             return true;
         }
     }
