@@ -45,6 +45,17 @@ typedef enum
     key_mode
 } menu_input_mode_t;
 
+typedef struct
+{
+    const char *text;
+    mrect_t rect;
+    int flags;
+} setup_tab_t;
+
+void MN_SetCurrentPage(int page);
+void MN_SetCurrentTabs(setup_tab_t *tab);
+void MN_DrawTabs(void);
+
 void M_ChooseSkill(int choice);
 
 extern int maxscreenblocks;

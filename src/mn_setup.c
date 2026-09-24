@@ -229,13 +229,6 @@ static int set_item_on; // which setup item is selected?   // phares 3/98
 static setup_menu_t *current_menu; // points to current setup menu table
 static int current_page;           // the index of the current screen in a set
 
-typedef struct
-{
-    const char *text;
-    mrect_t rect;
-    int flags;
-} setup_tab_t;
-
 static setup_tab_t *current_tabs;
 static int highlight_tab;
 
@@ -525,7 +518,17 @@ static void BlinkingArrowRight(setup_menu_t *s)
 #define M_TAB_Y      22
 #define M_TAB_OFFSET 8
 
-static void DrawTabs(void)
+void MN_SetCurrentPage(int page)
+{
+    current_page = page;
+}
+
+void MN_SetCurrentTabs(setup_tab_t *tab)
+{
+    current_tabs = tab;
+}
+
+void MN_DrawTabs(void)
 {
     setup_tab_t *tabs = current_tabs;
 
@@ -1582,7 +1585,7 @@ void MN_DrawKeybnd(void)
 
     DrawBackground("FLOOR4_6"); // Draw background
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_KEYBND", "Key Bindings");
-    DrawTabs();
+    MN_DrawTabs();
     DrawInstructions();
     DrawScreenItems(current_menu);
 
@@ -1846,7 +1849,7 @@ void MN_DrawWeapons(void)
 {
     DrawBackground("FLOOR4_6"); // Draw background
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_WEAP", "Weapons");
-    DrawTabs();
+    MN_DrawTabs();
     DrawInstructions();
     DrawScreenItems(current_menu);
 
@@ -2050,7 +2053,7 @@ void MN_DrawStatusHUD(void)
 {
     DrawBackground("FLOOR4_6"); // Draw background
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_STAT", "Status Bar/HUD");
-    DrawTabs();
+    MN_DrawTabs();
     DrawInstructions();
     DrawScreenItems(current_menu);
 
@@ -2666,7 +2669,7 @@ void MN_DrawSfx(void)
 {
     DrawBackground("FLOOR4_6");
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
-    DrawTabs();
+    MN_DrawTabs();
     DrawInstructions();
     DrawScreenItems(current_menu);
 }
@@ -2741,7 +2744,7 @@ void MN_DrawMidi(void)
 {
     DrawBackground("FLOOR4_6");
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
-    DrawTabs();
+    MN_DrawTabs();
     DrawInstructions();
     DrawScreenItems(current_menu);
 }
@@ -2828,7 +2831,7 @@ void MN_DrawEqualizer(void)
 {
     DrawBackground("FLOOR4_6");
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
-    DrawTabs();
+    MN_DrawTabs();
     DrawInstructions();
     DrawScreenItems(current_menu);
 }
@@ -3126,7 +3129,7 @@ void MN_DrawPadAdv(void)
 {
     DrawBackground("FLOOR4_6");
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
-    DrawTabs();
+    MN_DrawTabs();
     DrawInstructions();
     DrawScreenItems(current_menu);
 }
@@ -3313,7 +3316,7 @@ void MN_DrawGyro(void)
 {
     DrawBackground("FLOOR4_6");
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
-    DrawTabs();
+    MN_DrawTabs();
     DrawInstructions();
 
     if (I_UseGamepad() && I_GyroEnabled())
@@ -3487,7 +3490,7 @@ void MN_DrawGeneral(void)
 {
     DrawBackground("FLOOR4_6"); // Draw background
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
-    DrawTabs();
+    MN_DrawTabs();
     DrawInstructions();
 
     if (I_UseGamepad() && current_menu == gen_settings4 && I_UseStickLayout())
