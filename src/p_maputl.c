@@ -297,6 +297,13 @@ void P_UnsetThingPosition (mobj_t *thing)
 
 void P_SetThingPosition(mobj_t *thing)
 {                                                      // link into subsector
+  // An already-removed mobj (S_NULL state) must never be linked back in.
+  if (!thing->state)
+  {
+    I_Printf(VB_ERROR, "%s: already-removed mobj linked back in", __func__);
+    return;
+  }
+
   subsector_t *ss = thing->subsector = R_PointInSubsector(thing->x, thing->y);
 
   if (!(thing->flags & MF_NOSECTOR))
