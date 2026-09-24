@@ -30,13 +30,13 @@ struct mobj_s;
 
 typedef void (*actionf_v)(void);
 typedef void (*actionf_p1)(struct mobj_s *);
-typedef void (*actionf_p2)(struct player_s *, struct pspdef_s *);
+typedef void (*actionf_p3)(struct mobj_s *, struct player_s *, struct pspdef_s *);
 
 typedef union actionf_u
 {
   actionf_v v;
   actionf_p1 p1;
-  actionf_p2 p2;
+  actionf_p3 p3;
 } actionf_t;
 
 // Historically, "think_t" is yet another function 

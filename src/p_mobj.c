@@ -81,67 +81,79 @@ void P_SetActualHeight(mobj_t *mobj)
 // Returns true if the mobj is still present.
 //
 
-boolean P_SetMobjState(mobj_t* mobj,statenum_t state)
+boolean P_SetMobjState(mobj_t *mobj, statenum_t state)
 {
-  state_t*  st;
+    state_t *st;
 
-  // killough 4/9/98: remember states seen, to detect cycles:
+    // killough 4/9/98: remember states seen, to detect cycles:
 
-  // fast transition table
-  statenum_t *seenstate = seenstate_tab;      // pointer to table
-  static int recursion;                       // detects recursion
-  statenum_t i = state;                       // initial state
-  boolean ret = true;                         // return value
-  statenum_t* tempstate = NULL;               // for use with recursion
+    // fast transition table
+    statenum_t *seenstate = seenstate_tab; // pointer to table
+    static int recursion;                  // detects recursion
+    statenum_t i = state;                  // initial state
+    boolean ret = true;                    // return value
+    statenum_t *tempstate = NULL;          // for use with recursion
 
-  if (recursion++)                            // if recursion detected,
-    seenstate = tempstate = Z_Calloc(num_states, sizeof(statenum_t), PU_STATIC, 0); // allocate state table
-
-  do
+    if (recursion++) // if recursion detected,
     {
-      if (state == S_NULL)
-	{
-	  mobj->state = (state_t *) S_NULL;
-	  P_RemoveMobj (mobj);
-	  ret = false;
-	  break;                 // killough 4/9/98
-	}
+        seenstate = tempstate = Z_Calloc(num_states, sizeof(statenum_t),
+                                         PU_STATIC, 0); // allocate state table
+    }
 
-      st = &states[state];
-      mobj->state = st;
-      mobj->tics = st->tics;
-      mobj->sprite = st->sprite;
-      mobj->frame = st->frame;
+    do
+    {
+        if (state == S_NULL)
+        {
+            mobj->state = (state_t *)S_NULL;
+            P_RemoveMobj(mobj);
+            ret = false;
+            break; // killough 4/9/98
+        }
 
-      // Modified handling.
-      // Call action functions when the state is set
+        st = &states[state];
+        mobj->state = st;
+        mobj->tics = st->tics;
+        mobj->sprite = st->sprite;
+        mobj->frame = st->frame;
 
-      if (st->action.p1)
-	st->action.p1(mobj);
+        // Modified handling.
+        // Call action functions when the state is set
 
-      seenstate[state] = 1 + st->nextstate;   // killough 4/9/98
+        if (st->action.p3)
+        {
+            st->action.p3(mobj, NULL, NULL);
+        }
 
-      state = st->nextstate;
-    } 
-  while (!mobj->tics && !seenstate[state]);   // killough 4/9/98
+        seenstate[state] = 1 + st->nextstate; // killough 4/9/98
 
-  if (ret && !mobj->tics)  // killough 4/9/98: detect state cycles
-    displaymsg("Warning: State Cycle Detected");
+        state = st->nextstate;
+    } while (!mobj->tics && !seenstate[state]); // killough 4/9/98
 
-  if (!--recursion)
-    for (;(state=seenstate[i]);i=state-1)
-      seenstate[i] = 0;  // killough 4/9/98: erase memory of states
+    if (ret && !mobj->tics) // killough 4/9/98: detect state cycles
+    {
+        displaymsg("Warning: State Cycle Detected");
+    }
 
-  if (tempstate)
-    Z_Free(tempstate);
+    if (!--recursion)
+    {
+        for (; (state = seenstate[i]); i = state - 1)
+        {
+            seenstate[i] = 0; // killough 4/9/98: erase memory of states
+        }
+    }
 
-  // [FG] update object's actual height
-  if (ret)
-  {
-    P_SetActualHeight(mobj);
-  }
+    if (tempstate)
+    {
+        Z_Free(tempstate);
+    }
 
-  return ret;
+    // [FG] update object's actual height
+    if (ret)
+    {
+        P_SetActualHeight(mobj);
+    }
+
+    return ret;
 }
 
 //
