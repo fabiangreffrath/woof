@@ -814,8 +814,6 @@ static void cheat_spechits(void)
 {
   int i, speciallines = 0;
   boolean origcards[NUMCARDS];
-  line_t dummy;
-  boolean trigger_keen = true;
 
   // [crispy] temporarily give all keys
   for (i = 0; i < NUMCARDS; i++)
@@ -893,14 +891,7 @@ static void cheat_spechits(void)
     plyr->cards[i] = origcards[i];
   }
 
-  MI_SpecHits(&dummy, &speciallines, &trigger_keen);
-
-  // Keens (no matter which level they are on)
-  if (trigger_keen)
-  {
-    dummy.args[0] = 666;
-    speciallines += EV_DoDoor(&dummy, doorOpen);
-  }
+  MI_SpecHits(&speciallines);
 
   P_MapEnd();
 

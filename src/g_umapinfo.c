@@ -1291,8 +1291,11 @@ boolean MI_BossAction(mobj_t *mo)
     return true;
 }
 
-void MI_SpecHits(line_t *dummy, int *speciallines, boolean *trigger_keen)
+void MI_SpecHits(int *speciallines)
 {
+    line_t dummy = {0};
+    boolean trigger_keen = true;
+
     // UMAPINFO
     if (gamemapinfo && array_size(gamemapinfo->bossactions))
     {
@@ -1307,26 +1310,34 @@ void MI_SpecHits(line_t *dummy, int *speciallines, boolean *trigger_keen)
                 {
                     if (bossaction->type == mo->type)
                     {
-                        dummy = lines;
-                        dummy->special = (short)bossaction->special;
-                        dummy->args[0] = (short)bossaction->tag;
+                        dummy = lines[0];
+                        dummy.special = (short)bossaction->special;
+                        dummy.args[0] = (short)bossaction->tag;
                         // use special semantics for line activation to block
                         // problem types.
-                        if (!P_UseSpecialLine(mo, dummy, 0, true))
+                        if (!P_UseSpecialLine(mo, &dummy, 0, true))
                         {
-                            P_CrossSpecialLine(dummy, 0, mo, true);
+                            P_CrossSpecialLine(&dummy, 0, mo, true);
                         }
 
                         (*speciallines)++;
 
-                        if (dummy->args[0] == 666)
+                        if (dummy.args[0] == 666)
                         {
-                            *trigger_keen = false;
+                            trigger_keen = false;
                         }
                     }
                 }
             }
         }
+
+        // Keens (no matter which level they are on)
+        if (trigger_keen)
+        {
+            dummy.args[0] = 666;
+            (*speciallines) += EV_DoDoor(&dummy, doorOpen);
+        }
+
         return;
     }
 
@@ -1338,13 +1349,13 @@ void MI_SpecHits(line_t *dummy, int *speciallines, boolean *trigger_keen)
         if (gamemap == 7)
         {
             // Mancubi
-            dummy->args[0] = 666;
-            (*speciallines) += EV_DoFloor(dummy, lowerFloorToLowest);
-            *trigger_keen = false;
+            dummy.args[0] = 666;
+            (*speciallines) += EV_DoFloor(&dummy, lowerFloorToLowest);
+            trigger_keen = false;
 
             // Arachnotrons
-            dummy->args[0] = 667;
-            (*speciallines) += EV_DoFloor(dummy, raiseToTexture);
+            dummy.args[0] = 667;
+            (*speciallines) += EV_DoFloor(&dummy, raiseToTexture);
         }
     }
     else
@@ -1352,27 +1363,34 @@ void MI_SpecHits(line_t *dummy, int *speciallines, boolean *trigger_keen)
         if (gameepisode == 1)
         {
             // Barons of Hell
-            dummy->args[0] = 666;
-            (*speciallines) += EV_DoFloor(dummy, lowerFloorToLowest);
-            *trigger_keen = false;
+            dummy.args[0] = 666;
+            (*speciallines) += EV_DoFloor(&dummy, lowerFloorToLowest);
+            trigger_keen = false;
         }
         else if (gameepisode == 4)
         {
             if (gamemap == 6)
             {
                 // Cyberdemons
-                dummy->args[0] = 666;
-                (*speciallines) += EV_DoDoor(dummy, blazeOpen);
-                *trigger_keen = false;
+                dummy.args[0] = 666;
+                (*speciallines) += EV_DoDoor(&dummy, blazeOpen);
+                trigger_keen = false;
             }
             else if (gamemap == 8)
             {
                 // Spider Masterminds
-                dummy->args[0] = 666;
-                (*speciallines) += EV_DoFloor(dummy, lowerFloorToLowest);
-                *trigger_keen = false;
+                dummy.args[0] = 666;
+                (*speciallines) += EV_DoFloor(&dummy, lowerFloorToLowest);
+                trigger_keen = false;
             }
         }
+    }
+
+    // Keens (no matter which level they are on)
+    if (trigger_keen)
+    {
+        dummy.args[0] = 666;
+        (*speciallines) += EV_DoDoor(&dummy, doorOpen);
     }
 }
 

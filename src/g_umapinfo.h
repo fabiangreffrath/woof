@@ -128,7 +128,7 @@ void MI_ChangeMusic(void);
 
 // Death action
 boolean MI_BossAction(mobj_t *mo);
-void MI_SpecHits(line_t *dummy, int *speciallines, boolean *trigger_keen);
+void MI_SpecHits(int *speciallines);
 
 // Complete level
 void MI_UpdateLastMapInfo(wbstartstruct_t *wminfo);
