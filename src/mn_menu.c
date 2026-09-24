@@ -861,7 +861,7 @@ static void M_DrawSaveLoadBorders(void)
         M_DrawSaveLoadBorder(x, y, cr);
 
         byte *cr2 = (savepage == QUICKSAVEPAGE && i == quickSaveSlot)
-                        ? cr2 = xlat[CR_GOLD].table
+                        ? xlat[CR_GOLD].table
                         : NULL;
         WriteTextCR(x, y, cr2, savegamestrings[i]);
     }
@@ -1027,9 +1027,10 @@ static void SetLoadSlotStatus(int slot, int status)
 
 static void EmptySaveString(char *name, int slot)
 {
-    const char *str = (savepage == QUICKSAVEPAGE)
-                          ? (slot == AUTOSAVESLOT) ? "Auto Save" : "Quick Save"
-                          : DEH_String(EMPTYSTRING);
+    const char *str =
+        (savepage == QUICKSAVEPAGE)
+            ? (slot == AUTOSAVESLOT) ? "Empty Auto Save" : "Empty Quick Save"
+            : DEH_String(EMPTYSTRING);
     M_snprintf(name, SAVESTRINGSIZE, "%s", str);
 }
 
