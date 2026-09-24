@@ -55,6 +55,8 @@ typedef struct
 void MN_SetCurrentPage(int page);
 void MN_SetCurrentTabs(setup_tab_t *tab);
 void MN_DrawTabs(void);
+void MN_HighlightTab(int x, int y);
+boolean SetupLoadSaveTab(int *page);
 
 void M_ChooseSkill(int choice);
 

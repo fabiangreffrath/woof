@@ -4028,18 +4028,8 @@ int MN_GetPixelWidth(const char *ch)
     return len;
 }
 
-boolean MN_SetupCursorPostion(int x, int y)
+void MN_HighlightTab(int x, int y)
 {
-    if (!setup_active || setup_select)
-    {
-        return false;
-    }
-
-    if (block_input)
-    {
-        return true;
-    }
-
     if (current_tabs)
     {
         for (int i = 0; current_tabs[i].text; ++i)
@@ -4060,6 +4050,21 @@ boolean MN_SetupCursorPostion(int x, int y)
             }
         }
     }
+}
+
+boolean MN_SetupCursorPostion(int x, int y)
+{
+    if (!setup_active || setup_select)
+    {
+        return false;
+    }
+
+    if (block_input)
+    {
+        return true;
+    }
+
+    MN_HighlightTab(x, y);
 
     for (int i = 0; !(current_menu[i].m_flags & S_END); i++)
     {
@@ -4755,6 +4760,26 @@ static boolean SetupTab(void)
     while (current_menu[set_item_on++].m_flags & S_SKIP)
         ;
     set_item_on--;
+
+    M_StartSound(sfx_mnumov);
+    return true;
+}
+
+boolean SetupLoadSaveTab(int *page)
+{
+    if (!current_tabs)
+    {
+        return false;
+    }
+
+    setup_tab_t *tab = current_tabs + highlight_tab;
+
+    if (!(M_InputActivated(input_menu_enter) && tab->flags & S_HILITE))
+    {
+        return false;
+    }
+
+    *page = highlight_tab;
 
     M_StartSound(sfx_mnumov);
     return true;

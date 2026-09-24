@@ -2589,6 +2589,11 @@ menu_input_mode_t menu_input, old_menu_input;
 
 static int mouse_state_x, mouse_state_y;
 
+static boolean AnyLoadSaveMenu(void)
+{
+    return (currentMenu == &LoadDef || currentMenu == &SaveDef);
+}
+
 boolean MN_PointInsideRect(mrect_t *rect, int x, int y)
 {
     return x > rect->x + video.deltaw && x < rect->x + rect->w + video.deltaw
@@ -2605,6 +2610,11 @@ static void CursorPosition(void)
     if (MN_SetupCursorPostion(mouse_state_x, mouse_state_y))
     {
         return;
+    }
+
+    if (AnyLoadSaveMenu())
+    {
+        MN_HighlightTab(mouse_state_x, mouse_state_y);
     }
 
     for (int i = 0; i < currentMenu->numitems; i++)
@@ -2645,11 +2655,6 @@ static void ClearHighlightedItems(void)
     {
         currentMenu->menuitems[i].flags &= ~MF_HILITE;
     }
-}
-
-static boolean AnyLoadSaveMenu(void)
-{
-    return (currentMenu == &LoadDef || currentMenu == &SaveDef);
 }
 
 static boolean SaveLoadResponder(menu_action_t action, int ch)
@@ -2735,6 +2740,18 @@ static boolean MouseResponder(void)
     if (setup_active)
     {
         return MN_SetupMouseResponder(mouse_state_x, mouse_state_y);
+    }
+
+    if (AnyLoadSaveMenu())
+    {
+        if (SetupLoadSaveTab(&savepage))
+        {
+            if (currentMenu == &LoadDef)
+            {
+                savepage--;
+            }
+            return true;
+        }
     }
 
     menuitem_t *current_item = &currentMenu->menuitems[highlight_item];
