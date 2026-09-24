@@ -137,7 +137,7 @@ void P_SetPspritePtr(player_t *player, pspdef_t *psp, statenum_t stnum)
         // Modified handling.
         if (state->action)
         {
-            state->action(player->mo, psp);
+            state->action(player->mo, player, psp);
             if (!psp->state)
             {
                 break;
@@ -493,10 +493,8 @@ static void P_ApplyBobbing(int *sx, int *sy, fixed_t bob)
 // or after previous attack/fire sequence.
 //
 
-void A_WeaponReady(mobj_t *actor, pspdef_t *psp)
+void A_WeaponReady(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-  player_t *player = actor->player;
-
   if (!player || !psp)
     return;
 
@@ -547,10 +545,8 @@ void A_WeaponReady(mobj_t *actor, pspdef_t *psp)
 // without lowering it entirely.
 //
 
-void A_ReFire(mobj_t *actor, pspdef_t *psp)
+void A_ReFire(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-  player_t *player = actor->player;
-
   if (!player)
     return;
 
@@ -572,10 +568,8 @@ void A_ReFire(mobj_t *actor, pspdef_t *psp)
 
 boolean boom_weapon_state_injection;
 
-void A_CheckReload(mobj_t *actor, pspdef_t *psp)
+void A_CheckReload(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-  player_t *player = actor->player;
-
   if (!player)
     return;
 
@@ -597,10 +591,8 @@ void A_CheckReload(mobj_t *actor, pspdef_t *psp)
 //  and changes weapon at bottom.
 //
 
-void A_Lower(mobj_t *actor, pspdef_t *psp)
+void A_Lower(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-  player_t *player = actor->player;
-
   if (!player)
     return;
 
@@ -639,10 +631,8 @@ void A_Lower(mobj_t *actor, pspdef_t *psp)
 // A_Raise
 //
 
-void A_Raise(mobj_t *actor, pspdef_t *psp)
+void A_Raise(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-  player_t *player = actor->player;
-
   if (!player)
     return;
 
@@ -684,10 +674,8 @@ static void A_FireSomething(player_t* player,int adder)
 // A_GunFlash
 //
 
-void A_GunFlash(mobj_t *actor, pspdef_t *psp)
+void A_GunFlash(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-  player_t *player = actor->player;
-
   if (!player)
     return;
 
@@ -716,10 +704,8 @@ static void AddToTicAngle(player_t *player)
 // A_Punch
 //
 
-void A_Punch(mobj_t *actor, pspdef_t *psp)
+void A_Punch(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-  player_t *player = actor->player;
-
   if (!player)
     return;
 
@@ -762,10 +748,8 @@ void A_Punch(mobj_t *actor, pspdef_t *psp)
 // A_Saw
 //
 
-void A_Saw(mobj_t *actor, pspdef_t *psp)
+void A_Saw(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-  player_t *player = actor->player;
-
   if (!player)
     return;
 
@@ -823,10 +807,8 @@ void A_Saw(mobj_t *actor, pspdef_t *psp)
 // A_FireMissile
 //
 
-void A_FireMissile(mobj_t *actor, pspdef_t *psp)
+void A_FireMissile(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-  player_t *player = actor->player;
-
   if (!player)
     return;
 
@@ -838,10 +820,8 @@ void A_FireMissile(mobj_t *actor, pspdef_t *psp)
 // A_FireBFG
 //
 
-void A_FireBFG(mobj_t *actor, pspdef_t *psp)
+void A_FireBFG(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-  player_t *player = actor->player;
-
   if (!player)
     return;
 
@@ -858,10 +838,8 @@ void A_FireBFG(mobj_t *actor, pspdef_t *psp)
 // This code may not be used in other mods without appropriate credit given.
 // Code leeches will be telefragged.
 
-void A_FireOldBFG(mobj_t *actor, pspdef_t *psp)
+void A_FireOldBFG(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-  player_t *player = actor->player;
-
   if (!player)
     return;
 
@@ -943,10 +921,8 @@ void A_FireOldBFG(mobj_t *actor, pspdef_t *psp)
 // A_FirePlasma
 //
 
-void A_FirePlasma(mobj_t *actor, pspdef_t *psp)
+void A_FirePlasma(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-  player_t *player = actor->player;
-
   if (!player)
     return;
 
@@ -1011,10 +987,8 @@ void P_GunShot(mobj_t *mo, boolean accurate)
 // A_FirePistol
 //
 
-void A_FirePistol(mobj_t *actor, pspdef_t *psp)
+void A_FirePistol(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-  player_t *player = actor->player;
-
   if (!player)
     return;
 
@@ -1033,10 +1007,8 @@ void A_FirePistol(mobj_t *actor, pspdef_t *psp)
 // A_FireShotgun
 //
 
-void A_FireShotgun(mobj_t *actor, pspdef_t *psp)
+void A_FireShotgun(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-  player_t *player = actor->player;
-
   if (!player)
     return;
 
@@ -1058,10 +1030,8 @@ void A_FireShotgun(mobj_t *actor, pspdef_t *psp)
 // A_FireShotgun2
 //
 
-void A_FireShotgun2(mobj_t *actor, pspdef_t *psp)
+void A_FireShotgun2(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-  player_t *player = actor->player;
-
   if (!player)
     return;
 
@@ -1091,10 +1061,8 @@ void A_FireShotgun2(mobj_t *actor, pspdef_t *psp)
 // A_FireCGun
 //
 
-void A_FireCGun(mobj_t *actor, pspdef_t *psp)
+void A_FireCGun(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-  player_t *player = actor->player;
-
   if (!player || !psp)
     return;
 
@@ -1123,30 +1091,24 @@ void A_FireCGun(mobj_t *actor, pspdef_t *psp)
   P_GunShot(actor, !player->refire);
 }
 
-void A_Light0(mobj_t *actor, pspdef_t *psp)
+void A_Light0(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-  player_t *player = actor->player;
-
   if (!player)
     return;
 
   player->extralight = 0;
 }
 
-void A_Light1(mobj_t *actor, pspdef_t *psp)
+void A_Light1(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-  player_t *player = actor->player;
-
   if (!player)
     return;
 
   player->extralight = 1;
 }
 
-void A_Light2(mobj_t *actor, pspdef_t *psp)
+void A_Light2(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-  player_t *player = actor->player;
-
   if (!player)
     return;
 
@@ -1158,7 +1120,7 @@ void A_Light2(mobj_t *actor, pspdef_t *psp)
 // Spawn a BFG explosion on every monster in view
 //
 
-void A_BFGSpray(mobj_t *actor, pspdef_t *psp)
+void A_BFGSpray(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
   for (int i = 0 ; i < 40 ; i++)  // offset angles from its attack angle
     {
@@ -1190,10 +1152,8 @@ void A_BFGSpray(mobj_t *actor, pspdef_t *psp)
 // A_BFGsound
 //
 
-void A_BFGsound(mobj_t *actor, pspdef_t *psp)
+void A_BFGsound(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-  player_t *player = actor->player;
-
   if (!player)
     return;
 
@@ -1342,10 +1302,8 @@ void P_MovePsprites(player_t *player)
 //   args[3]: X/Y spawn offset, relative to calling player's angle
 //   args[4]: Z spawn offset, relative to player's default projectile fire height
 //
-void A_WeaponProjectile(mobj_t *actor, pspdef_t *psp)
+void A_WeaponProjectile(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-  player_t *player = actor->player;
-
   if (!mbf21 || !player || !psp->state || !psp->state->args[0])
     return;
 
@@ -1390,10 +1348,8 @@ void A_WeaponProjectile(mobj_t *actor, pspdef_t *psp)
 //   args[3]: Base damage of attack (e.g. for 5d3, customize the 5); if not set, defaults to 5
 //   args[4]: Attack damage modulus (e.g. for 5d3, customize the 3); if not set, defaults to 3
 //
-void A_WeaponBulletAttack(mobj_t *actor, pspdef_t *psp)
+void A_WeaponBulletAttack(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-  player_t *player = actor->player;
-
   if (!mbf21 || !player || !psp->state)
     return;
 
@@ -1426,10 +1382,8 @@ void A_WeaponBulletAttack(mobj_t *actor, pspdef_t *psp)
 //   args[3]: Sound to play if attack hits
 //   args[4]: Range (fixed point); if not set, defaults to player mobj's melee range
 //
-void A_WeaponMeleeAttack(mobj_t *actor, pspdef_t *psp)
+void A_WeaponMeleeAttack(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-  player_t *player = actor->player;
-
   if (!mbf21 || !player || !psp->state)
     return;
 
@@ -1481,10 +1435,8 @@ void A_WeaponMeleeAttack(mobj_t *actor, pspdef_t *psp)
 //   args[0]: ID of sound to play
 //   args[1]: If 1, play sound at full volume (may be useful in DM?)
 //
-void A_WeaponSound(mobj_t *actor, pspdef_t *psp)
+void A_WeaponSound(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-  player_t *player = actor->player;
-
   if (!mbf21 || !player || !psp->state)
     return;
 
@@ -1496,10 +1448,8 @@ void A_WeaponSound(mobj_t *actor, pspdef_t *psp)
 // A_WeaponAlert
 // Alerts monsters to the player's presence. Handy when combined with WPF_SILENT.
 //
-void A_WeaponAlert(mobj_t *actor, pspdef_t *psp)
+void A_WeaponAlert(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-  player_t *player = actor->player;
-
   if (!mbf21 || !player)
     return;
 
@@ -1513,10 +1463,8 @@ void A_WeaponAlert(mobj_t *actor, pspdef_t *psp)
 //   args[0]: State number
 //   args[1]: Chance, out of 255, to make the jump
 //
-void A_WeaponJump(mobj_t *actor, pspdef_t *psp)
+void A_WeaponJump(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-  player_t *player = actor->player;
-
   if (!mbf21 || !player|| !psp->state)
     return;
 
@@ -1529,10 +1477,8 @@ void A_WeaponJump(mobj_t *actor, pspdef_t *psp)
 // Subtracts ammo from the player's "inventory". 'Nuff said.
 //   args[0]: Amount of ammo to consume. If zero, use the weapon's ammo-per-shot amount.
 //
-void A_ConsumeAmmo(mobj_t *actor, pspdef_t *psp)
+void A_ConsumeAmmo(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-  player_t *player = actor->player;
-
   if (!mbf21 || !player)
     return;
 
@@ -1562,10 +1508,8 @@ void A_ConsumeAmmo(mobj_t *actor, pspdef_t *psp)
 //   args[0]: State to jump to
 //   args[1]: Minimum required ammo to NOT jump. If zero, use the weapon's ammo-per-shot amount.
 //
-void A_CheckAmmo(mobj_t *actor, pspdef_t *psp)
+void A_CheckAmmo(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-  player_t *player = actor->player;
-
   if (!mbf21 || !player)
     return;
 
@@ -1589,10 +1533,8 @@ void A_CheckAmmo(mobj_t *actor, pspdef_t *psp)
 //   args[0]: State to jump to
 //   args[1]: If nonzero, skip the ammo check
 //
-void A_RefireTo(mobj_t *actor, pspdef_t *psp)
+void A_RefireTo(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-  player_t *player = actor->player;
-
   if (!mbf21 || !player || !psp->state)
     return;
 
@@ -1608,10 +1550,8 @@ void A_RefireTo(mobj_t *actor, pspdef_t *psp)
 //   args[0]: State number
 //   args[1]: If nonzero, don't change the player actor state
 //
-void A_GunFlashTo(mobj_t *actor, pspdef_t *psp)
+void A_GunFlashTo(mobj_t *actor, player_t *player, pspdef_t *psp)
 {
-  player_t *player = actor->player;
-
   if (!mbf21 || !player || !psp->state)
     return;
 

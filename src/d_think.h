@@ -22,11 +22,12 @@
 #ifndef __D_THINK__
 #define __D_THINK__
 
+struct player_s;
 struct pspdef_s;
 struct mobj_s;
 
 typedef void (*think_t)(struct mobj_s *);
-typedef void (*actionf_t)(struct mobj_s *, struct pspdef_s *);
+typedef void (*actionf_t)(struct mobj_s *, struct player_s *, struct pspdef_s *);
 
 // Doubly linked list of actors.
 typedef struct thinker_s

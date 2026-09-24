@@ -799,7 +799,7 @@ static void cheat_massacre(void)    // jff 2/01/98 kill all monsters
 	    }
 	  if (((mobj_t *) currentthinker)->type == MT_PAIN)
 	    {
-	      A_PainDie((mobj_t *)currentthinker, NULL);
+	      A_PainDie((mobj_t *)currentthinker, NULL, NULL);
 	      P_SetMobjState((mobj_t *) currentthinker, S_PAIN_DIE6);
 	    }
 	}

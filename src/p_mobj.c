@@ -121,7 +121,7 @@ boolean P_SetMobjState(mobj_t *mobj, statenum_t state)
 
         if (st->action)
         {
-            st->action(mobj, NULL);
+            st->action(mobj, NULL, NULL);
         }
 
         seenstate[state] = 1 + st->nextstate; // killough 4/9/98
