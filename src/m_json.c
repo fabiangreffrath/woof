@@ -309,6 +309,11 @@ const char *JS_GetString(json_t *json)
     return yyjson_get_str(json);
 }
 
+int JS_GetStringLen(json_t *json)
+{
+    return (int)yyjson_get_len(json);
+}
+
 const char *JS_GetStringValue(json_t *json, const char *string)
 {
     json_t *obj = JS_GetObject(json, string);

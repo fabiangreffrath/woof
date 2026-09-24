@@ -74,7 +74,8 @@ typedef struct sfxinfo_s
     sg_itemup,
     sg_wpnup,
     sg_oof,
-    sg_getpow
+    sg_getpow,
+    sg_menu
   }
   singularity;
 
@@ -342,6 +343,8 @@ typedef enum {
   sfx_dgact,
   sfx_dgdth,
   sfx_dgpain,
+
+  sfx_MaxIncluded = sfx_dgpain,
 
   // [crispy] play DSSECRET if available
   sfx_secret,

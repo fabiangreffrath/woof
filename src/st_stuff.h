@@ -64,6 +64,7 @@ extern boolean st_refresh_background;
 
 void ST_InitRes(void);
 void ST_SetSTHeight(void);
+void ST_UpdateStatusBar(void);
 
 extern int health_red;    // health amount less than which status is red
 extern int health_yellow; // health amount less than which status is yellow
@@ -98,6 +99,7 @@ extern hud_anchoring_t hud_anchoring;
 extern int st_wide_shift;
 
 const char **ST_StatusbarList(void);
+int ST_FullscreenStatusbar(void);
 
 void ST_BindSTSVariables(void);
 

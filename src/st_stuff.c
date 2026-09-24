@@ -1353,7 +1353,7 @@ static void UpdateElem(sbarelem_t *elem, player_t *player)
     }
 }
 
-static void UpdateStatusBar(player_t *player)
+void ST_UpdateStatusBar(void)
 {
     static int oldbarindex = -1;
 
@@ -1373,17 +1373,10 @@ static void UpdateStatusBar(player_t *player)
     {
         st_time_elem = NULL;
         st_cmd_elem = NULL;
-        st_msg_elem = NULL;
         oldbarindex = barindex;
     }
 
     statusbar = &sbardef->statusbars[barindex];
-
-    sbarelem_t *child;
-    array_foreach(child, statusbar->children)
-    {
-        UpdateElem(child, player);
-    }
 }
 
 static void ResetElem(sbarelem_t *elem, player_t *player)
@@ -1910,10 +1903,6 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
                 st_cmd_x = x1;
                 st_cmd_y = y1;
             }
-            if (message_centered && elem == st_msg_elem)
-            {
-                break;
-            }
             DrawWidget(x1, y1, x2, y2, dry, elem);
             break;
 
@@ -2193,14 +2182,6 @@ static void DrawBackground(const char *name)
     V_CopyRect(0, 0, st_backing_screen, video.unscaledw, st_height, V_ScaleY(st_height), 0, ST_Y);
 }
 
-static void DrawCenteredMessage(void)
-{
-    if (message_centered && st_msg_elem)
-    {
-        DrawWidget(SCREENWIDTH / 2, 0, NULL, NULL, false, st_msg_elem);
-    }
-}
-
 void ST_SetSTHeight(void)
 {
     if (statusbar && !statusbar->fullscreenrender)
@@ -2232,8 +2213,6 @@ static void DrawStatusBar(void)
     {
         DrawElem(0, y1, NULL, NULL, false, child, false);
     }
-
-    DrawCenteredMessage();
 }
 
 void ST_Erase(void)
@@ -2253,9 +2232,9 @@ boolean ST_Responder(event_t *ev)
     if (M_InputActivated(input_map_mini))
     {
         minimap = !minimap;
-        return true;
     }
-    else if (ST_MessagesResponder(ev))
+
+    if (ST_MessagesResponder(ev))
     {
         return true;
     }
@@ -2370,7 +2349,13 @@ void ST_Ticker(void)
 
     player_t *player = &players[displayplayer];
 
-    UpdateStatusBar(player);
+    ST_UpdateStatusBar();
+
+    sbarelem_t *child;
+    array_foreach(child, statusbar->children)
+    {
+        UpdateElem(child, player);
+    }
 
     if (hud_crosshair)
     {
@@ -2491,6 +2476,22 @@ const char **ST_StatusbarList(void)
         }
     }
     return strings;
+}
+
+int ST_FullscreenStatusbar(void)
+{
+    if (sbardef)
+    {
+        for (int i = 0; i < array_size(sbardef->statusbars); ++i)
+        {
+            if (sbardef->statusbars[i].fullscreenrender)
+            {
+                return 10 + i;
+            }
+        }
+    }
+
+    return screenblocks; // default to current view
 }
 
 void ST_ResetPalette(void)

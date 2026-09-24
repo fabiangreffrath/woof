@@ -222,7 +222,8 @@ static ticcmd_t basecmd;
 
 boolean joybuttons[NUM_GAMEPAD_BUTTONS];
 
-int   savegameslot = -1;
+static int   savegameslot = -1;
+static int   savegamepage;
 char  savedescription[32];
 
 static boolean save_autosave;
@@ -2368,11 +2369,12 @@ void G_LoadAutoSave(char *name, boolean command)
   command_loadgame = command;
 }
 
-void G_LoadGame(char *name, int slot, boolean command)
+void G_LoadGame(char *name, int slot, int page, boolean command)
 {
   if (savename) free(savename);
   savename = M_StringDuplicate(name);
   savegameslot = slot;
+  savegamepage = page;
   gameaction = ga_loadgame;
   forced_loadgame = false;
   command_loadgame = command;
@@ -2418,11 +2420,22 @@ void G_SaveAutoSave(char *description)
   save_autosave = true;
 }
 
-void G_SaveGame(int slot, char *description)
+void G_SaveGame(int slot, int page, char *description)
 {
   savegameslot = slot;
+  savegamepage = page;
   strcpy(savedescription, description);
   sendsave = true;
+}
+
+// Cancels a pending save if it was targeting this slot (e.g. the slot's
+// file is about to be deleted from the menu).
+void G_ClearPendingSaveSlot(int slot)
+{
+  if (slot == savegameslot)
+  {
+    savegameslot = -1;
+  }
 }
 
 // killough 3/22/98: form savegame name in one location
@@ -2453,19 +2466,19 @@ char *G_AutoSaveName(void)
   return SaveGameName("autosave.dsg");
 }
 
-char *G_SaveGameName(int slot)
+char *G_SaveGameName(int slot, int page)
 {
   // Ty 05/04/98 - use savegamename variable (see d_deh.c)
   // killough 12/98: add .7 to truncate savegamename
   char buf[16] = {0};
-  sprintf(buf, "%.7s%d.dsg", savegamename, 10 * savepage + slot);
+  sprintf(buf, "%.7s%d.dsg", savegamename, 10 * page + slot);
   return SaveGameName(buf);
 }
 
-char* G_MBFSaveGameName(int slot)
+char* G_MBFSaveGameName(int slot, int page)
 {
   char buf[16] = {0};
-  sprintf(buf, "MBFSAV%d.dsg", 10*savepage+slot);
+  sprintf(buf, "MBFSAV%d.dsg", 10 * page + slot);
 
   char *filepath = M_StringJoin(basesavegame, DIR_SEPARATOR_S, buf);
   char *existing = M_FileCaseExists(filepath);
@@ -2600,20 +2613,11 @@ static void DoSaveGame(char *name)
     // save max_kill_requirement
     JS_SetInt(doc, root_mut, "max_kill_requirement", max_kill_requirement);
 
-#ifndef SAVEGAME_NO_SNAPSHOT
-    char *snapshot = MN_WriteSnapshot();
-    JS_SetString(doc, root_mut, "snapshot", snapshot);
-#endif
-
     // Serialise the document to a JSON string, then free it – the string
     // owns its own memory and is independent of the JSON document.
     size_t json_len;
     char *json_str = JS_DocWriteString(doc, &json_len);
     JS_FreeDoc(doc);
-
-#ifndef SAVEGAME_NO_SNAPSHOT
-    free(snapshot);
-#endif
 
     // Compress the JSON string with miniz and write the result to the save
     // buffer as: [uint32 json_len][zlib stream].
@@ -2625,17 +2629,20 @@ static void DoSaveGame(char *name)
     mz_ulong compressed_len = mz_compressBound((mz_ulong)json_len);
     if ((compressed = malloc((size_t)compressed_len)))
     {
-        int mz_ret =
-            mz_compress2(compressed, &compressed_len,
-                        (const unsigned char *)json_str, (mz_ulong)json_len,
-                        MZ_BEST_SPEED);
+        int mz_ret = mz_compress2(compressed, &compressed_len,
+                                  (const unsigned char *)json_str,
+                                  (mz_ulong)json_len, MZ_BEST_SPEED);
 
         if (mz_ret == MZ_OK && CheckStreamLength((int32_t)json_len)
             && CheckStreamLength((int32_t)compressed_len))
         {
             free(json_str);
             save_p = savebuffer =
-                Z_Malloc(compressed_len + sizeof(int32_t), PU_STATIC, 0);
+                Z_Malloc(SAVESTRINGSIZE + sizeof(int32_t) + compressed_len
+                             + MN_SnapshotDataSize(),
+                         PU_STATIC, 0);
+            strncpy((char *)save_p, savedescription, SAVESTRINGSIZE);
+            save_p += SAVESTRINGSIZE;
             saveg_write32((int32_t)json_len);
             memcpy(save_p, compressed, (size_t)compressed_len);
             save_p += compressed_len;
@@ -2671,6 +2678,9 @@ static void DoSaveGame(char *name)
     else
     {
         free(compressed);
+
+        (void)MN_WriteSnapshot(save_p);
+        save_p += MN_SnapshotDataSize();
     }
 
     int length = save_p - savebuffer;
@@ -2697,9 +2707,9 @@ static void DoSaveGame(char *name)
 
 static void G_DoSaveGame(void)
 {
-  char *name = G_SaveGameName(savegameslot);
+  char *name = G_SaveGameName(savegameslot, savegamepage);
   DoSaveGame(name);
-  MN_SetQuickSaveSlot(savegameslot);
+  MN_SetQuickSaveSlot(savegameslot, savegamepage);
   free(name);
 }
 
@@ -3072,12 +3082,21 @@ static boolean DoLoadGame(boolean do_load_autosave)
 
     // Check for zlib-compressed JSON stream
     //
-    // Compressed: [uint32 decomp_len][zlib stream]
+    // Compressed: [char[24] description][uint32 decomp_len][zlib stream]["WOOF_SNAPSHOT"][uint8[320*200] snapshot]
+    // Woof 16.0.0: [uint32 decomp_len][zlib stream]
     // Plain JSON: [JSON text][NUL]
     // Legacy: [char[24] description][binary stream]
 
     unsigned char *decomp_str = NULL;
-    mz_ulong decomp_len = (mz_ulong)saveg_read32();
+    mz_ulong decomp_len = 0;
+
+    save_p = savebuffer + SAVESTRINGSIZE;
+    decomp_len = (mz_ulong)saveg_read32();
+    if (!CheckStreamLength((int32_t)decomp_len) || !CheckZlibHeader(save_p))
+    {
+        save_p = savebuffer;
+        decomp_len = (mz_ulong)saveg_read32();
+    }
 
     if (CheckStreamLength((int32_t)decomp_len) && CheckZlibHeader(save_p))
     {
@@ -3192,10 +3211,10 @@ static void G_DoLoadGame(void)
 {
   if (DoLoadGame(false))
   {
-    const int slot_num = 10 * savepage + savegameslot;
+    const int slot_num = 10 * savegamepage + savegameslot;
     I_Printf(VB_DEBUG, "G_DoLoadGame: Slot %02d, Time ", slot_num);
     PrintLevelTimes();
-    MN_SetQuickSaveSlot(savegameslot);
+    MN_SetQuickSaveSlot(savegameslot, savegamepage);
   }
 }
 
@@ -3228,7 +3247,7 @@ boolean G_LoadAutoSaveDeathUse(void)
   {
     if (savegameslot >= 0)
     {
-      char *save_path = G_SaveGameName(savegameslot);
+      char *save_path = G_SaveGameName(savegameslot, savegamepage);
       int64_t save_time = M_FileMTime(save_path);
       free(save_path);
       result = (auto_time > save_time);
@@ -3242,6 +3261,24 @@ boolean G_LoadAutoSaveDeathUse(void)
 
   free(auto_path);
   return result;
+}
+
+//
+// G_LoadGameDeathUse
+// Reloads the last manually saved/loaded slot, if any.
+// Returns true if a slot was loaded.
+//
+boolean G_LoadGameDeathUse(void)
+{
+  if (savegameslot < 0)
+  {
+    return false;
+  }
+
+  char *name = G_SaveGameName(savegameslot, savegamepage);
+  G_LoadGame(name, savegameslot, savegamepage, false);
+  free(name);
+  return true;
 }
 
 static void CheckSaveAutoSave(void)
@@ -3266,13 +3303,14 @@ void G_CleanScreenshot(void)
   if (gamestate != GS_LEVEL)
       return;
 
+  screenblocks = ST_FullscreenStatusbar();
   hud_crosshair = 0;
   hide_weapon = true;
 
-  R_SetViewSize(11);
+  R_SetViewSize(screenblocks);
   R_ExecuteSetViewSize();
   R_RenderPlayerView(&players[displayplayer]);
-  R_SetViewSize(old_screenblocks);
+  R_SetViewSize(screenblocks = old_screenblocks);
 
   hud_crosshair = old_hud_crosshair;
   hide_weapon = old_hide_weapon;
@@ -3369,7 +3407,11 @@ void G_Ticker(void)
   // P_Ticker() does not stop netgames if a menu is activated, so
   // we do not need to stop if a menu is pulled up during netgames.
 
-  if (paused & 2 || ((!demoplayback || menu_pause_demos) && menuactive && !netgame))
+  const boolean game_paused =
+      (paused & 2
+       || ((!demoplayback || menu_pause_demos) && menuactive && !netgame));
+
+  if (game_paused)
     {
       boom_basetic++;  // For revenant tracers and RNG -- we must maintain sync
       true_basetic++;
@@ -3491,11 +3533,28 @@ void G_Ticker(void)
   // killough 9/29/98: split up switch statement
   // into pauseable and unpauseable parts.
 
-  gamestate == GS_LEVEL ? P_Ticker(), ST_Ticker(), AM_Ticker() :
-    paused & 2 ? (void) 0 :
-      gamestate == GS_INTERMISSION ? WI_Ticker() :
-	gamestate == GS_FINALE ? F_Ticker() :
-	  gamestate == GS_DEMOSCREEN ? D_PageTicker() : (void) 0;
+  if (gamestate == GS_LEVEL)
+  {
+    P_Ticker();
+    ST_Ticker();
+    AM_Ticker();
+  }
+  else if (game_paused)
+  {
+    // paused, nothing to do
+  }
+  else if (gamestate == GS_INTERMISSION)
+  {
+    WI_Ticker();
+  }
+  else if (gamestate == GS_FINALE)
+  {
+    F_Ticker();
+  }
+  else if (gamestate == GS_DEMOSCREEN)
+  {
+    D_PageTicker();
+  }
 }
 
 //
