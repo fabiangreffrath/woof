@@ -1864,6 +1864,12 @@ void D_DoomMain(void)
 
   G_InitSkills();
 
+  M_InitConfig();
+
+  I_PutChar(VB_INFO, '\n');
+
+  M_LoadDefaults();  // load before initing other systems
+
   // get skill / episode / map from parms
 
   startskill = default_skill - 1;
@@ -2057,12 +2063,6 @@ void D_DoomMain(void)
   //
 
   noblit = M_CheckParm ("-noblit");
-
-  M_InitConfig();
-
-  I_PutChar(VB_INFO, '\n');
-
-  M_LoadDefaults();  // load before initing other systems
 
   bodyquesize = default_bodyquesize; // killough 10/98
 
