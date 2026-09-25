@@ -45,8 +45,29 @@
 
 // a weapon is found with two clip loads,
 // a big item has five clip loads
-int maxammo[NUMAMMO]  = {200, 50, 300, 50};
-int clipammo[NUMAMMO] = { 10,  4,  20,  1};
+ammoinfo_t    ammoinfo[NUMAMMO] =
+{
+  {
+    // bullets
+    200,
+    10
+  },
+  {
+    // shells
+    50,
+    4
+  },
+  {
+    // cells
+    300,
+    20
+  },
+  {
+    // rockets
+    50,
+    1
+  }
+};
 
 //
 // GET STUFF
@@ -102,9 +123,9 @@ boolean P_GiveAmmo(player_t *player, ammotype_t ammo, int num)
     return false;
 
   if (num)
-    num *= clipammo[ammo];
+    num *= ammoinfo[ammo].clipammo;
   else
-    num = clipammo[ammo]/2;
+    num = ammoinfo[ammo].clipammo/2;
 
   // give double ammo in trainer mode, you'll need in nightmare
   if (gameskill == sk_baby || gameskill == sk_nightmare || doubleammo)
