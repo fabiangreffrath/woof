@@ -121,20 +121,23 @@ void G_RefreshGameSkill(void)
 {
     skill_info = skill_infos[gameskill];
 
-    if (respawnparm && !skill_info.respawn_time)
+    if (!(gameskill == num_cskill))
+    {
+        if (respawnparm && !skill_info.respawn_time)
         skill_info.respawn_time = 12;
 
-    if (nomonsters)
-        skill_info.flags |= SI_NO_MONSTERS;
+        if (nomonsters)
+            skill_info.flags |= SI_NO_MONSTERS;
 
-    if (fastparm)
-        skill_info.flags |= SI_FAST_MONSTERS;
+        if (fastparm)
+            skill_info.flags |= SI_FAST_MONSTERS;
 
-    if (coopspawns)
-        skill_info.flags |= SI_SPAWN_MULTI;
+        if (coopspawns)
+            skill_info.flags |= SI_SPAWN_MULTI;
 
-    if (pistolstart)
-        skill_info.flags |= SI_PISTOL_START;
+        if (pistolstart)
+            skill_info.flags |= SI_PISTOL_START;
+    }
 
     G_RefreshFastMonsters();
 }
