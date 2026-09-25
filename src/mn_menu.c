@@ -2093,6 +2093,7 @@ void MN_ClearMenus(void)
     I_SetSensorEventState(false);
     G_ClearInput();
     M_ResumeSound();
+    MN_SetCurrentTabs(NULL);
 }
 
 static boolean MenuBack(void)
