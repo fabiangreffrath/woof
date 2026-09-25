@@ -177,6 +177,7 @@ static void DEH_TextParseLine(deh_context_t *context, char *line, int tag)
     // left the reader mid-line. Push back a newline so the main loop sees
     // an empty line next, ending the section and letting the following
     // line be read fresh afterwards.
+    DEH_Warning(context, "Text section does not end on end of line");
     DEH_UngetChar(context, '\n');
 }
 
