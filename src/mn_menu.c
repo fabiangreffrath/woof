@@ -627,6 +627,9 @@ static menu_t NewDef = {
 
 static void InitializeSkillMenu(void)
 {
+    if (NewDef.numitems)
+        return;
+
     NewDef.lastOn = default_skill - 1;
     NewDef.numitems = num_skills;
     NewDef.menuitems = calloc(num_skills, sizeof(*NewDef.menuitems));
@@ -3575,9 +3578,7 @@ void MN_StartControlPanel(void)
     //  Fix to make "always floating" with menu selections, and to always follow
     //  defaultskill, instead of -skill.
 
-    DO_ONCE
     InitializeSkillMenu();
-    END_ONCE
 
     default_verify = 0; // killough 10/98
     menuactive = 1;
