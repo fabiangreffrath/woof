@@ -38,6 +38,8 @@
 boolean brightmaps;
 boolean force_brightmaps;
 
+boolean use_brightmaps;
+
 #define COLORMASK_SIZE 256
 
 const byte nobrightmap[COLORMASK_SIZE] = {0};
@@ -82,9 +84,9 @@ static void ReadColormask(scanner_t *s, byte *colormask)
 static brightmap_t *allbrightmaps;
 
 static hashmap_t *textures_bm;
-static hashmap_t *flats_bm;
-static hashmap_t *sprites_bm;
-static hashmap_t *states_bm;
+static hashmap_t *flats_bm, *actual_flats_bm;
+static hashmap_t *sprites_bm, *actual_sprites_bm;
+static hashmap_t *states_bm, *actual_states_bm;
 
 static int GetBrightmap(const char *name)
 {
@@ -171,7 +173,7 @@ const byte *R_BrightmapForTexName(const char *texname)
 
 const byte *R_BrightmapForSprite(const int type)
 {
-    if ((STRICTMODE(brightmaps) || force_brightmaps) && sprites_bm)
+    if (sprites_bm)
     {
         int *idx = hashmap_get(sprites_bm, type);
         if (idx)
@@ -184,7 +186,7 @@ const byte *R_BrightmapForSprite(const int type)
 
 const byte *R_BrightmapForFlatNum(const int num)
 {
-    if ((STRICTMODE(brightmaps) || force_brightmaps) && flats_bm)
+    if (flats_bm)
     {
         int *idx = hashmap_get(flats_bm, num);
         if (idx)
@@ -197,7 +199,7 @@ const byte *R_BrightmapForFlatNum(const int num)
 
 const byte *R_BrightmapForState(const int state)
 {
-    if ((STRICTMODE(brightmaps) || force_brightmaps) && states_bm)
+    if (states_bm)
     {
         int *idx = hashmap_get(states_bm, state);
         if (idx)
@@ -257,6 +259,26 @@ const lighttable_t *R_GetBrightmappedColormap(
     return bm_colormap->colormap;
 }
 
+void R_ToggleBrightmaps(void)
+{
+    use_brightmaps = STRICTMODE(brightmaps) || force_brightmaps;
+
+    if (use_brightmaps)
+    {
+        flats_bm = actual_flats_bm;
+        sprites_bm = actual_sprites_bm;
+        states_bm = actual_sprites_bm;
+    }
+    else
+    {
+        flats_bm = NULL;
+        sprites_bm = NULL;
+        states_bm = NULL;
+    }
+
+    R_ToggleTextureBrightmaps();
+}
+
 void R_ParseBrightmaps(int lumpnum)
 {
     force_brightmaps = W_IsWADLump(lumpnum);
@@ -314,11 +336,11 @@ void R_ParseBrightmaps(int lumpnum)
                 {
                     if (!strcasecmp(name, sprnames[i]))
                     {
-                        if (!sprites_bm)
+                        if (!actual_sprites_bm)
                         {
-                            sprites_bm = hashmap_init(128, sizeof(int));
+                            actual_sprites_bm = hashmap_init(128, sizeof(int));
                         }
-                        hashmap_put(sprites_bm, i, &idx);
+                        hashmap_put(actual_sprites_bm, i, &idx);
                         break;
                     }
                 }
@@ -335,11 +357,11 @@ void R_ParseBrightmaps(int lumpnum)
                 int num = R_FlatNumForName(name);
                 if (num >= 0)
                 {
-                    if (!flats_bm)
+                    if (!actual_flats_bm)
                     {
-                        flats_bm = hashmap_init(64, sizeof(int));
+                        actual_flats_bm = hashmap_init(64, sizeof(int));
                     }
-                    hashmap_put(flats_bm, num, &idx);
+                    hashmap_put(actual_flats_bm, num, &idx);
                 }
             }
             free(name);
@@ -356,11 +378,11 @@ void R_ParseBrightmaps(int lumpnum)
             int idx = GetBrightmap(SC_GetString(s));
             if (idx >= 0)
             {
-                if (!states_bm)
+                if (!actual_states_bm)
                 {
-                    states_bm = hashmap_init(64, sizeof(int));
+                    actual_states_bm = hashmap_init(64, sizeof(int));
                 }
-                hashmap_put(states_bm, num, &idx);
+                hashmap_put(actual_states_bm, num, &idx);
             }
             else
             {
@@ -374,4 +396,6 @@ void R_ParseBrightmaps(int lumpnum)
     {
         MN_DisableBrightmapsItem();
     }
+
+    R_ToggleBrightmaps();
 }

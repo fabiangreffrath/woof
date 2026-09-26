@@ -120,7 +120,11 @@ byte      **texturecomposite2;
 int       *flattranslation;             // for global animation
 int       *flatterrain;
 int       *texturetranslation;
-const byte **texturebrightmap; // [crispy] brightmaps
+
+// [crispy] brightmaps
+const byte **texturebrightmap,
+           **actualtexturebrightmap,
+           **notexturebrightmap;
 
 // Really complex printing shit...
 static void M_ProgressBarStart(const int item_count, const char *msg)
@@ -557,6 +561,11 @@ byte *R_GetColumnMasked(int tex, int col)
   return texturecomposite[tex] + ofs;
 }
 
+void R_ToggleTextureBrightmaps(void)
+{
+  texturebrightmap = use_brightmaps ? actualtexturebrightmap : notexturebrightmap;
+}
+
 //
 // R_InitTextures
 // Initializes the texture list
@@ -566,7 +575,8 @@ byte *R_GetColumnMasked(int tex, int col)
 static inline void RegisterTexture(texture_t *texture, int i)
 {
     // [crispy] initialize brightmaps
-    texturebrightmap[i] = R_BrightmapForTexName(texture->name);
+    actualtexturebrightmap[i] = R_BrightmapForTexName(texture->name);
+    notexturebrightmap[i] = nobrightmap;
 
     // killough 4/9/98: make column offsets 32-bit;
     // clean up malloc-ing to use sizeof
@@ -712,7 +722,12 @@ void R_InitTextures (void)
   texturewidth =
     Z_Malloc(numtextures*sizeof*texturewidth, PU_STATIC, 0);
   textureheight = Z_Malloc(numtextures*sizeof*textureheight, PU_STATIC, 0);
-  texturebrightmap = Z_Malloc (numtextures * sizeof(*texturebrightmap), PU_STATIC, 0);
+
+  actualtexturebrightmap =
+    Z_Malloc (numtextures * sizeof(*actualtexturebrightmap), PU_STATIC, 0);
+
+  notexturebrightmap =
+    Z_Malloc (numtextures * sizeof(*notexturebrightmap), PU_STATIC, 0);
 
   // Complex printing shit factored out
   M_ProgressBarStart(numtextures, __func__);
@@ -846,6 +861,8 @@ void R_InitTextures (void)
       textures[i]->next = textures[j]->index;   // Prepend to chain
       textures[j]->index = i;
     }
+
+  R_ToggleTextureBrightmaps();
 }
 
 //

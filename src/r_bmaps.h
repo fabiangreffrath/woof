@@ -27,6 +27,10 @@ extern const byte nobrightmap[];
 extern boolean brightmaps;
 extern boolean force_brightmaps;
 
+extern boolean use_brightmaps;
+
+void R_ToggleBrightmaps(void);
+
 void R_ParseBrightmaps(int lumpnum);
 
 const byte *R_BrightmapForTexName(const char *texname);

@@ -223,9 +223,7 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
 
   dc_texturemid += side->interprowoffset + side->offsety_mid;
 
-  const byte *const brightmap = (STRICTMODE(brightmaps) || force_brightmaps)
-                              ? texturebrightmap[texnum]
-                              : nobrightmap;
+  const byte *const brightmap = texturebrightmap[texnum];
 
   // draw the columns
   for (dc_x = x1 ; dc_x <= x2 ; dc_x++, spryscale += rw_scalestep)
@@ -387,8 +385,6 @@ static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
 
   rendered_segs++;
 
-  const boolean use_brightmaps = (STRICTMODE(brightmaps) || force_brightmaps);
-
   for ( ; rw_x < rw_stopx ; rw_x++)
     {
       // mark floor / ceiling areas
@@ -452,8 +448,7 @@ static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
           dc_source = R_GetColumn(midtexture, texturecolumn + FixedToInt(curline->sidedef->offsetx_mid));
           dc_texheight = textureheight[midtexture]>>FRACBITS; // killough
 
-          const byte *const brightmap =
-            use_brightmaps ? texturebrightmap[midtexture] : nobrightmap;
+          const byte *const brightmap = texturebrightmap[midtexture];
 
           SideLightLevel_Mid(curline->sidedef);
           CalculateLighting(thiscolormap, rw_scale, brightmap);
@@ -483,8 +478,7 @@ static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
                   dc_source = R_GetColumn(toptexture, texturecolumn + FixedToInt(curline->sidedef->offsetx_top));
                   dc_texheight = textureheight[toptexture]>>FRACBITS;//killough
 
-                  const byte *const brightmap =
-                    use_brightmaps ? texturebrightmap[midtexture] : nobrightmap;
+                  const byte *const brightmap = texturebrightmap[midtexture];
 
                   SideLightLevel_Top(curline->sidedef);
                   CalculateLighting(thiscolormap, rw_scale, brightmap);
@@ -517,8 +511,7 @@ static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
                   dc_source = R_GetColumn(bottomtexture, texturecolumn + FixedToInt(curline->sidedef->offsetx_bottom));
                   dc_texheight = textureheight[bottomtexture]>>FRACBITS; // killough
 
-                  const byte *const brightmap =
-                    use_brightmaps ? texturebrightmap[midtexture] : nobrightmap;
+                  const byte *const brightmap = texturebrightmap[midtexture];
 
                   SideLightLevel_Bottom(curline->sidedef);
                   CalculateLighting(thiscolormap, rw_scale, brightmap);
