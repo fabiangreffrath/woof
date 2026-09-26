@@ -24,6 +24,9 @@
 #include "doomtype.h"
 #include "z_zone.h"
 
+#define QUICKSAVEPAGE (-1)
+#define AUTOSAVESLOT (0)
+
 static inline int CheckStreamLength(int32_t length)
 {
     return length > 0 && length < (1 << 28); // 256 MiB

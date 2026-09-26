@@ -12,6 +12,9 @@
   - The Minimap now always follows the player
   - The Automap player arrow has been widened for better visibility
   - Skip rest of line in DEHACKED lumps for Text section with too short length parameters
+  - The Load/Save Game menus are now organized in tabs, instead of pages.
+    The left-most tab of the Load Game menu is for Quick Saves, its first slot is reserved for Auto Save.
+    Quick Saves are now immediate and always override the oldest available slot.
 
 * **Rendering:**
   - Made the SDL renderer not be cleared every frame, for improved rendering performance in general.
@@ -32,6 +35,7 @@
 * Fixed minimap overlapping chat in Legacy of Rust
 * Fixed minimap key binding block cheat codes and chat messages
 * Fixed demo desync by menu-pausing during the intermission screen
+* Fixed DEHACKED-related crashes caused by calling player sprite actions as thinker functions (e.g. Blues Brothers 2023)
 
 ## Miscellaneous
 
