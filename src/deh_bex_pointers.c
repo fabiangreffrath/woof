@@ -42,28 +42,28 @@ const bex_codepointer_t bex_pointer_null = {"(NULL)", {NULL}};
 
 static const bex_codepointer_t bex_pointer_table[] =
 {
-    {"Light0",              {.p2 = A_Light0}                 },
-    {"WeaponReady",         {.p2 = A_WeaponReady}            },
-    {"Lower",               {.p2 = A_Lower}                  },
-    {"Raise",               {.p2 = A_Raise}                  },
-    {"Punch",               {.p2 = A_Punch}                  },
-    {"ReFire",              {.p2 = A_ReFire}                 },
-    {"FirePistol",          {.p2 = A_FirePistol}             },
-    {"Light1",              {.p2 = A_Light1}                 },
-    {"FireShotgun",         {.p2 = A_FireShotgun}            },
-    {"Light2",              {.p2 = A_Light2}                 },
-    {"FireShotgun2",        {.p2 = A_FireShotgun2}           },
-    {"CheckReload",         {.p2 = A_CheckReload}            },
-    {"OpenShotgun2",        {.p2 = A_OpenShotgun2}           },
-    {"LoadShotgun2",        {.p2 = A_LoadShotgun2}           },
-    {"CloseShotgun2",       {.p2 = A_CloseShotgun2}          },
-    {"FireCGun",            {.p2 = A_FireCGun}               },
-    {"GunFlash",            {.p2 = A_GunFlash}               },
-    {"FireMissile",         {.p2 = A_FireMissile}            },
-    {"Saw",                 {.p2 = A_Saw}                    },
-    {"FirePlasma",          {.p2 = A_FirePlasma}             },
-    {"BFGsound",            {.p2 = A_BFGsound}               },
-    {"FireBFG",             {.p2 = A_FireBFG}                },
+    {"Light0",              {.p3 = A_Light0}                 },
+    {"WeaponReady",         {.p3 = A_WeaponReady}            },
+    {"Lower",               {.p3 = A_Lower}                  },
+    {"Raise",               {.p3 = A_Raise}                  },
+    {"Punch",               {.p3 = A_Punch}                  },
+    {"ReFire",              {.p3 = A_ReFire}                 },
+    {"FirePistol",          {.p3 = A_FirePistol}             },
+    {"Light1",              {.p3 = A_Light1}                 },
+    {"FireShotgun",         {.p3 = A_FireShotgun}            },
+    {"Light2",              {.p3 = A_Light2}                 },
+    {"FireShotgun2",        {.p3 = A_FireShotgun2}           },
+    {"CheckReload",         {.p3 = A_CheckReload}            },
+    {"OpenShotgun2",        {.p3 = A_OpenShotgun2}           },
+    {"LoadShotgun2",        {.p3 = A_LoadShotgun2}           },
+    {"CloseShotgun2",       {.p3 = A_CloseShotgun2}          },
+    {"FireCGun",            {.p3 = A_FireCGun}               },
+    {"GunFlash",            {.p3 = A_GunFlash}               },
+    {"FireMissile",         {.p3 = A_FireMissile}            },
+    {"Saw",                 {.p3 = A_Saw}                    },
+    {"FirePlasma",          {.p3 = A_FirePlasma}             },
+    {"BFGsound",            {.p3 = A_BFGsound}               },
+    {"FireBFG",             {.p3 = A_FireBFG}                },
     {"BFGSpray",            {.p1 = A_BFGSpray}               },
     {"Explode",             {.p1 = A_Explode}                },
     {"Pain",                {.p1 = A_Pain}                   },
@@ -127,7 +127,7 @@ static const bex_codepointer_t bex_pointer_table[] =
     {"PlaySound",           {.p1 = A_PlaySound}              },
     {"RandomJump",          {.p1 = A_RandomJump}             },
     {"LineEffect",          {.p1 = A_LineEffect}             },
-    {"FireOldBFG",          {.p2 = A_FireOldBFG}             },
+    {"FireOldBFG",          {.p3 = A_FireOldBFG}             },
     {"BetaSkullAttack",     {.p1 = A_BetaSkullAttack}        },
     {"Stop",                {.p1 = A_Stop}                   },
     // MBF21
@@ -149,16 +149,16 @@ static const bex_codepointer_t bex_pointer_table[] =
     {"JumpIfFlagsSet",      {.p1 = A_JumpIfFlagsSet},      3 },
     {"AddFlags",            {.p1 = A_AddFlags},            2 },
     {"RemoveFlags",         {.p1 = A_RemoveFlags},         2 },
-    {"WeaponProjectile",    {.p2 = A_WeaponProjectile},    5 },
-    {"WeaponBulletAttack",  {.p2 = A_WeaponBulletAttack},  5, { 0, 0, 1, 5, 3 } },
-    {"WeaponMeleeAttack",   {.p2 = A_WeaponMeleeAttack},   5, { 2, 10, 1 * FRACUNIT, 0, 0 } },
-    {"WeaponSound",         {.p2 = A_WeaponSound},         2 },
-    {"WeaponAlert",         {.p2 = A_WeaponAlert},         0 },
-    {"WeaponJump",          {.p2 = A_WeaponJump},          2 },
-    {"ConsumeAmmo",         {.p2 = A_ConsumeAmmo},         1 },
-    {"CheckAmmo",           {.p2 = A_CheckAmmo},           2 },
-    {"RefireTo",            {.p2 = A_RefireTo},            2 },
-    {"GunFlashTo",          {.p2 = A_GunFlashTo},          2 },
+    {"WeaponProjectile",    {.p3 = A_WeaponProjectile},    5 },
+    {"WeaponBulletAttack",  {.p3 = A_WeaponBulletAttack},  5, { 0, 0, 1, 5, 3 } },
+    {"WeaponMeleeAttack",   {.p3 = A_WeaponMeleeAttack},   5, { 2, 10, 1 * FRACUNIT, 0, 0 } },
+    {"WeaponSound",         {.p3 = A_WeaponSound},         2 },
+    {"WeaponAlert",         {.p3 = A_WeaponAlert},         0 },
+    {"WeaponJump",          {.p3 = A_WeaponJump},          2 },
+    {"ConsumeAmmo",         {.p3 = A_ConsumeAmmo},         1 },
+    {"CheckAmmo",           {.p3 = A_CheckAmmo},           2 },
+    {"RefireTo",            {.p3 = A_RefireTo},            2 },
+    {"GunFlashTo",          {.p3 = A_GunFlashTo},          2 },
     {"NULL",                {NULL}                           },
 };
 
@@ -188,25 +188,25 @@ static translate_args_t translate_states[] = {
     { {.p1 = A_JumpIfTracerInSight }, arg_1 },
     { {.p1 = A_JumpIfTracerCloser },  arg_1 },
     { {.p1 = A_JumpIfFlagsSet },      arg_1 },
-    { {.p2 = A_WeaponJump },          arg_1 },
-    { {.p2 = A_CheckAmmo },           arg_1 },
-    { {.p2 = A_RefireTo },            arg_1 },
-    { {.p2 = A_GunFlashTo },          arg_1 },
+    { {.p3 = A_WeaponJump },          arg_1 },
+    { {.p3 = A_CheckAmmo },           arg_1 },
+    { {.p3 = A_RefireTo },            arg_1 },
+    { {.p3 = A_GunFlashTo },          arg_1 },
 };
 
 static translate_args_t translate_things[] = {
     { {.p1 = A_Spawn},              arg_misc1_inc },
     { {.p1 = A_SpawnObject},        arg_1_inc },
     { {.p1 = A_MonsterProjectile},  arg_1_inc },
-    { {.p2 = A_WeaponProjectile},   arg_1_inc },
+    { {.p3 = A_WeaponProjectile},   arg_1_inc },
 };
 
 static translate_args_t translate_sounds[] = {
     { {.p1 = A_PlaySound},          arg_misc1},
     { {.p1 = A_MonsterMeleeAttack}, arg_3 },
     { {.p1 = A_HealChase},          arg_2 },
-    { {.p2 = A_WeaponMeleeAttack},  arg_4 },
-    { {.p2 = A_WeaponSound},        arg_1 },
+    { {.p3 = A_WeaponMeleeAttack},  arg_4 },
+    { {.p3 = A_WeaponSound},        arg_1 },
 };
 
 static void TranslateArgs(state_t *state,
@@ -317,12 +317,12 @@ boolean DEH_CheckSafeState(statenum_t state)
             break;
         }
 
-        if (states[s].action.p2)
+        if (states[s].action.p3)
         {
             // [FG] A_Light*() considered harmless
-            if (states[s].action.p2 == (actionf_p2)A_Light0
-                || states[s].action.p2 == (actionf_p2)A_Light1
-                || states[s].action.p2 == (actionf_p2)A_Light2)
+            if (states[s].action.p3 == (actionf_p3)A_Light0
+                || states[s].action.p3 == (actionf_p3)A_Light1
+                || states[s].action.p3 == (actionf_p3)A_Light2)
             {
                 continue;
             }
