@@ -408,6 +408,8 @@ static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
             {
               ceilingplane->top[rw_x] = top;
               ceilingplane->bottom[rw_x] = bottom;
+              ceilingplane->miny = MIN(top, ceilingplane->miny);
+              ceilingplane->maxy = MAX(bottom, ceilingplane->maxy);
             }
         }
 
@@ -424,6 +426,8 @@ static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
             {
               floorplane->top[rw_x] = top;
               floorplane->bottom[rw_x] = bottom;
+              floorplane->miny = MIN(top, floorplane->miny);
+              floorplane->maxy = MAX(bottom, floorplane->maxy);
             }
         }
 

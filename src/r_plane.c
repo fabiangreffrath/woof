@@ -39,6 +39,7 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include "doomdef.h"
 #include "doomstat.h"
@@ -69,6 +70,37 @@ static visplane_t *visplanes[MAXVISPLANES];   // killough
 static visplane_t *freetail;                  // killough
 static visplane_t **freehead = &freetail;     // killough
 visplane_t *floorplane, *ceilingplane;
+
+typedef enum spantype_e
+{
+    Span_None,
+    Span_Original,
+    Span_PolyRaster_Log2_4,
+    Span_PolyRaster_Log2_8,
+    Span_PolyRaster_Log2_16,
+    Span_PolyRaster_Log2_32,
+} spantype_t;
+
+#define PLANE_PIXELLEAP_32			( 32 )
+#define PLANE_PIXELLEAP_32_LOG2		( 5 )
+
+#define PLANE_PIXELLEAP_16			( 16 )
+#define PLANE_PIXELLEAP_16_LOG2		( 4 )
+
+#define PLANE_PIXELLEAP_8			( 8 )
+#define PLANE_PIXELLEAP_8_LOG2		( 3 )
+
+#define PLANE_PIXELLEAP_4			( 4 )
+#define PLANE_PIXELLEAP_4_LOG2		( 2 )
+
+typedef struct rastercache_s
+{
+    lighttable_t*	    colormap[2];
+    fixed_t				height;
+    fixed_t				distance;
+} rastercache_t;
+
+static rastercache_t* raster = NULL;
 
 // killough -- hash function for visplanes
 // Empirically verified to be fairly uniform:
@@ -111,7 +143,7 @@ static angle_t rotation;
 static fixed_t angle_sin, angle_cos;
 static fixed_t viewx_trans, viewy_trans;
 
-fixed_t *yslope = NULL;
+fixed_t *yslope = NULL, *distscale = NULL;
 
 // [Nugget] Sky projection
 skyprojection_t sky_projection;
@@ -145,9 +177,12 @@ void R_InitPlanesRes(void)
   cachedrotation = Z_Calloc(video.height, sizeof(*cachedrotation), PU_RENDERER, NULL);
 
   yslope = Z_Calloc(video.height, sizeof(*yslope), PU_RENDERER, NULL);
+  distscale = Z_Calloc(video.width, sizeof(*distscale), PU_RENDERER, NULL);
 
   maxopenings = video.width * video.height;
   openings = Z_Calloc(maxopenings, sizeof(*openings), PU_RENDERER, NULL);
+  
+  raster = Z_Calloc(video.height, sizeof(*raster), PU_RENDERER, NULL);
 
   R_InitPlanes();
 }
@@ -168,6 +203,8 @@ void R_InitVisplanesRes(void)
 //
 // R_MapPlane
 //
+// Set up horizontal plane renderer
+// 
 // Uses global vars:
 //  planeheight
 //  ds_source
@@ -247,6 +284,42 @@ static void R_MapPlane(int y, int x1, int x2, const lighttable_t * const thiscol
   R_DrawSpan();
 }
 
+// Set up vertical plane renderer
+void R_PrepareVisplaneRaster( visplane_t* visplane, lighttable_t * thiscolormap)
+{
+    int32_t y = visplane->miny;
+    int32_t stop = visplane->maxy + 1;
+
+    while( y < stop )
+    {
+        if ( planeheight != raster[ y ].height )
+        {
+            raster[ y ].height		= planeheight;
+            raster[ y ].distance	= FixedMul ( planeheight, yslope[ y ] );
+        }
+
+        // TODO: THIS LOGIC IS BROKEN>>>>>>>>>>>>>>>>>>
+        //if( planecontext->planezlight != planecontext->raster[ y ].zlight )
+        {
+            if( fixedcolormapoffset )
+            {
+                raster[ y ].colormap[0] = thiscolormap + fixedcolormapoffset;
+                raster[ y ].colormap[1] = raster[ y ].colormap[0];
+            }
+            else
+            {
+                unsigned index = raster[ y ].distance >> LIGHTZSHIFT;
+                index = MIN(index, MAXLIGHTZ - 1);
+
+                raster[ y ].colormap[0] = thiscolormap + planezlightoffset[index];
+                raster[ y ].colormap[1] = thiscolormap;
+            }
+        }
+
+        ++y;
+    };
+}
+
 //
 // R_ClearPlanes
 // At begining of frame.
@@ -268,6 +341,8 @@ void R_ClearPlanes(void)
 
   // texture calculation
   memset(cachedheight, 0, viewheight * sizeof(*cachedheight));
+  
+  memset(raster, 0, sizeof(*raster));
 }
 
 // New function, by Lee Killough
@@ -304,6 +379,8 @@ visplane_t *R_DupPlane(const visplane_t *pl, int start, int stop)
     new_pl->rotation = pl->rotation;
     new_pl->minx = start;
     new_pl->maxx = stop;
+    new_pl->miny = pl->miny;
+    new_pl->maxy = pl->maxy;
     new_pl->tint = pl->tint;
     memset(new_pl->top, UCHAR_MAX, video.width * sizeof(*new_pl->top));
 
@@ -359,6 +436,8 @@ visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
   check->lightlevel = lightlevel;
   check->minx = viewwidth;            // Was SCREENWIDTH -- killough 11/98
   check->maxx = -1;
+  check->miny = viewheight;
+  check->maxy = -1;
   check->xoffs = xoffs;               // killough 2/28/98: Save offsets
   check->yoffs = yoffs;
   check->rotation = rotation;
@@ -545,10 +624,389 @@ static void DrawSkyDef(visplane_t *pl, sky_t *sky)
     }
 }
 
+// Vertical plane draw funcs
+
+#define RASTERISE_UNROLLED 1
+
+#define DOSAMPLE(z) spot = ( (yfrac & 0x3F0000 ) >> 10) | ( (xfrac & 0x3F0000 ) >> 16); \
+*dest++ = thisraster[z].colormap[0][ds_source[spot]]; \
+xfrac += xstep; \
+yfrac += ystep;
+
+// Used http://www.lysator.liu.se/~mikaelk/doc/perspectivetexture/ as reference for how to implement an efficient rasteriser
+// Implemented for several Log2( N ) values, select based on backbuffer width
+
+static void R_RasteriseVisplaneColumn_Log2_32( visplane_t* visplane, int32_t x )
+{
+    pixel_t*			dest			= xlookup[ x ] + rowofs[ visplane->top[ x ] ];
+
+    int32_t				ybase			= visplane->top[ x ];
+    int32_t				ycache			= ybase;
+    int32_t				count			= visplane->bottom[ x ] - ybase;
+
+    angle_t				angle			= (viewangle + xtoviewangle[ x ] ) >> ANGLETOFINESHIFT;
+    fixed_t				anglecos		= finecosine[ angle ];
+    fixed_t				anglesin		= finesine[ angle ];
+
+    fixed_t				currdistance	= raster[ ybase ].distance;
+    fixed_t				currlength		= FixedMul( currdistance, distscale[ x ] );
+
+    fixed_t				xfrac		= viewx + FixedMul( anglecos, currlength );
+    fixed_t				yfrac		= -viewy - FixedMul( anglesin, currlength );
+    fixed_t				nextxfrac;
+    fixed_t				nextyfrac;
+
+    fixed_t				xstep;
+    fixed_t				ystep;
+
+    int32_t				spot;
+
+    rastercache_t*		thisraster;
+
+    while( count >= PLANE_PIXELLEAP_32 )
+    {
+        ycache			= ybase + PLANE_PIXELLEAP_32;
+        currdistance	= raster[ ycache ].distance;
+        currlength		= FixedMul ( currdistance, distscale[ x ] );
+        nextxfrac		= viewx + FixedMul( anglecos, currlength );
+        nextyfrac		= -viewy - FixedMul( anglesin, currlength );
+        thisraster		= &raster[ybase];
+
+        xstep =	( nextxfrac - xfrac ) >> PLANE_PIXELLEAP_32_LOG2;
+        ystep =	( nextyfrac - yfrac ) >> PLANE_PIXELLEAP_32_LOG2;
+
+#if !RASTERISE_UNROLLED
+        do
+        {
+            DOSAMPLE();
+        } while( ybase < ycache );
+#else // RASTERISE_UNROLLED
+
+        DOSAMPLE(0);
+        DOSAMPLE(1);
+        DOSAMPLE(2);
+        DOSAMPLE(3);
+        DOSAMPLE(4);
+        DOSAMPLE(5);
+        DOSAMPLE(6);
+        DOSAMPLE(7);
+        DOSAMPLE(8);
+        DOSAMPLE(9);
+        DOSAMPLE(10);
+        DOSAMPLE(11);
+        DOSAMPLE(12);
+        DOSAMPLE(13);
+        DOSAMPLE(14);
+        DOSAMPLE(15);
+        DOSAMPLE(16);
+        DOSAMPLE(17);
+        DOSAMPLE(18);
+        DOSAMPLE(19);
+        DOSAMPLE(20);
+        DOSAMPLE(21);
+        DOSAMPLE(22);
+        DOSAMPLE(23);
+        DOSAMPLE(24);
+        DOSAMPLE(25);
+        DOSAMPLE(26);
+        DOSAMPLE(27);
+        DOSAMPLE(28);
+        DOSAMPLE(29);
+        DOSAMPLE(30);
+        DOSAMPLE(31);
+
+#endif // !RASTERISE_UNROLLED
+
+        xfrac = nextxfrac;
+        yfrac = nextyfrac;
+
+        ybase += PLANE_PIXELLEAP_32;
+        count -= PLANE_PIXELLEAP_32;
+    };
+
+    if( count >= 0 )
+    {
+        ycache			= ybase + count;
+        currdistance	= raster[ ycache ].distance;
+        currlength		= FixedMul ( currdistance, distscale[ x ] );
+        nextxfrac		= viewx + FixedMul( anglecos, currlength );
+        nextyfrac		= -viewy - FixedMul( anglesin, currlength );
+
+        xstep =	( nextxfrac - xfrac ) / ( count + 1 );
+        ystep =	( nextyfrac - yfrac ) / ( count + 1 );
+
+        do
+        {
+            thisraster = &raster[ybase++];
+            DOSAMPLE(0);
+        } while( ybase <= ycache );
+    }
+
+}
+
+static void R_RasteriseVisplaneColumn_Log2_16( visplane_t* visplane, int32_t x )
+{
+    pixel_t*			dest			= xlookup[ x ] + rowofs[ visplane->top[ x ] ];
+
+    int32_t				ybase			= visplane->top[ x ];
+    int32_t				ycache			= ybase;
+    int32_t				count			= visplane->bottom[ x ] - ybase;
+
+    angle_t				angle			= (viewangle + xtoviewangle[ x ] ) >> ANGLETOFINESHIFT;
+    fixed_t				anglecos		= finecosine[ angle ];
+    fixed_t				anglesin		= finesine[ angle ];
+
+    fixed_t				currdistance	= raster[ ybase ].distance;
+    fixed_t				currlength		= FixedMul ( currdistance, distscale[ x ] );
+
+    fixed_t				xfrac			= viewx + FixedMul( anglecos, currlength );
+    fixed_t				yfrac			= -viewy - FixedMul( anglesin, currlength );
+    fixed_t				nextxfrac;
+    fixed_t				nextyfrac;
+
+    fixed_t				xstep;
+    fixed_t				ystep;
+
+    int32_t				spot;
+
+    rastercache_t*		thisraster;
+
+    while( count >= PLANE_PIXELLEAP_16 )
+    {
+        ycache			= ybase + PLANE_PIXELLEAP_16;
+        currdistance	= raster[ ycache ].distance;
+        currlength		= FixedMul ( currdistance, distscale[ x ] );
+        nextxfrac		= viewx + FixedMul( anglecos, currlength );
+        nextyfrac		= -viewy - FixedMul( anglesin, currlength );
+        thisraster		= &raster[ybase];
+
+        xstep =	( nextxfrac - xfrac ) >> PLANE_PIXELLEAP_16_LOG2;
+        ystep =	( nextyfrac - yfrac ) >> PLANE_PIXELLEAP_16_LOG2;
+
+#if !RASTERISE_UNROLLED
+        do
+        {
+            DOSAMPLE();
+        } while( ybase < ycache );
+#else // RASTERISE_UNROLLED
+
+        DOSAMPLE(0);
+        DOSAMPLE(1);
+        DOSAMPLE(2);
+        DOSAMPLE(3);
+        DOSAMPLE(4);
+        DOSAMPLE(5);
+        DOSAMPLE(6);
+        DOSAMPLE(7);
+        DOSAMPLE(8);
+        DOSAMPLE(9);
+        DOSAMPLE(10);
+        DOSAMPLE(11);
+        DOSAMPLE(12);
+        DOSAMPLE(13);
+        DOSAMPLE(14);
+        DOSAMPLE(15);
+
+#endif // !RASTERISE_UNROLLED
+
+        xfrac = nextxfrac;
+        yfrac = nextyfrac;
+
+        ybase += PLANE_PIXELLEAP_16;
+        count -= PLANE_PIXELLEAP_16;
+    };
+
+    if( count >= 0 )
+    {
+        ycache			= ybase + count;
+        currdistance	= raster[ ycache ].distance;
+        currlength		= FixedMul ( currdistance, distscale[ x ] );
+        nextxfrac		= viewx + FixedMul( anglecos, currlength );
+        nextyfrac		= -viewy - FixedMul( anglesin, currlength );
+
+        xstep =	( nextxfrac - xfrac ) / ( count + 1 );
+        ystep =	( nextyfrac - yfrac ) / ( count + 1 );
+
+        do
+        {
+            thisraster = &raster[ybase++];
+            DOSAMPLE(0);
+        } while( ybase <= ycache );
+    }
+
+}
+
+static void R_RasteriseVisplaneColumn_Log2_8( visplane_t* visplane, int32_t x )
+{
+    pixel_t*			dest			= xlookup[ x ] + rowofs[ visplane->top[ x ] ];
+
+    int32_t				ybase			= visplane->top[ x ];
+    int32_t				ycache			= ybase;
+    int32_t				count			= visplane->bottom[ x ] - ybase;
+
+    angle_t				angle			= (viewangle + xtoviewangle[ x ] ) >> ANGLETOFINESHIFT;
+    fixed_t				anglecos		= finecosine[ angle ];
+    fixed_t				anglesin		= finesine[ angle ];
+
+    fixed_t				currdistance	= raster[ ybase ].distance;
+    fixed_t				currlength		= FixedMul ( currdistance, distscale[ x ] );
+
+    fixed_t				xfrac			= viewx + FixedMul( anglecos, currlength );
+    fixed_t				yfrac			= -viewy - FixedMul( anglesin, currlength );
+    fixed_t				nextxfrac;
+    fixed_t				nextyfrac;
+
+    fixed_t				xstep;
+    fixed_t				ystep;
+
+    int32_t				spot;
+
+    rastercache_t*		thisraster;
+
+    while( count >= PLANE_PIXELLEAP_8 )
+    {
+        ycache			= ybase + PLANE_PIXELLEAP_8;
+        currdistance	= raster[ ycache ].distance;
+        currlength		= FixedMul ( currdistance, distscale[ x ] );
+        nextxfrac		= viewx + FixedMul( anglecos, currlength );
+        nextyfrac		= -viewy - FixedMul( anglesin, currlength );
+        thisraster		= &raster[ybase];
+
+        xstep =	( nextxfrac - xfrac ) >> PLANE_PIXELLEAP_8_LOG2;
+        ystep =	( nextyfrac - yfrac ) >> PLANE_PIXELLEAP_8_LOG2;
+
+#if !RASTERISE_UNROLLED
+        do
+        {
+            DOSAMPLE();
+        } while( ybase < ycache );
+#else // RASTERISE_UNROLLED
+
+        DOSAMPLE(0);
+        DOSAMPLE(1);
+        DOSAMPLE(2);
+        DOSAMPLE(3);
+        DOSAMPLE(4);
+        DOSAMPLE(5);
+        DOSAMPLE(6);
+        DOSAMPLE(7);
+
+#endif // !RASTERISE_UNROLLED
+
+        xfrac = nextxfrac;
+        yfrac = nextyfrac;
+
+        ybase += PLANE_PIXELLEAP_8;
+        count -= PLANE_PIXELLEAP_8;
+    };
+
+    if( count >= 0 )
+    {
+        ycache			= ybase + count;
+        currdistance	= raster[ ycache ].distance;
+        currlength		= FixedMul ( currdistance, distscale[ x ] );
+        nextxfrac		= viewx + FixedMul( anglecos, currlength );
+        nextyfrac		= -viewy - FixedMul( anglesin, currlength );
+
+        xstep =	( nextxfrac - xfrac ) / ( count + 1 );
+        ystep =	( nextyfrac - yfrac ) / ( count + 1 );
+
+        do
+        {
+            thisraster = &raster[ybase++];
+            DOSAMPLE(0);
+        } while( ybase <= ycache );
+    }
+
+}
+
+// This is probably the version that will get SIMD'd, with unrolling from there
+static void R_RasteriseVisplaneColumn_Log2_4( visplane_t* visplane, int32_t x )
+{
+    pixel_t*			dest			= xlookup[ x ] + rowofs[ visplane->top[ x ] ];
+
+    int32_t				ybase			= visplane->top[ x ];
+    int32_t				ycache			= ybase;
+    int32_t				count			= visplane->bottom[ x ] - ybase;
+
+    angle_t				angle			= (viewangle + xtoviewangle[ x ] ) >> ANGLETOFINESHIFT;
+    fixed_t				anglecos		= finecosine[ angle ];
+    fixed_t				anglesin		= finesine[ angle ];
+
+    fixed_t				currdistance	= raster[ ybase ].distance;
+    fixed_t				currlength		= FixedMul ( currdistance, distscale[ x ] );
+
+    fixed_t				xfrac			= viewx + FixedMul( anglecos, currlength );
+    fixed_t				yfrac			= -viewy - FixedMul( anglesin, currlength );
+    fixed_t				nextxfrac;
+    fixed_t				nextyfrac;
+
+    fixed_t				xstep;
+    fixed_t				ystep;
+
+    int32_t				spot;
+
+    rastercache_t*		thisraster;
+
+    while( count >= PLANE_PIXELLEAP_4 )
+    {
+        ycache			= ybase + PLANE_PIXELLEAP_4;
+        currdistance	= raster[ ycache ].distance;
+        currlength		= FixedMul ( currdistance, distscale[ x ] );
+        nextxfrac		= viewx + FixedMul( anglecos, currlength );
+        nextyfrac		= -viewy - FixedMul( anglesin, currlength );
+        thisraster		= &raster[ybase];
+
+        xstep =	( nextxfrac - xfrac ) >> PLANE_PIXELLEAP_4_LOG2;
+        ystep =	( nextyfrac - yfrac ) >> PLANE_PIXELLEAP_4_LOG2;
+
+#if !RASTERISE_UNROLLED
+        do
+        {
+            DOSAMPLE();
+        } while( ybase < ycache );
+#else // RASTERISE_UNROLLED
+
+        DOSAMPLE(0);
+        DOSAMPLE(1);
+        DOSAMPLE(2);
+        DOSAMPLE(3);
+
+#endif // !RASTERISE_UNROLLED
+
+        xfrac = nextxfrac;
+        yfrac = nextyfrac;
+
+        ybase += PLANE_PIXELLEAP_4;
+        count -= PLANE_PIXELLEAP_4;
+    };
+
+    if( count >= 0 )
+    {
+        ycache			= ybase + count;
+        currdistance	= raster[ ycache ].distance;
+        currlength		= FixedMul ( currdistance, distscale[ x ] );
+        nextxfrac		= viewx + FixedMul( anglecos, currlength );
+        nextyfrac		= -viewy - FixedMul( anglesin, currlength );
+
+        xstep =	( nextxfrac - xfrac ) / ( count + 1 );
+        ystep =	( nextyfrac - yfrac ) / ( count + 1 );
+
+        do
+        {
+            thisraster = &raster[ybase++];
+            DOSAMPLE(0);
+        } while( ybase <= ycache );
+    }
+
+}
+
 // New function, by Lee Killough
 
 static void do_draw_plane(visplane_t *pl)
 {
+    int32_t			x;
+    
     if (pl->minx > pl->maxx)
     {
         return;
@@ -627,14 +1085,66 @@ static void do_draw_plane(visplane_t *pl)
 
     planezlightoffset = zlightoffset[light];
 
-    const lighttable_t * const thiscolormap = (pl->tint >= 0)
-                                            ? colormaps[pl->tint]
-                                            : fullcolormap;
+    lighttable_t * thiscolormap = (pl->tint >= 0)
+                                ? colormaps[pl->tint]
+                                : fullcolormap;
 
-    for (int x = pl->minx; x <= stop; x++)
+    int32_t span_type = MIN( (int32_t)( log2f( video.height * 0.02f ) + 0.5f ), Span_PolyRaster_Log2_32);
+    
+    if (span_type == Span_Original)
     {
-        R_MakeSpans(x, pl->top[x - 1], pl->bottom[x - 1], pl->top[x],
-                    pl->bottom[x], thiscolormap);
+        for (int x = pl->minx; x <= stop; x++)
+        {
+            R_MakeSpans(x, pl->top[x - 1], pl->bottom[x - 1], pl->top[x],
+                pl->bottom[x], thiscolormap);
+        }
+    }
+    else
+    {
+        R_PrepareVisplaneRaster(pl, thiscolormap);
+
+        switch (span_type)
+        {
+        case Span_PolyRaster_Log2_4:
+            for (x = pl->minx; x <= stop; x++)
+            {
+                if (pl->top[x] <= pl->bottom[x])
+                {
+                    R_RasteriseVisplaneColumn_Log2_4(pl, x);
+                }
+            }
+            break;
+
+        case Span_PolyRaster_Log2_8:
+            for (x = pl->minx; x <= stop; x++)
+            {
+                if (pl->top[x] <= pl->bottom[x])
+                {
+                    R_RasteriseVisplaneColumn_Log2_8(pl, x);
+                }
+            }
+            break;
+
+        case Span_PolyRaster_Log2_16:
+            for (x = pl->minx; x <= stop; x++)
+            {
+                if (pl->top[x] <= pl->bottom[x])
+                {
+                    R_RasteriseVisplaneColumn_Log2_16(pl, x);
+                }
+            }
+            break;
+
+        case Span_PolyRaster_Log2_32:
+            for (x = pl->minx; x <= stop; x++)
+            {
+                if (pl->top[x] <= pl->bottom[x])
+                {
+                    R_RasteriseVisplaneColumn_Log2_32(pl, x);
+                }
+            }
+            break;
+        }
     }
 
     if (!swirling)
