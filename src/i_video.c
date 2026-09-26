@@ -110,6 +110,8 @@ typedef enum
 
 static aspect_ratio_mode_t widescreen, default_widescreen;
 
+static boolean clear_every_frame;
+
 // [FG] rendering window, renderer, intermediate ARGB frame buffer and texture
 
 static SDL_Window *screen;
@@ -119,7 +121,7 @@ static SDL_Texture *texture;
 static SDL_Rect src_rect = {0}, dst_rect = {0};
 static SDL_FRect src_frect = {0.0f}, dst_frect = {0.0f};
 
-static boolean clearneeded = false;
+static unsigned clearneeded = 0;
 
 static int window_width, window_height;
 static int default_window_width, default_window_height;
@@ -490,6 +492,18 @@ void I_ToggleVsync(void)
     UpdateLimiter();
 }
 
+static void DeferredRenderClear(void)
+{
+    // SDL might be using a swapchain for rendering,
+    // so a call to SDL_RenderClear might only clear a single buffer;
+    // thus, we queue multiple clears for the following frames
+
+    // We don't know the specifics of SDL's current renderer,
+    // so we'll assume that 60 frames is enough to clear all buffers
+
+    clearneeded = 60;
+}
+
 static void ProcessEvent(SDL_Event *ev)
 {
     switch (ev->type)
@@ -705,10 +719,11 @@ static void UpdateRender(void)
 
     SDL_UnlockTexture(texture);
 
-    if (clearneeded)
+    if (clear_every_frame || clearneeded)
     {
         SDL_RenderClear(renderer);
-        clearneeded = false;
+
+        clearneeded = clear_every_frame ? 0 : clearneeded - 1;
     }
 
     SDL_RenderTextureRotated(renderer, texture, &src_frect, &dst_frect, 90.0, NULL, SDL_FLIP_VERTICAL);
@@ -1060,7 +1075,7 @@ void I_SetPalette(byte *playpal)
         SDL_SetRenderDrawColor(renderer, colors[0].r, colors[0].g, colors[0].b,
                                SDL_ALPHA_OPAQUE);
 
-        clearneeded = true;
+        DeferredRenderClear();
     }
 }
 
@@ -1710,7 +1725,7 @@ void I_ResetScreen(void)
     SDL_SetTextureScaleMode(texture, smooth_scaling ? SDL_SCALEMODE_PIXELART
                                                     : SDL_SCALEMODE_NEAREST);
 
-    clearneeded = true;
+    DeferredRenderClear();
 }
 
 void I_ShutdownGraphics(void)
@@ -1785,6 +1800,10 @@ void I_BindVideoVariables(void)
               wad_no, "Field of view in degrees");
     BIND_NUM_GENERAL(gamma2, 9, 0, 17, "Custom gamma level (0 = -4; 9 = 0; 17 = 4)");
     BIND_BOOL_GENERAL(smooth_scaling, true, "Smooth pixel scaling");
+
+    BIND_BOOL(clear_every_frame, true,
+        "Clear SDL renderer every frame (disabling might improve performance "
+        "and/or provoke flickering on window borders)");
 
     BIND_BOOL(vga_porch_flash, false, "Emulate VGA \"porch\" behaviour");
     BIND_BOOL(disk_icon, false, "Flashing icon during disk I/O");

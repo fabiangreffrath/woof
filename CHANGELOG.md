@@ -17,10 +17,10 @@
     Quick Saves are now immediate and always override the oldest available slot.
 
 * **Rendering:**
-  - Made the SDL renderer not be cleared every frame, for improved rendering performance in general.
   - Improved palettization of PNG graphics, and general color approximation in the engine.
   - Implemented transposed rendering for improved rendering performance in general.
   - Added "Cylindrical" sky projection as a third option besides "Vanilla" and "Linear" (from Nugget Doom).
+  - Added the `clear_every_frame` config key to disable clearing of SDL's renderer every frame.
 
 ## Bug Fixes
 
