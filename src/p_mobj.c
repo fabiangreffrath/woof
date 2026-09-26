@@ -972,6 +972,14 @@ int iquehead, iquetail;
 
 void P_RemoveMobj (mobj_t *mobj)
 {
+  // A second removal of an already-removed mobj would unlink it from the
+  // sector thing list again with stale snext/sprev, corrupting the list.
+  if (mobj->thinker.function.p1 == P_RemoveMobjThinkerDelayed)
+  {
+    I_Printf(VB_ERROR, "%s: second removal of an already-removed mobj", __func__);
+    return;
+  }
+
   if (!((mobj->flags ^ MF_SPECIAL) & (MF_SPECIAL | MF_DROPPED))
       && mobj->type != MT_INV && mobj->type != MT_INS)
     {
