@@ -216,7 +216,7 @@ void R_InitVisplanesRes(void)
 // BASIC PRIMITIVE
 //
 
-static void R_MapPlane(int y, int x1, int x2, lighttable_t * thiscolormap)
+static void R_MapPlane(int y, int x1, int x2, const lighttable_t * const thiscolormap)
 {
   fixed_t distance;
   int dx;
@@ -978,8 +978,6 @@ static void R_RasteriseVisplaneColumn_Log2_4( visplane_t* visplane, int32_t x )
 		nextxfrac		= viewx + FixedMul( anglecos, currlength );
 		nextyfrac		= -viewy - FixedMul( anglesin, currlength );
 
-		xfrac = xfrac;
-		yfrac = yfrac;
 		xstep =	( nextxfrac - xfrac ) / ( count + 1 );
 		ystep =	( nextyfrac - yfrac ) / ( count + 1 );
 
