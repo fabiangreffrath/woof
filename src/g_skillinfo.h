@@ -23,6 +23,7 @@
 
 typedef enum
 {
+    SI_NONE = 0,
     SI_SPAWN_MULTI = (1u << 0),
     SI_FAST_MONSTERS = (1u << 1),
     SI_INSTANT_REACTION = (1u << 2),
