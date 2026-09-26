@@ -627,7 +627,7 @@ static menu_t NewDef = {
 
 static void InitializeSkillMenu(void)
 {
-    if (NewDef.numitems)
+    if (NewDef.numitems)  // Already initialized?
         return;
 
     NewDef.lastOn = default_skill - 1;
@@ -641,7 +641,7 @@ static void InitializeSkillMenu(void)
 
         if (skill_infos[i].pic_name)
             M_CopyLumpName(NewDef.menuitems[i].name, skill_infos[i].pic_name);
-        
+
         NewDef.menuitems[i].alttext = skill_infos[i].name;
 
         NewDef.menuitems[i].routine = M_ChooseSkill;
@@ -650,7 +650,15 @@ static void InitializeSkillMenu(void)
         if (skill_infos[i].flags & SI_DEFAULT_SKILL)
             NewDef.lastOn = i;
     }
-    NewDef.menuitems[num_cskill] = (menuitem_t){1, "M_CSTSKL", M_CustomSkill, 'c', "Custom Skill...", NEW_GAME_RECT(num_cskill), MF_OPTLUMP};
+    menuitem_t cskill_item = {.status = 1,
+                              .name = "M_CSTSKL",
+                              .routine = M_CustomSkill,
+                              .alphaKey = 'c',
+                              .alttext = "Custom Skill...",
+                              .rect = NEW_GAME_RECT(num_cskill),
+                              .flags = MF_OPTLUMP};
+
+    NewDef.menuitems[num_cskill] = cskill_item;
     M_InitCustomSkill();
 
     if (NewDef.lastOn >= num_skills)
@@ -715,7 +723,7 @@ static void M_FinishGameSelection(void)
     MN_ClearMenus();
 }
 
-static void M_VerifySkill(int ch)
+static void VerifySkill(int ch)
 {
     if (ch != 'y')
     {
@@ -738,7 +746,7 @@ void M_ChooseSkill(int choice)
         else
             message = DEH_String(NIGHTMARE);
 
-        M_StartMessage(message, M_VerifySkill, true);
+        M_StartMessage(message, VerifySkill, true);
         return;
     }
 

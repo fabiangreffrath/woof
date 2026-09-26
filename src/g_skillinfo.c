@@ -136,7 +136,6 @@ static void ParseSkillDef()
 
 void G_InitSkills(void)
 {
-
     num_skills = 5 + 1; // Custom skill
     num_og_skills = num_skills - 1;
     num_cskill = num_og_skills;
@@ -147,7 +146,7 @@ void G_InitSkills(void)
 void G_UpdateCustomSkill(int custom_skill_num)
 {
     skill_infos[custom_skill_num].name = "Custom Skill...";
-    skill_infos[custom_skill_num].flags = 0;
+    skill_infos[custom_skill_num].flags = SI_NONE;
     skill_infos[custom_skill_num].respawn_time = 0;
 
     skill_infos[custom_skill_num].spawn_filter = csmenu_skill + 1;
