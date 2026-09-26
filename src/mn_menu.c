@@ -749,11 +749,9 @@ enum
     load_end
 } load_e;
 
-#define SAVE_LOAD_RECT_Y(m_y, n) ((m_y) + (n) * LINEHEIGHT - 7)
-
-#define SAVE_LOAD_RECT(n)                                               \
-    {M_X_LOADSAVE, SAVE_LOAD_RECT_Y(M_Y_LOADSAVE, n), M_LOADSAVE_WIDTH, \
-     LINEHEIGHT}
+#define SAVE_LOAD_RECT(n)                                    \
+    {M_X_LOADSAVE - 11, M_Y_LOADSAVE + (n) * LINEHEIGHT - 5, \
+     M_LOADSAVE_WIDTH + 8, LINEHEIGHT}
 
 // The definitions of the Load Game screen
 
@@ -1181,7 +1179,7 @@ static void UpdateRectX(menu_t *menu, int x)
 {
     for (int i = 0; i < menu->numitems; i++)
     {
-        menu->menuitems[i].rect.x = x;
+        menu->menuitems[i].rect.x = x - 11;
     }
 }
 
@@ -3443,7 +3441,10 @@ void M_Drawer(void)
 
         mrect_t *rect = &item->rect;
         // due to the MainMenu[] hacks, we have to set `y` here
-        rect->y = y;
+        if (!AnyLoadSaveMenu())
+        {
+            rect->y = y;
+        }
 
         // [FG] at least one menu graphics lump is missing, draw alternative
         // text
@@ -3575,7 +3576,7 @@ static void WriteTextCR(int x, int y, byte *cr, const char *string)
         }
 
         w = SHORT(hu_font[c]->width);
-        if (cx + w > SCREENWIDTH)
+        if (cx + w > SCREENWIDTH + video.deltaw)
         {
             break;
         }

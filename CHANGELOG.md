@@ -36,6 +36,7 @@
 * Fixed minimap key binding block cheat codes and chat messages
 * Fixed demo desync by menu-pausing during the intermission screen
 * Fixed DEHACKED-related crashes caused by calling player sprite actions as thinker functions (e.g. Blues Brothers 2023)
+* Fixed mouse hit boxes for savegame entries in the Load Game / Save Game menus
 
 ## Miscellaneous
 
