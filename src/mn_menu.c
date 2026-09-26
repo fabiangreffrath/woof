@@ -52,6 +52,7 @@
 #include "mn_menu.h"
 #include "mn_snapshot.h"
 #include "p_saveg.h"
+#include "r_data.h"
 #include "r_defs.h"
 #include "r_draw.h"
 #include "r_main.h"
@@ -2461,7 +2462,7 @@ boolean M_ShortcutResponder(const event_t *ev)
             gamma2 = 0;
         }
         togglemsg("Gamma correction level %s", gamma_strings[gamma2]);
-        MN_ResetGamma();
+        V_ResetPalette();
         return true;
     }
 

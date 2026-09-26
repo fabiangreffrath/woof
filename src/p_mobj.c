@@ -45,7 +45,7 @@
 #include "sounds.h"
 #include "st_stuff.h"
 #include "tables.h"
-#include "v_video.h"
+#include "v_trans.h"
 #include "z_zone.h"
 
 boolean direct_vertical_aiming, default_direct_vertical_aiming;

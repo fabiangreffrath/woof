@@ -16,8 +16,9 @@
 
 #include "doomdef.h"
 #include "doomtype.h"
-#include "doomstat.h"
 #include "r_defs.h"
+#include "v_palette.h"
+#include "v_trans.h"
 #include "v_video.h"
 
 typedef enum

@@ -40,6 +40,7 @@
 #include "p_mobj.h"
 #include "p_setup.h"
 #include "p_spec.h"
+#include "r_data.h"
 #include "r_defs.h"
 #include "r_main.h"
 #include "r_state.h"
@@ -48,6 +49,7 @@
 #include "tables.h"
 #include "v_flextran.h"
 #include "v_patch.h"
+#include "v_trans.h"
 #include "v_video.h"
 #include "ws_stuff.h"
 #include "z_zone.h"
@@ -2777,20 +2779,10 @@ void AM_ApplyColors(boolean force)
     }
     first_time = false;
 
-    byte *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
-    byte *iwad_playpal = NULL;
+    const playpal_t *playpal_iwad = &list_playpal[PAL_IWAD];
+    boolean is_same = (playpal_iwad->num == playpal_global->num);
 
-    for (int i = 0; i < numlumps; i++)
-    {
-        if (strcasecmp(lumpinfo[i].name, "PLAYPAL") == 0)
-        {
-            iwad_playpal = W_CacheLumpNum(i, PU_STATIC);
-            break;
-        }
-    }
-
-    if (iwad_playpal == NULL || playpal == iwad_playpal
-        || M_CheckIfDisabled("mapcolor_preset"))
+    if (is_same || M_CheckIfDisabled("mapcolor_preset"))
     {
         for (int i = 0; mapcolors[i].cur_var; i++)
         {
@@ -2802,11 +2794,11 @@ void AM_ApplyColors(boolean force)
         for (int i = 0; mapcolors[i].cur_var; i++)
         {
             const int j = *mapcolors[i].var;
-            byte r = iwad_playpal[3 * j + 0],
-                 g = iwad_playpal[3 * j + 1],
-                 b = iwad_playpal[3 * j + 2];
+            const byte r = playpal_iwad->base[j].r,
+                       g = playpal_iwad->base[j].g,
+                       b = playpal_iwad->base[j].b;
 
-            *mapcolors[i].cur_var = I_GetNearestColor(playpal, r, g, b);
+            *mapcolors[i].cur_var = V_GetNearestColor(PAL_GLOBAL, r, g, b);
         }
     }
 
@@ -2818,9 +2810,6 @@ void AM_ApplyColors(boolean force)
     door_color_B = cur_mapcolor_bdor ? cur_mapcolor_bdor : cur_mapcolor_cchg;
     door_color_Y = cur_mapcolor_ydor ? cur_mapcolor_ydor : cur_mapcolor_cchg;
     door_color_misc = cur_mapcolor_clsd ? cur_mapcolor_clsd : cur_mapcolor_cchg;
-
-    Z_ChangeTag(playpal, PU_CACHE);
-    Z_ChangeTag(iwad_playpal, PU_CACHE);
 }
 
 void AM_ColorPreset(void)

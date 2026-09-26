@@ -47,7 +47,7 @@
 #include "r_state.h"
 #include "s_sound.h"
 #include "sounds.h"
-#include "v_video.h"
+#include "v_trans.h"
 #include "z_zone.h"
 
 static mobj_t    *tmthing;

@@ -25,8 +25,8 @@
 
 #include <SDL3/SDL.h>
 
+#include <float.h>
 #include <limits.h>
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -38,6 +38,7 @@
 #include "doomstat.h"
 #include "g_game.h"
 #include "i_exit.h"
+#include "i_gamma.h"
 #include "i_input.h"
 #include "i_printf.h"
 #include "i_system.h"
@@ -52,10 +53,10 @@
 #include "r_draw.h"
 #include "r_main.h"
 #include "r_plane.h"
-#include "r_srgb.h"
 #include "r_voxel.h"
 #include "s_sound.h"
 #include "st_stuff.h"
+#include "v_palette.h"
 #include "v_patch.h"
 #include "v_video.h"
 #include "w_wad.h"
@@ -1027,14 +1028,8 @@ static void I_RestoreDiskBackground(void)
     disk_to_draw = 0;
 }
 
-#include "i_gamma.h"
-
-int gamma2;
-
-void I_SetPalette(byte *playpal)
+void I_SetPalette(palette_t pal, palette_layer_t layer)
 {
-    // haleyjd
-    int i;
     const byte *const gamma = gammatable[gamma2];
     SDL_Color colors[256];
 
@@ -1043,7 +1038,8 @@ void I_SetPalette(byte *playpal)
         return;
     }
 
-    for (i = 0; i < 256; ++i)
+    const byte* playpal = &list_playpal[pal].data[layer * PLAYPAL_BYTES];
+    for (size_t i = 0; i < PLAYPAL_SIZE; ++i)
     {
         colors[i].r = gamma[*playpal++];
         colors[i].g = gamma[*playpal++];
@@ -1051,7 +1047,7 @@ void I_SetPalette(byte *playpal)
         colors[i].a = 0xffu;
     }
 
-    SDL_SetPaletteColors(palette, colors, 0, 256);
+    SDL_SetPaletteColors(palette, colors, 0, PLAYPAL_SIZE);
 
     if (vga_porch_flash)
     {
@@ -1062,63 +1058,6 @@ void I_SetPalette(byte *playpal)
 
         clearneeded = true;
     }
-}
-
-// Taken from Chocolate Doom chocolate-doom/src/i_video.c:L841-867
-// Adapted to use Linear sRGB instead of Gamma sRGB
-
-static boolean linear_palette_init = false;
-static double linear_palette[768];
-
-byte I_GetNearestColor(const byte *palette, int red, int green, int blue)
-{
-    if (!linear_palette_init)
-    {
-        linear_palette_init = true;
-
-        // We assume that all calls to this function pass the same palette
-
-        const byte *palette_rover = palette;
-        double *linear_palette_rover = linear_palette;
-
-        for (int i = 0; i < 768; i++)
-        {
-            *linear_palette_rover++ = sRGB_ByteToLinear(*palette_rover++);
-        }
-    }
-
-    const double
-        linear_red   = sRGB_ByteToLinear(red),
-        linear_green = sRGB_ByteToLinear(green),
-        linear_blue  = sRGB_ByteToLinear(blue);
-
-    byte best = 0;
-    double best_diff = INT_MAX;
-
-    const double *linear_palette_rover = linear_palette;
-
-    for (int i = 0; i < 256; ++i)
-    {
-        const double
-            dr = linear_red   - *linear_palette_rover++,
-            dg = linear_green - *linear_palette_rover++,
-            db = linear_blue  - *linear_palette_rover++;
-
-        const double diff = dr * dr + dg * dg + db * db;
-
-        if (diff < best_diff)
-        {
-            if (!diff)
-            {
-                return i;
-            }
-
-            best = i;
-            best_diff = diff;
-        }
-    }
-
-    return best;
 }
 
 // [FG] save screenshots in PNG format
@@ -1574,7 +1513,7 @@ static void I_InitGraphicsMode(void)
 
     palette = SDL_CreatePalette(256);
 
-    I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
+    V_ResetPalette();
 
     // Blank out the full screen area in case there is any junk in
     // the borders that won't otherwise be overwritten.

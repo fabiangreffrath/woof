@@ -77,7 +77,6 @@ extern int warning_about_changes, print_warning_about_changes;
 
 void MN_InitDefaults(void);
 extern const char *gamma_strings[];
-void MN_ResetGamma(void);
 void MN_DrawDelVerify(void);
 
 boolean MN_SetupCursorPostion(int x, int y);

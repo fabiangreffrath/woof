@@ -20,11 +20,10 @@
 
 #include "doomtype.h"
 #include "i_printf.h"
-#include "i_video.h"
 #include "m_swap.h"
 #include "r_data.h"
 #include "r_defs.h"
-#include "v_video.h"
+#include "v_palette.h"
 #include "w_wad.h"
 #include "z_zone.h"
 
@@ -291,8 +290,6 @@ static void InitRGB2Pal(void)
 
     rgb2pal = malloc(sizeof(*rgb2pal) * RGB2PAL_SPC);
 
-    byte *const playpal = W_CacheLumpName("PLAYPAL", PU_CACHE);
-
     for (int r = 0;  r < RGB2PAL_SPC;  r++)
     {
         byte **const rgb2pal_r = rgb2pal[r] = all_rgb2pal_g + (r * RGB2PAL_SPC);
@@ -310,7 +307,7 @@ static void InitRGB2Pal(void)
             {
                 const int sb = b << RGB2PAL_IBPC;
 
-                rgb2pal_g[b] = I_GetNearestColor(playpal, sr, sg, sb);
+                rgb2pal_g[b] = V_GetNearestColor(PAL_GLOBAL, sr, sg, sb);
             }
         }
     }
@@ -511,7 +508,7 @@ static boolean DecodePNG(png_t *png)
             // fall back to 255 as the color key
             int color_key = 255;
 
-            for (int i = 0;  i < 256;  i++)
+            for (int i = 0;  i < PLAYPAL_SIZE;  i++)
             {
                 if (used_colors[i] == 0)
                 {
@@ -548,9 +545,7 @@ static boolean DecodePNG(png_t *png)
         byte *translate = malloc(plte.n_entries);
         boolean need_translation = false;
 
-        byte *playpal = W_CacheLumpName("PLAYPAL", PU_CACHE);
-        byte *palette = playpal;
-
+        const byte *palette = playpal_global->data;
         for (int i = 0; i < plte.n_entries; ++i)
         {
             struct spng_plte_entry *e = &plte.entries[i];
@@ -567,7 +562,7 @@ static boolean DecodePNG(png_t *png)
 
             need_translation = true;
             translate[i] =
-                I_GetNearestColor(playpal, e->red, e->green, e->blue);
+                V_GetNearestColor(PAL_GLOBAL, e->red, e->green, e->blue);
         }
 
         if (need_translation)

@@ -568,7 +568,7 @@ void MN_DrawTabs(void)
         {
             DrawMenuStringEx(tabs[i].flags, x, rect->y, CR_TITLE);
             V_FillRect(x + video.deltaw, rect->y + M_SPC, rect->w, 1,
-                       xlat[CR_TITLE].table[cr_shaded[v_lightest_color]]);
+                       xlat[CR_TITLE].table[cr_shaded[playpal_global->white]]);
         }
         else
         {
@@ -699,7 +699,7 @@ static void DrawIndicator_Meter(const setup_menu_t *s, int x, int y, int width)
 
         if (scale > 0.0f)
         {
-            const byte shade = cr_shaded[v_lightest_color];
+            const byte shade = cr_shaded[playpal_global->white];
             const byte color = scale < limit    ? xlat[CR_GREEN].table[shade]
                                : scale >= 0.99f ? xlat[CR_RED].table[shade]
                                                 : xlat[CR_GOLD].table[shade];
@@ -2454,11 +2454,6 @@ const char *gamma_strings[] = {
     "0.5", "1", "1.5", "2", "2.5", "3", "3.5", "4"
 };
 
-void MN_ResetGamma(void)
-{
-    I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
-}
-
 static setup_menu_t gen_settings1[] = {
 
     {"Resolution Scale", S_THERMO | S_THRM_SIZE11 | S_ACTION, CNTR_X,
@@ -2491,7 +2486,7 @@ static setup_menu_t gen_settings1[] = {
      .action = UpdateFOV},
 
     {"Gamma Correction", S_THERMO, CNTR_X, M_THRM_SPC, {"gamma2"},
-     .strings_id = str_gamma, .action = MN_ResetGamma},
+     .strings_id = str_gamma, .action = V_ResetPalette},
 
     {"Extra Lighting", S_THERMO | S_STRICT, CNTR_X,
      M_THRM_SPC, {"extra_level_brightness"}},

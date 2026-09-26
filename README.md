@@ -204,7 +204,7 @@ Copyright:
  © 2015 Braden "Blzut3" Obrzut.  
 License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
 
-Files: `src/r_srgb.*`  
+Files: `src/v_srgb.*`  
 Copyright:  
  © 2017 Project Nayuki.  
 License: [MIT](https://opensource.org/licenses/MIT)

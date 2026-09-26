@@ -168,8 +168,8 @@ static void UpdateAnnounceMessage(sbe_widget_t *widget, player_t *player)
         author_string[0] = '\0';
         state = announce_secret;
         announce_duration_left = widget->duration;
-        M_snprintf(string, sizeof(string), GOLD_S "%s" ORIG_S,
-            player->secretmessage);
+        M_snprintf(string, sizeof(string), "%s%s%s", xlat[CR_GOLD].str,
+                   player->secretmessage, ORIG_S);
         player->secretmessage = NULL;
     }
 
@@ -652,24 +652,25 @@ static void UpdateCoord(sbe_widget_t *widget, player_t *player)
         static char string[80];
         // jff 2/16/98 output new coord display
         M_snprintf(string, sizeof(string),
-                   "\x1b%cX " GRAY_S "%d \x1b%cY " GRAY_S "%d \x1b%cZ " GRAY_S "%d",
-                   '0' + hudcolor_xyco, x >> FRACBITS, '0' + hudcolor_xyco,
-                   y >> FRACBITS, '0' + hudcolor_xyco, z >> FRACBITS);
+                   "\x1b%cX %s%d \x1b%cY %s%d \x1b%cZ %s%d",
+                   '0' + hudcolor_xyco, xlat[CR_GRAY].str, x >> FRACBITS,
+                   '0' + hudcolor_xyco, xlat[CR_GRAY].str, y >> FRACBITS,
+                   '0' + hudcolor_xyco, xlat[CR_GRAY].str, z >> FRACBITS);
         ST_AddLine(widget, string);
     }
     else
     {
         static char string1[16];
-        M_snprintf(string1, sizeof(string1), "\x1b%cX " GRAY_S "%d",
-                   '0' + hudcolor_xyco, x >> FRACBITS);
+        M_snprintf(string1, sizeof(string1), "\x1b%cX %s%d",
+                   '0' + hudcolor_xyco, xlat[CR_GRAY].str, x >> FRACBITS);
         ST_AddLine(widget, string1);
         static char string2[16];
-        M_snprintf(string2, sizeof(string2), "\x1b%cY " GRAY_S "%d",
-                   '0' + hudcolor_xyco, y >> FRACBITS);
+        M_snprintf(string2, sizeof(string2), "\x1b%cY %s%d",
+                   '0' + hudcolor_xyco, xlat[CR_GRAY].str, y >> FRACBITS);
         ST_AddLine(widget, string2);
         static char string3[16];
-        M_snprintf(string3, sizeof(string3), "\x1b%cZ " GRAY_S "%d",
-                   '0' + hudcolor_xyco, z >> FRACBITS);
+        M_snprintf(string3, sizeof(string3), "\x1b%cZ %s%d",
+                   '0' + hudcolor_xyco, xlat[CR_GRAY].str, z >> FRACBITS);
         ST_AddLine(widget, string3);
     }
 }
@@ -871,9 +872,10 @@ static void UpdateStTime(sbe_widget_t *widget, player_t *player)
     {
         if (time_scale != 100)
         {
-            offset +=
-                M_snprintf(string, sizeof(string), "%s%d%% ",
-                           (widget->font == stcfnt) ? BLUE2_S : BLUE1_S, time_scale);
+            offset += M_snprintf(string, sizeof(string), "%s%d%% ",
+                                 (widget->font == stcfnt) ? xlat[CR_BLUE2].str
+                                                          : xlat[CR_BLUE1].str,
+                                 time_scale);
         }
 
         if (levelTimer == true)
@@ -881,27 +883,29 @@ static void UpdateStTime(sbe_widget_t *widget, player_t *player)
             const int time = levelTimeCount / TICRATE;
 
             offset += M_snprintf(string + offset, sizeof(string) - offset,
-                                 BROWN_S "%d:%02d ", time / 60, time % 60);
+                                 "%s%d:%02d ", xlat[CR_BROWN].str, time / 60,
+                                 time % 60);
         }
         else if (totalleveltimes)
         {
             const int time = (totalleveltimes + leveltime) / TICRATE;
 
             offset += M_snprintf(string + offset, sizeof(string) - offset,
-                                 GREEN_S "%d:%02d ", time / 60, time % 60);
+                                 "%s%d:%02d ", xlat[CR_GREEN].str, time / 60,
+                                 time % 60);
         }
     }
 
     if (player->btuse_tics)
     {
-        M_snprintf(string + offset, sizeof(string) - offset,
-                   GOLD_S "U %d:%05.2f\t", player->btuse / TICRATE / 60,
+        M_snprintf(string + offset, sizeof(string) - offset, "%sU %d:%05.2f\t",
+                   xlat[CR_GOLD].str, player->btuse / TICRATE / 60,
                    (float)(player->btuse % (60 * TICRATE)) / TICRATE);
     }
     else
     {
-        M_snprintf(string + offset, sizeof(string) - offset,
-                   GRAY_S "%d:%05.2f\t", leveltime / TICRATE / 60,
+        M_snprintf(string + offset, sizeof(string) - offset, "%s%d:%05.2f\t",
+                   xlat[CR_GRAY].str, leveltime / TICRATE / 60,
                    (float)(leveltime % (60 * TICRATE)) / TICRATE);
     }
 
@@ -920,7 +924,8 @@ static void UpdateFPS(sbe_widget_t *widget, player_t *player)
     ForceDoomFont(widget);
 
     static char string[20];
-    M_snprintf(string, sizeof(string), GRAY_S "%d " GREEN_S "FPS", fps);
+    M_snprintf(string, sizeof(string), "%s%d %sFPS", xlat[CR_GRAY].str, fps,
+               xlat[CR_GREEN].str);
     ST_AddLine(widget, string);
 }
 
@@ -935,16 +940,17 @@ static void UpdateRate(sbe_widget_t *widget, player_t *player)
 
     static char line1[80];
     M_snprintf(line1, sizeof(line1),
-               GRAY_S "Sprites %4d Segs %4d Visplanes %4d   " GREEN_S
-                      "FPS %3d %dx%d",
-               rendered_vissprites, rendered_segs, rendered_visplanes,
-               fps, video.width, video.height);
+               "%sSprites %4d Segs %4d Visplanes %4d   "
+               "%sFPS %3d %dx%d",
+               xlat[CR_GRAY].str, rendered_vissprites, rendered_segs,
+               rendered_visplanes, xlat[CR_GREEN].str, fps, video.width,
+               video.height);
     ST_AddLine(widget, line1);
 
     if (voxels_rendering)
     {
         static char line2[60];
-        M_snprintf(line2, sizeof(line2), GRAY_S " Voxels %4d",
+        M_snprintf(line2, sizeof(line2), "%s Voxels %4d", xlat[CR_GRAY].str,
                    rendered_voxels);
         ST_AddLine(widget, line2);
     }
@@ -972,8 +978,8 @@ static void UpdateSpeed(sbe_widget_t *widget, player_t *player)
     const double speed = sqrt(dx * dx + dy * dy + dz * dz) * factor[type];
 
     static char string[60];
-    M_snprintf(string, sizeof(string), GRAY_S "%.*f " GREEN_S "%s",
-               type && speed ? 1 : 0, speed, units[type]);
+    M_snprintf(string, sizeof(string), "%s%.*f %s%s", xlat[CR_GRAY].str,
+               type && speed ? 1 : 0, speed, xlat[CR_GREEN].str, units[type]);
     SetLine(widget, string);
 }
 
@@ -1004,8 +1010,8 @@ boolean ST_DemoProgressBar(boolean force)
         return false;
     }
 
-    V_FillRect(0, SCREENHEIGHT - 2, progress, 1, v_darkest_color);
-    V_FillRect(0, SCREENHEIGHT - 1, progress, 1, v_lightest_color);
+    V_FillRect(0, SCREENHEIGHT - 2, progress, 1, playpal_global->black);
+    V_FillRect(0, SCREENHEIGHT - 1, progress, 1, playpal_global->white);
 
     return true;
 }

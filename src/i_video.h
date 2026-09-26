@@ -22,6 +22,7 @@
 #define __I_VIDEO__
 
 #include "doomtype.h"
+#include "v_palette.h"
 
 #define FOV_DEFAULT      90
 #define FOV_MIN          60
@@ -44,9 +45,6 @@ resolution_scaling_t I_GetResolutionScaling(void);
 void I_InitGraphics(void);
 void I_ShutdownGraphics(void);
 void I_QuitVideo(void);
-
-// Takes full 8 bit values.
-void I_SetPalette(byte *palette);
 
 void I_FinishUpdate(void);
 
@@ -72,9 +70,6 @@ extern boolean toggle_exclusive_fullscreen;
 extern boolean correct_aspect_ratio;
 extern boolean screenvisible;
 
-extern int gamma2;
-byte I_GetNearestColor(const byte *palette, int r, int g, int b);
-
 boolean I_WritePNGfile(char *filename); // [FG] screenshots in PNG format
 
 void *I_GetSDLWindow(void);
@@ -88,6 +83,8 @@ void I_ResetRelativeMouseState(void);
 void I_UpdatePriority(boolean active);
 
 void I_BindVideoVariables(void);
+
+void I_SetPalette(palette_t pal, palette_layer_t layer);
 
 #endif
 
