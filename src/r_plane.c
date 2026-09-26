@@ -628,9 +628,8 @@ static void DrawSkyDef(visplane_t *pl, sky_t *sky)
 
 #define RASTERISE_UNROLLED 1
 
-#define DOSAMPLE() spot = ( (yfrac & 0x3F0000 ) >> 10) | ( (xfrac & 0x3F0000 ) >> 16);\
-source = ds_source[spot]; \
-*dest++ = raster[ ybase++ ].colormap[0][source]; \
+#define DOSAMPLE(z) spot = ( (yfrac & 0x3F0000 ) >> 10) | ( (xfrac & 0x3F0000 ) >> 16); \
+*dest++ = thisraster[z].colormap[0][ds_source[spot]]; \
 xfrac += xstep; \
 yfrac += ystep;
 
@@ -640,7 +639,6 @@ yfrac += ystep;
 static void R_RasteriseVisplaneColumn_Log2_32( visplane_t* visplane, int32_t x )
 {
 	pixel_t*			dest			= xlookup[ x ] + rowofs[ visplane->top[ x ] ];
-    byte			    source;
 
 	int32_t				ybase			= visplane->top[ x ];
 	int32_t				ycache			= ybase;
@@ -663,6 +661,8 @@ static void R_RasteriseVisplaneColumn_Log2_32( visplane_t* visplane, int32_t x )
 
 	int32_t				spot;
 
+	rastercache_t*		thisraster;
+
 	while( count >= PLANE_PIXELLEAP_32 )
 	{
 		ycache			= ybase + PLANE_PIXELLEAP_32;
@@ -670,6 +670,7 @@ static void R_RasteriseVisplaneColumn_Log2_32( visplane_t* visplane, int32_t x )
 		currlength		= FixedMul ( currdistance, distscale[ x ] );
 		nextxfrac		= viewx + FixedMul( anglecos, currlength );
 		nextyfrac		= -viewy - FixedMul( anglesin, currlength );
+		thisraster		= &raster[ybase];
 
 		xstep =	( nextxfrac - xfrac ) >> PLANE_PIXELLEAP_32_LOG2;
 		ystep =	( nextyfrac - yfrac ) >> PLANE_PIXELLEAP_32_LOG2;
@@ -681,44 +682,45 @@ static void R_RasteriseVisplaneColumn_Log2_32( visplane_t* visplane, int32_t x )
 		} while( ybase < ycache );
 #else // RASTERISE_UNROLLED
 
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
+		DOSAMPLE(0);
+		DOSAMPLE(1);
+		DOSAMPLE(2);
+		DOSAMPLE(3);
+		DOSAMPLE(4);
+		DOSAMPLE(5);
+		DOSAMPLE(6);
+		DOSAMPLE(7);
+		DOSAMPLE(8);
+		DOSAMPLE(9);
+		DOSAMPLE(10);
+		DOSAMPLE(11);
+		DOSAMPLE(12);
+		DOSAMPLE(13);
+		DOSAMPLE(14);
+		DOSAMPLE(15);
+		DOSAMPLE(16);
+		DOSAMPLE(17);
+		DOSAMPLE(18);
+		DOSAMPLE(19);
+		DOSAMPLE(20);
+		DOSAMPLE(21);
+		DOSAMPLE(22);
+		DOSAMPLE(23);
+		DOSAMPLE(24);
+		DOSAMPLE(25);
+		DOSAMPLE(26);
+		DOSAMPLE(27);
+		DOSAMPLE(28);
+		DOSAMPLE(29);
+		DOSAMPLE(30);
+		DOSAMPLE(31);
 
 #endif // !RASTERISE_UNROLLED
 
 		xfrac = nextxfrac;
 		yfrac = nextyfrac;
 
+		ybase += PLANE_PIXELLEAP_32;
 		count -= PLANE_PIXELLEAP_32;
 	};
 
@@ -735,7 +737,8 @@ static void R_RasteriseVisplaneColumn_Log2_32( visplane_t* visplane, int32_t x )
 
 		do
 		{
-			DOSAMPLE();
+			thisraster = &raster[ybase++];
+			DOSAMPLE(0);
 		} while( ybase <= ycache );
 	}
 
@@ -744,7 +747,6 @@ static void R_RasteriseVisplaneColumn_Log2_32( visplane_t* visplane, int32_t x )
 static void R_RasteriseVisplaneColumn_Log2_16( visplane_t* visplane, int32_t x )
 {
 	pixel_t*			dest			= xlookup[ x ] + rowofs[ visplane->top[ x ] ];
-	byte		    	source;
 
 	int32_t				ybase			= visplane->top[ x ];
 	int32_t				ycache			= ybase;
@@ -767,6 +769,7 @@ static void R_RasteriseVisplaneColumn_Log2_16( visplane_t* visplane, int32_t x )
 
 	int32_t				spot;
 
+	rastercache_t*		thisraster;
 
 	while( count >= PLANE_PIXELLEAP_16 )
 	{
@@ -775,6 +778,7 @@ static void R_RasteriseVisplaneColumn_Log2_16( visplane_t* visplane, int32_t x )
 		currlength		= FixedMul ( currdistance, distscale[ x ] );
 		nextxfrac		= viewx + FixedMul( anglecos, currlength );
 		nextyfrac		= -viewy - FixedMul( anglesin, currlength );
+		thisraster		= &raster[ybase];
 
 		xstep =	( nextxfrac - xfrac ) >> PLANE_PIXELLEAP_16_LOG2;
 		ystep =	( nextyfrac - yfrac ) >> PLANE_PIXELLEAP_16_LOG2;
@@ -786,28 +790,29 @@ static void R_RasteriseVisplaneColumn_Log2_16( visplane_t* visplane, int32_t x )
 		} while( ybase < ycache );
 #else // RASTERISE_UNROLLED
 
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
+		DOSAMPLE(0);
+		DOSAMPLE(1);
+		DOSAMPLE(2);
+		DOSAMPLE(3);
+		DOSAMPLE(4);
+		DOSAMPLE(5);
+		DOSAMPLE(6);
+		DOSAMPLE(7);
+		DOSAMPLE(8);
+		DOSAMPLE(9);
+		DOSAMPLE(10);
+		DOSAMPLE(11);
+		DOSAMPLE(12);
+		DOSAMPLE(13);
+		DOSAMPLE(14);
+		DOSAMPLE(15);
 
 #endif // !RASTERISE_UNROLLED
 
 		xfrac = nextxfrac;
 		yfrac = nextyfrac;
 
+		ybase += PLANE_PIXELLEAP_16;
 		count -= PLANE_PIXELLEAP_16;
 	};
 
@@ -824,7 +829,8 @@ static void R_RasteriseVisplaneColumn_Log2_16( visplane_t* visplane, int32_t x )
 
 		do
 		{
-			DOSAMPLE();
+			thisraster = &raster[ybase++];
+			DOSAMPLE(0);
 		} while( ybase <= ycache );
 	}
 
@@ -833,7 +839,6 @@ static void R_RasteriseVisplaneColumn_Log2_16( visplane_t* visplane, int32_t x )
 static void R_RasteriseVisplaneColumn_Log2_8( visplane_t* visplane, int32_t x )
 {
 	pixel_t*			dest			= xlookup[ x ] + rowofs[ visplane->top[ x ] ];
-    byte		    	source;
 
 	int32_t				ybase			= visplane->top[ x ];
 	int32_t				ycache			= ybase;
@@ -856,6 +861,7 @@ static void R_RasteriseVisplaneColumn_Log2_8( visplane_t* visplane, int32_t x )
 
 	int32_t				spot;
 
+	rastercache_t*		thisraster;
 
 	while( count >= PLANE_PIXELLEAP_8 )
 	{
@@ -864,6 +870,7 @@ static void R_RasteriseVisplaneColumn_Log2_8( visplane_t* visplane, int32_t x )
 		currlength		= FixedMul ( currdistance, distscale[ x ] );
 		nextxfrac		= viewx + FixedMul( anglecos, currlength );
 		nextyfrac		= -viewy - FixedMul( anglesin, currlength );
+		thisraster		= &raster[ybase];
 
 		xstep =	( nextxfrac - xfrac ) >> PLANE_PIXELLEAP_8_LOG2;
 		ystep =	( nextyfrac - yfrac ) >> PLANE_PIXELLEAP_8_LOG2;
@@ -875,20 +882,21 @@ static void R_RasteriseVisplaneColumn_Log2_8( visplane_t* visplane, int32_t x )
 		} while( ybase < ycache );
 #else // RASTERISE_UNROLLED
 
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
+		DOSAMPLE(0);
+		DOSAMPLE(1);
+		DOSAMPLE(2);
+		DOSAMPLE(3);
+		DOSAMPLE(4);
+		DOSAMPLE(5);
+		DOSAMPLE(6);
+		DOSAMPLE(7);
 
 #endif // !RASTERISE_UNROLLED
 
 		xfrac = nextxfrac;
 		yfrac = nextyfrac;
 
+		ybase += PLANE_PIXELLEAP_8;
 		count -= PLANE_PIXELLEAP_8;
 	};
 
@@ -905,7 +913,8 @@ static void R_RasteriseVisplaneColumn_Log2_8( visplane_t* visplane, int32_t x )
 
 		do
 		{
-			DOSAMPLE();
+			thisraster = &raster[ybase++];
+			DOSAMPLE(0);
 		} while( ybase <= ycache );
 	}
 
@@ -915,7 +924,6 @@ static void R_RasteriseVisplaneColumn_Log2_8( visplane_t* visplane, int32_t x )
 static void R_RasteriseVisplaneColumn_Log2_4( visplane_t* visplane, int32_t x )
 {
 	pixel_t*			dest			= xlookup[ x ] + rowofs[ visplane->top[ x ] ];
-    byte		    	source;
 
 	int32_t				ybase			= visplane->top[ x ];
 	int32_t				ycache			= ybase;
@@ -938,6 +946,7 @@ static void R_RasteriseVisplaneColumn_Log2_4( visplane_t* visplane, int32_t x )
 
 	int32_t				spot;
 
+	rastercache_t*		thisraster;
 
 	while( count >= PLANE_PIXELLEAP_4 )
 	{
@@ -946,6 +955,7 @@ static void R_RasteriseVisplaneColumn_Log2_4( visplane_t* visplane, int32_t x )
 		currlength		= FixedMul ( currdistance, distscale[ x ] );
 		nextxfrac		= viewx + FixedMul( anglecos, currlength );
 		nextyfrac		= -viewy - FixedMul( anglesin, currlength );
+		thisraster		= &raster[ybase];
 
 		xstep =	( nextxfrac - xfrac ) >> PLANE_PIXELLEAP_4_LOG2;
 		ystep =	( nextyfrac - yfrac ) >> PLANE_PIXELLEAP_4_LOG2;
@@ -957,16 +967,17 @@ static void R_RasteriseVisplaneColumn_Log2_4( visplane_t* visplane, int32_t x )
 		} while( ybase < ycache );
 #else // RASTERISE_UNROLLED
 
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
-		DOSAMPLE();
+		DOSAMPLE(0);
+		DOSAMPLE(1);
+		DOSAMPLE(2);
+		DOSAMPLE(3);
 
 #endif // !RASTERISE_UNROLLED
 
 		xfrac = nextxfrac;
 		yfrac = nextyfrac;
 
+		ybase += PLANE_PIXELLEAP_4;
 		count -= PLANE_PIXELLEAP_4;
 	};
 
@@ -983,7 +994,8 @@ static void R_RasteriseVisplaneColumn_Log2_4( visplane_t* visplane, int32_t x )
 
 		do
 		{
-			DOSAMPLE();
+			thisraster = &raster[ybase++];
+			DOSAMPLE(0);
 		} while( ybase <= ycache );
 	}
 
