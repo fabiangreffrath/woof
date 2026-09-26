@@ -660,15 +660,15 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 
 	if (vis->mobjflags & MF_SHADOW)
 	{
-		vis->colormap[0] = vis->colormap[1] = NULL;
+		vis->colormap = NULL;
 	}
 	else if (fixedcolormapoffset)
 	{
-		vis->colormap[0] = vis->colormap[1] = thiscolormap + fixedcolormapoffset;
+		vis->colormap = thiscolormap + fixedcolormapoffset;
 	}
 	else if (thing->frame & FF_FULLBRIGHT)
 	{
-		vis->colormap[0] = vis->colormap[1] = thiscolormap;
+		vis->colormap = thiscolormap;
 	}
 	else
 	{
@@ -684,15 +684,18 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 		const int *const spritelightoffsets = scalelightoffset[lightnum];
 		const int index = R_GetLightIndex(xscale);
 
-		vis->colormap[0] = thiscolormap + spritelightoffsets[index];
-		vis->colormap[1] = thiscolormap;
+		const lighttable_t *const colormap =
+			thiscolormap + spritelightoffsets[index];
+
+		const byte *const brightmap = R_BrightmapForSprite(thing->sprite);
+
+		vis->colormap = R_GetBrightmappedColormap(colormap, thiscolormap, brightmap);
 	}
 
 	// ID24 per-state tranmap
 	// tranmaps do not work with Voxels yet
 	vis->tranmap = NULL;
 
-	vis->brightmap = R_BrightmapForSprite(thing->sprite);
 	vis->color = thing->bloodcolor;
 
 	// [Alaux] Lock crosshair on target
@@ -907,7 +910,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 					uy = clip_y1;
 
 				byte src = slab[0];
-				byte pix = spr->colormap[spr->brightmap[src]][src];
+				byte pix = spr->colormap[src];
 
 				for (; uy < uy1 ; uy += FRACUNIT)
 				{
@@ -922,7 +925,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 					uy = clip_y2;
 
 				byte src = slab[len - 1];
-				byte pix = spr->colormap[spr->brightmap[src]][src];
+				byte pix = spr->colormap[src];
 
 				for (; uy > uy2 ; uy -= FRACUNIT)
 				{
@@ -942,7 +945,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 					if (i >= len) i = len - 1;
 
 					byte src = slab[i];
-					byte pix = spr->colormap[spr->brightmap[src]][src];
+					byte pix = spr->colormap[src];
 
 					dest[(ux >> FRACBITS) * linesize + (uy >> FRACBITS)] = pix;
 				}
@@ -1017,7 +1020,7 @@ void VX_DrawVoxel (vissprite_t * spr)
 	// handle translated colors (for players in coop or deathmatch).
 	// we build a new map, rather than complicate the slab drawing code.
 
-	if ((spr->mobjflags & MF_TRANSLATION) && (spr->colormap[0] != NULL))
+	if ((spr->mobjflags & MF_TRANSLATION) && (spr->colormap != NULL))
 	{
 		const byte * trans = translationtables - 256 +
 			( (spr->mobjflags & MF_TRANSLATION) >> (MF_TRANSSHIFT-8) );
@@ -1026,15 +1029,15 @@ void VX_DrawVoxel (vissprite_t * spr)
 
 		int i;
 		for (i = 0 ; i < 256 ; i++)
-			new_colormap[i] = spr->colormap[0][trans[i]];
+			new_colormap[i] = spr->colormap[trans[i]];
 
-		spr->colormap[0] = new_colormap;
+		spr->colormap = new_colormap;
 	}
 
-	if ((spr->mobjflags_extra & MFX_COLOREDBLOOD) && (spr->colormap[0] != NULL))
+	if ((spr->mobjflags_extra & MFX_COLOREDBLOOD) && (spr->colormap != NULL))
 	{
 		static const byte * prev_trans = NULL, * prev_map = NULL;
-		const byte * trans = xlat[spr->color].lump, * map = spr->colormap[0];
+		const byte * trans = xlat[spr->color].lump, * map = spr->colormap;
 
 		static byte new_colormap[256];
 
@@ -1048,7 +1051,7 @@ void VX_DrawVoxel (vissprite_t * spr)
 			prev_map = map;
 		}
 
-		spr->colormap[0] = new_colormap;
+		spr->colormap = new_colormap;
 	}
 
 	// perform reverse transform, place camera in relation to model

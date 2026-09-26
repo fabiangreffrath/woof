@@ -460,14 +460,13 @@ typedef struct vissprite_s
   int mobjflags_extra; // Woof!
 
   // for color translation and shadow draw, maxbright frames as well
-  const lighttable_t *colormap[2];
+  const lighttable_t *colormap;
    
   // killough 3/27/98: height sector for underwater/fake ceiling support
   int heightsec;
 
   // [FG] colored blood and gibs
   int color;
-  const byte *brightmap;
 
   // ID24
   const byte *tranmap;

@@ -42,8 +42,6 @@ boolean force_brightmaps;
 
 const byte nobrightmap[COLORMASK_SIZE] = {0};
 
-const byte *dc_brightmap = nobrightmap;
-
 typedef struct
 {
     const char *name;
@@ -208,6 +206,55 @@ const byte *R_BrightmapForState(const int state)
         }
     }
     return nobrightmap;
+}
+
+typedef struct bmcolormap_s
+{
+    const byte *brightmap;
+    const lighttable_t *orig_colormap;
+    lighttable_t *colormap;
+} bmcolormap_t;
+
+static bmcolormap_t bm_colormaps[65536] = { NULL };
+
+const lighttable_t *R_GetBrightmappedColormap(
+    const lighttable_t *const colormap,
+    const lighttable_t *const full_colormap,
+    const byte *const brightmap
+)
+{
+    if (brightmap == nobrightmap)
+    {
+        return colormap;
+    }
+
+    const uint16_t hash =
+        ((uintptr_t) colormap ^ (uintptr_t) brightmap) >> 8;
+
+    bmcolormap_t *const bm_colormap = bm_colormaps + hash;
+
+    if (bm_colormap->brightmap != brightmap ||
+        bm_colormap->orig_colormap != colormap)
+    {
+        bm_colormap->brightmap = brightmap;
+        bm_colormap->orig_colormap = colormap;
+
+        lighttable_t **const cmap = &(bm_colormap->colormap);
+
+        if (!*cmap)
+        {
+            *cmap = Z_Malloc(sizeof(**cmap) * 256, PU_STATIC, 0);
+        }
+
+        const lighttable_t *const colormaps[2] = { colormap, full_colormap };
+
+        for (int i = 0; i < 256; i++)
+        {
+            (*cmap)[i] = colormaps[brightmap[i]][i];
+        }
+    }
+
+    return bm_colormap->colormap;
 }
 
 void R_ParseBrightmaps(int lumpnum)

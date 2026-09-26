@@ -68,7 +68,7 @@ static pixel_t *background_buffer = NULL;
 // Source is the top of the column to scale.
 //
 
-const lighttable_t *dc_colormap[2]; // [crispy] brightmaps
+const lighttable_t *dc_colormap;
 int dc_x;
 int dc_yl;
 int dc_yh;
@@ -113,9 +113,8 @@ void R_DrawColumn(void)
     const fixed_t fracstep = dc_iscale;
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
-    const byte *source = dc_source;
-    const lighttable_t *const *colormap = dc_colormap;
-    const byte *brightmap = dc_brightmap;
+    const byte *const source = dc_source;
+    const lighttable_t *const colormap = dc_colormap;
     int heightmask = dc_texheight - 1;
 
     byte src;
@@ -140,7 +139,7 @@ void R_DrawColumn(void)
         do
         {
             src = source[frac >> 16];
-            *dest++ = colormap[brightmap[src]][src];
+            *dest++ = colormap[src];
 
             if ((frac += fracstep) >= heightmask)
             {
@@ -159,7 +158,7 @@ void R_DrawColumn(void)
         while (count--)
         {
             src = source[(frac >> FRACBITS) & heightmask];
-            *dest++ = colormap[brightmap[src]][src];
+            *dest++ = colormap[src];
             frac += fracstep;
         }
     }
@@ -196,9 +195,8 @@ void R_DrawTLColumn(void)
     const fixed_t fracstep = dc_iscale;
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
-    const byte *source = dc_source;
-    const lighttable_t *const *colormap = dc_colormap;
-    const byte *brightmap = dc_brightmap;
+    const byte *const source = dc_source;
+    const lighttable_t *const colormap = dc_colormap;
     int heightmask = dc_texheight - 1;
 
     byte src;
@@ -223,7 +221,7 @@ void R_DrawTLColumn(void)
         do
         {
             src = source[frac >> 16];
-            *dest = tranmap[(*dest << 8) + colormap[brightmap[src]][src]];
+            *dest = tranmap[(*dest << 8) + colormap[src]];
             dest++;
 
             if ((frac += fracstep) >= heightmask)
@@ -243,7 +241,7 @@ void R_DrawTLColumn(void)
         while (count--)
         {
             src = source[(frac >> FRACBITS) & heightmask];
-            *dest = tranmap[(*dest << 8) + colormap[brightmap[src]][src]];
+            *dest = tranmap[(*dest << 8) + colormap[src]];
             dest++;
             frac += fracstep;
         }
@@ -275,8 +273,8 @@ void R_DrawSkyColumn(void)
     const fixed_t fracstep = dc_iscale;
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
-    const byte *source = dc_source;
-    const lighttable_t *colormap = dc_colormap[0];
+    const byte *const source = dc_source;
+    const lighttable_t *const colormap = dc_colormap;
     const byte skycolor = dc_skycolor;
 
     // Fill in the median color here
@@ -810,10 +808,9 @@ void R_DrawTranslatedColumn(void)
     const fixed_t fracstep = dc_iscale;
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
-    const byte *source = dc_source;
-    const byte *translation = dc_translation;
-    const lighttable_t *const *colormap = dc_colormap;
-    const byte *brightmap = dc_brightmap;
+    const byte *const source = dc_source;
+    const byte *const translation = dc_translation;
+    const lighttable_t *const colormap = dc_colormap;
     int heightmask = dc_texheight - 1;
 
     byte src;
@@ -838,7 +835,7 @@ void R_DrawTranslatedColumn(void)
         do
         {
             src = source[frac >> 16];
-            *dest++ = colormap[brightmap[src]][translation[src]];
+            *dest++ = colormap[translation[src]];
 
             if ((frac += fracstep) >= heightmask)
             {
@@ -857,7 +854,7 @@ void R_DrawTranslatedColumn(void)
         while (count--)
         {
             src = source[(frac >> FRACBITS) & heightmask];
-            *dest++ = colormap[brightmap[src]][translation[src]];
+            *dest++ = colormap[translation[src]];
             frac += fracstep;
         }
     }
@@ -916,16 +913,15 @@ void R_DrawTRTLColumn(void)
     const fixed_t fracstep = dc_iscale;
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
-    const byte *source = dc_source;
-    const byte *translation = dc_translation;
-    const lighttable_t *const *colormap = dc_colormap;
-    const byte *brightmap = dc_brightmap;
+    const byte *const source = dc_source;
+    const byte *const translation = dc_translation;
+    const lighttable_t *const colormap = dc_colormap;
     int heightmask = dc_texheight - 1;
 
     byte src;
 
     #define SRCPIXEL \
-      tranmap[(*dest << 8) + colormap[brightmap[src]][translation[src]]]
+      tranmap[(*dest << 8) + colormap[translation[src]]]
 
     if (dc_texheight & heightmask)
     {
@@ -993,8 +989,7 @@ int ds_y;
 int ds_x1;
 int ds_x2;
 
-const lighttable_t *ds_colormap[2];
-const byte *ds_brightmap;
+const lighttable_t *ds_colormap;
 
 uint32_t ds_xfrac;
 uint32_t ds_yfrac;
@@ -1008,9 +1003,8 @@ void R_DrawSpan(void)
 {
     int count = ds_x2 - ds_x1 + 1;
     pixel_t *dest = xlookup[ds_x1] + rowofs[ds_y];
-    const byte *source = ds_source;
-    const lighttable_t *const *colormap = ds_colormap;
-    const byte *brightmap = ds_brightmap;
+    const byte *const source = ds_source;
+    const lighttable_t *const colormap = ds_colormap;
 
     // SoM: we only need 6 bits for the integer part (0 thru 63) so the rest
     // can be used for the fraction part. This allows calculation of the memory
@@ -1031,7 +1025,7 @@ void R_DrawSpan(void)
         // because we don't have the uber complicated math to calculate it now,
         // so that was a memory write we didn't need!
         src = source[((yf >> YSHIFT) & YMASK) | (xf >> XSHIFT)];
-        *dest = colormap[brightmap[src]][src];
+        *dest = colormap[src];
         dest += linesize;
         xf += xs;
         yf += ys;

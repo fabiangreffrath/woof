@@ -34,6 +34,12 @@ const byte *R_BrightmapForSprite(const int type);
 const byte *R_BrightmapForFlatNum(const int num);
 const byte *R_BrightmapForState(const int state);
 
+const lighttable_t *R_GetBrightmappedColormap(
+    const lighttable_t *colormap,
+    const lighttable_t *full_colormap,
+    const byte *brightmap
+);
+
 extern const byte **texturebrightmap;
 
 #endif
