@@ -1863,13 +1863,18 @@ void D_DoomMain(void)
   LoadPWadBase();
   AutoloadPWadDir(AutoLoadWADs);
 
-  G_InitSkills();
 
   M_InitConfig();
 
   I_PutChar(VB_INFO, '\n');
 
   M_LoadDefaults();  // load before initing other systems
+
+  // init subsystems
+
+  W_InitMultipleFiles();
+
+  G_InitSkills();
 
   // get skill / episode / map from parms
 
@@ -2068,10 +2073,6 @@ void D_DoomMain(void)
   bodyquesize = default_bodyquesize; // killough 10/98
 
   // 1/18/98 killough: Z_Init call moved to i_main.c
-
-  // init subsystems
-
-  W_InitMultipleFiles();
 
   // Check for wolf levels
   haswolflevels = (W_CheckNumForName("map31") >= 0);
