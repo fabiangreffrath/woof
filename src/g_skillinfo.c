@@ -15,82 +15,133 @@
 //	DSDA Skill Info
 //
 
-#include "g_skillinfo.h"
+#include <math.h>
+#include <string.h>
 
 #include "d_main.h"
 #include "doomstat.h"
 #include "g_game.h"
+#include "m_array.h"
+#include "m_json.h"
 #include "mn_menu.h"
 
-skill_info_t skill_info;
+#include "g_skillinfo.h"
 
-const skill_info_t doom_skill_infos[5] = {
-    {
-     .ammo_factor = FRACUNIT * 2,
-     .damage_factor = FRACUNIT / 2,
-     .spawn_filter = 1,
-     .key = 'i',
-     .name = "I'm too young to die.",
-     .pic_name = "M_JKILL",
-     .helper_dogs = -1,
-     .flags = SI_EASY_BOSS_BRAIN
-    },
-    {
-     .spawn_filter = 2,
-     .key = 'h',
-     .name = "Hey, not too rough.",
-     .pic_name = "M_ROUGH",
-     .helper_dogs = -1,
-     .flags = SI_EASY_BOSS_BRAIN
-    },
-    {
-     .spawn_filter = 3,
-     .key = 'h',
-     .name = "Hurt me plenty.",
-     .pic_name = "M_HURT",
-     .helper_dogs = -1,
-     .flags = 0
-    },
-    {
-     .spawn_filter = 4,
-     .key = 'u',
-     .name = "Ultra-Violence.",
-     .pic_name = "M_ULTRA",
-     .helper_dogs = -1,
-     .flags = 0
-    },
-    {
-     .ammo_factor = FRACUNIT * 2,
-     .spawn_filter = 5,
-     .key = 'n',
-     .name = "Nightmare!",
-     .pic_name = "M_NMARE",
-     .respawn_time = 12,
-     .helper_dogs = -1,
-     .flags = SI_FAST_MONSTERS | SI_INSTANT_REACTION | SI_MUST_CONFIRM
-    },
-};
+skill_info_t skill_info;
 
 int num_skills;
 int num_og_skills;
 int num_cskill;
 skill_info_t *skill_infos;
 
+static const char *skill_flag_names[] = {
+    [SI_SPAWN_MULTI] = "spawn_multi",
+    [SI_FAST_MONSTERS] = "fast_monsters",
+    [SI_INSTANT_REACTION] = "instant_reaction",
+    [SI_DEFAULT_SKILL] = "default_skill",
+    [SI_EASY_BOSS_BRAIN] = "easy_boss_brain",
+    [SI_MUST_CONFIRM] = "must_confirm",
+    [SI_NO_MONSTERS] = "no_monsters",
+    [SI_PISTOL_START] = "pistol_start",
+};
+
+static skill_info_flags_t GetFlagFromName(const char *flag_name)
+{
+    for (int i = 0; i < arrlen(skill_flag_names); ++i)
+    {
+        int idx = pow(2, i);
+        if (!strcmp(skill_flag_names[idx], flag_name))
+        {
+            return idx;
+        }
+    }
+    return 0;
+}
+
+static void ParseSkillDef()
+{
+    json_t *json = JS_Open("SKILLDEF", "skillinfo", (version_t){1, 0, 0});
+    if (!json)
+    {
+        I_Error("SKILLDEF: Error while parsing file");
+    }
+    
+    json_t *data = JS_GetObject(json, "data");
+    if (JS_IsNull(data) || !JS_IsObject(data))
+    {
+        I_Error("SKILLDEF: no data");
+    }
+
+    json_t *skill_levels = JS_GetObject(data, "skill_levels");
+    json_t *skill_level = NULL;
+    JS_ArrayForEach(skill_level, skill_levels)
+    {
+        skill_info_t info = {0};
+
+        double ammo_factor = JS_GetNumberValue(skill_level, "ammo_factor");
+        if (ammo_factor)
+            info.ammo_factor = FRACUNIT * ammo_factor;
+
+        double damage_factor = JS_GetNumberValue(skill_level, "damage_factor");
+        if (damage_factor)
+            info.damage_factor = FRACUNIT * damage_factor;
+
+        info.respawn_time = JS_GetIntegerValue(skill_level, "respawn_time");
+        info.spawn_filter = JS_GetIntegerValue(skill_level, "spawn_filter");
+
+        const char *key = JS_GetStringValue(skill_level, "key");
+        if (key)
+            info.key = *key;
+        
+        const char *must_confirm = JS_GetStringValue(skill_level, "must_confirm");
+        if (must_confirm)
+            info.must_confirm = M_StringDuplicate(must_confirm);
+        
+        const char *name = JS_GetStringValue(skill_level, "name");
+        if (name)
+            info.name = M_StringDuplicate(name);
+        
+        const char *pic_name = JS_GetStringValue(skill_level, "pic_name");
+        if (pic_name)
+        {
+            if (strlen(pic_name) > 8)
+            {
+                I_Error("SKILLDEF: pic_name is over 8 characters");
+            }
+            else
+            {
+                info.pic_name = M_StringDuplicate(pic_name);
+            }
+        }
+        
+        json_t *js_helper_dogs = JS_GetObject(skill_level, "helper_dogs");
+        info.helper_dogs = js_helper_dogs ? JS_GetInteger(js_helper_dogs) : -1;
+
+        json_t *js_flags = JS_GetObject(skill_level, "flags");
+        json_t *js_flag = NULL;
+        JS_ArrayForEach(js_flag, js_flags)
+        {
+            const char *flag_name = JS_GetString(js_flag);
+            if (flag_name)
+            {
+                int flag = GetFlagFromName(flag_name);
+                info.flags |= flag;
+            }
+        }
+        array_push(skill_infos, info);
+    }
+
+    JS_Close("SKILLDEF");
+}
+
 void G_InitSkills(void)
 {
-    const skill_info_t *original_skill_infos;
 
     num_skills = 5 + 1; // Custom skill
     num_og_skills = num_skills - 1;
     num_cskill = num_og_skills;
 
-    skill_infos = calloc(num_skills, sizeof(*skill_infos));
-
-    original_skill_infos = doom_skill_infos;
-    for (int i = 0; i < 5; ++i)
-    {
-        skill_infos[i] = original_skill_infos[i];
-    }
+    ParseSkillDef();
 }
 
 void G_UpdateCustomSkill(int custom_skill_num)

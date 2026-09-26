@@ -1,0 +1,46 @@
+{
+  "type": "skillinfo",
+  "version": "1.0.0",
+  "metadata": null,
+  "data": {
+    "skill_levels": [
+      {
+        "ammo_factor": 2,
+        "damage_factor": 0.5,
+        "spawn_filter": 1,
+        "key": "i",
+        "name": "I'm too young to die.",
+        "pic_name": "M_JKILL",
+        "flags": ["easy_boss_brain"]
+      },
+      {
+        "spawn_filter": 2,
+        "key": "h",
+        "name": "Hey, not too rough.",
+        "pic_name": "M_ROUGH",
+        "flags": ["easy_boss_brain"]
+      },
+      {
+        "spawn_filter": 3,
+        "key": "h",
+        "name": "Hurt me plenty.",
+        "pic_name": "M_HURT"
+      },
+      {
+        "spawn_filter": 4,
+        "key": "u",
+        "name": "Ultra-Violence.",
+        "pic_name": "M_ULTRA"
+      },
+      {
+        "ammo_factor": 2,
+        "spawn_filter": 5,
+        "key": "n",
+        "name": "Nightmare!",
+        "pic_name": "M_NMARE",
+        "respawn_time": 12,
+        "flags": ["fast_monsters", "instant_reaction", "must_confirm"]
+      }
+    ]
+  }
+}
