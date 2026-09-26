@@ -2048,12 +2048,6 @@ static char *savename = NULL;
 static boolean forced_loadgame = false;
 static boolean command_loadgame = false;
 
-void G_ForcedLoadAutoSave(void)
-{
-  gameaction = ga_loadautosave;
-  forced_loadgame = true;
-}
-
 void G_ForcedLoadGame(void)
 {
   gameaction = ga_loadgame;
@@ -2085,19 +2079,6 @@ void G_LoadGame(char *name, int slot, int page, boolean command)
 
 // killough 5/15/98:
 // Consistency Error when attempting to load savegame.
-
-static void G_LoadAutoSaveErr(const char *msg)
-{
-  Z_Free(savebuffer);
-  MN_ForcedLoadAutoSave(msg);
-
-  if (command_loadgame)
-  {
-    G_CheckDemoStatus();
-    D_StartTitle();
-    gamestate = GS_DEMOSCREEN;
-  }
-}
 
 static void G_LoadGameErr(const char *msg)
 {
@@ -2166,16 +2147,32 @@ static char *SaveGameName(const char *buf)
 
 char *G_AutoSaveName(void)
 {
-  return SaveGameName("autosave.dsg");
+  return G_SaveGameName(AUTOSAVESLOT, QUICKSAVEPAGE);
 }
 
 char *G_SaveGameName(int slot, int page)
 {
-  // Ty 05/04/98 - use savegamename variable (see d_deh.c)
-  // killough 12/98: add .7 to truncate savegamename
-  char buf[16] = {0};
-  sprintf(buf, "%.7s%d.dsg", savegamename, 10 * page + slot);
-  return SaveGameName(buf);
+    // Ty 05/04/98 - use savegamename variable (see d_deh.c)
+    // killough 12/98: add .7 to truncate savegamename
+    char buf[16] = {0};
+
+    if (page == QUICKSAVEPAGE)
+    {
+        if (slot == AUTOSAVESLOT)
+        {
+            sprintf(buf, "%s", "autosave.dsg");
+        }
+        else
+        {
+            sprintf(buf, "%.4sq%d.dsg", savegamename, slot);
+        }
+    }
+    else
+    {
+        sprintf(buf, "%.7s%d.dsg", savegamename, 10 * page + slot);
+    }
+
+    return SaveGameName(buf);
 }
 
 char* G_MBFSaveGameName(int slot, int page)
@@ -2412,7 +2409,6 @@ static void G_DoSaveGame(void)
 {
   char *name = G_SaveGameName(savegameslot, savegamepage);
   DoSaveGame(name);
-  MN_SetQuickSaveSlot(savegameslot, savegamepage);
   free(name);
 }
 
@@ -2459,7 +2455,7 @@ static void LoadCustomSkillOptionsJSON(json_t *root)
 
 static void ReadOptionsJSON(json_t *root);
 
-static boolean DoLoadGameJSON(boolean do_load_autosave, json_t *root)
+static boolean DoLoadGameJSON(json_t *root)
 {
     saveg_compat = saveg_current;
 
@@ -2502,14 +2498,7 @@ static boolean DoLoadGameJSON(boolean do_load_autosave, json_t *root)
             M_snprintf(msg + offset, str_len - offset, "%s", "\nAre you sure?");
             free(wadfile_names);
 
-            if (do_load_autosave)
-            {
-                G_LoadAutoSaveErr(msg);
-            }
-            else
-            {
-                G_LoadGameErr(msg);
-            }
+            G_LoadGameErr(msg);
             free(msg);
 
             return false;
@@ -2579,7 +2568,7 @@ static boolean DoLoadGameJSON(boolean do_load_autosave, json_t *root)
     return true;
 }
 
-static boolean DoLoadGameBinary(boolean do_load_autosave)
+static boolean DoLoadGameBinary()
 {
   save_p = savebuffer + SAVESTRINGSIZE;
 
@@ -2599,10 +2588,7 @@ static boolean DoLoadGameBinary(boolean do_load_autosave)
   if (!forced_loadgame && saveg_compat == saveg_indetermined)
     {
       const char *msg = "Different Savegame Version!!!\n\nAre you sure?";
-      if (do_load_autosave)
-        G_LoadAutoSaveErr(msg);
-      else
-        G_LoadGameErr(msg);
+      G_LoadGameErr(msg);
       return false;
     }
 
@@ -2635,10 +2621,7 @@ static boolean DoLoadGameBinary(boolean do_load_autosave)
 	 if (save_p[sizeof checksum])
 	   strcat(strcat(msg,"Wads expected:\n\n"), (char *) save_p);
 	 strcat(msg, "\nAre you sure?");
-	 if (do_load_autosave)
-	   G_LoadAutoSaveErr(msg);
-	 else
-	   G_LoadGameErr(msg);
+	 G_LoadGameErr(msg);
 	 free(msg);
 	 return false;
        }
@@ -2756,7 +2739,7 @@ static boolean DoLoadGameBinary(boolean do_load_autosave)
   return true;
 }
 
-static boolean DoLoadGame(boolean do_load_autosave)
+static boolean DoLoadGame()
 {
     I_SetFastdemoTimer(false);
 
@@ -2844,12 +2827,12 @@ static boolean DoLoadGame(boolean do_load_autosave)
     boolean ret = false;
     if (root)
     {
-        ret = DoLoadGameJSON(do_load_autosave, root);
+        ret = DoLoadGameJSON(root);
         JS_CloseOptions(NO_INDEX);
     }
     else
     {
-        ret = DoLoadGameBinary(do_load_autosave);
+        ret = DoLoadGameBinary();
     }
 
     if (decomp_str)
@@ -2912,22 +2895,28 @@ static void PrintLevelTimes(void)
 
 static void G_DoLoadGame(void)
 {
-  if (DoLoadGame(false))
-  {
-    const int slot_num = 10 * savegamepage + savegameslot;
-    I_Printf(VB_DEBUG, "G_DoLoadGame: Slot %02d, Time ", slot_num);
-    PrintLevelTimes();
-    MN_SetQuickSaveSlot(savegameslot, savegamepage);
-  }
-}
+    if (DoLoadGame())
+    {
+        if (savegamepage == QUICKSAVEPAGE)
+        {
+            if (savegameslot == AUTOSAVESLOT)
+            {
+                I_Printf(VB_DEBUG, "G_DoLoadGame: Auto Save, Time ");
+            }
+            else
+            {
+                I_Printf(VB_DEBUG, "G_DoLoadGame: Quick Save %02d, Time ",
+                         savegameslot);
+            }
+        }
+        else
+        {
+            const int slot_num = 10 * savegamepage + savegameslot;
+            I_Printf(VB_DEBUG, "G_DoLoadGame: Slot %02d, Time ", slot_num);
+        }
 
-static void G_DoLoadAutoSave(void)
-{
-  if (DoLoadGame(true))
-  {
-    I_Printf(VB_DEBUG, "G_DoLoadGame: Auto Save, Time ");
-    PrintLevelTimes();
-  }
+        PrintLevelTimes();
+    }
 }
 
 boolean G_AutoSaveEnabled(void)
@@ -3046,6 +3035,7 @@ void G_Ticker(void)
 	G_DoNewGame();
 	break;
       case ga_loadgame:
+      case ga_loadautosave:
 	G_DoLoadGame();
 	break;
       case ga_savegame:
@@ -3074,9 +3064,6 @@ void G_Ticker(void)
 	break;
       case ga_reloadlevel:
 	G_ReloadLevel();
-	break;
-      case ga_loadautosave:
-	G_DoLoadAutoSave();
 	break;
       case ga_saveautosave:
 	G_DoSaveAutoSave();

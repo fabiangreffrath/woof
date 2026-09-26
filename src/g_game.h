@@ -50,7 +50,6 @@ void G_DeferedInitNew(skill_t skill, int episode, int map);
 void G_DeferedPlayDemo(const char *demo);
 void G_LoadAutoSave(char *name, boolean is_command);
 void G_LoadGame(char *name, int slot, int page, boolean is_command); // killough 5/15/98
-void G_ForcedLoadAutoSave(void);
 void G_ForcedLoadGame(void);           // killough 5/15/98: forced loadgames
 void G_SaveAutoSave(char *description);
 void G_SaveGame(int slot, int page, char *description); // Called by M_Responder.
