@@ -3952,6 +3952,11 @@ void G_ReloadDefaults(boolean keep_demover)
   pistolstart = clpistolstart;
   coopspawns = clcoopspawns;
 
+  //jff 3/24/98 set startskill from defaultskill in config file, unless
+  // it has already been set by a -skill parameter
+  if (startskill == sk_default)
+    startskill = (skill_t)(default_skill - 1);
+
   demoplayback = false;
   singledemo = false;            // killough 9/29/98: don't stop after 1 demo
   netdemo = false;

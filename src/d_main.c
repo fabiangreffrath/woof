@@ -1862,22 +1862,9 @@ void D_DoomMain(void)
   LoadPWadBase();
   AutoloadPWadDir(AutoLoadWADs);
 
-
-  M_InitConfig();
-
-  I_PutChar(VB_INFO, '\n');
-
-  M_LoadDefaults();  // load before initing other systems
-
-  // init subsystems
-
-  W_InitMultipleFiles();
-
-  G_InitSkills();
-
   // get skill / episode / map from parms
 
-  startskill = default_skill - 1;
+  startskill = sk_default; // jff 3/24/98 was sk_medium, just note not picked
   startepisode = 1;
   startmap = 1;
   autostart = false;
@@ -2069,12 +2056,24 @@ void D_DoomMain(void)
 
   noblit = M_CheckParm ("-noblit");
 
+  M_InitConfig();
+
+  I_PutChar(VB_INFO, '\n');
+
+  M_LoadDefaults();  // load before initing other systems
+
   bodyquesize = default_bodyquesize; // killough 10/98
 
   // 1/18/98 killough: Z_Init call moved to i_main.c
 
+  // init subsystems
+
+  W_InitMultipleFiles();
+
   // Check for wolf levels
   haswolflevels = (W_CheckNumForName("map31") >= 0);
+
+  G_InitSkills();
 
   //
   // Start DeHackEd Loading
