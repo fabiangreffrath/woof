@@ -11,6 +11,7 @@
   - Player view no longer abruptly jolts when running across very shallow floor height changes
   - The Minimap now always follows the player
   - The Automap player arrow has been widened for better visibility
+  - Skip rest of line in DEHACKED lumps for Text section with too short length parameters
   - The Load/Save Game menus are now organized in tabs, instead of pages.
     The left-most tab of the Load Game menu is for Quick Saves, its first slot is reserved for Auto Save.
     Quick Saves are now immediate and always override the oldest available slot.

@@ -26,6 +26,7 @@
 deh_context_t *DEH_OpenFile(const char *filename);
 deh_context_t *DEH_OpenLump(int lumpnum);
 void DEH_CloseFile(deh_context_t *context);
+void DEH_UngetChar(deh_context_t *context, int result);
 int DEH_GetChar(deh_context_t *context);
 char *DEH_ReadLine(deh_context_t *context, boolean extended);
 void DEH_PrintMessage(deh_context_t *context, verbosity_t verbosity, const char *msg, ...) PRINTF_ATTR(3, 4);

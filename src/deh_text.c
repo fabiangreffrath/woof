@@ -1,6 +1,7 @@
 //
 // Copyright(C) 2005-2014 Simon Howard
 // Copyright(C) 2025 Guilherme Miranda
+// Copyright(C) 2026 Fabian Greffrath
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -172,7 +173,12 @@ static int DEH_TextStart(deh_context_t *context, char *line)
 
 static void DEH_TextParseLine(deh_context_t *context, char *line, int tag)
 {
-    // not used
+    // This is only reached if the previous "to" text length was wrong and
+    // left the reader mid-line. Push back a newline so the main loop sees
+    // an empty line next, ending the section and letting the following
+    // line be read fresh afterwards.
+    DEH_Warning(context, "Text section does not end on end of line");
+    DEH_UngetChar(context, '\n');
 }
 
 deh_section_t deh_section_text =
