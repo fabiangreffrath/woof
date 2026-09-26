@@ -216,7 +216,7 @@ void R_InitVisplanesRes(void)
 // BASIC PRIMITIVE
 //
 
-static void R_MapPlane(int y, int x1, int x2, const lighttable_t * const thiscolormap)
+static void R_MapPlane(int y, int x1, int x2, lighttable_t * thiscolormap)
 {
   fixed_t distance;
   int dx;
@@ -285,7 +285,7 @@ static void R_MapPlane(int y, int x1, int x2, const lighttable_t * const thiscol
 }
 
 // Set up vertical plane renderer
-void R_PrepareVisplaneRaster( visplane_t* visplane, const lighttable_t * const thiscolormap)
+void R_PrepareVisplaneRaster( visplane_t* visplane, lighttable_t * thiscolormap)
 {
 	int32_t y = visplane->miny;
 	int32_t stop = visplane->maxy + 1;
@@ -1075,9 +1075,9 @@ static void do_draw_plane(visplane_t *pl)
 
     planezlightoffset = zlightoffset[light];
 
-    const lighttable_t * const thiscolormap = (pl->tint >= 0)
-                                            ? colormaps[pl->tint]
-                                            : fullcolormap;
+    lighttable_t * thiscolormap = (pl->tint >= 0)
+                                ? colormaps[pl->tint]
+                                : fullcolormap;
 
     int32_t span_type = MIN( (int32_t)( log2f( video.height * 0.02f ) + 0.5f ), Span_PolyRaster_Log2_32);
     
