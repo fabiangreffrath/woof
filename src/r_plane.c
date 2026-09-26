@@ -73,12 +73,12 @@ visplane_t *floorplane, *ceilingplane;
 
 typedef enum spantype_e
 {
-	Span_None,
-	Span_Original,
-	Span_PolyRaster_Log2_4,
-	Span_PolyRaster_Log2_8,
-	Span_PolyRaster_Log2_16,
-	Span_PolyRaster_Log2_32,
+    Span_None,
+    Span_Original,
+    Span_PolyRaster_Log2_4,
+    Span_PolyRaster_Log2_8,
+    Span_PolyRaster_Log2_16,
+    Span_PolyRaster_Log2_32,
 } spantype_t;
 
 #define PLANE_PIXELLEAP_32			( 32 )
@@ -95,9 +95,9 @@ typedef enum spantype_e
 
 typedef struct rastercache_s
 {
-	lighttable_t*	    colormap[2];
-	fixed_t				height;
-	fixed_t				distance;
+    lighttable_t*	    colormap[2];
+    fixed_t				height;
+    fixed_t				distance;
 } rastercache_t;
 
 static rastercache_t* raster = NULL;
@@ -287,37 +287,37 @@ static void R_MapPlane(int y, int x1, int x2, const lighttable_t * const thiscol
 // Set up vertical plane renderer
 void R_PrepareVisplaneRaster( visplane_t* visplane, lighttable_t * thiscolormap)
 {
-	int32_t y = visplane->miny;
-	int32_t stop = visplane->maxy + 1;
+    int32_t y = visplane->miny;
+    int32_t stop = visplane->maxy + 1;
 
-	while( y < stop )
-	{
-		if ( planeheight != raster[ y ].height )
-		{
-			raster[ y ].height		= planeheight;
-			raster[ y ].distance	= FixedMul ( planeheight, yslope[ y ] );
-		}
+    while( y < stop )
+    {
+        if ( planeheight != raster[ y ].height )
+        {
+            raster[ y ].height		= planeheight;
+            raster[ y ].distance	= FixedMul ( planeheight, yslope[ y ] );
+        }
 
-		// TODO: THIS LOGIC IS BROKEN>>>>>>>>>>>>>>>>>>
-		//if( planecontext->planezlight != planecontext->raster[ y ].zlight )
-		{
-			if( fixedcolormapoffset )
-			{
+        // TODO: THIS LOGIC IS BROKEN>>>>>>>>>>>>>>>>>>
+        //if( planecontext->planezlight != planecontext->raster[ y ].zlight )
+        {
+            if( fixedcolormapoffset )
+            {
                 raster[ y ].colormap[0] = thiscolormap + fixedcolormapoffset;
                 raster[ y ].colormap[1] = raster[ y ].colormap[0];
-			}
-			else
-			{
+            }
+            else
+            {
                 unsigned index = raster[ y ].distance >> LIGHTZSHIFT;
                 index = MIN(index, MAXLIGHTZ - 1);
 
                 raster[ y ].colormap[0] = thiscolormap + planezlightoffset[index];
                 raster[ y ].colormap[1] = thiscolormap;
-			}
-		}
+            }
+        }
 
-		++y;
-	};
+        ++y;
+    };
 }
 
 //
@@ -638,366 +638,366 @@ yfrac += ystep;
 
 static void R_RasteriseVisplaneColumn_Log2_32( visplane_t* visplane, int32_t x )
 {
-	pixel_t*			dest			= xlookup[ x ] + rowofs[ visplane->top[ x ] ];
+    pixel_t*			dest			= xlookup[ x ] + rowofs[ visplane->top[ x ] ];
 
-	int32_t				ybase			= visplane->top[ x ];
-	int32_t				ycache			= ybase;
-	int32_t				count			= visplane->bottom[ x ] - ybase;
+    int32_t				ybase			= visplane->top[ x ];
+    int32_t				ycache			= ybase;
+    int32_t				count			= visplane->bottom[ x ] - ybase;
 
-	angle_t				angle			= (viewangle + xtoviewangle[ x ] ) >> ANGLETOFINESHIFT;
-	fixed_t				anglecos		= finecosine[ angle ];
-	fixed_t				anglesin		= finesine[ angle ];
+    angle_t				angle			= (viewangle + xtoviewangle[ x ] ) >> ANGLETOFINESHIFT;
+    fixed_t				anglecos		= finecosine[ angle ];
+    fixed_t				anglesin		= finesine[ angle ];
 
-	fixed_t				currdistance	= raster[ ybase ].distance;
-	fixed_t				currlength		= FixedMul( currdistance, distscale[ x ] );
+    fixed_t				currdistance	= raster[ ybase ].distance;
+    fixed_t				currlength		= FixedMul( currdistance, distscale[ x ] );
 
-	fixed_t				xfrac		= viewx + FixedMul( anglecos, currlength );
-	fixed_t				yfrac		= -viewy - FixedMul( anglesin, currlength );
-	fixed_t				nextxfrac;
-	fixed_t				nextyfrac;
+    fixed_t				xfrac		= viewx + FixedMul( anglecos, currlength );
+    fixed_t				yfrac		= -viewy - FixedMul( anglesin, currlength );
+    fixed_t				nextxfrac;
+    fixed_t				nextyfrac;
 
-	fixed_t				xstep;
-	fixed_t				ystep;
+    fixed_t				xstep;
+    fixed_t				ystep;
 
-	int32_t				spot;
+    int32_t				spot;
 
-	rastercache_t*		thisraster;
+    rastercache_t*		thisraster;
 
-	while( count >= PLANE_PIXELLEAP_32 )
-	{
-		ycache			= ybase + PLANE_PIXELLEAP_32;
-		currdistance	= raster[ ycache ].distance;
-		currlength		= FixedMul ( currdistance, distscale[ x ] );
-		nextxfrac		= viewx + FixedMul( anglecos, currlength );
-		nextyfrac		= -viewy - FixedMul( anglesin, currlength );
-		thisraster		= &raster[ybase];
+    while( count >= PLANE_PIXELLEAP_32 )
+    {
+        ycache			= ybase + PLANE_PIXELLEAP_32;
+        currdistance	= raster[ ycache ].distance;
+        currlength		= FixedMul ( currdistance, distscale[ x ] );
+        nextxfrac		= viewx + FixedMul( anglecos, currlength );
+        nextyfrac		= -viewy - FixedMul( anglesin, currlength );
+        thisraster		= &raster[ybase];
 
-		xstep =	( nextxfrac - xfrac ) >> PLANE_PIXELLEAP_32_LOG2;
-		ystep =	( nextyfrac - yfrac ) >> PLANE_PIXELLEAP_32_LOG2;
+        xstep =	( nextxfrac - xfrac ) >> PLANE_PIXELLEAP_32_LOG2;
+        ystep =	( nextyfrac - yfrac ) >> PLANE_PIXELLEAP_32_LOG2;
 
 #if !RASTERISE_UNROLLED
-		do
-		{
-			DOSAMPLE();
-		} while( ybase < ycache );
+        do
+        {
+            DOSAMPLE();
+        } while( ybase < ycache );
 #else // RASTERISE_UNROLLED
 
-		DOSAMPLE(0);
-		DOSAMPLE(1);
-		DOSAMPLE(2);
-		DOSAMPLE(3);
-		DOSAMPLE(4);
-		DOSAMPLE(5);
-		DOSAMPLE(6);
-		DOSAMPLE(7);
-		DOSAMPLE(8);
-		DOSAMPLE(9);
-		DOSAMPLE(10);
-		DOSAMPLE(11);
-		DOSAMPLE(12);
-		DOSAMPLE(13);
-		DOSAMPLE(14);
-		DOSAMPLE(15);
-		DOSAMPLE(16);
-		DOSAMPLE(17);
-		DOSAMPLE(18);
-		DOSAMPLE(19);
-		DOSAMPLE(20);
-		DOSAMPLE(21);
-		DOSAMPLE(22);
-		DOSAMPLE(23);
-		DOSAMPLE(24);
-		DOSAMPLE(25);
-		DOSAMPLE(26);
-		DOSAMPLE(27);
-		DOSAMPLE(28);
-		DOSAMPLE(29);
-		DOSAMPLE(30);
-		DOSAMPLE(31);
+        DOSAMPLE(0);
+        DOSAMPLE(1);
+        DOSAMPLE(2);
+        DOSAMPLE(3);
+        DOSAMPLE(4);
+        DOSAMPLE(5);
+        DOSAMPLE(6);
+        DOSAMPLE(7);
+        DOSAMPLE(8);
+        DOSAMPLE(9);
+        DOSAMPLE(10);
+        DOSAMPLE(11);
+        DOSAMPLE(12);
+        DOSAMPLE(13);
+        DOSAMPLE(14);
+        DOSAMPLE(15);
+        DOSAMPLE(16);
+        DOSAMPLE(17);
+        DOSAMPLE(18);
+        DOSAMPLE(19);
+        DOSAMPLE(20);
+        DOSAMPLE(21);
+        DOSAMPLE(22);
+        DOSAMPLE(23);
+        DOSAMPLE(24);
+        DOSAMPLE(25);
+        DOSAMPLE(26);
+        DOSAMPLE(27);
+        DOSAMPLE(28);
+        DOSAMPLE(29);
+        DOSAMPLE(30);
+        DOSAMPLE(31);
 
 #endif // !RASTERISE_UNROLLED
 
-		xfrac = nextxfrac;
-		yfrac = nextyfrac;
+        xfrac = nextxfrac;
+        yfrac = nextyfrac;
 
-		ybase += PLANE_PIXELLEAP_32;
-		count -= PLANE_PIXELLEAP_32;
-	};
+        ybase += PLANE_PIXELLEAP_32;
+        count -= PLANE_PIXELLEAP_32;
+    };
 
-	if( count >= 0 )
-	{
-		ycache			= ybase + count;
-		currdistance	= raster[ ycache ].distance;
-		currlength		= FixedMul ( currdistance, distscale[ x ] );
-		nextxfrac		= viewx + FixedMul( anglecos, currlength );
-		nextyfrac		= -viewy - FixedMul( anglesin, currlength );
+    if( count >= 0 )
+    {
+        ycache			= ybase + count;
+        currdistance	= raster[ ycache ].distance;
+        currlength		= FixedMul ( currdistance, distscale[ x ] );
+        nextxfrac		= viewx + FixedMul( anglecos, currlength );
+        nextyfrac		= -viewy - FixedMul( anglesin, currlength );
 
-		xstep =	( nextxfrac - xfrac ) / ( count + 1 );
-		ystep =	( nextyfrac - yfrac ) / ( count + 1 );
+        xstep =	( nextxfrac - xfrac ) / ( count + 1 );
+        ystep =	( nextyfrac - yfrac ) / ( count + 1 );
 
-		do
-		{
-			thisraster = &raster[ybase++];
-			DOSAMPLE(0);
-		} while( ybase <= ycache );
-	}
+        do
+        {
+            thisraster = &raster[ybase++];
+            DOSAMPLE(0);
+        } while( ybase <= ycache );
+    }
 
 }
 
 static void R_RasteriseVisplaneColumn_Log2_16( visplane_t* visplane, int32_t x )
 {
-	pixel_t*			dest			= xlookup[ x ] + rowofs[ visplane->top[ x ] ];
+    pixel_t*			dest			= xlookup[ x ] + rowofs[ visplane->top[ x ] ];
 
-	int32_t				ybase			= visplane->top[ x ];
-	int32_t				ycache			= ybase;
-	int32_t				count			= visplane->bottom[ x ] - ybase;
+    int32_t				ybase			= visplane->top[ x ];
+    int32_t				ycache			= ybase;
+    int32_t				count			= visplane->bottom[ x ] - ybase;
 
-	angle_t				angle			= (viewangle + xtoviewangle[ x ] ) >> ANGLETOFINESHIFT;
-	fixed_t				anglecos		= finecosine[ angle ];
-	fixed_t				anglesin		= finesine[ angle ];
+    angle_t				angle			= (viewangle + xtoviewangle[ x ] ) >> ANGLETOFINESHIFT;
+    fixed_t				anglecos		= finecosine[ angle ];
+    fixed_t				anglesin		= finesine[ angle ];
 
-	fixed_t				currdistance	= raster[ ybase ].distance;
-	fixed_t				currlength		= FixedMul ( currdistance, distscale[ x ] );
+    fixed_t				currdistance	= raster[ ybase ].distance;
+    fixed_t				currlength		= FixedMul ( currdistance, distscale[ x ] );
 
-	fixed_t				xfrac			= viewx + FixedMul( anglecos, currlength );
-	fixed_t				yfrac			= -viewy - FixedMul( anglesin, currlength );
-	fixed_t				nextxfrac;
-	fixed_t				nextyfrac;
+    fixed_t				xfrac			= viewx + FixedMul( anglecos, currlength );
+    fixed_t				yfrac			= -viewy - FixedMul( anglesin, currlength );
+    fixed_t				nextxfrac;
+    fixed_t				nextyfrac;
 
-	fixed_t				xstep;
-	fixed_t				ystep;
+    fixed_t				xstep;
+    fixed_t				ystep;
 
-	int32_t				spot;
+    int32_t				spot;
 
-	rastercache_t*		thisraster;
+    rastercache_t*		thisraster;
 
-	while( count >= PLANE_PIXELLEAP_16 )
-	{
-		ycache			= ybase + PLANE_PIXELLEAP_16;
-		currdistance	= raster[ ycache ].distance;
-		currlength		= FixedMul ( currdistance, distscale[ x ] );
-		nextxfrac		= viewx + FixedMul( anglecos, currlength );
-		nextyfrac		= -viewy - FixedMul( anglesin, currlength );
-		thisraster		= &raster[ybase];
+    while( count >= PLANE_PIXELLEAP_16 )
+    {
+        ycache			= ybase + PLANE_PIXELLEAP_16;
+        currdistance	= raster[ ycache ].distance;
+        currlength		= FixedMul ( currdistance, distscale[ x ] );
+        nextxfrac		= viewx + FixedMul( anglecos, currlength );
+        nextyfrac		= -viewy - FixedMul( anglesin, currlength );
+        thisraster		= &raster[ybase];
 
-		xstep =	( nextxfrac - xfrac ) >> PLANE_PIXELLEAP_16_LOG2;
-		ystep =	( nextyfrac - yfrac ) >> PLANE_PIXELLEAP_16_LOG2;
+        xstep =	( nextxfrac - xfrac ) >> PLANE_PIXELLEAP_16_LOG2;
+        ystep =	( nextyfrac - yfrac ) >> PLANE_PIXELLEAP_16_LOG2;
 
 #if !RASTERISE_UNROLLED
-		do
-		{
-			DOSAMPLE();
-		} while( ybase < ycache );
+        do
+        {
+            DOSAMPLE();
+        } while( ybase < ycache );
 #else // RASTERISE_UNROLLED
 
-		DOSAMPLE(0);
-		DOSAMPLE(1);
-		DOSAMPLE(2);
-		DOSAMPLE(3);
-		DOSAMPLE(4);
-		DOSAMPLE(5);
-		DOSAMPLE(6);
-		DOSAMPLE(7);
-		DOSAMPLE(8);
-		DOSAMPLE(9);
-		DOSAMPLE(10);
-		DOSAMPLE(11);
-		DOSAMPLE(12);
-		DOSAMPLE(13);
-		DOSAMPLE(14);
-		DOSAMPLE(15);
+        DOSAMPLE(0);
+        DOSAMPLE(1);
+        DOSAMPLE(2);
+        DOSAMPLE(3);
+        DOSAMPLE(4);
+        DOSAMPLE(5);
+        DOSAMPLE(6);
+        DOSAMPLE(7);
+        DOSAMPLE(8);
+        DOSAMPLE(9);
+        DOSAMPLE(10);
+        DOSAMPLE(11);
+        DOSAMPLE(12);
+        DOSAMPLE(13);
+        DOSAMPLE(14);
+        DOSAMPLE(15);
 
 #endif // !RASTERISE_UNROLLED
 
-		xfrac = nextxfrac;
-		yfrac = nextyfrac;
+        xfrac = nextxfrac;
+        yfrac = nextyfrac;
 
-		ybase += PLANE_PIXELLEAP_16;
-		count -= PLANE_PIXELLEAP_16;
-	};
+        ybase += PLANE_PIXELLEAP_16;
+        count -= PLANE_PIXELLEAP_16;
+    };
 
-	if( count >= 0 )
-	{
-		ycache			= ybase + count;
-		currdistance	= raster[ ycache ].distance;
-		currlength		= FixedMul ( currdistance, distscale[ x ] );
-		nextxfrac		= viewx + FixedMul( anglecos, currlength );
-		nextyfrac		= -viewy - FixedMul( anglesin, currlength );
+    if( count >= 0 )
+    {
+        ycache			= ybase + count;
+        currdistance	= raster[ ycache ].distance;
+        currlength		= FixedMul ( currdistance, distscale[ x ] );
+        nextxfrac		= viewx + FixedMul( anglecos, currlength );
+        nextyfrac		= -viewy - FixedMul( anglesin, currlength );
 
-		xstep =	( nextxfrac - xfrac ) / ( count + 1 );
-		ystep =	( nextyfrac - yfrac ) / ( count + 1 );
+        xstep =	( nextxfrac - xfrac ) / ( count + 1 );
+        ystep =	( nextyfrac - yfrac ) / ( count + 1 );
 
-		do
-		{
-			thisraster = &raster[ybase++];
-			DOSAMPLE(0);
-		} while( ybase <= ycache );
-	}
+        do
+        {
+            thisraster = &raster[ybase++];
+            DOSAMPLE(0);
+        } while( ybase <= ycache );
+    }
 
 }
 
 static void R_RasteriseVisplaneColumn_Log2_8( visplane_t* visplane, int32_t x )
 {
-	pixel_t*			dest			= xlookup[ x ] + rowofs[ visplane->top[ x ] ];
+    pixel_t*			dest			= xlookup[ x ] + rowofs[ visplane->top[ x ] ];
 
-	int32_t				ybase			= visplane->top[ x ];
-	int32_t				ycache			= ybase;
-	int32_t				count			= visplane->bottom[ x ] - ybase;
+    int32_t				ybase			= visplane->top[ x ];
+    int32_t				ycache			= ybase;
+    int32_t				count			= visplane->bottom[ x ] - ybase;
 
-	angle_t				angle			= (viewangle + xtoviewangle[ x ] ) >> ANGLETOFINESHIFT;
-	fixed_t				anglecos		= finecosine[ angle ];
-	fixed_t				anglesin		= finesine[ angle ];
+    angle_t				angle			= (viewangle + xtoviewangle[ x ] ) >> ANGLETOFINESHIFT;
+    fixed_t				anglecos		= finecosine[ angle ];
+    fixed_t				anglesin		= finesine[ angle ];
 
-	fixed_t				currdistance	= raster[ ybase ].distance;
-	fixed_t				currlength		= FixedMul ( currdistance, distscale[ x ] );
+    fixed_t				currdistance	= raster[ ybase ].distance;
+    fixed_t				currlength		= FixedMul ( currdistance, distscale[ x ] );
 
-	fixed_t				xfrac			= viewx + FixedMul( anglecos, currlength );
-	fixed_t				yfrac			= -viewy - FixedMul( anglesin, currlength );
-	fixed_t				nextxfrac;
-	fixed_t				nextyfrac;
+    fixed_t				xfrac			= viewx + FixedMul( anglecos, currlength );
+    fixed_t				yfrac			= -viewy - FixedMul( anglesin, currlength );
+    fixed_t				nextxfrac;
+    fixed_t				nextyfrac;
 
-	fixed_t				xstep;
-	fixed_t				ystep;
+    fixed_t				xstep;
+    fixed_t				ystep;
 
-	int32_t				spot;
+    int32_t				spot;
 
-	rastercache_t*		thisraster;
+    rastercache_t*		thisraster;
 
-	while( count >= PLANE_PIXELLEAP_8 )
-	{
-		ycache			= ybase + PLANE_PIXELLEAP_8;
-		currdistance	= raster[ ycache ].distance;
-		currlength		= FixedMul ( currdistance, distscale[ x ] );
-		nextxfrac		= viewx + FixedMul( anglecos, currlength );
-		nextyfrac		= -viewy - FixedMul( anglesin, currlength );
-		thisraster		= &raster[ybase];
+    while( count >= PLANE_PIXELLEAP_8 )
+    {
+        ycache			= ybase + PLANE_PIXELLEAP_8;
+        currdistance	= raster[ ycache ].distance;
+        currlength		= FixedMul ( currdistance, distscale[ x ] );
+        nextxfrac		= viewx + FixedMul( anglecos, currlength );
+        nextyfrac		= -viewy - FixedMul( anglesin, currlength );
+        thisraster		= &raster[ybase];
 
-		xstep =	( nextxfrac - xfrac ) >> PLANE_PIXELLEAP_8_LOG2;
-		ystep =	( nextyfrac - yfrac ) >> PLANE_PIXELLEAP_8_LOG2;
+        xstep =	( nextxfrac - xfrac ) >> PLANE_PIXELLEAP_8_LOG2;
+        ystep =	( nextyfrac - yfrac ) >> PLANE_PIXELLEAP_8_LOG2;
 
 #if !RASTERISE_UNROLLED
-		do
-		{
-			DOSAMPLE();
-		} while( ybase < ycache );
+        do
+        {
+            DOSAMPLE();
+        } while( ybase < ycache );
 #else // RASTERISE_UNROLLED
 
-		DOSAMPLE(0);
-		DOSAMPLE(1);
-		DOSAMPLE(2);
-		DOSAMPLE(3);
-		DOSAMPLE(4);
-		DOSAMPLE(5);
-		DOSAMPLE(6);
-		DOSAMPLE(7);
+        DOSAMPLE(0);
+        DOSAMPLE(1);
+        DOSAMPLE(2);
+        DOSAMPLE(3);
+        DOSAMPLE(4);
+        DOSAMPLE(5);
+        DOSAMPLE(6);
+        DOSAMPLE(7);
 
 #endif // !RASTERISE_UNROLLED
 
-		xfrac = nextxfrac;
-		yfrac = nextyfrac;
+        xfrac = nextxfrac;
+        yfrac = nextyfrac;
 
-		ybase += PLANE_PIXELLEAP_8;
-		count -= PLANE_PIXELLEAP_8;
-	};
+        ybase += PLANE_PIXELLEAP_8;
+        count -= PLANE_PIXELLEAP_8;
+    };
 
-	if( count >= 0 )
-	{
-		ycache			= ybase + count;
-		currdistance	= raster[ ycache ].distance;
-		currlength		= FixedMul ( currdistance, distscale[ x ] );
-		nextxfrac		= viewx + FixedMul( anglecos, currlength );
-		nextyfrac		= -viewy - FixedMul( anglesin, currlength );
+    if( count >= 0 )
+    {
+        ycache			= ybase + count;
+        currdistance	= raster[ ycache ].distance;
+        currlength		= FixedMul ( currdistance, distscale[ x ] );
+        nextxfrac		= viewx + FixedMul( anglecos, currlength );
+        nextyfrac		= -viewy - FixedMul( anglesin, currlength );
 
-		xstep =	( nextxfrac - xfrac ) / ( count + 1 );
-		ystep =	( nextyfrac - yfrac ) / ( count + 1 );
+        xstep =	( nextxfrac - xfrac ) / ( count + 1 );
+        ystep =	( nextyfrac - yfrac ) / ( count + 1 );
 
-		do
-		{
-			thisraster = &raster[ybase++];
-			DOSAMPLE(0);
-		} while( ybase <= ycache );
-	}
+        do
+        {
+            thisraster = &raster[ybase++];
+            DOSAMPLE(0);
+        } while( ybase <= ycache );
+    }
 
 }
 
 // This is probably the version that will get SIMD'd, with unrolling from there
 static void R_RasteriseVisplaneColumn_Log2_4( visplane_t* visplane, int32_t x )
 {
-	pixel_t*			dest			= xlookup[ x ] + rowofs[ visplane->top[ x ] ];
+    pixel_t*			dest			= xlookup[ x ] + rowofs[ visplane->top[ x ] ];
 
-	int32_t				ybase			= visplane->top[ x ];
-	int32_t				ycache			= ybase;
-	int32_t				count			= visplane->bottom[ x ] - ybase;
+    int32_t				ybase			= visplane->top[ x ];
+    int32_t				ycache			= ybase;
+    int32_t				count			= visplane->bottom[ x ] - ybase;
 
-	angle_t				angle			= (viewangle + xtoviewangle[ x ] ) >> ANGLETOFINESHIFT;
-	fixed_t				anglecos		= finecosine[ angle ];
-	fixed_t				anglesin		= finesine[ angle ];
+    angle_t				angle			= (viewangle + xtoviewangle[ x ] ) >> ANGLETOFINESHIFT;
+    fixed_t				anglecos		= finecosine[ angle ];
+    fixed_t				anglesin		= finesine[ angle ];
 
-	fixed_t				currdistance	= raster[ ybase ].distance;
-	fixed_t				currlength		= FixedMul ( currdistance, distscale[ x ] );
+    fixed_t				currdistance	= raster[ ybase ].distance;
+    fixed_t				currlength		= FixedMul ( currdistance, distscale[ x ] );
 
-	fixed_t				xfrac			= viewx + FixedMul( anglecos, currlength );
-	fixed_t				yfrac			= -viewy - FixedMul( anglesin, currlength );
-	fixed_t				nextxfrac;
-	fixed_t				nextyfrac;
+    fixed_t				xfrac			= viewx + FixedMul( anglecos, currlength );
+    fixed_t				yfrac			= -viewy - FixedMul( anglesin, currlength );
+    fixed_t				nextxfrac;
+    fixed_t				nextyfrac;
 
-	fixed_t				xstep;
-	fixed_t				ystep;
+    fixed_t				xstep;
+    fixed_t				ystep;
 
-	int32_t				spot;
+    int32_t				spot;
 
-	rastercache_t*		thisraster;
+    rastercache_t*		thisraster;
 
-	while( count >= PLANE_PIXELLEAP_4 )
-	{
-		ycache			= ybase + PLANE_PIXELLEAP_4;
-		currdistance	= raster[ ycache ].distance;
-		currlength		= FixedMul ( currdistance, distscale[ x ] );
-		nextxfrac		= viewx + FixedMul( anglecos, currlength );
-		nextyfrac		= -viewy - FixedMul( anglesin, currlength );
-		thisraster		= &raster[ybase];
+    while( count >= PLANE_PIXELLEAP_4 )
+    {
+        ycache			= ybase + PLANE_PIXELLEAP_4;
+        currdistance	= raster[ ycache ].distance;
+        currlength		= FixedMul ( currdistance, distscale[ x ] );
+        nextxfrac		= viewx + FixedMul( anglecos, currlength );
+        nextyfrac		= -viewy - FixedMul( anglesin, currlength );
+        thisraster		= &raster[ybase];
 
-		xstep =	( nextxfrac - xfrac ) >> PLANE_PIXELLEAP_4_LOG2;
-		ystep =	( nextyfrac - yfrac ) >> PLANE_PIXELLEAP_4_LOG2;
+        xstep =	( nextxfrac - xfrac ) >> PLANE_PIXELLEAP_4_LOG2;
+        ystep =	( nextyfrac - yfrac ) >> PLANE_PIXELLEAP_4_LOG2;
 
 #if !RASTERISE_UNROLLED
-		do
-		{
-			DOSAMPLE();
-		} while( ybase < ycache );
+        do
+        {
+            DOSAMPLE();
+        } while( ybase < ycache );
 #else // RASTERISE_UNROLLED
 
-		DOSAMPLE(0);
-		DOSAMPLE(1);
-		DOSAMPLE(2);
-		DOSAMPLE(3);
+        DOSAMPLE(0);
+        DOSAMPLE(1);
+        DOSAMPLE(2);
+        DOSAMPLE(3);
 
 #endif // !RASTERISE_UNROLLED
 
-		xfrac = nextxfrac;
-		yfrac = nextyfrac;
+        xfrac = nextxfrac;
+        yfrac = nextyfrac;
 
-		ybase += PLANE_PIXELLEAP_4;
-		count -= PLANE_PIXELLEAP_4;
-	};
+        ybase += PLANE_PIXELLEAP_4;
+        count -= PLANE_PIXELLEAP_4;
+    };
 
-	if( count >= 0 )
-	{
-		ycache			= ybase + count;
-		currdistance	= raster[ ycache ].distance;
-		currlength		= FixedMul ( currdistance, distscale[ x ] );
-		nextxfrac		= viewx + FixedMul( anglecos, currlength );
-		nextyfrac		= -viewy - FixedMul( anglesin, currlength );
+    if( count >= 0 )
+    {
+        ycache			= ybase + count;
+        currdistance	= raster[ ycache ].distance;
+        currlength		= FixedMul ( currdistance, distscale[ x ] );
+        nextxfrac		= viewx + FixedMul( anglecos, currlength );
+        nextyfrac		= -viewy - FixedMul( anglesin, currlength );
 
-		xstep =	( nextxfrac - xfrac ) / ( count + 1 );
-		ystep =	( nextyfrac - yfrac ) / ( count + 1 );
+        xstep =	( nextxfrac - xfrac ) / ( count + 1 );
+        ystep =	( nextyfrac - yfrac ) / ( count + 1 );
 
-		do
-		{
-			thisraster = &raster[ybase++];
-			DOSAMPLE(0);
-		} while( ybase <= ycache );
-	}
+        do
+        {
+            thisraster = &raster[ybase++];
+            DOSAMPLE(0);
+        } while( ybase <= ycache );
+    }
 
 }
 
