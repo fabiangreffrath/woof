@@ -56,6 +56,7 @@
 #include "f_wipe.h"
 #include "g_compatibility.h"
 #include "g_game.h"
+#include "g_skillinfo.h"
 #include "i_endoom.h"
 #include "i_exit.h"
 #include "i_glob.h"
@@ -107,21 +108,11 @@ boolean clpistolstart;  // checkparm of -pistolstart
 boolean clcoopspawns;   // checkparm of -coop_spawns
 // jff 1/24/98 end definition of command line version of play mode switches
 
-// custom skill options
-boolean cshalfplayerdamage = false;
-boolean csdoubleammo = false;
-boolean csaggromonsters = false;
-int cshelperdogs = 0;
-
 boolean nomonsters;     // working -nomonsters
 boolean respawnparm;    // working -respawn
 boolean fastparm;       // working -fast
 boolean pistolstart;    // working -pistolstart
 boolean coopspawns;     // working -coop_spawns
-
-boolean halfplayerdamage;
-boolean doubleammo;
-boolean aggromonsters;
 
 boolean singletics = false; // debug flag to cancel adaptiveness
 
@@ -2081,6 +2072,8 @@ void D_DoomMain(void)
 
   // Check for wolf levels
   haswolflevels = (W_CheckNumForName("map31") >= 0);
+
+  G_InitSkills();
 
   //
   // Start DeHackEd Loading

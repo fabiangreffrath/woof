@@ -31,6 +31,7 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "g_game.h"
+#include "g_skillinfo.h"
 #include "g_umapinfo.h"
 #include "info.h"
 #include "m_cheat.h"
@@ -747,13 +748,12 @@ static void cheat_skill(char *buf)
 {
   int skill = buf[0] - '0';
 
-  if (skill >= 1 && skill <= 5)
+  if (skill >= 1 && skill <= num_og_skills)
   {
     gameskill = skill - 1;
     displaymsg("Next Level Skill: %s", skill_strings[gameskill]);
 
-    G_SetFastParms(fastparm || gameskill == sk_nightmare);
-    respawnmonsters = gameskill == sk_nightmare || respawnparm;
+    G_RefreshGameSkill();
   }
 }
 
@@ -1021,7 +1021,7 @@ static void cheat_fast(void)
 {
   displaymsg((fastparm = !fastparm) ? "Fast Monsters On" : 
     "Fast Monsters Off");  // Ty 03/27/98 - *not* externalized
-  G_SetFastParms(fastparm); // killough 4/10/98: set -fast parameter correctly
+  G_RefreshGameSkill(); // refresh fast monsters
 }
 
 // killough 2/16/98: keycard/skullkey cheat functions

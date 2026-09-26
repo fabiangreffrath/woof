@@ -43,6 +43,7 @@
 #include "doomtype.h"
 #include "f_finale.h"
 #include "g_game.h"
+#include "g_skillinfo.h"
 #include "f_wipe.h"
 #include "g_nextweapon.h"
 #include "g_rewind.h"
@@ -124,7 +125,6 @@ static int G_GameOptionSize(void);
 gameaction_t    gameaction;
 gamestate_t     gamestate;
 skill_t         gameskill;
-boolean         respawnmonsters;
 int             gameepisode;
 int             gamemap;
 MI_Entry_t*     gamemapinfo;
@@ -964,7 +964,7 @@ static void G_DoLoadLevel(boolean from_savegame)
 
   // ID24 exit line specials
   // [crispy] pistol start
-  if (reset_inventory || CRITICAL(pistolstart))
+  if (reset_inventory || CRITICAL(skill_info.flags & SI_PISTOL_START))
   {
     for (int player = 0; player < MAXPLAYERS; player++)
     {
@@ -2422,11 +2422,18 @@ static void G_DoSaveAutoSave(void)
 static byte *LoadCustomSkillOptions(byte *opt_p)
 {
     // Woof! < 16.0.0 (binary savegame format) had no custom skill options
-    pistolstart = clpistolstart;
-    coopspawns = clcoopspawns;
-    halfplayerdamage = false;
-    doubleammo = false;
-    aggromonsters = false;
+    csmenu_skill = sk_medium;
+    csmenu.fastparm = clfastparm;
+    csmenu.respawnparm = clrespawnparm;
+    csmenu.nomonsters = clnomonsters;
+    csmenu.coopspawns = clcoopspawns;
+    csmenu.pistolstart = clpistolstart;
+    csmenu.halfplayerdamage = false;
+    csmenu.doubleammo = false;
+    csmenu.aggromonsters = false;
+    csmenu.helperdogs = default_dogs;
+
+    G_UpdateCustomSkill(num_cskill);
 
     return opt_p;
 }
@@ -2435,22 +2442,34 @@ static json_mut_t *WriteCustomSkillOptionsJSON(json_mut_doc_t *doc)
 {
     json_mut_t *obj = JS_NewObject(doc);
 
-    JS_SetInt(doc, obj, "pistolstart", pistolstart);
-    JS_SetInt(doc, obj, "coopspawns", coopspawns);
-    JS_SetInt(doc, obj, "halfplayerdamage", halfplayerdamage);
-    JS_SetInt(doc, obj, "doubleammo", doubleammo);
-    JS_SetInt(doc, obj, "aggromonsters", aggromonsters);
+    JS_SetInt(doc, obj, "skill", csmenu_skill);
+    JS_SetInt(doc, obj, "fastparm", csmenu.fastparm);
+    JS_SetInt(doc, obj, "respawnparm", csmenu.respawnparm);
+    JS_SetInt(doc, obj, "nomonsters", csmenu.nomonsters);
+    JS_SetInt(doc, obj, "coopspawns", csmenu.coopspawns);
+    JS_SetInt(doc, obj, "pistolstart", csmenu.pistolstart);
+    JS_SetInt(doc, obj, "halfplayerdamage", csmenu.halfplayerdamage);
+    JS_SetInt(doc, obj, "doubleammo", csmenu.doubleammo);
+    JS_SetInt(doc, obj, "aggromonsters", csmenu.aggromonsters);
+    JS_SetInt(doc, obj, "helperdogs", csmenu.helperdogs);
 
     return obj;
 }
 
 static void LoadCustomSkillOptionsJSON(json_t *root)
 {
-    pistolstart = JS_GetIntegerValue(root, "pistolstart");
-    coopspawns = JS_GetIntegerValue(root, "coopspawns");
-    halfplayerdamage = JS_GetIntegerValue(root, "halfplayerdamage");
-    doubleammo = JS_GetIntegerValue(root, "doubleammo");
-    aggromonsters = JS_GetIntegerValue(root, "aggromonsters");
+    csmenu_skill = JS_GetIntegerValue(root, "skill");
+    csmenu.fastparm = JS_GetIntegerValue(root, "fastparm");
+    csmenu.respawnparm = JS_GetIntegerValue(root, "respawnparm");
+    csmenu.nomonsters = JS_GetIntegerValue(root, "nomonsters");
+    csmenu.coopspawns = JS_GetIntegerValue(root, "coopspawns");
+    csmenu.pistolstart = JS_GetIntegerValue(root, "pistolstart");
+    csmenu.halfplayerdamage = JS_GetIntegerValue(root, "halfplayerdamage");
+    csmenu.doubleammo = JS_GetIntegerValue(root, "doubleammo");
+    csmenu.aggromonsters = JS_GetIntegerValue(root, "aggromonsters");
+    csmenu.helperdogs = JS_GetIntegerValue(root, "helperdogs");
+
+    G_UpdateCustomSkill(num_cskill);
 }
 
 static void ReadOptionsJSON(json_t *root);
@@ -3920,11 +3939,6 @@ void G_ReloadDefaults(boolean keep_demover)
   pistolstart = clpistolstart;
   coopspawns = clcoopspawns;
 
-  halfplayerdamage = cshalfplayerdamage;
-  doubleammo = csdoubleammo;
-  aggromonsters = csaggromonsters;
-  dogs = cshelperdogs;
-
   //jff 3/24/98 set startskill from defaultskill in config file, unless
   // it has already been set by a -skill parameter
   if (startskill == sk_default)
@@ -4103,10 +4117,13 @@ void G_DoNewGame (void)
 // killough 4/10/98: New function to fix bug which caused Doom
 // lockups when idclev was used in conjunction with -fast.
 
-void G_SetFastParms(int fast_pending)
+void G_RefreshFastMonsters(void)
 {
   static int fast = 0;            // remembers fast state
   int i;
+  int fast_pending;
+
+  fast_pending = !!(skill_info.flags & SI_FAST_MONSTERS);
 
   if (fast != fast_pending)       // only change if necessary
   {
@@ -4148,8 +4165,7 @@ void G_InitNew(skill_t skill, int episode, int map, boolean from_savegame)
       S_ResumeMusic();
     }
 
-  if (skill > sk_nightmare)
-    skill = sk_nightmare;
+  skill = MIN(skill, num_skills - 1);
 
   if (episode < 1)
     episode = 1;
@@ -4179,11 +4195,7 @@ void G_InitNew(skill_t skill, int episode, int map, boolean from_savegame)
     map = 9;
   }
 
-  G_SetFastParms(fastparm || skill == sk_nightmare);  // killough 4/10/98
-
   M_ClearRandom();
-
-  respawnmonsters = skill == sk_nightmare || respawnparm;
 
   // force players to be initialized upon first level load
   for (i=0 ; i<MAXPLAYERS ; i++)
@@ -4196,8 +4208,12 @@ void G_InitNew(skill_t skill, int episode, int map, boolean from_savegame)
   viewactive = true;
   gameepisode = episode;
   gamemap = map;
-  gameskill = skill;
+
+  G_UpdateGameSkill(skill);
   gamemapinfo = MI_MapEntry(gameepisode, gamemap);
+
+  if (skill_info.helper_dogs != -1)
+    dogs = skill_info.helper_dogs;
 
   // [FG] total time for all completed levels
   totalleveltimes = 0;

@@ -19,6 +19,7 @@
 #include <stdlib.h>
 
 #include "doomtype.h"
+#include "g_skillinfo.h"
 #include "i_exit.h"
 #include "i_system.h"
 #include "i_timer.h"
@@ -450,7 +451,7 @@ boolean NET_ValidGameSettings(GameMode_t mode, GameMission_t mission,
         return false;
     }
 
-    if (settings->skill < sk_none || settings->skill > sk_nightmare)
+    if (settings->skill < sk_none || settings->skill >= num_og_skills)
     {
         return false;
     }

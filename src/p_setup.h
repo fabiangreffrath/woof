@@ -22,6 +22,7 @@
 
 #include "doomdef.h"
 #include "doomtype.h"
+#include "g_skillinfo.h"
 #include "info.h"
 #include "m_fixed.h"
 #include "r_defs.h"

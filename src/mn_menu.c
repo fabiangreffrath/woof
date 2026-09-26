@@ -35,6 +35,7 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "g_game.h"
+#include "g_skillinfo.h"
 #include "g_umapinfo.h"
 #include "i_exit.h"
 #include "i_input.h"
@@ -599,19 +600,6 @@ static void M_Episode(int choice)
 // NEW GAME
 //
 
-// numerical values for the New Game menu items
-
-enum
-{
-    killthings,
-    toorough,
-    hurtme,
-    violence,
-    nightmare,
-    customskill,
-    newg_end
-} newgame_e;
-
 // The definitions of the New Game menu
 
 #define M_Y_NEWGAME 63
@@ -619,23 +607,51 @@ enum
 #define NEW_GAME_RECT(n) \
     {0, M_Y_NEWGAME + (n) * LINEHEIGHT, SCREENWIDTH, LINEHEIGHT}
 
-static menuitem_t NewGameMenu[] = {
-    {1, "M_JKILL", M_ChooseSkill, 'i', "I'm too young to die.", NEW_GAME_RECT(0)},
-    {1, "M_ROUGH", M_ChooseSkill, 'h', "Hey, not too rough.",   NEW_GAME_RECT(1)},
-    {1, "M_HURT",  M_ChooseSkill, 'h', "Hurt me plenty.",       NEW_GAME_RECT(2)},
-    {1, "M_ULTRA", M_ChooseSkill, 'u', "Ultra-Violence.",       NEW_GAME_RECT(3)},
-    {1, "M_NMARE", M_ChooseSkill, 'n', "Nightmare!",            NEW_GAME_RECT(4)},
-    {1, "M_CSTSKL", M_CustomSkill, 'c', "Custom Skill...",      NEW_GAME_RECT(5), MF_OPTLUMP}
+static menu_t NewDef = {
+    .prevMenu = &EpiDef,
+    .routine = M_DrawNewGame,
+    .x = 48, .y =  M_Y_NEWGAME,
 };
 
-static menu_t NewDef = {
-    newg_end,      // # of menu items
-    &EpiDef,       // previous menu
-    NewGameMenu,   // menuitem_t ->
-    M_DrawNewGame, // drawing routine ->
-    48, M_Y_NEWGAME, // x,y
-    hurtme       // lastOn
-};
+static void InitializeSkillMenu(void)
+{
+    if (NewDef.numitems)  // Already initialized?
+        return;
+
+    NewDef.lastOn = default_skill - 1;
+    NewDef.numitems = num_skills;
+    NewDef.menuitems = calloc(num_skills, sizeof(*NewDef.menuitems));
+
+    for (int i = 0; i < num_og_skills; ++i)
+    {
+        NewDef.menuitems[i].status = 1;
+        NewDef.menuitems[i].rect = (mrect_t)NEW_GAME_RECT(i);
+
+        if (skill_infos[i].pic_name)
+            M_CopyLumpName(NewDef.menuitems[i].name, skill_infos[i].pic_name);
+
+        NewDef.menuitems[i].alttext = skill_infos[i].name;
+
+        NewDef.menuitems[i].routine = M_ChooseSkill;
+        NewDef.menuitems[i].alphaKey = skill_infos[i].key;
+
+        if (skill_infos[i].flags & SI_DEFAULT_SKILL)
+            NewDef.lastOn = i;
+    }
+    menuitem_t cskill_item = {.status = 1,
+                              .name = "M_CSTSKL",
+                              .routine = M_CustomSkill,
+                              .alphaKey = 'c',
+                              .alttext = "Custom Skill...",
+                              .rect = NEW_GAME_RECT(num_cskill),
+                              .flags = MF_OPTLUMP};
+
+    NewDef.menuitems[num_cskill] = cskill_item;
+    M_InitCustomSkill();
+
+    if (NewDef.lastOn >= num_skills)
+        NewDef.lastOn = num_skills - 1;
+}
 
 //
 // M_NewGame
@@ -675,52 +691,54 @@ static void M_NewGame(int choice)
     }
 }
 
-static void M_VerifyNightmare(int ch)
+static int chosen_skill;
+
+static void M_FinishGameSelection(void)
+{
+    //jff 3/24/98 remember last skill selected
+    // killough 10/98 moved to here
+    default_skill = chosen_skill + 1;
+
+    if (!EpiCustom)
+    {
+        G_DeferedInitNew(chosen_skill, epiChoice + 1, 1);
+    }
+    else
+    {
+        G_DeferedInitNew(chosen_skill, EpiMenuEpi[epiChoice], EpiMenuMap[epiChoice]);
+    }
+
+    MN_ClearMenus();
+}
+
+static void VerifySkill(int ch)
 {
     if (ch != 'y')
     {
         return;
     }
 
-    //jff 3/24/98 remember last skill selected
-    // killough 10/98 moved to here
-    default_skill = nightmare + 1;
-
-    if (!EpiCustom)
-    {
-        G_DeferedInitNew(nightmare, epiChoice + 1, 1);
-    }
-    else
-    {
-        G_DeferedInitNew(nightmare, EpiMenuEpi[epiChoice],
-                         EpiMenuMap[epiChoice]);
-    }
-
-    MN_ClearMenus();
+    M_FinishGameSelection();
 }
 
 void M_ChooseSkill(int choice)
 {
-    if (choice == nightmare)
+    chosen_skill = choice;
+
+    if (choice < num_skills && skill_infos[choice].flags & SI_MUST_CONFIRM)
     {
-        M_StartMessage(DEH_String(NIGHTMARE), M_VerifyNightmare, true);
+        const char* message;
+
+        if (skill_infos[choice].must_confirm)
+            message = skill_infos[choice].must_confirm;
+        else
+            message = DEH_String(NIGHTMARE);
+
+        M_StartMessage(message, VerifySkill, true);
         return;
     }
 
-    //jff 3/24/98 remember last skill selected
-    // killough 10/98 moved to here
-    default_skill = choice + 1;
-
-    if (!EpiCustom)
-    {
-        G_DeferedInitNew(choice, epiChoice + 1, 1);
-    }
-    else
-    {
-        G_DeferedInitNew(choice, EpiMenuEpi[epiChoice], EpiMenuMap[epiChoice]);
-    }
-
-    MN_ClearMenus();
+    M_FinishGameSelection();
 }
 
 static void M_CustomSkill(int choice)
@@ -3289,7 +3307,7 @@ void MN_StartControlPanel(void)
     //  Fix to make "always floating" with menu selections, and to always follow
     //  defaultskill, instead of -skill.
 
-    NewDef.lastOn = default_skill - 1;
+    InitializeSkillMenu();
 
     default_verify = 0; // killough 10/98
     menuactive = 1;
