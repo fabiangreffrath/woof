@@ -11,14 +11,14 @@
         "key": "i",
         "name": "I'm too young to die.",
         "pic_name": "M_JKILL",
-        "flags": ["easy_boss_brain"]
+        "easy_boss_brain": true
       },
       {
         "spawn_filter": 2,
         "key": "h",
         "name": "Hey, not too rough.",
         "pic_name": "M_ROUGH",
-        "flags": ["easy_boss_brain"]
+        "easy_boss_brain": true
       },
       {
         "spawn_filter": 3,
@@ -36,10 +36,12 @@
         "ammo_factor": 2,
         "spawn_filter": 5,
         "key": "n",
+        "must_confirm": true,
         "name": "Nightmare!",
         "pic_name": "M_NMARE",
         "respawn_time": 12,
-        "flags": ["fast_monsters", "instant_reaction", "must_confirm"]
+        "fast_monsters": true,
+        "instant_reaction": true
       }
     ]
   }

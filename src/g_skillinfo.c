@@ -34,30 +34,6 @@ int num_og_skills;
 int num_cskill;
 skill_info_t *skill_infos;
 
-static const char *skill_flag_names[] = {
-    [SI_SPAWN_MULTI] = "spawn_multi",
-    [SI_FAST_MONSTERS] = "fast_monsters",
-    [SI_INSTANT_REACTION] = "instant_reaction",
-    [SI_DEFAULT_SKILL] = "default_skill",
-    [SI_EASY_BOSS_BRAIN] = "easy_boss_brain",
-    [SI_MUST_CONFIRM] = "must_confirm",
-    [SI_NO_MONSTERS] = "no_monsters",
-    [SI_PISTOL_START] = "pistol_start",
-};
-
-static skill_info_flags_t GetFlagFromName(const char *flag_name)
-{
-    for (int i = 0; i < arrlen(skill_flag_names); ++i)
-    {
-        int idx = pow(2, i);
-        if (!strcmp(skill_flag_names[idx], flag_name))
-        {
-            return idx;
-        }
-    }
-    return 0;
-}
-
 static void ParseSkillDef()
 {
     json_t *json = JS_Open("SKILLDEF", "skillinfo", (version_t){1, 0, 0});
@@ -93,9 +69,13 @@ static void ParseSkillDef()
         if (key)
             info.key = *key;
         
-        const char *must_confirm = JS_GetStringValue(skill_level, "must_confirm");
+        boolean must_confirm = JS_GetBooleanValue(skill_level, "must_confirm");
         if (must_confirm)
-            info.must_confirm = M_StringDuplicate(must_confirm);
+            info.flags |= SI_MUST_CONFIRM;
+
+        const char *must_confirm_message = JS_GetStringValue(skill_level, "must_confirm_message");
+        if (must_confirm_message)
+            info.must_confirm = M_StringDuplicate(must_confirm_message);
         
         const char *name = JS_GetStringValue(skill_level, "name");
         if (name)
@@ -117,17 +97,34 @@ static void ParseSkillDef()
         json_t *js_helper_dogs = JS_GetObject(skill_level, "helper_dogs");
         info.helper_dogs = js_helper_dogs ? JS_GetInteger(js_helper_dogs) : -1;
 
-        json_t *js_flags = JS_GetObject(skill_level, "flags");
-        json_t *js_flag = NULL;
-        JS_ArrayForEach(js_flag, js_flags)
-        {
-            const char *flag_name = JS_GetString(js_flag);
-            if (flag_name)
-            {
-                int flag = GetFlagFromName(flag_name);
-                info.flags |= flag;
-            }
-        }
+        boolean spawn_multi = JS_GetBooleanValue(skill_level, "spawn_multi");
+        if (spawn_multi)
+            info.flags |= SI_SPAWN_MULTI;
+        
+        boolean fast_monsters = JS_GetBooleanValue(skill_level, "fast_monsters");
+        if (fast_monsters)
+            info.flags |= SI_FAST_MONSTERS;
+        
+        boolean instant_reaction = JS_GetBooleanValue(skill_level, "instant_reaction");
+        if (instant_reaction)
+            info.flags |= SI_INSTANT_REACTION;
+        
+        boolean default_skill = JS_GetBooleanValue(skill_level, "default_skill");
+        if (default_skill)
+            info.flags |= SI_DEFAULT_SKILL;
+        
+        boolean easy_boss_brain = JS_GetBooleanValue(skill_level, "easy_boss_brain");
+        if (easy_boss_brain)
+            info.flags |= SI_EASY_BOSS_BRAIN;
+        
+        boolean no_monsters = JS_GetBooleanValue(skill_level, "no_monsters");
+        if (no_monsters)
+            info.flags |= SI_NO_MONSTERS;
+        
+        boolean pistol_start = JS_GetBooleanValue(skill_level, "pistol_start");
+        if (pistol_start)
+            info.flags |= SI_PISTOL_START;
+
         array_push(skill_infos, info);
     }
 
