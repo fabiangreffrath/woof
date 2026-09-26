@@ -749,9 +749,9 @@ enum
     load_end
 } load_e;
 
-#define SAVE_LOAD_RECT(n)                                                     \
-    {M_X_LOADSAVE - 8, M_Y_LOADSAVE + (n) * LINEHEIGHT - 5, M_LOADSAVE_WIDTH, \
-     LINEHEIGHT}
+#define SAVE_LOAD_RECT(n)                                    \
+    {M_X_LOADSAVE - 11, M_Y_LOADSAVE + (n) * LINEHEIGHT - 5, \
+     M_LOADSAVE_WIDTH + 8, LINEHEIGHT}
 
 // The definitions of the Load Game screen
 
@@ -1179,7 +1179,7 @@ static void UpdateRectX(menu_t *menu, int x)
 {
     for (int i = 0; i < menu->numitems; i++)
     {
-        menu->menuitems[i].rect.x = x - 8;
+        menu->menuitems[i].rect.x = x - 11;
     }
 }
 
