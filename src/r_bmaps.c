@@ -266,7 +266,7 @@ void R_ToggleBrightmaps(void)
     {
         flats_bm = actual_flats_bm;
         sprites_bm = actual_sprites_bm;
-        states_bm = actual_sprites_bm;
+        states_bm = actual_states_bm;
     }
     else
     {
