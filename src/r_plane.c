@@ -560,7 +560,7 @@ static void do_draw_plane(visplane_t *pl)
 
     boolean swirling = false;
 
-    const byte *brightmap = nobrightmap;
+    const byte *brightmap;
 
     if (pl->picnum != NO_TEXTURE)
     {
@@ -599,6 +599,7 @@ static void do_draw_plane(visplane_t *pl)
     else
     {
         ds_source = R_MissingFlat();
+        brightmap = nobrightmap;
     }
 
     xoffs = pl->xoffs; // killough 2/28/98: Add offsets

@@ -441,7 +441,6 @@ static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
       // draw the wall tiers
       if (midtexture)
         {
-          
           dc_yl = yl;     // single sided line
           dc_yh = yh;
           dc_texturemid = rw_midtexturemid;
@@ -478,7 +477,7 @@ static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
                   dc_source = R_GetColumn(toptexture, texturecolumn + FixedToInt(curline->sidedef->offsetx_top));
                   dc_texheight = textureheight[toptexture]>>FRACBITS;//killough
 
-                  const byte *const brightmap = texturebrightmap[midtexture];
+                  const byte *const brightmap = texturebrightmap[toptexture];
 
                   SideLightLevel_Top(curline->sidedef);
                   CalculateLighting(thiscolormap, rw_scale, brightmap);
@@ -511,7 +510,7 @@ static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
                   dc_source = R_GetColumn(bottomtexture, texturecolumn + FixedToInt(curline->sidedef->offsetx_bottom));
                   dc_texheight = textureheight[bottomtexture]>>FRACBITS; // killough
 
-                  const byte *const brightmap = texturebrightmap[midtexture];
+                  const byte *const brightmap = texturebrightmap[bottomtexture];
 
                   SideLightLevel_Bottom(curline->sidedef);
                   CalculateLighting(thiscolormap, rw_scale, brightmap);
