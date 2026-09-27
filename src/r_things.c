@@ -426,17 +426,18 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
   fixed_t  frac;
   patch_t  *patch = V_CachePatchNum (vis->patch+firstspritelump, PU_CACHE);
 
-  dc_colormap = vis->colormap;
-
   // killough 4/11/98: rearrange and handle translucent sprites
   // mixed with translucent/non-translucent 2s normals
 
-  if (!dc_colormap)   // NULL colormap = shadow draw
+  if (!vis->colormap[0])   // NULL colormap = shadow draw
   {
     colfunc = R_DrawFuzzColumn;    // killough 3/14/98
   }
   else
   {
+    dc_colormap =
+      R_GetBrightmappedColormap(vis->colormap[0], vis->colormap[1], vis->brightmap);
+
     // [FG] colored blood and gibs
     if (vis->mobjflags_extra & MFX_COLOREDBLOOD)
     {
@@ -712,18 +713,20 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
   if (thing->flags & MF_SHADOW)
   {
     // shadow draw
-    vis->colormap = NULL;
+    vis->colormap[0] = NULL;
   }
   else if (fixedcolormapoffset)
   {
     // fixed map
-    vis->colormap = thiscolormap + fixedcolormapoffset;
+    vis->colormap[0] = vis->colormap[1] = thiscolormap + fixedcolormapoffset;
+    vis->brightmap = nobrightmap;
   }
   else if (thing->frame & FF_FULLBRIGHT)
   {
     // full bright
     // killough 3/20/98
-    vis->colormap = thiscolormap;
+    vis->colormap[0] = vis->colormap[1] = thiscolormap;
+    vis->brightmap = nobrightmap;
   }
   else
   {
@@ -739,16 +742,13 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
     const int *const spritelightoffsets = scalelightoffset[lightnum];
     const int index = R_GetLightIndex(xscale);
 
-    const lighttable_t *const colormap =
-      thiscolormap + spritelightoffsets[index];
+    vis->colormap[0] = thiscolormap + spritelightoffsets[index];
+    vis->colormap[1] = thiscolormap;
 
-    const byte *brightmap =
-      thing->state ? R_BrightmapForState(thing->state - states) : nobrightmap;
+    vis->brightmap = thing->state ? R_BrightmapForState(thing->state - states) : nobrightmap;
 
-    if (brightmap == nobrightmap)
-      brightmap = R_BrightmapForSprite(thing->sprite);
-
-    vis->colormap = R_GetBrightmappedColormap(colormap, thiscolormap, brightmap);
+    if (vis->brightmap == nobrightmap)
+      vis->brightmap = R_BrightmapForSprite(thing->sprite);
   }
 
   // ID24 per-state tranmap
@@ -949,18 +949,20 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
       || viewplayer->powers[pw_invisibility] & 8) && !beta_emulation)
   {
     // shadow draw
-    vis->colormap = NULL;
+    vis->colormap[0] = NULL;
   }
   else if (fixedcolormapoffset)
   {
     // fixed color
-    vis->colormap = thiscolormap + fixedcolormapoffset;
+    vis->colormap[0] = vis->colormap[1] = thiscolormap + fixedcolormapoffset;
+    vis->brightmap = nobrightmap;
   }
   else if (psp->state->frame & FF_FULLBRIGHT)
   {
     // full bright
     // killough 3/20/98
-    vis->colormap = thiscolormap;
+    vis->colormap[0] = vis->colormap[1] = thiscolormap;
+    vis->brightmap = nobrightmap;
   }
   else
   {
@@ -974,12 +976,10 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
 
     const int *const spritelightoffsets = scalelightoffset[lightnum];
 
-    const lighttable_t *const colormap =
-      thiscolormap + spritelightoffsets[MAXLIGHTSCALE - 1];
+    vis->colormap[0] = thiscolormap + spritelightoffsets[MAXLIGHTSCALE - 1];
+    vis->colormap[1] = thiscolormap;
 
-    const byte *const brightmap = R_BrightmapForState(psp->state - states);
-
-    vis->colormap = R_GetBrightmappedColormap(colormap, thiscolormap, brightmap);
+    vis->brightmap = R_BrightmapForState(psp->state - states);
   }
 
   // ID24 per-state tranmap
