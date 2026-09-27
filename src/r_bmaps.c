@@ -31,6 +31,7 @@
 #include "m_misc.h"
 #include "mn_menu.h"
 #include "r_data.h"
+#include "r_state.h"
 #include "m_scanner.h"
 #include "w_wad.h"
 #include "z_zone.h"
@@ -42,17 +43,24 @@ boolean use_brightmaps;
 
 #define COLORMASK_SIZE 256
 
-const byte nobrightmap[COLORMASK_SIZE] = {0};
+// Extra byte for the brightmap's index
+
+const byte nobrightmap[COLORMASK_SIZE+1] = {0};
 
 typedef struct
 {
     const char *name;
-    byte colormask[COLORMASK_SIZE];
+    byte colormask[COLORMASK_SIZE+1];
 } brightmap_t;
 
 static void ReadColormask(scanner_t *s, byte *colormask)
 {
     memset(colormask, 0, COLORMASK_SIZE);
+
+    static int brightmap_counter = 0;
+
+    colormask[COLORMASK_SIZE] = brightmap_counter++;
+
     do
     {
         unsigned int color1 = 0, color2 = 0;
@@ -230,14 +238,38 @@ const lighttable_t *R_GetBrightmappedColormap(
         return orig_colormap;
     }
 
-    const uint16_t hash =
-        ((uintptr_t) orig_colormap ^ (uintptr_t) brightmap) >> 8;
+    // As of writing this, it appears that colormaps are contiguous in memory,
+    // thus we can calculate their indices through pointer arithmetic;
+    // 8800 is the number of bytes between each colormap
+    // (though the expected number was 256*34 == 8704)
+    const uint16_t colormap_index =
+        ((full_colormap - colormaps[0]) / 8800) << 13;
 
-    bmcolormap_t *const bm_colormap = bm_colormaps + hash;
+    const uint16_t colormap_row_index =
+        ((orig_colormap - full_colormap) / 256) << 8;
+
+    const uint16_t brightmap_index = brightmap[COLORMASK_SIZE];
+
+    /*
+        00000000 00000000
+        [-][---] [------]
+         |   |      |
+         |   |      +---- Brightmap index
+         |   |
+         |   +----------- Colormap row index
+         |
+         +--------------- Colormap index
+    */
+    const uint16_t index =
+        colormap_index | colormap_row_index | brightmap_index;
+
+    bmcolormap_t *const bm_colormap = bm_colormaps + index;
 
     if (bm_colormap->brightmap != brightmap ||
         bm_colormap->orig_colormap != orig_colormap)
     {
+        // A collision occurred
+
         bm_colormap->brightmap = brightmap;
         bm_colormap->orig_colormap = orig_colormap;
 
