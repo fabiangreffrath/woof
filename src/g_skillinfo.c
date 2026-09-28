@@ -151,17 +151,15 @@ void G_UpdateCustomSkill(int custom_skill_num)
     skill_infos[custom_skill_num].ammo_factor = csmenu.doubleammo ? FRACUNIT * 2 : FRACUNIT;
     skill_infos[custom_skill_num].damage_factor = csmenu.halfplayerdamage ? FRACUNIT / 2 : FRACUNIT;
 
-  if (csmenu.respawnparm) skill_infos[custom_skill_num].respawn_time = 12;
+    if (csmenu.respawnparm) skill_infos[custom_skill_num].respawn_time = 12;
 
-  if (csmenu.coopspawns)     skill_infos[custom_skill_num].flags |= SI_SPAWN_MULTI;
-  if (csmenu.nomonsters)     skill_infos[custom_skill_num].flags |= SI_NO_MONSTERS;
-  if (csmenu.fastparm)       skill_infos[custom_skill_num].flags |= SI_FAST_MONSTERS;
-  if (csmenu.aggromonsters)  skill_infos[custom_skill_num].flags |= SI_INSTANT_REACTION;
-  if (csmenu.pistolstart)    skill_infos[custom_skill_num].flags |= SI_PISTOL_START;
+    if (csmenu.coopspawns)     skill_infos[custom_skill_num].flags |= SI_SPAWN_MULTI;
+    if (csmenu.nomonsters)     skill_infos[custom_skill_num].flags |= SI_NO_MONSTERS;
+    if (csmenu.fastparm)       skill_infos[custom_skill_num].flags |= SI_FAST_MONSTERS;
+    if (csmenu.aggromonsters)  skill_infos[custom_skill_num].flags |= SI_INSTANT_REACTION;
+    if (csmenu.pistolstart)    skill_infos[custom_skill_num].flags |= SI_PISTOL_START;
 
     skill_infos[custom_skill_num].helper_dogs = csmenu.helperdogs;
-
-    G_UpdateGameSkill(custom_skill_num);
 }
 
 void G_RefreshGameSkill(void)

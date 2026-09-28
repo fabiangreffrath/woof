@@ -2459,7 +2459,7 @@ static json_mut_t *WriteCustomSkillOptionsJSON(json_mut_doc_t *doc)
 
 static void LoadCustomSkillOptionsJSON(json_t *root)
 {
-    csmenu_skill = JS_GetIntegerValue(root, "skill");
+    csmenu_skill = JS_GetIntegerValueDefault(root, "skill", gameskill);
     csmenu.fastparm = JS_GetIntegerValue(root, "fastparm");
     csmenu.respawnparm = JS_GetIntegerValue(root, "respawnparm");
     csmenu.nomonsters = JS_GetIntegerValue(root, "nomonsters");
