@@ -133,11 +133,11 @@ static void ParseSkillDef()
 
 void G_InitSkills(void)
 {
-    num_skills = 5 + 1; // Custom skill
+    ParseSkillDef();
+
+    num_skills = array_size(skill_infos) + 1; // Custom skill
     num_og_skills = num_skills - 1;
     num_cskill = num_og_skills;
-
-    ParseSkillDef();
 }
 
 void G_UpdateCustomSkill(int custom_skill_num)
