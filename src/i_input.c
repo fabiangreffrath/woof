@@ -318,14 +318,6 @@ static void UpdatePlatform(void)
     M_UpdatePlatform(platform);
 }
 
-static void LoadGamepadDatabase(void)
-{
-    int32_t lumpnum = (W_CheckNumForName)("GAMEPADS", ns_internal);
-    const char *gamepad_database_file = (const char *)W_CacheLumpNum(lumpnum, PU_CACHE);
-
-    SDL_AddGamepadMapping(gamepad_database_file);
-}
-
 void I_FlushGamepadSensorEvents(void)
 {
     SDL_PumpEvents();
@@ -465,8 +457,6 @@ void I_InitGamepad(void)
 {
     UpdatePlatform();
 
-    LoadGamepadDatabase();
-
     if (!I_GamepadEnabled())
     {
         return;
@@ -481,6 +471,13 @@ void I_InitGamepad(void)
     // Enable gyro, rumble, and effects on Bluetooth PlayStation controllers
     // and gyro on Nintendo Switch controllers.
     SDL_SetHint(SDL_HINT_JOYSTICK_ENHANCED_REPORTS, "1");
+
+    int32_t lumpnum = (W_CheckNumForName)("GAMEPADS", ns_internal);
+    void *gamepad_database_file = W_CacheLumpNum(lumpnum, PU_CACHE);
+    if (SDL_AddGamepadMapping((const char *)gamepad_database_file) == -1)
+    {
+        I_Printf(VB_WARNING, "%s: Failure to load gamepad database.", __func__);
+    }
 
     if (!SDL_Init(SDL_INIT_GAMEPAD))
     {
