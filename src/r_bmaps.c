@@ -43,7 +43,7 @@ boolean use_brightmaps;
 
 #define COLORMASK_SIZE 256
 
-const byte nobrightmap[COLORMASK_SIZE] = {0};
+const byte *nobrightmap = NULL;
 
 static void ReadColormask(scanner_t *s, byte *colormask)
 {
@@ -241,8 +241,10 @@ const lighttable_t *R_GetBrightmappedColormap(
     const uint16_t colormap_row_index =
         ((orig_colormap - full_colormap) / 256) << 8;
 
+    // We subtract [1] because [0] == nobrightmap,
+    // which makes the function return early as seen above
     const byte brightmap_index =
-        (brightmap - brightmap_colormasks[0].data) / 256;
+        (brightmap - brightmap_colormasks[1].data) / 256;
 
     /*
         00000000 00000000
@@ -419,6 +421,8 @@ void R_ParseBrightmaps(int lumpnum)
         }
     }
     SC_Close(s);
+
+    nobrightmap = brightmap_colormasks[0].data;
 
     if (force_brightmaps || array_size(brightmap_names) == 1)
     {
