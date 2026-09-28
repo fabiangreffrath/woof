@@ -25,8 +25,9 @@
 
 // Palette stuff
 int gamma2;
-playpal_t list_playpal[PAL_COUNT];
+playpal_t playpals[PAL_COUNT];
 playpal_t *playpal_global = NULL;
+playpal_t *playpal_iwad = NULL;
 
 // Taken from Chocolate Doom chocolate-doom/src/i_video.c:L841-867
 // Adapted to use Linear sRGB instead of Gamma sRGB
@@ -47,7 +48,7 @@ byte V_GetNearestColorLinear(palette_t pal, const double r, const double g,
     byte best = 0;
     double best_diff = DBL_MAX;
 
-    const lrgb_t *pal_rover = list_playpal[pal].base_linear;
+    const lrgb_t *pal_rover = playpals[pal].base_linear;
 
     for (int i = 0; i < PLAYPAL_SIZE; ++i)
     {
@@ -73,7 +74,7 @@ byte V_GetNearestColorLinear(palette_t pal, const double r, const double g,
 
 static playpal_t *InitPlaypal(palette_t pal, const char *name, int32_t num)
 {
-    playpal_t *playpal = &list_playpal[pal];
+    playpal_t *playpal = &playpals[pal];
 
     M_CopyLumpName(playpal->name, name);
     playpal->num = num;
@@ -103,34 +104,23 @@ static playpal_t *InitPlaypal(palette_t pal, const char *name, int32_t num)
 static void InitGlobalPlaypal(void)
 {
     const char name[9] = "PLAYPAL";
-
-    playpal_global = InitPlaypal(PAL_GLOBAL, name, W_CheckNumForName(name));
-
-    // For later testing, keep track if IWAD PLAYPAL is same as global.
-    playpal_t *playpal_iwad = &list_playpal[PAL_IWAD];
-
+    int playpal_iwad_num = -1;
     for (int i = 0; i < numlumps; i++)
     {
         if (strcasecmp(lumpinfo[i].name, name) == 0)
         {
-            playpal_iwad->num = i;
+            playpal_iwad_num = i;
             break;
         }
     }
 
-    if (playpal_global->num == playpal_iwad->num)
-    {
-        memcpy(playpal_iwad, playpal_global, sizeof(playpal_t));
-    }
-    else
-    {
-        playpal_iwad = InitPlaypal(PAL_IWAD, name, playpal_iwad->num);
-    }
+    playpal_global = InitPlaypal(PAL_GLOBAL, name, W_CheckNumForName(name));
+    playpal_iwad = InitPlaypal(PAL_IWAD, name, playpal_iwad_num);
 }
 
 void V_ResetPalette(void)
 {
-    I_SetPalette(PAL_GLOBAL, LAYER_BASE);
+    I_SetPalette(PAL_GLOBAL, PAL_LAYER_BASE);
 }
 
 void V_InitPalette(void)

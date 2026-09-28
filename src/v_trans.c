@@ -192,9 +192,9 @@ static byte ColorizeBoomTranslation(palette_t pal, int cr, byte source)
 {
     vect rgb, hsv;
 
-    rgb.x = list_playpal[pal].base_linear[source].r;
-    rgb.y = list_playpal[pal].base_linear[source].g;
-    rgb.z = list_playpal[pal].base_linear[source].b;
+    rgb.x = playpals[pal].base_linear[source].r;
+    rgb.y = playpals[pal].base_linear[source].g;
+    rgb.z = playpals[pal].base_linear[source].b;
 
     rgb_to_hsv(&rgb, &hsv);
 
@@ -366,7 +366,7 @@ byte invul_gray[256];
 // killough 5/2/98: tiny engine driven by table above
 void V_InitColorTranslation(void)
 {
-    const boolean iwad_playpal = W_IsIWADLump(playpal_global->num);
+    const boolean iwad_playpal = (playpal_global->num == playpal_iwad->num);
 
     int force_rebuild = M_CheckParm("-tranmap");
 
@@ -380,7 +380,7 @@ void V_InitColorTranslation(void)
         cr_p->lump = (lumpnum != -1) ? W_CacheLumpNum(lumpnum, PU_STATIC) : NULL;
 
         // [FG] allocate new color translation table
-        cr_p->table = malloc(256);
+        cr_p->table = malloc(PLAYPAL_SIZE);
 
         // keep original translation table entries if they apply
         // against the original palette or if they are from a PWAD

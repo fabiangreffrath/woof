@@ -2232,8 +2232,8 @@ pal_change_t palette_changes = PAL_CHANGE_ON;
 
 static void DoPaletteStuff(player_t *player)
 {
-    static palette_layer_t old_layer = LAYER_BASE;
-    palette_layer_t layer = LAYER_BASE;
+    static palette_layer_t old_layer = PAL_LAYER_BASE;
+    palette_layer_t layer = PAL_LAYER_BASE;
 
     int damagecount = player->damagecount;
 
@@ -2254,7 +2254,7 @@ static void DoPaletteStuff(player_t *player)
 
     if (STRICTMODE(palette_changes == PAL_CHANGE_OFF))
     {
-        layer = LAYER_BASE;
+        layer = PAL_LAYER_BASE;
     }
     else if (damagecount)
     {
@@ -2263,43 +2263,43 @@ static void DoPaletteStuff(player_t *player)
         // being covered in goo by an attacking flemoid.
         if (gameversion == exe_chex)
         {
-            layer = LAYER_RADSUIT;
+            layer = PAL_LAYER_RADSUIT;
         }
         else
         {
             layer = (damagecount + 7) >> 3;
-            layer = MIN(layer, LAYER_DAMAGE_COUNT - 1);
+            layer = MIN(layer, PAL_LAYER_DAMAGE_COUNT - 1);
             // tune down a bit so the menu remains legible
             if (menuactive || paused || STRICTMODE(palette_changes == PAL_CHANGE_REDUCED))
             {
                 layer = (layer + 1) / 2;
             }
-            layer += LAYER_DAMAGE0;
+            layer += PAL_LAYER_DAMAGE0;
         }
     }
     else if (player->bonuscount)
     {
         layer = (player->bonuscount + 7) >> 3;
-        layer = MIN(layer, LAYER_ITEM_COUNT - 1);
+        layer = MIN(layer, PAL_LAYER_ITEM_COUNT - 1);
         if (STRICTMODE(palette_changes == PAL_CHANGE_REDUCED))
         {
             layer = (layer + 1) / 2;
         }
-        layer += LAYER_ITEM0;
+        layer += PAL_LAYER_ITEM0;
     }
     // killough 7/14/98: beta version did not cause green palette
     else if (beta_emulation)
     {
-        layer = LAYER_BASE;
+        layer = PAL_LAYER_BASE;
     }
     else if (player->powers[pw_ironfeet] > 4 * 32
              || player->powers[pw_ironfeet] & 8)
     {
-        layer = LAYER_RADSUIT;
+        layer = PAL_LAYER_RADSUIT;
     }
     else
     {
-        layer = LAYER_BASE;
+        layer = PAL_LAYER_BASE;
     }
 
     if (layer != old_layer)

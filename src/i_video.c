@@ -1038,7 +1038,7 @@ void I_SetPalette(palette_t pal, palette_layer_t layer)
         return;
     }
 
-    const byte* playpal = &list_playpal[pal].data[layer * PLAYPAL_BYTES];
+    const byte* playpal = &playpals[pal].data[layer * PLAYPAL_BYTES];
     for (size_t i = 0; i < PLAYPAL_SIZE; ++i)
     {
         colors[i].r = gamma[*playpal++];

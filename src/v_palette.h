@@ -32,24 +32,24 @@ typedef enum palette_e
 
 typedef enum palette_layer_e
 {
-    LAYER_BASE,
-    LAYER_DAMAGE0,
-    LAYER_DAMAGE1,
-    LAYER_DAMAGE2,
-    LAYER_DAMAGE3,
-    LAYER_DAMAGE4,
-    LAYER_DAMAGE5,
-    LAYER_DAMAGE6,
-    LAYER_DAMAGE7,
-    LAYER_ITEM0,
-    LAYER_ITEM1,
-    LAYER_ITEM2,
-    LAYER_ITEM3,
-    LAYER_RADSUIT,
-    LAYER_COUNT,
+    PAL_LAYER_BASE,
+    PAL_LAYER_DAMAGE0,
+    PAL_LAYER_DAMAGE1,
+    PAL_LAYER_DAMAGE2,
+    PAL_LAYER_DAMAGE3,
+    PAL_LAYER_DAMAGE4,
+    PAL_LAYER_DAMAGE5,
+    PAL_LAYER_DAMAGE6,
+    PAL_LAYER_DAMAGE7,
+    PAL_LAYER_ITEM0,
+    PAL_LAYER_ITEM1,
+    PAL_LAYER_ITEM2,
+    PAL_LAYER_ITEM3,
+    PAL_LAYER_RADSUIT,
+    PAL_LAYER_COUNT,
 
-    LAYER_DAMAGE_COUNT = 8,
-    LAYER_ITEM_COUNT = 4,
+    PAL_LAYER_DAMAGE_COUNT = 8,
+    PAL_LAYER_ITEM_COUNT = 4,
 } palette_layer_t;
 
 typedef struct rgb_s
@@ -77,8 +77,9 @@ typedef struct playpal_s
 } playpal_t;
 
 extern int gamma2;
-extern playpal_t list_playpal[PAL_COUNT];
+extern playpal_t playpals[PAL_COUNT];
 extern playpal_t *playpal_global;
+extern playpal_t *playpal_iwad;
 
 void V_InitPalette(void);
 void V_ResetPalette(void);
