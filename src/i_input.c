@@ -17,6 +17,7 @@
 
 #include <SDL3/SDL.h>
 
+#include <SDL3/SDL_gamepad.h>
 #include <SDL3/SDL_joystick.h>
 #include <string.h>
 
@@ -37,6 +38,7 @@
 #include "m_input.h"
 #include "m_misc.h"
 #include "mn_menu.h"
+#include "w_wad.h"
 
 #define AXIS_BUTTON_DEADZONE (SDL_JOYSTICK_AXIS_MAX / 3)
 
@@ -316,6 +318,14 @@ static void UpdatePlatform(void)
     M_UpdatePlatform(platform);
 }
 
+static void LoadGamepadDatabase(void)
+{
+    int32_t lumpnum = (W_CheckNumForName)("GAMEPADS", ns_internal);
+    const char *gamepad_database_file = (const char *)W_CacheLumpNum(lumpnum, PU_CACHE);
+
+    SDL_AddGamepadMapping(gamepad_database_file);
+}
+
 void I_FlushGamepadSensorEvents(void)
 {
     SDL_PumpEvents();
@@ -454,6 +464,8 @@ void I_OpenGamepad(SDL_JoystickID instance_id);
 void I_InitGamepad(void)
 {
     UpdatePlatform();
+
+    LoadGamepadDatabase();
 
     if (!I_GamepadEnabled())
     {

@@ -16,7 +16,9 @@ set(BASE_SOURCES
     all-all/actors/possess.txt
     all-all/actors/revenant.txt
     all-all/actors/spider.txt
+
     all-all/colormaps/watermap.cmp
+
     all-all/graphics/cross00.png
     all-all/graphics/cross01.png
     all-all/graphics/cross02.png
@@ -26,6 +28,7 @@ set(BASE_SOURCES
     all-all/graphics/cross06.png
     all-all/graphics/cross07.png
     all-all/graphics/cross08.png
+
     all-all/graphics/dig033.png
     all-all/graphics/dig037.png
     all-all/graphics/dig043.png
@@ -197,6 +200,8 @@ set(BASE_SOURCES
     all-all/sprites/pls2d0.png
     all-all/sprites/pls2e0.png
     all-all/sprites/tnt1a0.png
+
+    all-all/woof/gamepads.txt
 
     all-all/animated.lmp
     all-all/amapdef.json
