@@ -4124,7 +4124,7 @@ void G_RefreshFastMonsters(void)
   int i;
   int fast_pending;
 
-  fast_pending = !!(skill_info.flags & SI_FAST_MONSTERS);
+  fast_pending = skill_info.flags & SI_FAST_MONSTERS;
 
   if (fast != fast_pending)       // only change if necessary
   {

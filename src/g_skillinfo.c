@@ -168,7 +168,7 @@ void G_RefreshGameSkill(void)
 {
     skill_info = skill_infos[gameskill];
 
-    if (!(gameskill == num_cskill))
+    if (gameskill != num_cskill)
     {
         if (respawnparm && !skill_info.respawn_time)
         skill_info.respawn_time = 12;
