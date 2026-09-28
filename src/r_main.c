@@ -187,8 +187,8 @@ int R_PointOnSegSide(fixed_t x, fixed_t y, seg_t *line)
 {
   fixed_t lx = line->v1->x;
   fixed_t ly = line->v1->y;
-  fixed_t ldx = line->v2->x - lx;
-  fixed_t ldy = line->v2->y - ly;
+  const fixed_t ldx = (fixed_t)((unsigned int)line->v2->x - (unsigned int)lx);
+  const fixed_t ldy = (fixed_t)((unsigned int)line->v2->y - (unsigned int)ly);
 
   if (!ldx)
     return x <= lx ? ldy > 0 : ldy < 0;
@@ -196,8 +196,8 @@ int R_PointOnSegSide(fixed_t x, fixed_t y, seg_t *line)
   if (!ldy)
     return y <= ly ? ldx < 0 : ldx > 0;
 
-  x -= lx;
-  y -= ly;
+  x = (fixed_t)((unsigned int)x - (unsigned int)lx);
+  y = (fixed_t)((unsigned int)y - (unsigned int)ly);
 
   // Try to quickly decide by looking at sign bits.
   if ((ldy ^ ldx ^ x ^ y) < 0)
@@ -260,7 +260,7 @@ angle_t R_PointToAngleCrispy(fixed_t x, fixed_t y)
   int64_t x_viewx = (int64_t)x - viewx;
 
   // [FG] the worst that could happen is e.g. INT_MIN-INT_MAX = 2*INT_MIN
-  if (x_viewx < INT_MIN || x_viewx > INT_MAX || y_viewy < INT_MIN || y_viewy > INT_MAX)
+  if (x_viewx <= INT_MIN || x_viewx > INT_MAX || y_viewy <= INT_MIN || y_viewy > INT_MAX)
   {
     // [FG] preserving the angle by halfing the distance in both directions
     x = (int)(x_viewx / 2 + viewx);
