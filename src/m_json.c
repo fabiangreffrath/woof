@@ -279,14 +279,19 @@ int JS_GetInteger(json_t *json)
     return yyjson_get_int(json);
 }
 
-int JS_GetIntegerValue(json_t *json, const char *string)
+int JS_GetIntegerValueDefault(json_t *json, const char *string, const int def)
 {
     json_t *obj = JS_GetObject(json, string);
     if (JS_IsNumber(obj))
     {
         return JS_GetInteger(obj);
     }
-    return 0;
+    return def;
+}
+
+int JS_GetIntegerValue(json_t *json, const char *string)
+{
+    return JS_GetIntegerValueDefault(json, string, 0);
 }
 
 uint64_t JS_GetUInteger(json_t *json)

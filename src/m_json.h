@@ -46,6 +46,7 @@ boolean JS_GetBooleanValue(json_t *json, const char *string);
 double JS_GetNumber(json_t *json);
 double JS_GetNumberValue(json_t *json, const char *string);
 int JS_GetInteger(json_t *json);
+int JS_GetIntegerValueDefault(json_t *json, const char *string, const int def);
 int JS_GetIntegerValue(json_t *json, const char *string);
 uint64_t JS_GetUInteger(json_t *json);
 uint64_t JS_GetUIntegerValue(json_t *json, const char *string);
