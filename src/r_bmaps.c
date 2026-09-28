@@ -264,7 +264,7 @@ const lighttable_t *R_GetBrightmappedColormap(
     if (bm_colormap->brightmap != brightmap ||
         bm_colormap->orig_colormap != orig_colormap)
     {
-        // A collision occurred
+        // A collision occurred, or this wasn't initialized yet
 
         bm_colormap->brightmap = brightmap;
         bm_colormap->orig_colormap = orig_colormap;
