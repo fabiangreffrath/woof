@@ -333,7 +333,7 @@ void R_ParseBrightmaps(int lumpnum)
 
             array_push(brightmap_names, M_StringDuplicate(SC_GetString(s)));
 
-            colormask_t colormask;
+            colormask_t colormask = { {0} };
             ReadColormask(s, colormask.data);
             array_push(brightmap_colormasks, colormask);
         }
