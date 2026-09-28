@@ -2779,7 +2779,6 @@ void AM_ApplyColors(boolean force)
     }
     first_time = false;
 
-    const playpal_t *playpal_iwad = &playpals[PAL_IWAD];
     boolean is_same = (playpal_iwad->num == playpal_global->num);
 
     if (is_same || M_CheckIfDisabled("mapcolor_preset"))
