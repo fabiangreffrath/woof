@@ -98,6 +98,7 @@
 #include "st_widgets.h"
 #include "statdump.h" // [FG] StatCopy()
 #include "tables.h"
+#include "v_palette.h"
 #include "v_video.h"
 #include "w_wad.h"
 #include "wi_stuff.h"
@@ -2990,7 +2991,7 @@ void G_CleanScreenshot(void)
   const int old_hud_crosshair = hud_crosshair;
   const boolean old_hide_weapon = hide_weapon;
 
-  ST_ResetPalette();
+  V_ResetPalette();
 
   if (gamestate != GS_LEVEL)
       return;

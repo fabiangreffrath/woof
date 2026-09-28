@@ -24,7 +24,6 @@
 #include <limits.h>
 #include <math.h>
 #include <stdint.h>
-#include <string.h>
 
 #include "d_loop.h"
 #include "d_player.h"
@@ -41,7 +40,6 @@
 #include "r_main.h"
 #include "r_bmaps.h"
 #include "r_plane.h"
-#include "r_segs.h"
 #include "r_sky.h"
 #include "r_state.h"
 #include "r_swirl.h"
@@ -49,6 +47,7 @@
 #include "r_voxel.h"
 #include "m_config.h"
 #include "st_stuff.h"
+#include "v_palette.h"
 #include "v_flextran.h"
 #include "v_video.h"
 #include "z_zone.h"
@@ -808,7 +807,7 @@ void R_SetupFrame (player_t *player)
   }
 
   fullcolormap = colormaps[cm];
-  fixedcolormapoffset = player->fixedcolormap * 256;
+  fixedcolormapoffset = player->fixedcolormap * PLAYPAL_SIZE;
 
   if (fixedcolormapoffset)
   {

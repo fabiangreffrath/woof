@@ -30,7 +30,9 @@
 #include "doomtype.h"
 #include "i_printf.h"
 #include "i_system.h"
+#include "i_video.h"
 #include "info.h"
+#include "m_argv.h"
 #include "m_array.h"
 #include "m_fixed.h"
 #include "m_misc.h"
@@ -44,7 +46,9 @@
 #include "r_skydefs.h"
 #include "r_state.h"
 #include "r_tranmap.h"
+#include "v_trans.h"
 #include "v_patch.h"
+#include "v_srgb.h"
 #include "v_video.h" // cr_dark, cr_shaded
 #include "w_wad.h"
 #include "z_zone.h"
@@ -935,15 +939,15 @@ void R_InvulMode(void)
   {
     case INVUL_VANILLA:
       default_comp[comp_skymap] = 1;
-      memcpy(&colormaps[0][256*32], invul_orig, 256);
+      memcpy(&colormaps[0][PLAYPAL_SIZE * 32], invul_orig, PLAYPAL_SIZE);
       break;
     case INVUL_MBF:
       default_comp[comp_skymap] = 0;
-      memcpy(&colormaps[0][256*32], invul_orig, 256);
+      memcpy(&colormaps[0][PLAYPAL_SIZE * 32], invul_orig, PLAYPAL_SIZE);
       break;
     case INVUL_GRAY:
       default_comp[comp_skymap] = 0;
-      memcpy(&colormaps[0][256*32], invul_gray, 256);
+      memcpy(&colormaps[0][PLAYPAL_SIZE * 32], invul_gray, PLAYPAL_SIZE);
       break;
   }
 }
@@ -962,10 +966,10 @@ void R_InitColormaps(void)
     colormaps[i] = W_CacheLumpNum(i+firstcolormaplump, PU_STATIC);
 
   // [FG] dark/shaded color translation table
-  cr_dark = &colormaps[0][256*15];
-  cr_shaded = &colormaps[0][256*6];
+  cr_dark = &colormaps[0][PLAYPAL_SIZE * 15];
+  cr_shaded = &colormaps[0][PLAYPAL_SIZE * 6];
 
-  memcpy(invul_orig, &colormaps[0][256*32], 256);
+  memcpy(invul_orig, &colormaps[0][PLAYPAL_SIZE * 32], PLAYPAL_SIZE);
   R_InvulMode();
 }
 
@@ -1028,8 +1032,8 @@ byte *R_MissingFlat(void)
 
     if (buffer == NULL)
     {
-        const byte c1 = xlat[CR_PURPLE].table[v_lightest_color];
-        const byte c2 = v_darkest_color;
+        const byte c1 = xlat[CR_PURPLE].table[playpal_global->white];
+        const byte c2 = playpal_global->black;
 
         buffer = Z_Malloc(FLATSIZE, PU_LEVEL, (void **)&buffer);
 

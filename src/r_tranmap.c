@@ -29,13 +29,12 @@
 #include "doomtype.h"
 #include "i_exit.h"
 #include "i_printf.h"
-#include "i_video.h"
 #include "m_argv.h"
 #include "m_io.h"
 #include "m_misc.h"
 #include "md5.h"
-#include "r_srgb.h"
 #include "r_tranmap.h"
+#include "v_palette.h"
 #include "w_wad.h"
 #include "z_zone.h"
 
@@ -47,8 +46,6 @@
 // By Lee Killough 2/21/98
 //
 
-static const int playpal_base_layer = 256 * 3;    // RGB triplets
-
 static char playpal_string[33];
 static char *tranmap_dir, *playpal_dir;
 static byte *normal_tranmap[100];
@@ -58,15 +55,8 @@ const byte *main_tranmap; // killough 4/11/98
 const byte *main_addimap; // Some things look better with added luminosity :)
 
 //
-// Blending algorthims!
+// Blending algorithms!
 //
-
-enum
-{
-    r,
-    g,
-    b
-};
 
 //
 // The heart of the calculation, the blending algorithm. Currently supported:
@@ -74,28 +64,17 @@ enum
 // * Additive -- alpha is a foreground multiplier, added to (shaded) background
 //
 // TODO, tentative additions:
-// * Subtractive -- alpha is a foreground multiplier, subtracted from unmodifed background
+// * Subtractive -- alpha is a foreground multiplier, subtracted from unmodified background
 //
 
-inline static const int BlendChannel(const byte fg, const byte bg,
-                                     const double fg_alpha,
-                                     const double bg_alpha)
+inline static const int AlphaBlendLinear(const lrgb_t *fg, const lrgb_t *bg,
+                                         const double fg_alpha,
+                                         const double bg_alpha)
 {
-    const double fg_linear = sRGB_ByteToLinear(fg);
-    const double bg_linear = sRGB_ByteToLinear(bg);
-    const double r_linear = (fg_linear * fg_alpha) + (bg_linear * bg_alpha);
-    return sRGB_LinearToByte(r_linear);
-}
-
-inline static const int ColorBlend(byte *playpal, const byte *fg,
-                                   const byte *bg, const double fg_alpha,
-                                   const double bg_alpha)
-{
-    int blend[3] = {0};
-    blend[r] = BlendChannel(fg[r], bg[r], fg_alpha, bg_alpha);
-    blend[g] = BlendChannel(fg[g], bg[g], fg_alpha, bg_alpha);
-    blend[b] = BlendChannel(fg[b], bg[b], fg_alpha, bg_alpha);
-    return I_GetNearestColor(playpal, blend[r], blend[g], blend[b]);
+    const double r_blend = (fg->r * fg_alpha) + (bg->r * bg_alpha);
+    const double g_blend = (fg->g * fg_alpha) + (bg->g * bg_alpha);
+    const double b_blend = (fg->b * fg_alpha) + (bg->b * bg_alpha);
+    return V_GetNearestColorLinear(PAL_GLOBAL, r_blend, g_blend, b_blend);
 }
 
 //
@@ -104,12 +83,11 @@ inline static const int ColorBlend(byte *playpal, const byte *fg,
 
 static void CalculatePlaypalChecksum(void)
 {
-    const int lump = W_GetNumForName("PLAYPAL");
     struct MD5Context md5;
     byte playpal_digest[16];
 
     MD5Init(&md5);
-    MD5Update(&md5, W_CacheLumpNum(lump, PU_STATIC), playpal_base_layer);
+    MD5Update(&md5, playpal_global->data, PLAYPAL_BYTES);
     MD5Final(playpal_digest, &md5);
     M_DigestToString(playpal_digest, playpal_string, sizeof(playpal_digest));
 }
@@ -152,16 +130,14 @@ static void CreateTranMapPaletteDir(void)
 
 static byte *GenerateTranmapData(double fg_alpha, double bg_alpha)
 {
-    byte *playpal = W_CacheLumpName("PLAYPAL", PU_STATIC);
-
     // killough 4/11/98
     byte *buffer = Z_Malloc(tranmap_lump_length, PU_STATIC, 0);
     byte *tp = buffer;
 
     // Background
-    for (int i = 0; i < 256; i++)
+    for (int i = 0; i < PLAYPAL_SIZE; i++)
     {
-        const byte *bg = playpal + 3 * i;
+        const lrgb_t *bg = &playpal_global->base_linear[i];
 
         // killough 10/98: display flashing disk
         if (!(~i & 15))
@@ -177,11 +153,10 @@ static byte *GenerateTranmapData(double fg_alpha, double bg_alpha)
         }
 
         // Foreground
-        for (int j = 0; j < 256; j++)
+        for (int j = 0; j < PLAYPAL_SIZE; j++)
         {
-            const byte *fg = playpal + 3 * j;
-
-            *tp++ = ColorBlend(playpal, fg, bg, fg_alpha, bg_alpha);
+            const lrgb_t *fg = &playpal_global->base_linear[j];
+            *tp++ = AlphaBlendLinear(fg, bg, fg_alpha, bg_alpha);
         }
     }
 

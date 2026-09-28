@@ -26,13 +26,14 @@
 #include "mn_menu.h"
 #include "p_mobj.h"
 #include "r_bmaps.h"
-#include "r_data.h"
 #include "r_defs.h"
 #include "r_draw.h"
 #include "r_main.h"
 #include "r_state.h"
 #include "r_things.h"
 #include "tables.h"
+#include "v_palette.h"
+#include "v_trans.h"
 #include "v_video.h"
 #include "w_wad.h"
 #include "z_zone.h"
@@ -77,16 +78,13 @@ enum VoxelFace
 
 static void VX_CreateRemapTable (byte * p, byte * table)
 {
-	byte * pal = W_CacheLumpName ("PLAYPAL", PU_CACHE);
-
-	int c;
-	for (c = 0 ; c < 256 ; c++)
+	for (int c = 0 ; c < PLAYPAL_SIZE ; c++)
 	{
 		int r = (int)*p++ << 2;
 		int g = (int)*p++ << 2;
 		int b = (int)*p++ << 2;
 
-		table[c] = I_GetNearestColor (pal, r, g, b);
+		table[c] = V_GetNearestColor(PAL_GLOBAL, r, g, b);
 	}
 }
 
@@ -1024,8 +1022,7 @@ void VX_DrawVoxel (vissprite_t * spr)
 
 		static byte new_colormap[256];
 
-		int i;
-		for (i = 0 ; i < 256 ; i++)
+		for (int i = 0 ; i < PLAYPAL_SIZE ; i++)
 			new_colormap[i] = spr->colormap[0][trans[i]];
 
 		spr->colormap[0] = new_colormap;
@@ -1040,8 +1037,7 @@ void VX_DrawVoxel (vissprite_t * spr)
 
 		if (prev_trans != trans || prev_map != map)
 		{
-			int i;
-			for (i = 0 ; i < 256 ; i++)
+			for (int i = 0 ; i < PLAYPAL_SIZE ; i++)
 				new_colormap[i] = map[trans[i]];
 
 			prev_trans = trans;

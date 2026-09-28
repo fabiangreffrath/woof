@@ -91,6 +91,7 @@
 #include "statdump.h"
 #include "g_umapinfo.h"
 #include "v_patch.h"
+#include "v_palette.h"
 #include "v_video.h"
 #include "w_wad.h"
 #include "wi_stuff.h"
@@ -321,7 +322,7 @@ void D_Display (void)
 
   // clean up border stuff
   if (gamestate != oldgamestate && gamestate != GS_LEVEL)
-    I_SetPalette (W_CacheLumpName ("PLAYPAL",PU_CACHE));
+    V_ResetPalette();
 
   // see if the border needs to be initially drawn
   if (gamestate == GS_LEVEL && oldgamestate != GS_LEVEL)
@@ -2186,8 +2187,6 @@ void D_DoomMain(void)
 
   D_SetSavegameDirectory();
 
-  V_InitColorTranslation(); //jff 4/24/98 load color translation lumps
-
   // killough 2/22/98: copyright / "modified game" / SPA banners removed
 
   // Ty 04/08/98 - Add 5 lines of misc. data, only if nonblank
@@ -2223,6 +2222,9 @@ void D_DoomMain(void)
 
   W_ProcessInWads("TRAKINFO", S_ParseTrakInfo, PROCESS_IWAD | PROCESS_PWAD);
   D_SetupDemoLoop();
+
+  I_Printf(VB_INFO, "V_InitPalette: Init palette sub system.");
+  V_InitPalette();
 
   I_Printf(VB_INFO, "M_Init: Init miscellaneous info.");
   M_Init();
