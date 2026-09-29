@@ -21,9 +21,9 @@ struct mobj_s;
 
 typedef enum
 {
-  OVERUNDER_OFF,
-  OVERUNDER_PLAYER,
-  OVERUNDER_ALL,
+    OVERUNDER_OFF,
+    OVERUNDER_PLAYER,
+    OVERUNDER_ALL,
 } overunder_t;
 
 extern int overunder;
@@ -32,9 +32,9 @@ extern int overunder;
 extern struct mobj_s *tmbelow, *tmabove;
 
 boolean P_CanOverUnder(const struct mobj_s *a, const struct mobj_s *b);
-void    P_SetOverUnderLinks(struct mobj_s *mo);
-void    P_UnlinkOverUnder(struct mobj_s *mo);
-void    P_UpdateOverUnder(struct mobj_s *mo);
+void P_SetOverUnderLinks(struct mobj_s *mo);
+void P_UnlinkOverUnder(struct mobj_s *mo);
+void P_UpdateOverUnder(struct mobj_s *mo);
 boolean P_IsOverUnderVictim(const struct mobj_s *thing);
 boolean P_CrushOverUnderLink(struct mobj_s *thing);
 boolean P_IsOverUnderPlayer(const struct mobj_s *thing);

@@ -26,116 +26,132 @@ int overunder;
 
 mobj_t *tmbelow, *tmabove;
 
-// Returns true if mo is solid and shootable and either the active player or not a player at all.
+// Returns true if mo is solid and shootable and either the active player or not
+// a player at all.
 static boolean passable(const mobj_t *const mo)
 {
-  return (mo->flags & (MF_SOLID | MF_SHOOTABLE)) == (MF_SOLID | MF_SHOOTABLE)
-         && (!mo->player || mo->player->mo == mo);
+    return (mo->flags & (MF_SOLID | MF_SHOOTABLE)) == (MF_SOLID | MF_SHOOTABLE)
+           && (!mo->player || mo->player->mo == mo);
 }
 
-// Returns true if a and b may pass over or under each other, depending on the option.
+// Returns true if a and b may pass over or under each other, depending on the
+// option.
 boolean P_CanOverUnder(const mobj_t *const a, const mobj_t *const b)
 {
-  const boolean a_player = a->player != NULL;
-  const boolean b_player = b->player != NULL;
-  const int mode = CRITICAL(overunder);
+    const boolean a_player = a->player != NULL;
+    const boolean b_player = b->player != NULL;
+    const int mode = CRITICAL(overunder);
 
-  return mode != OVERUNDER_OFF && passable(a) && passable(b)
-         && !(a_player && b_player)
-         && (mode == OVERUNDER_ALL || a_player || b_player);
+    return mode != OVERUNDER_OFF && passable(a) && passable(b)
+           && !(a_player && b_player)
+           && (mode == OVERUNDER_ALL || a_player || b_player);
 }
 
-// Links mo to the things it touches that determined its floor and ceiling in the last P_CheckPosition().
-// Stale links of other things to mo are left alone, they drop them themselves in P_UpdateOverUnder().
+// Links mo to the things it touches that determined its floor and ceiling in
+// the last P_CheckPosition(). Stale links of other things to mo are left alone,
+// they drop them themselves in P_UpdateOverUnder().
 void P_SetOverUnderLinks(mobj_t *mo)
 {
-  if (tmbelow && mo->z == tmfloorz && tmfloorz == tmbelow->z + tmbelow->height)
-  {
-    P_SetTarget(&mo->below_thing, tmbelow);
-    P_SetTarget(&tmbelow->above_thing, mo);
-  }
-  else
-    P_SetTarget(&mo->below_thing, NULL);
+    if (tmbelow && mo->z == tmfloorz
+        && tmfloorz == tmbelow->z + tmbelow->height)
+    {
+        P_SetTarget(&mo->below_thing, tmbelow);
+        P_SetTarget(&tmbelow->above_thing, mo);
+    }
+    else
+    {
+        P_SetTarget(&mo->below_thing, NULL);
+    }
 
-  if (tmabove && mo->z + mo->height == tmceilingz && tmceilingz == tmabove->z)
-  {
-    P_SetTarget(&mo->above_thing, tmabove);
-    P_SetTarget(&tmabove->below_thing, mo);
-  }
-  else
-    P_SetTarget(&mo->above_thing, NULL);
+    if (tmabove && mo->z + mo->height == tmceilingz && tmceilingz == tmabove->z)
+    {
+        P_SetTarget(&mo->above_thing, tmabove);
+        P_SetTarget(&tmabove->below_thing, mo);
+    }
+    else
+    {
+        P_SetTarget(&mo->above_thing, NULL);
+    }
 }
 
 // Returns true if lower and upper are still in contact.
 static boolean linked(const mobj_t *const lower, const mobj_t *const upper)
 {
-  const fixed_t blockdist = lower->radius + upper->radius;
+    const fixed_t blockdist = lower->radius + upper->radius;
 
-  return lower->thinker.function.p1 == P_MobjThinker
-         && upper->thinker.function.p1 == P_MobjThinker
-         && P_CanOverUnder(lower, upper)
-         && abs(lower->x - upper->x) < blockdist
-         && abs(lower->y - upper->y) < blockdist
-         && upper->z == lower->z + lower->height;
+    return lower->thinker.function.p1 == P_MobjThinker
+           && upper->thinker.function.p1 == P_MobjThinker
+           && P_CanOverUnder(lower, upper)
+           && abs(lower->x - upper->x) < blockdist
+           && abs(lower->y - upper->y) < blockdist
+           && upper->z == lower->z + lower->height;
 }
 
 // Removes the links of mo itself, e.g. before it is removed from the game.
 void P_UnlinkOverUnder(mobj_t *mo)
 {
-  P_SetTarget(&mo->above_thing, NULL);
-  P_SetTarget(&mo->below_thing, NULL);
+    P_SetTarget(&mo->above_thing, NULL);
+    P_SetTarget(&mo->below_thing, NULL);
 }
 
 // Returns the thing above mo if the link to it still holds, or NULL.
 static const mobj_t *linked_above(const mobj_t *const mo)
 {
-  return mo->above_thing && linked(mo, mo->above_thing) ? mo->above_thing : NULL;
+    return mo->above_thing && linked(mo, mo->above_thing) ? mo->above_thing
+                                                          : NULL;
 }
 
 // Returns the thing below mo if the link to it still holds, or NULL.
 static const mobj_t *linked_below(const mobj_t *const mo)
 {
-  return mo->below_thing && linked(mo->below_thing, mo) ? mo->below_thing : NULL;
+    return mo->below_thing && linked(mo->below_thing, mo) ? mo->below_thing
+                                                          : NULL;
 }
 
-// Returns true if thing is a living monster that stands over another thing or that the player stands over or under.
+// Returns true if thing is a living monster that stands over another thing or
+// that the player stands over or under.
 boolean P_IsOverUnderVictim(const mobj_t *const thing)
 {
-  const mobj_t *const above = linked_above(thing);
-  const mobj_t *const below = linked_below(thing);
+    const mobj_t *const above = linked_above(thing);
+    const mobj_t *const below = linked_below(thing);
 
-  return thing->health > 0 && !thing->player
-         && (below || (above && above->player));
+    return thing->health > 0 && !thing->player
+           && (below || (above && above->player));
 }
 
 // Returns true if thing is a player standing over or under a monster.
 boolean P_IsOverUnderPlayer(const mobj_t *const thing)
 {
-  return thing->player && (linked_above(thing) || linked_below(thing));
+    return thing->player && (linked_above(thing) || linked_below(thing));
 }
 
-// Kills a monster that must not share a moving sector with the thing it is linked to, even if it would still fit.
-// Returns true if the monster was killed.
+// Kills a monster that must not share a moving sector with the thing it is
+// linked to, even if it would still fit. Returns true if the monster was
+// killed.
 boolean P_CrushOverUnderLink(mobj_t *thing)
 {
-  if (!P_IsOverUnderVictim(thing))
-    return false;
+    if (!P_IsOverUnderVictim(thing))
+    {
+        return false;
+    }
 
-  P_DamageMobjBy(thing, NULL, NULL, 10000, MOD_Crush);
-  return true;
+    P_DamageMobjBy(thing, NULL, NULL, 10000, MOD_Crush);
+    return true;
 }
 
-// Drops links that no longer hold and recomputes floor and ceiling so that mo can fall.
-// Called once per tic for things that have links.
+// Drops links that no longer hold and recomputes floor and ceiling so that mo
+// can fall. Called once per tic for things that have links.
 void P_UpdateOverUnder(mobj_t *mo)
 {
-  if ((!mo->below_thing || linked(mo->below_thing, mo))
-      && (!mo->above_thing || linked(mo, mo->above_thing)))
-    return;
+    if ((!mo->below_thing || linked(mo->below_thing, mo))
+        && (!mo->above_thing || linked(mo, mo->above_thing)))
+    {
+        return;
+    }
 
-  P_CheckPosition(mo, mo->x, mo->y);
-  mo->floorz = tmfloorz;
-  mo->ceilingz = tmceilingz;
-  mo->dropoffz = tmdropoffz;
-  P_SetOverUnderLinks(mo);
+    P_CheckPosition(mo, mo->x, mo->y);
+    mo->floorz = tmfloorz;
+    mo->ceilingz = tmceilingz;
+    mo->dropoffz = tmdropoffz;
+    P_SetOverUnderLinks(mo);
 }

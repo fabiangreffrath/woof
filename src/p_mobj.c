@@ -782,8 +782,10 @@ void P_MobjThinker (mobj_t* mobj)
       mobj->oldangle = mobj->angle;
   }
 
-  if (mobj->below_thing || mobj->above_thing)
-    P_UpdateOverUnder(mobj);
+    if (mobj->below_thing || mobj->above_thing)
+    {
+        P_UpdateOverUnder(mobj);
+    }
 
   // killough 11/98: 
   // removed old code which looked at target references

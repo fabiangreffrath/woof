@@ -511,7 +511,7 @@ static boolean P_ProjectileImmune(mobj_t *target, mobj_t *source)
 }
 
 // [FG] mobj or actual sprite height
-static const inline fixed_t thingheight (const mobj_t *const thing, const mobj_t *const cond)
+static inline fixed_t thingheight (const mobj_t *const thing, const mobj_t *const cond)
 {
   return (direct_vertical_aiming && cond && cond->player && thing->actualheight > thing->height) ?
         thing->actualheight : thing->height;
@@ -679,36 +679,40 @@ static boolean PIT_CheckThing(mobj_t *thing) // killough 3/26/98: make static
     return true;
   }
 
-  // Pass over or under the thing if the Z ranges do not overlap.
-  // Its top or bottom then acts as floor or ceiling for the mover.
-  if (P_CanOverUnder(tmthing, thing))
-  {
-    const fixed_t top = thing->z + thing->height;
-
-    if (tmthing->z >= top)
+    // Pass over or under the thing if the Z ranges do not overlap.
+    // Its top or bottom then acts as floor or ceiling for the mover.
+    if (P_CanOverUnder(tmthing, thing))
     {
-      if (top > tmfloorz)
-      {
-        tmfloorz = top;
-        tmbelow = thing;
-      }
-      return true;
-    }
+        const fixed_t top = thing->z + thing->height;
 
-    if (tmthing->z + tmthing->height <= thing->z)
-    {
-      if (thing->z < tmceilingz)
-      {
-        tmceilingz = thing->z;
-        tmabove = thing;
-      }
-      return true;
-    }
+        if (tmthing->z >= top)
+        {
+            if (top > tmfloorz)
+            {
+                tmfloorz = top;
+                tmbelow = thing;
+            }
+            return true;
+        }
 
-    // Already intersecting, e.g. after a Z movement into the thing. Let the mover leave.
-    if (abs(tmthing->x - thing->x) < blockdist && abs(tmthing->y - thing->y) < blockdist)
-      return true;
-  }
+        if (tmthing->z + tmthing->height <= thing->z)
+        {
+            if (thing->z < tmceilingz)
+            {
+                tmceilingz = thing->z;
+                tmabove = thing;
+            }
+            return true;
+        }
+
+        // Already intersecting, e.g. after a Z movement into the thing. Let the
+        // mover leave.
+        if (abs(tmthing->x - thing->x) < blockdist
+            && abs(tmthing->y - thing->y) < blockdist)
+        {
+            return true;
+        }
+    }
 
   // killough 3/16/98: Allow non-solid moving objects to move through solid
   // ones, by allowing the moving thing (tmthing) to move if it's non-solid,
@@ -2123,7 +2127,9 @@ boolean PIT_ChangeSector(mobj_t *thing)
 
   // The monster takes the squeeze instead of the player and never blocks the mover.
   if (rider)
+  {
     return true;
+  }
 
   nofit = true;
 
