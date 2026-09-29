@@ -252,7 +252,7 @@ const lighttable_t *R_GetBrightmappedColormap(
          |
          +--------------- Colormap index
 
-        Effective capacity is 8 distinct colormaps and 256 distinct brightmaps
+        Effective capacity is 8 distinct colormap lumps and 256 distinct brightmaps
     */
     const uint16_t index =
         colormap_index | colormap_row_index | brightmap_index;
