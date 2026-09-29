@@ -15,24 +15,29 @@
 #ifndef G_UMAPINFO_H
 #define G_UMAPINFO_H
 
-#include "doomtype.h"
 #include "d_player.h"
 #include "doomtype.h"
 #include "p_mobj.h"
-#include "r_defs.h"
 #include "wi_stuff.h"
+
+typedef enum MI_PlayerMovement_e
+{
+    PM_Unset,
+    PM_Disallow,
+    PM_Allow,
+    PM_Require,
+} MI_PlayerMovement_t;
 
 typedef enum MI_Finale_e
 {
-  EG_Clear = -1,
-  EG_None,
-  EG_Basic,
-  EG_ArtScreen,
-  EG_CastRollCall,
-  EG_BunnyScroll,
-  EG_CustomFinale,
+    EG_Clear = -1,
+    EG_None,
+    EG_Basic,
+    EG_ArtScreen,
+    EG_CastRollCall,
+    EG_BunnyScroll,
+    EG_CustomFinale,
 } MI_Finale_t;
-
 
 typedef enum
 {
@@ -76,6 +81,9 @@ typedef struct MI_Entry_s
     MI_BossAction_t *bossactions;
     MI_flags_t flags;
     MI_Finale_t finale;
+    MI_PlayerMovement_t jumping;
+    MI_PlayerMovement_t crouching;
+    MI_PlayerMovement_t freeaim;
 } MI_Entry_t;
 
 extern MI_Entry_t *umapinfo;
@@ -125,6 +133,11 @@ void MI_MapAnnouncement(char *announce_string, char *author_string,
                         const char *string, size_t str_size);
 int MI_SkyTexture(void);
 void MI_ChangeMusic(void);
+
+// Playsim
+boolean MI_Jumping(void);
+boolean MI_Crouching(void);
+boolean MI_Freeaim(void);
 
 // Death action
 boolean MI_BossAction(mobj_t *mo);
