@@ -16,12 +16,14 @@
 #include <float.h>
 #include <string.h>
 
+#include "i_gamma.h"
 #include "i_video.h"
 #include "m_misc.h"
 #include "v_palette.h"
 #include "v_srgb.h"
 #include "v_trans.h"
 #include "w_wad.h"
+#include "z_zone.h"
 
 // Palette stuff
 int gamma2;
@@ -97,6 +99,17 @@ static playpal_t *InitPlaypal(palette_t pal, const char *name, int32_t num)
     }
     playpal->white = V_GetNearestColor(pal, 0xFF, 0xFF, 0xFF);
     playpal->black = V_GetNearestColor(pal, 0x00, 0x00, 0x00);
+
+    for (gammalevel_t g = GAMMA_MIN; g < GAMMA_COUNT; g++)
+    {
+        playpal->palette[g] = Z_Malloc(playpal->length, PU_STATIC, NULL);
+
+        for (size_t i = 0; i < playpal->length; i++)
+        {
+            byte b = playpal->data[i];
+            playpal->palette[g][i] = gammatable[g][b];
+        }
+    }
 
     return playpal;
 }

@@ -38,7 +38,6 @@
 #include "doomstat.h"
 #include "g_game.h"
 #include "i_exit.h"
-#include "i_gamma.h"
 #include "i_input.h"
 #include "i_printf.h"
 #include "i_system.h"
@@ -1030,7 +1029,6 @@ static void I_RestoreDiskBackground(void)
 
 void I_SetPalette(palette_t pal, palette_layer_t layer)
 {
-    const byte *const gamma = gammatable[gamma2];
     SDL_Color colors[256];
 
     if (noblit) // killough 8/11/98
@@ -1038,12 +1036,12 @@ void I_SetPalette(palette_t pal, palette_layer_t layer)
         return;
     }
 
-    const byte* playpal = &playpals[pal].data[layer * PLAYPAL_BYTES];
+    const byte* playpal = &playpals[pal].palette[gamma2][layer * PLAYPAL_BYTES];
     for (size_t i = 0; i < PLAYPAL_SIZE; ++i)
     {
-        colors[i].r = gamma[*playpal++];
-        colors[i].g = gamma[*playpal++];
-        colors[i].b = gamma[*playpal++];
+        colors[i].r = *playpal++;
+        colors[i].g = *playpal++;
+        colors[i].b = *playpal++;
         colors[i].a = 0xffu;
     }
 

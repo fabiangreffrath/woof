@@ -62,12 +62,21 @@ typedef struct rgb_linear_s
     double r, g, b;
 } lrgb_t;
 
+typedef enum gammalevel_e
+{
+    GAMMA_MIN = 0,
+    GAMMA_MAX = 17,
+    GAMMA_COUNT = 18,
+} gammalevel_t;
+
 typedef struct playpal_s
 {
     char name[9];
     size_t num;
     size_t length;
     byte *data;
+
+    byte *palette[GAMMA_COUNT];
 
     rgb_t base[PLAYPAL_SIZE];
     lrgb_t base_linear[PLAYPAL_SIZE];
