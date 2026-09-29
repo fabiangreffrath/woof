@@ -719,14 +719,14 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
   else if (fixedcolormapoffset)
   {
     // fixed map
-    vis->colormap[0] = vis->colormap[1] = thiscolormap + fixedcolormapoffset;
+    vis->colormap[0] = thiscolormap + fixedcolormapoffset;
     vis->brightmap = nobrightmap;
   }
   else if (thing->frame & FF_FULLBRIGHT)
   {
     // full bright
     // killough 3/20/98
-    vis->colormap[0] = vis->colormap[1] = thiscolormap;
+    vis->colormap[0] = thiscolormap;
     vis->brightmap = nobrightmap;
   }
   else
@@ -955,14 +955,14 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
   else if (fixedcolormapoffset)
   {
     // fixed color
-    vis->colormap[0] = vis->colormap[1] = thiscolormap + fixedcolormapoffset;
+    vis->colormap[0] = thiscolormap + fixedcolormapoffset;
     vis->brightmap = nobrightmap;
   }
   else if (psp->state->frame & FF_FULLBRIGHT)
   {
     // full bright
     // killough 3/20/98
-    vis->colormap[0] = vis->colormap[1] = thiscolormap;
+    vis->colormap[0] = thiscolormap;
     vis->brightmap = nobrightmap;
   }
   else
