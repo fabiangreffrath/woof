@@ -36,7 +36,7 @@ jobs:
             type: system
 
           - name: MSYS2 UCRT64
-            os: windows-latest
+            os: windows-2022
             shell: 'msys2 {0}'
             type: system
             msystem: ucrt64
@@ -58,7 +58,7 @@ jobs:
               -DCMAKE_INSTALL_PREFIX=/usr
 
           - name: MSVC x64 (vcpkg)
-            os: windows-latest
+            os: windows-2022
             shell: pwsh
             type: vcpkg
             triplet: x64-windows-static-release
@@ -73,7 +73,7 @@ jobs:
               -DCMAKE_IGNORE_PATH="C:/Strawberry/perl/bin;C:/Strawberry/c/lib"
 
           - name: MSVC x86 (vcpkg)
-            os: windows-latest
+            os: windows-2022
             shell: pwsh
             type: vcpkg
             triplet: x86-windows-static-release
