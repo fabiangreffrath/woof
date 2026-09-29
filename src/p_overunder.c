@@ -33,16 +33,23 @@ int overunder;
 
 mobj_t *tmbelow, *tmabove;
 
-// Returns true if a player and a solid shootable non-player thing may pass over or under each other.
+// Returns true if mo is solid and shootable and either the active player or not a player at all.
+static boolean passable(const mobj_t *const mo)
+{
+  return (mo->flags & (MF_SOLID | MF_SHOOTABLE)) == (MF_SOLID | MF_SHOOTABLE)
+         && (!mo->player || mo->player->mo == mo);
+}
+
+// Returns true if a and b may pass over or under each other, depending on the option.
 boolean P_CanOverUnder(const mobj_t *const a, const mobj_t *const b)
 {
-  const boolean a_player = a->player && a->player->mo == a;
-  const boolean b_player = b->player && b->player->mo == b;
-  const mobj_t *const other = a_player ? b : a;
+  const boolean a_player = a->player != NULL;
+  const boolean b_player = b->player != NULL;
+  const int mode = CRITICAL(overunder);
 
-  return CRITICAL(overunder) == OVERUNDER_PLAYER && a_player != b_player
-         && !other->player
-         && (other->flags & (MF_SOLID | MF_SHOOTABLE)) == (MF_SOLID | MF_SHOOTABLE);
+  return mode != OVERUNDER_OFF && passable(a) && passable(b)
+         && !(a_player && b_player)
+         && (mode == OVERUNDER_ALL || a_player || b_player);
 }
 
 // Links mo to the things that determined its floor and ceiling in the last P_CheckPosition().
@@ -87,37 +94,39 @@ void P_UnlinkOverUnder(mobj_t *mo)
   P_SetTarget(&mo->below_thing, NULL);
 }
 
-// Returns the thing mo is still linked to, or NULL.
-static const mobj_t *partner(const mobj_t *const mo)
+// Returns the thing above mo if the link to it still holds, or NULL.
+static const mobj_t *linked_above(const mobj_t *const mo)
 {
-  if (mo->above_thing && linked(mo, mo->above_thing))
-    return mo->above_thing;
-
-  if (mo->below_thing && linked(mo->below_thing, mo))
-    return mo->below_thing;
-
-  return NULL;
+  return mo->above_thing && linked(mo, mo->above_thing) ? mo->above_thing : NULL;
 }
 
-// Returns true if thing is a living monster the player stands over or under.
-boolean P_IsOverUnderMonster(const mobj_t *const thing)
+// Returns the thing below mo if the link to it still holds, or NULL.
+static const mobj_t *linked_below(const mobj_t *const mo)
 {
-  const mobj_t *const other = partner(thing);
+  return mo->below_thing && linked(mo->below_thing, mo) ? mo->below_thing : NULL;
+}
 
-  return thing->health > 0 && !thing->player && other && other->player;
+// Returns true if thing is a living monster that stands over another thing or that the player stands over or under.
+boolean P_IsOverUnderVictim(const mobj_t *const thing)
+{
+  const mobj_t *const above = linked_above(thing);
+  const mobj_t *const below = linked_below(thing);
+
+  return thing->health > 0 && !thing->player
+         && (below || (above && above->player));
 }
 
 // Returns true if thing is a player standing over or under a monster.
 boolean P_IsOverUnderPlayer(const mobj_t *const thing)
 {
-  return thing->player && partner(thing) != NULL;
+  return thing->player && (linked_above(thing) || linked_below(thing));
 }
 
-// Kills a living monster the player stands over or under, even if it would still fit.
+// Kills a monster that must not share a moving sector with the thing it is linked to, even if it would still fit.
 // Returns true if the monster was killed.
 boolean P_CrushOverUnderLink(mobj_t *thing)
 {
-  if (!P_IsOverUnderMonster(thing))
+  if (!P_IsOverUnderVictim(thing))
     return false;
 
   P_DamageMobjBy(thing, NULL, NULL, 10000, MOD_Crush);
