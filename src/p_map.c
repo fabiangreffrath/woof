@@ -704,6 +704,10 @@ static boolean PIT_CheckThing(mobj_t *thing) // killough 3/26/98: make static
       }
       return true;
     }
+
+    // Already intersecting, e.g. after a Z movement into the thing. Let the mover leave.
+    if (abs(tmthing->x - thing->x) < blockdist && abs(tmthing->y - thing->y) < blockdist)
+      return true;
   }
 
   // killough 3/16/98: Allow non-solid moving objects to move through solid
