@@ -706,9 +706,12 @@ static boolean PIT_CheckThing(mobj_t *thing) // killough 3/26/98: make static
         }
 
         // Already intersecting, e.g. after a Z movement into the thing. Let the
-        // mover leave.
+        // mover leave, but not move deeper: the distance must not shrink in
+        // both axes.
         if (abs(tmthing->x - thing->x) < blockdist
-            && abs(tmthing->y - thing->y) < blockdist)
+            && abs(tmthing->y - thing->y) < blockdist
+            && (abs(tmx - thing->x) >= abs(tmthing->x - thing->x)
+                || abs(tmy - thing->y) >= abs(tmthing->y - thing->y)))
         {
             return true;
         }
