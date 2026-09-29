@@ -33,8 +33,8 @@
 // * https://www.youtube.com/watch?v=e0HM_vfSuDw&t=130
 //
 
-#ifndef __R_SRGB_TRANSFORM__
-#define __R_SRGB_TRANSFORM__
+#ifndef __SRGB_TRANSFORM__
+#define __SRGB_TRANSFORM__
 
 #include <math.h>
 #include "doomtype.h"

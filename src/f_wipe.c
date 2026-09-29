@@ -26,6 +26,7 @@
 #include "m_random.h"
 #include "r_main.h"
 #include "v_flextran.h"
+#include "v_palette.h"
 #include "v_video.h"
 #include "z_zone.h"
 
@@ -237,7 +238,7 @@ static int wipe_renderMelt(int width, int height, int ticks)
     {
         pixel_t *dest = wipe_scr + (currcol * height);
 
-        memset(dest, v_darkest_color, height);
+        memset(dest, playpal_global->black, height);
     }
 
     return done;

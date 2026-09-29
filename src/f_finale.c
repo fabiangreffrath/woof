@@ -30,6 +30,7 @@
 #include "g_game.h"
 #include "g_umapinfo.h"
 #include "i_printf.h"
+#include "i_video.h"
 #include "info.h"
 #include "m_misc.h" // [FG] M_StringDuplicate()
 #include "m_swap.h"
@@ -1203,9 +1204,9 @@ static void F_BunnyScroll(void)
 
   if (p2offset > 0)
   {
-      V_FillRect(0, 0, p2offset, SCREENHEIGHT, v_darkest_color);
+      V_FillRect(0, 0, p2offset, SCREENHEIGHT, playpal_global->black);
       V_FillRect(p2offset + SHORT(p2->width), 0, p2offset, SCREENHEIGHT,
-                 v_darkest_color);
+                 playpal_global->black);
   }
 
   if (finalecount < 1130)

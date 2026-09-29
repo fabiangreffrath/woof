@@ -52,6 +52,7 @@
 #include "mn_menu.h"
 #include "mn_snapshot.h"
 #include "p_saveg.h"
+#include "r_data.h"
 #include "r_defs.h"
 #include "r_draw.h"
 #include "r_main.h"
@@ -2454,12 +2455,12 @@ boolean M_ShortcutResponder(const event_t *ev)
     if (M_InputActivated(input_gamma)) // gamma toggle
     {
         gamma2++;
-        if (gamma2 > 17)
+        if (gamma2 > GAMMA_MAX)
         {
-            gamma2 = 0;
+            gamma2 = GAMMA_MIN;
         }
         togglemsg("Gamma correction level %s", gamma_strings[gamma2]);
-        MN_ResetGamma();
+        V_ResetPalette();
         return true;
     }
 

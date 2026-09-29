@@ -168,7 +168,6 @@ set(WOOF_SOURCES
     r_segs.c               r_segs.h
     r_sky.c                r_sky.h
     r_skydefs.c            r_skydefs.h
-                           r_srgb.h
                            r_state.h
     r_swirl.c              r_swirl.h
     r_things.c             r_things.h
@@ -185,7 +184,9 @@ set(WOOF_SOURCES
     statdump.c             statdump.h
     tables.c               tables.h
     v_flextran.c           v_flextran.h
+    v_palette.c            v_palette.h
     v_patch.c              v_patch.h
+                           v_srgb.h
     v_trans.c              v_trans.h
     v_video.c              v_video.h
     w_wad.c                w_wad.h

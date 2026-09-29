@@ -125,6 +125,12 @@ inline static fixed_t FixedDiv(fixed_t a, fixed_t b)
     return div64_32(shiftleft64(a, FRACBITS), b);
 }
 
+static inline fixed_t FixedAbs(fixed_t x)
+{
+    // avoid abs(INT_MIN) UB
+    return x < 0 ? (fixed_t)(0u - (unsigned int)x) : x;
+}
+
 #endif
 
 //----------------------------------------------------------------------------

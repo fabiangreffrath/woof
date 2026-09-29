@@ -23,6 +23,7 @@
 #include "m_array.h"
 #include "m_misc.h"
 #include "m_swap.h"
+#include "r_data.h"
 #include "r_defs.h"
 #include "st_sbardef.h"
 #include "v_patch.h"
