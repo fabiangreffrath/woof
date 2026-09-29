@@ -967,16 +967,29 @@ void R_InvulMode(void)
 
 void R_InitColormaps(void)
 {
-  int i;
   firstcolormaplump = W_GetNumForName("C_START");
   lastcolormaplump  = W_GetNumForName("C_END");
   numcolormaps = lastcolormaplump - firstcolormaplump;
+
   colormaps = Z_Malloc(sizeof(*colormaps) * numcolormaps, PU_STATIC, 0);
 
-  colormaps[0] = W_CacheLumpNum(W_GetNumForName("COLORMAP"), PU_STATIC);
+  byte *const all_colormaps =
+    Z_Malloc(sizeof(**colormaps) * numcolormaps * COLORMAP_SIZE, PU_STATIC, 0);
 
-  for (i=1; i<numcolormaps; i++)
-    colormaps[i] = W_CacheLumpNum(i+firstcolormaplump, PU_STATIC);
+  for (int i = 0; i < numcolormaps; i++)
+  {
+    colormaps[i] = all_colormaps + COLORMAP_SIZE * i;
+
+    const int lump_num = i ? firstcolormaplump + i : W_GetNumForName("COLORMAP");
+
+    const int lump_size = W_LumpLength(lump_num);
+    const int copied_size = MIN(lump_size, COLORMAP_SIZE);
+
+    W_ReadLumpSize(lump_num, colormaps[i], copied_size);
+
+    // If the colormap were undersized, the old code would probably read garbage data;
+    // we roughly emulate this by not initializing the remainder, if any
+  }
 
   // [FG] dark/shaded color translation table
   cr_dark = &colormaps[0][256*15];

@@ -231,12 +231,8 @@ const lighttable_t *R_GetBrightmappedColormap(
         return orig_colormap;
     }
 
-    // As of writing this, it appears that colormaps are contiguous in memory,
-    // thus we can calculate their indices through pointer arithmetic;
-    // 8800 is the number of bytes between each colormap
-    // (though the expected number was 256*34 == 8704)
     const uint16_t colormap_index =
-        ((full_colormap - colormaps[0]) / 8800) << 13;
+        ((full_colormap - colormaps[0]) / COLORMAP_SIZE) << 13;
 
     const uint16_t colormap_row_index =
         ((orig_colormap - full_colormap) / 256) << 8;
@@ -255,6 +251,8 @@ const lighttable_t *R_GetBrightmappedColormap(
          |   +----------- Colormap row index
          |
          +--------------- Colormap index
+
+        Effective capacity is 8 distinct colormaps and 256 distinct brightmaps
     */
     const uint16_t index =
         colormap_index | colormap_row_index | brightmap_index;
