@@ -39,8 +39,10 @@
 #include "p_map.h"
 #include "p_maputl.h"
 #include "p_mobj.h"
+#include "p_overunder.h"
 #include "p_setup.h"
 #include "p_spec.h"
+#include "p_tick.h"
 #include "p_user.h"
 #include "r_defs.h"
 #include "r_main.h"
@@ -677,6 +679,33 @@ static boolean PIT_CheckThing(mobj_t *thing) // killough 3/26/98: make static
     return true;
   }
 
+  // Pass over or under the thing if the Z ranges do not overlap.
+  // Its top or bottom then acts as floor or ceiling for the mover.
+  if (P_CanOverUnder(tmthing, thing))
+  {
+    const fixed_t top = thing->z + thing->height;
+
+    if (tmthing->z >= top)
+    {
+      if (top > tmfloorz)
+      {
+        tmfloorz = top;
+        tmbelow = thing;
+      }
+      return true;
+    }
+
+    if (tmthing->z + tmthing->height <= thing->z)
+    {
+      if (thing->z < tmceilingz)
+      {
+        tmceilingz = thing->z;
+        tmabove = thing;
+      }
+      return true;
+    }
+  }
+
   // killough 3/16/98: Allow non-solid moving objects to move through solid
   // ones, by allowing the moving thing (tmthing) to move if it's non-solid,
   // despite another solid thing being in the way.
@@ -771,6 +800,7 @@ boolean P_CheckPosition(mobj_t *thing, fixed_t x, fixed_t y)
 
   tmthing = thing;
   tmflags = thing->flags;
+  tmbelow = tmabove = NULL;
 
   tmx = x;
   tmy = y;
@@ -927,6 +957,7 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, int dropoff)
   thing->floorz = tmfloorz;
   thing->ceilingz = tmceilingz;
   thing->dropoffz = tmdropoffz;      // killough 11/98: keep track of dropoffs
+  P_SetOverUnderLinks(thing);
   thing->x = x;
   thing->y = y;
 
@@ -1104,6 +1135,7 @@ static boolean P_ThingHeightClip(mobj_t *thing)
   thing->floorz = tmfloorz;
   thing->ceilingz = tmceilingz;
   thing->dropoffz = tmdropoffz;         // killough 11/98: remember dropoffs
+  P_SetOverUnderLinks(thing);
 
   if (onfloor)  // walking monsters rise and fall with the floor
     {
@@ -2040,8 +2072,11 @@ static boolean crushchange, nofit;
 boolean PIT_ChangeSector(mobj_t *thing)
 {
   mobj_t *mo;
+  const boolean fits = P_ThingHeightClip(thing);
 
-  if (P_ThingHeightClip(thing))
+  // A monster the player stands over or under always dies here, even if it
+  // would technically fit. Otherwise it could block the player's way.
+  if (fits && !P_CrushOverUnderLink(thing))
     return true; // keep checking
 
   // crunch bodies to giblets
@@ -2077,6 +2112,10 @@ boolean PIT_ChangeSector(mobj_t *thing)
 
   if (!(thing->flags & MF_SHOOTABLE))
     return true;        // assume it is bloody gibs or something
+
+  // The monster takes the squeeze instead of the player and never blocks the mover.
+  if (P_IsOverUnderPlayer(thing))
+    return true;
 
   nofit = true;
 

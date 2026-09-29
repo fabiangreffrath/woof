@@ -391,6 +391,7 @@ enum
     str_skill,
     str_freelook,
     str_sky_projection,
+    str_overunder,
 };
 
 static const char **GetStrings(int id);
@@ -2270,6 +2271,9 @@ setup_menu_t comp_settings1[] = {
     {"Walk Under Solid Hanging Bodies", S_ONOFF | S_STRICT, M_X, M_SPC,
      {"hangsolid"}},
 
+    {"Move Over/Under Monsters", S_CHOICE | S_STRICT, M_X, M_SPC,
+     {"overunder"}, .strings_id = str_overunder},
+
     {"Emulate INTERCEPTS overflow", S_ONOFF | S_VANILLA, M_X, M_SPC,
      {"emu_intercepts"}, .action = UpdateInterceptsEmuItem},
 
@@ -3372,6 +3376,8 @@ static const char *screen_wipe_strings[] = {"Off", "Melt", "Crossfade", "Fizzle"
 static const char *palette_changes_strings[] = {"Off", "On", "Reduced"};
 
 static const char *invul_mode_strings[] = {"Vanilla", "MBF", "Gray"};
+
+static const char *overunder_strings[] = {"Off", "Player only"};
 
 static const char *endoom_strings[] = {"Off", "PWAD Only", "Always"};
 
@@ -5090,6 +5096,7 @@ static const char **selectstrings[] = {
     [str_skill] = skill_strings,
     [str_freelook] = free_look_strings,
     [str_sky_projection] = sky_projection_strings,
+    [str_overunder] = overunder_strings,
 };
 
 static const char **GetStrings(int id)

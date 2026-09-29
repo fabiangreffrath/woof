@@ -78,6 +78,7 @@
 #include "p_inter.h"
 #include "p_keyframe.h"
 #include "p_map.h"
+#include "p_overunder.h"
 #include "p_maputl.h"
 #include "p_mobj.h"
 #include "p_pspr.h"
@@ -5152,6 +5153,9 @@ void G_BindCompVariables(void)
              "Automatic strafe50 (SR50)");
   M_BindBool("hangsolid", &hangsolid, NULL, false, ss_comp, wad_no,
              "Enable walking under solid hanging bodies");
+  M_BindNum("overunder", &overunder, NULL,
+            OVERUNDER_OFF, OVERUNDER_OFF, OVERUNDER_PLAYER, ss_comp, wad_no,
+            "Move over/under monsters (0 = Off; 1 = Player only)");
   M_BindBool("blockmapfix", &blockmapfix, NULL, false, ss_comp, wad_no,
              "Fix blockmap bug (improves hit detection)");
   M_BindBool("checksight12", &checksight12, NULL, false, ss_comp, wad_no,

@@ -31,6 +31,7 @@
 #include "p_ambient.h"
 #include "p_inter.h"
 #include "p_map.h"
+#include "p_overunder.h"
 #include "p_maputl.h"
 #include "p_mobj.h"
 #include "p_pspr.h"
@@ -781,6 +782,9 @@ void P_MobjThinker (mobj_t* mobj)
       mobj->oldangle = mobj->angle;
   }
 
+  if (mobj->below_thing || mobj->above_thing)
+    P_UpdateOverUnder(mobj);
+
   // killough 11/98: 
   // removed old code which looked at target references
   // (we use pointer reference counting now)
@@ -1017,6 +1021,8 @@ void P_RemoveMobj (mobj_t *mobj)
       P_SetTarget(&mobj->tracer,    NULL);
       P_SetTarget(&mobj->lastenemy, NULL);
     }
+
+  P_UnlinkOverUnder(mobj);
 
   // free block
 
