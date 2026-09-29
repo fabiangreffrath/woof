@@ -45,11 +45,11 @@ boolean P_CanOverUnder(const mobj_t *const a, const mobj_t *const b)
          && (mode == OVERUNDER_ALL || a_player || b_player);
 }
 
-// Links mo to the things that determined its floor and ceiling in the last P_CheckPosition().
+// Links mo to the things it touches that determined its floor and ceiling in the last P_CheckPosition().
 // Stale links of other things to mo are left alone, they drop them themselves in P_UpdateOverUnder().
 void P_SetOverUnderLinks(mobj_t *mo)
 {
-  if (tmbelow && tmfloorz == tmbelow->z + tmbelow->height)
+  if (tmbelow && mo->z == tmfloorz && tmfloorz == tmbelow->z + tmbelow->height)
   {
     P_SetTarget(&mo->below_thing, tmbelow);
     P_SetTarget(&tmbelow->above_thing, mo);
@@ -57,7 +57,7 @@ void P_SetOverUnderLinks(mobj_t *mo)
   else
     P_SetTarget(&mo->below_thing, NULL);
 
-  if (tmabove && tmceilingz == tmabove->z)
+  if (tmabove && mo->z + mo->height == tmceilingz && tmceilingz == tmabove->z)
   {
     P_SetTarget(&mo->above_thing, tmabove);
     P_SetTarget(&tmabove->below_thing, mo);
@@ -66,7 +66,7 @@ void P_SetOverUnderLinks(mobj_t *mo)
     P_SetTarget(&mo->above_thing, NULL);
 }
 
-// Returns true if the link between lower and upper still holds.
+// Returns true if lower and upper are still in contact.
 static boolean linked(const mobj_t *const lower, const mobj_t *const upper)
 {
   const fixed_t blockdist = lower->radius + upper->radius;
@@ -76,8 +76,7 @@ static boolean linked(const mobj_t *const lower, const mobj_t *const upper)
          && P_CanOverUnder(lower, upper)
          && abs(lower->x - upper->x) < blockdist
          && abs(lower->y - upper->y) < blockdist
-         && (upper->floorz == lower->z + lower->height
-             || lower->ceilingz == upper->z);
+         && upper->z == lower->z + lower->height;
 }
 
 // Removes the links of mo itself, e.g. before it is removed from the game.

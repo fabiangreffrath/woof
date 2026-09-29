@@ -2076,11 +2076,15 @@ static boolean crushchange, nofit;
 boolean PIT_ChangeSector(mobj_t *thing)
 {
   mobj_t *mo;
+
+  // The links must be checked before the thing is clipped and moves away from
+  // the thing it touches. A monster in contact with the player always dies here,
+  // even if it would technically fit, because it could block the player's way.
+  const boolean killed = P_CrushOverUnderLink(thing);
+  const boolean rider = P_IsOverUnderPlayer(thing);
   const boolean fits = P_ThingHeightClip(thing);
 
-  // A monster the player stands over or under always dies here, even if it
-  // would technically fit. Otherwise it could block the player's way.
-  if (fits && !P_CrushOverUnderLink(thing))
+  if (fits && !killed)
     return true; // keep checking
 
   // crunch bodies to giblets
@@ -2118,7 +2122,7 @@ boolean PIT_ChangeSector(mobj_t *thing)
     return true;        // assume it is bloody gibs or something
 
   // The monster takes the squeeze instead of the player and never blocks the mover.
-  if (P_IsOverUnderPlayer(thing))
+  if (rider)
     return true;
 
   nofit = true;
