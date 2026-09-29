@@ -2455,9 +2455,9 @@ boolean M_ShortcutResponder(const event_t *ev)
     if (M_InputActivated(input_gamma)) // gamma toggle
     {
         gamma2++;
-        if (gamma2 > 17)
+        if (gamma2 > GAMMA_MAX)
         {
-            gamma2 = 0;
+            gamma2 = GAMMA_MIN;
         }
         togglemsg("Gamma correction level %s", gamma_strings[gamma2]);
         V_ResetPalette();

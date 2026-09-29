@@ -2486,7 +2486,7 @@ static setup_menu_t gen_settings1[] = {
      .action = UpdateFOV},
 
     {"Gamma Correction", S_THERMO, CNTR_X, M_THRM_SPC, {"gamma2"},
-     .strings_id = str_gamma, .action = V_ResetPalette},
+     .strings_id = str_gamma},
 
     {"Extra Lighting", S_THERMO | S_STRICT, CNTR_X,
      M_THRM_SPC, {"extra_level_brightness"}},
