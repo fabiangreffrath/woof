@@ -1,6 +1,5 @@
 //
-//  Copyright (C) 1999 by
-//  id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman
+//  Copyright (C) 2026 Fabian Greffrath
 //
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU General Public License
@@ -12,12 +11,6 @@
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //  GNU General Public License for more details.
 //
-// DESCRIPTION:
-//      Optional Z collision between things ("over/under" monsters).
-//      Uses the above_thing/below_thing pointers Boom reserved in mobj_t
-//      but never made use of.
-//
-//-----------------------------------------------------------------------------
 
 #include <stdlib.h>
 

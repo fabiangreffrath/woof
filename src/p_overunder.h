@@ -1,6 +1,5 @@
 //
-//  Copyright (C) 1999 by
-//  id Software, Chi Hoang, Lee Killough, Jim Flynn, Rand Phares, Ty Halderman
+//  Copyright (C) 2026 Fabian Greffrath
 //
 //  This program is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU General Public License
@@ -12,10 +11,6 @@
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //  GNU General Public License for more details.
 //
-// DESCRIPTION:
-//      Optional Z collision between things ("over/under" monsters).
-//
-//-----------------------------------------------------------------------------
 
 #ifndef __P_OVERUNDER__
 #define __P_OVERUNDER__

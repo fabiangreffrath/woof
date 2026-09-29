@@ -3377,7 +3377,7 @@ static const char *palette_changes_strings[] = {"Off", "On", "Reduced"};
 
 static const char *invul_mode_strings[] = {"Vanilla", "MBF", "Gray"};
 
-static const char *overunder_strings[] = {"Off", "Player only", "Player and Monsters"};
+static const char *overunder_strings[] = {"Off", "Player only", "All"};
 
 static const char *endoom_strings[] = {"Off", "PWAD Only", "Always"};
 
