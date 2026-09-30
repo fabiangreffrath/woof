@@ -527,7 +527,7 @@ typedef struct
 typedef struct visplane_s
 {
   struct visplane_s *next;        // Next visplane in hash chain -- killough
-  int picnum, lightlevel, minx, maxx;
+  int picnum, lightlevel, minx, maxx, miny, maxy;
   fixed_t height;
   fixed_t xoffs, yoffs;         // killough 2/28/98: Support scrolling flats
   angle_t rotation;

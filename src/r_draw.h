@@ -36,6 +36,9 @@ extern byte     dc_skycolor;
 extern byte     *dc_source;         
 extern const byte *dc_brightmap;
 
+extern pixel_t **xlookup;
+extern int *rowofs;
+
 // The span blitting interface.
 // Hook in assembler or system specific BLT here.
 
