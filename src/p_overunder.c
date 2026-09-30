@@ -47,6 +47,13 @@ boolean P_CanOverUnder(const mobj_t *const a, const mobj_t *const b)
            && (mode == OVERUNDER_ALL || a_player || b_player);
 }
 
+// Returns true if mo is a monster, including lost souls but not barrels or the
+// boss brain.
+static boolean monster(const mobj_t *const mo)
+{
+    return (mo->flags & MF_COUNTKILL) || mo->type == MT_SKULL;
+}
+
 // Kills mo with crusher damage.
 static void crush(mobj_t *const mo)
 {
@@ -147,7 +154,7 @@ boolean P_CrushOverUnderLink(mobj_t *thing)
     const mobj_t *const above = linked_above(thing);
     const mobj_t *const below = linked_below(thing);
 
-    if (thing->health <= 0 || thing->player
+    if (thing->health <= 0 || thing->player || !monster(thing)
         || !(below || (above && above->player)))
     {
         return false;
@@ -163,8 +170,8 @@ boolean P_CrushOverUnderBlockers(mobj_t *thing)
 {
     mobj_t *const below = floor_thing();
     mobj_t *const above = ceiling_thing();
-    const boolean kill_below = below && below->health > 0;
-    const boolean kill_above = above && above->health > 0;
+    const boolean kill_below = below && below->health > 0 && monster(below);
+    const boolean kill_above = above && above->health > 0 && monster(above);
 
     if (!thing->player || thing->player->mo != thing)
     {
