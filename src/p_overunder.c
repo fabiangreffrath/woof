@@ -47,26 +47,51 @@ boolean P_CanOverUnder(const mobj_t *const a, const mobj_t *const b)
            && (mode == OVERUNDER_ALL || a_player || b_player);
 }
 
+// Kills mo with crusher damage.
+static void crush(mobj_t *const mo)
+{
+    P_DamageMobjBy(mo, NULL, NULL, 10000, MOD_Crush);
+}
+
+// Returns the thing that set tmfloorz in the last P_CheckPosition(), or NULL.
+static mobj_t *floor_thing(void)
+{
+    return tmbelow && tmfloorz == tmbelow->z + tmbelow->height ? tmbelow : NULL;
+}
+
+// Returns the thing that set tmceilingz in the last P_CheckPosition(), or NULL.
+static mobj_t *ceiling_thing(void)
+{
+    return tmabove && tmceilingz == tmabove->z ? tmabove : NULL;
+}
+
+// Links lower and upper to each other.
+static void join(mobj_t *const lower, mobj_t *const upper)
+{
+    P_SetTarget(&lower->above_thing, upper);
+    P_SetTarget(&upper->below_thing, lower);
+}
+
 // Links mo to the things it touches that determined its floor and ceiling in
 // the last P_CheckPosition(). Stale links of other things to mo are left alone,
 // they drop them themselves in P_UpdateOverUnder().
 void P_SetOverUnderLinks(mobj_t *mo)
 {
-    if (tmbelow && mo->z == tmfloorz
-        && tmfloorz == tmbelow->z + tmbelow->height)
+    mobj_t *const below = floor_thing();
+    mobj_t *const above = ceiling_thing();
+
+    if (below && mo->z == tmfloorz)
     {
-        P_SetTarget(&mo->below_thing, tmbelow);
-        P_SetTarget(&tmbelow->above_thing, mo);
+        join(below, mo);
     }
     else
     {
         P_SetTarget(&mo->below_thing, NULL);
     }
 
-    if (tmabove && mo->z + mo->height == tmceilingz && tmceilingz == tmabove->z)
+    if (above && mo->z + mo->height == tmceilingz)
     {
-        P_SetTarget(&mo->above_thing, tmabove);
-        P_SetTarget(&tmabove->below_thing, mo);
+        join(mo, above);
     }
     else
     {
@@ -83,8 +108,7 @@ static boolean linked(const mobj_t *const lower, const mobj_t *const upper)
            && upper->thinker.function.p1 == P_MobjThinker
            && P_CanOverUnder(lower, upper)
            && abs(lower->x - upper->x) < blockdist
-           && abs(lower->y - upper->y) < blockdist
-           && upper->z >= lower->z
+           && abs(lower->y - upper->y) < blockdist && upper->z >= lower->z
            && upper->z <= lower->z + lower->height;
 }
 
@@ -109,65 +133,63 @@ static const mobj_t *linked_below(const mobj_t *const mo)
                                                           : NULL;
 }
 
-// Returns true if thing is a living monster that stands over another thing or
-// that the player stands over or under.
-boolean P_IsOverUnderVictim(const mobj_t *const thing)
-{
-    const mobj_t *const above = linked_above(thing);
-    const mobj_t *const below = linked_below(thing);
-
-    return thing->health > 0 && !thing->player
-           && (below || (above && above->player));
-}
-
 // Returns true if thing is a player standing over or under a monster.
 boolean P_IsOverUnderPlayer(const mobj_t *const thing)
 {
     return thing->player && (linked_above(thing) || linked_below(thing));
 }
 
-// Kills a monster that must not share a moving sector with the thing it is
-// linked to, even if it would still fit. Returns true if the monster was
-// killed.
+// Kills a living monster that stands over another thing or that the player
+// stands over or under, even if it would still fit. Returns true if the monster
+// was killed.
 boolean P_CrushOverUnderLink(mobj_t *thing)
 {
-    if (!P_IsOverUnderVictim(thing))
+    const mobj_t *const above = linked_above(thing);
+    const mobj_t *const below = linked_below(thing);
+
+    if (thing->health <= 0 || thing->player
+        || !(below || (above && above->player)))
     {
         return false;
     }
 
-    P_DamageMobjBy(thing, NULL, NULL, 10000, MOD_Crush);
+    crush(thing);
     return true;
 }
 
-// Kills the monsters that set the floor and ceiling of a player in the last P_CheckPosition().
-// Returns true if any of them was killed.
+// Kills the monsters that set the floor and ceiling of a player in the last
+// P_CheckPosition(). Returns true if any of them was killed.
 boolean P_CrushOverUnderBlockers(mobj_t *thing)
 {
-  mobj_t *const below = tmbelow;
-  mobj_t *const above = tmabove;
-  const boolean kill_below = below && below->health > 0
-                             && tmfloorz == below->z + below->height;
-  const boolean kill_above = above && above->health > 0 && tmceilingz == above->z;
+    mobj_t *const below = floor_thing();
+    mobj_t *const above = ceiling_thing();
+    const boolean kill_below = below && below->health > 0;
+    const boolean kill_above = above && above->health > 0;
 
-  if (!thing->player || thing->player->mo != thing)
-    return false;
+    if (!thing->player || thing->player->mo != thing)
+    {
+        return false;
+    }
 
-  if (kill_below)
-    P_DamageMobjBy(below, NULL, NULL, 10000, MOD_Crush);
+    if (kill_below)
+    {
+        crush(below);
+    }
 
-  if (kill_above)
-    P_DamageMobjBy(above, NULL, NULL, 10000, MOD_Crush);
+    if (kill_above)
+    {
+        crush(above);
+    }
 
-  return kill_below || kill_above;
+    return kill_below || kill_above;
 }
 
 // Drops links that no longer hold and recomputes floor and ceiling so that mo
 // can fall. Called once per tic for things that have links.
 void P_UpdateOverUnder(mobj_t *mo)
 {
-    if ((!mo->below_thing || linked(mo->below_thing, mo))
-        && (!mo->above_thing || linked(mo, mo->above_thing)))
+    if (linked_below(mo) == mo->below_thing
+        && linked_above(mo) == mo->above_thing)
     {
         return;
     }
