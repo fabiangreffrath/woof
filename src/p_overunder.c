@@ -74,7 +74,7 @@ void P_SetOverUnderLinks(mobj_t *mo)
     }
 }
 
-// Returns true if lower and upper are still in contact.
+// Returns true if upper still touches or intersects lower from above.
 static boolean linked(const mobj_t *const lower, const mobj_t *const upper)
 {
     const fixed_t blockdist = lower->radius + upper->radius;
@@ -84,7 +84,8 @@ static boolean linked(const mobj_t *const lower, const mobj_t *const upper)
            && P_CanOverUnder(lower, upper)
            && abs(lower->x - upper->x) < blockdist
            && abs(lower->y - upper->y) < blockdist
-           && upper->z == lower->z + lower->height;
+           && upper->z >= lower->z
+           && upper->z <= lower->z + lower->height;
 }
 
 // Removes the links of mo itself, e.g. before it is removed from the game.
@@ -137,6 +138,28 @@ boolean P_CrushOverUnderLink(mobj_t *thing)
 
     P_DamageMobjBy(thing, NULL, NULL, 10000, MOD_Crush);
     return true;
+}
+
+// Kills the monsters that set the floor and ceiling of a player in the last P_CheckPosition().
+// Returns true if any of them was killed.
+boolean P_CrushOverUnderBlockers(mobj_t *thing)
+{
+  mobj_t *const below = tmbelow;
+  mobj_t *const above = tmabove;
+  const boolean kill_below = below && below->health > 0
+                             && tmfloorz == below->z + below->height;
+  const boolean kill_above = above && above->health > 0 && tmceilingz == above->z;
+
+  if (!thing->player || thing->player->mo != thing)
+    return false;
+
+  if (kill_below)
+    P_DamageMobjBy(below, NULL, NULL, 10000, MOD_Crush);
+
+  if (kill_above)
+    P_DamageMobjBy(above, NULL, NULL, 10000, MOD_Crush);
+
+  return kill_below || kill_above;
 }
 
 // Drops links that no longer hold and recomputes floor and ceiling so that mo

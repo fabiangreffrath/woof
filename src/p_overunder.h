@@ -37,6 +37,7 @@ void P_UnlinkOverUnder(struct mobj_s *mo);
 void P_UpdateOverUnder(struct mobj_s *mo);
 boolean P_IsOverUnderVictim(const struct mobj_s *thing);
 boolean P_CrushOverUnderLink(struct mobj_s *thing);
+boolean P_CrushOverUnderBlockers(struct mobj_s *thing);
 boolean P_IsOverUnderPlayer(const struct mobj_s *thing);
 
 #endif // __P_OVERUNDER__

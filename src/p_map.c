@@ -2089,7 +2089,11 @@ boolean PIT_ChangeSector(mobj_t *thing)
   // even if it would technically fit, because it could block the player's way.
   const boolean killed = P_CrushOverUnderLink(thing);
   const boolean rider = P_IsOverUnderPlayer(thing);
-  const boolean fits = P_ThingHeightClip(thing);
+  boolean fits = P_ThingHeightClip(thing);
+
+  // A player who no longer fits crushes the monsters that limit him instead of being blocked.
+  if (!fits && P_CrushOverUnderBlockers(thing))
+    fits = P_ThingHeightClip(thing);
 
   if (fits && !killed)
     return true; // keep checking
