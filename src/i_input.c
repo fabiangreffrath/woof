@@ -17,6 +17,7 @@
 
 #include <SDL3/SDL.h>
 
+#include <SDL3/SDL_gamepad.h>
 #include <SDL3/SDL_joystick.h>
 #include <string.h>
 
@@ -37,6 +38,7 @@
 #include "m_input.h"
 #include "m_misc.h"
 #include "mn_menu.h"
+#include "w_wad.h"
 
 #define AXIS_BUTTON_DEADZONE (SDL_JOYSTICK_AXIS_MAX / 3)
 
@@ -469,6 +471,13 @@ void I_InitGamepad(void)
     // Enable gyro, rumble, and effects on Bluetooth PlayStation controllers
     // and gyro on Nintendo Switch controllers.
     SDL_SetHint(SDL_HINT_JOYSTICK_ENHANCED_REPORTS, "1");
+
+    int32_t lumpnum = (W_CheckNumForName)("GAMEPADS", ns_internal);
+    void *gamepad_database_file = W_CacheLumpNum(lumpnum, PU_CACHE);
+    if (SDL_AddGamepadMapping((const char *)gamepad_database_file) == -1)
+    {
+        I_Printf(VB_WARNING, "%s: Failure to load gamepad database.", __func__);
+    }
 
     if (!SDL_Init(SDL_INIT_GAMEPAD))
     {

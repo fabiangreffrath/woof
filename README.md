@@ -294,6 +294,11 @@ Copyright:
  © 2025 Zokum.  
 License: [CC BY-SA](https://creativecommons.org/licenses/by-sa/4.0/)
 
+Files: `base/all-all/woof/gamepads.txt`  
+Copyright:  
+ © 1997-2026 Sam Lantinga;  
+License: [zlib](https://opensource.org/license/zlib)
+
 Files: `netlib/*`  
 Copyright:  
  © 1997-2025 Sam Lantinga;  

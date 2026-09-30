@@ -60,13 +60,15 @@ typedef PACKED_PREFIX struct
 typedef enum
 {
   ns_global,
+
   ns_actors,
-  ns_textures,
-  ns_sprites,
-  ns_flats,
   ns_colormaps,
+  ns_flats,
+  ns_hires, // avoid high-resolution textures conflicts
+  ns_internal,
+  ns_sprites,
+  ns_textures,
   ns_voxels,
-  ns_hires // [Woof!] namespace to avoid conflicts with high-resolution textures
 } namespace_t;
 
 typedef struct archive_s archive_t; 
