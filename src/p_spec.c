@@ -3459,7 +3459,8 @@ static void SpawnExtras_Classic(void)
                 for (int s = -1;
                      (s = P_FindSectorFromLineTag(&lines[i], s)) >= 0;)
                 {
-                    sectors[s].tint = lines[i].fronttint;
+                    side_t *side = &sides[lines[i].sidenum[0]];
+                    sectors[s].tint = side->topindex;
                 }
                 break;
         }
@@ -3531,15 +3532,6 @@ static void HandleStaticInitSpecial(line_t *l)
             // Unsupported
             break;
 
-        // killough 10/98:
-        //
-        // Support for sky textures being transferred from sidedefs.
-        // Allows scrolling and other effects (but if scrolling is
-        // used, then the same sector tag needs to be used for the
-        // sky sector, the sky-transfer linedef, and the
-        // scroll-effect linedef). Still requires user to use F_SKY1
-        // for the floor or ceiling texture, to distinguish floor
-        // and ceiling sky.
         case Init_TransferSky:
             skyindex = R_AddLevelskyFromLine(&sides[l->sidenum[0]]);
             for (int s = -1; (s = P_FindSectorFromLineTag(l, s)) >= 0;)

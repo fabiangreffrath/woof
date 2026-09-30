@@ -1232,15 +1232,15 @@ void P_SpawnSpecials(map_t *map);
 void P_UpdateSpecials(void);
 
 // when needed
-boolean (*P_UseSpecialLine)(struct mobj_s *thing, struct line_s *line, int side, boolean bossaction);
+extern boolean (*P_UseSpecialLine)(struct mobj_s *thing, struct line_s *line, int side, boolean bossaction);
 boolean P_UseSpecialLine_Classic(struct mobj_s *thing, struct line_s *line, int side, boolean bossaction);
 boolean P_UseSpecialLine_Param(struct mobj_s *thing, struct line_s *line, int side, boolean bossaction);
 
-void (*P_ShootSpecialLine)(struct mobj_s *thing, struct line_s *line, int side);
+extern void (*P_ShootSpecialLine)(struct mobj_s *thing, struct line_s *line, int side);
 void P_ShootSpecialLine_Classic(struct mobj_s *thing, struct line_s *line, int side);
 void P_ShootSpecialLine_Param(struct mobj_s *thing, struct line_s *line, int side);
 
-void (*P_CrossSpecialLine)(struct line_s *line, int side, struct mobj_s  *thing, boolean bossaction);
+extern void (*P_CrossSpecialLine)(struct line_s *line, int side, struct mobj_s  *thing, boolean bossaction);
 void P_CrossSpecialLine_Classic(struct line_s *line, int side, struct mobj_s *thing, boolean bossaction);
 void P_CrossSpecialLine_Param(struct line_s *line, int side, struct mobj_s *thing, boolean bossaction);
 
@@ -1248,11 +1248,11 @@ extern int disable_nuke;  // killough 12/98: nukage disabling cheat
 
 void P_PlayerInSpecialSector(struct player_s *player);
 
-void (*P_PlayerInSector)(struct player_s *player, struct sector_s *sector);
+extern void (*P_PlayerInSector)(struct player_s *player, struct sector_s *sector);
 void P_PlayerInSector_Classic(struct player_s *player, struct sector_s *sector);
 void P_PlayerInSector_Param(struct player_s *player, struct sector_s *sector);
 
-boolean (*P_MObjInSector)(struct mobj_s *mobj);
+extern boolean (*P_MObjInSector)(struct mobj_s *mobj);
 boolean P_MObjInSector_Classic(struct mobj_s *mobj);
 boolean P_MObjInSector_Param(struct mobj_s *mobj);
 

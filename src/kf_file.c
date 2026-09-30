@@ -855,8 +855,8 @@ static void read_ceiling_t(ceiling_t *str, thinker_class_t tc, json_t *obj)
     str->speed = JS_GetIntegerValue(obj, "speed");
     str->oldspeed = JS_GetIntegerValue(obj, "oldspeed");
     str->crush = JS_GetIntegerValue(obj, "crush");
-    str->newspecial = JS_GetIntegerValue(obj, "newspecial");
-    str->oldspecial = JS_GetIntegerValue(obj, "oldspecial");
+    // str->newspecial = JS_GetIntegerValue(obj, "newspecial");
+    // str->oldspecial = JS_GetIntegerValue(obj, "oldspecial");
     str->texture = JS_GetIntegerValue(obj, "texture");
     str->direction = JS_GetIntegerValue(obj, "direction");
     str->tag = JS_GetIntegerValue(obj, "tag");
@@ -877,8 +877,8 @@ static json_mut_t *write_ceiling_t(ceiling_t *str, json_mut_doc_t *doc)
     JS_SetInt(doc, obj, "speed", str->speed);
     JS_SetInt(doc, obj, "oldspeed", str->oldspeed);
     JS_SetInt(doc, obj, "crush", str->crush);
-    JS_SetInt(doc, obj, "newspecial", str->newspecial);
-    JS_SetInt(doc, obj, "oldspecial", str->oldspecial);
+    // JS_SetInt(doc, obj, "newspecial", str->newspecial);
+    // JS_SetInt(doc, obj, "oldspecial", str->oldspecial);
     JS_SetInt(doc, obj, "texture", str->texture);
     JS_SetInt(doc, obj, "direction", str->direction);
     JS_SetInt(doc, obj, "tag", str->tag);
@@ -930,8 +930,8 @@ static void read_floormove_t(floormove_t *str, thinker_class_t tc, json_t *obj)
     str->crush = JS_GetIntegerValue(obj, "crush");
     JS_GetIdx(str->sector, sectors, obj, "sector");
     str->direction = JS_GetIntegerValue(obj, "direction");
-    str->newspecial = JS_GetIntegerValue(obj, "newspecial");
-    str->oldspecial = JS_GetIntegerValue(obj, "oldspecial");
+    // str->newspecial = JS_GetIntegerValue(obj, "newspecial");
+    // str->oldspecial = JS_GetIntegerValue(obj, "oldspecial");
     str->texture = JS_GetIntegerValue(obj, "texture");
     str->floordestheight = JS_GetIntegerValue(obj, "floordestheight");
     str->speed = JS_GetIntegerValue(obj, "speed");
@@ -947,8 +947,8 @@ static json_mut_t *write_floormove_t(floormove_t *str, json_mut_doc_t *doc)
     JS_SetInt(doc, obj, "crush", str->crush);
     JS_SetIdx(doc, obj, "sector", str->sector, sectors);
     JS_SetInt(doc, obj, "direction", str->direction);
-    JS_SetInt(doc, obj, "newspecial", str->newspecial);
-    JS_SetInt(doc, obj, "oldspecial", str->oldspecial);
+    // JS_SetInt(doc, obj, "newspecial", str->newspecial);
+    // JS_SetInt(doc, obj, "oldspecial", str->oldspecial);
     JS_SetInt(doc, obj, "texture", str->texture);
     JS_SetInt(doc, obj, "floordestheight", str->floordestheight);
     JS_SetInt(doc, obj, "speed", str->speed);
