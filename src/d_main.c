@@ -2145,18 +2145,16 @@ void D_DoomMain(void)
   // Ambient
   P_InitAmbientSoundMobjInfo();
 
-  // See TODO note on mobjflag_int_t
   {
-    // for (int i = 0; i < num_mobj_types; ++i)
-    array_foreach_type(mi, mobjinfo, mobjinfo_t)
-    {
-      if (mi->flags & MF_COUNTKILL)
-        mi->flags2 |= MIF_MONSTER;
-      if (mi->flags & MF_MISSILE)
-        mi->flags2 |= MIF_PROJECTILE;
-    }
-    mobjinfo[MT_SKULL].flags2 |= MIF_MONSTER;
-    mobjinfo[MT_PLAYER].flags2 |= MIF_PLAYER;
+    // array_foreach_type(mi, mobjinfo, mobjinfo_t)
+    // {
+    //   if (mi->flags & MF_COUNTKILL)
+    //     mi->intflags |= MIF_MONSTER;
+    //   if (mi->flags & MF_MISSILE)
+    //     mi->intflags |= MIF_PROJECTILE;
+    // }
+    // mobjinfo[MT_SKULL].intflags |= MIF_MONSTER;
+    // mobjinfo[MT_PLAYER].intflags |= MIF_PLAYER;
   }
 
   // Moved after WAD initialization because we are checking the COMPLVL lump

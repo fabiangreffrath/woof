@@ -248,7 +248,7 @@ typedef enum
   MIF_GHOST           = 0x00000040,
 
   // Heretic/Hexen/ZDoom flags
-  // TODO: eventually we want these to be exposed to modders, maybe on MBF2y,
+  // FIXME, not sure how to handle this
   MIF_WINDTHRUST      = (1u << 7),  // Mobj is thrustable by Heretic wind
   MIF_DORMANT         = (1u << 8),  // Mobj is dormant
   MIF_PUSHWALL        = (1u << 9),  // mobj can push walls
