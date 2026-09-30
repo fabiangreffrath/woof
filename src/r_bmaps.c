@@ -36,10 +36,10 @@
 #include "w_wad.h"
 #include "z_zone.h"
 
-boolean brightmaps;
-boolean force_brightmaps;
+boolean brightmaps; // Config key
+boolean force_brightmaps; // Brightmaps provided by PWAD; enable forcefully
 
-boolean use_brightmaps;
+boolean use_brightmaps; // Used for checks in renderer
 
 #define COLORMASK_SIZE 256
 
