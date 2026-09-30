@@ -29,11 +29,12 @@ GameMission_t gamemission = doom;
 GameVersion_t gameversion = exe_doom_1_9;
 
 GameVersions_t gameversions[] = {
-    {"Doom 1.9",      "1.9",      exe_doom_1_9},
-    {"Ultimate Doom", "ultimate", exe_ultimate},
-    {"Final Doom",    "final",    exe_final},
-    {"Chex Quest",    "chex",     exe_chex},
-    { NULL,           NULL,       0},
+    {"Doom 1.9",         "1.9",      exe_doom_1_9},
+    {"Ultimate Doom",    "ultimate", exe_ultimate},
+    {"Final Doom",       "final",    exe_final},
+    {"Final Doom (alt)", "final2",   exe_final2},
+    {"Chex Quest",       "chex",     exe_chex},
+    { NULL,              NULL,       0},
 };
 
 // Set if homebrew PWAD stuff has been added.

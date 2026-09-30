@@ -245,17 +245,18 @@ typedef enum
   // cosmetic
   MIF_FLIP            = 0x00000010,
   MIF_SPAWNED_BY_ICON = 0x00000020,
+  MIF_GHOST           = 0x00000040,
 
   // Heretic/Hexen/ZDoom flags
   // TODO: eventually we want these to be exposed to modders, maybe on MBF2y,
-  MIF_WINDTHRUST      = (1u << 6), // Mobj is thrustable by Heretic wind
-  MIF_DORMANT         = (1u << 7), // Mobj is dormant
-  MIF_PUSHWALL        = (1u << 8), // mobj can push walls
-  MIF_MCROSS          = (1u << 9), // can activate monster cross lines
-  MIF_PCROSS          = (1u << 10), // can activate projectile cross lines
-  MIF_IMPACT          = (1u << 11), // an MF_MISSILE mobj can activate
-  MIF_CANUSEWALLS     = (1u << 12), // mobj can "use" walls
-  MIF_COUNTSECRET     = (1u << 13), // item pickup counts as a secret
+  MIF_WINDTHRUST      = (1u << 7),  // Mobj is thrustable by Heretic wind
+  MIF_DORMANT         = (1u << 8),  // Mobj is dormant
+  MIF_PUSHWALL        = (1u << 9),  // mobj can push walls
+  MIF_MCROSS          = (1u << 10), // can activate monster cross lines
+  MIF_PCROSS          = (1u << 11), // can activate projectile cross lines
+  MIF_IMPACT          = (1u << 12), // an MF_MISSILE mobj can activate
+  MIF_CANUSEWALLS     = (1u << 13), // mobj can "use" walls
+  MIF_COUNTSECRET     = (1u << 14), // item pickup counts as a secret
   MIF_PROJECTILE      = (MIF_PCROSS|MIF_IMPACT),
   MIF_MONSTER         = (MIF_MCROSS|MIF_PUSHWALL|MIF_CANUSEWALLS),
   MIF_PLAYER          = (MIF_WINDTHRUST|MIF_PUSHWALL|MIF_CANUSEWALLS),

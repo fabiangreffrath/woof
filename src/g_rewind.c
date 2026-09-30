@@ -246,7 +246,7 @@ void G_ResetRewind(boolean force)
 void G_BindRewindVariables(void)
 {
     BIND_NUM(rewind_interval, 1000, 100, 10000,
-        "Rewind interval in miliseconds");
+        "Rewind interval in milliseconds");
     BIND_NUM(rewind_depth, 60, 10, 1000,
         "Number of rewind key frames to be stored");
     BIND_NUM(rewind_timeout, 10, 0, 25,

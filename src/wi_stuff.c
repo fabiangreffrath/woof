@@ -391,25 +391,6 @@ static const char *exitpic, *enterpic;
 #define M_ARRAY_FREE(ptr) Z_Free((ptr))
 #include "m_array.h"
 
-typedef struct
-{
-    interlevelframe_t *frames;
-    int x_pos;
-    int y_pos;
-    int frame_index;
-    boolean frame_start;
-    int duration_left;
-} wi_animationstate_t;
-
-typedef struct
-{
-    interlevel_t *interlevel_exiting;
-    interlevel_t *interlevel_entering;
-
-    wi_animationstate_t *states;
-    char *background_lump;
-} wi_animation_t;
-
 static wi_animation_t *animation;
 
 //
@@ -463,7 +444,7 @@ static boolean CheckConditions(interlevelcond_t *conditions,
                 break;
 
             case AnimCondition_MapNotSecret:
-                conditionsmet &= !G_IsSecretMap(episode, map);
+                conditionsmet &= !MI_IsSecretMap(episode, map);
                 break;
 
             case AnimCondition_SecretVisited:
@@ -751,7 +732,7 @@ static void WI_drawLF(void)
 {
     int y = WI_TITLEY;
 
-    const mapentry_t *mapinfo = wbs->lastmapinfo;
+    const MI_Entry_t *mapinfo = wbs->lastmapinfo;
 
     // The level defines a new name but no texture for the name.
     if (mapinfo && mapinfo->levelname && !mapinfo->levelpic[0])
@@ -802,7 +783,7 @@ static void WI_drawEL(void)
     // draw "Entering"
     V_DrawPatch((SCREENWIDTH - SHORT(entering->width)) / 2, y, entering);
 
-    const mapentry_t *mapinfo = wbs->nextmapinfo;
+    const MI_Entry_t *mapinfo = wbs->nextmapinfo;
 
     // The level defines a new name but no texture for the name
     if (mapinfo && mapinfo->levelname && !mapinfo->levelpic[0])
@@ -1087,7 +1068,10 @@ WI_drawNum
 
   neg = n < 0;    // killough 11/98: move up to here, for /= 10 division below
   if (neg)
-    n = -n;
+  {
+    // Cast needed to avoid UB. Fixes gcc optimization bug.
+    n = -(unsigned int)n;
+  }
 
   if (digits < 0)
     {
@@ -1336,26 +1320,30 @@ static void WI_initShowNextLoc(void)
 {
   SetupMusic(true);
 
-  if (gamemapinfo)
+  MI_ShowNext_t behavior = MI_ShowNextLoc();
+
+  if (behavior & WI_ShowNextDone)
   {
-      if (gamemapinfo->flags & MapInfo_EndGame)
-      {
-          G_WorldDone();
-          return;
-      }
-
-      state = ShowNextLoc;
-
-      // episode change
-      if (wbs->epsd != wbs->nextep)
-      {
-          wbs->epsd = wbs->nextep;
-          wbs->last = wbs->next - 1;
-          WI_loadData();
-      }
+    G_WorldDone();
+    return;
   }
 
-  state = ShowNextLoc;
+  if (behavior & WI_ShowNextLoc)
+  {
+    state = ShowNextLoc;
+  }
+
+  if (behavior & WI_ShowNextEpisodal)
+  {
+    // episode change
+    if (wbs->epsd != wbs->nextep)
+    {
+      wbs->epsd = wbs->nextep;
+      wbs->last = wbs->next - 1;
+      WI_loadData();
+    }
+  }
+
   acceleratestage = 0;
   cnt = SHOWNEXTLOCDELAY * TICRATE;
 
@@ -1391,7 +1379,7 @@ static void WI_drawShowNextLoc(void)
   int   i;
   int   last;
 
-  if (gamemapinfo && gamemapinfo->flags & MapInfo_EndGame)
+  if (MI_SkipShowNextLoc())
   {
       return;
   }
@@ -1554,7 +1542,7 @@ static void WI_updateDeathmatchStats(void)
         }
   
 
-      S_StartSound(0, sfx_barexp);  // bang
+      S_StartSound(0, sfx_inttot);  // bang
       dm_state = 4;  // we're done with all 4 (or all we have to do)
     }
 
@@ -1562,7 +1550,7 @@ static void WI_updateDeathmatchStats(void)
   if (dm_state == 2)
     {
       if (!(bcnt&3))
-        S_StartSound(0, sfx_pistol);  // noise while counting
+        S_StartSound(0, sfx_inttic);  // noise while counting
   
       stillticking = false;
 
@@ -1601,7 +1589,7 @@ static void WI_updateDeathmatchStats(void)
 
       if (!stillticking)
         {
-          S_StartSound(0, sfx_barexp);
+          S_StartSound(0, sfx_inttot);
           dm_state++;
         }
     }
@@ -1610,7 +1598,7 @@ static void WI_updateDeathmatchStats(void)
       {
         if (acceleratestage)
           {   
-            S_StartSound(0, sfx_slop);
+            S_StartSound(0, sfx_intdms);
 
             if (NextLocAnimation())
               WI_initShowNextLoc();
@@ -1852,14 +1840,14 @@ static void WI_updateNetgameStats(void)
           if (dofrags)
             cnt_frags[i] = WI_fragSum(i);  // we had frags
         }
-      S_StartSound(0, sfx_barexp);  // bang
+      S_StartSound(0, sfx_inttot);  // bang
       ng_state = 10;
     }
 
   if (ng_state == 2)
     {
       if (!(bcnt&3))
-        S_StartSound(0, sfx_pistol);  // pop
+        S_StartSound(0, sfx_inttic);  // pop
 
       stillticking = false;
 
@@ -1878,7 +1866,7 @@ static void WI_updateNetgameStats(void)
   
       if (!stillticking)
         {
-          S_StartSound(0, sfx_barexp); 
+          S_StartSound(0, sfx_inttot); 
           ng_state++;
         }
     }
@@ -1886,7 +1874,7 @@ static void WI_updateNetgameStats(void)
     if (ng_state == 4)
       {
         if (!(bcnt&3))
-          S_StartSound(0, sfx_pistol);
+          S_StartSound(0, sfx_inttic);
   
         stillticking = false;
   
@@ -1904,7 +1892,7 @@ static void WI_updateNetgameStats(void)
   
         if (!stillticking)
           {
-            S_StartSound(0, sfx_barexp);
+            S_StartSound(0, sfx_inttot);
             ng_state++;
           }
       }
@@ -1912,7 +1900,7 @@ static void WI_updateNetgameStats(void)
       if (ng_state == 6)
         {
           if (!(bcnt&3))
-            S_StartSound(0, sfx_pistol);
+            S_StartSound(0, sfx_inttic);
 
           stillticking = false;
 
@@ -1935,7 +1923,7 @@ static void WI_updateNetgameStats(void)
   
           if (!stillticking)
             {
-              S_StartSound(0, sfx_barexp);
+              S_StartSound(0, sfx_inttot);
               ng_state += 1 + 2*!dofrags;
             }
         }
@@ -1943,7 +1931,7 @@ static void WI_updateNetgameStats(void)
         if (ng_state == 8)
           {
             if (!(bcnt&3))
-              S_StartSound(0, sfx_pistol);
+              S_StartSound(0, sfx_inttic);
 
             stillticking = false;
 
@@ -1962,7 +1950,7 @@ static void WI_updateNetgameStats(void)
       
             if (!stillticking)
               {
-                S_StartSound(0, sfx_pldeth);
+                S_StartSound(0, sfx_intnet);
                 ng_state++;
               }
           }
@@ -1971,7 +1959,7 @@ static void WI_updateNetgameStats(void)
             {
               if (acceleratestage)
                 {
-                  S_StartSound(0, sfx_sgcock);
+                  S_StartSound(0, sfx_intnex);
 
                   if (NextLocAnimation())
                     WI_initShowNextLoc();
@@ -2159,7 +2147,7 @@ static void WI_updateStats(void)
       cnt_total_time = wbs->totaltimes / TICRATE;
       cnt_time = plrs[me].stime / TICRATE;
       cnt_par = wbs->partime / TICRATE;
-      S_StartSound(0, sfx_barexp);
+      S_StartSound(0, sfx_inttot);
       sp_state = 10;
     }
 
@@ -2168,12 +2156,12 @@ static void WI_updateStats(void)
       cnt_kills[0] += 2;
 
       if (!(bcnt&3))
-        S_StartSound(0, sfx_pistol);
+        S_StartSound(0, sfx_inttic);
 
       if (cnt_kills[0] >= (plrs[me].skills * 100) / wbs->maxkills)
         {
           cnt_kills[0] = (plrs[me].skills * 100) / wbs->maxkills;
-          S_StartSound(0, sfx_barexp);
+          S_StartSound(0, sfx_inttot);
           sp_state++;
         }
     }
@@ -2183,12 +2171,12 @@ static void WI_updateStats(void)
         cnt_items[0] += 2;
 
         if (!(bcnt&3))
-          S_StartSound(0, sfx_pistol);
+          S_StartSound(0, sfx_inttic);
 
         if (cnt_items[0] >= (plrs[me].sitems * 100) / wbs->maxitems)
           {
             cnt_items[0] = (plrs[me].sitems * 100) / wbs->maxitems;
-            S_StartSound(0, sfx_barexp);
+            S_StartSound(0, sfx_inttot);
             sp_state++;
           }
       }
@@ -2198,7 +2186,7 @@ static void WI_updateStats(void)
           cnt_secret[0] += 2;
 
           if (!(bcnt&3))
-            S_StartSound(0, sfx_pistol);
+            S_StartSound(0, sfx_inttic);
 
           // killough 2/22/98: Make secrets = 100% if maxsecret = 0:
           // [FG] Intermission screen secrets desync
@@ -2209,7 +2197,7 @@ static void WI_updateStats(void)
             {
               cnt_secret[0] = (wbs->maxsecret ? 
                                (plrs[me].ssecret * 100) / wbs->maxsecret : 100);
-              S_StartSound(0, sfx_barexp);
+              S_StartSound(0, sfx_inttot);
               sp_state++;
             }
         }
@@ -2217,7 +2205,7 @@ static void WI_updateStats(void)
         if (sp_state == 8)
           {
             if (!(bcnt&3))
-              S_StartSound(0, sfx_pistol);
+              S_StartSound(0, sfx_inttic);
 
             cnt_time += 3;
 
@@ -2242,7 +2230,7 @@ static void WI_updateStats(void)
                   {
                     if (demo_version < DV_MBF)
                       cnt_total_time = wbs->totaltimes / TICRATE;
-                    S_StartSound(0, sfx_barexp);
+                    S_StartSound(0, sfx_inttot);
                     sp_state++;
                   }
               }
@@ -2252,7 +2240,7 @@ static void WI_updateStats(void)
             {
               if (acceleratestage)
                 {
-                  S_StartSound(0, sfx_sgcock);
+                  S_StartSound(0, sfx_intnex);
 
                   if (NextLocAnimation())
                     WI_initShowNextLoc();
@@ -2699,39 +2687,7 @@ void WI_Start(wbstartstruct_t* wbstartstruct)
   enterpic = NULL;
   animation = NULL;
 
-  if (wbs->lastmapinfo)
-  {
-      if (wbs->lastmapinfo->exitpic[0])
-      {
-          exitpic = wbs->lastmapinfo->exitpic;
-      }
-      if (wbs->lastmapinfo->exitanim[0])
-      {
-          if (!animation)
-          {
-              animation = Z_Calloc(1, sizeof(*animation), PU_LEVEL, NULL);
-          }
-          animation->interlevel_exiting =
-              WI_ParseInterlevel(wbs->lastmapinfo->exitanim);
-      }
-  }
-
-  if (wbs->nextmapinfo)
-  {
-      if (wbs->nextmapinfo->enterpic[0])
-      {
-          enterpic = wbs->nextmapinfo->enterpic;
-      }
-      if (wbs->nextmapinfo->enteranim[0])
-      {
-          if (!animation)
-          {
-              animation = Z_Calloc(1, sizeof(*animation), PU_LEVEL, NULL);
-          }
-          animation->interlevel_entering =
-              WI_ParseInterlevel(wbs->nextmapinfo->enteranim);
-      }
-  }
+  MI_WI_Start(wbstartstruct, &exitpic, &enterpic, &animation);
 
   WI_loadData();
 

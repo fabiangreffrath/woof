@@ -745,7 +745,8 @@ boolean P_UseSpecialLine_Classic(mobj_t *thing, line_t *line, int side, boolean 
       else
         P_ChangeSwitchTexture(line,1);
 
-      int colormap_index = side ? line->backtint : line->fronttint;
+      side_t *sidedef = &sides[line->sidenum[0]];
+      int colormap_index = side ? sidedef->bottomindex : sidedef->topindex;
       for (int s = -1; (s = P_FindSectorFromLineTag(line, s)) >= 0;)
       {
         sectors[s].tint = colormap_index;

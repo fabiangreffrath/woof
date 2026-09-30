@@ -59,6 +59,26 @@ static const char *const gamemode_str[] = {
     "Unknown mode"
 };
 
+gameconf_gamemode_t D_ModeToGameconfMode(const GameMode_t mode)
+{
+  switch (mode)
+  {
+    case shareware:
+    case registered:
+      return gc_registered;
+
+    case retail:
+      return gc_retail;
+
+    case commercial:
+      return gc_commercial;
+
+    default:
+      // Fall back to commercial
+      return gc_commercial;
+  }
+}
+
 #define SUB_DIRS(str, ...) (char *[]){str, ##__VA_ARGS__, NULL}
 
 // Array of locations to search for IWAD files

@@ -23,11 +23,11 @@
 #include "m_swap.h"
 #include "p_map.h"
 #include "p_mobj.h"
-#include "r_data.h"
 #include "r_main.h"
 #include "r_state.h"
 #include "st_stuff.h"
 #include "v_patch.h"
+#include "v_trans.h"
 #include "v_video.h"
 
 static player_t *plr = players;
@@ -95,7 +95,7 @@ void HU_StartCrosshair(void)
 
 mobj_t *crosshair_target; // [Alaux] Lock crosshair on target
 
-static crange_idx_e CRByHealth(int health, int maxhealth, boolean invul)
+static xlat_index_t CRByHealth(int health, int maxhealth, boolean invul)
 {
     if (invul)
     {
@@ -127,18 +127,17 @@ void HU_UpdateCrosshair(void)
     plr = &players[displayplayer];
 
     crosshair.x = SCREENWIDTH / 2;
-    crosshair.y = (screenblocks <= 10) ? (SCREENHEIGHT - st_height) / 2
-                                       : SCREENHEIGHT / 2;
+    crosshair.y = (SCREENHEIGHT - st_height) / 2;
 
     boolean invul = ST_PlayerInvulnerable(plr);
 
     if (hud_crosshair_health)
     {
-        crosshair.cr = colrngs[CRByHealth(plr->health, 100, invul)];
+        crosshair.cr = xlat[CRByHealth(plr->health, 100, invul)].table;
     }
     else
     {
-        crosshair.cr = colrngs[hud_crosshair_color];
+        crosshair.cr = xlat[hud_crosshair_color].table;
     }
 
     if (STRICTMODE(hud_crosshair_target || hud_crosshair_lockon))
@@ -175,13 +174,14 @@ void HU_UpdateCrosshair(void)
             // [Alaux] Color crosshair by target health
             if (hud_crosshair_target == crosstarget_health)
             {
-                crosshair.cr = colrngs[CRByHealth(
-                    crosshair_target->health,
-                    crosshair_target->info->spawnhealth, false)];
+                xlat_index_t cr =
+                    CRByHealth(crosshair_target->health,
+                               crosshair_target->info->spawnhealth, false);
+                crosshair.cr = xlat[cr].table;
             }
             else
             {
-                crosshair.cr = colrngs[hud_crosshair_target_color];
+                crosshair.cr = xlat[hud_crosshair_target_color].table;
             }
         }
     }

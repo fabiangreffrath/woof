@@ -1,0 +1,14 @@
+Thing 16 (Baron of Hell)
+Blood color = 0
+
+Thing 18 (Hell knight)
+Blood color = 0
+
+Thing 21 (Arachnotron)
+Blood color = 2
+
+# hacx.wad's own DSCHGUN was never meant to be heard
+# use this custom property to force back the link to
+# DSPISTOL
+Sound 86
+Link = 1

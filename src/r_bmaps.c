@@ -160,7 +160,9 @@ const byte *R_BrightmapForTexName(const char *texname)
 {
     if (textures_bm)
     {
-        int *idx = hashmap_get_str(textures_bm, texname);
+        char buf[9];
+        M_StringCopy(buf, texname, 9);
+        int *idx = hashmap_get_str(textures_bm, buf);
         if (idx)
         {
             return allbrightmaps[*idx].colormask;

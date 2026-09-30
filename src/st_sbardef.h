@@ -16,8 +16,9 @@
 
 #include "doomdef.h"
 #include "doomtype.h"
-#include "doomstat.h"
 #include "r_defs.h"
+#include "v_palette.h"
+#include "v_trans.h"
 #include "v_video.h"
 
 typedef enum
@@ -323,9 +324,9 @@ typedef struct
 struct sbarelem_s
 {
     sbarelementtype_t type;
-    int x_pos;
+    int x_pos, orig_x_pos;
     int y_pos;
-    sbaralignment_t alignment;
+    sbaralignment_t alignment, orig_alignment;
     sbarcondition_t *conditions;
     sbarelem_t *children;
 
@@ -334,8 +335,8 @@ struct sbarelem_s
     int height;
 
     const byte *tranmap;
-    crange_idx_e cr;
-    crange_idx_e crboom;
+    xlat_index_t cr;
+    xlat_index_t crboom;
 
     union
     {

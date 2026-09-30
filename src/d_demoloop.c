@@ -39,34 +39,34 @@
 
 // Doom
 static demoloop_entry_t demoloop_registered[] = {
-    { "TITLEPIC", "D_INTRO",  170, TYPE_ART,  wipe_Melt },
-    { "DEMO1",    "",         0,   TYPE_DEMO, wipe_Melt },
-    { "CREDIT",   "",         200, TYPE_ART,  wipe_Melt },
-    { "DEMO2",    "",         0,   TYPE_DEMO, wipe_Melt },
-    { "HELP2",    "",         200, TYPE_ART,  wipe_Melt },
-    { "DEMO3",    "",         0,   TYPE_DEMO, wipe_Melt },
+    { "TITLEPIC", "D_INTRO",  170, TYPE_ART,  wipe_Default },
+    { "DEMO1",    "",         0,   TYPE_DEMO, wipe_Default },
+    { "CREDIT",   "",         200, TYPE_ART,  wipe_Default },
+    { "DEMO2",    "",         0,   TYPE_DEMO, wipe_Default },
+    { "HELP2",    "",         200, TYPE_ART,  wipe_Default },
+    { "DEMO3",    "",         0,   TYPE_DEMO, wipe_Default },
 };
 
 // Ultimate Doom
 static demoloop_entry_t demoloop_retail[] = {
-    { "TITLEPIC", "D_INTRO",  170, TYPE_ART,  wipe_Melt },
-    { "DEMO1",    "",         0,   TYPE_DEMO, wipe_Melt },
-    { "CREDIT",   "",         200, TYPE_ART,  wipe_Melt },
-    { "DEMO2",    "",         0,   TYPE_DEMO, wipe_Melt },
-    { "CREDIT",   "",         200, TYPE_ART,  wipe_Melt },
-    { "DEMO3",    "",         0,   TYPE_DEMO, wipe_Melt },
-    { "DEMO4",    "",         0,   TYPE_DEMO, wipe_Melt },
+    { "TITLEPIC", "D_INTRO",  170, TYPE_ART,  wipe_Default },
+    { "DEMO1",    "",         0,   TYPE_DEMO, wipe_Default },
+    { "CREDIT",   "",         200, TYPE_ART,  wipe_Default },
+    { "DEMO2",    "",         0,   TYPE_DEMO, wipe_Default },
+    { "CREDIT",   "",         200, TYPE_ART,  wipe_Default },
+    { "DEMO3",    "",         0,   TYPE_DEMO, wipe_Default },
+    { "DEMO4",    "",         0,   TYPE_DEMO, wipe_Default },
 };
 
 // Doom II & Final Doom
 static demoloop_entry_t demoloop_commercial[] = {
-    { "TITLEPIC", "D_DM2TTL", 385, TYPE_ART,  wipe_Melt },
-    { "DEMO1",    "",         0,   TYPE_DEMO, wipe_Melt },
-    { "CREDIT",   "",         200, TYPE_ART,  wipe_Melt },
-    { "DEMO2",    "",         0,   TYPE_DEMO, wipe_Melt },
-    { "TITLEPIC", "D_DM2TTL", 385, TYPE_ART,  wipe_Melt },
-    { "DEMO3",    "",         0,   TYPE_DEMO, wipe_Melt },
-    { "DEMO4",    "",         0,   TYPE_DEMO, wipe_Melt },
+    { "TITLEPIC", "D_DM2TTL", 385, TYPE_ART,  wipe_Default },
+    { "DEMO1",    "",         0,   TYPE_DEMO, wipe_Default },
+    { "CREDIT",   "",         200, TYPE_ART,  wipe_Default },
+    { "DEMO2",    "",         0,   TYPE_DEMO, wipe_Default },
+    { "TITLEPIC", "D_DM2TTL", 385, TYPE_ART,  wipe_Default },
+    { "DEMO3",    "",         0,   TYPE_DEMO, wipe_Default },
+    { "DEMO4",    "",         0,   TYPE_DEMO, wipe_Default },
 };
 
 demoloop_t demoloop = NULL;

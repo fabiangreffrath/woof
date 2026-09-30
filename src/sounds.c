@@ -216,7 +216,7 @@ sfxinfo_t original_S_sfx[NUMSFX] = {
   SOUND("punch",  sg_none,   64),
   SOUND("hoof",   sg_none,   70),
   SOUND("metal",  sg_none,   70),
-  SOUND_LINK("chgun", sg_none, 64, sfx_pistol),
+  SOUND("chgun",  sg_none,   64),
   SOUND("tink",   sg_none,   60),
   SOUND("bdopn",  sg_none,  100),
   SOUND("bdcls",  sg_none,  100),
@@ -248,7 +248,7 @@ sfxinfo_t original_S_sfx[NUMSFX] = {
   SOUND("dgpain", sg_none,   96),
 
   // [crispy] play DSSECRET if available
-  SOUND("secret",  sg_none,  100),
+  SOUND("secret", sg_none,  100),
 
   // [FG] play sound when hitting animated floor
   SOUND("splash", sg_oof,    96),
@@ -257,6 +257,21 @@ sfxinfo_t original_S_sfx[NUMSFX] = {
   SOUND("splsml", sg_oof,    96),
   SOUND("plosml", sg_oof,    96),
   SOUND("lavsml", sg_oof,    96),
+
+  // optional menu and intermission sounds
+  SOUND("mnuopn", sg_menu,   60),
+  SOUND("mnucls", sg_menu,   60),
+  SOUND("mnuact", sg_menu,   60),
+  SOUND("mnubak", sg_menu,   60),
+  SOUND("mnumov", sg_menu,   60),
+  SOUND("mnusli", sg_menu,   60),
+  SOUND("mnusel", sg_menu,   60),
+  SOUND("mnuerr", sg_menu,   60),
+  SOUND("inttic", sg_menu,   60),
+  SOUND("inttot", sg_menu,   60),
+  SOUND("intnex", sg_menu,   60),
+  SOUND("intnet", sg_menu,   60),
+  SOUND("intdms", sg_menu,   60),
 
   [500] = SOUND("fre000", sg_none, 127),
   [501] = SOUND("fre001", sg_none, 127),

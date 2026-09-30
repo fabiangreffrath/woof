@@ -25,10 +25,12 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
+#include "dsdh_main.h"
 #include "f_wipe.h"
 #include "g_game.h"
 #include "g_umapinfo.h"
 #include "i_printf.h"
+#include "i_video.h"
 #include "info.h"
 #include "m_misc.h" // [FG] M_StringDuplicate()
 #include "m_swap.h"
@@ -64,6 +66,42 @@ static int finalecount;
 #define TEXTWAIT     250   // original value                    // phares
 #define NEWTEXTSPEED 0.01f // new value                         // phares
 #define NEWTEXTWAIT  1000  // new value                         // phares
+
+typedef struct
+{
+    GameMission_t mission;
+    int episode, level;
+    const char *background;
+    const char *text;
+} textscreen_t;
+
+static textscreen_t textscreens[] = {
+    {doom,      1, 8,  "FLOOR4_8", E1TEXT},
+    {doom,      2, 8,  "SFLR6_1",  E2TEXT},
+    {doom,      3, 8,  "MFLR8_4",  E3TEXT},
+    {doom,      4, 8,  "MFLR8_3",  E4TEXT},
+
+    {doom2,     1, 6,  "SLIME16",  C1TEXT},
+    {doom2,     1, 11, "RROCK14",  C2TEXT},
+    {doom2,     1, 20, "RROCK07",  C3TEXT},
+    {doom2,     1, 30, "RROCK17",  C4TEXT},
+    {doom2,     1, 15, "RROCK13",  C5TEXT},
+    {doom2,     1, 31, "RROCK19",  C6TEXT},
+
+    {pack_tnt,  1, 6,  "SLIME16",  T1TEXT},
+    {pack_tnt,  1, 11, "RROCK14",  T2TEXT},
+    {pack_tnt,  1, 20, "RROCK07",  T3TEXT},
+    {pack_tnt,  1, 30, "RROCK17",  T4TEXT},
+    {pack_tnt,  1, 15, "RROCK13",  T5TEXT},
+    {pack_tnt,  1, 31, "RROCK19",  T6TEXT},
+
+    {pack_plut, 1, 6,  "SLIME16",  P1TEXT},
+    {pack_plut, 1, 11, "RROCK14",  P2TEXT},
+    {pack_plut, 1, 20, "RROCK07",  P3TEXT},
+    {pack_plut, 1, 30, "RROCK17",  P4TEXT},
+    {pack_plut, 1, 15, "RROCK13",  P5TEXT},
+    {pack_plut, 1, 31, "RROCK19",  P6TEXT},
+};
 
 static const char *finaletext;
 static const char *finaleflat;
@@ -165,7 +203,7 @@ static void ParseEndFinale_CastFrame(json_t *js_frame, cast_frame_t **frames,
     M_CopyLumpName(cast_frame.xlat_lump, (xlat_lump ? xlat_lump : "\0"));
     cast_frame.flipped = JS_GetBooleanValue(js_frame, "flipped");
     cast_frame.duration = MAX(1, JS_GetNumberValue(js_frame, "duration") * TICRATE);
-    cast_frame.sound = JS_GetIntegerValue(js_frame, "sound");
+    cast_frame.sound = DSDH_SoundTranslate(JS_GetIntegerValue(js_frame, "sound"));
 
     array_push(*frames, cast_frame);
     (*framecount)++;
@@ -176,7 +214,7 @@ static cast_anim_t ParseEndFinale_CastAnims(json_t *js_castanim_entry,
 {
     cast_anim_t out = {0};
     out.name = DEH_StringForMnemonic(JS_GetStringValue(js_castanim_entry, "name"));
-    out.alertsound = JS_GetIntegerValue(js_castanim_entry, "alertsound");
+    out.alertsound = DSDH_SoundTranslate(JS_GetIntegerValue(js_castanim_entry, "alertsound"));
 
     json_t *js_alive_frame_list = JS_GetObject(js_castanim_entry, "aliveframes");
     json_t *js_alive_frame = NULL;
@@ -217,7 +255,7 @@ static void ParseEndFinale_Bunny(json_t *js_bunny, end_finale_t *out,
 {
     out->bunny_overlay = JS_GetIntegerValue(js_bunny, "overlay");
     out->bunny_overlaycount = JS_GetIntegerValue(js_bunny, "overlaycount");
-    out->bunny_overlaysound = JS_GetIntegerValue(js_bunny, "overlaysound");
+    out->bunny_overlaysound = DSDH_SoundTranslate(JS_GetIntegerValue(js_bunny, "overlaysound"));
     out->bunny_overlayx = JS_GetIntegerValue(js_bunny, "overlayx");
     out->bunny_overlayy = JS_GetIntegerValue(js_bunny, "overlayy");
     const char *bunny_lump = JS_GetStringValue(js_bunny, "stitchimage");
@@ -313,27 +351,18 @@ static boolean MapInfo_StartFinale(void)
         return false;
     }
 
-    if (secretexit)
+    if (secretexit && gamemapinfo->intertextsecret && !(gamemapinfo->flags & MI_InterTextSecretClear))
     {
-        if (gamemapinfo->flags & MapInfo_InterTextSecretClear)
-        {
-            finaletext = NULL;
-        }
-        else if (gamemapinfo->intertextsecret)
-        {
-            finaletext = gamemapinfo->intertextsecret;
-        }
+        finaletext = gamemapinfo->intertextsecret;
     }
-    else
+    else if (!secretexit && gamemapinfo->intertext && !(gamemapinfo->flags & MI_InterTextClear))
     {
-        if (gamemapinfo->flags & MapInfo_InterTextClear)
-        {
-            finaletext = NULL;
-        }
-        else if (gamemapinfo->intertext)
-        {
-            finaletext = gamemapinfo->intertext;
-        }
+        finaletext = gamemapinfo->intertext;
+    }
+
+    if (!finaletext)
+    {
+        finaletext = "The End";
     }
 
     if (gamemapinfo->interbackdrop[0])
@@ -371,40 +400,56 @@ static boolean MapInfo_Ticker()
 
     boolean next_level = false;
 
-    WI_checkForAccelerate();
-
-    // advance animation
-    finalecount++;
-
-    if (finalestage == FINALE_STAGE_CAST)
+    if (!demo_compatibility || !critical)
     {
-        if (F_CastTicker())
+        WI_checkForAccelerate();
+    }
+    else
+    {
+        for (int i = 0; i < MAXPLAYERS; ++i)
         {
-            gameaction = ga_worlddone;
+            if (players[i].cmd.buttons)
+            {
+                next_level = true;
+            }
         }
     }
-    else if (finalestage == FINALE_STAGE_TEXT)
-    {
-        int textcount = 0;
-        if (finaletext)
-        {
-            float speed = demo_compatibility ? TEXTSPEED : Get_TextSpeed();
-            textcount = strlen(finaletext) * speed
-                        + (midstage ? NEWTEXTWAIT : TEXTWAIT);
-        }
 
-        if (!textcount || finalecount > textcount
-            || (midstage && acceleratestage))
+    if (!next_level)
+    {
+        // advance animation
+        finalecount++;
+
+        if (finalestage == FINALE_STAGE_CAST)
         {
-            next_level = true;
+            if (F_CastTicker())
+            {
+                gameaction = ga_worlddone;
+            }
+        }
+        else if (finalestage == FINALE_STAGE_TEXT)
+        {
+            int textcount = 0;
+            if (finaletext)
+            {
+                float speed = demo_compatibility ? TEXTSPEED : Get_TextSpeed();
+                textcount = strlen(finaletext) * speed
+                            + (midstage ? NEWTEXTWAIT : TEXTWAIT);
+            }
+
+            if (!textcount || finalecount > textcount
+                || (midstage && acceleratestage))
+            {
+                next_level = true;
+            }
         }
     }
 
     if (next_level)
     {
-        if (!secretexit && gamemapinfo->flags & MapInfo_EndGame)
+        if (!secretexit && gamemapinfo->finale != EG_None)
         {
-            if (gamemapinfo->flags & MapInfo_EndGameCustomFinale)
+            if (gamemapinfo->finale == EG_CustomFinale)
             {
                 if (endfinale->type == END_CAST)
                 {
@@ -414,7 +459,7 @@ static boolean MapInfo_Ticker()
                 {
                     finalecount = 0;
                     finalestage = FINALE_STAGE_ART;
-                    F_SetWipe(wipe_Melt); // force a wipe
+                    F_SetWipe(); // force a wipe
                     S_ChangeMusInfoMusic(W_GetNumForName(endfinale->music), 
                                          endfinale->musicloops);
                     if (endfinale->type == END_ART)
@@ -423,7 +468,7 @@ static boolean MapInfo_Ticker()
                     }
                 }
             }
-            else if (gamemapinfo->flags & MapInfo_EndGameCast)
+            else if (gamemapinfo->finale == EG_CastRollCall)
             {
                 F_StartCast();
             }
@@ -431,12 +476,12 @@ static boolean MapInfo_Ticker()
             {
                 finalecount = 0;
                 finalestage = FINALE_STAGE_ART;
-                F_SetWipe(wipe_Melt); // force a wipe
-                if (gamemapinfo->flags & MapInfo_EndGameBunny)
+                F_SetWipe(); // force a wipe
+                if (gamemapinfo->finale == EG_BunnyScroll)
                 {
                     S_StartMusic(mus_bunny);
                 }
-                else if (gamemapinfo->flags & MapInfo_EndGameStandard)
+                else if (gamemapinfo->finale == EG_Basic)
                 {
                     mapinfo_finale = false;
                 }
@@ -467,7 +512,7 @@ static boolean MapInfo_Drawer(void)
             }
             break;
         case FINALE_STAGE_ART:
-            if (gamemapinfo->flags & MapInfo_EndGameBunny)
+            if (gamemapinfo->finale == EG_BunnyScroll)
             {
                 F_BunnyScroll();
             }
@@ -491,7 +536,7 @@ static boolean MapInfo_Drawer(void)
 //
 void F_StartFinale (void)
 {
-  musicenum_t music_id = mus_None;
+  musicenum_t music_id = (gamemission == doom) ? mus_victor : mus_read_m;
 
   gameaction = ga_nothing;
   gamestate = GS_FINALE;
@@ -504,105 +549,25 @@ void F_StartFinale (void)
   finaletext = NULL;
   finaleflat = NULL;
 
-  // Okay - IWAD dependend stuff.
-  // This has been changed severly, and
-  //  some stuff might have changed in the process.
-  switch ( gamemode )
+  for (size_t i = 0; i < arrlen(textscreens); ++i)
   {
-    // DOOM 1 - E1, E3 or E4, but each nine missions
-    case shareware:
-    case registered:
-    case retail:
+    textscreen_t *screen = &textscreens[i];
+
+    // Hack for Chex Quest
+    if (gameversion == exe_chex && screen->mission == doom)
     {
-      music_id = mus_victor;
-      
-      switch (gameepisode)
-      {
-        case 1:
-          finaleflat = DEH_String(BGFLATE1);
-          finaletext = DEH_String(E1TEXT);
-          break;
-        case 2:
-          finaleflat = DEH_String(BGFLATE2);
-          finaletext = DEH_String(E2TEXT);
-          break;
-        case 3:
-          finaleflat = DEH_String(BGFLATE3);
-          finaletext = DEH_String(E3TEXT);
-          break;
-        case 4:
-          finaleflat = DEH_String(BGFLATE4);
-          finaletext = DEH_String(E4TEXT);
-          break;
-        default:
-          // Ouch.
-          break;
-      }
-      break;
+      screen->level = 5;
     }
-    
-    // DOOM II and missions packs with E1, M34
-    case commercial:
+
+    if (gamemission == screen->mission
+      && (gamemission != doom || gameepisode == screen->episode)
+      && gamemap == screen->level)
     {
-      music_id = mus_read_m;
-
-      // Ty 08/27/98 - added the gamemission logic
-
-      switch (gamemap)      /* This is regular Doom II */
-      {
-        case 6:
-          finaleflat = DEH_String(BGFLAT06);
-          finaletext = gamemission == pack_tnt  ? DEH_String(T1TEXT) :
-                       gamemission == pack_plut ? DEH_String(P1TEXT) :
-                                                  DEH_String(C1TEXT);
-          break;
-        case 11:
-          finaleflat = DEH_String(BGFLAT11);
-          finaletext = gamemission == pack_tnt  ? DEH_String(T2TEXT) :
-                       gamemission == pack_plut ? DEH_String(P2TEXT) :
-                                                  DEH_String(C2TEXT);
-          break;
-        case 20:
-          finaleflat = DEH_String(BGFLAT20);
-          finaletext = gamemission == pack_tnt  ? DEH_String(T3TEXT) :
-                       gamemission == pack_plut ? DEH_String(P3TEXT) :
-                                                  DEH_String(C3TEXT);
-          break;
-        case 30:
-          finaleflat = DEH_String(BGFLAT30);
-          finaletext = gamemission == pack_tnt  ? DEH_String(T4TEXT) :
-                       gamemission == pack_plut ? DEH_String(P4TEXT) :
-                                                  DEH_String(C4TEXT);
-          break;
-        case 15:
-          finaleflat = DEH_String(BGFLAT15);
-          finaletext = gamemission == pack_tnt  ? DEH_String(T5TEXT) :
-                       gamemission == pack_plut ? DEH_String(P5TEXT) :
-                                                  DEH_String(C5TEXT);
-          break;
-        case 31:
-          finaleflat = DEH_String(BGFLAT31);
-          finaletext = gamemission == pack_tnt  ? DEH_String(T6TEXT) :
-                       gamemission == pack_plut ? DEH_String(P6TEXT) :
-                                                  DEH_String(C6TEXT);
-          break;
-        default:
-             // Ouch.
-             break;
-      }
-      // Ty 08/27/98 - end gamemission logic
-
-      break;
-    } 
-
-    // Indeterminate.
-    default:  // Ty 03/30/98 - not externalized
-      music_id = mus_read_m;
-      finaleflat = "F_SKY1"; // Not used anywhere else.
-      finaletext = DEH_String(C1TEXT);  // FIXME - other text, music?
-      break;
+      finaletext = DEH_String(screen->text);
+      finaleflat = DEH_String(screen->background);
+    }
   }
-  
+
   if (!MapInfo_StartFinale())
   {
       S_ChangeMusic(music_id, true);
@@ -675,7 +640,7 @@ void F_Ticker(void)
           {                               // with enough time, it's automatic
             finalecount = 0;
             finalestage = FINALE_STAGE_ART;
-            F_SetWipe(wipe_Melt); // force a wipe
+            F_SetWipe(); // force a wipe
             if (gameepisode == 3)
               S_StartMusic(mus_bunny);
           }
@@ -815,7 +780,7 @@ static void EndFinaleCast_SetupCall(void)
         cast_frame_t *frame;
         array_foreach(frame, callee->aliveframes)
         {
-            W_CacheSpriteName(frame->frame_lump, PU_LEVEL);
+            V_CacheSpriteName(frame->frame_lump, PU_LEVEL);
             frame->tranmap = (W_CheckNumForName(frame->tran_lump) >= 0)
                            ? W_CacheLumpName(frame->tran_lump, PU_LEVEL)
                            : NULL;
@@ -825,7 +790,7 @@ static void EndFinaleCast_SetupCall(void)
         }
         array_foreach(frame, callee->deathframes)
         {
-            W_CacheSpriteName(frame->frame_lump, PU_LEVEL);
+            V_CacheSpriteName(frame->frame_lump, PU_LEVEL);
             frame->tranmap = (W_CheckNumForName(frame->tran_lump) >= 0)
                            ? W_CacheLumpName(frame->tran_lump, PU_LEVEL)
                            : NULL;
@@ -899,7 +864,7 @@ void EndFinaleCast_Drawer(void)
 {
     V_DrawPatchFullScreen(W_CacheLumpName(endfinale->background, PU_LEVEL));
     F_CastPrint(ef_current_callee->name);
-    patch_t *frame = W_CacheSpriteName(ef_current_frame->frame_lump, PU_LEVEL);
+    patch_t *frame = V_CacheSpriteName(ef_current_frame->frame_lump, PU_LEVEL);
     const byte *tranmap = ef_current_frame->tranmap;
     const byte *xlat = ef_current_frame->xlat;
     boolean flip = ef_current_frame->flipped;
@@ -934,10 +899,10 @@ boolean         castattacking;
 //
 static void F_StartCast(void)
 {
-  F_SetWipe(wipe_Melt); // force a screen wipe
+  F_SetWipe(); // force a screen wipe
   finalestage = FINALE_STAGE_CAST;
 
-  if (gamemapinfo && gamemapinfo->flags & MapInfo_EndGameCustomFinale)
+  if (gamemapinfo && gamemapinfo->finale == EG_CustomFinale)
   {
     EndFinaleCast_SetupCall();
     return;
@@ -982,7 +947,7 @@ static boolean F_CastTicker(void)
   int st;
   int sfx;
 
-  if (gamemapinfo && gamemapinfo->flags & MapInfo_EndGameCustomFinale)
+  if (gamemapinfo && gamemapinfo->finale == EG_CustomFinale)
     return EndFinaleCast_Ticker();
 
   if (--casttics > 0)
@@ -1090,7 +1055,7 @@ static boolean F_CastTicker(void)
 
 static boolean F_CastResponder(event_t* ev)
 {
-  if (gamemapinfo && gamemapinfo->flags & MapInfo_EndGameCustomFinale)
+  if (gamemapinfo && gamemapinfo->finale == EG_CustomFinale)
     return EndFinaleCast_Responder(ev);
 
   if (ev->type != ev_keydown && ev->type != ev_mouseb_down && ev->type != ev_joyb_down)
@@ -1168,7 +1133,7 @@ static void F_CastPrint(const char* text)
 
 static void F_CastDrawer(void)
 {
-  if (gamemapinfo && gamemapinfo->flags & MapInfo_EndGameCustomFinale)
+  if (gamemapinfo && gamemapinfo->finale == EG_CustomFinale)
   {
       EndFinaleCast_Drawer();
       return;
@@ -1239,9 +1204,9 @@ static void F_BunnyScroll(void)
 
   if (p2offset > 0)
   {
-      V_FillRect(0, 0, p2offset, SCREENHEIGHT, v_darkest_color);
+      V_FillRect(0, 0, p2offset, SCREENHEIGHT, playpal_global->black);
       V_FillRect(p2offset + SHORT(p2->width), 0, p2offset, SCREENHEIGHT,
-                 v_darkest_color);
+                 playpal_global->black);
   }
 
   if (finalecount < 1130)
@@ -1291,27 +1256,29 @@ void F_Drawer (void)
     F_TextWrite ();
   else
   {
+    const char* finalelump = NULL;
     switch (gameepisode)
     {
       case 1:
-           if ( (gamemode == retail && !pwad_help2) || gamemode == commercial )
-             V_DrawPatchFullScreen(
-              V_CachePatchName(W_CheckWidescreenPatch("CREDIT"), PU_CACHE));
-           else
-             V_DrawPatchFullScreen(
-              V_CachePatchName(W_CheckWidescreenPatch("HELP2"), PU_CACHE));
-           break;
+          finalelump =
+              ((gamemode == retail && !pwad_help2) || gamemode == commercial)
+                  ? "CREDIT"
+                  : "HELP2";
+          break;
       case 2:
-           V_DrawPatchFullScreen(
-            V_CachePatchName(W_CheckWidescreenPatch("VICTORY2"), PU_CACHE));
+           finalelump = "VICTORY2";
            break;
       case 3:
            F_BunnyScroll();
            break;
       case 4:
-           V_DrawPatchFullScreen(
-            V_CachePatchName(W_CheckWidescreenPatch("ENDPIC"), PU_CACHE));
+           finalelump = "ENDPIC";
            break;
+    }
+
+    if (finalelump)
+    {
+      V_DrawPatchFullScreen(V_CachePatchName(W_CheckWidescreenPatch(finalelump), PU_CACHE));
     }
   }
 }

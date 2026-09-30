@@ -160,7 +160,11 @@ int M_remove(const char *path)
 
 int M_rename(const char *oldname, const char *newname)
 {
-    return SDL_RenamePath(oldname, newname) ? 0 : -1;
+    return (SDL_RenamePath(oldname, newname)
+            // if move fails (e.g. cross-device), try copy and remove instead
+            || (SDL_CopyFile(oldname, newname) && SDL_RemovePath(oldname)))
+               ? 0
+               : -1;
 }
 
 void M_MakeDirectory(const char *path)

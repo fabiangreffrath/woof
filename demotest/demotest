@@ -14,7 +14,7 @@ from multiprocessing import Pool
 EXTRACT_DIR = 'extract'
 EXPECTED_DIR = 'expected'
 OUTPUT_DIR = 'output'
-CMD_BASE = ['-iwad', 'miniwad.wad', '-nodraw', '-noblit', '-nosound', '-nogui']
+CMD_BASE = ['-iwad', 'miniwad.wad', '-noautoload', '-nodraw', '-noblit', '-nosound', '-nogui']
 
 
 def download(url):
@@ -53,6 +53,7 @@ def build_command_line(record):
     if 'deh' in record:
         cmd += ['-deh', record['deh']]
     if 'gameversion' in record:
+        cmd += ['-complevel', 'vanilla']
         cmd += ['-gameversion', record['gameversion']]
     cmd += ['-timedemo', record['demo']]
     if 'statdump' in record:

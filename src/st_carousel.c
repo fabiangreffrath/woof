@@ -23,6 +23,7 @@
 #include "m_array.h"
 #include "m_misc.h"
 #include "m_swap.h"
+#include "r_data.h"
 #include "r_defs.h"
 #include "st_sbardef.h"
 #include "v_patch.h"
@@ -184,7 +185,7 @@ static void DrawIcon(int x, int y, sbarelem_t *elem, weapon_icon_t icon)
     int xoffset = SHORT(patch->leftoffset);
     int yoffset = SHORT(patch->topoffset);
 
-    V_DrawPatchGeneral(x, y, xoffset, yoffset, elem->tranmap, cr, patch, zero_crop);
+    V_DrawPatchGeneral(x, y, xoffset, yoffset, elem->tranmap, cr, patch, no_crop);
 }
 
 static int CalcOffset(void)

@@ -46,7 +46,6 @@ static const char *params[] = {
 "-noautoload",
 "-nocheats",
 "-nodeh",
-"-noextras",
 "-nomapinfo",
 "-nooptions",
 "-reject_pad_with_ff",

@@ -24,6 +24,10 @@
 #include <ctype.h>
 #endif
 
+#ifdef __linux__
+#include <unistd.h>
+#endif
+
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,6 +43,8 @@
 #include "d_player.h"
 #include "d_ticcmd.h"
 #include "decl_main.h"
+#include "decl_sndinfo.h"
+#include "decl_sounds.h"
 #include "deh_main.h"
 #include "deh_strings.h"
 #include "deh_thing.h"
@@ -85,6 +91,7 @@
 #include "statdump.h"
 #include "g_umapinfo.h"
 #include "v_patch.h"
+#include "v_palette.h"
 #include "v_video.h"
 #include "w_wad.h"
 #include "wi_stuff.h"
@@ -105,6 +112,7 @@ boolean clcoopspawns;   // checkparm of -coop_spawns
 boolean cshalfplayerdamage = false;
 boolean csdoubleammo = false;
 boolean csaggromonsters = false;
+int cshelperdogs = 0;
 
 boolean nomonsters;     // working -nomonsters
 boolean respawnparm;    // working -respawn
@@ -223,7 +231,7 @@ void D_ProcessEvents (void)
 
 // wipegamestate can be set to -1 to force a wipe on the next draw
 gamestate_t wipegamestate = GS_DEMOSCREEN;
-wipefx_t    screen_wipe_internal = wipe_Invalid;
+wipefx_t    screen_wipe_internal = wipe_Default;
 wipefx_t    screen_wipe = wipe_None;
 
 void D_Display (void)
@@ -261,7 +269,7 @@ void D_Display (void)
   wipe = false;
 
   // save the current screen if about to wipe
-  if (gamestate != wipegamestate && screen_wipe_internal)
+  if (gamestate != wipegamestate)
     {
       wipe = true;
       wipe_StartScreen(0, 0, video.width, video.height);
@@ -314,7 +322,7 @@ void D_Display (void)
 
   // clean up border stuff
   if (gamestate != oldgamestate && gamestate != GS_LEVEL)
-    I_SetPalette (W_CacheLumpName ("PLAYPAL",PU_CACHE));
+    V_ResetPalette();
 
   // see if the border needs to be initially drawn
   if (gamestate == GS_LEVEL && oldgamestate != GS_LEVEL)
@@ -716,7 +724,7 @@ static boolean FileContainsMaps(const char *filename)
 {
     for (int i = 0; i < array_size(umapinfo); ++i)
     {
-        if (CheckMapLump(umapinfo[i].mapname, filename))
+        if (CheckMapLump(umapinfo[i].lumpname, filename))
         {
             return true;
         }
@@ -817,7 +825,7 @@ static void InitGameVersion(void)
     // @category compat
     //
     // Emulate a specific version of Doom. Valid values are "1.9",
-    // "ultimate", "final", "chex". Implies -complevel vanilla.
+    // "ultimate", "final", "final2", "chex". Requires -complevel vanilla.
     //
 
     p = M_CheckParm("-gameversion");
@@ -1259,7 +1267,8 @@ static void LoadIWadBase(void)
     D_GetModeAndMissionByIWADName(M_BaseName(wadfiles[0]), &local_gamemode,
                                   &local_gamemission);
 
-    if (local_gamemission == none || local_gamemode == indetermined)
+    if (local_gamemission == none
+        || (local_gamemode == indetermined && local_gamemission != doom))
     {
         return;
     }
@@ -1617,6 +1626,18 @@ void D_DoomMain(void)
     M_PrintHelpString();
     I_SafeExit(0);
   }
+
+  #ifdef __linux__
+
+  if (M_ParmExists("-setup"))
+  {
+    char* setup_path = M_StringJoin(D_DoomExeDir(), DIR_SEPARATOR_S, PROJECT_SHORTNAME "-setup");
+    char* args[] = { setup_path, NULL };
+    execv(setup_path, args);
+    I_SafeExit(1);
+  }
+
+  #endif
 
   // [FG] initialize logging verbosity early to decide
   //      if the following lines will get printed or not
@@ -2114,6 +2135,11 @@ void D_DoomMain(void)
 
   W_ProcessInWads("DECLARE", DECL_Parse, PROCESS_IWAD | PROCESS_PWAD);
 
+  if (!DECL_HasAmbientSounds())
+  {
+    W_ProcessInWads("SNDINFO", SNDINFO_Parse, PROCESS_IWAD | PROCESS_PWAD);
+  }
+
   DECL_Install();
 
   // Ambient
@@ -2168,14 +2194,12 @@ void D_DoomMain(void)
 
   if (!M_ParmExists("-nomapinfo"))
   {
-    W_ProcessInWads("UMAPINFO", G_ParseMapInfo, PROCESS_IWAD | PROCESS_PWAD);
+    W_ProcessInWads("UMAPINFO", MI_ParseUniversalMapInfo, PROCESS_IWAD | PROCESS_PWAD);
   }
 
   G_ParseCompDatabase();
 
   D_SetSavegameDirectory();
-
-  V_InitColorTranslation(); //jff 4/24/98 load color translation lumps
 
   // killough 2/22/98: copyright / "modified game" / SPA banners removed
 
@@ -2212,6 +2236,9 @@ void D_DoomMain(void)
 
   W_ProcessInWads("TRAKINFO", S_ParseTrakInfo, PROCESS_IWAD | PROCESS_PWAD);
   D_SetupDemoLoop();
+
+  I_Printf(VB_INFO, "V_InitPalette: Init palette sub system.");
+  V_InitPalette();
 
   I_Printf(VB_INFO, "M_Init: Init miscellaneous info.");
   M_Init();
@@ -2436,9 +2463,10 @@ void D_DoomMain(void)
   }
   else if (startloadgame >= 0 && startloadgame <= 77) // Page 0-7, slot 0-7.
   {
+    const int slot = startloadgame % 10, page = startloadgame / 10;
     char *file;
-    file = G_SaveGameName(startloadgame);
-    G_LoadGame(file, startloadgame, true); // killough 5/15/98: add command flag
+    file = G_SaveGameName(slot, page);
+    G_LoadGame(file, slot, page, true); // killough 5/15/98: add command flag
     free(file);
   }
   else
@@ -2446,10 +2474,14 @@ void D_DoomMain(void)
     {
       if (autostart || netgame)
 	{
-	  G_InitNew(startskill, startepisode, startmap);
+	  G_InitNew(startskill, startepisode, startmap, false);
 	  // [crispy] no need to write a demo header in demo continue mode
 	  if (demorecording && gameaction != ga_playdemo)
+	  {
 	    G_BeginRecording();
+	    // enforce melt as first screen wipe for demorecording
+	    screen_wipe_internal = wipe_Melt;
+	  }
 	}
       else
 	D_StartTitle();                 // start up intro loop

@@ -33,6 +33,7 @@
 #include "r_main.h"
 #include "r_state.h"
 #include "r_tranmap.h"
+#include "v_palette.h"
 #include "v_patch.h"
 #include "v_video.h"
 #include "z_zone.h"
@@ -54,8 +55,8 @@ int viewwidth;
 int viewheight;
 int viewwindowx;
 int viewwindowy;
-static pixel_t **ylookup = NULL;
-static int *columnofs = NULL;
+static pixel_t **xlookup = NULL;
+static int *rowofs = NULL;
 static int linesize; // killough 11/98
 
 // Backing buffer containing the bezel drawn around the screen and surrounding
@@ -109,7 +110,7 @@ void R_DrawColumn(void)
     }
 #endif
 
-    pixel_t *dest = ylookup[dc_yl] + columnofs[dc_x];
+    pixel_t *dest = xlookup[dc_x] + rowofs[dc_yl];
     const fixed_t fracstep = dc_iscale;
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
@@ -140,12 +141,13 @@ void R_DrawColumn(void)
         do
         {
             src = source[frac >> 16];
-            *dest = colormap[brightmap[src]][src];
-            dest += linesize;
+            *dest++ = colormap[brightmap[src]][src];
+
             if ((frac += fracstep) >= heightmask)
             {
                 frac -= heightmask;
             }
+
             if (frac < 0)
             {
                 frac += heightmask;
@@ -154,21 +156,12 @@ void R_DrawColumn(void)
     }
     else
     {
-        while ((count -= 2) >= 0)
+        UNROLL_LOOP_BY(2)
+        while (count--)
         {
             src = source[(frac >> FRACBITS) & heightmask];
-            *dest = colormap[brightmap[src]][src];
-            dest += linesize;
+            *dest++ = colormap[brightmap[src]][src];
             frac += fracstep;
-            src = source[(frac >> FRACBITS) & heightmask];
-            *dest = colormap[brightmap[src]][src];
-            dest += linesize;
-            frac += fracstep;
-        }
-        if (count & 1)
-        {
-            src = source[(frac >> FRACBITS) & heightmask];
-            *dest = colormap[brightmap[src]][src];
         }
     }
 }
@@ -200,7 +193,7 @@ void R_DrawTLColumn(void)
     }
 #endif
 
-    pixel_t *dest = ylookup[dc_yl] + columnofs[dc_x];
+    pixel_t *dest = xlookup[dc_x] + rowofs[dc_yl];
     const fixed_t fracstep = dc_iscale;
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
@@ -232,11 +225,13 @@ void R_DrawTLColumn(void)
         {
             src = source[frac >> 16];
             *dest = tranmap[(*dest << 8) + colormap[brightmap[src]][src]];
-            dest += linesize;
+            dest++;
+
             if ((frac += fracstep) >= heightmask)
             {
                 frac -= heightmask;
             }
+
             if (frac < 0)
             {
                 frac += heightmask;
@@ -245,21 +240,13 @@ void R_DrawTLColumn(void)
     }
     else
     {
-        while ((count -= 2) >= 0)
+        UNROLL_LOOP_BY(2)
+        while (count--)
         {
             src = source[(frac >> FRACBITS) & heightmask];
             *dest = tranmap[(*dest << 8) + colormap[brightmap[src]][src]];
-            dest += linesize;
+            dest++;
             frac += fracstep;
-            src = source[(frac >> FRACBITS) & heightmask];
-            *dest = tranmap[(*dest << 8) + colormap[brightmap[src]][src]];
-            dest += linesize;
-            frac += fracstep;
-        }
-        if (count & 1)
-        {
-            src = source[(frac >> FRACBITS) & heightmask];
-            *dest = tranmap[(*dest << 8) + colormap[brightmap[src]][src]];
         }
     }
 }
@@ -284,7 +271,7 @@ void R_DrawSkyColumn(void)
     }
 #endif
 
-    pixel_t *dest = ylookup[dc_yl] + columnofs[dc_x];
+    pixel_t *dest = xlookup[dc_x] + rowofs[dc_yl];
 
     const fixed_t fracstep = dc_iscale;
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
@@ -308,8 +295,7 @@ void R_DrawSkyColumn(void)
 
         for (i = 0; i < n; ++i)
         {
-            *dest = colormap[skycolor];
-            dest += linesize;
+            *dest++ = colormap[skycolor];
             frac += fracstep;
         }
 
@@ -329,11 +315,11 @@ void R_DrawSkyColumn(void)
 
         for (i = 0; i < n; ++i)
         {
-            *dest = main_tranmap
+            *dest++ = main_tranmap
                 [(main_tranmap[(colormap[source[0]] << 8) + colormap[skycolor]]
                   << 8)
                  + colormap[skycolor]];
-            dest += linesize;
+
             frac += fracstep;
         }
 
@@ -354,9 +340,9 @@ void R_DrawSkyColumn(void)
 
         for (i = 0; i < n; ++i)
         {
-            *dest =
+            *dest++ =
                 main_tranmap[(colormap[source[0]] << 8) + colormap[skycolor]];
-            dest += linesize;
+
             frac += fracstep;
         }
 
@@ -380,8 +366,8 @@ void R_DrawSkyColumn(void)
 
         do
         {
-            *dest = colormap[source[frac >> FRACBITS]];
-            dest += linesize; // killough 11/98
+            *dest++ = colormap[source[frac >> FRACBITS]];
+
             if ((frac += fracstep) >= heightmask)
             {
                 frac -= heightmask;
@@ -390,18 +376,11 @@ void R_DrawSkyColumn(void)
     }
     else
     {
-        while ((count -= 2) >= 0) // texture height is a power of 2 -- killough
+        UNROLL_LOOP_BY(2)
+        while (count--)
         {
-            *dest = colormap[source[(frac >> FRACBITS) & heightmask]];
-            dest += linesize; // killough 11/98
+            *dest++ = colormap[source[(frac >> FRACBITS) & heightmask]];
             frac += fracstep;
-            *dest = colormap[source[(frac >> FRACBITS) & heightmask]];
-            dest += linesize; // killough 11/98
-            frac += fracstep;
-        }
-        if (count & 1)
-        {
-            *dest = colormap[source[(frac >> FRACBITS) & heightmask]];
         }
     }
 }
@@ -490,7 +469,7 @@ static void DrawFuzzColumnOriginal(void)
     //  or blocky mode removed.
 
     // Does not work with blocky mode.
-    pixel_t *dest = ylookup[dc_yl] + columnofs[dc_x];
+    pixel_t *dest = xlookup[dc_x] + rowofs[dc_yl];
 
     // Looks like an attempt at dithering,
     // using the colormap #6 (of 0-31, a bit brighter than average).
@@ -510,8 +489,8 @@ static void DrawFuzzColumnOriginal(void)
         // why_i_left_doom.html
 
         *dest =
-            fullcolormap[6 * 256 + dest[linesize * fuzzoffset[fuzzpos]]];
-        dest += linesize; // killough 11/98
+            fullcolormap[6 * 256 + dest[fuzzoffset[fuzzpos]]];
+        dest++;
 
         ++fuzzpos;
 
@@ -524,7 +503,7 @@ static void DrawFuzzColumnOriginal(void)
     if (cutoff)
     {
         *dest = fullcolormap
-            [6 * 256 + dest[linesize * (fuzzoffset[fuzzpos] - FUZZOFF) / 2]];
+            [6 * 256 + dest[(fuzzoffset[fuzzpos] - FUZZOFF) / 2]];
     }
 }
 
@@ -568,7 +547,7 @@ static void DrawFuzzColumnBlocky(void)
 
     ++count;
 
-    pixel_t *dest = ylookup[dc_yl] + columnofs[dc_x];
+    pixel_t *dest = xlookup[dc_x] + rowofs[dc_yl];
 
     int lines = fuzzblocksize - (dc_yl % fuzzblocksize);
 
@@ -588,13 +567,19 @@ static void DrawFuzzColumnBlocky(void)
         count &= ~mask;
 
         const byte fuzz =
-            fullcolormap[6 * 256 + dest[linesize * fuzzoffset[fuzzpos]]];
+            fullcolormap[6 * 256 + dest[fuzzoffset[fuzzpos]]];
 
-        do
+        const int columns = MAX(1, lines);
+        int width = fuzzblockwidth;
+        pixel_t *dest2 = dest;
+
+        while (width--)
         {
-            memset(dest, fuzz, fuzzblockwidth);
-            dest += linesize;
-        } while (--lines);
+            memset(dest2, fuzz, columns);
+            dest2 += linesize;
+        }
+
+        dest += columns;
 
         ++fuzzpos;
 
@@ -607,8 +592,16 @@ static void DrawFuzzColumnBlocky(void)
     if (cutoff)
     {
         const byte fuzz = fullcolormap
-            [6 * 256 + dest[linesize * (fuzzoffset[fuzzpos] - FUZZOFF) / 2]];
-        memset(dest, fuzz, fuzzblocksize);
+            [6 * 256 + dest[(fuzzoffset[fuzzpos] - FUZZOFF) / 2]];
+
+        int width = fuzzblockwidth;
+        pixel_t *dest2 = dest;
+
+        while (width--)
+        {
+            *dest2 = fuzz;
+            dest2 += linesize;
+        }
     }
 }
 
@@ -662,7 +655,7 @@ static void DrawFuzzColumnRefraction(void)
 
     ++count;
 
-    pixel_t *dest = ylookup[dc_yl] + columnofs[dc_x];
+    pixel_t *dest = xlookup[dc_x] + rowofs[dc_yl];
 
     int lines = fuzzblocksize - (dc_yl % fuzzblocksize);
 
@@ -684,13 +677,19 @@ static void DrawFuzzColumnRefraction(void)
         lines += count & mask;
         count &= ~mask;
 
-        const byte fuzz = fullcolormap[dark + dest[linesize * offset]];
+        const byte fuzz = fullcolormap[dark + dest[offset]];
 
-        do
+        const int columns = MAX(1, lines);
+        int width = fuzzblockwidth;
+        pixel_t *dest2 = dest;
+
+        while (width--)
         {
-            memset(dest, fuzz, fuzzblockwidth);
-            dest += linesize;
-        } while (--lines);
+            memset(dest2, fuzz, columns);
+            dest2 += linesize;
+        }
+
+        dest += columns;
 
         ++fuzzpos;
 
@@ -706,8 +705,16 @@ static void DrawFuzzColumnRefraction(void)
     if (cutoff)
     {
         const byte fuzz =
-            fullcolormap[dark + dest[linesize * (offset - FUZZOFF) / 2]];
-        memset(dest, fuzz, fuzzblocksize);
+            fullcolormap[dark + dest[(offset - FUZZOFF) / 2]];
+
+        int width = fuzzblockwidth;
+        pixel_t *dest2 = dest;
+
+        while (width--)
+        {
+            *dest2 = fuzz;
+            dest2 += linesize;
+        }
     }
 }
 
@@ -728,15 +735,14 @@ static void DrawFuzzColumnShadow(void)
     }
 #endif
 
-    pixel_t *dest = ylookup[dc_yl] + columnofs[dc_x];
+    pixel_t *dest = xlookup[dc_x] + rowofs[dc_yl];
 
     count++; // killough 1/99: minor tuning
 
     do
     {
         *dest = fullcolormap[8 * 256 + *dest];
-
-        dest += linesize; // killough 11/98
+        dest++;
     } while (--count);
 }
 
@@ -801,7 +807,7 @@ void R_DrawTranslatedColumn(void)
     }
 #endif
 
-    pixel_t *dest = ylookup[dc_yl] + columnofs[dc_x];
+    pixel_t *dest = xlookup[dc_x] + rowofs[dc_yl];
     const fixed_t fracstep = dc_iscale;
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
@@ -833,12 +839,13 @@ void R_DrawTranslatedColumn(void)
         do
         {
             src = source[frac >> 16];
-            *dest = colormap[brightmap[src]][translation[src]];
-            dest += linesize;
+            *dest++ = colormap[brightmap[src]][translation[src]];
+
             if ((frac += fracstep) >= heightmask)
             {
                 frac -= heightmask;
             }
+
             if (frac < 0)
             {
                 frac += heightmask;
@@ -847,21 +854,12 @@ void R_DrawTranslatedColumn(void)
     }
     else
     {
-        while ((count -= 2) >= 0)
+        UNROLL_LOOP_BY(2)
+        while (count--)
         {
             src = source[(frac >> FRACBITS) & heightmask];
-            *dest = colormap[brightmap[src]][translation[src]];
-            dest += linesize;
+            *dest++ = colormap[brightmap[src]][translation[src]];
             frac += fracstep;
-            src = source[(frac >> FRACBITS) & heightmask];
-            *dest = colormap[brightmap[src]][translation[src]];
-            dest += linesize;
-            frac += fracstep;
-        }
-        if (count & 1)
-        {
-            src = source[(frac >> FRACBITS) & heightmask];
-            *dest = colormap[brightmap[src]][translation[src]];
         }
     }
 }
@@ -884,7 +882,7 @@ void R_InitTranslationTables(void)
     translationtables = Z_Malloc(256 * 3, PU_STATIC, 0);
 
     // translate just the 16 green colors
-    for (i = 0; i < 256; i++)
+    for (i = 0; i < PLAYPAL_SIZE; i++)
     {
         if (i >= 0x70 && i <= 0x7f)
         { // map green ramp to gray, brown, red
@@ -915,7 +913,7 @@ void R_DrawTRTLColumn(void)
     }
 #endif
 
-    pixel_t *dest = ylookup[dc_yl] + columnofs[dc_x];
+    pixel_t *dest = xlookup[dc_x] + rowofs[dc_yl];
     const fixed_t fracstep = dc_iscale;
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
@@ -951,11 +949,13 @@ void R_DrawTRTLColumn(void)
         {
             src = source[frac >> 16];
             *dest = SRCPIXEL;
-            dest += linesize;
+            dest++;
+
             if ((frac += fracstep) >= heightmask)
             {
                 frac -= heightmask;
             }
+
             if (frac < 0)
             {
                 frac += heightmask;
@@ -964,21 +964,13 @@ void R_DrawTRTLColumn(void)
     }
     else
     {
-        while ((count -= 2) >= 0)
+        UNROLL_LOOP_BY(2)
+        while (count--)
         {
             src = source[(frac >> FRACBITS) & heightmask];
             *dest = SRCPIXEL;
-            dest += linesize;
+            dest++;
             frac += fracstep;
-            src = source[(frac >> FRACBITS) & heightmask];
-            *dest = SRCPIXEL;
-            dest += linesize;
-            frac += fracstep;
-        }
-        if (count & 1)
-        {
-            src = source[(frac >> FRACBITS) & heightmask];
-            *dest = SRCPIXEL;
         }
     }
 
@@ -1016,7 +1008,7 @@ byte *ds_source;
 void R_DrawSpan(void)
 {
     int count = ds_x2 - ds_x1 + 1;
-    pixel_t *dest = ylookup[ds_y] + columnofs[ds_x1];
+    pixel_t *dest = xlookup[ds_x1] + rowofs[ds_y];
     const byte *source = ds_source;
     const lighttable_t *const *colormap = ds_colormap;
     const byte *brightmap = ds_brightmap;
@@ -1033,38 +1025,15 @@ void R_DrawSpan(void)
 
     byte src;
 
-    while (count >= 4)
+    UNROLL_LOOP_BY(4)
+    while (count--)
     {
         // SoM: Why didn't I see this earlier? the spot variable is a waste now
         // because we don't have the uber complicated math to calculate it now,
         // so that was a memory write we didn't need!
         src = source[((yf >> YSHIFT) & YMASK) | (xf >> XSHIFT)];
-        dest[0] = colormap[brightmap[src]][src];
-        xf += xs;
-        yf += ys;
-
-        src = source[((yf >> YSHIFT) & YMASK) | (xf >> XSHIFT)];
-        dest[1] = colormap[brightmap[src]][src];
-        xf += xs;
-        yf += ys;
-
-        src = source[((yf >> YSHIFT) & YMASK) | (xf >> XSHIFT)];
-        dest[2] = colormap[brightmap[src]][src];
-        xf += xs;
-        yf += ys;
-
-        src = source[((yf >> YSHIFT) & YMASK) | (xf >> XSHIFT)];
-        dest[3] = colormap[brightmap[src]][src];
-        xf += xs;
-        yf += ys;
-
-        dest += 4;
-        count -= 4;
-    }
-    while (count--)
-    {
-        src = source[((yf >> YSHIFT) & YMASK) | (xf >> XSHIFT)];
-        *dest++ = colormap[brightmap[src]][src];
+        *dest = colormap[brightmap[src]][src];
+        dest += linesize;
         xf += xs;
         yf += ys;
     }
@@ -1076,8 +1045,8 @@ void R_DrawSpan(void)
 
 void R_InitBufferRes(void)
 {
-    columnofs = Z_Malloc(video.width * sizeof(*columnofs), PU_RENDERER, NULL);
-    ylookup = Z_Malloc(video.height * sizeof(*ylookup), PU_RENDERER, NULL);
+    rowofs = Z_Malloc(video.height * sizeof(*rowofs), PU_RENDERER, NULL);
+    xlookup = Z_Malloc(video.width * sizeof(*xlookup), PU_RENDERER, NULL);
     solidcol = Z_Calloc(video.width, sizeof(*solidcol), PU_RENDERER, NULL);
 }
 
@@ -1093,27 +1062,20 @@ void R_InitBuffer(void)
 {
     int i;
 
-    linesize = video.width; // killough 11/98
+    linesize = video.height;
 
     // Handle resize,
     //  e.g. smaller view windows
     //  with border and/or status bar.
 
-    // Column offset. For windows.
-
-    for (i = viewwidth; i--;) // killough 11/98
+    for (i = 0; i < viewheight; i++)
     {
-        columnofs[i] = viewwindowx + i;
+        rowofs[i] = viewwindowy + i;
     }
 
-    // Same with base row offset.
-
-    // Preclaculate all row offsets.
-
-    for (i = viewheight; i--;)
+    for (i = 0; i < viewwidth; i++)
     {
-        ylookup[i] =
-            I_VideoBuffer + (i + viewwindowy) * linesize; // killough 11/98
+        xlookup[i] = I_VideoBuffer + (i + viewwindowx) * linesize;
     }
 
     if (background_buffer != NULL)
@@ -1181,7 +1143,7 @@ void R_FillBackScreen(void)
             Z_Malloc(size * sizeof(*background_buffer), PU_STATIC, NULL);
     }
 
-    V_UseBuffer(background_buffer, video.width);
+    V_UseBuffer(background_buffer, video.height);
 
     V_DrawBackground(gamemode == commercial ? "GRNROCK" : "FLOOR7_2");
 
@@ -1201,7 +1163,7 @@ static void R_VideoErase(int x, int y, int w, int h)
         return;
     }
 
-    V_CopyRect(x, y, background_buffer, w, h, x, y);
+    V_CopyRect(x, y, background_buffer, w, h, video.height, x, y);
 }
 
 //

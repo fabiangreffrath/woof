@@ -1,5 +1,6 @@
 //
 // Copyright(C) 2005-2014 Simon Howard
+// Copyright(C) 2014-2026 Fabian Greffrath
 // Copyright(C) 2025 Guilherme Miranda
 //
 // This program is free software; you can redistribute it and/or
@@ -159,6 +160,20 @@ int DEH_GetCharLump(deh_context_t *context)
     return result;
 }
 
+void DEH_UngetChar(deh_context_t *context, int result)
+{
+    switch (context->type)
+    {
+        case DEH_INPUT_FILE:
+            ungetc(result, context->stream);
+            break;
+
+        case DEH_INPUT_LUMP:
+            context->input_buffer[--context->input_buffer_pos] = result;
+            break;
+    }
+}
+
 // Reads a single character from a dehacked file
 int DEH_GetChar(deh_context_t *context)
 {
@@ -188,17 +203,7 @@ int DEH_GetChar(deh_context_t *context)
         // Handle \r characters not paired with \n
         if (last_was_cr && result != '\n')
         {
-            switch (context->type)
-            {
-                case DEH_INPUT_FILE:
-                    ungetc(result, context->stream);
-                    break;
-
-                case DEH_INPUT_LUMP:
-                    --context->input_buffer_pos;
-                    break;
-            }
-
+            DEH_UngetChar(context, result);
             return '\r';
         }
 

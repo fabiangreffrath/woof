@@ -43,8 +43,8 @@
 
 fixed_t P_AproxDistance(fixed_t dx, fixed_t dy)
 {
-  dx = abs(dx);
-  dy = abs(dy);
+  dx = FixedAbs(dx);
+  dy = FixedAbs(dy);
   if (dx < dy)
     return dx+dy-(dx>>1);
   return dx+dy-(dy>>1);
@@ -60,11 +60,13 @@ int (*P_PointOnLineSide)(fixed_t x, fixed_t y, line_t *line) = P_PointOnLineSide
 
 int P_PointOnLineSide_Classic(fixed_t x, fixed_t y, line_t *line)
 {
+  const fixed_t dx = (fixed_t)((unsigned int)x - (unsigned int)line->v1->x);
+  const fixed_t dy = (fixed_t)((unsigned int)y - (unsigned int)line->v1->y);
   return
     !line->dx ? x <= line->v1->x ? line->dy > 0 : line->dy < 0 :
     !line->dy ? y <= line->v1->y ? line->dx < 0 : line->dx > 0 :
-    FixedMul(y-line->v1->y, line->dx>>FRACBITS) >=
-    FixedMul(line->dy>>FRACBITS, x-line->v1->x);
+    FixedMul(dy, line->dx>>FRACBITS) >=
+    FixedMul(line->dy>>FRACBITS, dx);
 }
 
 int P_PointOnLineSide_Precise(fixed_t x, fixed_t y, line_t *line)
@@ -118,20 +120,24 @@ int (*P_PointOnDivlineSide)(fixed_t x, fixed_t y, divline_t *line) = P_PointOnDi
 
 int P_PointOnDivlineSide_Classic(fixed_t x, fixed_t y, divline_t *line)
 {
+  const fixed_t dx = (fixed_t)((unsigned int)x - (unsigned int)line->x);
+  const fixed_t dy = (fixed_t)((unsigned int)y - (unsigned int)line->y);
   return
     !line->dx ? x <= line->x ? line->dy > 0 : line->dy < 0 :
     !line->dy ? y <= line->y ? line->dx < 0 : line->dx > 0 :
-    (line->dy^line->dx^(x -= line->x)^(y -= line->y)) < 0 ? (line->dy^x) < 0 :
-    FixedMul(y>>8, line->dx>>8) >= FixedMul(line->dy>>8, x>>8);
+    (line->dy^line->dx^dx^dy) < 0 ? (line->dy^dx) < 0 :
+    FixedMul(dy>>8, line->dx>>8) >= FixedMul(line->dy>>8, dx>>8);
 }
 
 int P_PointOnDivlineSide_Precise(fixed_t x, fixed_t y, divline_t *line)
 {
+  const fixed_t dx = (fixed_t)((unsigned int)x - (unsigned int)line->x);
+  const fixed_t dy = (fixed_t)((unsigned int)y - (unsigned int)line->y);
   return
     !line->dx ? x <= line->x ? line->dy > 0 : line->dy < 0 :
     !line->dy ? y <= line->y ? line->dx < 0 : line->dx > 0 :
-    (line->dy^line->dx^(x -= line->x)^(y -= line->y)) < 0 ? (line->dy^x) < 0 :
-    (int64_t) y * line->dx >= (int64_t) x * line->dy;
+    (line->dy^line->dx^dx^dy) < 0 ? (line->dy^dx) < 0 :
+    (int64_t) dy * line->dx >= (int64_t) dx * line->dy;
 }
 
 //
@@ -314,6 +320,11 @@ void P_UnsetThingPosition (mobj_t *thing)
       if (bprev && (*bprev = bnext = thing->bnext))  // unlink from block map
 	bnext->bprev = bprev;
     }
+
+    if (thing->type == MT_TELEPORTMAN)
+    {
+        P_ResetTeleptFromSector(thing->subsector->sector - sectors);
+    }
 }
 
 //
@@ -381,6 +392,11 @@ void P_SetThingPosition(mobj_t *thing)
         }
       else        // thing is off the map
         thing->bnext = NULL, thing->bprev = NULL;
+    }
+
+    if (thing->type == MT_TELEPORTMAN)
+    {
+        P_ResetTeleptFromSector(ss->sector - sectors);
     }
 }
 

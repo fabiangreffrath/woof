@@ -24,6 +24,7 @@
 #include "deh_io.h"
 #include "deh_main.h"
 #include "deh_strings.h"
+#include "dsdh_main.h"
 #include "doomtype.h"
 #include "i_system.h"
 #include "info.h"
@@ -36,6 +37,20 @@ const bex_string_t bex_mnemonic_table[] =
     {"D_DEVSTR",             D_DEVSTR            },
     {"D_CDROM",              D_CDROM             },
     {"QUITMSG",              QUITMSG             },
+    {"QUITMSG1",             QUITMSG1            },
+    {"QUITMSG2",             QUITMSG2            },
+    {"QUITMSG3",             QUITMSG3            },
+    {"QUITMSG4",             QUITMSG4            },
+    {"QUITMSG5",             QUITMSG5            },
+    {"QUITMSG6",             QUITMSG6            },
+    {"QUITMSG7",             QUITMSG7            },
+    {"QUITMSG8",             QUITMSG8            },
+    {"QUITMSG9",             QUITMSG9            },
+    {"QUITMSG10",            QUITMSG10           },
+    {"QUITMSG11",            QUITMSG11           },
+    {"QUITMSG12",            QUITMSG12           },
+    {"QUITMSG13",            QUITMSG13           },
+    {"QUITMSG14",            QUITMSG14           },
     {"LOADNET",              LOADNET             },
     {"QLOADNET",             QLOADNET            },
     {"QSAVESPOT",            QSAVESPOT           },
@@ -504,6 +519,7 @@ static boolean HandleExtendedObituary(char *mnemonic, char *string)
     {
         if (actor >= 0 && actor < num_mobj_types)
         {
+            actor = DSDH_ThingTranslate(actor);
             if (M_StringEndsWith(mnemonic, "_Melee"))
             {
                 if (!mobjinfo[actor].obituary_melee)

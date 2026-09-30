@@ -45,7 +45,7 @@
 #include "sounds.h"
 #include "st_stuff.h"
 #include "tables.h"
-#include "v_video.h"
+#include "v_trans.h"
 #include "z_zone.h"
 
 boolean direct_vertical_aiming, default_direct_vertical_aiming;
@@ -81,67 +81,79 @@ void P_SetActualHeight(mobj_t *mobj)
 // Returns true if the mobj is still present.
 //
 
-boolean P_SetMobjState(mobj_t* mobj,statenum_t state)
+boolean P_SetMobjState(mobj_t *mobj, statenum_t state)
 {
-  state_t*  st;
+    state_t *st;
 
-  // killough 4/9/98: remember states seen, to detect cycles:
+    // killough 4/9/98: remember states seen, to detect cycles:
 
-  // fast transition table
-  statenum_t *seenstate = seenstate_tab;      // pointer to table
-  static int recursion;                       // detects recursion
-  statenum_t i = state;                       // initial state
-  boolean ret = true;                         // return value
-  statenum_t* tempstate = NULL;               // for use with recursion
+    // fast transition table
+    statenum_t *seenstate = seenstate_tab; // pointer to table
+    static int recursion;                  // detects recursion
+    statenum_t i = state;                  // initial state
+    boolean ret = true;                    // return value
+    statenum_t *tempstate = NULL;          // for use with recursion
 
-  if (recursion++)                            // if recursion detected,
-    seenstate = tempstate = Z_Calloc(num_states, sizeof(statenum_t), PU_STATIC, 0); // allocate state table
-
-  do
+    if (recursion++) // if recursion detected,
     {
-      if (state == S_NULL)
-	{
-	  mobj->state = (state_t *) S_NULL;
-	  P_RemoveMobj (mobj);
-	  ret = false;
-	  break;                 // killough 4/9/98
-	}
+        seenstate = tempstate = Z_Calloc(num_states, sizeof(statenum_t),
+                                         PU_STATIC, 0); // allocate state table
+    }
 
-      st = &states[state];
-      mobj->state = st;
-      mobj->tics = st->tics;
-      mobj->sprite = st->sprite;
-      mobj->frame = st->frame;
+    do
+    {
+        if (state == S_NULL)
+        {
+            mobj->state = (state_t *)S_NULL;
+            P_RemoveMobj(mobj);
+            ret = false;
+            break; // killough 4/9/98
+        }
 
-      // Modified handling.
-      // Call action functions when the state is set
+        st = &states[state];
+        mobj->state = st;
+        mobj->tics = st->tics;
+        mobj->sprite = st->sprite;
+        mobj->frame = st->frame;
 
-      if (st->action.p1)
-	st->action.p1(mobj);
+        // Modified handling.
+        // Call action functions when the state is set
 
-      seenstate[state] = 1 + st->nextstate;   // killough 4/9/98
+        if (st->action.p3)
+        {
+            st->action.p3(mobj, NULL, NULL);
+        }
 
-      state = st->nextstate;
-    } 
-  while (!mobj->tics && !seenstate[state]);   // killough 4/9/98
+        seenstate[state] = 1 + st->nextstate; // killough 4/9/98
 
-  if (ret && !mobj->tics)  // killough 4/9/98: detect state cycles
-    displaymsg("Warning: State Cycle Detected");
+        state = st->nextstate;
+    } while (!mobj->tics && !seenstate[state]); // killough 4/9/98
 
-  if (!--recursion)
-    for (;(state=seenstate[i]);i=state-1)
-      seenstate[i] = 0;  // killough 4/9/98: erase memory of states
+    if (ret && !mobj->tics) // killough 4/9/98: detect state cycles
+    {
+        displaymsg("Warning: State Cycle Detected");
+    }
 
-  if (tempstate)
-    Z_Free(tempstate);
+    if (!--recursion)
+    {
+        for (; (state = seenstate[i]); i = state - 1)
+        {
+            seenstate[i] = 0; // killough 4/9/98: erase memory of states
+        }
+    }
 
-  // [FG] update object's actual height
-  if (ret)
-  {
-    P_SetActualHeight(mobj);
-  }
+    if (tempstate)
+    {
+        Z_Free(tempstate);
+    }
 
-  return ret;
+    // [FG] update object's actual height
+    if (ret)
+    {
+        P_SetActualHeight(mobj);
+    }
+
+    return ret;
 }
 
 //
@@ -1770,21 +1782,36 @@ mobj_t* P_SpawnPlayerMissile(mobj_t* source,mobjtype_t type)
     {
       // killough 8/2/98: prefer autoaiming at enemies
       int mask = demo_version < DV_MBF ? 0 : MF_FRIEND;
+
       if (direct_vertical_aiming)
       {
         slope = source->player->slope;
+
+        // [Alaux] Even though we're aiming directly,
+        // we still need to set a linetarget,
+        // because it might be used for MBF21 homing projectiles
+
+        mask |= CROSSHAIR_AIM; // Prefer target aimed at by the player
+
+        P_AimLineAttack(source, an, 16*64*FRACUNIT, mask);
+
+        if (!linetarget && mask & MF_FRIEND)
+        {
+          mask &= ~MF_FRIEND;
+          P_AimLineAttack(source, an, 16*64*FRACUNIT, mask);
+        }
       }
       else
       do
-	{
-	  slope = P_AimLineAttack(source, an, 16*64*FRACUNIT, mask);
-	  if (!linetarget)
-	    slope = P_AimLineAttack(source, an += 1<<26, 16*64*FRACUNIT, mask);
-	  if (!linetarget)
-	    slope = P_AimLineAttack(source, an -= 2<<26, 16*64*FRACUNIT, mask);
-	  if (!linetarget)
-	    an = source->angle, slope = 0;
-	}
+      {
+        slope = P_AimLineAttack(source, an, 16*64*FRACUNIT, mask);
+        if (!linetarget)
+          slope = P_AimLineAttack(source, an += 1<<26, 16*64*FRACUNIT, mask);
+        if (!linetarget)
+          slope = P_AimLineAttack(source, an -= 2<<26, 16*64*FRACUNIT, mask);
+        if (!linetarget)
+          an = source->angle, slope = 0;
+      }
       while (mask && (mask=0, !linetarget));  // killough 8/2/98
     }
 

@@ -229,13 +229,6 @@ static int set_item_on; // which setup item is selected?   // phares 3/98
 static setup_menu_t *current_menu; // points to current setup menu table
 static int current_page;           // the index of the current screen in a set
 
-typedef struct
-{
-    const char *text;
-    mrect_t rect;
-    int flags;
-} setup_tab_t;
-
 static setup_tab_t *current_tabs;
 static int highlight_tab;
 
@@ -396,7 +389,8 @@ enum
     str_palette_changes,
     str_invul_mode,
     str_skill,
-    str_freelook
+    str_freelook,
+    str_sky_projection,
 };
 
 static const char **GetStrings(int id);
@@ -524,7 +518,17 @@ static void BlinkingArrowRight(setup_menu_t *s)
 #define M_TAB_Y      22
 #define M_TAB_OFFSET 8
 
-static void DrawTabs(void)
+void MN_SetCurrentPage(int page)
+{
+    current_page = page;
+}
+
+void MN_SetCurrentTabs(setup_tab_t *tab)
+{
+    current_tabs = tab;
+}
+
+void MN_DrawTabs(void)
 {
     setup_tab_t *tabs = current_tabs;
 
@@ -564,7 +568,7 @@ static void DrawTabs(void)
         {
             DrawMenuStringEx(tabs[i].flags, x, rect->y, CR_TITLE);
             V_FillRect(x + video.deltaw, rect->y + M_SPC, rect->w, 1,
-                       colrngs[CR_TITLE][cr_shaded[v_lightest_color]]);
+                       xlat[CR_TITLE].table[cr_shaded[playpal_global->white]]);
         }
         else
         {
@@ -695,10 +699,10 @@ static void DrawIndicator_Meter(const setup_menu_t *s, int x, int y, int width)
 
         if (scale > 0.0f)
         {
-            const byte shade = cr_shaded[v_lightest_color];
-            const byte color = scale < limit    ? cr_green[shade]
-                               : scale >= 0.99f ? cr_red[shade]
-                                                : cr_gold[shade];
+            const byte shade = cr_shaded[playpal_global->white];
+            const byte color = scale < limit    ? xlat[CR_GREEN].table[shade]
+                               : scale >= 0.99f ? xlat[CR_RED].table[shade]
+                                                : xlat[CR_GOLD].table[shade];
             V_FillRect(x, y, lroundf(width * scale), 1, color);
         }
     }
@@ -1043,7 +1047,7 @@ static void DrawSetting(setup_menu_t *s, int accum_y)
         }
         else if (flags & S_HILITE)
         {
-            cr = cr_bright;
+            cr = xlat[CR_BRIGHT].table;
         }
         else
         {
@@ -1194,7 +1198,7 @@ static void DrawGyroCalibration(void)
             I_UpdateGyroCalibrationState();
             if (I_GetGyroCalibrationState() == GYRO_CALIBRATION_ACTIVE)
             {
-                M_StartSound(sfx_pstop);
+                M_StartSound(sfx_mnumov);
             }
             break;
 
@@ -1203,7 +1207,7 @@ static void DrawGyroCalibration(void)
             I_UpdateGyroCalibrationState();
             if (I_GetGyroCalibrationState() == GYRO_CALIBRATION_COMPLETE)
             {
-                M_StartSound(sfx_pstop);
+                M_StartSound(sfx_mnumov);
             }
             break;
 
@@ -1212,7 +1216,7 @@ static void DrawGyroCalibration(void)
             I_UpdateGyroCalibrationState();
             if (I_GetGyroCalibrationState() == GYRO_CALIBRATION_INACTIVE)
             {
-                M_StartSound(sfx_swtchx);
+                M_StartSound(sfx_mnucls);
                 block_input = false;
             }
             break;
@@ -1581,7 +1585,7 @@ void MN_DrawKeybnd(void)
 
     DrawBackground("FLOOR4_6"); // Draw background
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_KEYBND", "Key Bindings");
-    DrawTabs();
+    MN_DrawTabs();
     DrawInstructions();
     DrawScreenItems(current_menu);
 
@@ -1845,7 +1849,7 @@ void MN_DrawWeapons(void)
 {
     DrawBackground("FLOOR4_6"); // Draw background
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_WEAP", "Weapons");
-    DrawTabs();
+    MN_DrawTabs();
     DrawInstructions();
     DrawScreenItems(current_menu);
 
@@ -1884,26 +1888,26 @@ static const char *hud_anchoring_strings[] = {
     "Wide", "4:3", "16:9", "21:9"
 };
 
-#define H_X_THRM8 (M_X_THRM8 - 14)
-#define H_X       (M_X - 14)
+#define ST_X_THRM4 (M_X_THRM4 - 48)
+#define ST_X       (M_X - 48)
 
 static setup_menu_t stat_settings1[] = {
 
-    {"HUD Layout", S_THERMO, H_X_THRM8, M_THRM_SPC, {"screenblocks"},
+    {"HUD Layout", S_THERMO | S_THRM_SIZE4, ST_X_THRM4, M_THRM_SPC, {"screenblocks"},
      .strings_id = str_screensize, .action = SizeDisplayAlt},
 
     MI_GAP,
 
-    {"HUD Anchoring", S_CHOICE, H_X, M_SPC, {"hud_anchoring"},
+    {"HUD Anchoring", S_CHOICE, ST_X, M_SPC, {"hud_anchoring"},
      .strings_id = str_hud_anchoring, .action = I_UpdateHudAnchoring},
 
     MI_GAP,
 
-    {"Status Bar", S_SKIP | S_TITLE, H_X, M_SPC},
+    {"Status Bar", S_SKIP | S_TITLE, ST_X, M_SPC},
 
-    {"Colored Numbers", S_ONOFF | S_COSMETIC, H_X, M_SPC, {"sts_colored_numbers"}},
+    {"Colored Numbers", S_ONOFF | S_COSMETIC, ST_X, M_SPC, {"sts_colored_numbers"}},
 
-    {"Solid Background Color", S_ONOFF, H_X, M_SPC, {"st_solidbackground"},
+    {"Solid Background", S_ONOFF, ST_X, M_SPC, {"st_solidbackground"},
      .action = RefreshSolidBackground},
 
     MI_RESET,
@@ -1925,6 +1929,8 @@ static const char *show_adv_widgets_strings[] = {"Off", "Automap", "HUD",
 static const char *stats_format_strings[] = {
   "Ratio", "Boolean", "Percent", "Remaining", "Count"
 };
+
+#define H_X       (M_X - 14)
 
 static setup_menu_t stat_settings2[] = {
 
@@ -2047,7 +2053,7 @@ void MN_DrawStatusHUD(void)
 {
     DrawBackground("FLOOR4_6"); // Draw background
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_STAT", "Status Bar/HUD");
-    DrawTabs();
+    MN_DrawTabs();
     DrawInstructions();
     DrawScreenItems(current_menu);
 
@@ -2059,7 +2065,7 @@ void MN_DrawStatusHUD(void)
         int x = XH_X + 85 - SHORT(patch->width) / 2;
         int y = M_Y + M_SPC / 2 - SHORT(patch->height) / 2 - 1;
 
-        V_DrawPatchTranslated(x, y, patch, colrngs[hud_crosshair_color]);
+        V_DrawPatchTranslated(x, y, patch, xlat[hud_crosshair_color].table);
     }
 
     // If the Reset Button has been selected, an "Are you sure?" message
@@ -2448,11 +2454,6 @@ const char *gamma_strings[] = {
     "0.5", "1", "1.5", "2", "2.5", "3", "3.5", "4"
 };
 
-void MN_ResetGamma(void)
-{
-    I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
-}
-
 static setup_menu_t gen_settings1[] = {
 
     {"Resolution Scale", S_THERMO | S_THRM_SIZE11 | S_ACTION, CNTR_X,
@@ -2485,7 +2486,7 @@ static setup_menu_t gen_settings1[] = {
      .action = UpdateFOV},
 
     {"Gamma Correction", S_THERMO, CNTR_X, M_THRM_SPC, {"gamma2"},
-     .strings_id = str_gamma, .action = MN_ResetGamma},
+     .strings_id = str_gamma},
 
     {"Extra Lighting", S_THERMO | S_STRICT, CNTR_X,
      M_THRM_SPC, {"extra_level_brightness"}},
@@ -2663,7 +2664,7 @@ void MN_DrawSfx(void)
 {
     DrawBackground("FLOOR4_6");
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
-    DrawTabs();
+    MN_DrawTabs();
     DrawInstructions();
     DrawScreenItems(current_menu);
 }
@@ -2738,7 +2739,7 @@ void MN_DrawMidi(void)
 {
     DrawBackground("FLOOR4_6");
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
-    DrawTabs();
+    MN_DrawTabs();
     DrawInstructions();
     DrawScreenItems(current_menu);
 }
@@ -2825,7 +2826,7 @@ void MN_DrawEqualizer(void)
 {
     DrawBackground("FLOOR4_6");
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
-    DrawTabs();
+    MN_DrawTabs();
     DrawInstructions();
     DrawScreenItems(current_menu);
 }
@@ -3123,7 +3124,7 @@ void MN_DrawPadAdv(void)
 {
     DrawBackground("FLOOR4_6");
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
-    DrawTabs();
+    MN_DrawTabs();
     DrawInstructions();
     DrawScreenItems(current_menu);
 }
@@ -3310,7 +3311,7 @@ void MN_DrawGyro(void)
 {
     DrawBackground("FLOOR4_6");
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
-    DrawTabs();
+    MN_DrawTabs();
     DrawInstructions();
 
     if (I_UseGamepad() && I_GyroEnabled())
@@ -3328,6 +3329,11 @@ void MN_DrawGyro(void)
 
 static const char *fuzzmode_strings[] = {
     "Blocky", "Refraction", "Shadow", "Original"
+};
+
+// [Nugget] Sky projection
+static const char *sky_projection_strings[] = {
+  "Vanilla", "Linear", "Cylindrical"
 };
 
 static setup_menu_t gen_settings5[] = {
@@ -3350,8 +3356,8 @@ static setup_menu_t gen_settings5[] = {
     {"Stretch Short Skies", S_ONOFF, OFF_CNTR_X, M_SPC, {"stretchsky"},
      .action = R_UpdateStretchSkies},
 
-    {"Linear Sky Scrolling", S_ONOFF, OFF_CNTR_X, M_SPC, {"linearsky"},
-     .action = R_InitPlanes},
+    {"Sky Projection", S_CHOICE, OFF_CNTR_X, M_SPC, {"sky_projection"},
+     .action = R_InitPlanes, .strings_id = str_sky_projection},
 
     {"Swirling Flats", S_ONOFF, OFF_CNTR_X, M_SPC, {"r_swirl"}},
 
@@ -3389,8 +3395,7 @@ static setup_menu_t gen_settings6[] = {
     {"On death action", S_CHOICE, OFF_CNTR_X, M_SPC, {"death_use_action"},
      .strings_id = str_death_use_action},
 
-    {"Auto save", S_ONOFF, OFF_CNTR_X, M_SPC, {"autosave"},
-     .action = M_ResetAutoSave},
+    {"Auto save", S_ONOFF, OFF_CNTR_X, M_SPC, {"autosave"}},
 
     {"Organize save files", S_ONOFF | S_PRGWARN, OFF_CNTR_X, M_SPC,
      {"organize_savefiles"}, .action = D_SetSavegameDirectory},
@@ -3480,7 +3485,7 @@ void MN_DrawGeneral(void)
 {
     DrawBackground("FLOOR4_6"); // Draw background
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
-    DrawTabs();
+    MN_DrawTabs();
     DrawInstructions();
 
     if (I_UseGamepad() && current_menu == gen_settings4 && I_UseStickLayout())
@@ -3514,13 +3519,22 @@ static struct
     boolean pistolstart;
     boolean halfplayerdamage;
     boolean doubleammo;
-    boolean aggromonsters;    
+    boolean aggromonsters;
+    int helperdogs;
 } csmenu;
 
 const char *skill_strings[] = {
     "I'm too young to die", "Hey, not too rough", "Hurt me plenty",
     "Ultra-Violence", "NIGHTMARE!",
 };
+
+static void CsBarkSound(void)
+{
+    if (csmenu.helperdogs)
+    {
+        M_StartSound(sfx_dgact);
+    }
+}
 
 static void SelectSkillLevel(void);
 
@@ -3534,6 +3548,7 @@ static void StartGame(void)
     cshalfplayerdamage = csmenu.halfplayerdamage;
     csdoubleammo = csmenu.doubleammo;
     csaggromonsters = csmenu.aggromonsters;
+    cshelperdogs = csmenu.helperdogs;
 
     M_ChooseSkill(csmenu_skill);
     setup_active = false;
@@ -3541,8 +3556,11 @@ static void StartGame(void)
 
 static setup_menu_t customskill_settings1[] = {
     MI_GAP_Y(10),
-    {"Skill level", S_CHOICE, CNTR_X, M_SPC, {"csmenu_skill"},
-     .strings_id = str_skill, .action = SelectSkillLevel},
+    {"Skill level",
+          S_CHOICE, CNTR_X,
+          M_SPC, {"csmenu_skill"},
+          .strings_id = str_skill,
+          .action = SelectSkillLevel},
     {"Half damage", S_ONOFF, CNTR_X, M_SPC, {"csmenu.halfplayerdamage"}},
     {"Double ammo", S_ONOFF, CNTR_X, M_SPC, {"csmenu.doubleammo"}},
     {"Fast monsters", S_ONOFF, CNTR_X, M_SPC, {"csmenu.fastparm"}},
@@ -3552,6 +3570,11 @@ static setup_menu_t customskill_settings1[] = {
     {"No monsters", S_ONOFF, CNTR_X, M_SPC, {"csmenu.nomonsters"}},
     {"Co-op spawns", S_ONOFF, CNTR_X, M_SPC, {"csmenu.coopspawns"}},
     {"Pistol start", S_ONOFF, CNTR_X, M_SPC, {"csmenu.pistolstart"}},
+    {"Helper dogs",
+          S_MBF | S_THERMO | S_THRM_SIZE4 | S_ACTION,
+          CNTR_X, M_THRM_SPC,
+          {"csmenu.helperdogs"},
+          .action = CsBarkSound},
     MI_GAP,
     {"Start Game", S_CENTER, 0, M_SPC, .action = StartGame},
     MI_END
@@ -3623,7 +3646,7 @@ static void SelectDone(setup_menu_t *ptr)
 {
     ptr->m_flags &= ~S_SELECT;
     ptr->m_flags |= S_HILITE;
-    M_StartSound(sfx_itemup);
+    M_StartSound(sfx_mnusel);
     setup_select = false;
     if (print_warning_about_changes) // killough 8/15/98
     {
@@ -3882,7 +3905,7 @@ void MN_DrawStringCR(int cx, int cy, byte *cr1, byte *cr2, const char *ch)
             c = *ch++;
             if (c >= '0' && c <= '0' + CR_NONE)
             {
-                cr = colrngs[c - '0'];
+                cr = xlat[c - '0'].table;
             }
             else if (c == '0' + CR_ORIG)
             {
@@ -3899,7 +3922,7 @@ void MN_DrawStringCR(int cx, int cy, byte *cr1, byte *cr2, const char *ch)
         }
 
         w = SHORT(hu_font[c]->width);
-        if (cx + w > SCREENWIDTH)
+        if (cx + w > SCREENWIDTH + video.deltaw)
         {
             break;
         }
@@ -3928,7 +3951,7 @@ void MN_DrawStringCR(int cx, int cy, byte *cr1, byte *cr2, const char *ch)
 
 void MN_DrawString(int cx, int cy, int color, const char *ch)
 {
-    MN_DrawStringCR(cx, cy, colrngs[color], NULL, ch);
+    MN_DrawStringCR(cx, cy, xlat[color].table, NULL, ch);
 }
 
 static void DrawMenuString(int cx, int cy, int color)
@@ -3947,11 +3970,11 @@ static void DrawMenuStringBuffer(int flags, int x, int y, int color,
     {
         if (color == CR_NONE)
         {
-            MN_DrawStringCR(x, y, cr_bright, NULL, buffer);
+            MN_DrawStringCR(x, y, xlat[CR_BRIGHT].table, NULL, buffer);
         }
         else
         {
-            MN_DrawStringCR(x, y, colrngs[color], cr_bright, buffer);
+            MN_DrawStringCR(x, y, xlat[color].table, xlat[CR_BRIGHT].table, buffer);
         }
     }
     else
@@ -4000,18 +4023,8 @@ int MN_GetPixelWidth(const char *ch)
     return len;
 }
 
-boolean MN_SetupCursorPostion(int x, int y)
+void MN_HighlightTab(int x, int y)
 {
-    if (!setup_active || setup_select)
-    {
-        return false;
-    }
-
-    if (block_input)
-    {
-        return true;
-    }
-
     if (current_tabs)
     {
         for (int i = 0; current_tabs[i].text; ++i)
@@ -4027,11 +4040,26 @@ boolean MN_SetupCursorPostion(int x, int y)
                 if (highlight_tab != i)
                 {
                     highlight_tab = i;
-                    M_StartSound(sfx_itemup);
+                    M_StartSound(sfx_mnusel);
                 }
             }
         }
     }
+}
+
+boolean MN_SetupCursorPostion(int x, int y)
+{
+    if (!setup_active || setup_select)
+    {
+        return false;
+    }
+
+    if (block_input)
+    {
+        return true;
+    }
+
+    MN_HighlightTab(x, y);
 
     for (int i = 0; !(current_menu[i].m_flags & S_END); i++)
     {
@@ -4061,7 +4089,7 @@ boolean MN_SetupCursorPostion(int x, int y)
             {
                 print_warning_about_changes = false;
                 highlight_item = i;
-                M_StartSound(sfx_itemup);
+                M_StartSound(sfx_mnusel);
             }
         }
     }
@@ -4122,7 +4150,7 @@ static void Choice(menu_action_t action)
 
         if (*def->location.i != value)
         {
-            M_StartSound(sfx_stnmov);
+            M_StartSound(sfx_mnusli);
         }
         *def->location.i = value;
 
@@ -4153,7 +4181,7 @@ static void Choice(menu_action_t action)
 
         if (*def->location.i != value)
         {
-            M_StartSound(sfx_stnmov);
+            M_StartSound(sfx_mnusli);
         }
         *def->location.i = value;
 
@@ -4421,7 +4449,7 @@ static boolean NextPage(int inc)
         current_menu[set_item_on].m_flags |= S_HILITE;
     }
 
-    M_StartSound(sfx_pstop); // killough 10/98
+    M_StartSound(sfx_mnumov); // killough 10/98
     return true;
 }
 
@@ -4458,7 +4486,7 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
     {
         if (ItemDisabled(current_item->m_flags))
         {
-            M_StartSound(sfx_oof);
+            M_StartSound(sfx_mnuerr);
             return true;
         }
         else if (current_item->action)
@@ -4466,7 +4494,7 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
             current_item->action();
         }
 
-        M_StartSound(sfx_pistol);
+        M_StartSound(sfx_mnuact);
         return true;
     }
 
@@ -4625,7 +4653,7 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
 
         if (ItemDisabled(flags))
         {
-            M_StartSound(sfx_oof);
+            M_StartSound(sfx_mnuerr);
             return true;
         }
         else if (flags & S_NUM)
@@ -4641,7 +4669,7 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
 
         current_item->m_flags |= S_SELECT;
         setup_select = true;
-        M_StartSound(sfx_itemup);
+        M_StartSound(sfx_mnusel);
         return true;
     }
 
@@ -4683,7 +4711,7 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
         default_verify = false;              // phares 4/19/98
         print_warning_about_changes = false; // [FG] reset
         active_thermo = NULL;
-        M_StartSound(sfx_swtchx);
+        M_StartSound(sfx_mnucls);
         return true;
     }
 
@@ -4728,7 +4756,27 @@ static boolean SetupTab(void)
         ;
     set_item_on--;
 
-    M_StartSound(sfx_pstop);
+    M_StartSound(sfx_mnumov);
+    return true;
+}
+
+boolean SetupLoadSaveTab(int *page)
+{
+    if (!current_tabs)
+    {
+        return false;
+    }
+
+    setup_tab_t *tab = current_tabs + highlight_tab;
+
+    if (!(M_InputActivated(input_menu_enter) && tab->flags & S_HILITE))
+    {
+        return false;
+    }
+
+    *page = highlight_tab;
+
+    M_StartSound(sfx_mnumov);
     return true;
 }
 
@@ -4844,7 +4892,7 @@ boolean MN_SetupMouseResponder(int x, int y)
             {
                 active_thermo->action();
             }
-            M_StartSound(sfx_stnmov);
+            M_StartSound(sfx_mnusli);
         }
         return true;
     }
@@ -4857,7 +4905,7 @@ boolean MN_SetupMouseResponder(int x, int y)
     if (flags & S_ONOFF) // yes or no setting?
     {
         OnOff();
-        M_StartSound(sfx_itemup);
+        M_StartSound(sfx_mnusel);
         return true;
     }
 
@@ -4877,7 +4925,7 @@ boolean MN_SetupMouseResponder(int x, int y)
 
         if (*def->location.i != value)
         {
-            M_StartSound(sfx_stnmov);
+            M_StartSound(sfx_mnusli);
         }
         *def->location.i = value;
 
@@ -5041,6 +5089,7 @@ static const char **selectstrings[] = {
     [str_invul_mode] = invul_mode_strings,
     [str_skill] = skill_strings,
     [str_freelook] = free_look_strings,
+    [str_sky_projection] = sky_projection_strings,
 };
 
 static const char **GetStrings(int id)
@@ -5158,5 +5207,6 @@ void MN_BindMenuVariables(void)
     BIND_BOOL_MENU(csmenu.doubleammo);
     BIND_BOOL_MENU(csmenu.halfplayerdamage);
     BIND_BOOL_MENU(csmenu.aggromonsters);
+    BIND_NUM_MENU(csmenu.helperdogs, 0, 3);
     BIND_NUM_MENU(freelook_mode, FREELOOK_OFF, FREELOOK_DIRECT_AIM);
 }

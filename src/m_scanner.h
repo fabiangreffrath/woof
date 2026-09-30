@@ -77,6 +77,7 @@ void SC_MustGetStringOrIdent(scanner_t *s);
 boolean SC_GetNextRawString(scanner_t *s, boolean expandstate);
 boolean SC_CheckRawToken(scanner_t *s, char token);
 
+void SC_Warning(scanner_t *s, const char *msg, ...) PRINTF_ATTR(2, 3);
 NORETURN void SC_Error(scanner_t *s, const char *msg, ...) PRINTF_ATTR(2, 3);
 
 int SC_CheckKeywordInternal(scanner_t *s, const char *keywords[], int count);
