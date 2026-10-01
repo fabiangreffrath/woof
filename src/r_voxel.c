@@ -658,15 +658,17 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 
 	if (vis->mobjflags & MF_SHADOW)
 	{
-		vis->colormap[0] = vis->colormap[1] = NULL;
+		vis->colormap[0] = NULL;
 	}
 	else if (fixedcolormapoffset)
 	{
-		vis->colormap[0] = vis->colormap[1] = thiscolormap + fixedcolormapoffset;
+		vis->colormap[0] = thiscolormap + fixedcolormapoffset;
+		vis->brightmap = nobrightmap;
 	}
 	else if (thing->frame & FF_FULLBRIGHT)
 	{
-		vis->colormap[0] = vis->colormap[1] = thiscolormap;
+		vis->colormap[0] = thiscolormap;
+		vis->brightmap = nobrightmap;
 	}
 	else
 	{
@@ -684,13 +686,14 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 
 		vis->colormap[0] = thiscolormap + spritelightoffsets[index];
 		vis->colormap[1] = thiscolormap;
+
+		vis->brightmap = R_BrightmapForSprite(thing->sprite);
 	}
 
 	// ID24 per-state tranmap
 	// tranmaps do not work with Voxels yet
 	vis->tranmap = NULL;
 
-	vis->brightmap = R_BrightmapForSprite(thing->sprite);
 	vis->color = thing->bloodcolor;
 
 	// [Alaux] Lock crosshair on target
@@ -815,6 +818,9 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 	int linesize = video.height;
 	pixel_t * dest = I_VideoBuffer + (viewwindowx * linesize) + viewwindowy;
 
+	const lighttable_t *const colormap =
+		R_GetBrightmappedColormap(spr->colormap[0], spr->colormap[1], spr->brightmap);
+
 	// iterate over screen columns
 	fixed_t ux = ((Ax - 1) | FRACMASK) + 1;
 
@@ -905,7 +911,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 					uy = clip_y1;
 
 				byte src = slab[0];
-				byte pix = spr->colormap[spr->brightmap[src]][src];
+				byte pix = colormap[src];
 
 				for (; uy < uy1 ; uy += FRACUNIT)
 				{
@@ -920,7 +926,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 					uy = clip_y2;
 
 				byte src = slab[len - 1];
-				byte pix = spr->colormap[spr->brightmap[src]][src];
+				byte pix = colormap[src];
 
 				for (; uy > uy2 ; uy -= FRACUNIT)
 				{
@@ -940,7 +946,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 					if (i >= len) i = len - 1;
 
 					byte src = slab[i];
-					byte pix = spr->colormap[spr->brightmap[src]][src];
+					byte pix = colormap[src];
 
 					dest[(ux >> FRACBITS) * linesize + (uy >> FRACBITS)] = pix;
 				}

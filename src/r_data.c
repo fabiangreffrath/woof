@@ -124,7 +124,11 @@ byte      **texturecomposite2;
 int       *flattranslation;             // for global animation
 int       *flatterrain;
 int       *texturetranslation;
-const byte **texturebrightmap; // [crispy] brightmaps
+
+// [crispy] brightmaps
+const byte **texturebrightmap,
+           **actualtexturebrightmap,
+           **notexturebrightmap;
 
 // Really complex printing shit...
 static void M_ProgressBarStart(const int item_count, const char *msg)
@@ -561,6 +565,11 @@ byte *R_GetColumnMasked(int tex, int col)
   return texturecomposite[tex] + ofs;
 }
 
+void R_ToggleTextureBrightmaps(void)
+{
+  texturebrightmap = use_brightmaps ? actualtexturebrightmap : notexturebrightmap;
+}
+
 //
 // R_InitTextures
 // Initializes the texture list
@@ -570,7 +579,8 @@ byte *R_GetColumnMasked(int tex, int col)
 static inline void RegisterTexture(texture_t *texture, int i)
 {
     // [crispy] initialize brightmaps
-    texturebrightmap[i] = R_BrightmapForTexName(texture->name);
+    actualtexturebrightmap[i] = R_BrightmapForTexName(texture->name);
+    notexturebrightmap[i] = nobrightmap;
 
     // killough 4/9/98: make column offsets 32-bit;
     // clean up malloc-ing to use sizeof
@@ -716,7 +726,12 @@ void R_InitTextures (void)
   texturewidth =
     Z_Malloc(numtextures*sizeof*texturewidth, PU_STATIC, 0);
   textureheight = Z_Malloc(numtextures*sizeof*textureheight, PU_STATIC, 0);
-  texturebrightmap = Z_Malloc (numtextures * sizeof(*texturebrightmap), PU_STATIC, 0);
+
+  actualtexturebrightmap =
+    Z_Malloc (numtextures * sizeof(*actualtexturebrightmap), PU_STATIC, 0);
+
+  notexturebrightmap =
+    Z_Malloc (numtextures * sizeof(*notexturebrightmap), PU_STATIC, 0);
 
   // Complex printing shit factored out
   M_ProgressBarStart(numtextures, __func__);
@@ -850,6 +865,8 @@ void R_InitTextures (void)
       textures[i]->next = textures[j]->index;   // Prepend to chain
       textures[j]->index = i;
     }
+
+  R_ToggleTextureBrightmaps();
 }
 
 //
@@ -954,16 +971,29 @@ void R_InvulMode(void)
 
 void R_InitColormaps(void)
 {
-  int i;
   firstcolormaplump = W_GetNumForName("C_START");
   lastcolormaplump  = W_GetNumForName("C_END");
   numcolormaps = lastcolormaplump - firstcolormaplump;
+
   colormaps = Z_Malloc(sizeof(*colormaps) * numcolormaps, PU_STATIC, 0);
 
-  colormaps[0] = W_CacheLumpNum(W_GetNumForName("COLORMAP"), PU_STATIC);
+  byte *const all_colormaps =
+    Z_Malloc(sizeof(**colormaps) * numcolormaps * COLORMAP_SIZE, PU_STATIC, 0);
 
-  for (i=1; i<numcolormaps; i++)
-    colormaps[i] = W_CacheLumpNum(i+firstcolormaplump, PU_STATIC);
+  for (int i = 0; i < numcolormaps; i++)
+  {
+    colormaps[i] = all_colormaps + COLORMAP_SIZE * i;
+
+    const int lump_num = i ? firstcolormaplump + i : W_GetNumForName("COLORMAP");
+
+    const int lump_size = W_LumpLength(lump_num);
+    const int copied_size = MIN(lump_size, COLORMAP_SIZE);
+
+    W_ReadLumpSize(lump_num, colormaps[i], copied_size);
+
+    // If the colormap were undersized, the old code would probably read garbage data;
+    // we roughly emulate this by not initializing the remainder, if any
+  }
 
   // [FG] dark/shaded color translation table
   cr_dark = &colormaps[0][PLAYPAL_SIZE * 15];

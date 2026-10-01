@@ -23,7 +23,7 @@
 #include "doomtype.h"
 #include "m_fixed.h"
 
-extern const lighttable_t *dc_colormap[2];
+extern const lighttable_t *dc_colormap;
 extern int      dc_x;
 extern int      dc_yl;
 extern int      dc_yh;
@@ -33,8 +33,7 @@ extern int      dc_texheight;    // killough
 extern byte     dc_skycolor;
 
 // first pixel in a column
-extern byte     *dc_source;         
-extern const byte *dc_brightmap;
+extern byte     *dc_source;
 
 // The span blitting interface.
 // Hook in assembler or system specific BLT here.
@@ -68,7 +67,7 @@ void R_DrawSkyColumnMasked(void);
 void R_DrawTranslatedColumn(void);
 void R_DrawTRTLColumn(void);
 
-extern const lighttable_t *ds_colormap[2];
+extern const lighttable_t *ds_colormap;
 
 extern int     ds_y;
 extern int     ds_x1;
@@ -79,10 +78,9 @@ extern uint32_t ds_xstep;
 extern uint32_t ds_ystep;
 
 // start of a 64*64 tile image
-extern byte *ds_source;              
+extern byte *ds_source;
 extern byte *translationtables;
 extern byte *dc_translation;
-extern const byte *ds_brightmap;
 
 // Span blitting for rows, floor/ceiling. No Spectre effect needed.
 void R_DrawSpan(void);
