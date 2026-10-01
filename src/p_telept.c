@@ -52,7 +52,7 @@ static struct
     boolean checked;
 } *sectors_telept;
 
-static void InitTeleporttFromSector(void)
+static void InitTeleportFromSector(void)
 {
     if (sectors_telept == NULL)
     {
@@ -65,7 +65,7 @@ void P_ResetTeleptFromSector(int i)
 {
     if (sectors_telept == NULL)
     {
-        InitTeleporttFromSector();
+        InitTeleportFromSector();
     }
 
     sectors_telept[i].checked = false;
@@ -75,7 +75,7 @@ static mobj_t *TeleportFromSector(int i)
 {
     if (sectors_telept == NULL)
     {
-        InitTeleporttFromSector();
+        InitTeleportFromSector();
     }
 
     if (sectors_telept[i].checked)
