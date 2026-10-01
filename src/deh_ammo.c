@@ -51,7 +51,7 @@ DEH_BEGIN_MAPPING(ammo_mapping, ammoinfo_t)
 DEH_END_MAPPING
 */
 
-static int DEH_AmmoStart(deh_context_t *context, char *line)
+static int AmmoStart(deh_context_t *context, char *line)
 {
     int ammo_number = -1;
 
@@ -70,7 +70,7 @@ static int DEH_AmmoStart(deh_context_t *context, char *line)
     return ammo_number;
 }
 
-static void DEH_AmmoParseLine(deh_context_t *context, char *line, int tag)
+static void AmmoParseLine(deh_context_t *context, char *line, int tag)
 {
     if (tag == -1)
     {
@@ -105,7 +105,7 @@ static void DEH_AmmoParseLine(deh_context_t *context, char *line, int tag)
     }
 }
 
-static void DEH_AmmoSHA1Hash(sha1_context_t *context)
+static void AmmoSHA1Hash(sha1_context_t *context)
 {
     for (int i = 0; i < NUMAMMO; ++i)
     {
@@ -118,8 +118,8 @@ deh_section_t deh_section_ammo =
 {
     "Ammo",
     NULL,
-    DEH_AmmoStart,
-    DEH_AmmoParseLine,
+    AmmoStart,
+    AmmoParseLine,
     NULL,
-    DEH_AmmoSHA1Hash,
+    AmmoSHA1Hash,
 };

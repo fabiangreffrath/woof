@@ -165,12 +165,12 @@ static struct
     {"Powerup Color Minotaur",        NULL                   },
 };
 
-static int DEH_MiscStart(deh_context_t *context, char *line)
+static int MiscStart(deh_context_t *context, char *line)
 {
     return 0;
 }
 
-static void DEH_MiscParseLine(deh_context_t *context, char *line, int tag)
+static void MiscParseLine(deh_context_t *context, char *line, int tag)
 {
     char *variable_name, *value;
     if (!DEH_ParseAssignment(line, &variable_name, &value))
@@ -229,7 +229,7 @@ static void DEH_MiscParseLine(deh_context_t *context, char *line, int tag)
     DEH_Warning(context, "Unknown Misc variable '%s'", variable_name);
 }
 
-static void DEH_MiscSHA1Sum(sha1_context_t *context)
+static void MiscSHA1Sum(sha1_context_t *context)
 {
     unsigned int i;
 
@@ -243,8 +243,8 @@ deh_section_t deh_section_misc =
 {
     "Misc",
     NULL,
-    DEH_MiscStart,
-    DEH_MiscParseLine,
+    MiscStart,
+    MiscParseLine,
     NULL,
-    DEH_MiscSHA1Sum,
+    MiscSHA1Sum,
 };

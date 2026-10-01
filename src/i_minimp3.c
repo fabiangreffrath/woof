@@ -26,13 +26,13 @@ static mp3dec_ex_t dec;
 
 static boolean stream_looping;
 
-static boolean I_MP3_InitStream(int device)
+static boolean InitStream(int device)
 {
     return true;
 }
 
-static boolean I_MP3_OpenStream(void *data, ALsizei size, ALenum *format,
-                                ALsizei *freq, ALsizei *frame_size)
+static boolean OpenStream(void *data, ALsizei size, ALenum *format,
+                          ALsizei *freq, ALsizei *frame_size)
 {
     if (mp3dec_ex_open_buf(&dec, data, size, MP3D_SEEK_TO_SAMPLE))
     {
@@ -53,7 +53,7 @@ static boolean I_MP3_OpenStream(void *data, ALsizei size, ALenum *format,
     return true;
 }
 
-static int I_MP3_FillStream(void *buffer, int buffer_samples)
+static int FillStream(void *buffer, int buffer_samples)
 {
     size_t amount = dec.info.channels * buffer_samples;
     size_t readed = mp3dec_ex_read(&dec, buffer, amount);
@@ -73,33 +73,33 @@ static int I_MP3_FillStream(void *buffer, int buffer_samples)
     return readed / dec.info.channels;
 }
 
-static void I_MP3_PlayStream(boolean looping)
+static void PlayStream(boolean looping)
 {
     stream_looping = looping;
     mp3dec_ex_seek(&dec, 0);
 }
 
-static void I_MP3_CloseStream(void)
+static void CloseStream(void)
 {
     mp3dec_ex_close(&dec);
 }
 
-static void I_MP3_ShutdownStream(void)
+static void ShutdownStream(void)
 {
     ;
 }
 
-static const char **I_MP3_DeviceList(void)
+static const char **DeviceList(void)
 {
     return NULL;
 }
 
-static void I_MP3_BindVariables(void)
+static void BindVariables(void)
 {
     ;
 }
 
-static const char *I_MP3_MusicFormat(void)
+static const char *MusicFormat(void)
 {
     static char buffer[16];
     M_snprintf(buffer, sizeof(buffer), "MP%d", dec.info.layer);
@@ -108,13 +108,13 @@ static const char *I_MP3_MusicFormat(void)
 
 stream_module_t stream_mp3_module =
 {
-    I_MP3_InitStream,
-    I_MP3_OpenStream,
-    I_MP3_FillStream,
-    I_MP3_PlayStream,
-    I_MP3_CloseStream,
-    I_MP3_ShutdownStream,
-    I_MP3_DeviceList,
-    I_MP3_BindVariables,
-    I_MP3_MusicFormat,
+    InitStream,
+    OpenStream,
+    FillStream,
+    PlayStream,
+    CloseStream,
+    ShutdownStream,
+    DeviceList,
+    BindVariables,
+    MusicFormat,
 };

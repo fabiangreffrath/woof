@@ -44,7 +44,7 @@ static void UpdatePriority(sfxparams_t *params)
     }
 }
 
-static boolean I_MBF_AdjustSoundParams(const mobj_t *listener,
+static boolean AdjustSoundParams(const mobj_t *listener,
                                        const mobj_t *source,
                                        sfxparams_t *params)
 {
@@ -147,7 +147,7 @@ static boolean I_MBF_AdjustSoundParams(const mobj_t *listener,
     return (params->volume > 0);
 }
 
-static void I_MBF_UpdateSoundParams(int channel, const sfxparams_t *params)
+static void UpdateSoundParams(int channel, const sfxparams_t *params)
 {
     int separation = params->separation;
 
@@ -161,29 +161,29 @@ static void I_MBF_UpdateSoundParams(int channel, const sfxparams_t *params)
     I_OAL_SetPan(channel, separation);
 }
 
-static boolean I_MBF_InitSound(void)
+static boolean InitSound(void)
 {
     return I_OAL_InitSound(SND_MODULE_MBF);
 }
 
-static boolean I_MBF_ReinitSound(void)
+static boolean ReinitSound(void)
 {
     return I_OAL_ReinitSound(SND_MODULE_MBF);
 }
 
-static void I_MBF_BindVariables(void)
+static void BindVariables(void)
 {
     BIND_BOOL(force_flip_pan, false, "Force reversal of stereo audio channels");
 }
 
 const sound_module_t sound_mbf_module =
 {
-    I_MBF_InitSound,
-    I_MBF_ReinitSound,
+    InitSound,
+    ReinitSound,
     I_OAL_AllowReinitSound,
     I_OAL_CacheSound,
-    I_MBF_AdjustSoundParams,
-    I_MBF_UpdateSoundParams,
+    AdjustSoundParams,
+    UpdateSoundParams,
     NULL,
     I_OAL_SetGain,
     I_OAL_GetOffset,
@@ -199,5 +199,5 @@ const sound_module_t sound_mbf_module =
     I_OAL_ShutdownModule,
     I_OAL_DeferUpdates,
     I_OAL_ProcessUpdates,
-    I_MBF_BindVariables,
+    BindVariables,
 };

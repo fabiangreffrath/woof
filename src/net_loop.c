@@ -82,25 +82,25 @@ static net_packet_t *QueuePop(packet_queue_t *queue)
 //
 //-----------------------------------------------------------------------------
 
-static boolean NET_CL_InitClient(void)
+static boolean ClientInitClient(void)
 {
     QueueInit(&client_queue);
 
     return true;
 }
 
-static boolean NET_CL_InitServer(void)
+static boolean ClientInitServer(void)
 {
     I_Error("attempted to initialize client pipe end as a server!");
     return false;
 }
 
-static void NET_CL_SendPacket(net_addr_t *addr, net_packet_t *packet)
+static void ClientSendPacket(net_addr_t *addr, net_packet_t *packet)
 {
     QueuePush(&server_queue, NET_PacketDup(packet));
 }
 
-static boolean NET_CL_RecvPacket(net_addr_t **addr, net_packet_t **packet)
+static boolean ClientRecvPacket(net_addr_t **addr, net_packet_t **packet)
 {
     net_packet_t *popped;
 
@@ -118,16 +118,16 @@ static boolean NET_CL_RecvPacket(net_addr_t **addr, net_packet_t **packet)
     return false;
 }
 
-static void NET_CL_AddrToString(net_addr_t *addr, char *buffer, int buffer_len)
+static void ClientAddrToString(net_addr_t *addr, char *buffer, int buffer_len)
 {
     M_snprintf(buffer, buffer_len, "local server");
 }
 
-static void NET_CL_FreeAddress(net_addr_t *addr)
+static void ClientFreeAddress(net_addr_t *addr)
 {
 }
 
-static net_addr_t *NET_CL_ResolveAddress(const char *address)
+static net_addr_t *ClientResolveAddress(const char *address)
 {
     if (address == NULL)
     {
@@ -143,13 +143,13 @@ static net_addr_t *NET_CL_ResolveAddress(const char *address)
 
 net_module_t net_loop_client_module =
 {
-    NET_CL_InitClient,
-    NET_CL_InitServer,
-    NET_CL_SendPacket,
-    NET_CL_RecvPacket,
-    NET_CL_AddrToString,
-    NET_CL_FreeAddress,
-    NET_CL_ResolveAddress,
+    ClientInitClient,
+    ClientInitServer,
+    ClientSendPacket,
+    ClientRecvPacket,
+    ClientAddrToString,
+    ClientFreeAddress,
+    ClientResolveAddress,
 };
 
 //-----------------------------------------------------------------------------
@@ -158,25 +158,25 @@ net_module_t net_loop_client_module =
 //
 //-----------------------------------------------------------------------------
 
-static boolean NET_SV_InitClient(void)
+static boolean ServerInitClient(void)
 {
     I_Error("attempted to initialize server pipe end as a client!");
     return false;
 }
 
-static boolean NET_SV_InitServer(void)
+static boolean ServerInitServer(void)
 {
     QueueInit(&server_queue);
 
     return true;
 }
 
-static void NET_SV_SendPacket(net_addr_t *addr, net_packet_t *packet)
+static void ServerSendPacket(net_addr_t *addr, net_packet_t *packet)
 {
     QueuePush(&client_queue, NET_PacketDup(packet));
 }
 
-static boolean NET_SV_RecvPacket(net_addr_t **addr, net_packet_t **packet)
+static boolean ServerRecvPacket(net_addr_t **addr, net_packet_t **packet)
 {
     net_packet_t *popped;
 
@@ -194,16 +194,16 @@ static boolean NET_SV_RecvPacket(net_addr_t **addr, net_packet_t **packet)
     return false;
 }
 
-static void NET_SV_AddrToString(net_addr_t *addr, char *buffer, int buffer_len)
+static void ServerAddrToString(net_addr_t *addr, char *buffer, int buffer_len)
 {
     M_snprintf(buffer, buffer_len, "local client");
 }
 
-static void NET_SV_FreeAddress(net_addr_t *addr)
+static void ServerFreeAddress(net_addr_t *addr)
 {
 }
 
-static net_addr_t *NET_SV_ResolveAddress(const char *address)
+static net_addr_t *ServerResolveAddress(const char *address)
 {
     if (address == NULL)
     {
@@ -218,11 +218,11 @@ static net_addr_t *NET_SV_ResolveAddress(const char *address)
 
 net_module_t net_loop_server_module =
 {
-    NET_SV_InitClient,
-    NET_SV_InitServer,
-    NET_SV_SendPacket,
-    NET_SV_RecvPacket,
-    NET_SV_AddrToString,
-    NET_SV_FreeAddress,
-    NET_SV_ResolveAddress,
+    ServerInitClient,
+    ServerInitServer,
+    ServerSendPacket,
+    ServerRecvPacket,
+    ServerAddrToString,
+    ServerFreeAddress,
+    ServerResolveAddress,
 };

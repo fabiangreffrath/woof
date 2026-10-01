@@ -1164,7 +1164,7 @@ mobj_t *P_RoughTargetSearch(mobj_t *mo, angle_t fov, int distance)
 ===================
 */
 
-static boolean P_SightBlockLinesIterator(int x, int y)
+static boolean SightBlockLinesIterator(int x, int y)
 {
   int offset;
   int32_t *list;
@@ -1220,7 +1220,7 @@ static boolean P_SightBlockLinesIterator(int x, int y)
 ====================
 */
 
-static boolean P_SightTraverseIntercepts(void)
+static boolean SightTraverseIntercepts(void)
 {
   int count;
   fixed_t dist;
@@ -1360,7 +1360,7 @@ boolean P_SightPathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2)
 
   for (count = 0; count < 64; count++)
   {
-    if (!P_SightBlockLinesIterator(mapx, mapy))
+    if (!SightBlockLinesIterator(mapx, mapy))
     {
       return false;  // early out
     }
@@ -1383,8 +1383,8 @@ boolean P_SightPathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2)
       // loop continues), but the other two blocks adjacent to the corner
       // also need to be checked.
 
-      if (!P_SightBlockLinesIterator(mapx + mapxstep, mapy) ||
-          !P_SightBlockLinesIterator(mapx, mapy + mapystep))
+      if (!SightBlockLinesIterator(mapx + mapxstep, mapy) ||
+          !SightBlockLinesIterator(mapx, mapy + mapystep))
       {
         return false;
       }
@@ -1406,7 +1406,7 @@ boolean P_SightPathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2)
 
   }
 
-  return P_SightTraverseIntercepts();
+  return SightTraverseIntercepts();
 }
 
 //----------------------------------------------------------------------------

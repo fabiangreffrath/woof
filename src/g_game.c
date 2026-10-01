@@ -306,7 +306,7 @@ void G_EnableWarp(boolean warp)
 static int playback_levelstarttic;
 int playback_skiptics = 0;
 
-static void G_DemoSkipTics(void)
+static void DemoSkipTics(void)
 {
   static boolean warp = false;
 
@@ -646,7 +646,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   static boolean done_autoswitch = false;
 
-  G_DemoSkipTics();
+  DemoSkipTics();
 
   if (!uncapped || !raw_input)
   {
@@ -915,7 +915,7 @@ void G_ClearInput(void)
 // G_DoLoadLevel
 //
 
-static void G_DoLoadLevel(boolean from_savegame)
+static void DoLoadLevel(boolean from_savegame)
 {
   int i;
 
@@ -1027,7 +1027,7 @@ static void G_DoLoadLevel(boolean from_savegame)
     }
 }
 
-static void G_ReloadLevel(void)
+static void ReloadLevel(void)
 {
   if (demorecording || netgame)
   {
@@ -1108,7 +1108,7 @@ int G_GotoPrevLevel(void)
     return ret;
 }
 
-static boolean G_StrictModeSkipEvent(event_t *ev)
+static boolean StrictModeSkipEvent(event_t *ev)
 {
   static boolean enable_mouse = false;
   static boolean enable_gamepad = false;
@@ -1176,7 +1176,7 @@ static boolean G_StrictModeSkipEvent(event_t *ev)
 
 boolean G_MovementResponder(event_t *ev)
 {
-  if (G_StrictModeSkipEvent(ev))
+  if (StrictModeSkipEvent(ev))
   {
     return true;
   }
@@ -1391,7 +1391,7 @@ static const char *defdemoname;
 
 // Stay in the game, hand over controls to the player and continue recording the
 // demo under a different name
-static void G_JoinDemo(void)
+static void JoinDemo(void)
 {
   if (netgame)
     CheckPlayersInNetGame();
@@ -1420,7 +1420,7 @@ static void G_JoinDemo(void)
   displaymsg("Demo recording: %s", demoname);
 }
 
-static void G_ReadDemoTiccmd(ticcmd_t *cmd)
+static void ReadDemoTiccmd(ticcmd_t *cmd)
 {
   if (*demo_p == DEMOMARKER)
   {
@@ -1467,7 +1467,7 @@ static void CheckDemoBuffer(size_t size)
 
 // Demo limits removed -- killough
 
-static void G_WriteDemoTiccmd(ticcmd_t* cmd)
+static void WriteDemoTiccmd(ticcmd_t* cmd)
 {
   if (M_InputGameActive(input_demo_quit)) // press to end demo recording
     G_CheckDemoStatus();
@@ -1488,7 +1488,7 @@ static void G_WriteDemoTiccmd(ticcmd_t* cmd)
 
   CheckDemoBuffer(16);   // killough 8/23/98
 
-  G_ReadDemoTiccmd (cmd);         // make SURE it is exactly the same
+  ReadDemoTiccmd (cmd);         // make SURE it is exactly the same
 }
 
 boolean secretexit;
@@ -1513,7 +1513,7 @@ void G_SecretExitLevel(void)
 // Can when a player completes a level.
 //
 
-static void G_PlayerFinishLevel(int player)
+static void PlayerFinishLevel(int player)
 {
   player_t *p = &players[player];
   memset(p->powers, 0, sizeof p->powers);
@@ -1563,7 +1563,7 @@ static void FormatLevelStatTime(char *str, int tics, boolean total)
 }
 
 // [crispy] Write level statistics upon exit
-static void G_WriteLevelStat(void)
+static void WriteLevelStat(void)
 {
     int playerKills = 0, playerItems = 0, playerSecrets = 0;
 
@@ -1621,7 +1621,7 @@ static void G_WriteLevelStat(void)
 
 boolean umapinfo_partimes = false;
 
-static void G_DoCompleted(void)
+static void DoCompleted(void)
 {
   int i;
 
@@ -1636,14 +1636,14 @@ static void G_DoCompleted(void)
 
   if (M_CheckParm("-levelstat"))
   {
-      G_WriteLevelStat();
+      WriteLevelStat();
   }
 
   gameaction = ga_nothing;
 
   for (i=0; i<MAXPLAYERS; i++)
     if (playeringame[i])
-      G_PlayerFinishLevel(i);        // take away cards and stuff
+      PlayerFinishLevel(i);        // take away cards and stuff
 
   if (automapactive)
     AM_Stop();
@@ -1697,7 +1697,7 @@ static void G_DoCompleted(void)
   WI_Start (&wminfo);
 }
 
-static void G_DoWorldDone(void)
+static void DoWorldDone(void)
 {
   P_ArchiveDirtyArraysCurrentLevel();
 
@@ -1705,7 +1705,7 @@ static void G_DoWorldDone(void)
   gamestate = GS_LEVEL;
   MI_UpdateGameMap(wminfo.nextep + 1, wminfo.next + 1);
   G_ResetRewind(false);
-  G_DoLoadLevel(false);
+  DoLoadLevel(false);
   gameaction = ga_nothing;
   viewactive = true;
   AM_clearMarks();           //jff 4/12/98 clear any marks on the automap
@@ -1742,7 +1742,7 @@ static char *SanitizeSignature(const char *orig, size_t len)
     return san;
 }
 
-static void G_DoPlayDemo(void)
+static void DoPlayDemo(void)
 {
   skill_t skill;
   int i, episode, map;
@@ -2081,7 +2081,7 @@ void G_LoadGame(char *name, int slot, int page, boolean command)
 // killough 5/15/98:
 // Consistency Error when attempting to load savegame.
 
-static void G_LoadGameErr(const char *msg)
+static void LoadGameErr(const char *msg)
 {
   Z_Free(savebuffer);                // Free the savegame buffer
   MN_ForcedLoadGame(msg);             // Print message asking for 'Y' to force
@@ -2214,7 +2214,7 @@ void G_Rewind(void)
 //
 // killough 12/98: use faster algorithm which has less IO
 
-static uint64_t G_Signature(int sig_epi, int sig_map)
+static uint64_t Signature(int sig_epi, int sig_map)
 {
   uint64_t s = 0;
   int lump, i;
@@ -2235,7 +2235,7 @@ static uint64_t G_Signature(int sig_epi, int sig_map)
 static json_mut_t *WriteOptionsJSON(json_mut_doc_t * doc);
 static json_mut_t *WriteCustomSkillOptionsJSON(json_mut_doc_t *doc);
 
-static void DoSaveGame(char *name)
+static void DoSaveGameFile(char *name)
 {
     json_mut_doc_t *doc = JS_NewDoc();
     json_mut_t *root_mut = JS_NewObject(doc);
@@ -2259,7 +2259,7 @@ static void DoSaveGame(char *name)
     JS_SetInt(doc, root_mut, "gamemap", gamemap);
 
     // killough 3/16/98, 12/98: store lump name checksum
-    JS_SetUInt(doc, root_mut, "signature", G_Signature(gameepisode, gamemap));
+    JS_SetUInt(doc, root_mut, "signature", Signature(gameepisode, gamemap));
 
     // killough 3/16/98: store pwad filenames in savegame
     json_mut_t *wadfiles_arr = JS_NewArray(doc);
@@ -2406,17 +2406,17 @@ static void DoSaveGame(char *name)
     I_ResetDRS();
 }
 
-static void G_DoSaveGame(void)
+static void DoSaveGame(void)
 {
   char *name = G_SaveGameName(savegameslot, savegamepage);
-  DoSaveGame(name);
+  DoSaveGameFile(name);
   free(name);
 }
 
-static void G_DoSaveAutoSave(void)
+static void DoSaveAutoSave(void)
 {
   char *name = G_AutoSaveName();
-  DoSaveGame(name);
+  DoSaveGameFile(name);
   free(name);
 }
 
@@ -2470,7 +2470,7 @@ static boolean DoLoadGameJSON(json_t *root)
 
     if (!forced_loadgame)
     {
-        if (checksum != G_Signature(tmp_episode, tmp_map))
+        if (checksum != Signature(tmp_episode, tmp_map))
         {
             json_t *wadfiles_arr = JS_GetObject(root, "wadfiles");
             int num_wadfiles = JS_GetArraySize(wadfiles_arr);
@@ -2499,7 +2499,7 @@ static boolean DoLoadGameJSON(json_t *root)
             M_snprintf(msg + offset, str_len - offset, "%s", "\nAre you sure?");
             free(wadfile_names);
 
-            G_LoadGameErr(msg);
+            LoadGameErr(msg);
             free(msg);
 
             return false;
@@ -2589,7 +2589,7 @@ static boolean DoLoadGameBinary()
   if (!forced_loadgame && saveg_compat == saveg_indetermined)
     {
       const char *msg = "Different Savegame Version!!!\n\nAre you sure?";
-      G_LoadGameErr(msg);
+      LoadGameErr(msg);
       return false;
     }
 
@@ -2615,14 +2615,14 @@ static boolean DoLoadGameBinary()
 
   if (!forced_loadgame)
    {  // killough 3/16/98, 12/98: check lump name checksum
-     if (checksum != G_Signature(tmp_episode, tmp_map))
+     if (checksum != Signature(tmp_episode, tmp_map))
        {
 	 char *msg = malloc(strlen((char *) save_p) + 128);
 	 strcpy(msg,"Incompatible Savegame!!!\n");
 	 if (save_p[sizeof checksum])
 	   strcat(strcat(msg,"Wads expected:\n\n"), (char *) save_p);
 	 strcat(msg, "\nAre you sure?");
-	 G_LoadGameErr(msg);
+	 LoadGameErr(msg);
 	 free(msg);
 	 return false;
        }
@@ -2740,7 +2740,7 @@ static boolean DoLoadGameBinary()
   return true;
 }
 
-static boolean DoLoadGame()
+static boolean DoLoadGameFile()
 {
     I_SetFastdemoTimer(false);
 
@@ -2866,7 +2866,7 @@ static boolean DoLoadGame()
     else if (singledemo)
     {
         gameaction = ga_loadgame; // Mark that we're loading a game before demo
-        G_DoPlayDemo();           // This will detect it and won't reinit level
+        DoPlayDemo();           // This will detect it and won't reinit level
     }
     else // Loading games from menu isn't allowed during demo recordings,
         if (demorecording) // So this can only possibly be a -recordfrom
@@ -2894,9 +2894,9 @@ static void PrintLevelTimes(void)
            (float)(leveltime % (60 * TICRATE)) / TICRATE);
 }
 
-static void G_DoLoadGame(void)
+static void DoLoadGame(void)
 {
-    if (DoLoadGame())
+    if (DoLoadGameFile())
     {
         if (savegamepage == QUICKSAVEPAGE)
         {
@@ -3030,29 +3030,29 @@ void G_Ticker(void)
     switch (gameaction)
       {
       case ga_loadlevel:
-	G_DoLoadLevel(false);
+	DoLoadLevel(false);
 	break;
       case ga_newgame:
 	G_DoNewGame();
 	break;
       case ga_loadgame:
       case ga_loadautosave:
-	G_DoLoadGame();
+	DoLoadGame();
 	break;
       case ga_savegame:
-	G_DoSaveGame();
+	DoSaveGame();
 	break;
       case ga_playdemo:
-	G_DoPlayDemo();
+	DoPlayDemo();
 	break;
       case ga_completed:
-	G_DoCompleted();
+	DoCompleted();
 	break;
       case ga_victory:
 	F_StartFinale();
 	break;
       case ga_worlddone:
-	G_DoWorldDone();
+	DoWorldDone();
 	break;
       case ga_screenshot:
 	if (clean_screenshot)
@@ -3064,10 +3064,10 @@ void G_Ticker(void)
 	gameaction = ga_nothing;
 	break;
       case ga_reloadlevel:
-	G_ReloadLevel();
+	ReloadLevel();
 	break;
       case ga_saveautosave:
-	G_DoSaveAutoSave();
+	DoSaveAutoSave();
 	break;
       case ga_rewind:
 	G_LoadAutoKeyframe();
@@ -3127,7 +3127,7 @@ void G_Ticker(void)
 	      // catch BT_JOIN before G_ReadDemoTiccmd overwrites it
 	      if (demoplayback &&
 	          !(cmd->buttons & BT_CHANGE) && cmd->buttons & BT_JOIN)
-		G_JoinDemo();
+		JoinDemo();
 
 	      // catch BTS_RELOAD for demo playback restart
 	      if (demoplayback &&
@@ -3139,12 +3139,12 @@ void G_Ticker(void)
 	      }
 
 	      if (demoplayback)
-		G_ReadDemoTiccmd(cmd);
+		ReadDemoTiccmd(cmd);
 
 	      // [crispy] do not record tics while still playing back in demo
 	      // continue mode
 	      if (demorecording && !demoplayback)
-		G_WriteDemoTiccmd(cmd);
+		WriteDemoTiccmd(cmd);
 
 	      // check for turbo cheats
 	      // killough 2/14/98, 2/20/98 -- only warn in netgames and demos
@@ -3317,7 +3317,7 @@ void G_PlayerReborn(int player)
 // because something is occupying it
 //
 
-static boolean G_CheckSpot(int playernum, mapthing_t *mthing)
+static boolean CheckSpot(int playernum, mapthing_t *mthing)
 {
   fixed_t     x,y;
   subsector_t *ss;
@@ -3466,7 +3466,7 @@ void G_DeathMatchSpawnPlayer(int playernum)
   for (j=0 ; j<20 ; j++)
     {
       int i = P_Random(pr_dmspawn) % selections;
-      if (G_CheckSpot(playernum, &deathmatchstarts[i]) )
+      if (CheckSpot(playernum, &deathmatchstarts[i]) )
         {
           deathmatchstarts[i].type = playernum+1;
           P_SpawnPlayer (&deathmatchstarts[i]);
@@ -3503,7 +3503,7 @@ void G_DoReborn(int playernum)
           return;
         }
 
-      if (G_CheckSpot (playernum, &playerstarts[playernum]) )
+      if (CheckSpot (playernum, &playerstarts[playernum]) )
         {
           P_SpawnPlayer (&playerstarts[playernum]);
           return;
@@ -3512,7 +3512,7 @@ void G_DoReborn(int playernum)
       // try to spawn at one of the other players spots
       for (i=0 ; i<MAXPLAYERS ; i++)
         {
-          if (G_CheckSpot (playernum, &playerstarts[i]) )
+          if (CheckSpot (playernum, &playerstarts[i]) )
             {
               playerstarts[i].type = playernum+1; // fake as other player
               P_SpawnPlayer (&playerstarts[i]);
@@ -3575,7 +3575,7 @@ void G_DeferedInitNew(skill_t skill, int episode, int map)
 }
 
 // killough 7/19/98: Marine's best friend :)
-static int G_GetHelpers(void)
+static int GetHelpers(void)
 {
   //!
   // @category game
@@ -3772,7 +3772,7 @@ static demo_version_t GetWadDemover(void)
     return DV_NONE;
 }
 
-static void G_MBFDefaults(void)
+static void MBFDefaults(void)
 {
   weapon_recoil = 0;
   monsters_remember = 1;
@@ -3793,7 +3793,7 @@ static void G_MBFDefaults(void)
 
 static void G_MBF21Defaults(void)
 {
-  G_MBFDefaults();
+  MBFDefaults();
 
   comp[comp_pursuit] = 1;
 
@@ -3805,7 +3805,7 @@ static void G_MBF21Defaults(void)
   comp[comp_reservedlineflag] = 1;
 }
 
-static void G_MBFComp()
+static void MBFComp()
 {
   comp[comp_respawn] = 1;
   comp[comp_soul] = 1;
@@ -3815,7 +3815,7 @@ static void G_MBFComp()
   comp[comp_reservedlineflag] = 0;
 }
 
-static void G_BoomComp()
+static void BoomComp()
 {
   comp[comp_telefrag] = 1;
   comp[comp_dropoff]  = 0;
@@ -3895,7 +3895,7 @@ void G_ReloadDefaults(boolean keep_demover)
 
   monster_infighting = default_monster_infighting; // killough 7/19/98
 
-  dogs = netgame ? 0 : G_GetHelpers();             // killough 7/19/98
+  dogs = netgame ? 0 : GetHelpers();             // killough 7/19/98
   dog_jumping = default_dog_jumping;
 
   distfriend = default_distfriend;                 // killough 8/8/98
@@ -4012,7 +4012,7 @@ void G_ReloadDefaults(boolean keep_demover)
   if (strictmode)
   {
     if (demo_version == DV_MBF)
-      G_MBFDefaults();
+      MBFDefaults();
     else if (mbf21)
       G_MBF21Defaults();
   }
@@ -4026,7 +4026,7 @@ void G_ReloadDefaults(boolean keep_demover)
   if (!mbf21)
   {
     // Set new compatibility options
-    G_MBFComp();
+    MBFComp();
   }
 
   // killough 3/31/98, 4/5/98: demo sync insurance
@@ -4072,7 +4072,7 @@ void G_ReloadDefaults(boolean keep_demover)
     else if (demo_version == DV_BOOM)
     {
       memset(comp, 0, sizeof comp);
-      G_BoomComp();
+      BoomComp();
     }
   }
   else if (mbf21)
@@ -4213,11 +4213,11 @@ void G_InitNew(skill_t skill, int episode, int map, boolean from_savegame)
   AM_ApplyColors(false);
 
   if (demo_version == DV_MBF)
-    G_MBFComp();
+    MBFComp();
 
   G_ResetRewind(true);
 
-  G_DoLoadLevel(from_savegame);
+  DoLoadLevel(from_savegame);
 }
 
 void G_SimplifiedInitNew(int episode, int map)
@@ -4230,7 +4230,7 @@ void G_SimplifiedInitNew(int episode, int map)
 
   G_ResetRewind(false);
 
-  G_DoLoadLevel(false);
+  DoLoadLevel(false);
 }
 
 //
@@ -4613,7 +4613,7 @@ byte *G_ReadOptions(byte *demo_p)
 	  comp[i] = *demo_p++;
       }
 
-      G_MBFComp();
+      MBFComp();
     }
   else  // defaults for versions < 2.02
     {
@@ -4622,7 +4622,7 @@ byte *G_ReadOptions(byte *demo_p)
 	comp[i] = compatibility;
 
       if (demo_version == DV_BOOM || demo_version == DV_BOOM201)
-        G_BoomComp();
+        BoomComp();
 
       monster_infighting = 1;           // killough 7/19/98
 
@@ -4913,7 +4913,7 @@ static long WriteFileInfo(const char *name, size_t size, long filepos,
   return filepos;
 }
 
-static void G_AddDemoFooter(void)
+static void AddDemoFooter(void)
 {
   byte *data;
   size_t size;
@@ -5025,7 +5025,7 @@ boolean G_CheckDemoStatus(void)
 
       *demo_p++ = DEMOMARKER;
 
-      G_AddDemoFooter();
+      AddDemoFooter();
 
       if (!M_WriteFile(demoname, demobuffer, demo_p - demobuffer))
 	I_Error("Error recording demo %s", demoname); // killough 11/98
