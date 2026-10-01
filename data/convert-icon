@@ -64,7 +64,7 @@ def convert_image(filename, output_filename):
     for y in range(size[1]):
         for x in range(size[0]):
             val = im.getpixel((x, y))
-            outfile.write("0x{:02x}{:02x}{:02x}{:02x}, ".format(*val))
+            outfile.write("0x{:02x}{:02x}{:02x}{:02x},".format(*val))
             elements_on_line += 1
 
             if elements_on_line >= 6:
