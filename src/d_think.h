@@ -39,7 +39,7 @@ typedef union actionf_u
   actionf_p3 p3;
 } actionf_t;
 
-// Historically, "think_t" is yet another function 
+// Historically, "think_t" is yet another function
 // pointer to a routine to handle an actor.
 typedef actionf_t think_t;
 
@@ -48,7 +48,7 @@ typedef struct thinker_s
 {
   struct thinker_s *prev, *next;
   think_t function;
-  
+
   // killough 8/29/98: we maintain thinkers in several equivalence classes,
   // according to various criteria, so as to allow quicker searches.
 

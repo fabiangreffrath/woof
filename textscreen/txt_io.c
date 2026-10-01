@@ -46,7 +46,7 @@ static void NewLine(unsigned char *screendata)
 
         p = screendata + (TXT_SCREEN_H - 1) * 2 * TXT_SCREEN_W;
 
-        for (i=0; i<TXT_SCREEN_W; ++i) 
+        for (i=0; i<TXT_SCREEN_W; ++i)
         {
             *p++ = ' ';
             *p++ = fgcolor | (bgcolor << 4);

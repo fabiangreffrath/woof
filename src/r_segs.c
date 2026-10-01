@@ -640,7 +640,7 @@ void R_StoreWallRange(const int start, const int stop)
   R_FixWiggle(frontsector);
 
   // killough 1/6/98, 2/1/98: remove limit on openings
-  // killough 8/1/98: Replaced code with a static limit 
+  // killough 8/1/98: Replaced code with a static limit
   // guaranteed to be big enough
 
   // calculate scale at both ends and step

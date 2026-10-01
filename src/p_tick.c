@@ -45,7 +45,7 @@ int oldleveltime;
 thinker_t thinkercap = {0};
 
 // killough 8/29/98: we maintain several separate threads, each containing
-// a special class of thinkers, to allow more efficient searches. 
+// a special class of thinkers, to allow more efficient searches.
 
 thinker_t thinkerclasscap[NUMTHCLASS] = {0};
 
@@ -73,7 +73,7 @@ void P_InitThinkers(void)
 // P_UpdateThinker
 //
 // killough 8/29/98:
-// 
+//
 // We maintain separate threads of friends and enemies, to permit more
 // efficient searches.
 //
@@ -87,11 +87,11 @@ void P_UpdateThinker(thinker_t *thinker)
    register thinker_t *th;
 
    // find the class the thinker belongs to
-  
+
    // haleyjd 07/12/03: don't use "class" as a variable name
    int tclass = (thinker->function.p1 == P_RemoveMobjThinkerDelayed) ? th_delete :
      thinker->function.p1 == P_MobjThinker &&
-     ((mobj_t *) thinker)->health > 0 && 
+     ((mobj_t *) thinker)->health > 0 &&
      (((mobj_t *) thinker)->flags & MF_COUNTKILL ||
       ((mobj_t *) thinker)->type == MT_SKULL) ?
      ((mobj_t *) thinker)->flags & MF_FRIEND ?
@@ -100,7 +100,7 @@ void P_UpdateThinker(thinker_t *thinker)
    // Remove from current thread, if in one -- haleyjd: from PrBoom
    if((th = thinker->cnext) != NULL)
       (th->cprev = thinker->cprev)->cnext = th;
-  
+
    // Add to appropriate thread
    th = &thinkerclasscap[tclass];
    th->cprev->cnext = thinker;
@@ -160,7 +160,7 @@ inline static void RemoveThinker(thinker_t *thinker)
     (thinker->cnext->cprev = thinker->cprev)->cnext = thinker->cnext;
 
     arena_free(thinkers_arena, thinker);
-} 
+}
 
 void P_RemoveMobjThinkerDelayed(mobj_t *mobj)
 {
@@ -213,7 +213,7 @@ void P_RemoveAmbientThinkerDelayed(mobj_t *mobj)
 void P_RemoveThinker(thinker_t *thinker)
 {
    thinker->function.pt = P_RemoveThinkerDelayed;
-   
+
    // killough 8/29/98: remove immediately from threaded list
 
    // haleyjd 06/17/08: Import from EE:
@@ -222,10 +222,10 @@ void P_RemoveThinker(thinker_t *thinker)
    // back into the list improperly and starts causing an infinite loop in
    // the AI code. We'll follow PrBoom's lead and create a th_delete class
    // for thinkers awaiting deferred removal.
-   
+
    // Old code:
    //(thinker->cnext->cprev = thinker->cprev)->cnext = thinker->cnext;
-   
+
    // Move to th_delete class.
    P_UpdateThinker(thinker);
 }
@@ -277,7 +277,7 @@ void P_RemoveAmbientThinker(ambient_t *ambient)
 // P_SetTarget
 //
 // This function is used to keep track of pointer references to mobj thinkers.
-// In Doom, objects such as lost souls could sometimes be removed despite 
+// In Doom, objects such as lost souls could sometimes be removed despite
 // their still being referenced. In Boom, 'target' mobj fields were tested
 // during each gametic, and any objects pointed to by them would be prevented
 // from being removed. But this was incomplete, and was slow (every mobj was
@@ -375,7 +375,7 @@ void P_Ticker (void)
   // killough 9/29/98: note that this ties in with basetic,
   // since G_Ticker does the pausing during recording or
   // playback, and compensates by incrementing basetic.
-  // 
+  //
   // All of this complicated mess is used to preserve demo sync.
 
   if (paused || (menuactive && (!demoplayback || menu_pause_demos) && !netgame &&

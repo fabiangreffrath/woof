@@ -83,7 +83,7 @@ boolean default_monsters_remember = true;
 boolean monster_infighting = true;       // killough 7/19/98: monster<=>monster attacks
 boolean default_monster_infighting = true;
 
-boolean monster_friction = true;       // killough 10/98: monsters affected by friction 
+boolean monster_friction = true;       // killough 10/98: monsters affected by friction
 boolean default_monster_friction = true;
 
 // killough 7/19/98: classic Doom BFG

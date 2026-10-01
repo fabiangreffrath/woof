@@ -380,7 +380,7 @@ static void R_GenerateLookup(int texnum, int *const errors)
       const patch_t *realpatch = V_CachePatchNum(pat, PU_CACHE);
       int x, x1 = patch++->originx, x2 = x1 + SHORT(realpatch->width);
       const int *cofs = realpatch->columnofs - x1;
-      
+
       if (x2 > texture->width)
 	x2 = texture->width;
       if (x1 < 0)
@@ -418,7 +418,7 @@ static void R_GenerateLookup(int texnum, int *const errors)
 	  const patch_t *realpatch = V_CachePatchNum(pat, PU_CACHE);
 	  int x, x1 = patch++->originx, x2 = x1 + SHORT(realpatch->width);
 	  const int *cofs = realpatch->columnofs - x1;
-	  
+
 	  if (x2 > texture->width)
 	    x2 = texture->width;
 	  if (x1 < 0)
@@ -505,7 +505,7 @@ static void R_GenerateLookup(int texnum, int *const errors)
       }
 
     texturecompositesize[texnum] = csize;
-    
+
     if (err)       // killough 10/98: non-verbose output
       {
 	I_Printf(VB_WARNING, "R_GenerateLookup: Column without a patch in texture %.8s",
@@ -796,7 +796,7 @@ void R_InitTextures (void)
 
       RegisterTexture(texture, i);
     }
- 
+
   // TX_ marker (texture namespace) parsed here
   if (tx_numtextures > 0)
   {
@@ -838,7 +838,7 @@ void R_InitTextures (void)
 
   if (errors)
     I_Error("\n\n%d errors.", errors);
-    
+
   // Precalculate whatever possible.
   for (i=0 ; i<numtextures ; i++)
     R_GenerateLookup(i, &errors);

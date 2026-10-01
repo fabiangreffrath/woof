@@ -460,7 +460,7 @@ static boolean MapInfo_Ticker()
                     finalecount = 0;
                     finalestage = FINALE_STAGE_ART;
                     F_SetWipe(); // force a wipe
-                    S_ChangeMusInfoMusic(W_GetNumForName(endfinale->music), 
+                    S_ChangeMusInfoMusic(W_GetNumForName(endfinale->music),
                                          endfinale->musicloops);
                     if (endfinale->type == END_ART)
                     {
@@ -581,7 +581,7 @@ boolean F_Responder (event_t *event)
 {
   if (finalestage == FINALE_STAGE_CAST)
     return F_CastResponder(event);
-        
+
   return false;
 }
 
@@ -590,7 +590,7 @@ boolean F_Responder (event_t *event)
 
 static float Get_TextSpeed(void)
 {
-  return midstage ? NEWTEXTSPEED : (midstage=acceleratestage) ? 
+  return midstage ? NEWTEXTSPEED : (midstage=acceleratestage) ?
     acceleratestage=0, NEWTEXTSPEED : TEXTSPEED;
 }
 
@@ -625,7 +625,7 @@ void F_Ticker(void)
 
   // advance animation
   finalecount++;
- 
+
   if (finalestage == FINALE_STAGE_CAST)
     F_CastTicker();
 
@@ -676,7 +676,7 @@ static void F_TextWrite(void)
   int         c;
   int         cx;
   int         cy;
-  
+
   // [FG] if interbackdrop does not specify a valid flat, draw it as a patch instead
   if (gamemapinfo && W_CheckNumForName(finaleflat) != -1 &&
       (W_CheckNumForName)(finaleflat, ns_flats) == -1)
@@ -695,7 +695,7 @@ static void F_TextWrite(void)
   cx = 10;
   cy = 10;
   ch = finaletext;
-      
+
   count = (int)((finalecount - 10)/Get_TextSpeed());                 // phares
   if (count < 0)
     count = 0;
@@ -711,14 +711,14 @@ static void F_TextWrite(void)
       cy += 11;
       continue;
     }
-              
+
     c = M_ToUpper(c) - HU_FONTSTART;
     if (c < 0 || c >= HU_FONTSIZE || hu_font[c] == NULL)
     {
       cx += 4;
       continue;
     }
-              
+
     w = SHORT (hu_font[c]->width);
     if (cx + w > video.unscaledw - video.deltaw)
     {
@@ -973,7 +973,7 @@ static boolean F_CastTicker(void)
     st = caststate->nextstate;
     caststate = &states[st];
     castframes++;
-      
+
     // sound hacks....
     switch (st)
     {
@@ -1005,11 +1005,11 @@ static boolean F_CastTicker(void)
       case S_PAIN_ATK3:     sfx = sfx_sklatk; break;
       default: sfx = 0; break;
     }
-            
+
     if (sfx)
       S_StartSound (NULL, sfx);
   }
-      
+
   if (castframes == 12)
   {
     // go into attack frame
@@ -1029,7 +1029,7 @@ static boolean F_CastTicker(void)
           &states[mobjinfo[castorder[castnum].type].missilestate];
     }
   }
-      
+
   if (castattacking)
   {
     if (castframes == 24
@@ -1041,7 +1041,7 @@ static boolean F_CastTicker(void)
       caststate = &states[mobjinfo[castorder[castnum].type].seestate];
     }
   }
-      
+
   casttics = caststate->tics;
   if (casttics == -1)
       casttics = 15;
@@ -1060,10 +1060,10 @@ static boolean F_CastResponder(event_t* ev)
 
   if (ev->type != ev_keydown && ev->type != ev_mouseb_down && ev->type != ev_joyb_down)
     return false;
-                
+
   if (castdeath)
     return true;                    // already in dying frames
-                
+
   // go into death frame
   castdeath = true;
   caststate = &states[mobjinfo[castorder[castnum].type].deathstate];
@@ -1072,7 +1072,7 @@ static boolean F_CastResponder(event_t* ev)
   castattacking = false;
   if (mobjinfo[castorder[castnum].type].deathsound)
     S_StartSound (NULL, mobjinfo[castorder[castnum].type].deathsound);
-        
+
   return true;
 }
 
@@ -1084,11 +1084,11 @@ static void F_CastPrint(const char* text)
   int         cx;
   int         w;
   int         width;
-  
+
   // find width
   ch = text;
   width = 0;
-      
+
   while (ch)
   {
     c = *ch++;
@@ -1100,11 +1100,11 @@ static void F_CastPrint(const char* text)
       width += 4;
       continue;
     }
-            
+
     w = SHORT (hu_font[c]->width);
     width += w;
   }
-  
+
   // draw it
   cx = 160-width/2;
   ch = text;
@@ -1119,7 +1119,7 @@ static void F_CastPrint(const char* text)
       cx += 4;
       continue;
     }
-              
+
     w = SHORT (hu_font[c]->width);
     V_DrawPatch(cx, 180, hu_font[c]);
     cx+=w;
@@ -1144,20 +1144,20 @@ static void F_CastDrawer(void)
   int                 lump;
   boolean             flip;
   patch_t*            patch;
-    
+
   // erase the entire screen to a background
   // Ty 03/30/98 bg texture extern
   V_DrawPatchFullScreen(
     V_CachePatchName(W_CheckWidescreenPatch(DEH_String(BGCASTCALL)), PU_CACHE));
 
   F_CastPrint (castorder[castnum].name);
-    
+
   // draw the current frame in the middle of the screen
   sprdef = &sprites[caststate->sprite];
   sprframe = &sprdef->spriteframes[ caststate->frame & FF_FRAMEMASK];
   lump = sprframe->lump[0];
   flip = (boolean)sprframe->flip[0];
-                        
+
   patch = V_CachePatchNum (lump+firstspritelump, PU_CACHE);
   V_DrawPatchCastCall(patch, NULL, NULL, flip);
 }
@@ -1219,7 +1219,7 @@ static void F_BunnyScroll(void)
     laststage = 0;
     return;
   }
-      
+
   stage = (finalecount-1180) / 5;
   if (stage > 6)
     stage = 6;
@@ -1228,7 +1228,7 @@ static void F_BunnyScroll(void)
     S_StartSound (NULL, sfx_pistol);
     laststage = stage;
   }
-      
+
   M_snprintf(name, sizeof(name), "END%i", stage);
   V_DrawPatch ((SCREENWIDTH-13*8)/2,
                (SCREENHEIGHT-8*8)/2,
