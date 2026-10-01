@@ -113,7 +113,7 @@ musicinfo_t S_music[] = {
 //
 // Information about all the sfx
 //
-// killough 12/98: 
+// killough 12/98:
 // Reimplemented 'singularity' flag, adjusting many sounds below
 
 #define SOUND_LINK(n, s, p, l) \

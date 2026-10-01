@@ -333,7 +333,7 @@ int netlib_udp_send(udp_socket_t sock, int channel, udp_packet_t *packet)
 
     // Set up the variables to send packets
     int sock_len = sizeof(sock_addr);
-    
+
     int numsent = 0;
 
     // if channel is < 0, then use channel specified in sock

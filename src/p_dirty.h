@@ -29,7 +29,7 @@ typedef struct
 
 extern dirty_line_t *dirty_lines;
 
-typedef struct 
+typedef struct
 {
     fixed_t textureoffset;
     fixed_t rowoffset;
