@@ -344,7 +344,7 @@ static void InitPCSound(void)
     }
 }
 
-static boolean I_PCS_ReinitSound(void)
+static boolean ReinitSound(void)
 {
     if (!I_OAL_ReinitSound(SND_MODULE_PCS))
     {
@@ -356,7 +356,7 @@ static boolean I_PCS_ReinitSound(void)
     return true;
 }
 
-static boolean I_PCS_InitSound(void)
+static boolean InitSound(void)
 {
     if (!I_OAL_InitSound(SND_MODULE_PCS))
     {
@@ -368,7 +368,7 @@ static boolean I_PCS_InitSound(void)
     return true;
 }
 
-static void I_PCS_ShutdownModule(void)
+static void ShutdownModule(void)
 {
     int i;
 
@@ -383,14 +383,14 @@ static void I_PCS_ShutdownModule(void)
     UnregisterCallback();
 }
 
-static void I_PCS_ShutdownSound(void)
+static void ShutdownSound(void)
 {
-    I_PCS_ShutdownModule();
+    ShutdownModule();
 
     I_OAL_ShutdownSound();
 }
 
-static boolean I_PCS_CacheSound(sfxinfo_t *sfx)
+static boolean CacheSound(sfxinfo_t *sfx)
 {
     if (IsDisabledSound(sfx) || IsAmbientSound(sfx))
     {
@@ -400,7 +400,7 @@ static boolean I_PCS_CacheSound(sfxinfo_t *sfx)
     return (GetLumpNum(sfx) != -1);
 }
 
-static boolean I_PCS_AdjustSoundParams(const mobj_t *listener,
+static boolean AdjustSoundParams(const mobj_t *listener,
                                        const mobj_t *source,
                                        sfxparams_t *params)
 {
@@ -446,13 +446,13 @@ static boolean I_PCS_AdjustSoundParams(const mobj_t *listener,
     return (params->volume > 0);
 }
 
-static void I_PCS_UpdateSoundParams(int channel, const sfxparams_t *params)
+static void UpdateSoundParams(int channel, const sfxparams_t *params)
 {
     // adjust PC Speaker volume
     alSourcef(callback_source, AL_GAIN, (float)snd_SfxVolume / 15);
 }
 
-static boolean I_PCS_StartSound(int channel, sfxinfo_t *sfx,
+static boolean StartSound(int channel, sfxinfo_t *sfx,
                                 const sfxparams_t *params)
 {
     boolean result;
@@ -483,7 +483,7 @@ static boolean I_PCS_StartSound(int channel, sfxinfo_t *sfx,
     }
 }
 
-static void I_PCS_StopSound(int channel)
+static void StopSound(int channel)
 {
     SDL_LockMutex(sound_lock);
 
@@ -497,7 +497,7 @@ static void I_PCS_StopSound(int channel)
     SDL_UnlockMutex(sound_lock);
 }
 
-static boolean I_PCS_SoundIsPlaying(int channel)
+static boolean SoundIsPlaying(int channel)
 {
     if (channel != current_sound_handle)
     {
@@ -509,25 +509,25 @@ static boolean I_PCS_SoundIsPlaying(int channel)
 
 const sound_module_t sound_pcs_module =
 {
-    I_PCS_InitSound,
-    I_PCS_ReinitSound,
+    InitSound,
+    ReinitSound,
     I_OAL_AllowReinitSound,
-    I_PCS_CacheSound,
-    I_PCS_AdjustSoundParams,
-    I_PCS_UpdateSoundParams,
+    CacheSound,
+    AdjustSoundParams,
+    UpdateSoundParams,
     NULL,
     NULL,
     NULL,
-    I_PCS_StartSound,
-    I_PCS_StopSound,
+    StartSound,
+    StopSound,
     NULL,
     NULL,
     I_OAL_MuteSound,
     I_OAL_UnmuteSound,
-    I_PCS_SoundIsPlaying,
+    SoundIsPlaying,
     NULL,
-    I_PCS_ShutdownSound,
-    I_PCS_ShutdownModule,
+    ShutdownSound,
+    ShutdownModule,
     I_OAL_DeferUpdates,
     I_OAL_ProcessUpdates,
     NULL,

@@ -830,7 +830,7 @@ void P_LoadNodes_DeePBSPV4(int lump)
 
 // [FG] support maps with ZDBSP nodes
 
-static void P_LoadSegs_XNOD(byte *data)
+static void LoadSegs_XNOD(byte *data)
 {
     int i;
 
@@ -905,7 +905,7 @@ static void P_LoadSegs_XNOD(byte *data)
     }
 }
 
-static void P_LoadSegs_XGL(byte *data, bsp_format_t format)
+static void LoadSegs_XGL(byte *data, bsp_format_t format)
 {
     int i, j;
     const mapseg_xgln_t *mln = (const mapseg_xgln_t *)data;
@@ -1201,18 +1201,18 @@ void P_LoadBSPTree_ZDBSP(int lump, bsp_format_t format)
 
     if (format == BSP_XNOD || format == BSP_ZNOD)
     {
-        P_LoadSegs_XNOD(data);
+        LoadSegs_XNOD(data);
         data += numsegs * sizeof(mapseg_xnod_t);
     }
     else if (format == BSP_XGLN || format == BSP_ZGLN)
     {
-        P_LoadSegs_XGL(data, format);
+        LoadSegs_XGL(data, format);
         data += numsegs * sizeof(mapseg_xgln_t);
     }
     else if (format == BSP_XGL2 || format == BSP_ZGL2 || format == BSP_XGL3
              || format == BSP_ZGL3)
     {
-        P_LoadSegs_XGL(data, format);
+        LoadSegs_XGL(data, format);
         data += numsegs * sizeof(mapseg_xgl2_t);
     }
 

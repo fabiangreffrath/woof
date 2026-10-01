@@ -64,7 +64,7 @@ static int MusicGetIndex(const char *key)
 // The actual parser
 //
 
-static int DEH_BEXMusicStart(deh_context_t *context, char *line)
+static int BEXMusicStart(deh_context_t *context, char *line)
 {
     char s[9];
 
@@ -76,7 +76,7 @@ static int DEH_BEXMusicStart(deh_context_t *context, char *line)
     return 0;
 }
 
-static void DEH_BEXMusicParseLine(deh_context_t *context, char *line, int tag)
+static void BEXMusicParseLine(deh_context_t *context, char *line, int tag)
 {
     char *music_key, *music_name;
 
@@ -113,8 +113,8 @@ deh_section_t deh_section_bex_music =
 {
     "[MUSIC]",
     NULL,
-    DEH_BEXMusicStart,
-    DEH_BEXMusicParseLine,
+    BEXMusicStart,
+    BEXMusicParseLine,
     NULL,
     NULL,
 };

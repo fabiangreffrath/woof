@@ -52,7 +52,7 @@ static struct
     boolean checked;
 } *sectors_telept;
 
-static void P_InitTeleptFromSector(void)
+static void InitTeleporttFromSector(void)
 {
     if (sectors_telept == NULL)
     {
@@ -65,17 +65,17 @@ void P_ResetTeleptFromSector(int i)
 {
     if (sectors_telept == NULL)
     {
-        P_InitTeleptFromSector();
+        InitTeleporttFromSector();
     }
 
     sectors_telept[i].checked = false;
 }
 
-static mobj_t *P_TeleptFromSector(int i)
+static mobj_t *TeleportFromSector(int i)
 {
     if (sectors_telept == NULL)
     {
-        P_InitTeleptFromSector();
+        InitTeleporttFromSector();
     }
 
     if (sectors_telept[i].checked)
@@ -117,7 +117,7 @@ int EV_Teleport(line_t *line, int side, mobj_t *thing)
   // P_FindSectorFromLineTag instead of simple linear search.
 
   for (i = -1; (i = P_FindSectorFromLineTag(line, i)) >= 0;)
-    if ((m = P_TeleptFromSector(i)) != NULL)
+    if ((m = TeleportFromSector(i)) != NULL)
         {
           fixed_t oldx = thing->x, oldy = thing->y, oldz = thing->z;
           player_t *player = thing->player;
@@ -186,7 +186,7 @@ int EV_SilentTeleport(line_t *line, int side, mobj_t *thing)
     return 0;
 
   for (i = -1; (i = P_FindSectorFromLineTag(line, i)) >= 0;)
-    if ((m = P_TeleptFromSector(i)) != NULL)
+    if ((m = TeleportFromSector(i)) != NULL)
         {
           // Height of thing above ground, in case of mid-air teleports:
           fixed_t z = thing->z - thing->floorz;

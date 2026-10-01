@@ -40,12 +40,12 @@ cheat_sequence_t *FindCheatByName(char *name)
     return NULL;
 }
 
-static int DEH_CheatStart(deh_context_t *context, char *line)
+static int CheatStart(deh_context_t *context, char *line)
 {
     return 0;
 }
 
-static void DEH_CheatParseLine(deh_context_t *context, char *line, int tag)
+static void CheatParseLine(deh_context_t *context, char *line, int tag)
 {
     char *variable_name, *value;
     if (!DEH_ParseAssignment(line, &variable_name, &value))
@@ -95,8 +95,8 @@ deh_section_t deh_section_cheat =
 {
     "Cheat",
     NULL,
-    DEH_CheatStart,
-    DEH_CheatParseLine,
+    CheatStart,
+    CheatParseLine,
     NULL,
     NULL,
 };

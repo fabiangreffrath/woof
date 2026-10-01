@@ -1457,7 +1457,7 @@ static void StartTrack(midi_file_t *file, unsigned int track_num)
     ScheduleTrack(track);
 }
 
-static boolean I_OPL_InitStream(int device)
+static boolean InitStream(int device)
 {
     const char *dmxoption;
     opl_init_result_t chip_type;
@@ -1519,8 +1519,8 @@ static midi_file_t *midifile;
 
 static const char *music_format = "Unknown";
 
-static boolean I_OPL_OpenStream(void *data, ALsizei size, ALenum *format,
-                                ALsizei *freq, ALsizei *frame_size)
+static boolean OpenStream(void *data, ALsizei size, ALenum *format,
+                          ALsizei *freq, ALsizei *frame_size)
 {
     if (!IsMid(data, size) && !IsMus(data, size))
     {
@@ -1579,7 +1579,7 @@ static boolean I_OPL_OpenStream(void *data, ALsizei size, ALenum *format,
 
 // Start playing a mid
 
-static void I_OPL_PlayStream(boolean looping)
+static void PlayStream(boolean looping)
 {
     unsigned int i;
 
@@ -1618,12 +1618,12 @@ static void I_OPL_PlayStream(boolean looping)
     }
 }
 
-static int I_OPL_FillStream(void *buffer, int buffer_samples)
+static int FillStream(void *buffer, int buffer_samples)
 {
     return OPL_FillBuffer(buffer, buffer_samples);
 }
 
-static void I_OPL_CloseStream(void)
+static void CloseStream(void)
 {
     unsigned int i;
 
@@ -1664,7 +1664,7 @@ static void I_OPL_CloseStream(void)
 
 // Shutdown music
 
-static void I_OPL_ShutdownStream(void)
+static void ShutdownStream(void)
 {
     if (music_initialized)
     {
@@ -1678,7 +1678,7 @@ static void I_OPL_ShutdownStream(void)
     }
 }
 
-static const char **I_OPL_DeviceList(void)
+static const char **DeviceList(void)
 {
     static const char **devices = NULL;
     if (array_size(devices))
@@ -1690,12 +1690,12 @@ static const char **I_OPL_DeviceList(void)
     return devices;
 }
 
-static const char *I_OPL_MusicFormat(void)
+static const char *MusicFormat(void)
 {
     return music_format;
 }
 
-static void I_OPL_BindVariables(void)
+static void BindVariables(void)
 {
     BIND_NUM_MUSIC(num_opl_chips, 1, 1, OPL_MAX_CHIPS,
         "[OPL3 Emulation] Number of chips to emulate");
@@ -1705,13 +1705,13 @@ static void I_OPL_BindVariables(void)
 
 stream_module_t stream_opl_module =
 {
-    I_OPL_InitStream,
-    I_OPL_OpenStream,
-    I_OPL_FillStream,
-    I_OPL_PlayStream,
-    I_OPL_CloseStream,
-    I_OPL_ShutdownStream,
-    I_OPL_DeviceList,
-    I_OPL_BindVariables,
-    I_OPL_MusicFormat,
+    InitStream,
+    OpenStream,
+    FillStream,
+    PlayStream,
+    CloseStream,
+    ShutdownStream,
+    DeviceList,
+    BindVariables,
+    MusicFormat,
 };

@@ -71,7 +71,7 @@ inline static void *saveg_readp(void)
 #define saveg_read_enum saveg_read32
 
 // [crispy] replace indizes with corresponding pointers
-static thinker_t *P_IndexToThinker(int index)
+static thinker_t *IndexToThinker(int index)
 {
     thinker_t *th;
     int i;
@@ -958,7 +958,7 @@ static void saveg_read_pusher_t(pusher_t *str)
     str->type = saveg_read_enum();
 
     // mobj_t *source;
-    str->source = (mobj_t *)P_IndexToThinker(saveg_read32());
+    str->source = (mobj_t *)IndexToThinker(saveg_read32());
 
     // int x_mag;
     str->x_mag = saveg_read32();

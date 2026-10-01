@@ -244,7 +244,7 @@ char *NW_ReadSafeString(nw_packet_t *packet)
 
 // Dynamically increases the size of a packet
 
-static void NW_IncreasePacket(nw_packet_t *packet)
+static void IncreasePacket(nw_packet_t *packet)
 {
     byte *newdata;
 
@@ -268,7 +268,7 @@ void NW_WriteInt8(nw_packet_t *packet, unsigned int i)
 {
     if (packet->len + 1 > packet->alloced)
     {
-        NW_IncreasePacket(packet);
+        IncreasePacket(packet);
     }
 
     packet->data[packet->len] = i;
@@ -283,7 +283,7 @@ void NW_WriteInt16(nw_packet_t *packet, unsigned int i)
 
     if (packet->len + 2 > packet->alloced)
     {
-        NW_IncreasePacket(packet);
+        IncreasePacket(packet);
     }
 
     p = packet->data + packet->len;
@@ -302,7 +302,7 @@ void NW_WriteInt32(nw_packet_t *packet, unsigned int i)
 
     if (packet->len + 4 > packet->alloced)
     {
-        NW_IncreasePacket(packet);
+        IncreasePacket(packet);
     }
 
     p = packet->data + packet->len;
@@ -326,7 +326,7 @@ void NW_WriteString(nw_packet_t *packet, const char *string)
 
     while (packet->len + string_size > packet->alloced)
     {
-        NW_IncreasePacket(packet);
+        IncreasePacket(packet);
     }
 
     p = packet->data + packet->len;
