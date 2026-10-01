@@ -146,6 +146,17 @@ boolean P_IsOverUnderPlayer(const mobj_t *const thing)
     return thing->player && (linked_above(thing) || linked_below(thing));
 }
 
+// Returns false if a and b may pass over or under each other but their heights
+// are more than a step apart, so that they cannot hit each other in melee.
+boolean P_CheckOverUnderHeight(const mobj_t *const a, const mobj_t *const b)
+{
+    const fixed_t reach = 24 * FRACUNIT;
+
+    return !P_CanOverUnder(a, b)
+           || (a->z <= b->z + b->height + reach
+               && b->z <= a->z + a->height + reach);
+}
+
 // Kills a living monster that stands over another thing or that the player
 // stands over or under, even if it would still fit. Returns true if the monster
 // was killed.
