@@ -31,28 +31,24 @@
 #include "m_misc.h"
 #include "mn_menu.h"
 #include "r_data.h"
+#include "r_state.h"
 #include "m_scanner.h"
 #include "w_wad.h"
 #include "z_zone.h"
 
-boolean brightmaps;
-boolean force_brightmaps;
+boolean brightmaps; // Config key
+boolean force_brightmaps; // Brightmaps provided by PWAD; enable forcefully
+
+boolean use_brightmaps; // Used for checks in renderer
 
 #define COLORMASK_SIZE 256
 
-const byte nobrightmap[COLORMASK_SIZE] = {0};
-
-const byte *dc_brightmap = nobrightmap;
-
-typedef struct
-{
-    const char *name;
-    byte colormask[COLORMASK_SIZE];
-} brightmap_t;
+const byte *nobrightmap = NULL;
 
 static void ReadColormask(scanner_t *s, byte *colormask)
 {
     memset(colormask, 0, COLORMASK_SIZE);
+
     do
     {
         unsigned int color1 = 0, color2 = 0;
@@ -81,18 +77,23 @@ static void ReadColormask(scanner_t *s, byte *colormask)
     } while (SC_CheckToken(s, ','));
 }
 
-static brightmap_t *allbrightmaps;
+typedef struct { byte data[COLORMASK_SIZE]; } colormask_t;
+
+// Originally a struct, these were separated
+// so that colormasks are contiguous in memory
+static const char **brightmap_names = NULL;
+static colormask_t *brightmap_colormasks = NULL;
 
 static hashmap_t *textures_bm;
-static hashmap_t *flats_bm;
-static hashmap_t *sprites_bm;
-static hashmap_t *states_bm;
+static hashmap_t *flats_bm, *actual_flats_bm;
+static hashmap_t *sprites_bm, *actual_sprites_bm;
+static hashmap_t *states_bm, *actual_states_bm;
 
 static int GetBrightmap(const char *name)
 {
-    for (int i = array_size(allbrightmaps) - 1; i >= 0; --i)
+    for (int i = array_size(brightmap_names) - 1; i >= 0; --i)
     {
-        if (!strcasecmp(allbrightmaps[i].name, name))
+        if (!strcasecmp(brightmap_names[i], name))
         {
             return i;
         }
@@ -165,7 +166,7 @@ const byte *R_BrightmapForTexName(const char *texname)
         int *idx = hashmap_get_str(textures_bm, buf);
         if (idx)
         {
-            return allbrightmaps[*idx].colormask;
+            return brightmap_colormasks[*idx].data;
         }
     }
     return nobrightmap;
@@ -173,12 +174,12 @@ const byte *R_BrightmapForTexName(const char *texname)
 
 const byte *R_BrightmapForSprite(const int type)
 {
-    if ((STRICTMODE(brightmaps) || force_brightmaps) && sprites_bm)
+    if (sprites_bm)
     {
         int *idx = hashmap_get(sprites_bm, type);
         if (idx)
         {
-            return allbrightmaps[*idx].colormask;
+            return brightmap_colormasks[*idx].data;
         }
     }
     return nobrightmap;
@@ -186,12 +187,12 @@ const byte *R_BrightmapForSprite(const int type)
 
 const byte *R_BrightmapForFlatNum(const int num)
 {
-    if ((STRICTMODE(brightmaps) || force_brightmaps) && flats_bm)
+    if (flats_bm)
     {
         int *idx = hashmap_get(flats_bm, num);
         if (idx)
         {
-            return allbrightmaps[*idx].colormask;
+            return brightmap_colormasks[*idx].data;
         }
     }
     return nobrightmap;
@@ -199,27 +200,121 @@ const byte *R_BrightmapForFlatNum(const int num)
 
 const byte *R_BrightmapForState(const int state)
 {
-    if ((STRICTMODE(brightmaps) || force_brightmaps) && states_bm)
+    if (states_bm)
     {
         int *idx = hashmap_get(states_bm, state);
         if (idx)
         {
-            return allbrightmaps[*idx].colormask;
+            return brightmap_colormasks[*idx].data;
         }
     }
     return nobrightmap;
+}
+
+typedef struct bmcolormap_s
+{
+    const byte *brightmap;
+    const lighttable_t *orig_colormap;
+    lighttable_t *colormap;
+} bmcolormap_t;
+
+static bmcolormap_t bm_colormaps[65536] = { {NULL} };
+
+const lighttable_t *R_GetBrightmappedColormap(
+    const lighttable_t *const orig_colormap,
+    const lighttable_t *const full_colormap,
+    const byte *const brightmap
+)
+{
+    if (brightmap == nobrightmap)
+    {
+        return orig_colormap;
+    }
+
+    const uint16_t colormap_index =
+        ((full_colormap - colormaps[0]) / COLORMAP_SIZE) << 13;
+
+    const uint16_t colormap_row_index =
+        ((orig_colormap - full_colormap) / 256) << 8;
+
+    // We subtract [1] because [0] == nobrightmap,
+    // which makes the function return early as seen above
+    const byte brightmap_index =
+        (brightmap - brightmap_colormasks[1].data) / 256;
+
+    /*
+        00000000 00000000
+        [-][---] [------]
+         |   |      |
+         |   |      +---- Brightmap index
+         |   |
+         |   +----------- Colormap row index
+         |
+         +--------------- Colormap index
+
+        Effective capacity is 8 distinct colormap lumps and 256 distinct brightmaps
+    */
+    const uint16_t index =
+        colormap_index | colormap_row_index | brightmap_index;
+
+    bmcolormap_t *const bm_colormap = bm_colormaps + index;
+
+    if (bm_colormap->brightmap != brightmap ||
+        bm_colormap->orig_colormap != orig_colormap)
+    {
+        // A collision occurred, or this wasn't initialized yet
+
+        bm_colormap->brightmap = brightmap;
+        bm_colormap->orig_colormap = orig_colormap;
+
+        if (!bm_colormap->colormap)
+        {
+            bm_colormap->colormap =
+                Z_Malloc(sizeof(*(bm_colormap->colormap)) * 256, PU_STATIC, 0);
+        }
+
+        const lighttable_t *const cmaps[2] = { orig_colormap, full_colormap };
+
+        for (int i = 0; i < 256; i++)
+        {
+            bm_colormap->colormap[i] = cmaps[brightmap[i]][i];
+        }
+    }
+
+    return bm_colormap->colormap;
+}
+
+void R_ToggleBrightmaps(void)
+{
+    use_brightmaps = STRICTMODE(brightmaps) || force_brightmaps;
+
+    if (use_brightmaps)
+    {
+        flats_bm = actual_flats_bm;
+        sprites_bm = actual_sprites_bm;
+        states_bm = actual_states_bm;
+    }
+    else
+    {
+        flats_bm = NULL;
+        sprites_bm = NULL;
+        states_bm = NULL;
+    }
+
+    R_ToggleTextureBrightmaps();
 }
 
 void R_ParseBrightmaps(int lumpnum)
 {
     force_brightmaps = W_IsWADLump(lumpnum);
 
-    if (!allbrightmaps)
+    if (!brightmap_names)
     {
-        brightmap_t brightmap;
-        brightmap.name = "NOBRIGHTMAP";
-        memset(brightmap.colormask, 0, COLORMASK_SIZE);
-        array_push(allbrightmaps, brightmap);
+        array_push(brightmap_names, "NOBRIGHTMAP");
+
+        colormask_t colormask;
+        memset(colormask.data, 0, COLORMASK_SIZE);
+        array_push(brightmap_colormasks, colormask);
     }
 
     scanner_t *s = SC_Open("BRGHTMPS", W_CacheLumpNum(lumpnum, PU_CACHE),
@@ -234,11 +329,13 @@ void R_ParseBrightmaps(int lumpnum)
         }
         if (!strcasecmp("BRIGHTMAP", SC_GetString(s)))
         {
-            brightmap_t brightmap;
             SC_MustGetToken(s, TK_Identifier);
-            brightmap.name = M_StringDuplicate(SC_GetString(s));
-            ReadColormask(s, brightmap.colormask);
-            array_push(allbrightmaps, brightmap);
+
+            array_push(brightmap_names, M_StringDuplicate(SC_GetString(s)));
+
+            colormask_t colormask = { {0} };
+            ReadColormask(s, colormask.data);
+            array_push(brightmap_colormasks, colormask);
         }
         else if (!strcasecmp("TEXTURE", SC_GetString(s)))
         {
@@ -267,11 +364,11 @@ void R_ParseBrightmaps(int lumpnum)
                 {
                     if (!strcasecmp(name, sprnames[i]))
                     {
-                        if (!sprites_bm)
+                        if (!actual_sprites_bm)
                         {
-                            sprites_bm = hashmap_init(128, sizeof(int));
+                            actual_sprites_bm = hashmap_init(128, sizeof(int));
                         }
-                        hashmap_put(sprites_bm, i, &idx);
+                        hashmap_put(actual_sprites_bm, i, &idx);
                         break;
                     }
                 }
@@ -288,11 +385,11 @@ void R_ParseBrightmaps(int lumpnum)
                 int num = R_FlatNumForName(name);
                 if (num >= 0)
                 {
-                    if (!flats_bm)
+                    if (!actual_flats_bm)
                     {
-                        flats_bm = hashmap_init(64, sizeof(int));
+                        actual_flats_bm = hashmap_init(64, sizeof(int));
                     }
-                    hashmap_put(flats_bm, num, &idx);
+                    hashmap_put(actual_flats_bm, num, &idx);
                 }
             }
             free(name);
@@ -309,11 +406,11 @@ void R_ParseBrightmaps(int lumpnum)
             int idx = GetBrightmap(SC_GetString(s));
             if (idx >= 0)
             {
-                if (!states_bm)
+                if (!actual_states_bm)
                 {
-                    states_bm = hashmap_init(64, sizeof(int));
+                    actual_states_bm = hashmap_init(64, sizeof(int));
                 }
-                hashmap_put(states_bm, num, &idx);
+                hashmap_put(actual_states_bm, num, &idx);
             }
             else
             {
@@ -323,8 +420,12 @@ void R_ParseBrightmaps(int lumpnum)
     }
     SC_Close(s);
 
-    if (force_brightmaps || array_size(allbrightmaps) == 1)
+    nobrightmap = brightmap_colormasks[0].data;
+
+    if (force_brightmaps || array_size(brightmap_names) == 1)
     {
         MN_DisableBrightmapsItem();
     }
+
+    R_ToggleBrightmaps();
 }

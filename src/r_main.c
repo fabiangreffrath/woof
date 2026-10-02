@@ -24,7 +24,6 @@
 #include <limits.h>
 #include <math.h>
 #include <stdint.h>
-#include <string.h>
 
 #include "d_loop.h"
 #include "d_player.h"
@@ -41,7 +40,6 @@
 #include "r_main.h"
 #include "r_bmaps.h"
 #include "r_plane.h"
-#include "r_segs.h"
 #include "r_sky.h"
 #include "r_state.h"
 #include "r_swirl.h"
@@ -49,6 +47,7 @@
 #include "r_voxel.h"
 #include "m_config.h"
 #include "st_stuff.h"
+#include "v_palette.h"
 #include "v_flextran.h"
 #include "v_video.h"
 #include "z_zone.h"
@@ -187,8 +186,8 @@ int R_PointOnSegSide(fixed_t x, fixed_t y, seg_t *line)
 {
   fixed_t lx = line->v1->x;
   fixed_t ly = line->v1->y;
-  fixed_t ldx = line->v2->x - lx;
-  fixed_t ldy = line->v2->y - ly;
+  const fixed_t ldx = (fixed_t)((unsigned int)line->v2->x - (unsigned int)lx);
+  const fixed_t ldy = (fixed_t)((unsigned int)line->v2->y - (unsigned int)ly);
 
   if (!ldx)
     return x <= lx ? ldy > 0 : ldy < 0;
@@ -196,8 +195,8 @@ int R_PointOnSegSide(fixed_t x, fixed_t y, seg_t *line)
   if (!ldy)
     return y <= ly ? ldx < 0 : ldx > 0;
 
-  x -= lx;
-  y -= ly;
+  x = (fixed_t)((unsigned int)x - (unsigned int)lx);
+  y = (fixed_t)((unsigned int)y - (unsigned int)ly);
 
   // Try to quickly decide by looking at sign bits.
   if ((ldy ^ ldx ^ x ^ y) < 0)
@@ -260,7 +259,7 @@ angle_t R_PointToAngleCrispy(fixed_t x, fixed_t y)
   int64_t x_viewx = (int64_t)x - viewx;
 
   // [FG] the worst that could happen is e.g. INT_MIN-INT_MAX = 2*INT_MIN
-  if (x_viewx < INT_MIN || x_viewx > INT_MAX || y_viewy < INT_MIN || y_viewy > INT_MAX)
+  if (x_viewx <= INT_MIN || x_viewx > INT_MAX || y_viewy <= INT_MIN || y_viewy > INT_MAX)
   {
     // [FG] preserving the angle by halfing the distance in both directions
     x = (int)(x_viewx / 2 + viewx);
@@ -531,7 +530,7 @@ void R_ExecuteSetViewSize (void)
 
   if (setblocks >= 10)
     {
-      ST_Ticker(); // let the new statusbar take effect
+      ST_UpdateStatusBar(); // let the new statusbar take effect
       ST_SetSTHeight();
 
       scaledviewwidth_nonwide = NONWIDEWIDTH;
@@ -808,7 +807,7 @@ void R_SetupFrame (player_t *player)
   }
 
   fullcolormap = colormaps[cm];
-  fixedcolormapoffset = player->fixedcolormap * 256;
+  fixedcolormapoffset = player->fixedcolormap * PLAYPAL_SIZE;
 
   if (fixedcolormapoffset)
   {

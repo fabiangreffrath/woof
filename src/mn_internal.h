@@ -45,6 +45,19 @@ typedef enum
     key_mode
 } menu_input_mode_t;
 
+typedef struct
+{
+    const char *text;
+    mrect_t rect;
+    int flags;
+} setup_tab_t;
+
+void MN_SetCurrentPage(int page);
+void MN_SetCurrentTabs(setup_tab_t *tab);
+void MN_DrawTabs(void);
+void MN_HighlightTab(int x, int y);
+boolean SetupLoadSaveTab(int *page);
+
 void M_ChooseSkill(int choice);
 
 extern int maxscreenblocks;
@@ -64,7 +77,6 @@ extern int warning_about_changes, print_warning_about_changes;
 
 void MN_InitDefaults(void);
 extern const char *gamma_strings[];
-void MN_ResetGamma(void);
 void MN_DrawDelVerify(void);
 
 boolean MN_SetupCursorPostion(int x, int y);

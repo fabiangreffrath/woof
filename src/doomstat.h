@@ -32,7 +32,7 @@
 #include "doomtype.h"
 #include "f_wipe.h"
 
-struct mapentry_s;
+struct MI_Entry_s;
 
 // ------------------------
 // Command line parameters.
@@ -191,7 +191,7 @@ extern  boolean   autostart;
 extern  skill_t         gameskill;
 extern  int   gameepisode;
 extern  int   gamemap;
-extern  struct mapentry_s *gamemapinfo;
+extern  struct MI_Entry_s *gamemapinfo;
 
 // If non-zero, exit the level after this number of minutes
 extern  int             timelimit;

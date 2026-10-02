@@ -229,13 +229,6 @@ static int set_item_on; // which setup item is selected?   // phares 3/98
 static setup_menu_t *current_menu; // points to current setup menu table
 static int current_page;           // the index of the current screen in a set
 
-typedef struct
-{
-    const char *text;
-    mrect_t rect;
-    int flags;
-} setup_tab_t;
-
 static setup_tab_t *current_tabs;
 static int highlight_tab;
 
@@ -525,7 +518,17 @@ static void BlinkingArrowRight(setup_menu_t *s)
 #define M_TAB_Y      22
 #define M_TAB_OFFSET 8
 
-static void DrawTabs(void)
+void MN_SetCurrentPage(int page)
+{
+    current_page = page;
+}
+
+void MN_SetCurrentTabs(setup_tab_t *tab)
+{
+    current_tabs = tab;
+}
+
+void MN_DrawTabs(void)
 {
     setup_tab_t *tabs = current_tabs;
 
@@ -565,7 +568,7 @@ static void DrawTabs(void)
         {
             DrawMenuStringEx(tabs[i].flags, x, rect->y, CR_TITLE);
             V_FillRect(x + video.deltaw, rect->y + M_SPC, rect->w, 1,
-                       xlat[CR_TITLE].table[cr_shaded[v_lightest_color]]);
+                       xlat[CR_TITLE].table[cr_shaded[playpal_global->white]]);
         }
         else
         {
@@ -696,7 +699,7 @@ static void DrawIndicator_Meter(const setup_menu_t *s, int x, int y, int width)
 
         if (scale > 0.0f)
         {
-            const byte shade = cr_shaded[v_lightest_color];
+            const byte shade = cr_shaded[playpal_global->white];
             const byte color = scale < limit    ? xlat[CR_GREEN].table[shade]
                                : scale >= 0.99f ? xlat[CR_RED].table[shade]
                                                 : xlat[CR_GOLD].table[shade];
@@ -1582,7 +1585,7 @@ void MN_DrawKeybnd(void)
 
     DrawBackground("FLOOR4_6"); // Draw background
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_KEYBND", "Key Bindings");
-    DrawTabs();
+    MN_DrawTabs();
     DrawInstructions();
     DrawScreenItems(current_menu);
 
@@ -1846,7 +1849,7 @@ void MN_DrawWeapons(void)
 {
     DrawBackground("FLOOR4_6"); // Draw background
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_WEAP", "Weapons");
-    DrawTabs();
+    MN_DrawTabs();
     DrawInstructions();
     DrawScreenItems(current_menu);
 
@@ -2050,7 +2053,7 @@ void MN_DrawStatusHUD(void)
 {
     DrawBackground("FLOOR4_6"); // Draw background
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_STAT", "Status Bar/HUD");
-    DrawTabs();
+    MN_DrawTabs();
     DrawInstructions();
     DrawScreenItems(current_menu);
 
@@ -2451,11 +2454,6 @@ const char *gamma_strings[] = {
     "0.5", "1", "1.5", "2", "2.5", "3", "3.5", "4"
 };
 
-void MN_ResetGamma(void)
-{
-    I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
-}
-
 static setup_menu_t gen_settings1[] = {
 
     {"Resolution Scale", S_THERMO | S_THRM_SIZE11 | S_ACTION, CNTR_X,
@@ -2488,7 +2486,7 @@ static setup_menu_t gen_settings1[] = {
      .action = UpdateFOV},
 
     {"Gamma Correction", S_THERMO, CNTR_X, M_THRM_SPC, {"gamma2"},
-     .strings_id = str_gamma, .action = MN_ResetGamma},
+     .strings_id = str_gamma},
 
     {"Extra Lighting", S_THERMO | S_STRICT, CNTR_X,
      M_THRM_SPC, {"extra_level_brightness"}},
@@ -2666,7 +2664,7 @@ void MN_DrawSfx(void)
 {
     DrawBackground("FLOOR4_6");
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
-    DrawTabs();
+    MN_DrawTabs();
     DrawInstructions();
     DrawScreenItems(current_menu);
 }
@@ -2741,7 +2739,7 @@ void MN_DrawMidi(void)
 {
     DrawBackground("FLOOR4_6");
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
-    DrawTabs();
+    MN_DrawTabs();
     DrawInstructions();
     DrawScreenItems(current_menu);
 }
@@ -2828,7 +2826,7 @@ void MN_DrawEqualizer(void)
 {
     DrawBackground("FLOOR4_6");
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
-    DrawTabs();
+    MN_DrawTabs();
     DrawInstructions();
     DrawScreenItems(current_menu);
 }
@@ -3126,7 +3124,7 @@ void MN_DrawPadAdv(void)
 {
     DrawBackground("FLOOR4_6");
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
-    DrawTabs();
+    MN_DrawTabs();
     DrawInstructions();
     DrawScreenItems(current_menu);
 }
@@ -3313,7 +3311,7 @@ void MN_DrawGyro(void)
 {
     DrawBackground("FLOOR4_6");
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
-    DrawTabs();
+    MN_DrawTabs();
     DrawInstructions();
 
     if (I_UseGamepad() && I_GyroEnabled())
@@ -3353,7 +3351,8 @@ static setup_menu_t gen_settings5[] = {
 
     {"Voxels", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC, {"voxels_rendering"}},
 
-    {"Brightmaps", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC, {"brightmaps"}},
+    {"Brightmaps", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC, {"brightmaps"},
+     .action = R_ToggleBrightmaps},
 
     {"Stretch Short Skies", S_ONOFF, OFF_CNTR_X, M_SPC, {"stretchsky"},
      .action = R_UpdateStretchSkies},
@@ -3397,8 +3396,7 @@ static setup_menu_t gen_settings6[] = {
     {"On death action", S_CHOICE, OFF_CNTR_X, M_SPC, {"death_use_action"},
      .strings_id = str_death_use_action},
 
-    {"Auto save", S_ONOFF, OFF_CNTR_X, M_SPC, {"autosave"},
-     .action = M_ResetAutoSave},
+    {"Auto save", S_ONOFF, OFF_CNTR_X, M_SPC, {"autosave"}},
 
     {"Organize save files", S_ONOFF | S_PRGWARN, OFF_CNTR_X, M_SPC,
      {"organize_savefiles"}, .action = D_SetSavegameDirectory},
@@ -3488,7 +3486,7 @@ void MN_DrawGeneral(void)
 {
     DrawBackground("FLOOR4_6"); // Draw background
     MN_DrawTitle(M_X_CENTER, M_Y_TITLE, "M_GENERL", "General");
-    DrawTabs();
+    MN_DrawTabs();
     DrawInstructions();
 
     if (I_UseGamepad() && current_menu == gen_settings4 && I_UseStickLayout())
@@ -3925,7 +3923,7 @@ void MN_DrawStringCR(int cx, int cy, byte *cr1, byte *cr2, const char *ch)
         }
 
         w = SHORT(hu_font[c]->width);
-        if (cx + w > SCREENWIDTH)
+        if (cx + w > SCREENWIDTH + video.deltaw)
         {
             break;
         }
@@ -4026,18 +4024,8 @@ int MN_GetPixelWidth(const char *ch)
     return len;
 }
 
-boolean MN_SetupCursorPostion(int x, int y)
+void MN_HighlightTab(int x, int y)
 {
-    if (!setup_active || setup_select)
-    {
-        return false;
-    }
-
-    if (block_input)
-    {
-        return true;
-    }
-
     if (current_tabs)
     {
         for (int i = 0; current_tabs[i].text; ++i)
@@ -4058,6 +4046,21 @@ boolean MN_SetupCursorPostion(int x, int y)
             }
         }
     }
+}
+
+boolean MN_SetupCursorPostion(int x, int y)
+{
+    if (!setup_active || setup_select)
+    {
+        return false;
+    }
+
+    if (block_input)
+    {
+        return true;
+    }
+
+    MN_HighlightTab(x, y);
 
     for (int i = 0; !(current_menu[i].m_flags & S_END); i++)
     {
@@ -4753,6 +4756,26 @@ static boolean SetupTab(void)
     while (current_menu[set_item_on++].m_flags & S_SKIP)
         ;
     set_item_on--;
+
+    M_StartSound(sfx_mnumov);
+    return true;
+}
+
+boolean SetupLoadSaveTab(int *page)
+{
+    if (!current_tabs)
+    {
+        return false;
+    }
+
+    setup_tab_t *tab = current_tabs + highlight_tab;
+
+    if (!(M_InputActivated(input_menu_enter) && tab->flags & S_HILITE))
+    {
+        return false;
+    }
+
+    *page = highlight_tab;
 
     M_StartSound(sfx_mnumov);
     return true;

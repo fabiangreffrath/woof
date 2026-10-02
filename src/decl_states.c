@@ -54,28 +54,28 @@ typedef struct
 
 static action_t actions[] = {
 #if 0 //weapons TODO
-    {"A_Light0",          {.p2 = A_Light0}                 },
-    {"A_WeaponReady",     {.p2 = A_WeaponReady}            },
-    {"A_Lower",           {.p2 = A_Lower}                  },
-    {"A_Raise",           {.p2 = A_Raise}                  },
-    {"A_Punch",           {.p2 = A_Punch}                  },
-    {"A_ReFire",          {.p2 = A_ReFire}                 },
-    {"A_FirePistol",      {.p2 = A_FirePistol}             },
-    {"A_Light1",          {.p2 = A_Light1}                 },
-    {"A_FireShotgun",     {.p2 = A_FireShotgun}            },
-    {"A_Light2",          {.p2 = A_Light2}                 },
-    {"A_FireShotgun2",    {.p2 = A_FireShotgun2}           },
-    {"A_CheckReload",     {.p2 = A_CheckReload}            },
-    {"A_OpenShotgun2",    {.p2 = A_OpenShotgun2}           },
-    {"A_LoadShotgun2",    {.p2 = A_LoadShotgun2}           },
-    {"A_CloseShotgun2",   {.p2 = A_CloseShotgun2}          },
-    {"A_FireCGun",        {.p2 = A_FireCGun}               },
-    {"A_GunFlash",        {.p2 = A_GunFlash}               },
-    {"A_FireMissile",     {.p2 = A_FireMissile}            },
-    {"A_Saw",             {.p2 = A_Saw}                    },
-    {"A_FirePlasma",      {.p2 = A_FirePlasma}             },
-    {"A_BFGsound",        {.p2 = A_BFGsound}               },
-    {"A_FireBFG",         {.p2 = A_FireBFG}                },
+    {"A_Light0",          {.p3 = A_Light0}                 },
+    {"A_WeaponReady",     {.p3 = A_WeaponReady}            },
+    {"A_Lower",           {.p3 = A_Lower}                  },
+    {"A_Raise",           {.p3 = A_Raise}                  },
+    {"A_Punch",           {.p3 = A_Punch}                  },
+    {"A_ReFire",          {.p3 = A_ReFire}                 },
+    {"A_FirePistol",      {.p3 = A_FirePistol}             },
+    {"A_Light1",          {.p3 = A_Light1}                 },
+    {"A_FireShotgun",     {.p3 = A_FireShotgun}            },
+    {"A_Light2",          {.p3 = A_Light2}                 },
+    {"A_FireShotgun2",    {.p3 = A_FireShotgun2}           },
+    {"A_CheckReload",     {.p3 = A_CheckReload}            },
+    {"A_OpenShotgun2",    {.p3 = A_OpenShotgun2}           },
+    {"A_LoadShotgun2",    {.p3 = A_LoadShotgun2}           },
+    {"A_CloseShotgun2",   {.p3 = A_CloseShotgun2}          },
+    {"A_FireCGun",        {.p3 = A_FireCGun}               },
+    {"A_GunFlash",        {.p3 = A_GunFlash}               },
+    {"A_FireMissile",     {.p3 = A_FireMissile}            },
+    {"A_Saw",             {.p3 = A_Saw}                    },
+    {"A_FirePlasma",      {.p3 = A_FirePlasma}             },
+    {"A_BFGsound",        {.p3 = A_BFGsound}               },
+    {"A_FireBFG",         {.p3 = A_FireBFG}                },
 #endif
     {"A_BFGSpray",        {.p1 = A_BFGSpray}               },
     {"A_Explode",         {.p1 = A_Explode}                },
@@ -181,7 +181,7 @@ static action_t actions[] = {
     {"A_Stop", {.p1 = A_Stop}, .type = func_mbf},
 
 #if 0 // weapons TODO
-    {"A_FireOldBFG", {.p2 = A_FireOldBFG}},
+    {"A_FireOldBFG", {.p3 = A_FireOldBFG}},
 #endif
 
     // MBF21
@@ -274,16 +274,16 @@ static action_t actions[] = {
     },
 
 #if 0 // weapons TODO
-    {"A_WeaponProjectile",    {.p2 = A_WeaponProjectile},    5 },
-    {"A_WeaponBulletAttack",  {.p2 = A_WeaponBulletAttack},  5, { 0, 0, 1, 5, 3 } },
-    {"A_WeaponMeleeAttack",   {.p2 = A_WeaponMeleeAttack},   5, { 2, 10, 1 * FRACUNIT, 0, 0 } },
-    {"A_WeaponSound",         {.p2 = A_WeaponSound},         2 },
-    {"A_WeaponAlert",         {.p2 = A_WeaponAlert},         0 },
-    {"A_WeaponJump",          {.p2 = A_WeaponJump},          2 },
-    {"A_ConsumeAmmo",         {.p2 = A_ConsumeAmmo},         1 },
-    {"A_CheckAmmo",           {.p2 = A_CheckAmmo},           2 },
-    {"A_RefireTo",            {.p2 = A_RefireTo},            2 },
-    {"A_GunFlashTo",          {.p2 = A_GunFlashTo},          2 },
+    {"A_WeaponProjectile",    {.p3 = A_WeaponProjectile},    5 },
+    {"A_WeaponBulletAttack",  {.p3 = A_WeaponBulletAttack},  5, { 0, 0, 1, 5, 3 } },
+    {"A_WeaponMeleeAttack",   {.p3 = A_WeaponMeleeAttack},   5, { 2, 10, 1 * FRACUNIT, 0, 0 } },
+    {"A_WeaponSound",         {.p3 = A_WeaponSound},         2 },
+    {"A_WeaponAlert",         {.p3 = A_WeaponAlert},         0 },
+    {"A_WeaponJump",          {.p3 = A_WeaponJump},          2 },
+    {"A_ConsumeAmmo",         {.p3 = A_ConsumeAmmo},         1 },
+    {"A_CheckAmmo",           {.p3 = A_CheckAmmo},           2 },
+    {"A_RefireTo",            {.p3 = A_RefireTo},            2 },
+    {"A_GunFlashTo",          {.p3 = A_GunFlashTo},          2 },
 #endif
 };
 

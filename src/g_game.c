@@ -98,6 +98,7 @@
 #include "st_widgets.h"
 #include "statdump.h" // [FG] StatCopy()
 #include "tables.h"
+#include "v_palette.h"
 #include "v_video.h"
 #include "w_wad.h"
 #include "wi_stuff.h"
@@ -127,7 +128,7 @@ skill_t         gameskill;
 boolean         respawnmonsters;
 int             gameepisode;
 int             gamemap;
-mapentry_t*     gamemapinfo;
+MI_Entry_t*     gamemapinfo;
 
 // If non-zero, exit the level after this number of minutes.
 int             timelimit;
@@ -929,44 +930,7 @@ static void G_DoLoadLevel(boolean from_savegame)
 
   R_ClearLevelskies();
 
-  int skytexture;
-  if (gamemapinfo && gamemapinfo->skytexture[0])
-  {
-    skytexture = R_TextureNumForName(gamemapinfo->skytexture);
-  }
-  else
-  // DOOM determines the sky texture to be used
-  // depending on the current episode, and the game version.
-  if (gamemode == commercial)
-    // || gamemode == pack_tnt   //jff 3/27/98 sorry guys pack_tnt,pack_plut
-    // || gamemode == pack_plut) //aren't gamemodes, this was matching retail
-    {
-      skytexture = R_TextureNumForName ("SKY3");
-      if (gamemap < 12)
-        skytexture = R_TextureNumForName ("SKY1");
-      else
-        if (gamemap < 21)
-          skytexture = R_TextureNumForName ("SKY2");
-    }
-  else //jff 3/27/98 and lets not forget about DOOM and Ultimate DOOM huh?
-    switch (gameepisode)
-      {
-      default:
-      case 1:
-        skytexture = R_TextureNumForName ("SKY1");
-        break;
-      case 2:
-	// killough 10/98: beta version had different sky orderings
-        skytexture = R_TextureNumForName (beta_emulation ? "SKY1" : "SKY2");
-        break;
-      case 3:
-        skytexture = R_TextureNumForName ("SKY3");
-        break;
-      case 4: // Special Edition sky
-        skytexture = R_TextureNumForName ("SKY4");
-        break;
-      }//jff 3/27/98 end sky setting fix
-
+  int skytexture = MI_SkyTexture();
   R_AddLevelsky(skytexture);
 
   levelstarttic = gametic;        // for time calculation
@@ -1020,7 +984,7 @@ static void G_DoLoadLevel(boolean from_savegame)
   MN_UpdateFreeLook();
   HU_UpdateTurnFormat();
 
-  I_UpdateDiscordPresence(G_GetLevelTitle(), gamedescription);
+  I_UpdateDiscordPresence(MI_GetLevelTitle(), gamedescription);
 
   // [Woof!] Do not reset chosen player view across levels in multiplayer
   // demo playback. However, it must be reset when starting a new game.
@@ -1091,101 +1055,32 @@ static void G_ReloadLevel(void)
 
 // [FG] reload current level / go to next level
 // adapted from prboom-plus/src/e6y.c:369-449
-int G_GotoNextLevel(int *pEpi, int *pMap)
+int G_GotoNextLevel(void)
 {
-  byte doom_next[4][9] = {
-    {12, 13, 19, 15, 16, 17, 18, 21, 14},
-    {22, 23, 24, 25, 29, 27, 28, 31, 26},
-    {32, 33, 34, 35, 36, 39, 38, 41, 37},
-    {42, 49, 44, 45, 46, 47, 48, -1, 43}
-  };
-  byte doom2_next[32] = {
-     2,  3,  4,  5,  6,  7,  8,  9, 10, 11,
-    12, 13, 14, 15, 31, 17, 18, 19, 20, 21,
-    22, 23, 24, 25, 26, 27, 28, 29, 30, -1,
-    32, 16
-  };
-
-  int epsd = -1, map = -1;
-
-  if (gamemapinfo)
-  {
-    const char *next = NULL;
-
-    if (gamemapinfo->nextsecret[0])
-      next = gamemapinfo->nextsecret;
-    else if (gamemapinfo->nextmap[0])
-      next = gamemapinfo->nextmap;
-
-    if (next)
-      G_ValidateMapName(next, &epsd, &map);
-  }
-  else
-  {
-    // secret level
-    doom2_next[14] = (haswolflevels ? 31 : 16);
-
-    // shareware doom has only episode 1
-    doom_next[0][7] = (gamemode == shareware ? -1 : 21);
-
-    doom_next[2][7] = (gamemode == registered ? -1 : 41);
-
-    //doom2_next and doom_next are 0 based, unlike gameepisode and gamemap
-    epsd = gameepisode - 1;
-    map = gamemap - 1;
-
-    if (gamemode == commercial)
+    if (gamestate != GS_LEVEL || deathmatch || netgame || demorecording
+        || demoplayback || menuactive)
     {
-      epsd = 1;
-      if (map >= 0 && map <= 31)
-        map = doom2_next[map];
-      else
-        map = gamemap + 1;
+        return false;
+    }
+
+    int next_episode = -1;
+    int next_map = -1;
+    MI_NextMap(&next_episode, &next_map);
+
+    char *name = MapName(next_episode, next_map);
+    boolean ret = !(next_map == -1 || W_CheckNumForName(name) == -1);
+
+    if (ret == false)
+    {
+        name = MapName(gameepisode, gamemap);
+        displaymsg("Next level not found for %s", name);
     }
     else
     {
-      if (epsd >= 0 && epsd <= 3 && map >= 0 && map <= 8)
-      {
-        int next = doom_next[epsd][map];
-        epsd = next / 10;
-        map = next % 10;
-      }
-      else
-      {
-        epsd = gameepisode;
-        map = gamemap + 1;
-      }
+        G_DeferedInitNew(gameskill, next_episode, next_map);
     }
-  }
 
-  // [FG] report next level without changing
-  if (pEpi || pMap)
-  {
-    if (pEpi)
-      *pEpi = epsd;
-    if (pMap)
-      *pMap = map;
-  }
-  else if ((gamestate == GS_LEVEL) &&
-            !deathmatch && !netgame &&
-            !demorecording && !demoplayback &&
-            !menuactive)
-  {
-    char *name = MapName(epsd, map);
-
-    if (map == -1 || W_CheckNumForName(name) == -1)
-    {
-      name = MapName(gameepisode, gamemap);
-      displaymsg("Next level not found for %s", name);
-    }
-    else
-    {
-      G_DeferedInitNew(gameskill, epsd, map);
-      return true;
-    }
-  }
-
-  return false;
+    return ret;
 }
 
 int G_GotoPrevLevel(void)
@@ -1196,53 +1091,18 @@ int G_GotoPrevLevel(void)
         return false;
     }
 
-    const int cur_epsd = gameepisode;
-    const int cur_map = gamemap;
-    struct mapentry_s *const cur_gamemapinfo = gamemapinfo;
-    int ret = false;
-
-    do
-    {
-        gamemap = cur_map;
-
-        while ((gamemap = (gamemap + 99) % 100) != cur_map)
-        {
-            int next_epsd, next_map;
-            gamemapinfo = G_LookupMapinfo(gameepisode, gamemap);
-            G_GotoNextLevel(&next_epsd, &next_map);
-
-            // do not let linear and UMAPINFO maps cross
-            if ((cur_gamemapinfo == NULL && gamemapinfo != NULL) ||
-                (cur_gamemapinfo != NULL && gamemapinfo == NULL))
-            {
-                continue;
-            }
-
-            if (next_epsd == cur_epsd && next_map == cur_map)
-            {
-                char *name = MapName(gameepisode, gamemap);
-
-                if (W_CheckNumForName(name) != -1)
-                {
-                    G_DeferedInitNew(gameskill, gameepisode, gamemap);
-                    ret = true;
-                    break;
-                }
-            }
-        }
-    } while (ret == false
-             // only check one episode in Doom 2
-             && gamemode != commercial
-             && (gameepisode = (gameepisode + 9) % 10) != cur_epsd);
-
-    gameepisode = cur_epsd;
-    gamemap = cur_map;
-    gamemapinfo = cur_gamemapinfo;
+    int previous_episode = -1;
+    int previous_map = -1;
+    boolean ret = MI_PreviousMap(&previous_episode, &previous_map);
 
     if (ret == false)
     {
         char *name = MapName(gameepisode, gamemap);
         displaymsg("Previous level not found for %s", name);
+    }
+    else
+    {
+        G_DeferedInitNew(gameskill, previous_episode, previous_map);
     }
 
     return ret;
@@ -1788,153 +1648,19 @@ static void G_DoCompleted(void)
   if (automapactive)
     AM_Stop();
 
-  wminfo.nextep = wminfo.epsd = gameepisode -1;
-  wminfo.last = gamemap -1;
-
-  wminfo.lastmapinfo = gamemapinfo;
-  wminfo.nextmapinfo = NULL;
+  wminfo.nextep = wminfo.epsd = gameepisode - 1;
+  wminfo.last = gamemap - 1;
+  MI_UpdateLastMapInfo(&wminfo);
   umapinfo_partimes = false;
-  if (gamemapinfo)
+
+  MI_Completion_t behaviour = MI_PrepareIntermission(&wminfo);
+  if (behaviour & DC_Victory)
   {
-    const char *next = NULL;
-    boolean intermission = false;
-
-    if (gamemapinfo->flags & MapInfo_EndGame)
-    {
-      if (gamemapinfo->flags & MapInfo_NoIntermission)
-      {
-        gameaction = ga_victory;
-        return;
-      }
-      else
-      {
-        intermission = true;
-      }
-    }
-
-    if (secretexit && gamemapinfo->nextsecret[0])
-      next = gamemapinfo->nextsecret;
-    else if (gamemapinfo->nextmap[0])
-      next = gamemapinfo->nextmap;
-
-    if (next)
-    {
-      G_ValidateMapName(next, &wminfo.nextep, &wminfo.next);
-      wminfo.nextep--;
-      wminfo.next--;
-      // episode change
-      if (wminfo.nextep != wminfo.epsd)
-      {
-        for (i = 0; i < MAXPLAYERS; i++)
-          players[i].didsecret = false;
-      }
-    }
-
-    if (next || intermission)
-    {
-      wminfo.didsecret = players[consoleplayer].didsecret;
-      wminfo.partime = gamemapinfo->partime * TICRATE;
-      if (wminfo.partime > 0)
-        umapinfo_partimes = true;
-      goto frommapinfo;	// skip past the default setup.
-    }
+    gameaction = ga_victory;
+    return;
   }
 
-  if (gamemode != commercial) // kilough 2/7/98
-    switch(gamemap)
-      {
-      case 8:
-        gameaction = ga_victory;
-        return;
-      case 9:
-        for (i=0 ; i<MAXPLAYERS ; i++)
-          players[i].didsecret = true;
-        break;
-      }
-
-  wminfo.didsecret = players[consoleplayer].didsecret;
-
-  // wminfo.next is 0 biased, unlike gamemap
-  if (gamemode == commercial)
-    {
-      if (secretexit)
-        switch(gamemap)
-          {
-          case 15:
-            wminfo.next = 30; break;
-          case 31:
-            wminfo.next = 31; break;
-          }
-      else
-        switch(gamemap)
-          {
-          case 31:
-          case 32:
-            wminfo.next = 15; break;
-          default:
-            wminfo.next = gamemap;
-          }
-    }
-  else
-    {
-      if (secretexit)
-        wminfo.next = 8;  // go to secret level
-      else
-        if (gamemap == 9)
-          {
-            // returning from secret level
-            switch (gameepisode)
-              {
-              case 1:
-                wminfo.next = 3;
-                break;
-              case 2:
-                wminfo.next = 5;
-                break;
-              case 3:
-                wminfo.next = 6;
-                break;
-              case 4:
-                wminfo.next = 2;
-                break;
-              }
-          }
-        else
-          wminfo.next = gamemap;          // go to next level
-    }
-
-  if (gamemode == commercial)
-  {
-    // MAP33 reads its par time from beyond the cpars[] array.
-    if (demo_compatibility && gamemap == 33)
-    {
-      int cpars32;
-
-      memcpy(&cpars32, DEH_String(GAMMALVL0), sizeof(int));
-      wminfo.partime = TICRATE*LONG(cpars32);
-    }
-    else if (gamemap >= 1 && gamemap <= 34)
-    {
-      wminfo.partime = TICRATE * bex_cpars[gamemap - 1];
-    }
-  }
-  else
-  {
-    // Doom Episode 4 doesn't have a par time, so this overflows into the cpars[] array.
-    if (demo_compatibility && gameepisode == 4 && gamemap >= 1 && gamemap <= 9)
-    {
-      wminfo.partime = TICRATE * bex_cpars[gamemap - 1];
-    }
-    else if (gameepisode >= 1 && gameepisode <= 6 && gamemap >= 1 && gamemap <= 9)
-    {
-      wminfo.partime = TICRATE * bex_pars[gameepisode - 1][gamemap - 1];
-    }
-  }
-
-frommapinfo:
-  
-  wminfo.nextmapinfo = G_LookupMapinfo(wminfo.nextep+1, wminfo.next+1);
-
+  MI_UpdateNextMapInfo(&wminfo);
   wminfo.maxkills = totalkills;
   wminfo.maxitems = totalitems;
   wminfo.maxsecret = totalsecret;
@@ -1966,27 +1692,7 @@ frommapinfo:
     StatCopy(&wminfo);
   }
 
-  for (int i = 0; i < MAXPLAYERS; ++i)
-  {
-      if (playeringame[i])
-      {
-          level_t *level;
-          array_foreach(level, players[i].visitedlevels)
-          {
-              if (level->episode == gameepisode && level->map == gamemap)
-              {
-                  break;
-              }
-          }
-          if (level == array_end(players[i].visitedlevels))
-          {
-              level_t newlevel = {gameepisode, gamemap};
-              array_push(players[i].visitedlevels, newlevel);
-          }
-          players[i].num_visitedlevels = array_size(players[i].visitedlevels);
-      }
-  }
-  wminfo.visitedlevels = players[consoleplayer].visitedlevels;
+  MI_VisitLevel();
 
   WI_Start (&wminfo);
 }
@@ -1997,9 +1703,7 @@ static void G_DoWorldDone(void)
 
   idmusnum = -1;             //jff 3/17/98 allow new level's music to be loaded
   gamestate = GS_LEVEL;
-  gameepisode = wminfo.nextep + 1;
-  gamemap = wminfo.next+1;
-  gamemapinfo = G_LookupMapinfo(gameepisode, gamemap);
+  MI_UpdateGameMap(wminfo.nextep + 1, wminfo.next + 1);
   G_ResetRewind(false);
   G_DoLoadLevel(false);
   gameaction = ga_nothing;
@@ -2345,12 +2049,6 @@ static char *savename = NULL;
 static boolean forced_loadgame = false;
 static boolean command_loadgame = false;
 
-void G_ForcedLoadAutoSave(void)
-{
-  gameaction = ga_loadautosave;
-  forced_loadgame = true;
-}
-
 void G_ForcedLoadGame(void)
 {
   gameaction = ga_loadgame;
@@ -2382,19 +2080,6 @@ void G_LoadGame(char *name, int slot, int page, boolean command)
 
 // killough 5/15/98:
 // Consistency Error when attempting to load savegame.
-
-static void G_LoadAutoSaveErr(const char *msg)
-{
-  Z_Free(savebuffer);
-  MN_ForcedLoadAutoSave(msg);
-
-  if (command_loadgame)
-  {
-    G_CheckDemoStatus();
-    D_StartTitle();
-    gamestate = GS_DEMOSCREEN;
-  }
-}
 
 static void G_LoadGameErr(const char *msg)
 {
@@ -2463,16 +2148,32 @@ static char *SaveGameName(const char *buf)
 
 char *G_AutoSaveName(void)
 {
-  return SaveGameName("autosave.dsg");
+  return G_SaveGameName(AUTOSAVESLOT, QUICKSAVEPAGE);
 }
 
 char *G_SaveGameName(int slot, int page)
 {
-  // Ty 05/04/98 - use savegamename variable (see d_deh.c)
-  // killough 12/98: add .7 to truncate savegamename
-  char buf[16] = {0};
-  sprintf(buf, "%.7s%d.dsg", savegamename, 10 * page + slot);
-  return SaveGameName(buf);
+    // Ty 05/04/98 - use savegamename variable (see d_deh.c)
+    // killough 12/98: add .7 to truncate savegamename
+    char buf[16] = {0};
+
+    if (page == QUICKSAVEPAGE)
+    {
+        if (slot == AUTOSAVESLOT)
+        {
+            sprintf(buf, "%s", "autosave.dsg");
+        }
+        else
+        {
+            sprintf(buf, "%.4sq%d.dsg", savegamename, slot);
+        }
+    }
+    else
+    {
+        sprintf(buf, "%.7s%d.dsg", savegamename, 10 * page + slot);
+    }
+
+    return SaveGameName(buf);
 }
 
 char* G_MBFSaveGameName(int slot, int page)
@@ -2613,20 +2314,11 @@ static void DoSaveGame(char *name)
     // save max_kill_requirement
     JS_SetInt(doc, root_mut, "max_kill_requirement", max_kill_requirement);
 
-#ifndef SAVEGAME_NO_SNAPSHOT
-    char *snapshot = MN_WriteSnapshot();
-    JS_SetString(doc, root_mut, "snapshot", snapshot);
-#endif
-
     // Serialise the document to a JSON string, then free it – the string
     // owns its own memory and is independent of the JSON document.
     size_t json_len;
     char *json_str = JS_DocWriteString(doc, &json_len);
     JS_FreeDoc(doc);
-
-#ifndef SAVEGAME_NO_SNAPSHOT
-    free(snapshot);
-#endif
 
     // Compress the JSON string with miniz and write the result to the save
     // buffer as: [uint32 json_len][zlib stream].
@@ -2638,17 +2330,20 @@ static void DoSaveGame(char *name)
     mz_ulong compressed_len = mz_compressBound((mz_ulong)json_len);
     if ((compressed = malloc((size_t)compressed_len)))
     {
-        int mz_ret =
-            mz_compress2(compressed, &compressed_len,
-                        (const unsigned char *)json_str, (mz_ulong)json_len,
-                        MZ_BEST_SPEED);
+        int mz_ret = mz_compress2(compressed, &compressed_len,
+                                  (const unsigned char *)json_str,
+                                  (mz_ulong)json_len, MZ_BEST_SPEED);
 
         if (mz_ret == MZ_OK && CheckStreamLength((int32_t)json_len)
             && CheckStreamLength((int32_t)compressed_len))
         {
             free(json_str);
             save_p = savebuffer =
-                Z_Malloc(compressed_len + sizeof(int32_t), PU_STATIC, 0);
+                Z_Malloc(SAVESTRINGSIZE + sizeof(int32_t) + compressed_len
+                             + MN_SnapshotDataSize(),
+                         PU_STATIC, 0);
+            strncpy((char *)save_p, savedescription, SAVESTRINGSIZE);
+            save_p += SAVESTRINGSIZE;
             saveg_write32((int32_t)json_len);
             memcpy(save_p, compressed, (size_t)compressed_len);
             save_p += compressed_len;
@@ -2684,6 +2379,9 @@ static void DoSaveGame(char *name)
     else
     {
         free(compressed);
+
+        (void)MN_WriteSnapshot(save_p);
+        save_p += MN_SnapshotDataSize();
     }
 
     int length = save_p - savebuffer;
@@ -2712,7 +2410,6 @@ static void G_DoSaveGame(void)
 {
   char *name = G_SaveGameName(savegameslot, savegamepage);
   DoSaveGame(name);
-  MN_SetQuickSaveSlot(savegameslot, savegamepage);
   free(name);
 }
 
@@ -2759,7 +2456,7 @@ static void LoadCustomSkillOptionsJSON(json_t *root)
 
 static void ReadOptionsJSON(json_t *root);
 
-static boolean DoLoadGameJSON(boolean do_load_autosave, json_t *root)
+static boolean DoLoadGameJSON(json_t *root)
 {
     saveg_compat = saveg_current;
 
@@ -2802,14 +2499,7 @@ static boolean DoLoadGameJSON(boolean do_load_autosave, json_t *root)
             M_snprintf(msg + offset, str_len - offset, "%s", "\nAre you sure?");
             free(wadfile_names);
 
-            if (do_load_autosave)
-            {
-                G_LoadAutoSaveErr(msg);
-            }
-            else
-            {
-                G_LoadGameErr(msg);
-            }
+            G_LoadGameErr(msg);
             free(msg);
 
             return false;
@@ -2820,7 +2510,7 @@ static boolean DoLoadGameJSON(boolean do_load_autosave, json_t *root)
     gameskill = tmp_skill;
     gameepisode = tmp_episode;
     gamemap = tmp_map;
-    gamemapinfo = G_LookupMapinfo(gameepisode, gamemap);
+    gamemapinfo = MI_MapEntry(gameepisode, gamemap);
 
     json_t *playeringame_arr = JS_GetObject(root, "playeringame");
     json_arr_iter_t *playeringame_iter = JS_ArrayIterator(playeringame_arr);
@@ -2879,7 +2569,7 @@ static boolean DoLoadGameJSON(boolean do_load_autosave, json_t *root)
     return true;
 }
 
-static boolean DoLoadGameBinary(boolean do_load_autosave)
+static boolean DoLoadGameBinary()
 {
   save_p = savebuffer + SAVESTRINGSIZE;
 
@@ -2899,10 +2589,7 @@ static boolean DoLoadGameBinary(boolean do_load_autosave)
   if (!forced_loadgame && saveg_compat == saveg_indetermined)
     {
       const char *msg = "Different Savegame Version!!!\n\nAre you sure?";
-      if (do_load_autosave)
-        G_LoadAutoSaveErr(msg);
-      else
-        G_LoadGameErr(msg);
+      G_LoadGameErr(msg);
       return false;
     }
 
@@ -2935,10 +2622,7 @@ static boolean DoLoadGameBinary(boolean do_load_autosave)
 	 if (save_p[sizeof checksum])
 	   strcat(strcat(msg,"Wads expected:\n\n"), (char *) save_p);
 	 strcat(msg, "\nAre you sure?");
-	 if (do_load_autosave)
-	   G_LoadAutoSaveErr(msg);
-	 else
-	   G_LoadGameErr(msg);
+	 G_LoadGameErr(msg);
 	 free(msg);
 	 return false;
        }
@@ -2950,7 +2634,7 @@ static boolean DoLoadGameBinary(boolean do_load_autosave)
   gameskill = tmp_skill;
   gameepisode = tmp_episode;
   gamemap = tmp_map;
-  gamemapinfo = G_LookupMapinfo(gameepisode, gamemap);
+  gamemapinfo = MI_MapEntry(gameepisode, gamemap);
 
   for (int i = 0; i < MAXPLAYERS; i++)
   {
@@ -3056,7 +2740,7 @@ static boolean DoLoadGameBinary(boolean do_load_autosave)
   return true;
 }
 
-static boolean DoLoadGame(boolean do_load_autosave)
+static boolean DoLoadGame()
 {
     I_SetFastdemoTimer(false);
 
@@ -3085,12 +2769,21 @@ static boolean DoLoadGame(boolean do_load_autosave)
 
     // Check for zlib-compressed JSON stream
     //
-    // Compressed: [uint32 decomp_len][zlib stream]
+    // Compressed: [char[24] description][uint32 decomp_len][zlib stream]["WOOF_SNAPSHOT"][uint8[320*200] snapshot]
+    // Woof 16.0.0: [uint32 decomp_len][zlib stream]
     // Plain JSON: [JSON text][NUL]
     // Legacy: [char[24] description][binary stream]
 
     unsigned char *decomp_str = NULL;
-    mz_ulong decomp_len = (mz_ulong)saveg_read32();
+    mz_ulong decomp_len = 0;
+
+    save_p = savebuffer + SAVESTRINGSIZE;
+    decomp_len = (mz_ulong)saveg_read32();
+    if (!CheckStreamLength((int32_t)decomp_len) || !CheckZlibHeader(save_p))
+    {
+        save_p = savebuffer;
+        decomp_len = (mz_ulong)saveg_read32();
+    }
 
     if (CheckStreamLength((int32_t)decomp_len) && CheckZlibHeader(save_p))
     {
@@ -3135,12 +2828,12 @@ static boolean DoLoadGame(boolean do_load_autosave)
     boolean ret = false;
     if (root)
     {
-        ret = DoLoadGameJSON(do_load_autosave, root);
+        ret = DoLoadGameJSON(root);
         JS_CloseOptions(NO_INDEX);
     }
     else
     {
-        ret = DoLoadGameBinary(do_load_autosave);
+        ret = DoLoadGameBinary();
     }
 
     if (decomp_str)
@@ -3203,22 +2896,28 @@ static void PrintLevelTimes(void)
 
 static void G_DoLoadGame(void)
 {
-  if (DoLoadGame(false))
-  {
-    const int slot_num = 10 * savegamepage + savegameslot;
-    I_Printf(VB_DEBUG, "G_DoLoadGame: Slot %02d, Time ", slot_num);
-    PrintLevelTimes();
-    MN_SetQuickSaveSlot(savegameslot, savegamepage);
-  }
-}
+    if (DoLoadGame())
+    {
+        if (savegamepage == QUICKSAVEPAGE)
+        {
+            if (savegameslot == AUTOSAVESLOT)
+            {
+                I_Printf(VB_DEBUG, "G_DoLoadGame: Auto Save, Time ");
+            }
+            else
+            {
+                I_Printf(VB_DEBUG, "G_DoLoadGame: Quick Save %02d, Time ",
+                         savegameslot);
+            }
+        }
+        else
+        {
+            const int slot_num = 10 * savegamepage + savegameslot;
+            I_Printf(VB_DEBUG, "G_DoLoadGame: Slot %02d, Time ", slot_num);
+        }
 
-static void G_DoLoadAutoSave(void)
-{
-  if (DoLoadGame(true))
-  {
-    I_Printf(VB_DEBUG, "G_DoLoadGame: Auto Save, Time ");
-    PrintLevelTimes();
-  }
+        PrintLevelTimes();
+    }
 }
 
 boolean G_AutoSaveEnabled(void)
@@ -3292,7 +2991,7 @@ void G_CleanScreenshot(void)
   const int old_hud_crosshair = hud_crosshair;
   const boolean old_hide_weapon = hide_weapon;
 
-  ST_ResetPalette();
+  V_ResetPalette();
 
   if (gamestate != GS_LEVEL)
       return;
@@ -3337,6 +3036,7 @@ void G_Ticker(void)
 	G_DoNewGame();
 	break;
       case ga_loadgame:
+      case ga_loadautosave:
 	G_DoLoadGame();
 	break;
       case ga_savegame:
@@ -3365,9 +3065,6 @@ void G_Ticker(void)
 	break;
       case ga_reloadlevel:
 	G_ReloadLevel();
-	break;
-      case ga_loadautosave:
-	G_DoLoadAutoSave();
 	break;
       case ga_saveautosave:
 	G_DoSaveAutoSave();
@@ -3401,7 +3098,11 @@ void G_Ticker(void)
   // P_Ticker() does not stop netgames if a menu is activated, so
   // we do not need to stop if a menu is pulled up during netgames.
 
-  if (paused & 2 || ((!demoplayback || menu_pause_demos) && menuactive && !netgame))
+  const boolean game_paused =
+      (paused & 2
+       || ((!demoplayback || menu_pause_demos) && menuactive && !netgame));
+
+  if (game_paused)
     {
       boom_basetic++;  // For revenant tracers and RNG -- we must maintain sync
       true_basetic++;
@@ -3523,11 +3224,28 @@ void G_Ticker(void)
   // killough 9/29/98: split up switch statement
   // into pauseable and unpauseable parts.
 
-  gamestate == GS_LEVEL ? P_Ticker(), ST_Ticker(), AM_Ticker() :
-    paused & 2 ? (void) 0 :
-      gamestate == GS_INTERMISSION ? WI_Ticker() :
-	gamestate == GS_FINALE ? F_Ticker() :
-	  gamestate == GS_DEMOSCREEN ? D_PageTicker() : (void) 0;
+  if (gamestate == GS_LEVEL)
+  {
+    P_Ticker();
+    ST_Ticker();
+    AM_Ticker();
+  }
+  else if (game_paused)
+  {
+    // paused, nothing to do
+  }
+  else if (gamestate == GS_INTERMISSION)
+  {
+    WI_Ticker();
+  }
+  else if (gamestate == GS_FINALE)
+  {
+    F_Ticker();
+  }
+  else if (gamestate == GS_DEMOSCREEN)
+  {
+    D_PageTicker();
+  }
 }
 
 //
@@ -3823,64 +3541,18 @@ void G_WorldDone(void)
   if (secretexit)
     players[consoleplayer].didsecret = true;
 
-  if (gamemapinfo)
+  MI_WinDisplay_t behavior = MI_PrepareFinale();
+  if (behavior & WD_Victory)
   {
-      if (gamemapinfo->flags & MapInfo_InterTextClear
-          && gamemapinfo->flags & MapInfo_EndGame)
-      {
-          I_Printf(VB_DEBUG,
-              "UMAPINFO: 'intertext = clear' with one of the end game keys.");
-      }
-
-      if (secretexit)
-      {
-          if (gamemapinfo->flags & MapInfo_InterTextSecretClear)
-          {
-              return;
-          }
-          if (gamemapinfo->intertextsecret)
-          {
-              F_StartFinale();
-              return;
-          }
-      }
-      else
-      {
-          if (gamemapinfo->flags & MapInfo_EndGame)
-          {
-              // game ends without a status screen.
-              gameaction = ga_victory;
-              return;
-          }
-          else if (gamemapinfo->flags & MapInfo_InterTextClear)
-          {
-              return;
-          }
-          else if (gamemapinfo->intertext)
-          {
-              F_StartFinale();
-              return;
-          }
-      }
-      // if nothing applied, use the defaults.
+    gameaction = ga_victory;
+    return;
   }
 
-  if (gamemode == commercial)
-    {
-      switch (gamemap)
-        {
-        case 15:
-        case 31:
-          if (!secretexit)
-            break;
-        case 6:
-        case 11:
-        case 20:
-        case 30:
-          F_StartFinale();
-          break;
-        }
-    }
+  if (behavior & WD_StartFinale)
+  {
+    F_StartFinale();
+    return;
+  }
 }
 
 static skill_t d_skill;
@@ -4526,7 +4198,7 @@ void G_InitNew(skill_t skill, int episode, int map, boolean from_savegame)
   gameepisode = episode;
   gamemap = map;
   gameskill = skill;
-  gamemapinfo = G_LookupMapinfo(gameepisode, gamemap);
+  gamemapinfo = MI_MapEntry(gameepisode, gamemap);
 
   // [FG] total time for all completed levels
   totalleveltimes = 0;
@@ -4552,7 +4224,7 @@ void G_SimplifiedInitNew(int episode, int map)
 {
   gameepisode = episode;
   gamemap = map;
-  gamemapinfo = G_LookupMapinfo(episode, gamemap);
+  gamemapinfo = MI_MapEntry(episode, gamemap);
 
   AM_clearMarks();
 
@@ -5378,78 +5050,6 @@ void G_CheckDemoRecordingStatus(void)
     {
         G_CheckDemoStatus();
     }
-}
-
-static boolean IsVanillaMap(int e, int m)
-{
-    if (gamemode == commercial)
-    {
-        return (e == 1 && m > 0 && m <= 32);
-    }
-    else
-    {
-        return (e > 0 && e <= 4 && m > 0 && m <= 9);
-    }
-}
-
-static inline const char * GetVanillaMapname()
-{
-    return (gamemode != commercial) ? mapnames[(gameepisode - 1) * 9 + gamemap - 1] :
-          (gamemission == pack_tnt) ? mapnamest[gamemap - 1] :
-         (gamemission == pack_plut) ? mapnamesp[gamemap - 1] :
-                                      mapnames2[gamemap - 1];
-}
-
-static inline const char * GetVanillaMapnameOverflow()
-{
-    return (gamemission == doom2) ? mapnamesp[gamemap - 33] :
-       (gamemission == pack_plut) ? mapnamest[gamemap - 33] : "";
-}
-
-const char *G_GetLevelTitle(void)
-{
-    const char *result = "";
-
-    if (gamemapinfo && gamemapinfo->levelname)
-    {
-        if (!(gamemapinfo->flags & MapInfo_LabelClear))
-        {
-            static char *string;
-            if (string)
-            {
-                free(string);
-            }
-            string = M_StringJoin(gamemapinfo->label ? gamemapinfo->label
-                                                     : gamemapinfo->mapname,
-                                  ": ", gamemapinfo->levelname);
-            result = string;
-        }
-        else
-        {
-            result = gamemapinfo->levelname;
-        }
-    }
-    else if (gamestate == GS_LEVEL)
-    {
-        if (IsVanillaMap(gameepisode, gamemap))
-        {
-            result = DEH_String(GetVanillaMapname());
-        }
-        // WADs like pl2.wad have a MAP33, and rely on the layout in the
-        // Vanilla executable, where it is possible to overflow the end of one
-        // array into the next.
-        else if (gamemode == commercial && gamemap >= 33 && gamemap <= 35)
-        {
-            result = DEH_String(GetVanillaMapnameOverflow());
-        }
-        else
-        {
-            // initialize the map title widget with the generic map lump name
-            result = MapName(gameepisode, gamemap);
-        }
-    }
-
-    return result;
 }
 
 // killough 1/22/98: this is a "Doom printf" for messages. I've gotten

@@ -30,28 +30,28 @@ struct mobj_s;
 // modified for years by Dehacked enthusiasts.  The new BEX format
 // allows more extensive changes (see d_deh.c)
 
-void A_Light0(struct player_s *, struct pspdef_s *);
-void A_WeaponReady(struct player_s *, struct pspdef_s *);
-void A_Lower(struct player_s *, struct pspdef_s *);
-void A_Raise(struct player_s *, struct pspdef_s *);
-void A_Punch(struct player_s *, struct pspdef_s *);
-void A_ReFire(struct player_s *, struct pspdef_s *);
-void A_FirePistol(struct player_s *, struct pspdef_s *);
-void A_Light1(struct player_s *, struct pspdef_s *);
-void A_FireShotgun(struct player_s *, struct pspdef_s *);
-void A_Light2(struct player_s *, struct pspdef_s *);
-void A_FireShotgun2(struct player_s *, struct pspdef_s *);
-void A_CheckReload(struct player_s *, struct pspdef_s *);
-void A_OpenShotgun2(struct player_s *, struct pspdef_s *);
-void A_LoadShotgun2(struct player_s *, struct pspdef_s *);
-void A_CloseShotgun2(struct player_s *, struct pspdef_s *);
-void A_FireCGun(struct player_s *, struct pspdef_s *);
-void A_GunFlash(struct player_s *, struct pspdef_s *);
-void A_FireMissile(struct player_s *, struct pspdef_s *);
-void A_Saw(struct player_s *, struct pspdef_s *);
-void A_FirePlasma(struct player_s *, struct pspdef_s *);
-void A_BFGsound(struct player_s *, struct pspdef_s *);
-void A_FireBFG(struct player_s *, struct pspdef_s *);
+void A_Light0(struct mobj_s *, struct player_s *, struct pspdef_s *);
+void A_WeaponReady(struct mobj_s *, struct player_s *, struct pspdef_s *);
+void A_Lower(struct mobj_s *, struct player_s *, struct pspdef_s *);
+void A_Raise(struct mobj_s *, struct player_s *, struct pspdef_s *);
+void A_Punch(struct mobj_s *, struct player_s *, struct pspdef_s *);
+void A_ReFire(struct mobj_s *, struct player_s *, struct pspdef_s *);
+void A_FirePistol(struct mobj_s *, struct player_s *, struct pspdef_s *);
+void A_Light1(struct mobj_s *, struct player_s *, struct pspdef_s *);
+void A_FireShotgun(struct mobj_s *, struct player_s *, struct pspdef_s *);
+void A_Light2(struct mobj_s *, struct player_s *, struct pspdef_s *);
+void A_FireShotgun2(struct mobj_s *, struct player_s *, struct pspdef_s *);
+void A_CheckReload(struct mobj_s *, struct player_s *, struct pspdef_s *);
+void A_OpenShotgun2(struct mobj_s *, struct player_s *, struct pspdef_s *);
+void A_LoadShotgun2(struct mobj_s *, struct player_s *, struct pspdef_s *);
+void A_CloseShotgun2(struct mobj_s *, struct player_s *, struct pspdef_s *);
+void A_FireCGun(struct mobj_s *, struct player_s *, struct pspdef_s *);
+void A_GunFlash(struct mobj_s *, struct player_s *, struct pspdef_s *);
+void A_FireMissile(struct mobj_s *, struct player_s *, struct pspdef_s *);
+void A_Saw(struct mobj_s *, struct player_s *, struct pspdef_s *);
+void A_FirePlasma(struct mobj_s *, struct player_s *, struct pspdef_s *);
+void A_BFGsound(struct mobj_s *, struct player_s *, struct pspdef_s *);
+void A_FireBFG(struct mobj_s *, struct player_s *, struct pspdef_s *);
 void A_BFGSpray(struct mobj_s *);
 void A_Explode(struct mobj_s *);
 void A_Pain(struct mobj_s *);
@@ -116,7 +116,7 @@ void A_RandomJump(struct mobj_s *);  // killough 11/98
 void A_LineEffect(struct mobj_s *);  // killough 11/98
 
 // killough 7/19/98: classic BFG firing function
-void A_FireOldBFG(struct player_s *, struct pspdef_s *);
+void A_FireOldBFG(struct mobj_s *, struct player_s *, struct pspdef_s *);
 // killough 10/98: beta lost souls attacked different
 void A_BetaSkullAttack(struct mobj_s *);
 void A_Stop(struct mobj_s *);
@@ -141,15 +141,15 @@ void A_JumpIfTracerCloser(struct mobj_s *);
 void A_JumpIfFlagsSet(struct mobj_s *);
 void A_AddFlags(struct mobj_s *);
 void A_RemoveFlags(struct mobj_s *);
-void A_WeaponProjectile(struct player_s *, struct pspdef_s *);
-void A_WeaponBulletAttack(struct player_s *, struct pspdef_s *);
-void A_WeaponMeleeAttack(struct player_s *, struct pspdef_s *);
-void A_WeaponSound(struct player_s *, struct pspdef_s *);
-void A_WeaponAlert(struct player_s *, struct pspdef_s *);
-void A_WeaponJump(struct player_s *, struct pspdef_s *);
-void A_ConsumeAmmo(struct player_s *, struct pspdef_s *);
-void A_CheckAmmo(struct player_s *, struct pspdef_s *);
-void A_RefireTo(struct player_s *, struct pspdef_s *);
-void A_GunFlashTo(struct player_s *, struct pspdef_s *);
+void A_WeaponProjectile(struct mobj_s *, struct player_s *, struct pspdef_s *);
+void A_WeaponBulletAttack(struct mobj_s *, struct player_s *, struct pspdef_s *);
+void A_WeaponMeleeAttack(struct mobj_s *, struct player_s *, struct pspdef_s *);
+void A_WeaponSound(struct mobj_s *, struct player_s *, struct pspdef_s *);
+void A_WeaponAlert(struct mobj_s *, struct player_s *, struct pspdef_s *);
+void A_WeaponJump(struct mobj_s *, struct player_s *, struct pspdef_s *);
+void A_ConsumeAmmo(struct mobj_s *, struct player_s *, struct pspdef_s *);
+void A_CheckAmmo(struct mobj_s *, struct player_s *, struct pspdef_s *);
+void A_RefireTo(struct mobj_s *, struct player_s *, struct pspdef_s *);
+void A_GunFlashTo(struct mobj_s *, struct player_s *, struct pspdef_s *);
 
 #endif

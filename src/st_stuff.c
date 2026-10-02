@@ -54,7 +54,6 @@
 #include "r_defs.h"
 #include "r_draw.h"
 #include "r_main.h"
-#include "r_srgb.h"
 #include "r_state.h"
 #include "s_sound.h"
 #include "st_carousel.h"
@@ -63,6 +62,7 @@
 #include "st_widgets.h"
 #include "tables.h"
 #include "v_patch.h"
+#include "v_srgb.h"
 #include "v_video.h"
 #include "w_wad.h"
 #include "z_zone.h"
@@ -72,15 +72,6 @@ int st_height = 0, st_height_screenblocks10 = 0;
 //
 // STATUS BAR DATA
 //
-
-// Palette indices.
-// For damage/bonus red-/gold-shifts
-#define STARTREDPALS            1
-#define STARTBONUSPALS          9
-#define NUMREDPALS              8
-#define NUMBONUSPALS            4
-// Radiation suit, green shift.
-#define RADIATIONPAL            13
 
 // Number of status faces.
 #define ST_NUMPAINFACES         5
@@ -1249,19 +1240,13 @@ static void UpdateString(sbarelem_t *elem)
     switch (string->type)
     {
         case sbstr_maptitle:
-            string->line.string = G_GetLevelTitle();
+            string->line.string = MI_GetLevelTitle();
             break;
         case sbstr_label:
-            if (gamemapinfo && gamemapinfo->label)
-            {
-                string->line.string = gamemapinfo->label;
-            }
+            string->line.string = MI_GetLevelLabel();
             break;
         case sbstr_author:
-            if (gamemapinfo && gamemapinfo->author)
-            {
-                string->line.string = gamemapinfo->author;
-            }
+            string->line.string = MI_GetLevelAuthor();
             break;
         default:
             break;
@@ -1276,7 +1261,7 @@ static void UpdateCanvasOfElem(sbarelem_t *elem, player_t *player);
 static void UpdateElem(sbarelem_t *elem, player_t *player)
 {
     elem->enabled = CheckConditions(elem->conditions, player);
-    if (!elem->enabled || !player->mo)
+    if (!elem->enabled)
     {
         return;
     }
@@ -1353,7 +1338,7 @@ static void UpdateElem(sbarelem_t *elem, player_t *player)
     }
 }
 
-static void UpdateStatusBar(player_t *player)
+void ST_UpdateStatusBar(void)
 {
     static int oldbarindex = -1;
 
@@ -1373,17 +1358,10 @@ static void UpdateStatusBar(player_t *player)
     {
         st_time_elem = NULL;
         st_cmd_elem = NULL;
-        st_msg_elem = NULL;
         oldbarindex = barindex;
     }
 
     statusbar = &sbardef->statusbars[barindex];
-
-    sbarelem_t *child;
-    array_foreach(child, statusbar->children)
-    {
-        UpdateElem(child, player);
-    }
 }
 
 static void ResetElem(sbarelem_t *elem, player_t *player)
@@ -1812,7 +1790,7 @@ static void DrawMiniMap(int x1, int y1, int *x2, int *y2, boolean dry,
 
     if (mm->background == sbmm_background_black)
     {
-        V_FillRect(x1, y1, width, height, v_darkest_color);
+        V_FillRect(x1, y1, width, height, playpal_global->black);
     }
     else if (mm->background == sbmm_background_dark && !MN_MenuIsShaded())
     {
@@ -1909,10 +1887,6 @@ static void DrawElem(int x1, int y1, int *x2, int *y2, boolean dry,
             {
                 st_cmd_x = x1;
                 st_cmd_y = y1;
-            }
-            if (message_centered && elem == st_msg_elem)
-            {
-                break;
             }
             DrawWidget(x1, y1, x2, y2, dry, elem);
             break;
@@ -2099,14 +2073,13 @@ static void DrawSolidBackground(void)
     crop_t crop = {.width = SHORT(sbar->width), .height = st_height};
     V_DrawPatchCropped(-video.deltaw, 0, sbar, crop);
 
-    byte *pal = W_CacheLumpName("PLAYPAL", PU_CACHE);
+    const rgb_t *pal_rover = playpal_global->base;
 
     const int width = MIN(SHORT(sbar->width), video.unscaledw);
     const int depth = 16;
-    int v;
 
     // [FG] separate colors for the top rows
-    for (v = 0; v < arrlen(vstep); v++)
+    for (int v = 0; v < arrlen(vstep); v++)
     {
         int x, y;
         const int v0 = vstep[v][0], v1 = vstep[v][1];
@@ -2120,14 +2093,14 @@ static void DrawSolidBackground(void)
             for (y = v0; y < v1; y++)
             {
                 pixel_t *c = st_backing_screen + line + V_ScaleY(y);
-                r += pal[3 * c[0] + 0];
-                g += pal[3 * c[0] + 1];
-                b += pal[3 * c[0] + 2];
+                r += pal_rover[c[0]].r;
+                g += pal_rover[c[0]].g;
+                b += pal_rover[c[0]].b;
 
                 c += V_ScaleX(width - 2 * x - 1) * V_ScaleY(st_height);
-                r += pal[3 * c[0] + 0];
-                g += pal[3 * c[0] + 1];
-                b += pal[3 * c[0] + 2];
+                r += pal_rover[c[0]].r;
+                g += pal_rover[c[0]].g;
+                b += pal_rover[c[0]].b;
             }
         }
 
@@ -2140,7 +2113,7 @@ static void DrawSolidBackground(void)
         g = sRGB_LinearToByte(sRGB_ByteToLinear(g) / 2.0);
         b = sRGB_LinearToByte(sRGB_ByteToLinear(b) / 2.0);
 
-        col = I_GetNearestColor(pal, r, g, b);
+        col = V_GetNearestColor(PAL_GLOBAL, r, g, b);
 
         V_FillRect(0, v0, video.unscaledw, v1 - v0, col);
     }
@@ -2193,14 +2166,6 @@ static void DrawBackground(const char *name)
     V_CopyRect(0, 0, st_backing_screen, video.unscaledw, st_height, V_ScaleY(st_height), 0, ST_Y);
 }
 
-static void DrawCenteredMessage(void)
-{
-    if (message_centered && st_msg_elem)
-    {
-        DrawWidget(SCREENWIDTH / 2, 0, NULL, NULL, false, st_msg_elem);
-    }
-}
-
 void ST_SetSTHeight(void)
 {
     if (statusbar && !statusbar->fullscreenrender)
@@ -2232,8 +2197,6 @@ static void DrawStatusBar(void)
     {
         DrawElem(0, y1, NULL, NULL, false, child, false);
     }
-
-    DrawCenteredMessage();
 }
 
 void ST_Erase(void)
@@ -2253,9 +2216,9 @@ boolean ST_Responder(event_t *ev)
     if (M_InputActivated(input_map_mini))
     {
         minimap = !minimap;
-        return true;
     }
-    else if (ST_MessagesResponder(ev))
+
+    if (ST_MessagesResponder(ev))
     {
         return true;
     }
@@ -2269,8 +2232,8 @@ pal_change_t palette_changes = PAL_CHANGE_ON;
 
 static void DoPaletteStuff(player_t *player)
 {
-    static int oldpalette = 0;
-    int palette;
+    static palette_layer_t old_layer = PAL_LAYER_BASE;
+    palette_layer_t layer = PAL_LAYER_BASE;
 
     int damagecount = player->damagecount;
 
@@ -2291,7 +2254,7 @@ static void DoPaletteStuff(player_t *player)
 
     if (STRICTMODE(palette_changes == PAL_CHANGE_OFF))
     {
-        palette = 0;
+        layer = PAL_LAYER_BASE;
     }
     else if (damagecount)
     {
@@ -2300,58 +2263,49 @@ static void DoPaletteStuff(player_t *player)
         // being covered in goo by an attacking flemoid.
         if (gameversion == exe_chex)
         {
-            palette = RADIATIONPAL;
+            layer = PAL_LAYER_RADSUIT;
         }
         else
         {
-            palette = (damagecount + 7) >> 3;
-            if (palette >= NUMREDPALS)
-            {
-                palette = NUMREDPALS - 1;
-            }
+            layer = (damagecount + 7) >> 3;
+            layer = MIN(layer, PAL_LAYER_DAMAGE_COUNT - 1);
             // tune down a bit so the menu remains legible
             if (menuactive || paused || STRICTMODE(palette_changes == PAL_CHANGE_REDUCED))
             {
-                palette = (palette + 1) / 2;
+                layer = (layer + 1) / 2;
             }
-            palette += STARTREDPALS;
+            layer += PAL_LAYER_DAMAGE0;
         }
     }
     else if (player->bonuscount)
     {
-        palette = (player->bonuscount + 7) >> 3;
-        if (palette >= NUMBONUSPALS)
-        {
-            palette = NUMBONUSPALS - 1;
-        }
+        layer = (player->bonuscount + 7) >> 3;
+        layer = MIN(layer, PAL_LAYER_ITEM_COUNT - 1);
         if (STRICTMODE(palette_changes == PAL_CHANGE_REDUCED))
         {
-            palette = (palette + 1) / 2;
+            layer = (layer + 1) / 2;
         }
-        palette += STARTBONUSPALS;
+        layer += PAL_LAYER_ITEM0;
     }
     // killough 7/14/98: beta version did not cause green palette
     else if (beta_emulation)
     {
-        palette = 0;
+        layer = PAL_LAYER_BASE;
     }
     else if (player->powers[pw_ironfeet] > 4 * 32
              || player->powers[pw_ironfeet] & 8)
     {
-        palette = RADIATIONPAL;
+        layer = PAL_LAYER_RADSUIT;
     }
     else
     {
-        palette = 0;
+        layer = PAL_LAYER_BASE;
     }
 
-    if (palette != oldpalette)
+    if (layer != old_layer)
     {
-        oldpalette = palette;
-        // haleyjd: must cast to byte *, arith. on void pointer is
-        // a GNU C extension
-        I_SetPalette((byte *)W_CacheLumpName("PLAYPAL", PU_CACHE)
-                     + palette * 768);
+        old_layer = layer;
+        I_SetPalette(PAL_GLOBAL, layer);
     }
 }
 
@@ -2370,7 +2324,13 @@ void ST_Ticker(void)
 
     player_t *player = &players[displayplayer];
 
-    UpdateStatusBar(player);
+    ST_UpdateStatusBar();
+
+    sbarelem_t *child;
+    array_foreach(child, statusbar->children)
+    {
+        UpdateElem(child, player);
+    }
 
     if (hud_crosshair)
     {
@@ -2507,11 +2467,6 @@ int ST_FullscreenStatusbar(void)
     }
 
     return screenblocks; // default to current view
-}
-
-void ST_ResetPalette(void)
-{
-    I_SetPalette(W_CacheLumpName("PLAYPAL", PU_CACHE));
 }
 
 // [FG] draw Time widget on intermission screen

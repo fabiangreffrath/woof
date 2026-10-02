@@ -26,13 +26,14 @@
 #include "mn_menu.h"
 #include "p_mobj.h"
 #include "r_bmaps.h"
-#include "r_data.h"
 #include "r_defs.h"
 #include "r_draw.h"
 #include "r_main.h"
 #include "r_state.h"
 #include "r_things.h"
 #include "tables.h"
+#include "v_palette.h"
+#include "v_trans.h"
 #include "v_video.h"
 #include "w_wad.h"
 #include "z_zone.h"
@@ -77,16 +78,13 @@ enum VoxelFace
 
 static void VX_CreateRemapTable (byte * p, byte * table)
 {
-	byte * pal = W_CacheLumpName ("PLAYPAL", PU_CACHE);
-
-	int c;
-	for (c = 0 ; c < 256 ; c++)
+	for (int c = 0 ; c < PLAYPAL_SIZE ; c++)
 	{
 		int r = (int)*p++ << 2;
 		int g = (int)*p++ << 2;
 		int b = (int)*p++ << 2;
 
-		table[c] = I_GetNearestColor (pal, r, g, b);
+		table[c] = V_GetNearestColor(PAL_GLOBAL, r, g, b);
 	}
 }
 
@@ -660,15 +658,17 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 
 	if (vis->mobjflags & MF_SHADOW)
 	{
-		vis->colormap[0] = vis->colormap[1] = NULL;
+		vis->colormap[0] = NULL;
 	}
 	else if (fixedcolormapoffset)
 	{
-		vis->colormap[0] = vis->colormap[1] = thiscolormap + fixedcolormapoffset;
+		vis->colormap[0] = thiscolormap + fixedcolormapoffset;
+		vis->brightmap = nobrightmap;
 	}
 	else if (thing->frame & FF_FULLBRIGHT)
 	{
-		vis->colormap[0] = vis->colormap[1] = thiscolormap;
+		vis->colormap[0] = thiscolormap;
+		vis->brightmap = nobrightmap;
 	}
 	else
 	{
@@ -686,13 +686,14 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 
 		vis->colormap[0] = thiscolormap + spritelightoffsets[index];
 		vis->colormap[1] = thiscolormap;
+
+		vis->brightmap = R_BrightmapForSprite(thing->sprite);
 	}
 
 	// ID24 per-state tranmap
 	// tranmaps do not work with Voxels yet
 	vis->tranmap = NULL;
 
-	vis->brightmap = R_BrightmapForSprite(thing->sprite);
 	vis->color = thing->bloodcolor;
 
 	// [Alaux] Lock crosshair on target
@@ -817,6 +818,9 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 	int linesize = video.height;
 	pixel_t * dest = I_VideoBuffer + (viewwindowx * linesize) + viewwindowy;
 
+	const lighttable_t *const colormap =
+		R_GetBrightmappedColormap(spr->colormap[0], spr->colormap[1], spr->brightmap);
+
 	// iterate over screen columns
 	fixed_t ux = ((Ax - 1) | FRACMASK) + 1;
 
@@ -907,7 +911,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 					uy = clip_y1;
 
 				byte src = slab[0];
-				byte pix = spr->colormap[spr->brightmap[src]][src];
+				byte pix = colormap[src];
 
 				for (; uy < uy1 ; uy += FRACUNIT)
 				{
@@ -922,7 +926,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 					uy = clip_y2;
 
 				byte src = slab[len - 1];
-				byte pix = spr->colormap[spr->brightmap[src]][src];
+				byte pix = colormap[src];
 
 				for (; uy > uy2 ; uy -= FRACUNIT)
 				{
@@ -942,7 +946,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 					if (i >= len) i = len - 1;
 
 					byte src = slab[i];
-					byte pix = spr->colormap[spr->brightmap[src]][src];
+					byte pix = colormap[src];
 
 					dest[(ux >> FRACBITS) * linesize + (uy >> FRACBITS)] = pix;
 				}
@@ -1024,8 +1028,7 @@ void VX_DrawVoxel (vissprite_t * spr)
 
 		static byte new_colormap[256];
 
-		int i;
-		for (i = 0 ; i < 256 ; i++)
+		for (int i = 0 ; i < PLAYPAL_SIZE ; i++)
 			new_colormap[i] = spr->colormap[0][trans[i]];
 
 		spr->colormap[0] = new_colormap;
@@ -1040,8 +1043,7 @@ void VX_DrawVoxel (vissprite_t * spr)
 
 		if (prev_trans != trans || prev_map != map)
 		{
-			int i;
-			for (i = 0 ; i < 256 ; i++)
+			for (int i = 0 ; i < PLAYPAL_SIZE ; i++)
 				new_colormap[i] = map[trans[i]];
 
 			prev_trans = trans;

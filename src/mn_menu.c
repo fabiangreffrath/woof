@@ -52,6 +52,7 @@
 #include "mn_menu.h"
 #include "mn_snapshot.h"
 #include "p_saveg.h"
+#include "r_data.h"
 #include "r_defs.h"
 #include "r_draw.h"
 #include "r_main.h"
@@ -81,7 +82,7 @@
 // int     detailLevel;    obsolete -- killough
 int screenblocks, maxscreenblocks; // has default
 
-static int quickSavePage, quickSaveSlot; // -1 = no quicksave slot picked!
+static int quickSaveSlot; // -1 = no quicksave slot picked!
 
 static int messageToPrint; // 1 = message to be printed
 
@@ -119,13 +120,9 @@ int bigfont_priority = -1;
 #define M_THRM_STEP      8
 
 #define M_X_LOADSAVE     80
-#define M_Y_LOADSAVE     34
-#define M_Y_AUTOSAVE     26
+#define M_Y_LOADSAVE     40
 #define M_LOADSAVE_WIDTH (24 * 8 + 8) // [FG] c.f. M_DrawSaveLoadBorder()
-
-#define LOADGRAPHIC_Y 8
-#define AUTOGRAPHIC_Y 2
-static int loadsave_title_y = LOADGRAPHIC_Y;
+#define LOADGRAPHIC_Y 4
 
 static char savegamestrings[10][SAVESTRINGSIZE];
 
@@ -142,7 +139,6 @@ typedef enum
     MF_HILITE   = 0x00000001,
     MF_THRM     = 0x00000002,
     MF_THRM_STR = 0x00000004,
-    MF_PAGE     = 0x00000008,
     MF_OPTLUMP  = 0x00000010,
 } mflags_t;
 
@@ -156,7 +152,7 @@ typedef enum
 typedef struct
 {
     short status; // 0 = no cursor here, 1 = ok, 2 = arrows ok
-    char name[10];
+    char name[9];
 
     // choice = menu item #.
     // if status = 2,
@@ -196,12 +192,6 @@ static menu_t SaveDef;
 // Regular load menu. Auto save not shown.
 static menu_t LoadDef;
 
-// Quick load menu. Shares same menuitems as LoadDef. Auto save not shown.
-static menu_t QuickLoadDef;
-
-// First page of regular load menu when auto saving is enabled.
-static menu_t LoadAutoSaveDef;
-
 static menu_t *currentMenu; // current menudef
 
 // end of externs added for setup menus
@@ -224,7 +214,6 @@ static void M_MusicVol(int choice);
 /* void M_ChangeDetail(int choice);  unused -- killough */
 
 static void M_FinishReadThis(int choice);
-static void M_LoadAutoSaveSelect(int choice);
 static void M_LoadSelect(int choice);
 static void M_SaveSelect(int choice);
 static void M_ReadSaveStrings(void);
@@ -562,11 +551,10 @@ void MN_AddEpisode(const char *map, const char *gfx, const char *txt, char key)
         return;
     }
 
-    G_ValidateMapName(map, &epi, &mapnum);
+    MI_LumpName(map, &epi, &mapnum);
     EpiMenuEpi[EpiDef.numitems] = epi;
     EpiMenuMap[EpiDef.numitems] = mapnum;
-    strncpy(EpisodeMenu[EpiDef.numitems].name, gfx, 8);
-    EpisodeMenu[EpiDef.numitems].name[9] = 0;
+    M_CopyLumpName(EpisodeMenu[EpiDef.numitems].name, gfx);
     EpisodeMenu[EpiDef.numitems].alttext = txt ? strdup(txt) : NULL;
     EpisodeMenu[EpiDef.numitems].alphaKey = key;
     EpiDef.numitems++;
@@ -759,19 +747,12 @@ enum
     load6,
     load7, // jff 3/15/98 extend number of slots
     load8,
-    load_page,
     load_end
 } load_e;
 
-#define SAVE_LOAD_RECT_Y(m_y, n) ((m_y) + (n) * LINEHEIGHT - 7)
-
-#define SAVE_LOAD_RECT(n)                                               \
-    {M_X_LOADSAVE, SAVE_LOAD_RECT_Y(M_Y_LOADSAVE, n), M_LOADSAVE_WIDTH, \
-     LINEHEIGHT}
-
-#define AUTO_SAVE_RECT(n)                                               \
-    {M_X_LOADSAVE, SAVE_LOAD_RECT_Y(M_Y_AUTOSAVE, n), M_LOADSAVE_WIDTH, \
-     LINEHEIGHT}
+#define SAVE_LOAD_RECT(n)                                    \
+    {M_X_LOADSAVE - 11, M_Y_LOADSAVE + (n) * LINEHEIGHT - 5, \
+     M_LOADSAVE_WIDTH + 8, LINEHEIGHT}
 
 // The definitions of the Load Game screen
 
@@ -785,7 +766,6 @@ static menuitem_t LoadMenu[] = {
     //  jff 3/15/98 extend number of slots
     {1, "", M_LoadSelect, '7', NULL, SAVE_LOAD_RECT(6)},
     {1, "", M_LoadSelect, '8', NULL, SAVE_LOAD_RECT(7)},
-    {-1, "", NULL, 0, NULL, SAVE_LOAD_RECT(8), MF_PAGE}
 };
 
 static menu_t LoadDef =
@@ -797,48 +777,6 @@ static menu_t LoadDef =
     M_X_LOADSAVE,
     M_Y_LOADSAVE, // jff 3/15/98 move menu up
     0
-};
-
-static menu_t QuickLoadDef =
-{
-    load_end,
-    &MainDef,
-    LoadMenu,
-    M_DrawLoad,
-    M_X_LOADSAVE,
-    M_Y_LOADSAVE,
-};
-
-enum
-{
-    autosave_page = load_end,
-    autosave_end
-} autosave_e;
-
-static menuitem_t LoadAutoSaveMenu[] = {
-    // Auto save slot.
-    {1, "", M_LoadAutoSaveSelect, 'a', NULL, AUTO_SAVE_RECT(0)},
-    // Regular save slots.
-    {1, "", M_LoadSelect, '1', NULL, AUTO_SAVE_RECT(1)},
-    {1, "", M_LoadSelect, '2', NULL, AUTO_SAVE_RECT(2)},
-    {1, "", M_LoadSelect, '3', NULL, AUTO_SAVE_RECT(3)},
-    {1, "", M_LoadSelect, '4', NULL, AUTO_SAVE_RECT(4)},
-    {1, "", M_LoadSelect, '5', NULL, AUTO_SAVE_RECT(5)},
-    {1, "", M_LoadSelect, '6', NULL, AUTO_SAVE_RECT(6)},
-    {1, "", M_LoadSelect, '7', NULL, AUTO_SAVE_RECT(7)},
-    {1, "", M_LoadSelect, '8', NULL, AUTO_SAVE_RECT(8)},
-    // Save page navigation.
-    {-1, "", NULL, 0, NULL, AUTO_SAVE_RECT(9), MF_PAGE}
-};
-
-static menu_t LoadAutoSaveDef =
-{
-    autosave_end,
-    &MainDef,
-    LoadAutoSaveMenu,
-    M_DrawLoad,
-    M_X_LOADSAVE,
-    M_Y_AUTOSAVE,
 };
 
 // [FG] draw a snapshot of the n'th savegame into a separate window,
@@ -865,17 +803,17 @@ static void M_DrawBorderedSnapshot(int slot)
     const boolean draw_shot = MN_DrawSnapshot(slot, snapshot_x, snapshot_y,
                                               snapshot_width, snapshot_height);
 
-    const boolean is_autosave = (currentMenu == &LoadAutoSaveDef && slot == 0);
+    const char *txt = (!draw_shot) ? "N/A"
+                      : (savepage == QUICKSAVEPAGE)
+                          ? (slot == AUTOSAVESLOT) ? "Auto Save" : "Quick Save"
+                          : NULL;
 
-    const char *txt;
-
-    if (!draw_shot || is_autosave)
+    if (txt)
     {
-        txt = (is_autosave ? "Auto Save" : "N/A");
         WriteText(snapshot_x + (snapshot_width - MN_StringWidth(txt)) / 2
-                        - video.deltaw,
-                    snapshot_y + snapshot_height / 2 - MN_StringHeight(txt) / 2,
-                    txt);
+                      - video.deltaw,
+                  snapshot_y + snapshot_height / 2 - MN_StringHeight(txt) / 2,
+                  txt);
     }
 
     txt = MN_GetSavegameTime(slot);
@@ -892,90 +830,24 @@ static void M_DrawBorderedSnapshot(int slot)
 
 static boolean delete_verify = false;
 
-static void DeleteAutoSave(void)
-{
-    char *name = G_AutoSaveName();
-    M_remove(name);
-    free(name);
-}
-
-static void DeleteSaveGame(int slot)
+static void M_DeleteGame(int slot)
 {
     char *name = G_SaveGameName(slot, savepage);
     M_remove(name);
     free(name);
 
-    if (savepage == quickSavePage && slot == quickSaveSlot)
+    if (savepage == QUICKSAVEPAGE && slot == quickSaveSlot)
     {
-        quickSavePage = -1;
         quickSaveSlot = -1;
     }
 
     G_ClearPendingSaveSlot(slot);
 }
 
-static void M_DeleteGame(int choice)
-{
-    int slot = choice;
-
-    if (currentMenu == &LoadAutoSaveDef)
-    {
-        if (slot == 0)
-        {
-            DeleteAutoSave();
-        }
-        else
-        {
-            slot--;
-            DeleteSaveGame(slot);
-        }
-    }
-    else
-    {
-        DeleteSaveGame(slot);
-    }
-}
-
-// [FG] support up to 8 pages of savegames
-static void M_DrawSaveLoadBottomLine(void)
-{
-    char pagestr[16];
-    const int x = currentMenu->x;
-    const int y = currentMenu->y + LINEHEIGHT * (currentMenu->numitems - 1);
-
-    int index = (menu_input == mouse_mode ? highlight_item : itemOn);
-
-    int flags = currentMenu->menuitems[index].flags;
-    byte *cr = (flags & MF_PAGE) ? xlat[CR_BRIGHT].table : NULL;
-
-    M_DrawSaveLoadBorder(x, y, cr);
-
-    if (savepage > 0)
-    {
-        MN_DrawString(x, y, CR_GOLD, "<-");
-    }
-    if (savepage < savepage_max)
-    {
-        MN_DrawString(x + (SAVESTRINGSIZE - 2) * 8, y, CR_GOLD, "->");
-    }
-
-    M_snprintf(pagestr, sizeof(pagestr), "page %d/%d", savepage + 1,
-               savepage_max + 1);
-    MN_DrawString(x + M_LOADSAVE_WIDTH / 2 - MN_StringWidth(pagestr) / 2, y,
-                  CR_GOLD, pagestr);
-}
-
 static void M_DrawSaveLoadBorders(void)
 {
-    const int num_slots = currentMenu->numitems - 1;
+    const int num_slots = currentMenu->numitems;
     const int x = currentMenu->x;
-
-    int slot = quickSaveSlot;
-
-    if (menuactive && currentMenu == &LoadAutoSaveDef)
-    {
-        slot++;
-    }
 
     for (int i = 0; i < num_slots; i++)
     {
@@ -986,8 +858,9 @@ static void M_DrawSaveLoadBorders(void)
 
         M_DrawSaveLoadBorder(x, y, cr);
 
-        byte *cr2 =
-            (savepage == quickSavePage && i == slot) ? xlat[CR_GOLD].table : NULL;
+        byte *cr2 = (savepage == QUICKSAVEPAGE && i == quickSaveSlot)
+                        ? xlat[CR_GOLD].table
+                        : NULL;
         WriteTextCR(x, y, cr2, savegamestrings[i]);
     }
 }
@@ -999,17 +872,18 @@ static void M_DrawSaveLoadBorders(void)
 static void M_DrawLoad(void)
 {
     // jff 3/15/98 use symbolic load position
-    MN_DrawTitle(M_X_CENTER, loadsave_title_y, "M_LOADG", "Load Game");
+    MN_DrawTitle(M_X_CENTER, LOADGRAPHIC_Y, "M_LOADG", "Load Game");
     M_DrawSaveLoadBorders();
 
     int index = (menu_input == mouse_mode ? highlight_item : itemOn);
 
-    if (index < currentMenu->numitems - 1)
+    if (index < currentMenu->numitems)
     {
         M_DrawBorderedSnapshot(index);
     }
 
-    M_DrawSaveLoadBottomLine();
+    MN_SetCurrentPage(savepage + 1);
+    MN_DrawTabs();
 }
 
 //
@@ -1029,21 +903,6 @@ static void M_DrawSaveLoadBorder(int x, int y, byte *cr)
     }
 
     V_DrawPatchTranslated(x, y + 7, V_CachePatchName("M_LSRGHT", PU_CACHE), cr);
-}
-
-//
-// User wants to load this game
-//
-
-static void M_LoadAutoSaveSelect(int choice)
-{
-    saveg_compat = saveg_woof510;
-    char *name = G_AutoSaveName();
-    G_LoadAutoSave(name, false);
-    free(name);
-    MN_ClearMenus();
-    // Auto save slot doesn't exist for save menu, so don't change lastOn.
-    //SaveDef.lastOn = choice;
 }
 
 // Loads the savegame at slot/page without relying on the live savepage
@@ -1070,14 +929,13 @@ static void LoadGameAtSlot(int slot, int page)
     SaveDef.lastOn = slot;
 }
 
+//
+// User wants to load this game
+//
+
 static void M_LoadSelect(int choice)
 {
     int slot = choice;
-
-    if (menuactive && currentMenu == &LoadAutoSaveDef)
-    {
-        slot--;
-    }
 
     LoadGameAtSlot(slot, savepage);
 }
@@ -1085,15 +943,6 @@ static void M_LoadSelect(int choice)
 //
 // killough 5/15/98: add forced loadgames
 //
-
-static void M_VerifyForcedLoadAutoSave(int ch)
-{
-    if (ch == 'y')
-    {
-        G_ForcedLoadAutoSave();
-    }
-    MN_ClearMenus();
-}
 
 static void M_VerifyForcedLoadGame(int ch)
 {
@@ -1104,11 +953,6 @@ static void M_VerifyForcedLoadGame(int ch)
     MN_ClearMenus();
 }
 
-void MN_ForcedLoadAutoSave(const char *msg)
-{
-    M_StartMessage(strdup(msg), M_VerifyForcedLoadAutoSave, true);
-}
-
 void MN_ForcedLoadGame(const char *msg)
 {
     M_StartMessage(strdup(msg), M_VerifyForcedLoadGame, true); // free()'d above
@@ -1117,6 +961,9 @@ void MN_ForcedLoadGame(const char *msg)
 //
 // Selected from DOOM menu
 //
+
+static setup_tab_t load_tabs[] = {{"Q"}, {"1"}, {"2"}, {"3"}, {"4"},
+                                  {"5"}, {"6"}, {"7"}, {"8"}, {NULL}};
 
 static void M_LoadGame(int choice)
 {
@@ -1136,16 +983,9 @@ static void M_LoadGame(int choice)
         return;
     }
 
-    if (G_AutoSaveEnabled() && savepage == 0)
-    {
-        SetNextMenu(&LoadAutoSaveDef);
-    }
-    else
-    {
-        SetNextMenu(&LoadDef);
-    }
-
+    SetNextMenu(&LoadDef);
     M_ReadSaveStrings();
+    MN_SetCurrentTabs(load_tabs);
 }
 
 /////////////////////////////
@@ -1165,7 +1005,6 @@ static menuitem_t SaveMenu[] = {
     //  jff 3/15/98 extend number of slots
     {1, "", M_SaveSelect, '7', NULL, SAVE_LOAD_RECT(6)},
     {1, "", M_SaveSelect, '8', NULL, SAVE_LOAD_RECT(7)},
-    {-1, "", NULL, 0, NULL, SAVE_LOAD_RECT(8), MF_PAGE}
 };
 
 static menu_t SaveDef =
@@ -1181,27 +1020,15 @@ static menu_t SaveDef =
 
 static void SetLoadSlotStatus(int slot, int status)
 {
-    if (currentMenu == &LoadAutoSaveDef)
-    {
-        if (slot > 0)
-        {
-            LoadDef.menuitems[slot - 1].status = status;
-        }
-
-        LoadAutoSaveDef.menuitems[slot].status = status;
-    }
-    else
-    {
-        LoadDef.menuitems[slot].status = status;
-        LoadAutoSaveDef.menuitems[slot + 1].status = status;
-    }
+    LoadDef.menuitems[slot].status = status;
 }
 
-static void EmptySaveString(char *name, boolean is_autosave)
+static void EmptySaveString(char *name, int slot)
 {
-    if (is_autosave)
+    if (savepage == QUICKSAVEPAGE)
     {
-        M_snprintf(name, SAVESTRINGSIZE, "%s (Auto)", DEH_String(EMPTYSTRING));
+        M_snprintf(name, SAVESTRINGSIZE, "%s %s", DEH_String(EMPTYSTRING),
+                   (slot == AUTOSAVESLOT) ? "(Auto)" : "(Quick)");
     }
     else
     {
@@ -1211,8 +1038,7 @@ static void EmptySaveString(char *name, boolean is_autosave)
 
 // Parses the already-resolved save file `name` and stores description and
 // (optionally) screenshot at menu index `slot`.
-static void ReadSaveGameContents(char *name, int slot, boolean is_autosave,
-                                  boolean read_screenshot)
+static void ReadSaveGameContents(char *name, int slot, boolean read_screenshot)
 {
     MN_ReadSavegameTime(slot, name);
 
@@ -1225,7 +1051,7 @@ static void ReadSaveGameContents(char *name, int slot, boolean is_autosave,
 
     if (!M_FileExistsNotDir(name))
     {
-        EmptySaveString(savegamestrings[slot], is_autosave);
+        EmptySaveString(savegamestrings[slot], slot);
         SetLoadSlotStatus(slot, 0);
         free(name);
         return;
@@ -1239,7 +1065,7 @@ static void ReadSaveGameContents(char *name, int slot, boolean is_autosave,
 
     if (savegamesize < SAVESTRINGSIZE)
     {
-        EmptySaveString(savegamestrings[slot], is_autosave);
+        EmptySaveString(savegamestrings[slot], slot);
         SetLoadSlotStatus(slot, 0);
         Z_Free(save_p);
         return;
@@ -1299,8 +1125,10 @@ static void ReadSaveGameContents(char *name, int slot, boolean is_autosave,
 
         if (read_screenshot)
         {
-            const char *snapshot = JS_GetStringValue(root, "snapshot");
-            if (!MN_ReadSnapshot(slot, (byte *)snapshot, 0))
+            json_t *snapshot_obj = JS_GetObject(root, "snapshot");
+            const char *snapshot = JS_GetString(snapshot_obj);
+            const int snapshot_len = JS_GetStringLen(snapshot_obj);
+            if (!MN_ReadSnapshot(slot, (byte *)snapshot, snapshot_len, true))
             {
                 MN_ResetSnapshot(slot);
             }
@@ -1313,7 +1141,7 @@ static void ReadSaveGameContents(char *name, int slot, boolean is_autosave,
         M_snprintf(savegamestrings[slot], SAVESTRINGSIZE, "%s",
                    (char *)savebuffer);
 
-        if (read_screenshot && !MN_ReadSnapshot(slot, savebuffer, savegamesize))
+        if (read_screenshot && !MN_ReadSnapshot(slot, savebuffer, savegamesize, false))
         {
             MN_ResetSnapshot(slot);
         }
@@ -1333,18 +1161,9 @@ static void ReadSaveGameContents(char *name, int slot, boolean is_autosave,
     SetLoadSlotStatus(slot, 1);
 }
 
-// Reads name/screenshot for the numbered savegame menu slot `slot` on `page`,
-// applying the same LoadAutoSaveDef slot offset as M_LoadSelect and friends.
-// Used both to refresh a whole page (M_ReadSaveStrings) and to preload a
-// single slot's existing description (e.g. before overwriting a quicksave).
 static void ReadSaveGameInfo(int slot, int page, boolean read_screenshot)
 {
     int file_slot = slot;
-
-    if (menuactive && currentMenu == &LoadAutoSaveDef)
-    {
-        file_slot--;
-    }
 
     char *name = G_SaveGameName(file_slot, page);
 
@@ -1354,14 +1173,14 @@ static void ReadSaveGameInfo(int slot, int page, boolean read_screenshot)
         name = G_MBFSaveGameName(file_slot, page);
     }
 
-    ReadSaveGameContents(name, slot, false, read_screenshot);
+    ReadSaveGameContents(name, slot, read_screenshot);
 }
 
 static void UpdateRectX(menu_t *menu, int x)
 {
     for (int i = 0; i < menu->numitems; i++)
     {
-        menu->menuitems[i].rect.x = x;
+        menu->menuitems[i].rect.x = x - 11;
     }
 }
 
@@ -1374,10 +1193,9 @@ static void M_ReadSaveStrings(void)
     // [FG] shift savegame descriptions a bit to the right
     //      to make room for the snapshots on the left
     const int x = M_X_LOADSAVE + MIN(M_LOADSAVE_WIDTH / 2, video.deltaw);
-    SaveDef.x = LoadDef.x = QuickLoadDef.x = LoadAutoSaveDef.x = x;
+    SaveDef.x = LoadDef.x = x;
     UpdateRectX(&SaveDef, x);
     UpdateRectX(&LoadDef, x);
-    UpdateRectX(&LoadAutoSaveDef, x);
 
     // [FG] fit the snapshots into the resulting space
     snapshot_width = MIN((video.deltaw + SaveDef.x + 2 * SKULLXOFF) & ~7,
@@ -1385,17 +1203,7 @@ static void M_ReadSaveStrings(void)
     snapshot_height = MIN((snapshot_width * SCREENHEIGHT / SCREENWIDTH) & ~7,
                           SCREENHEIGHT / 2);
 
-    int start_slot = 0;
-
-    if (currentMenu == &LoadAutoSaveDef)
-    {
-        ReadSaveGameContents(G_AutoSaveName(), 0, true, true);
-        start_slot = 1;
-    }
-
-    const int num_slots = currentMenu->numitems - 1;
-
-    for (int menu_slot = start_slot; menu_slot < num_slots; menu_slot++)
+    for (int menu_slot = 0; menu_slot < currentMenu->numitems; menu_slot++)
     {
         ReadSaveGameInfo(menu_slot, savepage, true);
     }
@@ -1409,27 +1217,25 @@ static void M_DrawSave(void)
     int i;
 
     // jff 3/15/98 use symbolic load position
-    MN_DrawTitle(M_X_CENTER, loadsave_title_y, "M_SAVEG", "Save Game");
+    MN_DrawTitle(M_X_CENTER, LOADGRAPHIC_Y, "M_SAVEG", "Save Game");
     M_DrawSaveLoadBorders();
 
     if (saveStringEnter)
     {
         i = MN_StringWidth(savegamestrings[saveSlot]);
-        byte *cr = (savepage == quickSavePage && itemOn == quickSaveSlot)
-                       ? xlat[CR_GOLD].table
-                       : NULL;
         WriteTextCR(currentMenu->x + i, currentMenu->y + LINEHEIGHT * saveSlot,
-                    cr, "_");
+                    NULL, "_");
     }
 
     int index = (menu_input == mouse_mode ? highlight_item : itemOn);
 
-    if (index < currentMenu->numitems - 1)
+    if (index < currentMenu->numitems)
     {
         M_DrawBorderedSnapshot(index);
     }
 
-    M_DrawSaveLoadBottomLine();
+    MN_SetCurrentPage(savepage);
+    MN_DrawTabs();
 }
 
 //
@@ -1441,22 +1247,6 @@ static void M_DoSave(int slot, int page)
     MN_ClearMenus();
 }
 
-void MN_SetQuickSaveSlot(int choice, int page)
-{
-    int slot = choice;
-
-    if (menuactive && currentMenu == &LoadAutoSaveDef)
-    {
-        slot--;
-    }
-
-    if (quickSaveSlot == -2)
-    {
-        quickSavePage = page;
-        quickSaveSlot = slot;
-    }
-}
-
 // [FG] generate a default save slot name when the user saves to an empty slot
 static void SetDefaultSaveName(char *name, const char *append)
 {
@@ -1464,7 +1254,7 @@ static void SetDefaultSaveName(char *name, const char *append)
     int maplumpnum = W_CheckNumForName(maplump);
 
     if (gamemapinfo && gamemapinfo->label
-        && !(gamemapinfo->flags & MapInfo_LabelClear))
+        && !(gamemapinfo->flags & MI_LabelClear))
     {
         maplump = gamemapinfo->label;
     }
@@ -1539,8 +1329,6 @@ static boolean GamepadSave(int choice)
         SetDefaultSaveName(savegamestrings[choice], NULL);
         M_DoSave(choice, savepage);
         LoadDef.lastOn = choice;
-        QuickLoadDef.lastOn = choice;
-        LoadAutoSaveDef.lastOn = choice + 1;
         return true;
     }
 
@@ -1576,13 +1364,15 @@ static void M_SaveSelect(int choice)
 
     // [crispy] load the last game you saved
     LoadDef.lastOn = choice;
-    QuickLoadDef.lastOn = choice;
-    LoadAutoSaveDef.lastOn = choice + 1;
 }
 
 //
 // Selected from DOOM menu
 //
+
+static setup_tab_t save_tabs[] = {{"1"}, {"2"}, {"3"}, {"4"}, {"5"},
+                                  {"6"}, {"7"}, {"8"}, {NULL}};
+
 static void M_SaveGame(int choice)
 {
     delete_verify = false;
@@ -1599,8 +1389,10 @@ static void M_SaveGame(int choice)
         return;
     }
 
+    savepage = MAX(savepage, 0);
     SetNextMenu(&SaveDef);
     M_ReadSaveStrings();
+    MN_SetCurrentTabs(save_tabs);
 }
 
 /////////////////////////////
@@ -1790,23 +1582,6 @@ static void M_MusicVol(int choice)
 //    M_QuickSave
 //
 
-static void M_QuickSaveResponse(int ch)
-{
-    if (ch == 'y')
-    {
-        // load the quicksave slot's current description directly, on
-        // whatever page it lives on, without switching the visible menu page
-        ReadSaveGameInfo(quickSaveSlot, quickSavePage, false);
-
-        if (MN_StartsWithMapIdentifier(savegamestrings[quickSaveSlot]))
-        {
-            SetDefaultSaveName(savegamestrings[quickSaveSlot], NULL);
-        }
-        M_DoSave(quickSaveSlot, quickSavePage);
-        M_StartSound(sfx_mnucls);
-    }
-}
-
 static void M_QuickSave(void)
 {
     if (!usergame && (!demoplayback || netgame)) // killough 10/98
@@ -1820,30 +1595,44 @@ static void M_QuickSave(void)
         return;
     }
 
-    if (quickSaveSlot < 0)
+    // Choose the first empty Quick Save slot, or else overide the oldest slot
+    if (quickSaveSlot <= AUTOSAVESLOT)
     {
-        MN_StartControlPanel();
-        SetNextMenu(&SaveDef);
-        M_ReadSaveStrings();
-        quickSaveSlot = -2; // means to pick a slot now
-        return;
+        int oldest_time = INT_MAX;
+
+        for (int slot = AUTOSAVESLOT + 1; slot < SaveDef.numitems; slot++)
+        {
+            char *save_path = G_SaveGameName(slot, QUICKSAVEPAGE);
+            int64_t save_time = M_FileMTime(save_path);
+            free(save_path);
+
+            if (save_time == 0)
+            {
+                quickSaveSlot = slot;
+                break;
+            }
+
+            if (save_time < oldest_time)
+            {
+                quickSaveSlot = slot;
+                oldest_time = save_time;
+            }
+        }
     }
-    M_QuickSaveResponse('y');
+    else if (++quickSaveSlot >= SaveDef.numitems)
+    {
+        quickSaveSlot = 1;
+    }
+
+    SetDefaultSaveName(savegamestrings[quickSaveSlot], "Quick");
+    M_DoSave(quickSaveSlot, QUICKSAVEPAGE);
+    M_StartSound(sfx_mnucls);
 }
 
 /////////////////////////////
 //
 // M_QuickLoad
 //
-
-static void M_QuickLoadResponse(int ch)
-{
-    if (ch == 'y')
-    {
-        LoadGameAtSlot(quickSaveSlot, quickSavePage);
-        M_StartSound(sfx_mnucls);
-    }
-}
 
 static void M_QuickLoad(void)
 {
@@ -1863,16 +1652,16 @@ static void M_QuickLoad(void)
         return;
     }
 
-    if (quickSaveSlot < 0)
+    // Quick Load before Quick Save is just regular Load
+    if (quickSaveSlot <= AUTOSAVESLOT)
     {
-        // [crispy] allow quickload before quicksave
         MN_StartControlPanel();
-        SetNextMenu(&QuickLoadDef);
-        M_ReadSaveStrings();
-        quickSaveSlot = -2; // means to pick a slot now
+        M_LoadGame(0);
         return;
     }
-    M_QuickLoadResponse('y');
+
+    LoadGameAtSlot(quickSaveSlot, QUICKSAVEPAGE);
+    M_StartSound(sfx_mnucls);
 }
 
 /////////////////////////////
@@ -1892,10 +1681,6 @@ static void M_EndGameResponse(int ch)
     {
         G_CheckDemoStatus();
     }
-
-    // [crispy] clear quicksave slot
-    quickSavePage = -1;
-    quickSaveSlot = -1;
 
     currentMenu->lastOn = itemOn;
     S_EvictChannels();
@@ -2306,6 +2091,7 @@ void MN_ClearMenus(void)
     I_SetSensorEventState(false);
     G_ClearInput();
     M_ResumeSound();
+    MN_SetCurrentTabs(NULL);
 }
 
 static boolean MenuBack(void)
@@ -2337,36 +2123,6 @@ void MN_BackSecondary(void)
             currentMenu->menuitems[itemOn].routine(0);
         }
     }
-}
-
-static void UpdateRectY(menu_t *menu, int m_y)
-{
-    for (int i = 0; i < menu->numitems; i++)
-    {
-        menu->menuitems[i].rect.y = SAVE_LOAD_RECT_Y(m_y, i);
-    }
-}
-
-void M_ResetAutoSave(void)
-{
-    int m_y;
-
-    if (G_AutoSaveEnabled())
-    {
-        loadsave_title_y = AUTOGRAPHIC_Y;
-        m_y = M_Y_AUTOSAVE;
-    }
-    else
-    {
-        loadsave_title_y = LOADGRAPHIC_Y;
-        m_y = M_Y_LOADSAVE;
-    }
-
-    LoadDef.y = m_y;
-    UpdateRectY(&LoadDef, m_y);
-
-    SaveDef.y = m_y;
-    UpdateRectY(&SaveDef, m_y);
 }
 
 //
@@ -2415,9 +2171,7 @@ void M_Init(void)
     messageToPrint = 0;
     messageString = NULL;
     messageLastMenuActive = menuactive;
-    quickSavePage = -1;
     quickSaveSlot = -1;
-    M_ResetAutoSave();
 
     int lumpnum = W_CheckNumForName("DBIGFONT");
     if (lumpnum >= 0)
@@ -2701,12 +2455,12 @@ boolean M_ShortcutResponder(const event_t *ev)
     if (M_InputActivated(input_gamma)) // gamma toggle
     {
         gamma2++;
-        if (gamma2 > 17)
+        if (gamma2 > GAMMA_MAX)
         {
-            gamma2 = 0;
+            gamma2 = GAMMA_MIN;
         }
         togglemsg("Gamma correction level %s", gamma_strings[gamma2]);
-        MN_ResetGamma();
+        V_ResetPalette();
         return true;
     }
 
@@ -2797,7 +2551,7 @@ boolean M_ShortcutResponder(const event_t *ev)
             G_EnableWarp(true);
             return true;
         }
-        else if (G_GotoNextLevel(NULL, NULL))
+        else if (G_GotoNextLevel())
         {
             return true;
         }
@@ -2839,6 +2593,11 @@ menu_input_mode_t menu_input, old_menu_input;
 
 static int mouse_state_x, mouse_state_y;
 
+static boolean AnyLoadSaveMenu(void)
+{
+    return (currentMenu == &LoadDef || currentMenu == &SaveDef);
+}
+
 boolean MN_PointInsideRect(mrect_t *rect, int x, int y)
 {
     return x > rect->x + video.deltaw && x < rect->x + rect->w + video.deltaw
@@ -2855,6 +2614,11 @@ static void CursorPosition(void)
     if (MN_SetupCursorPostion(mouse_state_x, mouse_state_y))
     {
         return;
+    }
+
+    if (AnyLoadSaveMenu())
+    {
+        MN_HighlightTab(mouse_state_x, mouse_state_y);
     }
 
     for (int i = 0; i < currentMenu->numitems; i++)
@@ -2897,30 +2661,6 @@ static void ClearHighlightedItems(void)
     }
 }
 
-static void M_UpdateLoadMenu(void)
-{
-    if (G_AutoSaveEnabled()
-        && (currentMenu == &LoadDef || currentMenu == &LoadAutoSaveDef))
-    {
-        if (savepage == 0 && currentMenu == &LoadDef)
-        {
-            LoadDef.lastOn = itemOn;
-            SetNextMenu(&LoadAutoSaveDef);
-        }
-        else if (savepage != 0 && currentMenu == &LoadAutoSaveDef)
-        {
-            LoadAutoSaveDef.lastOn = itemOn;
-            SetNextMenu(&LoadDef);
-        }
-    }
-}
-
-static boolean AnyLoadSaveMenu(void)
-{
-    return (currentMenu == &LoadDef || currentMenu == &QuickLoadDef
-            || currentMenu == &SaveDef || currentMenu == &LoadAutoSaveDef);
-}
-
 static boolean SaveLoadResponder(menu_action_t action, int ch)
 {
     if (!AnyLoadSaveMenu())
@@ -2950,12 +2690,12 @@ static boolean SaveLoadResponder(menu_action_t action, int ch)
 
     // [FG] support up to 8 pages of savegames
 
+    const int savepage_min = (currentMenu == &SaveDef) ? 0 : QUICKSAVEPAGE;
     if (action == MENU_LEFT)
     {
-        if (savepage > 0)
+        if (savepage > savepage_min)
         {
             savepage--;
-            M_UpdateLoadMenu();
             M_ReadSaveStrings();
             M_StartSound(sfx_mnumov);
         }
@@ -2966,7 +2706,6 @@ static boolean SaveLoadResponder(menu_action_t action, int ch)
         if (savepage < savepage_max)
         {
             savepage++;
-            M_UpdateLoadMenu();
             M_ReadSaveStrings();
             M_StartSound(sfx_mnumov);
         }
@@ -3007,34 +2746,27 @@ static boolean MouseResponder(void)
         return MN_SetupMouseResponder(mouse_state_x, mouse_state_y);
     }
 
-    menuitem_t *current_item = &currentMenu->menuitems[highlight_item];
-
-    mrect_t *rect = &current_item->rect;
-
-    if (current_item->flags & MF_PAGE)
+    if (AnyLoadSaveMenu())
     {
-        if (M_InputActivated(input_menu_enter))
+        if (SetupLoadSaveTab(&savepage))
         {
-            int dot = mouse_state_x - video.deltaw * 2 - rect->x;
-            if (dot >= rect->w / 2)
+            if (currentMenu == &LoadDef)
             {
-                SaveLoadResponder(MENU_RIGHT, 0);
+                savepage--;
             }
-            else
-            {
-                SaveLoadResponder(MENU_LEFT, 0);
-            }
+            M_ReadSaveStrings();
             return true;
         }
-        return false;
     }
+
+    menuitem_t *current_item = &currentMenu->menuitems[highlight_item];
 
     if (current_item->flags & MF_THRM_STR)
     {
         current_item++;
     }
 
-    rect = &current_item->rect;
+    mrect_t *rect = &current_item->rect;
 
     if (M_InputActivated(input_menu_enter))
     {
@@ -3083,11 +2815,8 @@ static boolean MouseResponder(void)
 static boolean AllowDeleteSaveGame(void)
 {
     int index = (old_menu_input == mouse_mode ? highlight_item : itemOn);
-    return (((currentMenu == &LoadDef || currentMenu == &QuickLoadDef
-              || currentMenu == &SaveDef)
-             && LoadDef.menuitems[index].status)
-            || (currentMenu == &LoadAutoSaveDef
-                && LoadAutoSaveDef.menuitems[index].status));
+    return (((currentMenu == &LoadDef || currentMenu == &SaveDef)
+             && LoadDef.menuitems[index].status));
 }
 
 boolean M_Responder(event_t *ev)
@@ -3432,10 +3161,7 @@ boolean M_Responder(event_t *ev)
 
     if (action == MENU_ESCAPE) // phares 3/7/98
     {
-        if (!(currentMenu->menuitems[itemOn].flags & MF_PAGE))
-        {
-            currentMenu->lastOn = itemOn;
-        }
+        currentMenu->lastOn = itemOn;
         MN_ClearMenus();
         M_StartSound(sfx_mnucls);
         help_input = old_help_input;
@@ -3447,10 +3173,7 @@ boolean M_Responder(event_t *ev)
     if (action == MENU_BACKSPACE) // phares 3/7/98
     {
         menuitem_t *current_item = &currentMenu->menuitems[itemOn];
-        if (!(current_item->flags & MF_PAGE))
-        {
-            currentMenu->lastOn = itemOn;
-        }
+        currentMenu->lastOn = itemOn;
         current_item->flags &= ~MF_HILITE;
 
         // phares 3/30/98:
@@ -3719,7 +3442,10 @@ void M_Drawer(void)
 
         mrect_t *rect = &item->rect;
         // due to the MainMenu[] hacks, we have to set `y` here
-        rect->y = y;
+        if (!AnyLoadSaveMenu())
+        {
+            rect->y = y;
+        }
 
         // [FG] at least one menu graphics lump is missing, draw alternative
         // text
@@ -3851,7 +3577,7 @@ static void WriteTextCR(int x, int y, byte *cr, const char *string)
         }
 
         w = SHORT(hu_font[c]->width);
-        if (cx + w > SCREENWIDTH)
+        if (cx + w > SCREENWIDTH + video.deltaw)
         {
             break;
         }

@@ -17,6 +17,9 @@
 
 #include "doomtype.h"
 
+#ifndef __V_FLEXTRAN__
+#define __V_FLEXTRAN__
+
 // haleyjd: DOSDoom-style translucency lookup tables
 
 extern unsigned int Col2RGB8[65][256];
@@ -26,3 +29,5 @@ extern byte RGB32k[32][32][32];
 // V_InitFlexTranTable
 // Initializes the tables used in Flex translucency calculations
 void V_InitFlexTranTable(void);
+
+#endif // __V_FLEXTRAN__

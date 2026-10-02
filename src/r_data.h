@@ -64,6 +64,10 @@ byte *R_MissingFlat(void);
 int R_TextureNumForName (const char *name);    // killough -- const added
 int R_CheckTextureNumForName (const char *name); 
 
+void R_ToggleTextureBrightmaps(void);
+
+#define COLORMAP_SIZE (256 * 34)
+
 int R_ColormapNumForName(const char *name);      // killough 4/4/98
 
 void R_InitColormaps(void);   // killough 8/9/98

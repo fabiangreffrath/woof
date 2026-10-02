@@ -37,7 +37,7 @@ struct mobj_s;
 // as commands per game tick.
 #include "d_ticcmd.h"
 
-struct mapentry_s;
+struct MI_Entry_s;
 
 //
 // Player states.
@@ -166,8 +166,7 @@ typedef struct player_s
   // So gun flashes light up areas.
   int                 extralight;
 
-  // Current PLAYPAL, ???
-  //  can be set to REDCOLORMAP for pain, etc.
+  // Current palette layer
   int                 fixedcolormap;
 
   // Player skin colorshift,
@@ -246,8 +245,8 @@ typedef struct wbstartstruct_s
   int         next;   
   // for when MAPINFO progression crosses into another episode.
   int         nextep;
-  struct mapentry_s *lastmapinfo;
-  struct mapentry_s *nextmapinfo;
+  struct MI_Entry_s *lastmapinfo;
+  struct MI_Entry_s *nextmapinfo;
     
   int         maxkills;
   int         maxitems;
