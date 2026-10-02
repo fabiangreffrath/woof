@@ -439,6 +439,11 @@ static void ParseStandardProperty(scanner_t *s, MI_Entry_t *mape)
         SC_MustGetToken(s, TK_BoolConst);
         mape->finale = SC_GetBoolean(s) ? EG_BunnyScroll : EG_Clear;
     }
+    else if (!strcasecmp(prop, "enddemon"))
+    {
+        SC_MustGetToken(s, TK_BoolConst);
+        mape->finale = SC_GetBoolean(s) ? EG_DemonScroll : EG_Clear;
+    }
     else if (!strcasecmp(prop, "endpalette"))
     {
         ParseLumpName(s, mape->endpalette);
