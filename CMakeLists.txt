@@ -28,8 +28,8 @@ option(ENABLE_HARDENING "Enable hardening flags" OFF)
 option(ENABLE_LTO "Enable link time optimization" OFF)
 option(ENABLE_FONTGEN "Generate textscreen font" OFF)
 
-option(WOOF_RANGECHECK "Enable bounds-checking of performance-sensitive functions" ON)
-option(WOOF_STRICT
+option(ENABLE_RANGECHECK "Enable bounds-checking of performance-sensitive functions" ON)
+option(ENABLE_MBF_STRICT
        "Prefer original MBF code paths over demo compatiblity with PrBoom+" OFF)
 
 option(CMAKE_FIND_PACKAGE_PREFER_CONFIG
@@ -45,6 +45,8 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 project(
     "Woof"
     VERSION 16.0.0
+    DESCRIPTION "Continuation of the Boom/MBF bloodline of Doom source ports"
+    HOMEPAGE_URL "https://fabiangreffrath.github.io/woof/"
     LANGUAGES C CXX
 )
 
@@ -72,12 +74,15 @@ set(PROJECT_COMPANY "Fabian Greffrath and contributors")
 set(PROJECT_COPYRIGHT "Copyright (C) 1993-2026")
 set(PROJECT_LICENSE "GNU General Public License, version 2")
 set(PROJECT_STRING "${PROJECT_NAME} ${PROJECT_VERSION}")
+set(PROJECT_PRETTYNAME "Woof!")
 set(PROJECT_SHORTNAME "woof")
-set(PROJECT_APPID "io.github.fabiangreffrath.woof")
-set(PROJECT_APPID_SETUP "io.github.fabiangreffrath.woof-setup")
-set(BASE_PK3 "woof.pk3")
-set(WOOF_ICON "woof.ico")
-set(SETUP_ICON "setup.ico")
+set(PROJECT_DEVELOPER "io.github.fabiangreffrath")
+set(PROJECT_BUGTRACKER "https://github.com/fabiangreffrath/woof/issues")
+set(PROJECT_APPID "${PROJECT_DEVELOPER}.${PROJECT_SHORTNAME}")
+set(PROJECT_APPID_SETUP "${PROJECT_DEVELOPER}.${PROJECT_SHORTNAME}-setup")
+set(BASE_PK3 "${PROJECT_SHORTNAME}.pk3")
+set(PROJECT_ICON "${PROJECT_SHORTNAME}.ico")
+set(PROJECT_SETUP_ICON "setup.ico")
 set(PROJECT_VERSION_RC
     "${PROJECT_VERSION_MAJOR},${PROJECT_VERSION_MINOR},${PROJECT_VERSION_PATCH},0")
 
@@ -195,10 +200,10 @@ find_package(Python3 COMPONENTS Interpreter)
 configure_file(config.h.in config.h)
 
 if(WIN32)
-    set(WOOF_INSTALL_BIN_DIR  ".")
+    set(PROJECT_INSTALL_BIN_DIR  ".")
 else()
     include(GNUInstallDirs)
-    set(WOOF_INSTALL_BIN_DIR "${CMAKE_INSTALL_BINDIR}")
+    set(PROJECT_INSTALL_BIN_DIR "${CMAKE_INSTALL_BINDIR}")
 endif()
 
 if(WIN32)

@@ -1,4 +1,4 @@
-1 ICON "@PROJECT_SOURCE_DIR@/data/@SETUP_ICON@"
+1 ICON "@PROJECT_SOURCE_DIR@/data/@PROJECT_SETUP_ICON@"
 
 #include <winuser.h>
 
@@ -27,4 +27,3 @@ FILETYPE 1
   VALUE "Translation", 0x409, 1252
  }
 }
-

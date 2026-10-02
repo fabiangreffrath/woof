@@ -1,6 +1,6 @@
 .TH @PROJECT_SHORTNAME@-setup 6
 .SH NAME
-@PROJECT_SHORTNAME@-setup \- configuration tool for Woof!
+@PROJECT_SHORTNAME@-setup \- configuration tool for @PROJECT_PRETTYNAME@
 .SH SYNOPSIS
 .B @PROJECT_SHORTNAME@-setup
 [OPTIONS]
@@ -24,4 +24,3 @@ Copyright \(co 2020-2022 Roman Fomin.
 This is free software.  You may redistribute copies of it under the terms of
 the GNU General Public License <http://www.gnu.org/licenses/gpl.html>.
 There is NO WARRANTY, to the extent permitted by law.
-

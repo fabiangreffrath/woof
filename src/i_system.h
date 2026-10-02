@@ -58,7 +58,7 @@ struct ticcmd_s *I_BaseTiccmd(void);
 // killough 4/25/98: add gcc attributes
 NORETURN void I_ErrorInternal(const char *prefix, const char *error, ...) PRINTF_ATTR(2, 3);
 
-#ifdef WOOF_DEBUG
+#ifdef BUILD_DEBUG
   #if defined(_MSC_VER)
     #include <intrin.h>
     #define DoDebugBreak() __debugbreak()
@@ -75,7 +75,7 @@ NORETURN void I_ErrorInternal(const char *prefix, const char *error, ...) PRINTF
         }                                       \
         I_ErrorInternal(__func__, __VA_ARGS__); \
     } while (0)
-#else // WOOF_DEBUG
+#else // BUILD_DEBUG
   #define I_Error(...) I_ErrorInternal(__func__, __VA_ARGS__)
 #endif
 
