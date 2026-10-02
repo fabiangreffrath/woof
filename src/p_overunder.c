@@ -47,11 +47,12 @@ boolean P_CanOverUnder(const mobj_t *const a, const mobj_t *const b)
            && (mode == OVERUNDER_ALL || a_player || b_player);
 }
 
-// Returns true if mo is a monster, including lost souls but not barrels or the
-// boss brain.
+// Returns true if mo is an enemy monster, including lost souls but not friends,
+// barrels or the boss brain.
 static boolean monster(const mobj_t *const mo)
 {
-    return (mo->flags & MF_COUNTKILL) || mo->type == MT_SKULL;
+    return !(mo->flags & MF_FRIEND)
+           && ((mo->flags & MF_COUNTKILL) || mo->type == MT_SKULL);
 }
 
 // Kills mo with crusher damage.
