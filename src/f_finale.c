@@ -113,6 +113,7 @@ static boolean CastResponder(event_t *ev);
 static void CastDrawer(void);
 static void TextWrite(void);
 static void BunnyScroll(void);
+static void DemonScroll(void);
 static float GetTextSpeed(void);
 
 static int midstage;                 // whether we're in "mid-stage"
@@ -480,6 +481,10 @@ static boolean MapInfoTicker()
                 {
                     S_StartMusic(mus_bunny);
                 }
+                else if (gamemapinfo->finale == EG_DemonScroll)
+                {
+                    // NOP
+                }
                 else if (gamemapinfo->finale == EG_Basic)
                 {
                     mapinfo_finale = false;
@@ -519,6 +524,10 @@ static boolean MapInfoDrawer(void)
             if (gamemapinfo->finale == EG_BunnyScroll)
             {
                 BunnyScroll();
+            }
+            else if (gamemapinfo->finale == EG_DemonScroll)
+            {
+                DemonScroll();
             }
             else if (gamemapinfo->endpic[0])
             {
@@ -1268,6 +1277,48 @@ static void BunnyScroll(void)
                V_CachePatchName (name,PU_CACHE));
 }
 
+static void DemonScroll(void)
+{
+    // FIXME: This y value need to be re-initted as 0 every time this sequence
+    // is finished. Otherwise it causes a HOM.
+    static int yval = 0;
+    static int nextscroll = 0;
+
+    if (finalecount < nextscroll)
+    {
+        return;
+    }
+
+    patch_t *patch1 = V_CachePatchName("FINAL1", PU_LEVEL);
+    patch_t *patch2 = V_CachePatchName("FINAL2", PU_LEVEL);
+
+    if (finalecount < 70)
+    {
+        V_DrawPatchFullScreen(patch1);
+        nextscroll = finalecount;
+        return;
+    }
+
+    if (yval < 200)
+    {
+        const int x = DIV_ROUND_CLOSEST(video.unscaledw - SHORT(patch1->width), 2);
+
+        V_FillRect(0, 0, video.unscaledw, SCREENHEIGHT, playpal_global->black);
+
+        V_DrawPatch(x - video.deltaw, yval - SCREENHEIGHT, patch2);
+        V_DrawPatch(x - video.deltaw, yval, patch1);
+
+        if (finalecount >= nextscroll)
+        {
+            yval++;
+            nextscroll = finalecount + 3;
+        }
+    }
+    else
+    {
+        V_DrawPatchFullScreen(patch2);
+    }
+}
 
 //
 // F_Drawer
