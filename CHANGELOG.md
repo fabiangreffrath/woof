@@ -18,6 +18,7 @@
   - Added the "Move Over/Under Monsters" option (Off / Player only / All) to the Compatibility menu.
     The player, and optionally all monsters, can now pass over or under other solid, shootable things instead of colliding with them at any height.
     Moving sectors kill monsters the player stands over or under, or that would squeeze the player.
+    Monsters cannot hit things more than a step height above or below them in melee.
     The option is disabled in demos, netgames and strict mode.
 
 * **Rendering:**
