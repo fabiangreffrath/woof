@@ -84,7 +84,7 @@ static void CreateRemapTable (byte * p, byte * table)
 		int g = (int)*p++ << 2;
 		int b = (int)*p++ << 2;
 
-		table[c] = V_GetNearestColor(PAL_GLOBAL, r, g, b);
+		table[c] = V_GetNearestColor(PAL_BASE, r, g, b);
 	}
 }
 
