@@ -307,7 +307,7 @@ static void InitRGB2Pal(void)
             {
                 const int sb = b << RGB2PAL_IBPC;
 
-                rgb2pal_g[b] = V_GetNearestColor(PAL_GLOBAL, sr, sg, sb);
+                rgb2pal_g[b] = V_GetNearestColor(PAL_BASE, sr, sg, sb);
             }
         }
     }
@@ -562,7 +562,7 @@ static boolean DecodePNG(png_t *png)
 
             need_translation = true;
             translate[i] =
-                V_GetNearestColor(PAL_GLOBAL, e->red, e->green, e->blue);
+                V_GetNearestColor(PAL_BASE, e->red, e->green, e->blue);
         }
 
         if (need_translation)

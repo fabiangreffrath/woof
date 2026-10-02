@@ -2797,7 +2797,7 @@ void AM_ApplyColors(boolean force)
                        g = playpal_iwad->base[j].g,
                        b = playpal_iwad->base[j].b;
 
-            *mapcolors[i].cur_var = V_GetNearestColor(PAL_GLOBAL, r, g, b);
+            *mapcolors[i].cur_var = V_GetNearestColor(PAL_BASE, r, g, b);
         }
     }
 
