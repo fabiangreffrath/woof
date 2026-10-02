@@ -29,7 +29,6 @@
   #include <unistd.h>
 #endif
 
-#include "config.h"
 #include "execute.h"
 #include "m_argv.h"
 #include "m_io.h"
