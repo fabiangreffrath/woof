@@ -33,7 +33,7 @@ execute_process(
         LDAI_UPDATE_INFORMATION=gh-releases-zsync|fabiangreffrath|woof|latest|Woof-*-Linux.AppImage.zsync
         ${LINUXDEPLOY_EXECUTABLE} --appimage-extract-and-run
         --appdir=${CPACK_TEMPORARY_DIRECTORY}
-        --executable=${CPACK_TEMPORARY_DIRECTORY}/${CPACK_PACKAGING_INSTALL_PREFIX}/${CPACK_BIN_DIR}/woof
-        --desktop-file=${CPACK_TEMPORARY_DIRECTORY}/${CPACK_PACKAGING_INSTALL_PREFIX}/share/applications/io.github.fabiangreffrath.woof.desktop
-        --icon-file=${CPACK_TEMPORARY_DIRECTORY}/${CPACK_PACKAGING_INSTALL_PREFIX}/share/icons/hicolor/128x128/apps/woof.png
+        --executable=${CPACK_TEMPORARY_DIRECTORY}/${CPACK_PACKAGING_INSTALL_PREFIX}/${CPACK_BIN_DIR}/${PROJECT_SHORTNAME}
+        --desktop-file=${CPACK_TEMPORARY_DIRECTORY}/${CPACK_PACKAGING_INSTALL_PREFIX}/share/applications/${PROJECT_APPID}.desktop
+        --icon-file=${CPACK_TEMPORARY_DIRECTORY}/${CPACK_PACKAGING_INSTALL_PREFIX}/share/icons/hicolor/128x128/apps/${PROJECT_SHORTNAME}.png
         --output=appimage)

@@ -256,7 +256,7 @@ add_custom_command(OUTPUT "${BASE_PK3_PATH}"
     DEPENDS ${BASE_SOURCES}
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
 
-add_custom_target(woof-base DEPENDS "${BASE_PK3_PATH}")
+add_custom_target(${PROJECT_SHORTNAME}-base DEPENDS "${BASE_PK3_PATH}")
 
 if(WIN32)
     install(FILES "${BASE_PK3_PATH}" DESTINATION .)

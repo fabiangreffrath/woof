@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=@PROJECT_PRETTYNAME@ Setup
+Exec=@PROJECT_SHORTNAME@-setup
+Icon=@PROJECT_SHORTNAME@-setup
+Type=Application
+Comment=Setup tool for @PROJECT_PRETTYNAME@
+Categories=Settings;
+Keywords=first;person;shooter;vanilla;doom;boom;mbf;
+StartupWMClass=@PROJECT_APPID_SETUP@

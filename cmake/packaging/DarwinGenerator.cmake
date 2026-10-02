@@ -9,8 +9,8 @@ file(
 )
 file(
     COPY_FILE
-    ${staging_dir}/${CPACK_BIN_DIR}/woof-setup
-    ${packaged_dir}/woof-setup
+    ${staging_dir}/${CPACK_BIN_DIR}/${PROJECT_SHORTNAME}-setup
+    ${packaged_dir}/${PROJECT_SHORTNAME}-setup
 )
 
 file(

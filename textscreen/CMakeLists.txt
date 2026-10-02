@@ -1,4 +1,4 @@
-include(WoofSettings)
+include(ProjectSettings)
 
 add_library(textscreen STATIC
                                 textscreen.h
@@ -22,7 +22,7 @@ add_library(textscreen STATIC
             txt_window.c        txt_window.h
             txt_window_action.c txt_window_action.h)
 
-target_woof_settings(textscreen)
+target_project_settings(textscreen)
 
 target_include_directories(textscreen
                            INTERFACE "."

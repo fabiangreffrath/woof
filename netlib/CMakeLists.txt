@@ -1,7 +1,7 @@
-include(WoofSettings)
+include(ProjectSettings)
 
 add_library(netlib STATIC netlib.c netlib.h)
-target_woof_settings(netlib)
+target_project_settings(netlib)
 target_include_directories(netlib INTERFACE ".")
 
 if(WIN32)

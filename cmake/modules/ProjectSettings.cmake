@@ -1,4 +1,4 @@
-# Add woof settings to a target.
+# Add project settings to a target.
 
 include(CheckCCompilerFlag)
 include(CheckLinkerFlag)
@@ -121,7 +121,7 @@ if(ENABLE_HARDENING)
     _checked_add_link_option(-Wl,-z,now)
 endif()
 
-function(target_woof_settings)
+function(target_project_settings)
     foreach(target ${ARGN})
         target_compile_options(${target} PRIVATE ${COMMON_COMPILE_OPTIONS})
         target_link_options(${target} PRIVATE ${COMMON_LINK_OPTIONS})

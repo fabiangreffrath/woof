@@ -1,4 +1,4 @@
-include(WoofSettings)
+include(ProjectSettings)
 
 add_library(opl STATIC
             opl.c           opl.h
@@ -8,7 +8,7 @@ add_library(opl STATIC
             opl3.c          opl3.h
             wf_rom.h)
 
-target_woof_settings(opl)
+target_project_settings(opl)
 
 target_include_directories(opl
                            INTERFACE "."
