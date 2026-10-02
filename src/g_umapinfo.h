@@ -36,6 +36,7 @@ typedef enum MI_Finale_e
     EG_ArtScreen,
     EG_CastRollCall,
     EG_BunnyScroll,
+    EG_DemonScroll,
     EG_CustomFinale,
 } MI_Finale_t;
 
