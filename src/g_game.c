@@ -4400,11 +4400,9 @@ byte *G_WriteOptions(byte *demo_p)
 
   *demo_p++ = monkeys;
 
-  {   // killough 10/98: a compatibility vector now
-    int i;
-    for (i=0; i < COMP_TOTAL; i++)
-      *demo_p++ = comp[i] != 0;
-  }
+  // killough 10/98: a compatibility vector now
+  for (int i = 0; i < MBF_COMP_TOTAL; i++)
+    *demo_p++ = comp[i] != 0;
 
   //----------------
   // Padding at end
@@ -4612,19 +4610,17 @@ byte *G_ReadOptions(byte *demo_p)
 
       monkeys = *demo_p++;
 
-      {   // killough 10/98: a compatibility vector now
-	int i;
-	for (i=0; i < COMP_TOTAL; i++)
-	  comp[i] = *demo_p++;
-      }
+      // killough 10/98: a compatibility vector now
+      for (int i = 0; i < MBF_COMP_TOTAL; i++)
+        comp[i] = *demo_p++;
 
       G_MBFComp();
     }
   else  // defaults for versions < 2.02
     {
-      int i;  // killough 10/98: a compatibility vector now
-      for (i=0; i < COMP_TOTAL; i++)
-	comp[i] = compatibility;
+      // killough 10/98: a compatibility vector now
+      for (int i = 0; i < MBF_COMP_TOTAL; i++)
+        comp[i] = compatibility;
 
       if (demo_version == DV_BOOM || demo_version == DV_BOOM201)
         G_BoomComp();

@@ -202,7 +202,7 @@ void G_ApplyLevelCompatibility(map_t* map)
 {
     static demo_version_t old_demo_version;
     static boolean restore_comp;
-    static int old_comp[COMP_TOTAL];
+    static int old_comp[MBF_COMP_TOTAL];
 
     if (restore_comp)
     {
