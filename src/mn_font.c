@@ -109,7 +109,7 @@ boolean MN_LoadFon2(const byte *gfx_data, int size)
         int r = *p++;
         int g = *p++;
         int b = *p++;
-        translate[i] = V_GetNearestColor(PAL_GLOBAL, r, g, b);
+        translate[i] = V_GetNearestColor(PAL_BASE, r, g, b);
     }
 
     // 0 is transparent, last is border color

@@ -2113,7 +2113,7 @@ static void DrawSolidBackground(void)
         g = sRGB_LinearToByte(sRGB_ByteToLinear(g) / 2.0);
         b = sRGB_LinearToByte(sRGB_ByteToLinear(b) / 2.0);
 
-        col = V_GetNearestColor(PAL_GLOBAL, r, g, b);
+        col = V_GetNearestColor(PAL_BASE, r, g, b);
 
         V_FillRect(0, v0, video.unscaledw, v1 - v0, col);
     }
@@ -2305,7 +2305,7 @@ static void DoPaletteStuff(player_t *player)
     if (layer != old_layer)
     {
         old_layer = layer;
-        I_SetPalette(PAL_GLOBAL, layer);
+        I_SetPalette(PAL_BASE, layer);
     }
 }
 
