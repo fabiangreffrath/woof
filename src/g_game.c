@@ -3789,6 +3789,7 @@ static void G_MBFDefaults(void)
   memset(comp, 0, sizeof comp);
 
   comp[comp_zombie] = 1;
+  comp[comp_thingsectorlight] = 1;
 }
 
 static void G_MBF21Defaults(void)
@@ -3803,6 +3804,7 @@ static void G_MBF21Defaults(void)
   comp[comp_friendlyspawn] = 1;
   comp[comp_voodooscroller] = 0;
   comp[comp_reservedlineflag] = 1;
+  comp[comp_thingsectorlight] = 0;
 }
 
 static void G_MBFComp()
@@ -3813,6 +3815,7 @@ static void G_MBFComp()
   comp[comp_friendlyspawn] = 1;
   comp[comp_voodooscroller] = 1;
   comp[comp_reservedlineflag] = 0;
+  comp[comp_thingsectorlight] = 1;
 }
 
 static void G_BoomComp()
@@ -3832,6 +3835,7 @@ static void G_BoomComp()
   comp[comp_friendlyspawn] = 1;
   comp[comp_voodooscroller] = 0;
   comp[comp_reservedlineflag] = 0;
+  comp[comp_thingsectorlight] = 0;
 }
 
 static void CheckDemoParams(boolean specified_complevel)
@@ -4530,13 +4534,14 @@ byte *G_ReadOptionsMBF21(byte *demo_p)
   for (i = 0; i < count; i++)
     comp[i] = *demo_p++;
 
-  // comp_voodooscroller
-  if (count < MBF21_COMP_TOTAL - 2)
+  if (count <= comp_voodooscroller)
     comp[comp_voodooscroller] = 1;
 
-  // comp_reservedlineflag
-  if (count < MBF21_COMP_TOTAL - 1)
+  if (count <= comp_reservedlineflag)
     comp[comp_reservedlineflag] = 0;
+
+  if (count <= comp_thingsectorlight)
+    comp[comp_thingsectorlight] = 0;
 
   return demo_p;
 }
@@ -5160,6 +5165,7 @@ void G_BindCompVariables(void)
 #define BIND_COMP(id, v, help) \
   M_BindNum(#id, &default_comp[(id)], &comp[(id)], (v), 0, 1, ss_none, wad_yes, help)
 
+  // Boom & MBF
   BIND_COMP(comp_zombie,    1, "Dead players can trigger linedef actions");
   BIND_COMP(comp_infcheat,  0, "Powerup cheats don't last forever");
   BIND_COMP(comp_stairs,    0, "Build stairs exactly the same way that Doom does");
@@ -5179,12 +5185,15 @@ void G_BindCompVariables(void)
   BIND_COMP(comp_floors,    0, "Use exactly Doom's floor motion behavior");
   BIND_COMP(comp_model,     0, "Use exactly Doom's linedef trigger model");
   BIND_COMP(comp_zerotags,  0, "Linedef actions work on sectors with tag 0");
+
+  // MBF21
   BIND_COMP(comp_soul,      0, "Lost souls bounce on floors and ceilings");
   BIND_COMP(comp_respawn,   0, "Monsters not spawned at level start respawn at map origin");
   BIND_COMP(comp_ledgeblock, 1, "Ledges block monsters");
   BIND_COMP(comp_friendlyspawn, 1, "Things spawned by A_Spawn inherit friendliness of spawner");
   BIND_COMP(comp_voodooscroller, 0, "Voodoo dolls on slow scrollers move too slowly");
   BIND_COMP(comp_reservedlineflag, 1, "ML_RESERVED clears extended flags");
+  BIND_COMP(comp_thingsectorlight, 0, "Sprites are lit according to the average of transferred light levels");
 
 #define BIND_EMU(id, v, help) \
   M_BindBool(#id, &overflow[(id)].enabled, NULL, (v), ss_none, wad_no, help)

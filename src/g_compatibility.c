@@ -57,6 +57,7 @@ static const char *comp_names[] = {
     [comp_friendlyspawn] = "comp_friendlyspawn",
     [comp_voodooscroller] = "comp_voodooscroller",
     [comp_reservedlineflag] = "comp_reservedlineflag",
+    [comp_thingsectorlight] = "comp_thingsectorlight",
 };
 
 typedef byte md5_digest_t[16];

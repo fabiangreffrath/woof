@@ -165,6 +165,7 @@ enum {
   comp_friendlyspawn,
   comp_voodooscroller,
   comp_reservedlineflag,
+  comp_thingsectorlight,
 
   MBF21_COMP_TOTAL,
 
