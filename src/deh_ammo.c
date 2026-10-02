@@ -22,13 +22,10 @@
 #include "deh_defs.h"
 #include "deh_io.h"
 #include "deh_main.h"
-// #include "deh_mapping.h"
+#include "deh_mapping.h"
 #include "doomdef.h"
 #include "p_inter.h"
 
-// TODO:
-
-/*
 DEH_BEGIN_MAPPING(ammo_mapping, ammoinfo_t)
     DEH_MAPPING("Per ammo", clipammo)
     DEH_MAPPING("Max ammo", maxammo)
@@ -49,7 +46,6 @@ DEH_BEGIN_MAPPING(ammo_mapping, ammoinfo_t)
     DEH_UNSUPPORTED_MAPPING("Skill 4 multiplier")
     DEH_UNSUPPORTED_MAPPING("Skill 5 multiplier")
 DEH_END_MAPPING
-*/
 
 static int DEH_AmmoStart(deh_context_t *context, char *line)
 {
@@ -77,7 +73,7 @@ static void DEH_AmmoParseLine(deh_context_t *context, char *line, int tag)
         return;
     }
 
-    int ammo_number = tag;
+    ammoinfo_t *ammo = &ammoinfo[tag];
 
     // Parse the assignment
     char *variable_name, *value;
@@ -90,27 +86,14 @@ static void DEH_AmmoParseLine(deh_context_t *context, char *line, int tag)
 
     int ivalue = atoi(value);
 
-    // maxammo
-    if (!strcasecmp(variable_name, "Per ammo"))
-    {
-        clipammo[ammo_number] = ivalue;
-    }
-    else if (!strcasecmp(variable_name, "Max ammo"))
-    {
-        maxammo[ammo_number] = ivalue;
-    }
-    else
-    {
-        DEH_Debug(context, "Field named '%s' not found", variable_name);
-    }
+    DEH_SetMapping(context, &ammo_mapping, ammo, variable_name, ivalue, value);
 }
 
 static void DEH_AmmoSHA1Hash(sha1_context_t *context)
 {
     for (int i = 0; i < NUMAMMO; ++i)
     {
-        SHA1_UpdateInt32(context, clipammo[i]);
-        SHA1_UpdateInt32(context, maxammo[i]);
+        DEH_StructSHA1Sum(context, &ammo_mapping, &ammoinfo[i]);
     }
 }
 
