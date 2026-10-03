@@ -165,13 +165,17 @@ enum {
   comp_friendlyspawn,
   comp_voodooscroller,
   comp_reservedlineflag,
+  comp_thingsectorlight,
 
   MBF21_COMP_TOTAL,
 
-  COMP_TOTAL=32  // Some extra room for additional variables
+  // MBF used a fixed sized array for comp[]
+  // must retain it so the read/write of MBF demos works correctly
+  // Yes, this does mean that MBF21_COMP_TOTAL is smaller, as of now
+  MBF_COMP_TOTAL = 32,
 };
 
-extern int comp[COMP_TOTAL], default_comp[COMP_TOTAL];
+extern int comp[MBF_COMP_TOTAL], default_comp[MBF_COMP_TOTAL];
 
 // -------------------------------------------
 // Selected skill type, map etc.

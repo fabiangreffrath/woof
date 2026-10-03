@@ -47,7 +47,7 @@ boolean pwad_help2;
 // compatibility with old engines (monster behavior, metrics, etc.)
 int compatibility, default_compatibility;          // killough 1/31/98
 
-int comp[COMP_TOTAL], default_comp[COMP_TOTAL];    // killough 10/98
+int comp[MBF_COMP_TOTAL], default_comp[MBF_COMP_TOTAL];    // killough 10/98
 
 // [FG] overflow emulation
 overflow_t overflow[EMU_TOTAL] = {
