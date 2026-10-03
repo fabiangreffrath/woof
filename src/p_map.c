@@ -39,8 +39,10 @@
 #include "p_map.h"
 #include "p_maputl.h"
 #include "p_mobj.h"
+#include "p_overunder.h"
 #include "p_setup.h"
 #include "p_spec.h"
+#include "p_tick.h"
 #include "p_user.h"
 #include "r_defs.h"
 #include "r_main.h"
@@ -509,7 +511,7 @@ static boolean P_ProjectileImmune(mobj_t *target, mobj_t *source)
 }
 
 // [FG] mobj or actual sprite height
-static const inline fixed_t thingheight (const mobj_t *const thing, const mobj_t *const cond)
+static inline fixed_t thingheight (const mobj_t *const thing, const mobj_t *const cond)
 {
   return (direct_vertical_aiming && cond && cond->player && thing->actualheight > thing->height) ?
         thing->actualheight : thing->height;
@@ -677,6 +679,44 @@ static boolean PIT_CheckThing(mobj_t *thing) // killough 3/26/98: make static
     return true;
   }
 
+    // Pass over or under the thing if the Z ranges do not overlap.
+    // Its top or bottom then acts as floor or ceiling for the mover.
+    if (P_CanOverUnder(tmthing, thing))
+    {
+        const fixed_t top = thing->z + thing->height;
+
+        if (tmthing->z >= top)
+        {
+            if (top > tmfloorz)
+            {
+                tmfloorz = top;
+                tmbelow = thing;
+            }
+            return true;
+        }
+
+        if (tmthing->z + tmthing->height <= thing->z)
+        {
+            if (thing->z < tmceilingz)
+            {
+                tmceilingz = thing->z;
+                tmabove = thing;
+            }
+            return true;
+        }
+
+        // Already intersecting, e.g. after a Z movement into the thing. Let the
+        // mover leave, but not move deeper: the distance must not shrink in
+        // both axes.
+        if (abs(tmthing->x - thing->x) < blockdist
+            && abs(tmthing->y - thing->y) < blockdist
+            && (abs(tmx - thing->x) >= abs(tmthing->x - thing->x)
+                || abs(tmy - thing->y) >= abs(tmthing->y - thing->y)))
+        {
+            return true;
+        }
+    }
+
   // killough 3/16/98: Allow non-solid moving objects to move through solid
   // ones, by allowing the moving thing (tmthing) to move if it's non-solid,
   // despite another solid thing being in the way.
@@ -771,6 +811,7 @@ boolean P_CheckPosition(mobj_t *thing, fixed_t x, fixed_t y)
 
   tmthing = thing;
   tmflags = thing->flags;
+  tmbelow = tmabove = NULL;
 
   tmx = x;
   tmy = y;
@@ -927,6 +968,7 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, int dropoff)
   thing->floorz = tmfloorz;
   thing->ceilingz = tmceilingz;
   thing->dropoffz = tmdropoffz;      // killough 11/98: keep track of dropoffs
+  P_SetOverUnderLinks(thing);
   thing->x = x;
   thing->y = y;
 
@@ -1104,6 +1146,7 @@ static boolean P_ThingHeightClip(mobj_t *thing)
   thing->floorz = tmfloorz;
   thing->ceilingz = tmceilingz;
   thing->dropoffz = tmdropoffz;         // killough 11/98: remember dropoffs
+  P_SetOverUnderLinks(thing);
 
   if (onfloor)  // walking monsters rise and fall with the floor
     {
@@ -2040,8 +2083,20 @@ static boolean crushchange, nofit;
 boolean PIT_ChangeSector(mobj_t *thing)
 {
   mobj_t *mo;
+  const boolean use_overunder = (CRITICAL(overunder) != OVERUNDER_OFF);
 
-  if (P_ThingHeightClip(thing))
+  // The links must be checked before the thing is clipped and moves away from
+  // the thing it touches. A monster in contact with the player always dies here,
+  // even if it would technically fit, because it could block the player's way.
+  const boolean killed = (use_overunder && P_CrushOverUnderLink(thing));
+  const boolean rider = (use_overunder && P_IsOverUnderPlayer(thing));
+  boolean fits = P_ThingHeightClip(thing);
+
+  // A player who no longer fits crushes the monsters that limit him instead of being blocked.
+  if (use_overunder && !fits && P_CrushOverUnderBlockers(thing))
+    fits = P_ThingHeightClip(thing);
+
+  if (fits && !killed)
     return true; // keep checking
 
   // crunch bodies to giblets
@@ -2077,6 +2132,12 @@ boolean PIT_ChangeSector(mobj_t *thing)
 
   if (!(thing->flags & MF_SHOOTABLE))
     return true;        // assume it is bloody gibs or something
+
+  // The monster takes the squeeze instead of the player and never blocks the mover.
+  if (rider)
+  {
+    return true;
+  }
 
   nofit = true;
 

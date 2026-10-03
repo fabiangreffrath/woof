@@ -44,6 +44,7 @@
 #include "p_map.h"
 #include "p_maputl.h"
 #include "p_mobj.h"
+#include "p_overunder.h"
 #include "p_pspr.h"
 #include "p_setup.h"
 #include "p_spec.h"
@@ -153,6 +154,7 @@ static boolean P_CheckRange(mobj_t *actor, fixed_t range)
     pl && !(actor->flags & pl->flags & MF_FRIEND) &&
     (P_AproxDistance(pl->x-actor->x, pl->y-actor->y) <
      range) &&
+    P_CheckOverUnderHeight(actor, pl) &&
     P_CheckSight(actor, actor->target);
 }
 
