@@ -198,6 +198,40 @@ fixed_t lowfloor;
 sector_t *openfrontsector; // made global                    // phares
 sector_t *openbacksector;  // made global
 
+boolean P_GetMidTexturePosition(const line_t *line, int sideno, fixed_t *top, fixed_t *bottom)
+{
+  if (line->sidenum[0] == NO_INDEX || line->sidenum[1] == NO_INDEX)
+  {
+    return false;
+  }
+
+  const side_t *side = &sides[line->sidenum[0]];
+
+  if (!side->midtexture)
+  {
+    return false;
+  }
+
+  short texnum = texturetranslation[side->midtexture];
+
+  if (line->flags & ML_DONTPEGBOTTOM)
+  {
+    *bottom = side->rowoffset +
+              side->offsety_mid +
+              MAX(line->frontsector->floorheight, line->backsector->floorheight);
+    *top = *bottom + textureheight[texnum];
+  }
+  else
+  {
+    *top = side->rowoffset +
+           side->offsety_mid +
+           MIN(line->frontsector->ceilingheight, line->backsector->ceilingheight);
+    *bottom = *top - textureheight[texnum];
+  }
+
+  return true;
+}
+
 void P_LineOpening(line_t *linedef)
 {
   if (linedef->sidenum[1] == NO_INDEX)      // single sided line
@@ -774,7 +808,7 @@ static intercepts_overrun_t intercepts_overrun[] =
     {4,   false, NULL, /* &swingx, */      },
     {4,   false, NULL, /* &swingy, */      },
     {4,   false, NULL,                     },
-    {40,  true,  &playerstarts,            },
+    {40,  true,  &playerstarts[0],         }, // TODO: needs to match mapthing_doom_t
     {4,   false, NULL, /* &blocklinks, */  },
     {4,   false, &bmapwidth,               },
     {4,   false, NULL, /* &blockmap, */    },

@@ -239,8 +239,6 @@ int EV_DoPlat
         plat->wait = 0;
         plat->status = up;
         sec->special = 0;
-        //jff 3/14/98 clear old field as well
-        sec->oldspecial = 0;               
 
         S_StartSoundPitch((mobj_t *)&sec->soundorg,sfx_stnmov, PITCH_NONE);
         break;

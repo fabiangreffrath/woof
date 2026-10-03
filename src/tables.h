@@ -55,11 +55,23 @@ extern const fixed_t finetangent[FINEANGLES/2];
 #define ANG45   0x20000000
 #define ANG75   0x35555555
 #define ANG90   0x40000000
+#define ANG135  0x60000000
 #define ANG180  0x80000000
+#define ANG225  0xa0000000
 #define ANG270  0xc0000000
+#define ANG315  0xe0000000
 #define ANG1    (ANG45/45)
 #define ANG60   (ANG180/3)
 #define ANGLE_MAX 0xffffffff
+
+#define ANGLE_EAST       0
+#define ANGLE_NORTH_EAST ANG45
+#define ANGLE_NORTH      ANG90
+#define ANGLE_NORTH_WEST ANG135
+#define ANGLE_WEST       ANG180
+#define ANGLE_SOUTH_WEST ANG225
+#define ANGLE_SOUTH      ANG270
+#define ANGLE_SOUTH_EAST ANG315
 
 #define SLOPERANGE 2048
 #define SLOPEBITS    11

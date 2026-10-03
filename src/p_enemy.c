@@ -463,7 +463,7 @@ static boolean P_Move(mobj_t *actor, int dropoff) // killough 9/12/98
     actor->flags &= ~MF_INFLOAT;
 
   // killough 11/98: fall more slowly, under gravity, if felldown==true
-  if (!(actor->flags & MF_FLOAT) && (!felldown || demo_version < DV_MBF))
+  if (!map.param && !(actor->flags & MF_FLOAT) && (!felldown || demo_version < DV_MBF))
     actor->z = actor->floorz;
 
   return true;
@@ -2297,7 +2297,7 @@ void A_BossDeath(mobj_t *mo)
 {
   if (MI_BossAction(mo))
   {
-      G_ExitLevel();
+      G_ExitLevel(0);
   }
 
   return;
@@ -2416,7 +2416,7 @@ void A_BrainExplode(mobj_t *mo)
 
 void A_BrainDie(mobj_t *mo)
 {
-  G_ExitLevel();
+  G_ExitLevel(0);
 }
 
 void A_BrainSpit(mobj_t *mo)

@@ -246,6 +246,20 @@ typedef enum
   MIF_FLIP            = 0x00000010,
   MIF_SPAWNED_BY_ICON = 0x00000020,
   MIF_GHOST           = 0x00000040,
+
+  // Heretic/Hexen/ZDoom flags
+  // FIXME, not sure how to handle this
+  MIF_WINDTHRUST      = (1u << 7),  // Mobj is thrustable by Heretic wind
+  MIF_DORMANT         = (1u << 8),  // Mobj is dormant
+  MIF_PUSHWALL        = (1u << 9),  // mobj can push walls
+  MIF_MCROSS          = (1u << 10), // can activate monster cross lines
+  MIF_PCROSS          = (1u << 11), // can activate projectile cross lines
+  MIF_IMPACT          = (1u << 12), // an MF_MISSILE mobj can activate
+  MIF_CANUSEWALLS     = (1u << 13), // mobj can "use" walls
+  MIF_COUNTSECRET     = (1u << 14), // item pickup counts as a secret
+  MIF_PROJECTILE      = (MIF_PCROSS|MIF_IMPACT),
+  MIF_MONSTER         = (MIF_MCROSS|MIF_PUSHWALL|MIF_CANUSEWALLS),
+  MIF_PLAYER          = (MIF_WINDTHRUST|MIF_PUSHWALL|MIF_CANUSEWALLS),
 } mobjflag_int_t;
 
 // Map Object definition.
@@ -320,7 +334,7 @@ typedef struct mobj_s
     mobjflag_int_t      intflags;  // killough 9/15/98: internal flags
     int                 health;
 
-    // Action specials
+    // Parameterized actions
     int32_t             tid;
     int32_t             special;
     int32_t             args[5];
@@ -474,6 +488,10 @@ void    P_ExplodeMissile(mobj_t*);    // killough
 
 boolean P_SeekerMissile(mobj_t *actor, mobj_t **seekTarget, angle_t thresh, angle_t turnMax, boolean seekcenter);
 int     P_FaceMobj(mobj_t *source, mobj_t *target, angle_t *delta);
+
+extern void (*P_ApplySectorMovement)(mobj_t* mo, int special);
+extern void P_ApplySectorMovement_Classic(mobj_t* mo, int special);
+extern void P_ApplySectorMovement_Param(mobj_t* mo, int special);
 
 // TIDs
 void P_InitTIDHash(void);

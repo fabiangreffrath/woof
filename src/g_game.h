@@ -60,8 +60,8 @@ void G_ClearPendingSaveSlot(int slot);
 void G_RecordDemo(const char *name);              // Only called by startup code.
 void G_BeginRecording(void);
 void G_PlayDemo(char *name);
-void G_ExitLevel(void);
-void G_SecretExitLevel(void);
+void G_ExitLevel(int position);
+void G_SecretExitLevel(int position);
 void G_WorldDone(void);
 void G_Ticker(void);
 void G_ScreenShot(void);
@@ -137,6 +137,9 @@ extern int  bodyquesize, default_bodyquesize; // killough 2/8/98, 10/98
 extern boolean secretexit;
 
 extern byte *demo_p;
+
+// Parameterized Actions
+void G_Completed(int map, int position, int flags, angle_t angle);
 
 #endif
 

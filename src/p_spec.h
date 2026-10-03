@@ -20,15 +20,18 @@
 #define __P_SPEC__
 
 #include "d_think.h"
+#include "doomdata.h"
 #include "doomdef.h"
 #include "doomtype.h"
 #include "m_arena.h"
 #include "m_fixed.h"
+#include "tables.h"
 
 struct line_s;
 struct mobj_s;
 struct player_s;
 struct sector_s;
+struct special_s;
 
 //      Define values for map objects
 #define MO_TELEPORTMAN  14
@@ -356,6 +359,22 @@ typedef enum
   genPerpetual, 
   toggleUpDn,   //jff 3/14/98 added to support instant toggle type
 
+  // Parameterized actions
+  platUpByValue,
+  platUpWaitDownStay,
+  platUpNearestWaitDownStay,
+  platUpByValueStay,
+  platDownWaitUpStay,
+  platDownWaitUpStayStone,
+  platDownByValue,
+  platDownToNearestFloor,
+  platDownToLowestCeiling,
+
+  platRaiseAndStay,
+  platRaiseAndStayLockout,
+  platPerpetualRaise,
+
+  platToggle,
 } plattype_e;
 
 // p_doors
@@ -380,7 +399,35 @@ typedef enum
   genBlazeClose,
   genCdO,
   genBlazeCdO,
+
+  // Parameterized actions
+  doorWaitRaise,
+  doorWaitClose,
 } vldoor_e;
+
+typedef enum lockdefs_e
+{
+    Lock_None = 0,
+    Lock_RedCard = 1,
+    Lock_BlueCard = 2,
+    Lock_YellowCard = 3,
+    Lock_RedSkull = 4,
+    Lock_BlueSkull = 5,
+    Lock_YellowSkull = 6,
+
+    Lock_Any = 100,
+    Lock_All = 101,
+
+    Lock_RedLax = 129,
+    Lock_BlueLax = 130,
+    Lock_YellowLax = 131,
+    Lock_Red = 132,
+    Lock_Blue = 133,
+    Lock_Yellow = 134,
+
+    Lock_AnyX = 228,
+    Lock_EachColor = 229,
+} lockdefs_t;
 
 // p_ceilng
 
@@ -405,7 +452,40 @@ typedef enum
   genCrusher,
   genSilentCrusher,
 
+  // Parameterized actions
+  ceilLowerByValue,
+  ceilLowerToHighest,
+  ceilLowerToLowest,
+  ceilLowerToNearest,
+  ceilLowerToHighestFloor,
+  ceilLowerToFloor,
+  ceilLowerByTexture,
+  ceilLowerInstant,
+  ceilLowerAndCrush,
+
+  ceilRaiseByValue,
+  ceilRaiseToHighest,
+  ceilRaiseToLowest,
+  ceilRaiseToNearest,
+  ceilRaiseToHighestFloor,
+  ceilRaiseToFloor,
+  ceilRaiseByTexture,
+  ceilRaiseInstant,
+
+  ceilCrushAndRaise,
+  ceilCrushRaiseAndStay,
+
+  ceilMoveToValue,
+
+  ceil_placeholder,
 } ceiling_e;
+
+typedef enum
+{
+  crushDoom = 0,
+  crushHexen = 1,
+  crushSlowdown = 2,
+} crushmode_e;
 
 // p_floor
 
@@ -464,20 +544,63 @@ typedef enum
   //new types for stair builders
   buildStair,
   genBuildStair,
+
+  // Parameterized actions
+  floorLowerByValue,
+  floorLowerToHighest,
+  floorLowerToLowest,
+  floorLowerToNearest,
+  floorLowerToLowestCeiling,
+  floorLowerToCeiling,
+  floorLowerByTexture,
+  floorLowerAndChange,
+  floorLowerInstant,
+
+  floorRaiseByValue,
+  floorRaiseToHighest,
+  floorRaiseToLowest,
+  floorRaiseToNearest,
+  floorRaiseToLowestCeiling,
+  floorRaiseToCeiling,
+  floorRaiseByTexture,
+  floorRaiseAndChange,
+  floorRaiseInstant,
+
+  floorMoveToValue,
+  floorRaiseAndCrush,
+  floorRaiseAndCrushDoom,
+
+  floorBuildStair,
+  floorWaitStair,
+  floorResetStair,
 } floor_e;
 
 typedef enum
 {
   build8, // slowly build by 8
-  turbo16 // quickly build by 16
-    
+  turbo16, // quickly build by 16
+
+  // Parameterized actions
+  stairBuildDown,
+  stairBuildUp,
 } stair_e;
+
+typedef enum
+{
+  SFP_UseSpecial = 0x01,
+  SFP_Sync       = 0x02,
+  SFP_Crush      = 0x04,
+} stair_flags_param_t;
 
 typedef enum
 {
   elevateUp,
   elevateDown,
   elevateCurrent,
+
+  // Parameterized actions
+  elevateLower,
+  elevateRaise,
 } elevator_e;
 
 //////////////////////////////////////////////////////////////////
@@ -581,6 +704,65 @@ typedef struct
 
 } glow_t;
 
+// Parameterized actions
+
+typedef struct glow_param_s
+{
+  thinker_t thinker;
+  struct sector_s* sector;
+  short startlevel;
+  short endlevel;
+  short tics;
+  short maxtics;
+  boolean oneshot;
+} glow_param_t;
+
+typedef struct flicker_param_s
+{
+  thinker_t thinker;
+  struct sector_s* sector;
+  short upper;
+  short lower;
+  short count;
+} flicker_param_t;
+
+typedef enum lighttype_e
+{
+    LITE_RAISEBYVALUE,
+    LITE_LOWERBYVALUE,
+    LITE_CHANGETOVALUE,
+    LITE_FADE,
+    LITE_GLOW,
+    LITE_FLICKER,
+    LITE_STROBE
+} lighttype_t;
+
+typedef struct light_s
+{
+    thinker_t thinker;
+    struct sector_s *sector;
+    lighttype_t type;
+    int value1;
+    int value2;
+    int tics1;
+    int tics2;
+    int count;
+} light_t;
+
+typedef struct phase_s
+{
+    thinker_t thinker;
+    struct sector_s *sector;
+    int index;
+    int base;
+} phase_t;
+
+void T_PhaseAdapter(struct mobj_s *phase);
+void T_LightAdapter(struct mobj_s *light);
+void P_SpawnPhasedLight(struct sector_s *sector, int base, int index);
+void P_SpawnLightSequence(struct sector_s *sector, int indexStep);
+boolean EV_SpawnLight(struct line_s *line, byte *arg, lighttype_t type);
+
 // p_plats
 
 typedef struct plat_s
@@ -634,6 +816,15 @@ typedef struct vldoor_s
 
 // p_doors
 
+typedef struct special_s
+{
+  short special;
+  unsigned int flags;
+  short dmg_amount;
+  short dmg_leakrate;
+  short dmg_interval;
+} special_t;
+
 typedef struct ceiling_s
 {
   thinker_t thinker;
@@ -645,18 +836,21 @@ typedef struct ceiling_s
   fixed_t oldspeed;
   boolean crush;
 
-  //jff 02/04/98 add these to support ceiling changers
-  int newspecial;
-  int oldspecial; //jff 3/14/98 add to fix bug in change transfers
+  special_t transfer;
   short texture;
 
   // 1 = up, 0 = waiting, -1 = down
   int direction;
 
   // ID
-  int tag;                   
+  int tag;
   int olddirection;
   struct ceilinglist *list;   // jff 2/22/98 copied from killough's plats
+
+  // Parameterized actions
+  fixed_t speed2;
+  crushmode_e crushmode;
+  byte silent;
 } ceiling_t;
 
 typedef struct ceilinglist {
@@ -673,11 +867,13 @@ typedef struct floormove_s
   boolean crush;
   struct sector_s *sector;
   int direction;
-  int newspecial;
-  int oldspecial;   //jff 3/14/98 add to fix bug in change transfers
+  special_t transfer;
   short texture;
   fixed_t floordestheight;
   fixed_t speed;
+
+  // Parameterized actions
+  boolean hexen_crush;
 } floormove_t;
 
 typedef struct elevator_s
@@ -740,10 +936,10 @@ typedef struct {
 extern void Add_Scroller(scroller_t type, fixed_t dx, fixed_t dy,
                          int32_t control, int32_t affectee, int32_t accel);
 
-extern void Add_ParamSectorScroller(scroller_t type, int32_t affectee,
+extern void Add_SectorScroller_Param(scroller_t type, int32_t affectee,
                                     boolean isCeiling, fixed_t dx, fixed_t dy);
 
-extern void Add_EESectorScroller(int32_t type, int32_t affectee,
+extern void Add_SectorScroller_EE(int32_t type, int32_t affectee,
                                  boolean isCeiling, double x, double y);
 
 // phares 3/12/98: added new model of friction for ice/sludge effects
@@ -847,6 +1043,22 @@ boolean P_CanUnlockGenDoor(struct line_s *line, struct player_s *player);
 
 int P_SectorActive(special_e t, struct sector_s *s);
 
+void P_CopySectorSpecial(struct sector_s *dest, struct sector_s *source);
+
+void P_TransferSpecial(struct sector_s *sector, struct special_s *newspecial);
+
+void P_CopyTransferSpecial(struct special_s *newspecial, struct sector_s *sector);
+
+void P_ResetTransferSpecial(struct special_s *newspecial);
+
+void P_ResetSectorSpecial(struct sector_s *sector);
+
+void P_ClearNonGeneralizedSectorSpecial(struct sector_s *sector);
+
+boolean P_IsSpecialSector(struct sector_s *sector);
+
+void P_PlayerCollectsSecret(struct player_s *player);
+
 boolean P_IsDeathExit(struct sector_s *sec);
 
 boolean P_IsExitLine(struct line_s * line);
@@ -860,6 +1072,8 @@ boolean P_WasSecret(struct sector_s *sec);
 boolean P_RevealedSecret(struct sector_s *sec);
 
 void P_ChangeSwitchTexture(struct line_s *line, int useAgain);
+
+boolean P_CheckSwitchRange(struct line_s *line, struct mobj_s *mo, int sideno);
 
 ////////////////////////////////////////////////////////////////
 //
@@ -898,6 +1112,11 @@ void T_MoveFloorAdapter(struct mobj_s *mobj);
 
 void T_MoveElevatorAdapter(struct mobj_s *mobj);
 
+// Parameterized actions
+void T_BuildPillarAdapter(struct mobj_s *mobj);
+void T_FloorWaggleAdapter(struct mobj_s *mobj);
+void T_CeilingWaggleAdapter(struct mobj_s *mobj);
+
 // p_spec
 
 void T_ScrollAdapter(struct mobj_s *mobj); // killough 3/7/98: scroll effect thinker
@@ -906,8 +1125,8 @@ void T_FrictionAdapter(struct mobj_s *mobj); // phares 3/12/98: friction thinker
 
 void T_PusherAdapter(struct mobj_s *mobj); // phares 3/20/98: Push thinker
 
-void T_ParamScrollFloorAdapter(struct mobj_s *mobj);
-void T_ParamScrollCeilingAdapter(struct mobj_s *mobj);
+void T_ScrollFloorAdapter_Param(struct mobj_s *mobj);
+void T_ScrollCeilingAdapter_Param(struct mobj_s *mobj);
 
 ////////////////////////////////////////////////////////////////
 //
@@ -933,6 +1152,10 @@ int EV_DoElevator(struct line_s *line, elevator_e elevtype);
 int EV_BuildStairs(struct line_s *line, stair_e type);
 
 int EV_DoFloor(struct line_s *line, floor_e floortype);
+
+int EV_DoFloor_Param(floor_e floortype, struct line_s *line, int tag,
+                     fixed_t speed, fixed_t height, int crush, int change,
+                     boolean hexen_crush, boolean heretic_lower);
 
 // p_ceilng
 
@@ -1003,23 +1226,35 @@ void P_InitPicAnims(void);
 void P_InitSwitchList(void);
 
 // at map load
-void P_SpawnSpecials(void);
+void P_SpawnSpecials(map_t *map);
 
 // every tic
 void P_UpdateSpecials(void);
 
 // when needed
-boolean P_UseSpecialLine(struct mobj_s *thing, struct line_s *line, int side,
-                         boolean bossaction);
+extern boolean (*P_UseSpecialLine)(struct mobj_s *thing, struct line_s *line, int side, boolean bossaction);
+boolean P_UseSpecialLine_Classic(struct mobj_s *thing, struct line_s *line, int side, boolean bossaction);
+boolean P_UseSpecialLine_Param(struct mobj_s *thing, struct line_s *line, int side, boolean bossaction);
 
-void P_ShootSpecialLine(struct mobj_s *thing, struct line_s *line, int side);
+extern void (*P_ShootSpecialLine)(struct mobj_s *thing, struct line_s *line, int side);
+void P_ShootSpecialLine_Classic(struct mobj_s *thing, struct line_s *line, int side);
+void P_ShootSpecialLine_Param(struct mobj_s *thing, struct line_s *line, int side);
 
-void P_CrossSpecialLine(struct line_s *, int side, struct mobj_s *thing,
-                        boolean bossaction); // killough 11/98
+extern void (*P_CrossSpecialLine)(struct line_s *line, int side, struct mobj_s  *thing, boolean bossaction);
+void P_CrossSpecialLine_Classic(struct line_s *line, int side, struct mobj_s *thing, boolean bossaction);
+void P_CrossSpecialLine_Param(struct line_s *line, int side, struct mobj_s *thing, boolean bossaction);
 
 extern int disable_nuke;  // killough 12/98: nukage disabling cheat
 
 void P_PlayerInSpecialSector(struct player_s *player);
+
+extern void (*P_PlayerInSector)(struct player_s *player, struct sector_s *sector);
+void P_PlayerInSector_Classic(struct player_s *player, struct sector_s *sector);
+void P_PlayerInSector_Param(struct player_s *player, struct sector_s *sector);
+
+extern boolean (*P_MObjInSector)(struct mobj_s *mobj);
+boolean P_MObjInSector_Classic(struct mobj_s *mobj);
+boolean P_MObjInSector_Param(struct mobj_s *mobj);
 
 // p_lights
 
@@ -1045,7 +1280,11 @@ void P_ActivateInStasis(int tag);
 
 void P_SpawnDoorCloseIn30(struct sector_s *sec);
 
-void P_SpawnDoorRaiseIn5Mins(struct sector_s *sec, int secnum);
+void P_SpawnDoorRaiseIn5Mins(struct sector_s *sec);
+
+int EV_DoDoor_Param(vldoor_e type, struct line_s *line, struct mobj_s *mo, int tag,
+                    fixed_t speed, int topwait, enum lockdefs_e lock, int lightTag,
+                    boolean boomgen, int topcountdown);
 
 // p_ceilng
 
@@ -1060,6 +1299,429 @@ int P_ActivateInStasisCeiling(struct line_s *line);
 struct mobj_s *P_GetPushThing(int);                                // phares 3/23/98
 
 void P_HitFloor (struct mobj_s *mo, int oof); // [FG] play sound when hitting animated floor
+
+//
+// p_specx -- Parameterized actions
+//
+
+void P_ThrustMobj(struct mobj_s *mo, angle_t angle, fixed_t move);
+
+// Parameterized actions
+// https://doomwiki.org/wiki/Action_specials
+typedef enum param_action_e
+{
+    No_Special,
+    Polyobj_StartLine,
+    Polyobj_RotateLeft,
+    Polyobj_RotateRight,
+    Polyobj_Move,
+    Polyobj_ExplicitLine,
+    Polyobj_MoveTimes8,
+    Polyobj_DoorSwing,
+    Polyobj_DoorSlide,
+    Line_Horizon,
+    Door_Close,
+    Door_Open,
+    Door_Raise,
+    Door_LockedRaise,
+    Door_Animated,
+    Autosave,
+    Transfer_WallLight,
+    Thing_Raise,
+    StartConversation,
+    Thing_Stop,
+    Floor_LowerByValue,
+    Floor_LowerToLowest,
+    Floor_LowerToNearest,
+    Floor_RaiseByValue,
+    Floor_RaiseToHighest,
+    Floor_RaiseToNearest,
+    Stairs_BuildDown,
+    Stairs_BuildUp,
+    Floor_RaiseAndCrush,
+    Pillar_Build,
+    Pillar_Open,
+    Stairs_BuildDownSync,
+    Stairs_BuildUpSync,
+    ForceField,
+    ClearForceField,
+    Floor_RaiseByValueTimes8,
+    Floor_LowerByValueTimes8,
+    Floor_MoveToValue,
+    Ceiling_Waggle,
+    Teleport_ZombieChanger,
+    Ceiling_LowerByValue,
+    Ceiling_RaiseByValue,
+    Ceiling_CrushAndRaise,
+    Ceiling_LowerAndCrush,
+    Ceiling_CrushStop,
+    Ceiling_CrushRaiseAndStay,
+    Floor_CrushStop,
+    Ceiling_MoveToValue,
+    Sector_Attach3dMidtex,
+    GlassBreak,
+    ExtraFloor_LightOnly,
+    Sector_SetLink,
+    Scroll_Wall,
+    Line_SetTextureOffset,
+    Sector_ChangeFlags,
+    Line_SetBlocking,
+    Line_SetTextureScale,
+    Sector_SetPortal,
+    Sector_CopyScroller,
+    Polyobj_OR_MoveToSpot,
+    Plat_PerpetualRaise,
+    Plat_Stop,
+    Plat_DownWaitUpStay,
+    Plat_DownByValue,
+    Plat_UpWaitDownStay,
+    Plat_UpByValue,
+    Floor_LowerInstant,
+    Floor_RaiseInstant,
+    Floor_MoveToValueTimes8,
+    Ceiling_MoveToValueTimes8,
+    Teleport,
+    Teleport_NoFog,
+    ThrustThing,
+    DamageThing,
+    Teleport_NewMap,
+    Teleport_EndGame,
+    TeleportOther,
+    TeleportGroup,
+    TeleportInSector,
+    Thing_SetConversation,
+    ACS_Execute,
+    ACS_Suspend,
+    ACS_Terminate,
+    ACS_LockedExecute,
+    ACS_ExecuteWithResult,
+    ACS_LockedExecuteDoor,
+    Polyobj_MoveToSpot,
+    Polyobj_Stop,
+    Polyobj_MoveTo,
+    Polyobj_OR_MoveTo,
+    Polyobj_OR_RotateLeft,
+    Polyobj_OR_RotateRight,
+    Polyobj_OR_Move,
+    Polyobj_OR_MoveTimes8,
+    Pillar_BuildAndCrush,
+    FloorAndCeiling_LowerByValue,
+    FloorAndCeiling_RaiseByValue,
+    Ceiling_LowerAndCrushDist,
+    Sector_SetTranslucent,
+    Floor_RaiseAndCrushDoom,
+    Scroll_Texture_Left,
+    Scroll_Texture_Down,
+    Scroll_Texture_Right,
+    Scroll_Texture_Up,
+    Ceiling_CrushAndRaiseSilentDist,
+    Door_WaitRaise,
+    Door_WaitClose,
+    Line_SetPortalTarget,
+    BSP_SpecialEffects,
+    Light_ForceLightning,
+    Light_RaiseByValue,
+    Light_LowerByValue,
+    Light_ChangeToValue,
+    Light_Fade,
+    Light_Glow,
+    Light_Flicker,
+    Light_Strobe,
+    Light_Stop,
+    Plane_Copy,
+    Thing_Damage,
+    Radius_Quake,
+    Line_SetIdentification,
+    Line_BlockNetworkVisportal,
+    ChangePlayerClass,
+    ChangePlayerClassMenu,
+    Thing_Move,
+    Unused128,
+    Thing_SetSpecial,
+    ThrustThingZ,
+    UsePuzzleItem,
+    Thing_Activate,
+    Thing_Deactivate,
+    Thing_Remove,
+    Thing_Destroy,
+    Thing_Projectile,
+    Thing_Spawn,
+    Thing_ProjectileGravity,
+    Thing_SpawnNoFog,
+    Floor_Waggle,
+    Thing_SpawnFacing,
+    Sector_ChangeSound,
+    Unused141,
+    Unused142,
+    Unused143,
+    Unused144,
+    Player_SetTeam,
+    Unused146,
+    Unused147,
+    Unused148,
+    Unused149,
+    Line_SetHealth,
+    Sector_SetHealth,
+    Team_Score,
+    Team_GivePoints,
+    Teleport_NoStop,
+    Unused155,
+    Line_SetPortal,
+    SetGlobalFogParameter,
+    FS_Execute,
+    Sector_SetPlaneReflection,
+    Sector_Set3dFloor,
+    Sector_SetContents,
+    Unused162,
+    Unused163,
+    Unused164,
+    Unused165,
+    Unused166,
+    Unused167,
+    Ceiling_CrushAndRaiseDist,
+    Generic_Crusher2,
+    Sector_SetCeilingScale2,
+    Sector_SetFloorScale2,
+    Plat_UpNearestWaitDownStay,
+    NoiseAlert,
+    SendToCommunicator,
+    Thing_ProjectileIntercept,
+    Thing_ChangeTID,
+    Thing_Hate,
+    Thing_ProjectileAimed,
+    ChangeSkill,
+    Thing_SetTranslation,
+    Plane_Align,
+    Line_Mirror,
+    Line_AlignCeiling,
+    Line_AlignFloor,
+    Sector_SetRotation,
+    Sector_SetCeilingPanning,
+    Sector_SetFloorPanning,
+    Sector_SetCeilingScale,
+    Sector_SetFloorScale,
+    Static_Init,
+    SetPlayerProperty,
+    Ceiling_LowerToHighestFloor,
+    Ceiling_LowerInstant,
+    Ceiling_RaiseInstant,
+    Ceiling_CrushRaiseAndStayA,
+    Ceiling_CrushAndRaiseA,
+    Ceiling_CrushAndRaiseSilentA,
+    Ceiling_RaiseByValueTimes8,
+    Ceiling_LowerByValueTimes8,
+    Generic_Floor,
+    Generic_Ceiling,
+    Generic_Door,
+    Generic_Lift,
+    Generic_Stairs,
+    Generic_Crusher,
+    Plat_DownWaitUpStayLip,
+    Plat_PerpetualRaiseLip,
+    TranslucentLine,
+    Transfer_Heights,
+    Transfer_FloorLight,
+    Transfer_CeilingLight,
+    Sector_SetColor,
+    Sector_SetFade,
+    Sector_SetDamage,
+    Teleport_Line,
+    Sector_SetGravity,
+    Stairs_BuildUpDoom,
+    Sector_SetWind,
+    Sector_SetFriction,
+    Sector_SetCurrent,
+    Scroll_Texture_Both,
+    Scroll_Texture_Model,
+    Scroll_Floor,
+    Scroll_Ceiling,
+    Scroll_Texture_Offsets,
+    ACS_ExecuteAlways,
+    PointPush_SetForce,
+    Plat_RaiseAndStayTx0,
+    Thing_SetGoal,
+    Plat_UpByValueStayTx,
+    Plat_ToggleCeiling,
+    Light_StrobeDoom,
+    Light_MinNeighbor,
+    Light_MaxNeighbor,
+    Floor_TransferTrigger,
+    Floor_TransferNumeric,
+    ChangeCamera,
+    Floor_RaiseToLowestCeiling,
+    Floor_RaiseByValueTxTy,
+    Floor_RaiseByTexture,
+    Floor_LowerToLowestTxTy,
+    Floor_LowerToHighest,
+    Exit_Normal,
+    Exit_Secret,
+    Elevator_RaiseToNearest,
+    Elevator_MoveToFloor,
+    Elevator_LowerToNearest,
+    HealThing,
+    Door_CloseWaitOpen,
+    Floor_Donut,
+    FloorAndCeiling_LowerRaise,
+    Ceiling_RaiseToNearest,
+    Ceiling_LowerToLowest,
+    Ceiling_LowerToFloor,
+    Ceiling_CrushRaiseAndStaySilA,
+    Floor_LowerToHighestEE,
+    Floor_RaiseToLowest,
+    Floor_LowerToLowestCeiling,
+    Floor_RaiseToCeiling,
+    Floor_ToCeilingInstant,
+    Floor_LowerByTexture,
+    Ceiling_RaiseToHighest,
+    Ceiling_ToHighestInstant,
+    Ceiling_LowerToNearest,
+    Ceiling_RaiseToLowest,
+    Ceiling_RaiseToHighestFloor,
+    Ceiling_ToFloorInstant,
+    Ceiling_RaiseByTexture,
+    Ceiling_LowerByTexture,
+    Stairs_BuildDownDoom,
+    Stairs_BuildUpDoomSync,
+    Stairs_BuildDownDoomSync,
+    Stairs_BuildUpDoomCrush,
+    Door_AnimatedClose,
+    Floor_Stop,
+    Ceiling_Stop,
+    Sector_SetFloorGlow,
+    Sector_SetCeilingGlow,
+    Floor_MoveToValueAndCrush,
+    Ceiling_MoveToValueAndCrush,
+    Line_SetAutoMapFlags,
+    Line_SetAutomapStyle,
+    Polyobj_StopSound,
+    Generic_CrusherDist,
+    NUM_SPECIAL,
+} param_action_t;
+
+typedef enum sector_action_e
+{
+    No_SectorSpecial,
+    Light_Phased,
+    LightSequenceStart,
+    LightSequenceSpecial1,
+    LightSequenceSpecial2,
+
+    Stairs_Special1 = 26,
+    Stairs_Special2,
+
+    Wind_East_Weak = 40,
+    Wind_East_Medium,
+    Wind_East_Strong,
+    Wind_North_Weak,
+    Wind_North_Medium,
+    Wind_North_Strong,
+    Wind_South_Weak,
+    Wind_South_Medium,
+    Wind_South_Strong,
+    Wind_West_Weak,
+    Wind_West_Medium,
+    Wind_West_Strong,
+
+    dLight_Flicker = 65,
+    dLight_StrobeFast,
+    dLight_StrobeSlow,
+    dLight_Strobe_Hurt,
+    dDamage_Hellslime,
+
+    dDamage_Nukage = 71,
+    dLight_Glow,
+
+    dSector_DoorCloseIn30 = 74,
+    dDamage_End,
+    dLight_StrobeSlowSync,
+    dLight_StrobeFastSync,
+    dSector_DoorRaiseIn5Mins,
+    dFriction_Low,
+    dDamage_SuperHellslime,
+    dLight_FireFlicker,
+    dDamage_LavaWimpy,
+    dDamage_LavaHefty,
+    dScroll_EastLavaDamage,
+    hDamage_Sludge,
+
+    Sector_Outside = 87,
+
+    GLSector_NoSkyDraw = 89,
+
+    GLSector_Skybox = 90,
+
+    sLight_Strobe_Hurt = 104,
+    sDamage_Hellslime,
+
+    Damage_InstantDeath = 115,
+    sDamage_SuperHellslime,
+
+    Scroll_StrifeCurrent = 118,
+
+    Sector_Hidden = 195,
+    Sector_Heal,
+    Light_OutdoorLightning,
+    Light_IndoorLightning1,
+    Light_IndoorLightning2,
+    Sky2,
+    Scroll_North_Slow,
+    Scroll_North_Medium,
+    Scroll_North_Fast,
+    Scroll_East_Slow,
+    Scroll_East_Medium,
+    Scroll_East_Fast,
+    Scroll_South_Slow,
+    Scroll_South_Medium,
+    Scroll_South_Fast,
+    Scroll_West_Slow,
+    Scroll_West_Medium,
+    Scroll_West_Fast,
+    Scroll_NorthWest_Slow,
+    Scroll_NorthWest_Medium,
+    Scroll_NorthWest_Fast,
+    Scroll_NorthEast_Slow,
+    Scroll_NorthEast_Medium,
+    Scroll_NorthEast_Fast,
+    Scroll_SouthEast_Slow,
+    Scroll_SouthEast_Medium,
+    Scroll_SouthEast_Fast,
+    Scroll_SouthWest_Slow,
+    Scroll_SouthWest_Medium,
+    Scroll_SouthWest_Fast,
+    Carry_East5,
+    Carry_East10,
+    Carry_East25,
+    Carry_East30,
+    Carry_East35,
+    Carry_North5,
+    Carry_North10,
+    Carry_North25,
+    Carry_North30,
+    Carry_North35,
+    Carry_South5,
+    Carry_South10,
+    Carry_South25,
+    Carry_South30,
+    Carry_South35,
+    Carry_West5,
+    Carry_West10,
+    Carry_West25,
+    Carry_West30,
+    Carry_West35
+} sector_action_t;
+
+typedef enum sector_gen_e
+{
+    PARAM_DAMAGE_MASK = (1u << 8) | (1u << 9), // 0x0300,
+    PARAM_SECRET_MASK = (1u << 10),            // 0x0400,
+    PARAM_FRICTION_MASK = (1u << 11),          // 0x0800,
+    PARAM_PUSH_MASK = (1u << 12),              // 0x1000,
+} sector_gen_t;
+
+boolean P_CheckKeys(struct mobj_s *mo, lockdefs_t lock, boolean legacy);
+boolean P_ActivateLine(struct line_s * line, struct mobj_s * mo, int side, spac_t spac);
+boolean P_ExecuteLineSpecial(struct line_s *line, int special, int32_t args[5],
+                             struct mobj_s *mo, int side);
 
 #endif
 

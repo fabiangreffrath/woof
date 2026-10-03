@@ -16,19 +16,20 @@
 //
 
 #include "p_udmf.h"
+
 #include "doomdata.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
 #include "i_system.h"
 #include "m_arena.h"
-#include "m_argv.h"
 #include "m_array.h"
 #include "m_fixed.h"
 #include "m_misc.h"
 #include "m_scanner.h"
 #include "m_swap.h"
 #include "p_bsp.h"
+#include "p_maputl.h"
 #include "p_mobj.h"
 #include "p_setup.h"
 #include "p_spec.h"
@@ -44,45 +45,58 @@
 // Universal Doom Map Format (UDMF) support
 //
 
-typedef enum
+typedef enum UDMF_Features_Thing_e
 {
-    UDMF_BASE = (0), // shut compiler up, also reset when parsing new map
+    UDMF_THING_BASE = (0),
 
-    UDMF_THING_FRIEND  = (1u << 0), // Marine's Best Friend :)
+    UDMF_THING_FRIEND = (1u << 0),  // Marine's Best Friend :)
     UDMF_THING_SPECIAL = (1u << 1), // Death/Pickup/etc-activated actions
-    UDMF_THING_PARAM   = (1u << 2), // ditto, also customizes some MObjs
-    UDMF_THING_HEALTH  = (1u << 3), // positive is a multiple, negative is override
+    UDMF_THING_PARAM = (1u << 2),   // ditto, also customizes some MObjs
+    UDMF_THING_HEALTH = (1u << 3),  // positive is multiple, negative overrides
     UDMF_THING_GRAVITY = (1u << 4), // per-mobj custom gravity
-    UDMF_THING_ALPHA   = (1u << 5), // opacity percentage
+    UDMF_THING_ALPHA = (1u << 5),   // opacity percentage
     UDMF_THING_TRANMAP = (1u << 6), // ditto, also customizable LUT
-    UDMF_THING_TINT    = (1u << 7), // view-agnostic colormap for the given mobj
+    UDMF_THING_TINT = (1u << 7),    // view-agnostic colormap for the given mobj
+} UDMF_Features_Thing_t;
 
-    UDMF_LINE_PARAM    = (1u << 8), // Hexen-style param actions
-    UDMF_LINE_PASSUSE  = (1u << 9), // Boom's "Pass Use Through" line flag
-    UDMF_LINE_BLOCK    = (1u << 10), // MBF21's entity blocking flags
-    UDMF_LINE_3DMIDTEX = (1u << 11), // EE's 3D middle texture
-    UDMF_LINE_ALPHA    = (1u << 12), // opacity percentage
-    UDMF_LINE_TRANMAP  = (1u << 13), // ditto, also customizable LUT
-    UDMF_LINE_STYLE    = (1u << 14), // custom automap style
+typedef enum UDMF_Features_Linedef_e
+{
+    UDMF_LINE_BASE = (0),
 
-    UDMF_SIDE_OFFSET   = (1u << 15), // texture X/Y alignment
-    UDMF_SIDE_SCROLL   = (1u << 16), // texture scrolling property
-    UDMF_SIDE_LIGHT    = (1u << 17), // independent light levels
-    UDMF_SIDE_TINT     = (1u << 18), // view-agnostic colormap for the given sidedef
+    UDMF_LINE_PARAM = (1u << 0),    // Hexen-style param actions
+    UDMF_LINE_PASSUSE = (1u << 1),  // Boom's "Pass Use Through" line flag
+    UDMF_LINE_BLOCK = (1u << 2),    // MBF21's entity blocking flags
+    UDMF_LINE_3DMIDTEX = (1u << 3), // EE's 3D middle texture
+    UDMF_LINE_ALPHA = (1u << 4),    // opacity percentage
+    UDMF_LINE_TRANMAP = (1u << 5),  // ditto, also customizable LUT
+    UDMF_LINE_STYLE = (1u << 6),    // custom automap style
+    UDMF_COMP_NO_ARG0 = (1u << 31), // Compatibility
+} UDMF_Features_Linedef_t;
 
-    UDMF_SEC_ANGLE     = (1u << 19), // plane rotation
-    UDMF_SEC_OFFSET    = (1u << 20), // plane X/Y alignment
-    UDMF_SEC_EE_SCROLL = (1u << 21), // EE's original plane scrolling property
-    UDMF_SEC_SCROLL    = (1u << 22), // DSDA's later plane scrolling property
-    UDMF_SEC_LIGHT     = (1u << 23), // independent light levels
-    UDMF_SEC_GRAVITY   = (1u << 24), // WIP
-    UDMF_SEC_COLORMAP  = (1u << 25), // viewplayer's colormap on this given frame
-    UDMF_SEC_TINT      = (1u << 26), // view-agnostic colormap for the given sector
-    UDMF_SEC_SILENCE   = (1u << 27), // WIP
+typedef enum UDMF_Features_Sidedef_e
+{
+    UDMF_SIDE_BASE = (0),
 
-    // Compatibility
-    UDMF_COMP_NO_ARG0  = (1u << 31),
-} UDMF_Features_t;
+    UDMF_SIDE_OFFSET = (1u << 0), // texture X/Y alignment
+    UDMF_SIDE_SCROLL = (1u << 1), // texture scrolling property
+    UDMF_SIDE_LIGHT = (1u << 2),  // independent light levels
+    UDMF_SIDE_TINT = (1u << 3),   // view-agnostic colormap for sidedef
+} UDMF_Features_Sidedef_t;
+
+typedef enum UDMF_Features_Sector_e
+{
+    UDMF_SEC_BASE = (0),
+
+    UDMF_SEC_ANGLE = (1u << 0),     // plane rotation
+    UDMF_SEC_OFFSET = (1u << 1),    // plane X/Y alignment
+    UDMF_SEC_EE_SCROLL = (1u << 2), // EE's original plane scrolling property
+    UDMF_SEC_SCROLL = (1u << 3),    // DSDA's later plane scrolling property
+    UDMF_SEC_LIGHT = (1u << 4),     // independent light levels
+    UDMF_SEC_GRAVITY = (1u << 5),   // WIP
+    UDMF_SEC_COLORMAP = (1u << 6),  // viewplayer's colormap on this frame
+    UDMF_SEC_TINT = (1u << 7),      // view-agnostic colormap for the sector
+    UDMF_SEC_SILENCE = (1u << 8),   // WIP
+} UDMF_Features_Sector_t;
 
 typedef struct
 {
@@ -124,6 +138,7 @@ typedef struct
     char tranmap[9];
     double alpha;
     amls_t amls;
+    int32_t lock;
 } UDMF_Linedef_t;
 
 // Important note about line tag/id/arg0, in the Doom/Heretic/Strife namespaces:
@@ -152,12 +167,12 @@ typedef struct
 
     char tint[9];
 
-    double offsetx_top,    offsety_top;
-    double offsetx_mid,    offsety_mid;
+    double offsetx_top, offsety_top;
+    double offsetx_mid, offsety_mid;
     double offsetx_bottom, offsety_bottom;
 
-    double xscrolltop,    yscrolltop;
-    double xscrollmid,    yscrollmid;
+    double xscrolltop, yscrolltop;
+    double xscrollmid, yscrollmid;
     double xscrollbottom, yscrollbottom;
 } UDMF_Sidedef_t;
 
@@ -180,20 +195,23 @@ typedef struct
     char colormap[9];
     char tint[9], tintceiling[9], tintfloor[9];
 
-    double xpanningfloor,   ypanningfloor;
+    double xpanningfloor, ypanningfloor;
     double xpanningceiling, ypanningceiling;
     double rotationfloor, rotationceiling;
 
-    double xscrollfloor,   yscrollfloor;
+    double xscrollfloor, yscrollfloor;
     double xscrollceiling, yscrollceiling;
     int32_t scrollfloormode, scrollceilingmode;
 
     double scroll_floor_x, scroll_floor_y;
-    double scroll_ceil_x,  scroll_ceil_y;
+    double scroll_ceil_x, scroll_ceil_y;
     int32_t scroll_floor_type, scroll_ceil_type;
 } UDMF_Sector_t;
 
-static UDMF_Features_t udmf_flags = UDMF_BASE;
+static UDMF_Features_Linedef_t udmf_linedef_flags = UDMF_LINE_BASE;
+static UDMF_Features_Sidedef_t udmf_sidedef_flags = UDMF_SIDE_BASE;
+static UDMF_Features_Sector_t udmf_sector_flags = UDMF_SEC_BASE;
+static UDMF_Features_Thing_t udmf_thing_flags = UDMF_THING_BASE;
 
 static UDMF_Vertex_t *udmf_vertexes = NULL;
 static UDMF_Linedef_t *udmf_linedefs = NULL;
@@ -261,8 +279,17 @@ inline static void UDMF_ScanLumpName(scanner_t *s, char *x)
 #define BASE_PROP(keyword) (!strcmp(prop, #keyword))
 
 // Property is valid in the current namespace
-#define PROP(keyword, flags) \
-    ((udmf_flags & (flags)) && !strcmp(prop, #keyword))
+#define LINE_PROP(keyword, flags) \
+    ((udmf_linedef_flags & (flags)) && !strcmp(prop, #keyword))
+
+#define SIDE_PROP(keyword, flags) \
+    ((udmf_sidedef_flags & (flags)) && !strcmp(prop, #keyword))
+
+#define SEC_PROP(keyword, flags) \
+    ((udmf_sector_flags & (flags)) && !strcmp(prop, #keyword))
+
+#define THING_PROP(keyword, flags) \
+    ((udmf_thing_flags & (flags)) && !strcmp(prop, #keyword))
 
 // Parse specific string properties
 inline static int32_t UDMF_ScanSectorScroll(scanner_t *s)
@@ -273,11 +300,17 @@ inline static int32_t UDMF_ScanSectorScroll(scanner_t *s)
     const char *buf = SC_GetString(s);
     M_StringToLower((char *)buf);
     if (!strcmp(buf, "visual"))
-      mode = SCROLL_TEXTURE;
+    {
+        mode = SCROLL_TEXTURE;
+    }
     else if (!strcmp(buf, "physical"))
-      mode = SCROLL_CARRY;
+    {
+        mode = SCROLL_CARRY;
+    }
     else if (!strcmp(buf, "both"))
-      mode = SCROLL_ALL;
+    {
+        mode = SCROLL_ALL;
+    }
     SC_MustGetToken(s, ';');
     return mode;
 }
@@ -320,27 +353,56 @@ static inline void UDMF_SkipScan(scanner_t *s)
 }
 
 // UDMF namespace
-static void UDMF_ParseNamespace(scanner_t *s)
+static void UDMF_ParseNamespace(scanner_t *s, map_t *map)
 {
     SC_MustGetToken(s, '=');
     SC_MustGetToken(s, TK_StringConst);
     const char *name = SC_GetString(s);
-    udmf_flags = UDMF_BASE;
+    udmf_linedef_flags = UDMF_LINE_BASE;
+    udmf_thing_flags = UDMF_THING_BASE;
+    udmf_sidedef_flags = UDMF_SIDE_BASE;
+    udmf_sector_flags = UDMF_SEC_BASE;
 
     if (!strcasecmp(name, "doom"))
     {
-        udmf_flags |= UDMF_LINE_PASSUSE | UDMF_THING_FRIEND;
+        map->param = false;
+        udmf_linedef_flags |= UDMF_LINE_PASSUSE;
+        udmf_thing_flags |= UDMF_THING_FRIEND;
     }
     else if (!strcasecmp(name, "woof"))
     {
-        udmf_flags |= UDMF_LINE_PASSUSE | UDMF_LINE_BLOCK | UDMF_LINE_ALPHA | UDMF_LINE_TRANMAP;
-        udmf_flags |= UDMF_THING_FRIEND | UDMF_THING_PARAM | UDMF_THING_HEALTH | UDMF_THING_ALPHA | UDMF_THING_TRANMAP | UDMF_THING_TINT;
-        udmf_flags |= UDMF_SIDE_OFFSET | UDMF_SIDE_SCROLL | UDMF_SIDE_LIGHT | UDMF_SIDE_TINT;
-        udmf_flags |= UDMF_SEC_ANGLE | UDMF_SEC_OFFSET | UDMF_SEC_SCROLL | UDMF_SEC_LIGHT | UDMF_SEC_COLORMAP | UDMF_SEC_TINT;
+        map->param = false;
+        udmf_linedef_flags |= UDMF_LINE_PASSUSE | UDMF_LINE_BLOCK | UDMF_LINE_ALPHA | UDMF_LINE_TRANMAP;
+        udmf_thing_flags |= UDMF_THING_FRIEND | UDMF_THING_PARAM | UDMF_THING_HEALTH | UDMF_THING_ALPHA | UDMF_THING_TRANMAP | UDMF_THING_TINT;
+        udmf_sidedef_flags |= UDMF_SIDE_OFFSET | UDMF_SIDE_SCROLL | UDMF_SIDE_LIGHT | UDMF_SIDE_TINT;
+        udmf_sector_flags |= UDMF_SEC_ANGLE | UDMF_SEC_OFFSET | UDMF_SEC_SCROLL | UDMF_SEC_LIGHT | UDMF_SEC_COLORMAP | UDMF_SEC_TINT;
     }
     else
     {
         I_Error("Unknown UDMF namespace: \"%s\".", name);
+    }
+
+    if (map->param)
+    {
+        P_UseSpecialLine = P_UseSpecialLine_Param;
+        P_ShootSpecialLine = P_ShootSpecialLine_Param;
+        P_CrossSpecialLine = P_CrossSpecialLine_Param;
+        P_PlayerInSector = P_PlayerInSector_Param;
+        P_MObjInSector = P_MObjInSector_Param;
+        P_ApplySectorMovement = P_ApplySectorMovement_Param;
+        P_ProcessSideDefs = P_ProcessSideDefs_Param;
+        P_ProcessLinedefSpecial = P_ProcessLinedefSpecial_Param;
+    }
+    else
+    {
+        P_UseSpecialLine = P_UseSpecialLine_Classic;
+        P_ShootSpecialLine = P_ShootSpecialLine_Classic;
+        P_CrossSpecialLine = P_CrossSpecialLine_Classic;
+        P_PlayerInSector = P_PlayerInSector_Classic;
+        P_MObjInSector = P_MObjInSector_Classic;
+        P_ApplySectorMovement = P_ApplySectorMovement_Classic;
+        P_ProcessSideDefs = P_ProcessSideDefs_Classic;
+        P_ProcessLinedefSpecial = P_ProcessLinedefSpecial_Classic;
     }
 
     SC_MustGetToken(s, ';');
@@ -387,6 +449,7 @@ static void UDMF_ParseLinedef(scanner_t *s)
     line.sideback = -1;
     M_CopyLumpName(line.tranmap, "-");
     line.alpha = 1.0;
+    line.id = (udmf_linedef_flags & UDMF_LINE_PARAM) ? -1 : 0;
 
     SC_MustGetToken(s, '{');
     while (!SC_CheckToken(s, '}'))
@@ -415,19 +478,19 @@ static void UDMF_ParseLinedef(scanner_t *s)
             // Tag -> id/arg0 split means arg0 is always enabled
             line.args[0] = UDMF_ScanInt(s);
         }
-        else if (PROP(arg1, UDMF_LINE_PARAM))
+        else if (LINE_PROP(arg1, UDMF_LINE_PARAM))
         {
             line.args[1] = UDMF_ScanInt(s);
         }
-        else if (PROP(arg2, UDMF_LINE_PARAM))
+        else if (LINE_PROP(arg2, UDMF_LINE_PARAM))
         {
             line.args[2] = UDMF_ScanInt(s);
         }
-        else if (PROP(arg3, UDMF_LINE_PARAM))
+        else if (LINE_PROP(arg3, UDMF_LINE_PARAM))
         {
             line.args[3] = UDMF_ScanInt(s);
         }
-        else if (PROP(arg4, UDMF_LINE_PARAM))
+        else if (LINE_PROP(arg4, UDMF_LINE_PARAM))
         {
             line.args[4] = UDMF_ScanInt(s);
         }
@@ -475,31 +538,35 @@ static void UDMF_ParseLinedef(scanner_t *s)
         {
             line.flags |= UDMF_ScanFlag(s, ML_MAPPED);
         }
-        else if (PROP(passuse, UDMF_LINE_PASSUSE))
+        else if (LINE_PROP(passuse, UDMF_LINE_PASSUSE))
         {
             line.flags |= UDMF_ScanFlag(s, ML_PASSUSE);
         }
-        else if (PROP(blocklandmonsters, UDMF_LINE_BLOCK))
+        else if (LINE_PROP(blocklandmonsters, UDMF_LINE_BLOCK))
         {
             line.flags |= UDMF_ScanFlag(s, ML_BLOCKLANDMONSTERS);
         }
-        else if (PROP(blockplayers, UDMF_LINE_BLOCK))
+        else if (LINE_PROP(blockplayers, UDMF_LINE_BLOCK))
         {
             line.flags |= UDMF_ScanFlag(s, ML_BLOCKPLAYERS);
         }
-        else if (PROP(midtex3d, UDMF_LINE_3DMIDTEX))
+        else if (LINE_PROP(midtex3d, UDMF_LINE_3DMIDTEX))
         {
             line.flags |= UDMF_ScanFlag(s, ML_3DMIDTEX);
         }
-        else if (PROP(alpha, UDMF_LINE_ALPHA))
+        else if (LINE_PROP(alpha, UDMF_LINE_ALPHA))
         {
             line.alpha = UDMF_ScanDouble(s);
         }
-        else if (PROP(tranmap, UDMF_LINE_TRANMAP))
+        else if (LINE_PROP(tranmap, UDMF_LINE_TRANMAP))
         {
             UDMF_ScanLumpName(s, line.tranmap);
         }
-        else if (PROP(automapstyle, UDMF_LINE_STYLE))
+        else if (LINE_PROP(locknumber, UDMF_LINE_PARAM))
+        {
+            line.lock = UDMF_ScanInt(s);
+        }
+        else if (LINE_PROP(automapstyle, UDMF_LINE_STYLE))
         {
             line.amls = UDMF_ScanInt(s);
         }
@@ -553,103 +620,103 @@ static void UDMF_ParseSidedef(scanner_t *s)
         {
             UDMF_ScanLumpName(s, side.texturebottom);
         }
-        else if (PROP(light, UDMF_SIDE_LIGHT))
+        else if (SIDE_PROP(light, UDMF_SIDE_LIGHT))
         {
             side.light = UDMF_ScanInt(s);
         }
-        else if (PROP(light_top, UDMF_SIDE_LIGHT))
+        else if (SIDE_PROP(light_top, UDMF_SIDE_LIGHT))
         {
             side.light_top = UDMF_ScanInt(s);
         }
-        else if (PROP(light_mid, UDMF_SIDE_LIGHT))
+        else if (SIDE_PROP(light_mid, UDMF_SIDE_LIGHT))
         {
             side.light_mid = UDMF_ScanInt(s);
         }
-        else if (PROP(light_bottom, UDMF_SIDE_LIGHT))
+        else if (SIDE_PROP(light_bottom, UDMF_SIDE_LIGHT))
         {
             side.light_bottom = UDMF_ScanInt(s);
         }
-        else if (PROP(lightabsolute, UDMF_SIDE_LIGHT))
+        else if (SIDE_PROP(lightabsolute, UDMF_SIDE_LIGHT))
         {
             side.flags |= UDMF_ScanFlag(s, SF_ABS_LIGHT);
         }
-        else if (PROP(lightabsolute_top, UDMF_SIDE_LIGHT))
+        else if (SIDE_PROP(lightabsolute_top, UDMF_SIDE_LIGHT))
         {
             side.flags |= UDMF_ScanFlag(s, SF_ABS_LIGHT_TOP);
         }
-        else if (PROP(lightabsolute_mid, UDMF_SIDE_LIGHT))
+        else if (SIDE_PROP(lightabsolute_mid, UDMF_SIDE_LIGHT))
         {
             side.flags |= UDMF_ScanFlag(s, SF_ABS_LIGHT_MID);
         }
-        else if (PROP(lightabsolute_bottom, UDMF_SIDE_LIGHT))
+        else if (SIDE_PROP(lightabsolute_bottom, UDMF_SIDE_LIGHT))
         {
             side.flags |= UDMF_ScanFlag(s, SF_ABS_LIGHT_BOTTOM);
         }
-        else if (PROP(nofakecontrast, UDMF_SIDE_LIGHT))
+        else if (SIDE_PROP(nofakecontrast, UDMF_SIDE_LIGHT))
         {
             side.flags |= UDMF_ScanFlag(s, SF_NO_FAKE_CONTRAST);
         }
-        else if (PROP(smoothlighting, UDMF_SIDE_LIGHT))
+        else if (SIDE_PROP(smoothlighting, UDMF_SIDE_LIGHT))
         {
             side.flags |= UDMF_ScanFlag(s, SF_SMOOTH_CONTRAST);
         }
-        else if (PROP(offsetx_top, UDMF_SIDE_OFFSET))
+        else if (SIDE_PROP(offsetx_top, UDMF_SIDE_OFFSET))
         {
             side.offsetx_top = UDMF_ScanDouble(s);
         }
-        else if (PROP(offsety_top, UDMF_SIDE_OFFSET))
+        else if (SIDE_PROP(offsety_top, UDMF_SIDE_OFFSET))
         {
             side.offsety_top = UDMF_ScanDouble(s);
         }
-        else if (PROP(offsetx_mid, UDMF_SIDE_OFFSET))
+        else if (SIDE_PROP(offsetx_mid, UDMF_SIDE_OFFSET))
         {
             side.offsetx_mid = UDMF_ScanDouble(s);
         }
-        else if (PROP(offsety_mid, UDMF_SIDE_OFFSET))
+        else if (SIDE_PROP(offsety_mid, UDMF_SIDE_OFFSET))
         {
             side.offsety_mid = UDMF_ScanDouble(s);
         }
-        else if (PROP(offsetx_bottom, UDMF_SIDE_OFFSET))
+        else if (SIDE_PROP(offsetx_bottom, UDMF_SIDE_OFFSET))
         {
             side.offsetx_bottom = UDMF_ScanDouble(s);
         }
-        else if (PROP(offsety_bottom, UDMF_SIDE_OFFSET))
+        else if (SIDE_PROP(offsety_bottom, UDMF_SIDE_OFFSET))
         {
             side.offsety_bottom = UDMF_ScanDouble(s);
         }
-        else if (PROP(xscroll, UDMF_SIDE_SCROLL))
+        else if (SIDE_PROP(xscroll, UDMF_SIDE_SCROLL))
         {
             side.xscroll = UDMF_ScanInt(s);
         }
-        else if (PROP(yscroll, UDMF_SIDE_SCROLL))
+        else if (SIDE_PROP(yscroll, UDMF_SIDE_SCROLL))
         {
             side.yscroll = UDMF_ScanInt(s);
         }
-        else if (PROP(xscrolltop, UDMF_SIDE_SCROLL))
+        else if (SIDE_PROP(xscrolltop, UDMF_SIDE_SCROLL))
         {
             side.xscrolltop = UDMF_ScanDouble(s);
         }
-        else if (PROP(yscrolltop, UDMF_SIDE_SCROLL))
+        else if (SIDE_PROP(yscrolltop, UDMF_SIDE_SCROLL))
         {
             side.yscrolltop = UDMF_ScanDouble(s);
         }
-        else if (PROP(xscrollmid, UDMF_SIDE_SCROLL))
+        else if (SIDE_PROP(xscrollmid, UDMF_SIDE_SCROLL))
         {
             side.xscrollmid = UDMF_ScanDouble(s);
         }
-        else if (PROP(yscrollmid, UDMF_SIDE_SCROLL))
+        else if (SIDE_PROP(yscrollmid, UDMF_SIDE_SCROLL))
         {
             side.yscrollmid = UDMF_ScanDouble(s);
         }
-        else if (PROP(xscrollbottom, UDMF_SIDE_SCROLL))
+        else if (SIDE_PROP(xscrollbottom, UDMF_SIDE_SCROLL))
         {
             side.xscrollbottom = UDMF_ScanDouble(s);
         }
-        else if (PROP(yscrollbottom, UDMF_SIDE_SCROLL))
+        else if (SIDE_PROP(yscrollbottom, UDMF_SIDE_SCROLL))
         {
             side.yscrollbottom = UDMF_ScanDouble(s);
         }
-        else if (PROP(tint, UDMF_SIDE_TINT))
+        else if (SIDE_PROP(tint, UDMF_SIDE_TINT))
         {
             UDMF_ScanLumpName(s, side.tint);
         }
@@ -707,107 +774,107 @@ static void UDMF_ParseSector(scanner_t *s)
         {
             sector.tag = UDMF_ScanInt(s);
         }
-        else if (PROP(rotationfloor, UDMF_SEC_ANGLE))
+        else if (SEC_PROP(rotationfloor, UDMF_SEC_ANGLE))
         {
             sector.rotationfloor = UDMF_ScanDouble(s);
         }
-        else if (PROP(rotationceiling, UDMF_SEC_ANGLE))
+        else if (SEC_PROP(rotationceiling, UDMF_SEC_ANGLE))
         {
             sector.rotationceiling = UDMF_ScanDouble(s);
         }
-        else if (PROP(xpanningfloor, UDMF_SEC_OFFSET))
+        else if (SEC_PROP(xpanningfloor, UDMF_SEC_OFFSET))
         {
             sector.xpanningfloor = UDMF_ScanDouble(s);
         }
-        else if (PROP(ypanningfloor, UDMF_SEC_OFFSET))
+        else if (SEC_PROP(ypanningfloor, UDMF_SEC_OFFSET))
         {
             sector.ypanningfloor = UDMF_ScanDouble(s);
         }
-        else if (PROP(xpanningceiling, UDMF_SEC_OFFSET))
+        else if (SEC_PROP(xpanningceiling, UDMF_SEC_OFFSET))
         {
             sector.xpanningceiling = UDMF_ScanDouble(s);
         }
-        else if (PROP(ypanningceiling, UDMF_SEC_OFFSET))
+        else if (SEC_PROP(ypanningceiling, UDMF_SEC_OFFSET))
         {
             sector.ypanningceiling = UDMF_ScanDouble(s);
         }
-        else if (PROP(scroll_floor_x, UDMF_SEC_EE_SCROLL))
+        else if (SEC_PROP(scroll_floor_x, UDMF_SEC_EE_SCROLL))
         {
             sector.scroll_floor_x = UDMF_ScanDouble(s);
         }
-        else if (PROP(scroll_floor_, UDMF_SEC_EE_SCROLL))
+        else if (SEC_PROP(scroll_floor_, UDMF_SEC_EE_SCROLL))
         {
             sector.scroll_floor_y = UDMF_ScanDouble(s);
         }
-        else if (PROP(scroll_floor_type, UDMF_SEC_EE_SCROLL))
+        else if (SEC_PROP(scroll_floor_type, UDMF_SEC_EE_SCROLL))
         {
             sector.scroll_floor_type = UDMF_ScanSectorScroll(s);
         }
-        else if (PROP(scroll_ceil_x, UDMF_SEC_EE_SCROLL))
+        else if (SEC_PROP(scroll_ceil_x, UDMF_SEC_EE_SCROLL))
         {
             sector.scroll_ceil_x = UDMF_ScanDouble(s);
         }
-        else if (PROP(scroll_ceil_y, UDMF_SEC_EE_SCROLL))
+        else if (SEC_PROP(scroll_ceil_y, UDMF_SEC_EE_SCROLL))
         {
             sector.scroll_ceil_y = UDMF_ScanDouble(s);
         }
-        else if (PROP(scroll_ceil_type, UDMF_SEC_EE_SCROLL))
+        else if (SEC_PROP(scroll_ceil_type, UDMF_SEC_EE_SCROLL))
         {
             sector.scroll_ceil_type = UDMF_ScanSectorScroll(s);
         }
-        else if (PROP(xscrollfloor, UDMF_SEC_SCROLL))
+        else if (SEC_PROP(xscrollfloor, UDMF_SEC_SCROLL))
         {
             sector.xscrollfloor = UDMF_ScanDouble(s);
         }
-        else if (PROP(yscrollfloor, UDMF_SEC_SCROLL))
+        else if (SEC_PROP(yscrollfloor, UDMF_SEC_SCROLL))
         {
             sector.yscrollfloor = UDMF_ScanDouble(s);
         }
-        else if (PROP(xscrollceiling, UDMF_SEC_SCROLL))
+        else if (SEC_PROP(xscrollceiling, UDMF_SEC_SCROLL))
         {
             sector.xscrollceiling = UDMF_ScanDouble(s);
         }
-        else if (PROP(yscrollceiling, UDMF_SEC_SCROLL))
+        else if (SEC_PROP(yscrollceiling, UDMF_SEC_SCROLL))
         {
             sector.yscrollceiling = UDMF_ScanDouble(s);
         }
-        else if (PROP(scrollfloormode, UDMF_SEC_SCROLL))
+        else if (SEC_PROP(scrollfloormode, UDMF_SEC_SCROLL))
         {
             sector.scrollfloormode = UDMF_ScanInt(s);
         }
-        else if (PROP(scrollceilingmode, UDMF_SEC_SCROLL))
+        else if (SEC_PROP(scrollceilingmode, UDMF_SEC_SCROLL))
         {
             sector.scrollceilingmode = UDMF_ScanInt(s);
         }
-        else if (PROP(lightfloor, UDMF_SEC_LIGHT))
+        else if (SEC_PROP(lightfloor, UDMF_SEC_LIGHT))
         {
             sector.lightfloor = UDMF_ScanInt(s);
         }
-        else if (PROP(lightceiling, UDMF_SEC_LIGHT))
+        else if (SEC_PROP(lightceiling, UDMF_SEC_LIGHT))
         {
             sector.lightceiling = UDMF_ScanInt(s);
         }
-        else if (PROP(lightfloorabsolute, UDMF_SEC_LIGHT))
+        else if (SEC_PROP(lightfloorabsolute, UDMF_SEC_LIGHT))
         {
             sector.flags |= UDMF_ScanFlag(s, SECF_ABS_LIGHT_FLOOR);
         }
-        else if (PROP(lightceilingabsolute, UDMF_SEC_LIGHT))
+        else if (SEC_PROP(lightceilingabsolute, UDMF_SEC_LIGHT))
         {
             sector.flags |= UDMF_ScanFlag(s, SECF_ABS_LIGHT_CEIL);
         }
-        else if (PROP(colormap, UDMF_SEC_COLORMAP))
+        else if (SEC_PROP(colormap, UDMF_SEC_COLORMAP))
         {
             UDMF_ScanLumpName(s, sector.colormap);
         }
-        else if (PROP(tint, UDMF_SEC_TINT))
+        else if (SEC_PROP(tint, UDMF_SEC_TINT))
         {
             UDMF_ScanLumpName(s, sector.tint);
         }
-        else if (PROP(tintfloor, UDMF_SEC_TINT))
+        else if (SEC_PROP(tintfloor, UDMF_SEC_TINT))
         {
             UDMF_ScanLumpName(s, sector.tintfloor);
         }
-        else if (PROP(tintceiling, UDMF_SEC_TINT))
+        else if (SEC_PROP(tintceiling, UDMF_SEC_TINT))
         {
             UDMF_ScanLumpName(s, sector.tintceiling);
         }
@@ -842,7 +909,7 @@ static void UDMF_ParseThing(scanner_t *s)
         {
             thing.type = UDMF_ScanInt(s);
         }
-        else if (PROP(id, UDMF_THING_PARAM))
+        else if (THING_PROP(id, UDMF_THING_PARAM))
         {
             thing.tid = UDMF_ScanInt(s);
         }
@@ -898,47 +965,47 @@ static void UDMF_ParseThing(scanner_t *s)
         {
             thing.options &= ~UDMF_ScanFlag(s, MTF_NOTCOOP);
         }
-        else if (PROP(friend, UDMF_THING_FRIEND))
+        else if (THING_PROP(friend, UDMF_THING_FRIEND))
         {
             thing.options |= UDMF_ScanFlag(s, MTF_FRIEND);
         }
-        else if (PROP(special, UDMF_THING_SPECIAL))
+        else if (THING_PROP(special, UDMF_THING_SPECIAL))
         {
             thing.special = UDMF_ScanInt(s);
         }
-        else if (PROP(arg0, UDMF_THING_SPECIAL|UDMF_THING_PARAM))
+        else if (THING_PROP(arg0, UDMF_THING_PARAM))
         {
             thing.args[0] = UDMF_ScanInt(s);
         }
-        else if (PROP(arg1, UDMF_THING_PARAM))
+        else if (THING_PROP(arg1, UDMF_THING_PARAM))
         {
             thing.args[1] = UDMF_ScanInt(s);
         }
-        else if (PROP(arg2, UDMF_THING_PARAM))
+        else if (THING_PROP(arg2, UDMF_THING_PARAM))
         {
             thing.args[2] = UDMF_ScanInt(s);
         }
-        else if (PROP(arg3, UDMF_THING_PARAM))
+        else if (THING_PROP(arg3, UDMF_THING_PARAM))
         {
             thing.args[3] = UDMF_ScanInt(s);
         }
-        else if (PROP(arg4, UDMF_THING_PARAM))
+        else if (THING_PROP(arg4, UDMF_THING_PARAM))
         {
             thing.args[4] = UDMF_ScanInt(s);
         }
-        else if (PROP(arg4, UDMF_THING_HEALTH))
+        else if (THING_PROP(arg4, UDMF_THING_HEALTH))
         {
             thing.health = UDMF_ScanDouble(s);
         }
-        else if (PROP(alpha, UDMF_THING_ALPHA))
+        else if (THING_PROP(alpha, UDMF_THING_ALPHA))
         {
             thing.alpha = UDMF_ScanDouble(s);
         }
-        else if (PROP(tranmap, UDMF_THING_TRANMAP))
+        else if (THING_PROP(tranmap, UDMF_THING_TRANMAP))
         {
             UDMF_ScanLumpName(s, thing.tranmap);
         }
-        else if (PROP(tint, UDMF_THING_TINT))
+        else if (THING_PROP(tint, UDMF_THING_TINT))
         {
             UDMF_ScanLumpName(s, thing.tint);
         }
@@ -968,7 +1035,7 @@ static void UDMF_ParseTextMap(map_t *map)
 
         if (!strcmp(toplevel, "namespace"))
         {
-            UDMF_ParseNamespace(s);
+            UDMF_ParseNamespace(s, map);
         }
         else if (!strcmp(toplevel, "vertex"))
         {
@@ -1040,10 +1107,8 @@ static void UDMF_LoadSectors(void)
         sectors[i].lightfloor = udmf_sectors[i].lightfloor;
         sectors[i].lightceiling = udmf_sectors[i].lightceiling;
 
-        sectors[i].floor_rotation =
-            FixedToAngle(DoubleToFixed(udmf_sectors[i].rotationfloor));
-        sectors[i].ceiling_rotation =
-            FixedToAngle(DoubleToFixed(udmf_sectors[i].rotationceiling));
+        sectors[i].floor_rotation = FixedToAngle(DoubleToFixed(udmf_sectors[i].rotationfloor));
+        sectors[i].ceiling_rotation = FixedToAngle(DoubleToFixed(udmf_sectors[i].rotationceiling));
 
         sectors[i].floor_xoffs = DoubleToFixed(udmf_sectors[i].xpanningfloor);
         sectors[i].floor_yoffs = DoubleToFixed(udmf_sectors[i].ypanningfloor);
@@ -1057,31 +1122,35 @@ static void UDMF_LoadSectors(void)
         sectors[i].tintceiling = R_ColormapNumForName(udmf_sectors[i].tintceiling);
         sectors[i].tintfloor = R_ColormapNumForName(udmf_sectors[i].tintfloor);
 
-        if (udmf_sectors[i].scroll_floor_type && (udmf_sectors[i].scroll_floor_x || udmf_sectors[i].scroll_floor_y))
+        if (udmf_sectors[i].scroll_floor_type
+            && (udmf_sectors[i].scroll_floor_x || udmf_sectors[i].scroll_floor_y))
         {
-            Add_EESectorScroller(udmf_sectors[i].scroll_floor_type, i, false,
-                                 udmf_sectors[i].scroll_floor_x,
-                                 udmf_sectors[i].scroll_floor_y);
+            Add_SectorScroller_EE(udmf_sectors[i].scroll_floor_type, i, false,
+                                  udmf_sectors[i].scroll_floor_x,
+                                  udmf_sectors[i].scroll_floor_y);
         }
 
-        if (udmf_sectors[i].scroll_ceil_type && (udmf_sectors[i].scroll_ceil_x || udmf_sectors[i].scroll_ceil_y))
+        if (udmf_sectors[i].scroll_ceil_type
+            && (udmf_sectors[i].scroll_ceil_x || udmf_sectors[i].scroll_ceil_y))
         {
-            Add_EESectorScroller(udmf_sectors[i].scroll_floor_type, i, true,
-                                 udmf_sectors[i].scroll_floor_x,
-                                 udmf_sectors[i].scroll_floor_y);
+            Add_SectorScroller_EE(udmf_sectors[i].scroll_floor_type, i, true,
+                                  udmf_sectors[i].scroll_floor_x,
+                                  udmf_sectors[i].scroll_floor_y);
         }
 
-        if (udmf_sectors[i].scrollfloormode && (udmf_sectors[i].xscrollfloor || udmf_sectors[i].yscrollfloor))
+        if (udmf_sectors[i].scrollfloormode
+            && (udmf_sectors[i].xscrollfloor || udmf_sectors[i].yscrollfloor))
         {
-            Add_ParamSectorScroller(
+            Add_SectorScroller_Param(
                 udmf_sectors[i].scrollfloormode, i, false,
                 DoubleToFixed(udmf_sectors[i].xscrollfloor),
                 DoubleToFixed(udmf_sectors[i].yscrollfloor));
         }
 
-        if (udmf_sectors[i].scrollceilingmode && (udmf_sectors[i].xscrollceiling || udmf_sectors[i].yscrollceiling))
+        if (udmf_sectors[i].scrollceilingmode
+            && (udmf_sectors[i].xscrollceiling || udmf_sectors[i].yscrollceiling))
         {
-            Add_ParamSectorScroller(
+            Add_SectorScroller_Param(
                 udmf_sectors[i].scrollceilingmode, i, true,
                 DoubleToFixed(udmf_sectors[i].xscrollceiling),
                 DoubleToFixed(udmf_sectors[i].yscrollceiling));
@@ -1167,6 +1236,7 @@ static void UDMF_LoadLineDefs(void)
         lines[i].args[2] = udmf_linedefs[i].args[2];
         lines[i].args[3] = udmf_linedefs[i].args[3];
         lines[i].args[4] = udmf_linedefs[i].args[4];
+        lines[i].lock = udmf_linedefs[i].lock;
 
         // Custom automap line style
         lines[i].amls = udmf_linedefs[i].amls;
@@ -1175,14 +1245,8 @@ static void UDMF_LoadLineDefs(void)
             lines[i].amls = amls_Default;
         }
 
-        // Woof! currently does not support parameterized line specials
-        if (udmf_flags & UDMF_LINE_PARAM)
-        {
-            udmf_linedefs[i].special = 0;
-        }
-
         // Support for namespaces that do not make the tag -> arg0/id split
-        if (udmf_flags & UDMF_COMP_NO_ARG0)
+        if (udmf_linedef_flags & UDMF_COMP_NO_ARG0)
         {
             lines[i].args[0] = lines[i].id;
         }
@@ -1194,7 +1258,7 @@ static void UDMF_LoadLineDefs(void)
 
         if (lump == NO_INDEX && udmf_linedefs[i].alpha < 1.0)
         {
-            const int32_t alpha = (int32_t)floor(udmf_linedefs[i].alpha * 100.0);
+            const int32_t alpha = floor(udmf_linedefs[i].alpha * 100.0);
             lines[i].tranmap = GetNormalTranMap(alpha);
         }
 
@@ -1245,35 +1309,7 @@ static void UDMF_LoadLineDefs_Post(void)
 {
     for (int i = 0; i < numlines; i++)
     {
-        // killough 4/11/98: handle special types
-        switch (lines[i].special)
-        {
-            // killough 4/11/98: translucent 2s textures
-            case 260:
-            {
-                // translucency from sidedef
-                int32_t lump = sides[*lines[i].sidenum].midindex;
-                const byte *tranmap =
-                    !lump ? main_tranmap : W_CacheLumpNum(lump - 1, PU_STATIC);
-                if (!lines[i].args[0])
-                {
-                    // if tag==0, affect this linedef only
-                    lines[i].tranmap = tranmap;
-                }
-                else
-                {
-                    for (int j = 0; j < numlines; j++)
-                    {
-                        if (lines[j].id == lines[i].args[0])
-                        {
-                            // if tag!=0, affect all matching linedefs
-                            lines[i].tranmap = tranmap;
-                        }
-                    }
-                }
-                break;
-            }
-        }
+        P_ProcessLinedefSpecial(&lines[i]);
     }
 }
 
@@ -1282,23 +1318,8 @@ void P_LoadThings_UDMF(void)
     for (int i = 0; i < array_size(udmf_things); i++)
     {
         // Do not spawn cool, new monsters if !commercial
-        if (gamemode != commercial)
-        {
-            switch (udmf_things[i].type)
-            {
-                case 68: // Arachnotron
-                case 64: // Archvile
-                case 88: // Boss Brain
-                case 89: // Boss Shooter
-                case 69: // Hell Knight
-                case 67: // Mancubus
-                case 71: // Pain Elemental
-                case 65: // Former Human Commando
-                case 66: // Revenant
-                case 84: // Wolf SS
-                    continue;
-            }
-        }
+        if (!IsDoomEdNumAllowed(udmf_things[i].type))
+          continue;
 
         // Do spawn all other stuff.
 
@@ -1335,7 +1356,6 @@ void P_LoadThings_UDMF(void)
             mt.tranmap = W_CacheLumpNum(lump, PU_CACHE);
         }
 
-
         P_SpawnMapThing(&mt);
     }
 }
@@ -1353,6 +1373,10 @@ void UDMF_LoadMap(map_t *map)
         I_Error("Invalid format found on ZNODES lump for UDMF map: %s",
                 lumpinfo[map->label].name);
     }
+
+    // UDMF always requires higher precision math
+    P_PointOnLineSide = P_PointOnLineSide_Precise;
+    P_PointOnDivlineSide = P_PointOnDivlineSide_Precise;
 
     // Clear everything
     UDMF_ClearMemory();

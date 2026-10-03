@@ -153,6 +153,7 @@ set(WOOF_SOURCES
     p_setup.c              p_setup.h
     p_sight.c
     p_spec.c               p_spec.h
+    p_specx.c
     p_switch.c
     p_telept.c
     p_tick.c               p_tick.h

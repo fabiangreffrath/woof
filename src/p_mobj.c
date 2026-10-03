@@ -196,6 +196,44 @@ void P_ExplodeMissile (mobj_t* mo)
 //
 // killough 11/98: minor restructuring
 
+void (*P_ApplySectorMovement)(mobj_t* mo, int special) = P_ApplySectorMovement_Classic;
+void P_ApplySectorMovement_Classic(mobj_t* mo, int special)
+{
+    // Do nothing
+}
+
+void P_ApplySectorMovement_Param(mobj_t *mo, int special)
+{
+    static int windTab[3] = {2048 * 5, 2048 * 10, 2048 * 25};
+
+    if (mo->intflags & MIF_WINDTHRUST)
+    {
+        switch (special)
+        {
+            case Wind_East_Weak:
+            case Wind_East_Medium:
+            case Wind_East_Strong:
+                P_ThrustMobj(mo, ANGLE_EAST, windTab[special - Wind_East_Weak]);
+                break;
+            case Wind_North_Weak:
+            case Wind_North_Medium:
+            case Wind_North_Strong:
+                P_ThrustMobj(mo, ANGLE_NORTH, windTab[special - Wind_North_Weak]);
+                break;
+            case Wind_South_Weak:
+            case Wind_South_Medium:
+            case Wind_South_Strong:
+                P_ThrustMobj(mo, ANGLE_SOUTH, windTab[special - Wind_South_Weak]);
+                break;
+            case Wind_West_Weak:
+            case Wind_West_Medium:
+            case Wind_West_Strong:
+                P_ThrustMobj(mo, ANGLE_WEST, windTab[special - Wind_West_Weak]);
+                break;
+        }
+    }
+}
+
 void P_XYMovement (mobj_t* mo)
 {
   player_t *player;
@@ -217,6 +255,8 @@ void P_XYMovement (mobj_t* mo)
       return;
     }
 
+  int special = mo->subsector->sector->special;
+  P_ApplySectorMovement(mo, special);
   player = mo->player;
 
   if (mo->momx > MAXMOVE)
@@ -816,24 +856,9 @@ void P_MobjThinker (mobj_t* mobj)
 	  mobj->intflags &= ~MIF_FALLING, mobj->gear = 0;  // Reset torque
       }
 
-  if (mbf21)
+  if (P_MObjInSector(mobj))
   {
-    sector_t* sector = mobj->subsector->sector;
-
-    if (
-      sector->special & KILL_MONSTERS_MASK &&
-      mobj->z == mobj->floorz &&
-      mobj->player == NULL &&
-      mobj->flags & MF_SHOOTABLE &&
-      !(mobj->flags & MF_FLOAT)
-    )
-    {
-      P_DamageMobj(mobj, NULL, NULL, 10000);
-
-      // must have been removed
-      if (mobj->thinker.function.p1 != P_MobjThinker)
-        return;
-    }
+    return;
   }
 
   // cycle through states,
@@ -1132,6 +1157,24 @@ void P_RespawnSpecials (void)
 //  between levels.
 //
 
+static boolean ShouldSpawnPlayer(const mapthing_t *mthing)
+{
+    return !deathmatch
+           && (map.param ? mthing->args[0] == Leave.position
+                         : !mthing->args[0]);
+}
+
+static void TrySpawnPlayer(const mapthing_t *mthing, int player)
+{
+  mapthing_t *player_start = &playerstarts[mthing->args[0]][player];
+
+  *player_start = *mthing;
+  player_start->type = player + 1;
+
+  if (ShouldSpawnPlayer(mthing))
+    P_SpawnPlayer(player_start);
+}
+
 void P_SpawnPlayer (mapthing_t* mthing)
 {
   player_t* p;
@@ -1158,8 +1201,10 @@ void P_SpawnPlayer (mapthing_t* mthing)
 
   if (mthing->type > 1)
     mobj->flags |= (mthing->type-1)<<MF_TRANSSHIFT;
-  
-  mobj->angle      = ANG45 * (mthing->angle/45);
+
+  mobj->angle = (Leave.flags & LF_SET_ANGLE)
+              ? Leave.angle
+              : (ANG45 * (mthing->angle / 45));
   mobj->player     = p;
   mobj->health     = p->health;
 
@@ -1265,10 +1310,7 @@ void P_SpawnMapThing (mapthing_t* mthing)
 	}
 
       // save spots for respawning in network games
-      playerstarts[mthing->type-1] = *mthing;
-      if (!deathmatch)
-	P_SpawnPlayer (mthing);
-
+      TrySpawnPlayer(mthing, mthing->type - 1);
       return;
     }
 
@@ -1412,6 +1454,21 @@ spawnit:
   // Translucency
   mobj->tranmap = mthing->tranmap;
 
+  // MObj is invisible
+  if (mthing->options & MTF_INVISIBLE)
+  {
+    P_UnsetThingPosition(mobj);
+    mobj->flags |= MF_NOSECTOR;
+    P_SetThingPosition(mobj);
+  }
+
+  // MObj secrets
+  if (mthing->options & MTF_COUNTSECRET)
+  {
+    totalsecret++;
+    mobj->intflags |= MIF_COUNTSECRET;
+  }
+
   // killough 7/20/98: exclude friends
   if (!((mobj->flags ^ MF_COUNTKILL) & (MF_FRIEND | MF_COUNTKILL)))
     totalkills++;
@@ -1419,7 +1476,25 @@ spawnit:
   if (mobj->flags & MF_COUNTITEM)
     totalitems++;
 
-  mobj->angle = (angle_t)ANG45 * (mthing->angle/45);
+  if (map.param)
+  {
+    if (mobj->flags & MF_COUNTKILL)
+    {
+      // Quantize angle to 45 degree increments
+      mobj->angle = (angle_t)ANG45 * (mthing->angle / 45);
+    }
+    else
+    {
+      // Scale angle correctly (source is 0..359)
+      int shifted = shiftleft32(mthing->angle, 8);
+      mobj->angle = shiftleft32((shifted / 360), 24);
+    }
+  }
+  else
+  {
+    mobj->angle = (angle_t)ANG45 * (mthing->angle/45);
+  }
+
   if (mthing->options & MTF_AMBUSH)
     mobj->flags |= MF_AMBUSH;
 

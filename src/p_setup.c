@@ -163,7 +163,7 @@ mapthing_t *deathmatchstarts;      // killough
 size_t     num_deathmatchstarts;   // killough
 
 mapthing_t *deathmatch_p;
-mapthing_t playerstarts[MAXPLAYERS];
+mapthing_t playerstarts[MAX_PLAYER_STARTS][MAXPLAYERS];
 
 //
 // P_LoadVertexes
@@ -251,7 +251,6 @@ void P_LoadSectors (int lump)
       ss->ceilingpic = R_FlatNumForName(ms->ceilingpic);
       ss->lightlevel = SHORT(ms->lightlevel);
       ss->special = SHORT(ms->special);
-      ss->oldspecial = SHORT(ms->special);
       ss->tag = SHORT(ms->tag);
       P_SectorInit(ss);
     }
@@ -301,7 +300,30 @@ void P_SectorInit(sector_t * const sector)
 //
 // killough 5/3/98: reformatted, cleaned up
 
-void P_LoadThings (int lump)
+boolean IsDoomEdNumAllowed(short type)
+{
+  // Do not spawn cool, new monsters if !commercial
+  if (gamemode != commercial)
+  {
+    switch (type)
+    {
+      case 68: // Arachnotron
+      case 64: // Archvile
+      case 88: // Boss Brain
+      case 89: // Boss Shooter
+      case 69: // Hell Knight
+      case 67: // Mancubus
+      case 71: // Pain Elemental
+      case 65: // Former Human Commando
+      case 66: // Revenant
+      case 84: // Wolf SS
+        return false;
+    }
+  }
+  return true;
+}
+
+static void P_LoadThings_Classic(int lump)
 {
   int  i, numthings = W_LumpLength (lump) / sizeof(mapthing_doom_t);
   byte *data = W_CacheLumpNum (lump,PU_STATIC);
@@ -312,21 +334,8 @@ void P_LoadThings (int lump)
       mapthing_doom_t *mtd = (mapthing_doom_t *) data + i;
 
       // Do not spawn cool, new monsters if !commercial
-      if (gamemode != commercial)
-        switch(mtd->type)
-          {
-          case 68:  // Arachnotron
-          case 64:  // Archvile
-          case 88:  // Boss Brain
-          case 89:  // Boss Shooter
-          case 69:  // Hell Knight
-          case 67:  // Mancubus
-          case 71:  // Pain Elemental
-          case 65:  // Former Human Commando
-          case 66:  // Revenant
-          case 84:  // Wolf SS
-            continue;
-          }
+      if (!IsDoomEdNumAllowed(mtd->type))
+        continue;
 
       // Do spawn all other stuff.
       mt.x = IntToFixed((int32_t)SHORT(mtd->x));
@@ -359,6 +368,58 @@ void P_LoadThings (int lump)
   Z_Free (data);
 }
 
+static void P_LoadThings_Param(int lump)
+{
+  int  numthings = W_LumpLength(lump) / sizeof(mapthing_hexen_t);
+  byte *data = W_CacheLumpNum(lump, PU_STATIC);
+
+  for (int i = 0; i < numthings; i++)
+    {
+      mapthing_t mt = {0};
+      mapthing_hexen_t *mtd = (mapthing_hexen_t *) data + i;
+      short options = 0;
+
+      if (!IsDoomEdNumAllowed(mtd->type))
+        continue;
+
+      // Do spawn all other stuff.
+      mt.tid = (int32_t)SHORT(mtd->tid);
+      mt.x = IntToFixed((int32_t)SHORT(mtd->x));
+      mt.y = IntToFixed((int32_t)SHORT(mtd->y));
+      mt.height = IntToFixed((int32_t)SHORT(mtd->height));
+      mt.angle = SHORT(mtd->angle);
+      mt.type = SHORT(mtd->type);
+      mt.special = mtd->special;
+      mt.args[0] = mtd->args[0];
+      mt.args[1] = mtd->args[1];
+      mt.args[2] = mtd->args[2];
+      mt.args[3] = mtd->args[3];
+      mt.args[4] = mtd->args[4];
+
+      // Convert flags
+      options = SHORT(mtd->options);
+      mt.options = (MTF_NOTSINGLE | MTF_NOTCOOP | MTF_NOTCOOP);
+
+      if (options & HTF_EASY)   mt.options |= MTF_SKILL1 | MTF_SKILL2;
+      if (options & HTF_NORMAL) mt.options |= MTF_SKILL3;
+      if (options & HTF_HARD)   mt.options |= MTF_SKILL4 | MTF_SKILL5;
+
+      if (options & HTF_GSINGLE) mt.options &= ~MTF_NOTSINGLE;
+      if (options & HTF_GCOOP)   mt.options &= ~MTF_NOTCOOP;
+      if (options & HTF_GDM)     mt.options &= ~MTF_NOTDM;
+
+      if (options & HTF_FRIENDLY)    mt.options |= MTF_FRIEND;
+      if (options & HTF_TRANSLUCENT) mt.options |= MTF_TRANSLUCENT;
+      if (options & HTF_INVISIBLE)   mt.options |= MTF_INVISIBLE;
+      if (options & HTF_STANDSTILL)  mt.options |= MTF_STANDSTILL;
+      if (options & HTF_COUNTSECRET) mt.options |= MTF_COUNTSECRET;
+
+      P_SpawnMapThing(&mt);
+    }
+
+  Z_Free (data);
+}
+
 //
 // P_LoadLineDefs
 // Also counts secret lines for intermissions.
@@ -370,29 +431,28 @@ void P_LoadThings (int lump)
 //
 // killough 5/3/98: reformatted, cleaned up
 
-void P_LoadLineDefs (int lump)
+static void (*P_LoadLineDefs)(int lump);
+
+static void LoadLineDefs_Classic(int lump)
 {
   byte *data;
   int  i;
 
-  numlines = W_LumpLength (lump) / sizeof(maplinedef_t);
+  numlines = W_LumpLength (lump) / sizeof(maplinedef_doom_t);
   lines = arena_alloc_num(world_arena, line_t, numlines);
   data = W_CacheLumpNum (lump,PU_STATIC);
 
   for (i=0; i<numlines; i++)
     {
-      maplinedef_t *mld = (maplinedef_t *) data + i;
+      maplinedef_doom_t *mld = (maplinedef_doom_t *) data + i;
       line_t *ld = lines+i;
 
       // [FG] extended nodes
       ld->flags = (unsigned short)SHORT(mld->flags);
       ld->special = SHORT(mld->special);
-      ld->id = SHORT(mld->tag);
-      ld->args[0] = ld->id; // UDMF spec
+      ld->args[0] = ld->id = SHORT(mld->tag);
       ld->v1 = &vertexes[(unsigned short)SHORT(mld->v1)];
       ld->v2 = &vertexes[(unsigned short)SHORT(mld->v2)];
-
-      P_LinedefInit(ld);
 
       ld->sidenum[0] = (unsigned short)SHORT(mld->sidenum[0]);
       ld->sidenum[1] = (unsigned short)SHORT(mld->sidenum[1]);
@@ -400,11 +460,71 @@ void P_LoadLineDefs (int lump)
       FIX_NO_INDEX(ld->sidenum[0]);
       FIX_NO_INDEX(ld->sidenum[1]);
 
+      P_LinedefInit(ld);
+
       // killough 4/4/98: support special sidedef interpretation below
       if (ld->sidenum[0] != NO_INDEX && ld->special)
         sides[*ld->sidenum].special = ld->special;
     }
   Z_Free (data);
+}
+
+static void LoadLineDefs_Param(int lump)
+{
+    unsigned int spac_lookup[8] = {
+        SPAC_Cross,
+        SPAC_Use,
+        SPAC_MCross,
+        SPAC_Impact,
+        SPAC_Push,
+        SPAC_PCross,
+        SPAC_Use | SPAC_UseThrough,
+        SPAC_Impact | SPAC_PCross
+    };
+    int shared_flags = ML_BLOCKING | ML_BLOCKMONSTERS | ML_TWOSIDED
+                       | ML_DONTPEGTOP | ML_DONTPEGBOTTOM | ML_SECRET
+                       | ML_SOUNDBLOCK | ML_DONTDRAW | ML_MAPPED;
+
+    byte *data = W_CacheLumpNum(lump, PU_STATIC);
+    numlines = W_LumpLength(lump) / sizeof(maplinedef_hexen_t);
+    lines = arena_alloc_num(world_arena, line_t, numlines);
+    memset(lines, 0, numlines * sizeof(line_t));
+
+    for (int i = 0; i < numlines; i++)
+    {
+        maplinedef_hexen_t *mld = (maplinedef_hexen_t *)data + i;
+        line_t *ld = lines + i;
+
+        ld->special = SHORT(mld->special);
+        ld->args[0] = mld->args[0];
+        ld->args[1] = mld->args[1];
+        ld->args[2] = mld->args[2];
+        ld->args[3] = mld->args[3];
+        ld->args[4] = mld->args[4];
+
+        ld->v1 = &vertexes[(unsigned short)SHORT(mld->v1)];
+        ld->v2 = &vertexes[(unsigned short)SHORT(mld->v2)];
+
+        ld->sidenum[0] = (unsigned short)SHORT(mld->sidenum[0]);
+        ld->sidenum[1] = (unsigned short)SHORT(mld->sidenum[1]);
+
+        FIX_NO_INDEX(ld->sidenum[0]);
+        FIX_NO_INDEX(ld->sidenum[1]);
+
+        // Convert flags
+        linedef_flags_hexen_t flags = (unsigned short)SHORT(mld->flags);
+        ld->spac = spac_lookup[GET_SPAC_INDEX(flags)];
+        ld->flags = (flags & shared_flags);
+
+        if (ld->spac & SPAC_UseThrough)      ld->flags |= ML_PASSUSE;
+        if (flags & HML_REPEATSPECIAL)       ld->flags |= ML_REPEATSPECIAL;
+        if (flags & ZML_MONSTERSCANACTIVATE) ld->flags |= ML_MONSTERSCANACTIVATE;
+        if (flags & ZML_BLOCKPLAYERS)        ld->flags |= ML_BLOCKPLAYERS;
+        if (flags & ZML_BLOCKEVERYTHING)     ld->flags |= ML_BLOCKING | ML_BLOCKEVERYTHING;
+
+        P_LinedefInit(ld);
+    }
+    Z_Free(data);
 }
 
 void P_LinedefInit(line_t * const linedef)
@@ -451,6 +571,104 @@ void P_LinedefInit(line_t * const linedef)
   linedef->soundorg.x = linedef->bbox[BOXLEFT] / 2 + linedef->bbox[BOXRIGHT] / 2;
   linedef->soundorg.y = linedef->bbox[BOXTOP] / 2 + linedef->bbox[BOXBOTTOM] / 2;
   linedef->soundorg.thinker.function.p1 = P_DegenMobjThinker;
+
+  /* cph 2006/09/30 - fix sidedef errors right away.
+    * cph 2002/07/20 - these errors are fatal if not fixed, so apply them
+    * in compatibility mode - a desync is better than a crash! */
+  for (int j = 0; j < 2; j++)
+  {
+    if (linedef->sidenum[j] != NO_INDEX && linedef->sidenum[j] >= numsides)
+    {
+      linedef->sidenum[j] = NO_INDEX;
+      I_Printf(VB_DEBUG, "P_LoadLineDefs: linedef %td has out-of-range sidedef"
+                         "number.", linedef - lines);
+    }
+  }
+
+  // killough 11/98: fix common wad errors (missing sidedefs):
+  // Substitute dummy sidedef for missing right side
+  if (linedef->sidenum[0] == NO_INDEX)
+  {
+    linedef->sidenum[0] = 0;
+  }
+
+  if ((linedef->sidenum[1] == NO_INDEX) && (linedef->flags & ML_TWOSIDED))
+  {
+    // Andrey Budko
+    // ML_TWOSIDED flag shouldn't be cleared for compatibility purposes
+    // see CLNJ-506.LMP at https://dsdarchive.com/wads/challenj
+    if (linedef->sidenum[1] == NO_INDEX)
+    {
+      if (!demo_compatibility || !overflow[emu_missedbackside].enabled)
+      {
+        linedef->flags &= ~ML_TWOSIDED;  // Clear 2s flag for missing left side
+      }
+    }
+
+    // cph - print a warning about the bug
+    I_Printf(VB_DEBUG, "P_LoadLineDefs: linedef %td has two-sided flag set, but"
+                       " no second sidedef.", linedef - lines);
+  }
+
+  // killough 4/4/98: support special sidedef interpretation below
+  if (linedef->sidenum[0] != NO_INDEX && linedef->special)
+  {
+    sides[*linedef->sidenum].special = linedef->special;
+  }
+}
+
+void (*P_ProcessLinedefSpecial)(line_t *ld) = P_ProcessLinedefSpecial_Classic;
+
+void P_ProcessLinedefSpecial_Classic(line_t *ld)
+{
+  // killough 4/11/98: handle special types
+  // killough 4/11/98: translucent 2s textures
+  if (ld->special == 260)
+  {
+    // translucency from sidedef
+    int32_t lump = sides[*ld->sidenum].midindex;
+    const byte *tranmap =
+        !lump ? main_tranmap : W_CacheLumpNum(lump - 1, PU_STATIC);
+    if (!ld->args[0])
+    {
+      // if tag==0, affect this linedef only
+      ld->tranmap = tranmap;
+    }
+    else
+    {
+      // if tag!=0, affect all matching linedefs
+      for (int j = 0; j < numlines; j++)
+      {
+        if (lines[j].id == ld->args[0])
+        {
+          lines[j].tranmap = tranmap;
+        }
+      }
+    }
+  }
+}
+
+void P_ProcessLinedefSpecial_Param(line_t *ld)
+{
+  if (ld->special == TranslucentLine)
+  {
+      double alpha = CLAMP((ld->args[1] / 256.0), 0.0, 1.0);
+      const byte *tranmap = GetNormalTranMap(alpha);
+
+      if (!ld->args[0])
+      {
+        ld->tranmap = tranmap;
+      }
+      else
+      {
+        for (int l = -1; (l = P_FindLineFromLineTag(ld, l)) >= 0;)
+        {
+          lines[l].tranmap = tranmap;
+        }
+      }
+
+      ld->special = 0;
+  }
 }
 
 // killough 4/4/98: delay using sidedefs until they are loaded
@@ -461,44 +679,12 @@ void P_LoadLineDefs2(int lump)
   int i = numlines;
   register line_t *ld = lines;
   for (;i--;ld++)
-    {
-      // killough 11/98: fix common wad errors (missing sidedefs):
-
-      if (ld->sidenum[0] == NO_INDEX)
-	ld->sidenum[0] = 0;  // Substitute dummy sidedef for missing right side
-
-      if (ld->sidenum[1] == NO_INDEX)
-      {
-	if (!demo_compatibility || !overflow[emu_missedbackside].enabled)
-	ld->flags &= ~ML_TWOSIDED;  // Clear 2s flag for missing left side
-      }
-
-      // haleyjd 05/02/06: Reserved line flag. If set, we must clear all
-      // BOOM or later extended line flags. This is necessitated by E2M7.
-      if (ld->flags & ML_RESERVED && comp[comp_reservedlineflag])
-        ld->flags &= 0x1FF;
-
-      ld->frontsector = ld->sidenum[0]!=NO_INDEX ? sides[ld->sidenum[0]].sector : 0;
-      ld->backsector  = ld->sidenum[1]!=NO_INDEX ? sides[ld->sidenum[1]].sector : 0;
-      switch (ld->special) // killough 4/11/98: handle special types
-      {
-        case 260: // killough 4/11/98: translucent 2s textures
-        {
-          int32_t lump = sides[*ld->sidenum].midindex; // translucency from sidedef
-          const byte *tranmap =
-              !lump ? main_tranmap : W_CacheLumpNum(lump - 1, PU_STATIC);
-          if (!ld->args[0])
-            // if tag==0, affect this linedef only
-            ld->tranmap = tranmap;
-          else
-            for (int j = 0; j < numlines; j++)
-              if (lines[j].id == ld->args[0])
-                // if tag!=0, affect all matching linedefs
-                lines[j].tranmap = tranmap;
-          break;
-        }
-      }
-    }
+  {
+    // Andrey Budko: Can't be NO_INDEX here
+    ld->frontsector = sides[ld->sidenum[0]].sector;
+    ld->backsector  = ld->sidenum[1] != NO_INDEX ? sides[ld->sidenum[1]].sector : 0;
+    P_ProcessLinedefSpecial(ld);
+  }
 }
 
 //
@@ -567,7 +753,16 @@ static int32_t GetTranmapOrTexture(int32_t *out, const char *texture_name)
   return texture_index;
 }
 
-void P_ProcessSideDefs(side_t *side, int i, char *bottomtexture, char *midtexture, char *toptexture)
+void (*P_ProcessSideDefs)(side_t *side, int i, char *bottomtexture, char *midtexture, char *toptexture);
+
+void P_ProcessSideDefs_Param(side_t *side, int i, char *bottomtexture, char *midtexture, char *toptexture)
+{
+  side->midtexture = R_TextureNumForName(midtexture);
+  side->toptexture = R_TextureNumForName(toptexture);
+  side->bottomtexture = R_TextureNumForName(bottomtexture);
+}
+
+void P_ProcessSideDefs_Classic(side_t *side, int i, char *bottomtexture, char *midtexture, char *toptexture)
 {
   sector_t *sec = side->sector;
   switch (side->special)
@@ -629,9 +824,8 @@ void P_LoadSideDefs (int lump)
 void P_LoadSideDefs2(int lump)
 {
   byte *data = W_CacheLumpNum(lump,PU_STATIC);
-  int  i;
 
-  for (i=0; i<numsides; i++)
+  for (int i = 0; i < numsides; i++)
     {
       register mapsidedef_t *msd = (mapsidedef_t *) data + i;
       register side_t *sd = sides + i;
@@ -994,6 +1188,40 @@ boolean P_LoadReject(int lumpnum, int totallines)
 
 static void LoadMap(map_t *map)
 {
+  // Parameterized actions
+  if (map->param)
+  {
+    // Parameterized actions
+    P_UseSpecialLine = P_UseSpecialLine_Classic;
+    P_ShootSpecialLine = P_ShootSpecialLine_Classic;
+    P_CrossSpecialLine = P_CrossSpecialLine_Classic;
+    P_PlayerInSector = P_PlayerInSector_Classic;
+    P_MObjInSector = P_MObjInSector_Classic;
+    P_ApplySectorMovement = P_ApplySectorMovement_Classic;
+    P_LoadLineDefs = LoadLineDefs_Param;
+    P_ProcessSideDefs = P_ProcessSideDefs_Param;
+    P_ProcessLinedefSpecial = P_ProcessLinedefSpecial_Param;
+    // ZDoom uses only higher precision math
+    P_PointOnLineSide = P_PointOnLineSide_Precise;
+    P_PointOnDivlineSide = P_PointOnDivlineSide_Precise;
+  }
+  else
+  {
+    // Classic line specials
+    P_UseSpecialLine = P_UseSpecialLine_Classic;
+    P_ShootSpecialLine = P_ShootSpecialLine_Classic;
+    P_CrossSpecialLine = P_CrossSpecialLine_Classic;
+    P_PlayerInSector = P_PlayerInSector_Classic;
+    P_MObjInSector = P_MObjInSector_Classic;
+    P_ApplySectorMovement = P_ApplySectorMovement_Classic;
+    P_LoadLineDefs = LoadLineDefs_Classic;
+    P_ProcessSideDefs = P_ProcessSideDefs_Classic;
+    P_ProcessLinedefSpecial = P_ProcessLinedefSpecial_Classic;
+    // The original implementation used only lower precision math
+    P_PointOnLineSide = P_PointOnLineSide_Classic;
+    P_PointOnDivlineSide = P_PointOnDivlineSide_Classic;
+  }
+
   // note: most of this ordering is important
 
   // killough 3/1/98: P_LoadBlockMap call moved down to below
@@ -1049,7 +1277,6 @@ static void CheckMapFormat(int lumpnum, map_t *map)
     map->map_format = MAP_NONE;
     map->bsp_format = BSP_NANO;
     map->bmap_format = BMAP_BoomBuilder;
-    map->built = false;
     map->param = false;
 
     map->label = lumpnum;
@@ -1082,7 +1309,6 @@ static void CheckMapFormat(int lumpnum, map_t *map)
         && W_LumpExistsWithName(lumpnum + ML_BLOCKMAP, "BLOCKMAP"))
     {
         map->map_format = MAP_DOOM;
-        map->built = true;
         map->things = lumpnum + ML_THINGS;
         map->linedefs = lumpnum + ML_LINEDEFS;
         map->sidedefs = lumpnum + ML_SIDEDEFS;
@@ -1114,7 +1340,6 @@ static void CheckMapFormat(int lumpnum, map_t *map)
         && W_LumpExistsWithName(lumpnum + MLX_SECTORS, "SECTORS"))
     {
         map->map_format = MAP_DOOM;
-        map->built = false;
         map->things = lumpnum + MLX_THINGS;
         map->linedefs = lumpnum + MLX_LINEDEFS;
         map->sidedefs = lumpnum + MLX_SIDEDEFS;
@@ -1134,7 +1359,6 @@ static void CheckMapFormat(int lumpnum, map_t *map)
     if (W_LumpExistsWithName(lumpnum + ML_TEXTMAP, "TEXTMAP"))
     {
         map->map_format = MAP_UDMF;
-        map->built = true;
         map->textmap = lumpnum + ML_TEXTMAP;
 
         // skip label and TEXTMAP, test against all other lumps until ENDMAP
@@ -1240,18 +1464,10 @@ void P_SetupLevel(int episode, int map_num, skill_t skill, boolean from_savegame
   switch (map.map_format)
   {
     case MAP_DOOM:
-      // the original implementation used only low precision math
-      P_PointOnLineSide = P_PointOnLineSide_Classic;
-      P_PointOnDivlineSide = P_PointOnDivlineSide_Classic;
+    case MAP_HEXEN:
       LoadMap(&map);
       break;
-    case MAP_HEXEN:
-      I_Error("Unsupported Hexen level format in %s", lumpname);
-      break;
     case MAP_UDMF:
-      // udmf requires higher precision math
-      P_PointOnLineSide = P_PointOnLineSide_Precise;
-      P_PointOnDivlineSide = P_PointOnDivlineSide_Precise;
       UDMF_LoadMap(&map);
       break;
     case MAP_NONE:
@@ -1290,10 +1506,10 @@ void P_SetupLevel(int episode, int map_num, skill_t skill, boolean from_savegame
   switch (map.map_format)
   {
     case MAP_DOOM:
-      P_LoadThings(map.things);
+      P_LoadThings_Classic(map.things);
       break;
     case MAP_HEXEN:
-      I_Error("Tried to spawn things on invalid map format");
+      P_LoadThings_Param(map.things);
       break;
     case MAP_UDMF:
       P_LoadThings_UDMF();
@@ -1338,7 +1554,7 @@ void P_SetupLevel(int episode, int map_num, skill_t skill, boolean from_savegame
   R_InitSkyMap();
 
   // set up world state
-  P_SpawnSpecials();
+  P_SpawnSpecials(&map);
   P_MapEnd();
 
   // preload graphics

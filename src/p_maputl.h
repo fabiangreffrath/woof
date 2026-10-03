@@ -66,6 +66,7 @@ int     P_PointOnDivlineSide_Precise(fixed_t x, fixed_t y, divline_t *line);
 void    P_MakeDivline(struct line_s *li, divline_t *dl);
 fixed_t P_InterceptVector(divline_t *v2, divline_t *v1);
 int     P_BoxOnLineSide(fixed_t *tmbox, struct line_s *ld);
+boolean P_GetMidTexturePosition(const struct line_s *line, int sideno, fixed_t *top, fixed_t *bottom);
 void    P_LineOpening(struct line_s *linedef);
 void    P_UnsetThingPosition(struct mobj_s *thing);
 void    P_SetThingPosition(struct mobj_s *thing);

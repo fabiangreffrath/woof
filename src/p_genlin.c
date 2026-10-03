@@ -108,9 +108,7 @@ manual_floor:
     floor->direction = Dirn? 1 : -1;
     floor->sector = sec;
     floor->texture = sec->floorpic;
-    floor->newspecial = sec->special;
-    //jff 3/14/98 transfer old special field too
-    floor->oldspecial = sec->oldspecial;
+    P_CopyTransferSpecial(&floor->transfer, sec);
     floor->type = genFloor;
 
     // set the speed of motion
@@ -191,15 +189,11 @@ manual_floor:
           switch(ChgT)
           {
             case FChgZero:  // zero type
-              floor->newspecial = 0;
-              //jff 3/14/98 change old field too
-              floor->oldspecial = 0;
+              P_ResetTransferSpecial(&floor->transfer);
               floor->type = genFloorChg0;
               break;
             case FChgTyp:   // copy type
-              floor->newspecial = sec->special;
-              //jff 3/14/98 change old field too
-              floor->oldspecial = sec->oldspecial;
+              P_CopyTransferSpecial(&floor->transfer, sec);
               floor->type = genFloorChgT;
               break;
             case FChgTxt:   // leave type be
@@ -216,15 +210,11 @@ manual_floor:
         switch (ChgT)
         {
           case FChgZero:    // zero type
-            floor->newspecial = 0;
-            //jff 3/14/98 change old field too
-            floor->oldspecial = 0;
+            P_ResetTransferSpecial(&floor->transfer);
             floor->type = genFloorChg0;
             break;
           case FChgTyp:     // copy type
-            floor->newspecial = line->frontsector->special;
-            //jff 3/14/98 change old field too
-            floor->oldspecial = line->frontsector->oldspecial;
+            P_CopyTransferSpecial(&floor->transfer, line->frontsector);
             floor->type = genFloorChgT;
             break;
           case FChgTxt:     // leave type be
@@ -311,9 +301,7 @@ manual_ceiling:
     ceiling->direction = Dirn? 1 : -1;
     ceiling->sector = sec;
     ceiling->texture = sec->ceilingpic;
-    ceiling->newspecial = sec->special;
-    //jff 3/14/98 change old field too
-    ceiling->oldspecial = sec->oldspecial;
+    P_CopyTransferSpecial(&ceiling->transfer, sec);
     ceiling->tag = sec->tag;
     ceiling->type = genCeiling;
 
@@ -403,15 +391,11 @@ manual_ceiling:
           switch (ChgT)
           {
             case CChgZero:  // type is zeroed
-              ceiling->newspecial = 0;
-              //jff 3/14/98 change old field too
-              ceiling->oldspecial = 0;
+              P_ResetTransferSpecial(&ceiling->transfer);
               ceiling->type = genCeilingChg0;
               break;
             case CChgTyp:   // type is copied
-              ceiling->newspecial = sec->special;
-              //jff 3/14/98 change old field too
-              ceiling->oldspecial = sec->oldspecial;
+              P_CopyTransferSpecial(&ceiling->transfer, sec);
               ceiling->type = genCeilingChgT;
               break;
             case CChgTxt:   // type is left alone
@@ -428,15 +412,11 @@ manual_ceiling:
         switch (ChgT)
         {
           case CChgZero:    // type is zeroed
-            ceiling->newspecial = 0;
-            //jff 3/14/98 change old field too
-            ceiling->oldspecial = 0;
+            P_ResetTransferSpecial(&ceiling->transfer);
             ceiling->type = genCeilingChg0;
             break;
           case CChgTyp:     // type is copied
-            ceiling->newspecial = line->frontsector->special;
-            //jff 3/14/98 change old field too
-            ceiling->oldspecial = line->frontsector->oldspecial;
+            P_CopyTransferSpecial(&ceiling->transfer, line->frontsector);
             ceiling->type = genCeilingChgT;
             break;
           case CChgTxt:     // type is left alone
@@ -868,7 +848,7 @@ manual_crusher:
     ceiling->direction = -1;
     ceiling->sector = sec;
     ceiling->texture = sec->ceilingpic;
-    ceiling->newspecial = sec->special;
+    P_CopyTransferSpecial(&ceiling->transfer, sec);
     ceiling->tag = sec->tag;
     ceiling->type = Slnt? genSilentCrusher : genCrusher;
     ceiling->topheight = sec->ceilingheight;

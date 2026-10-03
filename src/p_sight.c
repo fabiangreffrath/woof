@@ -143,7 +143,8 @@ static boolean P_CrossSubsector(int num, register los_t *los)
       ssline->linedef->validcount = validcount;
 
       // stop because it is not two sided anyway
-      if (!(ssline->linedef->flags & ML_TWOSIDED))
+      if (!(ssline->linedef->flags & ML_TWOSIDED)
+          || ssline->linedef->flags & ML_BLOCKEVERYTHING)
         return false;
 
       // crosses a two sided line

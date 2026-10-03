@@ -60,7 +60,15 @@ int P_LoadReject(int lumpnum, int totallines);
 void P_SectorInit(sector_t * const sector);
 void P_SidedefInit(side_t * const sidedef);
 void P_LinedefInit(line_t * const linedef);
-void P_ProcessSideDefs(side_t *side, int i, char *bottomtexture, char *midtexture, char *toptexture);
+boolean IsDoomEdNumAllowed(short type);
+
+extern void (*P_ProcessLinedefSpecial)(line_t *ld);
+extern void P_ProcessLinedefSpecial_Classic(line_t *ld);
+extern void P_ProcessLinedefSpecial_Param(line_t *ld);
+
+extern void (*P_ProcessSideDefs)(side_t *side, int i, char *bottomtexture, char *midtexture, char *toptexture);
+extern void P_ProcessSideDefs_Classic(side_t *side, int i, char *bottomtexture, char *midtexture, char *toptexture);
+extern void P_ProcessSideDefs_Param(side_t *side, int i, char *bottomtexture, char *midtexture, char *toptexture);
 
 #endif
 

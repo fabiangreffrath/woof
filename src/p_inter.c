@@ -33,6 +33,8 @@
 #include "m_random.h"
 #include "p_mobj.h"
 #include "p_pspr.h"
+#include "p_setup.h"
+#include "p_spec.h"
 #include "p_tick.h"
 #include "r_defs.h"
 #include "r_main.h"
@@ -623,8 +625,22 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
       return;      // killough 12/98: suppress error message
     }
 
+  if (map.param && special->special)
+  {
+    P_ExecuteLineSpecial(NULL, special->special, special->args, player->mo, 0);
+    special->special = 0;
+  }
+
   if (special->flags & MF_COUNTITEM)
+  {
     player->itemcount++;
+  }
+
+  if (special->intflags & MIF_COUNTSECRET)
+  {
+    P_PlayerCollectsSecret(player);
+  }
+
   P_RemoveMobj (special);
   player->bonuscount += BONUSADD;
 
@@ -662,6 +678,11 @@ static void P_KillMobj(mobj_t *source, mobj_t *inflictor, mobj_t *target, method
 
   // killough 8/29/98: remove from threaded list
   P_UpdateThinker(&target->thinker);
+
+  if (map.param && target->special)
+  {
+    P_ExecuteLineSpecial(NULL, target->special, target->args, target, 0);
+  }
 
   if (source && source->player)
     {

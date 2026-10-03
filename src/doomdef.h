@@ -77,6 +77,9 @@ typedef enum
 // The maximum number of players, multiplayer/networking.
 #define MAXPLAYERS       4
 
+// Maximum number of spawn spot positions
+#define MAX_PLAYER_STARTS 8
+
 // phares 5/14/98:
 // DOOM Editor Numbers (aka doomednum in mobj_t)
 
@@ -118,12 +121,38 @@ typedef enum mapthing_options_e {
   // Bits 8-15 are reserved for the future
 
   // UDMF
-  MTF_SKILL1 = (1u << 16),
-  MTF_SKILL2 = (1u << 17),
-  MTF_SKILL3 = (1u << 18),
-  MTF_SKILL4 = (1u << 19),
-  MTF_SKILL5 = (1u << 20),
+  MTF_SKILL1      = (1u << 16),
+  MTF_SKILL2      = (1u << 17),
+  MTF_SKILL3      = (1u << 18),
+  MTF_SKILL4      = (1u << 19),
+  MTF_SKILL5      = (1u << 20),
+  MTF_DORMANT     = (1u << 21),
+  MTF_TRANSLUCENT = (1u << 21),
+  MTF_INVISIBLE   = (1u << 22),
+  MTF_STANDSTILL  = (1u << 24),
+  MTF_COUNTSECRET = (1u << 25),
 } mapthing_options_t;
+
+// must convert to mapthing_options_t
+typedef enum mapthing_options_hexen_e
+{
+  HTF_EASY        = (1u << 0),
+  HTF_NORMAL      = (1u << 1),
+  HTF_HARD        = (1u << 2),
+  HTF_AMBUSH      = (1u << 3),
+  HTF_DORMANT     = (1u << 4),
+  HTF_FIGHTER     = (1u << 5),
+  HTF_CLERIC      = (1u << 6),
+  HTF_MAGE        = (1u << 7),
+  HTF_GSINGLE     = (1u << 8),
+  HTF_GCOOP       = (1u << 9),
+  HTF_GDM         = (1u << 10),
+  HTF_TRANSLUCENT = (1u << 11),
+  HTF_INVISIBLE   = (1u << 12),
+  HTF_FRIENDLY    = (1u << 13),
+  HTF_STANDSTILL  = (1u << 14),
+  HTF_COUNTSECRET = (1u << 15),
+} mapthing_options_hexen_t;
 
 typedef enum {
   sk_default=-2,
@@ -258,6 +287,8 @@ typedef enum {
 #define MORE_FRICTION_MOMENTUM 15000       // mud factor based on momentum
 #define ORIG_FRICTION          0xE800      // original value
 #define ORIG_FRICTION_FACTOR   2048        // original value
+#define FRICTION_LOW           0xf900
+#define MOVE_FACTOR_LOW        0x0269
 
 // Index of the special effects (INVUL inverse) map.
 

@@ -640,10 +640,27 @@ static void saveg_read_ceiling_t(ceiling_t *str)
     str->crush = saveg_read32();
 
     // int newspecial;
-    str->newspecial = saveg_read32();
+    int newspecial = saveg_read32();
+    if (newspecial & SECRET_MASK || newspecial == 9)
+    {
+        str->transfer.flags |= SECF_SECRET|SECF_WAS_SECRET;
+    }
+    if (newspecial & FRICTION_MASK)
+    {
+        str->transfer.flags |= SECF_FRICTION;
+    }
+    if (newspecial & PUSH_MASK)
+    {
+        str->transfer.flags |= SECF_PUSH;
+    }
+    str->transfer.special = newspecial;
 
     // int oldspecial;
-    str->oldspecial = saveg_read32();
+    int oldspecial = saveg_read32();
+    if (oldspecial & SECRET_MASK || oldspecial == 9)
+    {
+        str->transfer.flags |= SECF_WAS_SECRET;
+    }
 
     // short texture;
     str->texture = saveg_read16();
@@ -730,10 +747,15 @@ static void saveg_read_floormove_t(floormove_t *str)
     str->direction = saveg_read32();
 
     // int newspecial;
-    str->newspecial = saveg_read32();
+    str->transfer.special = saveg_read32();
 
     // int oldspecial;
-    str->oldspecial = saveg_read32();
+    // TODO: validate if this is correct
+    int oldspecial = saveg_read32();
+    if (oldspecial & SECRET_MASK || (oldspecial < 32 && oldspecial == 9))
+    {
+        str->transfer.flags |= SECF_WAS_SECRET;
+    }
 
     // short texture;
     str->texture = saveg_read16();

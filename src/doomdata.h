@@ -63,10 +63,6 @@ typedef struct map_s
     bmap_format_t bmap_format;
     // Is map using the parameterized line special system?
     boolean param;
-    // Is the map actually compiled by a BSP tree builder?
-    // To be more specific, does the map have the expected compiled lumps
-    // even if said compiled lumps are empty?
-    boolean built;
     // Is the reject matrix compiled correctly?
     boolean reject_built;
     // Level components
@@ -165,7 +161,8 @@ typedef enum sidedef_flags_e
 
 // A LineDef, as used for editing, and as input to the BSP builder.
 
-typedef struct {
+typedef struct PACKED_PREFIX
+{
   // [FG] extended nodes
   unsigned short v1;
   unsigned short v2;
@@ -173,7 +170,18 @@ typedef struct {
   short special;
   short tag;
   unsigned short sidenum[2];  // sidenum[1] will be -1 (NO_INDEX) if one sided
-} maplinedef_t;
+} PACKED_SUFFIX maplinedef_doom_t;
+
+typedef struct PACKED_PREFIX
+{
+    // [FG] extended nodes
+    unsigned short v1;
+    unsigned short v2;
+    unsigned short flags;
+    byte special;
+    byte args[5];
+    unsigned short sidenum[2];
+} PACKED_SUFFIX maplinedef_hexen_t;
 
 //
 // LineDef attributes.
@@ -201,6 +209,7 @@ typedef struct {
 
 typedef enum linedef_flags_e
 {
+  // Doom map format
   ML_BLOCKING          = (1u << 0),  // Solid, is an obstacle.
   ML_BLOCKMONSTERS     = (1u << 1),  // Blocks monsters only.
   ML_TWOSIDED          = (1u << 2),  // Backside will not be drawn if not two sided.
@@ -215,8 +224,49 @@ typedef enum linedef_flags_e
   ML_3DMIDTEX          = (1u << 10), // SoM 9/02/02: 3D Middletexture flag!
   ML_RESERVED          = (1u << 11),
   ML_BLOCKLANDMONSTERS = (1u << 12), // mbf21
-  ML_BLOCKPLAYERS      = (1u << 13), // mbf21
+  ML_BLOCKPLAYERS      = (1u << 13), // mbf21 Blocks players
+  ML_RESERVED2         = (1u << 14), // MBF2y
+  ML_RESERVED3         = (1u << 15), // MBF2y
+  // Hexen map format
+  ML_REPEATSPECIAL       = (1u << 16), // special is repeatable
+  ML_MONSTERSCANACTIVATE = (1u << 17), // Monsters and players can activate
+  ML_BLOCKEVERYTHING     = (1u << 18), // Blocks everything
+  // UDMF
+  ML_FIRSTSIDEONLY    = (1u << 19),
+  ML_CHECKSWITCHRANGE = (1u << 20),
 } linedef_flags_t;
+
+typedef enum linedef_flags_hexen_e
+{
+  HML_REPEATSPECIAL       = 0x0200,
+  HML_SPAC_MASK           = 0x1c00,
+  ZML_MONSTERSCANACTIVATE = 0x2000,
+  ZML_BLOCKPLAYERS        = 0x4000,
+  ZML_BLOCKEVERYTHING     = 0x8000,
+} linedef_flags_hexen_t;
+
+// line activation
+#define HML_SPAC_SHIFT 10
+#define GET_SPAC_INDEX(flags) ((flags & HML_SPAC_MASK) >> HML_SPAC_SHIFT)
+
+typedef enum spac_e
+{
+    SPAC_None       = (0),
+    SPAC_Cross      = (1u << 0),
+    SPAC_Use        = (1u << 1),
+    SPAC_MCross     = (1u << 2),
+    SPAC_Impact     = (1u << 3),
+    SPAC_Push       = (1u << 4),
+    SPAC_PCross     = (1u << 5),
+    SPAC_UseThrough = (1u << 6),
+    SPAC_AnyCross   = (1u << 7),
+    SPAC_MUse       = (1u << 8),
+    SPAC_MPush      = (1u << 9),
+    SPAC_UseBack    = (1u << 10),
+    SPAC_Damage     = (1u << 11),
+    SPAC_Death      = (1u << 12),
+    SPAC_Walking    = (1u << 13),
+} spac_t;
 
 // Sector definition, from editing.
 typedef struct {
@@ -233,7 +283,6 @@ typedef struct {
 
 typedef enum sector_flags_e
 {
-  // TODO: convert from binary format, Eternity-style
   SECF_SECRET          = (1u << 0),
   SECF_FRICTION        = (1u << 1),
   SECF_PUSH            = (1u << 2),
@@ -246,7 +295,20 @@ typedef enum sector_flags_e
   // UDMF
   SECF_ABS_LIGHT_FLOOR = (1u << 9),
   SECF_ABS_LIGHT_CEIL  = (1u << 10),
+  SECF_DMG_TERRAIN_FX  = (1u << 11),
+  SECF_HAZARD          = (1u << 12),
+  SECF_HURT_MONSTERS   = (1u << 13),
+  SECF_HARM_IN_AIR     = (1u << 14),
+  SECF_NOATTACK        = (1u << 15),
+  SECF_HIDDEN          = (1u << 16),
+  // Internal only
+  SECF_WAS_SECRET      = (1u << 17),
+  SECF_END_GODMODE     = (1u << 18),
+  SECF_END_LEVEL       = (1u << 19),
 } sector_flags_t;
+
+#define SECF_DAMAGE_FLAGS  (SECF_DMG_TERRAIN_FX|SECF_HAZARD|SECF_END_GODMODE|SECF_END_LEVEL)
+#define SECF_TRANSFER_MASK (SECF_SECRET|SECF_FRICTION|SECF_PUSH|SECF_DAMAGE_FLAGS|SECF_WAS_SECRET)
 
 // Indicate a leaf.
 #define NF_SUBSECTOR    0x80000000
@@ -257,13 +319,27 @@ typedef enum sector_flags_e
 
 // Thing definition, position, orientation and type,
 // plus skill/visibility flags and attributes.
-typedef struct {
+typedef struct PACKED_PREFIX mapthing_hexen_s
+{
+  short tid;
+  short x;
+  short y;
+  short height;
+  short angle;
+  short type;
+  short options;
+  byte special;
+  byte args[5];
+} PACKED_SUFFIX mapthing_hexen_t;
+
+typedef struct PACKED_PREFIX mapthing_doom_s
+{
   short x;
   short y;
   short angle;
   short type;
   short options;
-} mapthing_doom_t;
+} PACKED_SUFFIX mapthing_doom_t;
 
 typedef struct {
   fixed_t x;

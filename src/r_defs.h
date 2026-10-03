@@ -83,7 +83,6 @@ typedef struct sector_s
   short ceilingpic;
   short lightlevel;
   short special;
-  short oldspecial;      //jff 2/16/98 remembers if sector WAS secret (automap)
   short tag;
   int nexttag,firsttag;  // killough 1/30/98: improves searches for tags.
   int soundtraversed;    // 0 = untraversed, 1,2 = sndlines-1
@@ -93,8 +92,7 @@ typedef struct sector_s
   int validcount;        // if == validcount, already checked
   struct mobj_s *thinglist; // list of mobjs in sector
 
-  // TODO: convert from special, Eternity-style
-  int32_t flags;
+  uint32_t flags;
 
   // killough 8/28/98: friction is a sector property, not an mobj property.
   // these fields used to be in mobj_t, but presented performance problems
@@ -153,6 +151,11 @@ typedef struct sector_s
 
   int linecount;
   struct line_s **lines;
+
+  // Parameterized damage system via UDMF
+  short dmg_amount;
+  short dmg_leakrate;
+  short dmg_interval;
 
   // WiggleFix: [kb] For R_FixWiggle()
   int cachedheight;
@@ -280,9 +283,10 @@ typedef struct line_s
 {
   vertex_t *v1, *v2;     // Vertices, from v1 to v2.
   fixed_t dx, dy;        // Precalculated v2 - v1 for side checking.
-  // [FG] extended nodes
-  uint16_t flags;        // Animation related.
+  uint32_t flags;        // Animation related.
   int16_t special;       // Special action
+  spac_t spac;           // Parameterized actions
+  byte lock;             // Lock definitions
   int16_t id;            // Tag -> id/arg0 split
   int32_t args[5];       // Hexen-style parameterized actions
   int32_t sidenum[2];    // Visual appearance: SideDefs.

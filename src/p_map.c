@@ -158,7 +158,7 @@ int P_GetFriction(const mobj_t *mo, int *frictionfactor)
       && (demo_version >= DV_MBF || (mo->player && !compatibility)) &&
       variable_friction)
     for (m = mo->touching_sectorlist; m; m = m->m_tnext)
-      if ((sec = m->m_sector)->special & FRICTION_MASK &&
+      if ((sec = m->m_sector)->flags & SECF_FRICTION &&
 	  (sec->friction < friction || friction == ORIG_FRICTION) &&
 	  (mo->z <= sec->floorheight ||
 	   (sec->heightsec != -1 &&
@@ -412,7 +412,8 @@ static boolean PIT_CheckLine(line_t *ld) // killough 3/26/98: make static
     }
 
   // killough 8/10/98: allow bouncing objects to pass through as missiles
-  if (!(tmthing->flags & (MF_MISSILE | MF_BOUNCES)))
+  if (!(tmthing->flags & (MF_MISSILE | MF_BOUNCES))
+      || ld->flags & ML_BLOCKEVERYTHING)
     {
       // explicitly blocking everything
       // or blocking player
@@ -1266,7 +1267,7 @@ static boolean PTR_SlideTraverse(intercept_t *in)
 
   li = in->d.line;
 
-  if (!(li->flags & ML_TWOSIDED))
+  if (!(li->flags & ML_TWOSIDED && !(li->flags & ML_BLOCKEVERYTHING)))
     {
       if (P_PointOnLineSide (slidemo->x, slidemo->y, li))
 	return true; // don't hit the back side
@@ -1456,7 +1457,7 @@ static boolean PTR_AimTraverse (intercept_t *in)
     {
       li = in->d.line;
 
-      if (!(li->flags & ML_TWOSIDED))
+      if (!(li->flags & (ML_TWOSIDED|ML_BLOCKEVERYTHING)))
 	return false;   // stop
 
       // Crosses a two sided line.
@@ -1753,20 +1754,34 @@ static mobj_t *usething;
 
 static boolean PTR_UseTraverse(intercept_t *in)
 {
-  return in->d.line->special ?
-    P_UseSpecialLine(usething, in->d.line, 
-		     P_PointOnLineSide(usething->x,usething->y,in->d.line)==1, false),
+    if (!in->d.line->special)
+    {
+        if (in->d.line->flags & ML_BLOCKEVERYTHING)
+        {
+            openrange = 0;
+        }
+        else
+        {
+            P_LineOpening(in->d.line);
+        }
+
+        if (openrange <= 0)
+        {
+            S_StartSound(usething, sfx_noway);
+            // can't use through a wall
+            return false;
+        }
+
+        return true;
+    }
+
+    boolean side =
+        (P_PointOnLineSide(usething->x, usething->y, in->d.line) == 1);
+    P_UseSpecialLine(usething, in->d.line, side, false);
 
     //WAS can't use for than one special line in a row
     //jff 3/21/98 NOW multiple use allowed with enabling line flag
-    
-    !demo_compatibility && in->d.line->flags & ML_PASSUSE :
-
-    (P_LineOpening(in->d.line), openrange <= 0) ?
-
-    // can't use through a wall / not a special line, but keep checking
-
-    S_StartSound (usething, sfx_noway), false : true;
+    return (!demo_compatibility && in->d.line->flags & ML_PASSUSE);
 }
 
 // Returns false if a "oof" sound should be made because of a blocking

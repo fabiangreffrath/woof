@@ -658,7 +658,7 @@ void P_SpawnDoorCloseIn30 (sector_t* sec)
 // Returns nothing
 //
 
-void P_SpawnDoorRaiseIn5Mins(sector_t *sec, int secnum)
+void P_SpawnDoorRaiseIn5Mins(sector_t *sec)
 {
   vldoor_t* door;
 
@@ -680,6 +680,171 @@ void P_SpawnDoorRaiseIn5Mins(sector_t *sec, int secnum)
   door->topcountdown = 5 * 60 * 35;
   door->line = NULL; // jff 1/31/98 remember line that triggered us
   door->lighttag = 0;  // killough 10/98: no lighting changes
+}
+
+//
+// Parameterized actions
+//
+
+static void SpawnDoor_Param(sector_t *sec, vldoor_e type, line_t *line,
+                            fixed_t speed, int topwait, int lightTag,
+                            int topcountdown)
+{
+    vldoor_t *door = arena_alloc(thinkers_arena, vldoor_t);
+
+    P_AddThinker(&door->thinker);
+    sec->ceilingdata = door;
+
+    door->thinker.function.p1 = T_VerticalDoorAdapter;
+    door->sector = sec;
+    door->type = type;
+    door->topwait = topwait;
+    door->topcountdown = topcountdown;
+    door->speed = speed;
+    door->line = line;
+    door->lighttag = lightTag;
+
+    switch (type)
+    {
+        case doorClose:
+            door->topheight = P_FindLowestCeilingSurrounding(sec);
+            door->topheight -= 4 * FRACUNIT;
+            door->direction = -1;
+            S_StartSound((mobj_t *)&door->sector->soundorg, sfx_dorcls);
+            break;
+        case genCdO:
+            door->topheight = sec->ceilingheight;
+            door->direction = -1;
+            door->topwait = topwait;
+            S_StartSound((mobj_t *)&door->sector->soundorg, sfx_dorcls);
+            break;
+        case doorNormal:
+        case doorOpen:
+            door->direction = 1;
+            door->topheight = P_FindLowestCeilingSurrounding(sec);
+            door->topheight -= 4 * FRACUNIT;
+            S_StartSound((mobj_t *)&door->sector->soundorg, sfx_doropn);
+            break;
+        case doorWaitRaise:
+            door->direction = 2;
+            door->topheight = P_FindLowestCeilingSurrounding(sec);
+            door->topheight -= 4 * FRACUNIT;
+            break;
+        case doorWaitClose:
+            door->direction = 2;
+            door->topheight = P_FindLowestCeilingSurrounding(sec);
+            door->topheight -= 4 * FRACUNIT;
+            break;
+        default:
+            break;
+    }
+}
+
+int EV_DoDoor_Param(vldoor_e type, line_t *line, mobj_t *mo, int tag,
+                    fixed_t speed, int topwait, lockdefs_t lock, int lightTag,
+                    boolean boomgen, int topcountdown)
+{
+    sector_t *sec;
+    vldoor_t *door;
+
+    speed *= FRACUNIT / 8;
+
+    if (lock && !P_CheckKeys(mo, lock, true))
+    {
+        return 0;
+    }
+
+    if (!tag)
+    {
+        if (!line)
+        {
+            return 0;
+        }
+
+        // if the wrong side of door is pushed, give oof sound
+        if (line->sidenum[1] == NO_INDEX)
+        {
+            if (mo->player) // is this check necessary?
+            {
+                S_StartSound(mo, sfx_oof);
+            }
+            return 0;
+        }
+
+        // get the sector on the second side of activating linedef
+        sec = sides[line->sidenum[1]].sector;
+
+        door = sec->ceilingdata;
+
+        if (door)
+        {
+            // Boom used remote door logic for generalized doors, even if they
+            // are manual
+            if (boomgen)
+            {
+                return 0;
+            }
+
+            if (door->thinker.function.p1 == T_VerticalDoorAdapter)
+            {
+                // ONLY FOR "RAISE" DOORS, NOT "OPEN"s
+                if (door->type == doorNormal && type == doorNormal)
+                {
+                    if (door->direction == -1)
+                    {
+                        door->direction = 1;
+
+                        S_StartSound((mobj_t *)&door->sector, sfx_doropn);
+                        return 1;
+                    }
+                    else if (!(line->spac & (SPAC_Push | SPAC_MPush)))
+                    // [RH] activate push doors don't go back down when you
+                    //    run into them (otherwise opening them would be
+                    //    a real pain).
+                    {
+                        if (!mo->player)
+                        {
+                            return 0; // JDC: bad guys never close doors
+                        }
+
+                        door->direction = -1; // start going down immediately
+
+                        S_StartSound((mobj_t *)&door->sector, sfx_dorcls);
+                        return 1;
+                    }
+                    else
+                    {
+                        return 0;
+                    }
+                }
+            }
+
+            return 0;
+        }
+
+        SpawnDoor_Param(sec, type, line, speed, topwait, lightTag,
+                        topcountdown);
+        return 1;
+    }
+    else
+    {
+        int retcode = 0;
+        int s = -1;
+
+        while ((s = P_FindSectorFromLineTag(line, s)) >= 0)
+        {
+            sec = &sectors[s];
+            if (sec->ceilingdata)
+            {
+                continue;
+            }
+            retcode = 1;
+            SpawnDoor_Param(sec, type, line, speed, topwait, lightTag,
+                            topcountdown);
+        }
+
+        return retcode;
+    }
 }
 
 //----------------------------------------------------------------------------
