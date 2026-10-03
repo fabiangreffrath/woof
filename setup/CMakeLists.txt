@@ -1,11 +1,11 @@
-include(WoofSettings)
+include(ProjectSettings)
 
 add_library(setup STATIC
             execute.c           execute.h
             mainmenu.c
             multiplayer.c       multiplayer.h)
 
-target_woof_settings(setup)
+target_project_settings(setup)
 
 target_include_directories(setup
                            INTERFACE "."

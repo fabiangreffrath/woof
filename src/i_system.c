@@ -45,7 +45,7 @@ ticcmd_t *I_BaseTiccmd(void)
 // I_Error
 //
 
-#ifdef WOOF_DEBUG
+#ifdef BUILD_DEBUG
 boolean I_IsDebuggerAttached(void)
 {
 #ifdef _WIN32
@@ -64,7 +64,7 @@ void I_ErrorInternal(const char *prefix, const char *error, ...)
     char *curmsg = errmsg + strlen(errmsg);
     char *msgptr = curmsg;
 
-#ifdef WOOF_DEBUG
+#ifdef BUILD_DEBUG
     if (prefix)
     {
         int offset = M_snprintf(msgptr, len, "%s: ", prefix);

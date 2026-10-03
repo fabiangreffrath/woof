@@ -112,7 +112,7 @@ execute_context_t *NewExecuteContext(void)
 
     result = malloc(sizeof(execute_context_t));
 
-    result->response_file = TempFile("woof.rsp");
+    result->response_file = TempFile(PROJECT_SHORTNAME ".rsp");
     result->stream = M_fopen(result->response_file, "w");
 
     if (result->stream == NULL)
@@ -348,9 +348,9 @@ static int ExecuteCommand(const char *program, const char *arg)
 static const char *GetExecutableName(void)
 {
 #ifdef _WIN32
-    return "woof.exe";
+    return (PROJECT_SHORTNAME ".exe");
 #else
-    return "woof";
+    return PROJECT_SHORTNAME;
 #endif
 }
 

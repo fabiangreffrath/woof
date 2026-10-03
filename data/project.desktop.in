@@ -1,0 +1,16 @@
+[Desktop Entry]
+Name=@PROJECT_PRETTYNAME@
+Exec=@PROJECT_SHORTNAME@ %F
+Icon=@PROJECT_SHORTNAME@
+TryExec=@PROJECT_SHORTNAME@
+Type=Application
+Comment=@PROJECT_DESCRIPTION@
+Categories=Game;ActionGame;
+MimeType=application/x-doom-wad;
+Keywords=first;person;shooter;vanilla;doom;boom;mbf;
+StartupWMClass=@PROJECT_APPID@
+Actions=launch-setup
+
+[Desktop Action launch-setup]
+Name=@PROJECT_PRETTYNAME@ Setup
+Exec=@PROJECT_SHORTNAME@ -setup

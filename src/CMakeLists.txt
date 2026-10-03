@@ -1,6 +1,6 @@
-include(WoofSettings)
+include(ProjectSettings)
 
-set(WOOF_SOURCES
+set(SRC_FILES
     am_map.c               am_map.h
     am_def.c
     d_demoloop.c           d_demoloop.h
@@ -200,31 +200,31 @@ set(WOOF_SOURCES
 )
 
 # Standard target definition
-add_executable(woof ${WOOF_SOURCES})
-target_woof_settings(woof)
-target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
+add_executable(${PROJECT_SHORTNAME} ${SRC_FILES})
+target_project_settings(${PROJECT_SHORTNAME})
+target_include_directories(${PROJECT_SHORTNAME} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 
 if(WIN32)
     # Stamp out and compile resource file on Windows.
     configure_file(resource.rc.in "${CMAKE_CURRENT_BINARY_DIR}/resource.rc")
-    target_sources(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/resource.rc")
+    target_sources(${PROJECT_SHORTNAME} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/resource.rc")
 
     # MSVC tries to supply a default manifest and complains when it finds ours
     # unless we specifically tell it not to.
     if(MSVC)
         target_link_options(
-            woof
+            ${PROJECT_SHORTNAME}
             PRIVATE "/MANIFEST:NO"
             "$<IF:$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>,/SUBSYSTEM:CONSOLE,/SUBSYSTEM:WINDOWS>"
         )
     else()
-        target_link_options(woof PRIVATE
+        target_link_options(${PROJECT_SHORTNAME} PRIVATE
             "$<IF:$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>,-mconsole,-mwindows>")
     endif()
 endif()
 
 target_link_libraries(
-    woof
+    ${PROJECT_SHORTNAME}
     PRIVATE SDL3::SDL3
             OpenAL::OpenAL
             libebur128::libebur128
@@ -240,24 +240,24 @@ target_link_libraries(
             textscreen
 )
 
-target_include_directories(woof PRIVATE "${MINIMP3_INCLUDE_DIRS}/minimp3")
+target_include_directories(${PROJECT_SHORTNAME} PRIVATE "${MINIMP3_INCLUDE_DIRS}/minimp3")
 
 # Some platforms require standard libraries to be linked against.
 if(HAVE_LIBM)
-    target_link_libraries(woof PRIVATE m)
+    target_link_libraries(${PROJECT_SHORTNAME} PRIVATE m)
 endif()
 
 if(HAVE_AL_BUFFER_CALLBACK)
-    target_sources(woof PRIVATE i_pcsound.c)
+    target_sources(${PROJECT_SHORTNAME} PRIVATE i_pcsound.c)
 endif()
 
 if(WIN32)
-    target_link_libraries(woof PRIVATE winmm shlwapi)
+    target_link_libraries(${PROJECT_SHORTNAME} PRIVATE winmm shlwapi)
 endif()
 
 if(APPLE)
     target_link_libraries(
-      woof
+      ${PROJECT_SHORTNAME}
       PRIVATE -Wl,-framework,AudioToolbox -Wl,-framework,AudioUnit
               -Wl,-framework,CoreServices -Wl,-framework,CoreAudio
               -Wl,-framework,CoreMIDI
@@ -265,41 +265,41 @@ if(APPLE)
 endif()
 
 if(HAVE_ALSA)
-    target_include_directories(woof PRIVATE ${ALSA_INCLUDE_DIR})
-    target_link_libraries(woof PRIVATE ALSA::ALSA)
+    target_include_directories(${PROJECT_SHORTNAME} PRIVATE ${ALSA_INCLUDE_DIR})
+    target_link_libraries(${PROJECT_SHORTNAME} PRIVATE ALSA::ALSA)
 endif()
 
 if(HAVE_SNDFILE)
-    target_sources(woof PRIVATE i_sndfile.c)
-    target_link_libraries(woof PRIVATE SndFile::sndfile)
+    target_sources(${PROJECT_SHORTNAME} PRIVATE i_sndfile.c)
+    target_link_libraries(${PROJECT_SHORTNAME} PRIVATE SndFile::sndfile)
 endif()
 
 if(HAVE_FLUIDSYNTH)
-    target_sources(woof PRIVATE i_flmusic.c)
-    target_link_libraries(woof PRIVATE FluidSynth::libfluidsynth)
+    target_sources(${PROJECT_SHORTNAME} PRIVATE i_flmusic.c)
+    target_link_libraries(${PROJECT_SHORTNAME} PRIVATE FluidSynth::libfluidsynth)
 endif()
 
 if(HAVE_LIBXMP)
-    target_sources(woof PRIVATE i_xmp.c)
-    target_link_libraries(woof PRIVATE libxmp::xmp)
+    target_sources(${PROJECT_SHORTNAME} PRIVATE i_xmp.c)
+    target_link_libraries(${PROJECT_SHORTNAME} PRIVATE libxmp::xmp)
 endif()
 
 if(HAVE_DISCORD_RPC)
-    target_link_libraries(woof PRIVATE DiscordRPC::discord-rpc)
+    target_link_libraries(${PROJECT_SHORTNAME} PRIVATE DiscordRPC::discord-rpc)
 endif()
 
-target_compile_definitions(woof PRIVATE
-    $<IF:$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>,WOOF_DEBUG,WOOF_RELEASE>)
+target_compile_definitions(${PROJECT_SHORTNAME} PRIVATE
+    $<IF:$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>,BUILD_DEBUG,BUILD_RELEASE>)
 
 # Optional features.
 #
 # Our defines are not namespaced, so we pass them at compile-time instead of
 # using config.h.
-if(WOOF_RANGECHECK)
-    target_compile_definitions(woof PRIVATE RANGECHECK)
+if(ENABLE_RANGECHECK)
+    target_compile_definitions(${PROJECT_SHORTNAME} PRIVATE RANGECHECK)
 endif()
-if(WOOF_STRICT)
-    target_compile_definitions(woof PRIVATE MBF_STRICT)
+if(ENABLE_MBF_STRICT)
+    target_compile_definitions(${PROJECT_SHORTNAME} PRIVATE MBF_STRICT)
 endif()
 
 # Setup tool
@@ -328,12 +328,12 @@ if(WIN32)
     list(APPEND SETUP_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/setup-res.rc")
 endif()
 
-add_executable(woof-setup WIN32 ${SETUP_SOURCES})
-target_woof_settings(woof-setup)
+add_executable(${PROJECT_SHORTNAME}-setup WIN32 ${SETUP_SOURCES})
+target_project_settings(${PROJECT_SHORTNAME}-setup)
 
-target_include_directories(woof-setup PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
+target_include_directories(${PROJECT_SHORTNAME}-setup PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 target_link_libraries(
-  woof-setup
+  ${PROJECT_SHORTNAME}-setup
   PRIVATE SDL3::SDL3
           textscreen
           setup
@@ -341,18 +341,18 @@ target_link_libraries(
 )
 
 if(MSVC)
-    target_link_options(woof-setup PRIVATE "/MANIFEST:NO")
+    target_link_options(${PROJECT_SHORTNAME}-setup PRIVATE "/MANIFEST:NO")
 endif()
 
 # Base file
-add_dependencies(woof woof-base)
+add_dependencies(${PROJECT_SHORTNAME} ${PROJECT_SHORTNAME}-base)
 
 if(MSVC OR APPLE)
     add_custom_command(
-        TARGET woof
+        TARGET ${PROJECT_SHORTNAME}
         POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy "${BASE_PK3_PATH}"
-                "$<TARGET_FILE_DIR:woof>"
+                "$<TARGET_FILE_DIR:${PROJECT_SHORTNAME}>"
     )
 endif()
 
@@ -362,16 +362,16 @@ endif()
 if(WIN32)
     if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.21 AND NOT VCPKG_TOOLCHAIN)
         install(
-            TARGETS woof woof-setup
+            TARGETS ${PROJECT_SHORTNAME} ${PROJECT_SHORTNAME}-setup
             RUNTIME_DEPENDENCIES
                 PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
                 POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
-                DIRECTORIES $<TARGET_FILE_DIR:woof> $ENV{PATH}
+                DIRECTORIES $<TARGET_FILE_DIR:${PROJECT_SHORTNAME}> $ENV{PATH}
             RUNTIME DESTINATION .
         )
     else()
-        install(TARGETS woof woof-setup RUNTIME DESTINATION .)
+        install(TARGETS ${PROJECT_SHORTNAME} ${PROJECT_SHORTNAME}-setup RUNTIME DESTINATION .)
     endif()
 else()
-    install(TARGETS woof woof-setup RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+    install(TARGETS ${PROJECT_SHORTNAME} ${PROJECT_SHORTNAME}-setup RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
