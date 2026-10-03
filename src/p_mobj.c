@@ -24,6 +24,7 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "g_game.h"
+#include "g_skillinfo.h"
 #include "i_printf.h"
 #include "info.h"
 #include "m_fixed.h"
@@ -846,8 +847,9 @@ void P_MobjThinker (mobj_t* mobj)
 	P_SetMobjState(mobj, mobj->state->nextstate);
     }
   else                       
-    if (mobj->flags & MF_COUNTKILL && respawnmonsters &&
-	++mobj->movecount >= 12*35 && !(leveltime & 31) &&
+    if (mobj->flags & MF_COUNTKILL && skill_info.respawn_time &&
+	++mobj->movecount >= skill_info.respawn_time * 35
+  && !(leveltime & 31) &&
 	P_Random (pr_respawn) <= 4)
       P_NightmareRespawn(mobj);          // check for nightmare respawn
 }
@@ -883,7 +885,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 
   mobj->health = info->spawnhealth;
 
-  if (gameskill != sk_nightmare && !aggromonsters)
+  if (!(skill_info.flags & SI_INSTANT_REACTION))
     mobj->reactiontime = info->reactiontime;
 
   if (type != zmt_ambientsound)
@@ -1274,7 +1276,7 @@ void P_SpawnMapThing (mapthing_t* mthing)
 
   // check for apropriate skill level
 
-  if (!coopspawns && !netgame
+  if (!(skill_info.flags & SI_SPAWN_MULTI) && !netgame
       && mthing->options & MTF_NOTSINGLE) //jff "not single" thing flag
     return;
 
@@ -1285,16 +1287,16 @@ void P_SpawnMapThing (mapthing_t* mthing)
 
   //jff 3/30/98 implement "not cooperative" thing flag
 
-  if ((coopspawns || netgame) && !deathmatch && mthing->options & MTF_NOTCOOP)
+  if ((skill_info.flags & SI_SPAWN_MULTI || netgame) && !deathmatch && mthing->options & MTF_NOTCOOP)
     return;
 
   // killough 11/98: simplify
   if ((gameskill == sk_none && demo_compatibility)
-      || (!(mthing->options & MTF_SKILL1) && gameskill == sk_baby)
-      || (!(mthing->options & MTF_SKILL2) && gameskill == sk_easy)
-      || (!(mthing->options & MTF_SKILL3) && gameskill == sk_medium)
-      || (!(mthing->options & MTF_SKILL4) && gameskill == sk_hard)
-      || (!(mthing->options & MTF_SKILL5) && gameskill == sk_nightmare)
+      || (!(mthing->options & MTF_SKILL1) && skill_info.spawn_filter == 1)
+      || (!(mthing->options & MTF_SKILL2) && skill_info.spawn_filter == 2)
+      || (!(mthing->options & MTF_SKILL3) && skill_info.spawn_filter == 3)
+      || (!(mthing->options & MTF_SKILL4) && skill_info.spawn_filter == 4)
+      || (!(mthing->options & MTF_SKILL5) && skill_info.spawn_filter == 5)
     )
   {
     return;
@@ -1347,7 +1349,7 @@ void P_SpawnMapThing (mapthing_t* mthing)
 
   // don't spawn any monsters if -nomonsters
 
-  if (nomonsters && (i == MT_SKULL || (mobjinfo[i].flags & MF_COUNTKILL)))
+  if ((skill_info.flags & SI_NO_MONSTERS) && (i == MT_SKULL || (mobjinfo[i].flags & MF_COUNTKILL)))
     return;
 
   // spawn it
