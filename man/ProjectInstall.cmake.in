@@ -27,7 +27,7 @@ if(Python3_EXECUTABLE)
             "${Python3_EXECUTABLE}" docgen
             -s "${PROJECT_NAME}" -z "${PROJECT_SHORTNAME}"
             -m setup.template
-            "${PROJECT_SOURCE_DIR}/setup"
+            "${PROJECT_SOURCE_DIR}/third-party/setup"
             WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
             OUTPUT_FILE "${PROJECT_SHORTNAME}-setup.6")
 
