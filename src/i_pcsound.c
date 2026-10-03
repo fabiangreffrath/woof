@@ -15,9 +15,9 @@
 //    PC speaker interface.
 //
 
-#include <SDL3/SDL.h>
 #include "al.h"
 #include "alext.h"
+#include <SDL3/SDL.h>
 
 #include <string.h>
 
@@ -60,8 +60,7 @@ static uint8_t *current_sound_pos = NULL;
 static unsigned int current_sound_remaining = 0;
 static int current_sound_handle = 0;
 
-static const uint16_t divisors[] =
-{
+static const uint16_t divisors[] = {
     0,    6818, 6628, 6449, 6279, 6087, 5906, 5736, 5575, 5423, 5279, 5120,
     4971, 4830, 4697, 4554, 4435, 4307, 4186, 4058, 3950, 3836, 3728, 3615,
     3519, 3418, 3323, 3224, 3131, 3043, 2960, 2875, 2794, 2711, 2633, 2560,
@@ -344,7 +343,7 @@ static void InitPCSound(void)
     }
 }
 
-static boolean ReinitSound(void)
+static boolean ReinitSound_PCS(void)
 {
     if (!I_OAL_ReinitSound(SND_MODULE_PCS))
     {
@@ -356,7 +355,7 @@ static boolean ReinitSound(void)
     return true;
 }
 
-static boolean InitSound(void)
+static boolean InitSound_PCS(void)
 {
     if (!I_OAL_InitSound(SND_MODULE_PCS))
     {
@@ -368,7 +367,7 @@ static boolean InitSound(void)
     return true;
 }
 
-static void ShutdownModule(void)
+static void ShutdownModule_PCS(void)
 {
     int i;
 
@@ -383,14 +382,14 @@ static void ShutdownModule(void)
     UnregisterCallback();
 }
 
-static void ShutdownSound(void)
+static void ShutdownSound_PCS(void)
 {
-    ShutdownModule();
+    ShutdownModule_PCS();
 
     I_OAL_ShutdownSound();
 }
 
-static boolean CacheSound(sfxinfo_t *sfx)
+static boolean CacheSound_PCS(sfxinfo_t *sfx)
 {
     if (IsDisabledSound(sfx) || IsAmbientSound(sfx))
     {
@@ -400,9 +399,8 @@ static boolean CacheSound(sfxinfo_t *sfx)
     return (GetLumpNum(sfx) != -1);
 }
 
-static boolean AdjustSoundParams(const mobj_t *listener,
-                                       const mobj_t *source,
-                                       sfxparams_t *params)
+static boolean AdjustSoundParams_PCS(const mobj_t *listener,
+                                     const mobj_t *source, sfxparams_t *params)
 {
     fixed_t adx, ady;
     int approx_dist;
@@ -446,14 +444,14 @@ static boolean AdjustSoundParams(const mobj_t *listener,
     return (params->volume > 0);
 }
 
-static void UpdateSoundParams(int channel, const sfxparams_t *params)
+static void UpdateSoundParams_PCS(int channel, const sfxparams_t *params)
 {
     // adjust PC Speaker volume
     alSourcef(callback_source, AL_GAIN, (float)snd_SfxVolume / 15);
 }
 
-static boolean StartSound(int channel, sfxinfo_t *sfx,
-                                const sfxparams_t *params)
+static boolean StartSound_PCS(int channel, sfxinfo_t *sfx,
+                              const sfxparams_t *params)
 {
     boolean result;
 
@@ -483,7 +481,7 @@ static boolean StartSound(int channel, sfxinfo_t *sfx,
     }
 }
 
-static void StopSound(int channel)
+static void StopSound_PCS(int channel)
 {
     SDL_LockMutex(sound_lock);
 
@@ -497,7 +495,7 @@ static void StopSound(int channel)
     SDL_UnlockMutex(sound_lock);
 }
 
-static boolean SoundIsPlaying(int channel)
+static boolean SoundIsPlaying_PCS(int channel)
 {
     if (channel != current_sound_handle)
     {
@@ -507,27 +505,26 @@ static boolean SoundIsPlaying(int channel)
     return current_sound_lump != NULL && current_sound_remaining > 0;
 }
 
-const sound_module_t sound_pcs_module =
-{
-    InitSound,
-    ReinitSound,
+const sound_module_t sound_pcs_module = {
+    InitSound_PCS,
+    ReinitSound_PCS,
     I_OAL_AllowReinitSound,
-    CacheSound,
-    AdjustSoundParams,
-    UpdateSoundParams,
+    CacheSound_PCS,
+    AdjustSoundParams_PCS,
+    UpdateSoundParams_PCS,
     NULL,
     NULL,
     NULL,
-    StartSound,
-    StopSound,
+    StartSound_PCS,
+    StopSound_PCS,
     NULL,
     NULL,
     I_OAL_MuteSound,
     I_OAL_UnmuteSound,
-    SoundIsPlaying,
+    SoundIsPlaying_PCS,
     NULL,
-    ShutdownSound,
-    ShutdownModule,
+    ShutdownSound_PCS,
+    ShutdownModule_PCS,
     I_OAL_DeferUpdates,
     I_OAL_ProcessUpdates,
     NULL,

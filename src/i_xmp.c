@@ -58,7 +58,7 @@ static void PrintError(int e)
     I_Printf(VB_DEBUG, "XMP: %s", msg);
 }
 
-static boolean InitStream(int device)
+static boolean InitStream_XMP(int device)
 {
     if (context)
     {
@@ -76,8 +76,8 @@ static boolean InitStream(int device)
     return true;
 }
 
-static boolean OpenStream(void *data, ALsizei size, ALenum *format,
-                          ALsizei *freq, ALsizei *frame_size)
+static boolean OpenStream_XMP(void *data, ALsizei size, ALenum *format,
+                              ALsizei *freq, ALsizei *frame_size)
 {
     if (!context)
     {
@@ -98,7 +98,7 @@ static boolean OpenStream(void *data, ALsizei size, ALenum *format,
     return true;
 }
 
-static int FillStream(void *buffer, int buffer_samples)
+static int FillStream_XMP(void *buffer, int buffer_samples)
 {
     int ret = xmp_play_buffer(context, buffer, buffer_samples * 4,
                               stream_looping ? 0 : 1);
@@ -119,7 +119,7 @@ static int FillStream(void *buffer, int buffer_samples)
     return buffer_samples;
 }
 
-static void PlayStream(boolean looping)
+static void PlayStream_XMP(boolean looping)
 {
     if (!context)
     {
@@ -131,7 +131,7 @@ static void PlayStream(boolean looping)
     xmp_set_player(context, XMP_PLAYER_VOLUME, 100);
 }
 
-static void CloseStream(void)
+static void CloseStream_XMP(void)
 {
     if (!context)
     {
@@ -143,7 +143,7 @@ static void CloseStream(void)
     xmp_release_module(context);
 }
 
-static void ShutdownStream(void)
+static void ShutdownStream_XMP(void)
 {
     if (!context)
     {
@@ -154,17 +154,17 @@ static void ShutdownStream(void)
     context = NULL;
 }
 
-static const char **DeviceList(void)
+static const char **DeviceList_XMP(void)
 {
     return NULL;
 }
 
-static void BindVariables(void)
+static void BindVariables_XMP(void)
 {
     ;
 }
 
-static const char *MusicFormat(void)
+static const char *MusicFormat_XMP(void)
 {
     if (!context)
     {
@@ -176,15 +176,14 @@ static const char *MusicFormat(void)
     return info.mod->type;
 }
 
-stream_module_t stream_xmp_module =
-{
-    InitStream,
-    OpenStream,
-    FillStream,
-    PlayStream,
-    CloseStream,
-    ShutdownStream,
-    DeviceList,
-    BindVariables,
-    MusicFormat,
+stream_module_t stream_xmp_module = {
+    .InitStream = InitStream_XMP,
+    .OpenStream = OpenStream_XMP,
+    .FillStream = FillStream_XMP,
+    .PlayStream = PlayStream_XMP,
+    .CloseStream = CloseStream_XMP,
+    .ShutdownStream = ShutdownStream_XMP,
+    .DeviceList = DeviceList_XMP,
+    .BindVariables = BindVariables_XMP,
+    .MusicFormat = MusicFormat_XMP,
 };

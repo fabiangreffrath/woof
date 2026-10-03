@@ -25,7 +25,7 @@
 #include "w_internal.h"
 #include "w_wad.h"
 
-static boolean AddDir(w_handle_t handle, const char *path,
+static boolean AddDir_File(w_handle_t handle, const char *path,
                              const char *start_marker, const char *end_marker)
 {
     int startlump = numlumps;
@@ -100,7 +100,7 @@ static boolean AddDir(w_handle_t handle, const char *path,
 
 static FILE **descriptors = NULL;
 
-static w_type_t Open(const char *path, w_handle_t *handle)
+static w_type_t Open_File(const char *path, w_handle_t *handle)
 {
     if (M_DirExists(path))
     {
@@ -214,7 +214,7 @@ static w_type_t Open(const char *path, w_handle_t *handle)
     return W_FILE;
 }
 
-static void Read(w_handle_t handle, void *dest, int size)
+static void Read_File(w_handle_t handle, void *dest, int size)
 {
     fseek(handle.p1.descriptor, handle.p2.position, SEEK_SET);
     int bytesread = fread(dest, 1, size, handle.p1.descriptor);
@@ -224,7 +224,7 @@ static void Read(w_handle_t handle, void *dest, int size)
     }
 }
 
-static void Close(void)
+static void Close_File(void)
 {
     for (int i = 0; i < array_size(descriptors); ++i)
     {
@@ -232,10 +232,9 @@ static void Close(void)
     }
 }
 
-w_module_t w_file_module =
-{
-    AddDir,
-    Open,
-    Read,
-    Close
+w_module_t w_file_module = {
+    .AddDir = AddDir_File,
+    .Open = Open_File,
+    .Read = Read_File,
+    .Close = Close_File,
 };
