@@ -363,7 +363,7 @@ if(WIN32)
     if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.21 AND NOT VCPKG_TOOLCHAIN)
         install(
             TARGETS woof woof-setup
-            RUNTIME_DEPENDENCIES 
+            RUNTIME_DEPENDENCIES
                 PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
                 POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
                 DIRECTORIES $<TARGET_FILE_DIR:woof> $ENV{PATH}

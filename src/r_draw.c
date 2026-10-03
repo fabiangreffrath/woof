@@ -399,7 +399,7 @@ static const int fuzzoffset[FUZZTABLE] =
     FUZZOFF,-FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,FUZZOFF,FUZZOFF,-FUZZOFF,
     FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,-FUZZOFF,-FUZZOFF,FUZZOFF,
     FUZZOFF,-FUZZOFF,-FUZZOFF,-FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,
-    FUZZOFF,FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,-FUZZOFF,FUZZOFF 
+    FUZZOFF,FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,-FUZZOFF,FUZZOFF
 };
 
 static int fuzzpos = 0;
@@ -974,7 +974,7 @@ void R_DrawTRTLColumn(void)
 }
 
 //
-// R_DrawSpan 
+// R_DrawSpan
 // With DOOM style restrictions on view orientation,
 //  the floors and ceilings consist of horizontal slices
 //  or spans with constant z depth.
@@ -1045,7 +1045,7 @@ void R_InitBufferRes(void)
 }
 
 //
-// R_InitBuffer 
+// R_InitBuffer
 // Creats lookup tables that avoid
 //  multiplies and other hazzles
 //  for getting the framebuffer address
@@ -1165,7 +1165,7 @@ static void R_VideoErase(int x, int y, int w, int h)
 // Draws the border around the view
 //  for different size windows?
 //
-// killough 11/98: 
+// killough 11/98:
 // Rewritten to avoid relying on screen wraparound, so that it
 // can scale to hires automatically in R_VideoErase().
 //

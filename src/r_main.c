@@ -88,7 +88,7 @@ angle_t vx_clipangle;
 // The viewangletox[viewangle + FINEANGLES/4] lookup
 // maps the visible view angles to screen X coordinates,
 // flattening the arc to a flat projection plane.
-// There will be many angles mapped to the same X. 
+// There will be many angles mapped to the same X.
 
 int viewangletox[FINEANGLES/2];
 
@@ -218,11 +218,11 @@ int R_PointOnSegSide(fixed_t x, fixed_t y, seg_t *line)
 // killough 5/2/98: reformatted, cleaned up
 
 angle_t R_PointToAngle(fixed_t x, fixed_t y)
-{       
+{
   return (y -= viewy, (x -= viewx) || y) ?
     x >= 0 ?
-      y >= 0 ? 
-        (x > y) ? tantoangle[SlopeDiv(y,x)] :                      // octant 0 
+      y >= 0 ?
+        (x > y) ? tantoangle[SlopeDiv(y,x)] :                      // octant 0
                 ANG90-1-tantoangle[SlopeDiv(x,y)] :                // octant 1
         x > (y = -y) ? 0-tantoangle[SlopeDiv(y,x)] :               // octant 8
                        ANG270+tantoangle[SlopeDiv(x,y)] :          // octant 7
@@ -234,11 +234,11 @@ angle_t R_PointToAngle(fixed_t x, fixed_t y)
 }
 
 angle_t R_PointToAngle2(fixed_t viewx, fixed_t viewy, fixed_t x, fixed_t y)
-{       
+{
   return (y -= viewy, (x -= viewx) || y) ?
     x >= 0 ?
-      y >= 0 ? 
-        (x > y) ? tantoangle[SlopeDiv(y,x)] :                      // octant 0 
+      y >= 0 ?
+        (x > y) ? tantoangle[SlopeDiv(y,x)] :                      // octant 0
                 ANG90-1-tantoangle[SlopeDiv(x,y)] :                // octant 1
         x > (y = -y) ? 0-tantoangle[SlopeDiv(y,x)] :               // octant 8
                        ANG270+tantoangle[SlopeDiv(x,y)] :          // octant 7
@@ -372,7 +372,7 @@ static void R_InitTextureMapping(void)
         }
       viewangletox[i] = t;
     }
-    
+
   // Scan viewangletox[] to generate xtoviewangle[]:
   //  xtoviewangle will give the smallest view angle
   //  that maps to x.
@@ -388,15 +388,15 @@ static void R_InitTextureMapping(void)
       int angle = (0.5 - x / (double)viewwidth) * linearskyfactor;
       linearskyangle[x] = (angle >= 0) ? angle : ANGLE_MAX + angle;
     }
-    
+
   // Take out the fencepost cases from viewangletox.
   for (i=0; i<FINEANGLES/2; i++)
     if (viewangletox[i] == -1)
       viewangletox[i] = 0;
-    else 
+    else
       if (viewangletox[i] == viewwidth+1)
         viewangletox[i] = viewwidth;
-        
+
   clipangle = xtoviewangle[0];
 
   vx_clipangle = clipangle - ((fov << ANGLETOFINESHIFT) - ANG90);
@@ -843,7 +843,7 @@ int autodetect_hom = 0;       // killough 2/7/98: HOM autodetection flag
 // R_RenderView
 //
 void R_RenderPlayerView (player_t* player)
-{       
+{
   R_ClearStats();
 
   R_SetupFrame (player);
@@ -939,12 +939,12 @@ void R_RenderPlayerView (player_t* player)
 
   // Check for new console commands.
   NetUpdate ();
-    
+
   R_DrawPlanes ();
-    
+
   // Check for new console commands.
   NetUpdate ();
-    
+
   // [crispy] draw fuzz effect independent of rendering frame rate
   R_SetFuzzPosDraw();
   R_DrawMasked ();

@@ -372,7 +372,7 @@ void R_DrawMaskedColumn(column_t *column)
   int64_t topscreen, bottomscreen; // [FG] 64-bit integer math
   fixed_t basetexturemid = dc_texturemid;
   int top = -1;
-  
+
   dc_texheight = 0; // killough 11/98
 
   while (column->topdelta != 0xff)
@@ -1308,17 +1308,17 @@ void R_DrawMasked(void)
         drawsegs_xranges[0].items[drawsegs_xranges[0].count].x1 = ds->x1;
         drawsegs_xranges[0].items[drawsegs_xranges[0].count].x2 = ds->x2;
         drawsegs_xranges[0].items[drawsegs_xranges[0].count].user = ds;
-        
+
         // Andrey Budko: ~13% of speed improvement on sunder.wad map10
         if (ds->x1 < centerx)
         {
-          drawsegs_xranges[1].items[drawsegs_xranges[1].count] = 
+          drawsegs_xranges[1].items[drawsegs_xranges[1].count] =
             drawsegs_xranges[0].items[drawsegs_xranges[0].count];
           drawsegs_xranges[1].count++;
         }
         if (ds->x2 >= centerx)
         {
-          drawsegs_xranges[2].items[drawsegs_xranges[2].count] = 
+          drawsegs_xranges[2].items[drawsegs_xranges[2].count] =
             drawsegs_xranges[0].items[drawsegs_xranges[0].count];
           drawsegs_xranges[2].count++;
         }

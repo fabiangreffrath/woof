@@ -455,7 +455,7 @@ static void BlinkingArrowLeft(setup_menu_t *s)
     {
         if (flags & S_CENTER)
         {
-            strcpy(menu_buffer, "  ");    
+            strcpy(menu_buffer, "  ");
         }
         return;
     }
@@ -489,7 +489,7 @@ static void BlinkingArrowRight(setup_menu_t *s)
     {
         if (flags & S_CENTER)
         {
-            strcat(menu_buffer, "  ");    
+            strcat(menu_buffer, "  ");
         }
         return;
     }
@@ -2586,7 +2586,7 @@ static setup_menu_t gen_settings2[] = {
     {"Sound Module", S_CHOICE, CNTR_X, M_SPC, {"snd_module"},
      .strings_id = str_sound_module, .action = SetSoundModule},
 
-    {"Headphones Mode", S_ONOFF, CNTR_X, M_SPC, {"snd_hrtf"}, 
+    {"Headphones Mode", S_ONOFF, CNTR_X, M_SPC, {"snd_hrtf"},
      .action = SetSoundModule},
 
     MI_GAP,

@@ -114,7 +114,7 @@ static void AddWadInMem(w_handle_t handle, const char *name, int index,
         item.data = data + position;
 
         item.handle = handle;
- 
+
         // [FG] WAD file that contains the lump
         item.wad_file = wadname;
         array_push(lumpinfo, item);

@@ -53,8 +53,8 @@ extern int scaledviewy;
 extern int firstflat;
 
 // for global animation
-extern int *flattranslation;    
-extern int *texturetranslation; 
+extern int *flattranslation;
+extern int *texturetranslation;
 
 extern int *flatterrain;
 
