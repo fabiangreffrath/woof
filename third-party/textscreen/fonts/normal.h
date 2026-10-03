@@ -1,4 +1,4 @@
-/* Font data generated from hauge-8x18-v1-6.png; do not edit. */
+/* Font data generated from /home/alchemist/git/boom-woof/third-party/textscreen/fonts/hauge-8x18-v1-6.png; do not edit. */
 
 static const uint8_t normal_font_data[] =
 {

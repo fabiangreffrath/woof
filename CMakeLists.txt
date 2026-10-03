@@ -26,7 +26,7 @@ option(ENABLE_UBSAN "Enable UBSan" OFF)
 option(ENABLE_TSAN "Enable TSan" OFF)
 option(ENABLE_HARDENING "Enable hardening flags" OFF)
 option(ENABLE_LTO "Enable link time optimization" OFF)
-option(ENABLE_FONTGEN "Generate textscreen font" OFF)
+option(ENABLE_FONTGEN "Generate textscreen font" ON)
 
 option(ENABLE_RANGECHECK "Enable bounds-checking of performance-sensitive functions" ON)
 option(ENABLE_MBF_STRICT
@@ -205,6 +205,7 @@ else()
     set(PROJECT_INSTALL_BIN_DIR "${CMAKE_INSTALL_BINDIR}")
 endif()
 
+# FIXME: soundfont path changed from ./soundfont/ to ./third-party/soundfont/
 if(WIN32)
     install(FILES COPYING DESTINATION . RENAME COPYING.txt)
     if(HAVE_FLUIDSYNTH)
@@ -223,11 +224,7 @@ set(BASE_PK3_PATH "${CMAKE_BINARY_DIR}/src/${BASE_PK3}")
 # Where to find other CMakeLists.txt files.
 add_subdirectory(base)
 add_subdirectory(data)
-add_subdirectory(opl)
-add_subdirectory(textscreen)
 add_subdirectory(third-party)
 add_subdirectory(src)
-add_subdirectory(setup)
 add_subdirectory(man)
-add_subdirectory(netlib)
 add_subdirectory(cmake/packaging)
