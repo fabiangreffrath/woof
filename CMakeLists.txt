@@ -205,16 +205,15 @@ else()
     set(PROJECT_INSTALL_BIN_DIR "${CMAKE_INSTALL_BINDIR}")
 endif()
 
-# FIXME: soundfont path changed from ./soundfont/ to ./third-party/soundfont/
 if(WIN32)
     install(FILES COPYING DESTINATION . RENAME COPYING.txt)
     if(HAVE_FLUIDSYNTH)
-        install(DIRECTORY DESTINATION soundfonts)
+        install(DIRECTORY third-party/soundfonts DESTINATION soundfonts)
     endif()
 else()
     install(FILES COPYING DESTINATION "share/doc/${PROJECT_SHORTNAME}")
-    if(EXISTS "${CMAKE_SOURCE_DIR}/soundfonts" AND HAVE_FLUIDSYNTH)
-        install(DIRECTORY soundfonts/
+    if(EXISTS "${CMAKE_SOURCE_DIR}/third-party/soundfonts" AND HAVE_FLUIDSYNTH)
+        install(DIRECTORY third-party/soundfonts/
             DESTINATION "share/${PROJECT_SHORTNAME}/soundfonts")
     endif()
 endif()
