@@ -131,7 +131,7 @@ const byte **texturebrightmap,
            **notexturebrightmap;
 
 // Really complex printing shit...
-static void M_ProgressBarStart(const int item_count, const char *msg)
+static void ProgressBarStart(const int item_count, const char *msg)
 {
     const int loop_count = (item_count + 255) / 128;
     I_Printf(VB_INFO, " %s: ", msg);
@@ -149,7 +149,7 @@ static void M_ProgressBarStart(const int item_count, const char *msg)
     }
 }
 
-static void M_ProgressBarMove(const int item_current)
+static void ProgressBarMove(const int item_current)
 {
     if (!(item_current & 127))
     {
@@ -185,8 +185,8 @@ fixed_t   *spritewidth, *spriteoffset, *spritetopoffset;
 // Rewritten by Lee Killough for performance and to fix Medusa bug
 //
 
-static void R_DrawColumnInCache(const column_t *patch, byte *cache,
-				int originy, int cacheheight, byte *marks)
+static void DrawColumnInCache(const column_t *patch, byte *cache, int originy,
+                              int cacheheight, byte *marks)
 {
   int top = -1;
   while (patch->topdelta != 0xff)
@@ -236,7 +236,7 @@ static void R_DrawColumnInCache(const column_t *patch, byte *cache,
 //
 // Rewritten by Lee Killough for performance and to fix Medusa bug
 
-static void R_GenerateComposite(int texnum)
+static void GenerateComposite(int texnum)
 {
   byte *block = texturecomposite[texnum],
        *block2 = texturecomposite2[texnum];
@@ -279,7 +279,7 @@ static void R_GenerateComposite(int texnum)
         // [FG] generate composites for single-patched columns as well
 //      if (collump[x] == -1)      // Column has multiple patches?
           // killough 1/25/98, 4/9/98: Fix medusa bug.
-          R_DrawColumnInCache((column_t*)((byte*) realpatch + LONG(cofs[x])),
+          DrawColumnInCache((column_t*)((byte*) realpatch + LONG(cofs[x])),
                               // [FG] single-patched columns are normally not composited
                               // but directly read from the patch lump ignoring their originy
                               block + colofs[x], collump[x] == -1 ? patch->originy : 0,
@@ -543,7 +543,7 @@ byte *R_GetColumn(int tex, int col)
   ofs  = texturecolumnofs2[tex][col];
 
   if (!texturecomposite2[tex])
-    R_GenerateComposite(tex);
+    GenerateComposite(tex);
 
   return texturecomposite2[tex] + ofs;
 }
@@ -560,7 +560,7 @@ byte *R_GetColumnMasked(int tex, int col)
   ofs  = texturecolumnofs[tex][col];
 
   if (!texturecomposite[tex])
-    R_GenerateComposite(tex);
+    GenerateComposite(tex);
 
   return texturecomposite[tex] + ofs;
 }
@@ -734,12 +734,12 @@ void R_InitTextures (void)
     Z_Malloc (numtextures * sizeof(*notexturebrightmap), PU_STATIC, 0);
 
   // Complex printing shit factored out
-  M_ProgressBarStart(numtextures, __func__);
+  ProgressBarStart(numtextures, __func__);
 
   // TEXTURE1 & TEXTURE2 only. TX_ markers parsed below.
   for (i=0 ; i<numtextures1 + numtextures2 ; i++, directory++)
     {
-      M_ProgressBarMove(i); // killough
+      ProgressBarMove(i); // killough
 
       if (i == numtextures1)
         {
@@ -802,7 +802,7 @@ void R_InitTextures (void)
   {
     for (i = (numtextures1 + numtextures2), k = 0; i < numtextures; i++, k++)
     {
-      M_ProgressBarMove(i);
+      ProgressBarMove(i);
 
       int tx_lump = first_tx + k;
       texture = textures[i] = Z_Malloc(sizeof(texture_t), PU_STATIC, 0);
@@ -920,11 +920,11 @@ void R_InitSpriteLumps(void)
   spritetopoffset =
     Z_Malloc(numspritelumps*sizeof*spritetopoffset, PU_STATIC, 0);
 
-  M_ProgressBarStart(numspritelumps, __func__);
+  ProgressBarStart(numspritelumps, __func__);
 
   for (i=0 ; i< numspritelumps ; i++)
     {
-      M_ProgressBarMove(i); // killough
+      ProgressBarMove(i); // killough
 
       patch = V_CachePatchNum(firstspritelump+i, PU_CACHE);
       spritewidth[i] = IntToFixed(SHORT(patch->width));

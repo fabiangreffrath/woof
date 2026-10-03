@@ -48,7 +48,7 @@ DEH_BEGIN_MAPPING(sound_mapping, sfxinfo_t)
     DEH_MAPPING_SOUND("Link", link)
 DEH_END_MAPPING
 
-static int DEH_SoundStart(deh_context_t *context, char *line)
+static int SoundStart(deh_context_t *context, char *line)
 {
     int sound_number = -1;
 
@@ -70,7 +70,7 @@ static int DEH_SoundStart(deh_context_t *context, char *line)
     return sound_number;
 }
 
-static void DEH_SoundParseLine(deh_context_t *context, char *line, int tag)
+static void SoundParseLine(deh_context_t *context, char *line, int tag)
 {
     if (tag == -1)
     {
@@ -107,8 +107,8 @@ deh_section_t deh_section_sound =
 {
     "Sound",
     NULL,
-    DEH_SoundStart,
-    DEH_SoundParseLine,
+    SoundStart,
+    SoundParseLine,
     NULL,
     NULL,
 };

@@ -232,8 +232,8 @@ static boolean CalcVolumePriority(double dist, sfxparams_t *params)
     return (params->volume > 0);
 }
 
-static boolean I_3D_AdjustSoundParams(const mobj_t *listener,
-                                      const mobj_t *source, sfxparams_t *params)
+static boolean AdjustSoundParams_3D(const mobj_t *listener,
+                                    const mobj_t *source, sfxparams_t *params)
 {
     params->volume = snd_SfxVolume * params->volume_scale / 15;
 
@@ -266,7 +266,7 @@ static boolean I_3D_AdjustSoundParams(const mobj_t *listener,
     return true;
 }
 
-static void I_3D_UpdateSoundParams(int channel, const sfxparams_t *params)
+static void UpdateSoundParams_3D(int channel, const sfxparams_t *params)
 {
     if (src.positional)
     {
@@ -276,7 +276,7 @@ static void I_3D_UpdateSoundParams(int channel, const sfxparams_t *params)
     I_OAL_SetVolume(channel, params->volume);
 }
 
-static void I_3D_UpdateListenerParams(const mobj_t *listener)
+static void UpdateListenerParams_3D(const mobj_t *listener)
 {
     oal_listener_params_t lis;
 
@@ -296,8 +296,8 @@ static void I_3D_UpdateListenerParams(const mobj_t *listener)
     I_OAL_UpdateListenerParams(lis.position, lis.velocity, lis.orientation);
 }
 
-static boolean I_3D_StartSound(int channel, sfxinfo_t *sfx,
-                               const sfxparams_t *params)
+static boolean StartSound_3D(int channel, sfxinfo_t *sfx,
+                             const sfxparams_t *params)
 {
     if (src.positional)
     {
@@ -311,27 +311,27 @@ static boolean I_3D_StartSound(int channel, sfxinfo_t *sfx,
     return I_OAL_StartSound(channel, sfx, params);
 }
 
-static boolean I_3D_InitSound(void)
+static boolean InitSound_3D(void)
 {
     return I_OAL_InitSound(SND_MODULE_3D);
 }
 
-static boolean I_3D_ReinitSound(void)
+static boolean ReinitSound_3D(void)
 {
     return I_OAL_ReinitSound(SND_MODULE_3D);
 }
 
 const sound_module_t sound_3d_module = {
-    I_3D_InitSound,
-    I_3D_ReinitSound,
+    InitSound_3D,
+    ReinitSound_3D,
     I_OAL_AllowReinitSound,
     I_OAL_CacheSound,
-    I_3D_AdjustSoundParams,
-    I_3D_UpdateSoundParams,
-    I_3D_UpdateListenerParams,
+    AdjustSoundParams_3D,
+    UpdateSoundParams_3D,
+    UpdateListenerParams_3D,
     I_OAL_SetGain,
     I_OAL_GetOffset,
-    I_3D_StartSound,
+    StartSound_3D,
     I_OAL_StopSound,
     I_OAL_PauseSound,
     I_OAL_ResumeSound,

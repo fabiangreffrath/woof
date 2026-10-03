@@ -244,7 +244,7 @@ result_e T_MovePlane
 // jff 02/08/98 all cases with labels beginning with gen added to support
 // generalized line type behaviors.
 
-static void T_MoveFloor(floormove_t* floor)
+static void ThinkerMoveFloor(floormove_t* floor)
 {
   result_e      res;
 
@@ -345,7 +345,7 @@ static void T_MoveFloor(floormove_t* floor)
 
 void T_MoveFloorAdapter(mobj_t *mobj)
 {
-    T_MoveFloor((floormove_t *)mobj);
+    ThinkerMoveFloor((floormove_t *)mobj);
 }
 
 //
@@ -360,7 +360,7 @@ void T_MoveFloorAdapter(mobj_t *mobj)
 //
 // jff 02/22/98 added to support parallel floor/ceiling motion
 //
-static void T_MoveElevator(elevator_t *elevator)
+static void ThinkerMoveElevator(elevator_t *elevator)
 {
   result_e      res;
 
@@ -430,7 +430,7 @@ static void T_MoveElevator(elevator_t *elevator)
 
 void T_MoveElevatorAdapter(mobj_t *mobj)
 {
-    T_MoveElevator((elevator_t *)mobj);
+    ThinkerMoveElevator((elevator_t *)mobj);
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -724,7 +724,7 @@ int EV_DoChange
 // [FG] Compatibility bug in EV_BuildStairs
 // http://prboom.sourceforge.net/mbf-bugs.html
 
-static int P_FindSectorFromLineTagWithLowerBound(const line_t* line, int start, int min)
+static int FindSectorFromLineTagWithLowerBound(const line_t* line, int start, int min)
 {
   // Emulate original Doom's linear lower-bounded P_FindSectorFromLineTag
   // as needed
@@ -765,7 +765,7 @@ int EV_BuildStairs
 // http://prboom.sourceforge.net/mbf-bugs.html
 
   // start a stair at each sector tagged the same as the linedef
-  while ((ssec = P_FindSectorFromLineTagWithLowerBound(line,ssec,minssec)) >= 0)
+  while ((ssec = FindSectorFromLineTagWithLowerBound(line,ssec,minssec)) >= 0)
   {
     secnum = ssec;
     sec = &sectors[secnum];

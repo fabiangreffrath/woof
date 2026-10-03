@@ -135,7 +135,7 @@ static net_addr_t *FindAddress(ip_address_t *addr)
     return &new_entry->net_addr;
 }
 
-static void NETLIB_FreeAddress(net_addr_t *addr)
+static void FreeAddress(net_addr_t *addr)
 {
     int i;
 
@@ -152,7 +152,7 @@ static void NETLIB_FreeAddress(net_addr_t *addr)
     I_Error("Attempted to remove an unused address!");
 }
 
-static boolean NETLIB_InitClient(void)
+static boolean InitClient(void)
 {
     int p;
 
@@ -198,7 +198,7 @@ static boolean NETLIB_InitClient(void)
     return true;
 }
 
-static boolean NETLIB_InitServer(void)
+static boolean InitServer(void)
 {
     int p;
 
@@ -235,7 +235,7 @@ static boolean NETLIB_InitServer(void)
     return true;
 }
 
-static void NETLIB_SendPacket(net_addr_t *addr, net_packet_t *packet)
+static void SendPacket(net_addr_t *addr, net_packet_t *packet)
 {
     udp_packet_t netlib_packet;
     ip_address_t ip;
@@ -284,7 +284,7 @@ static void NETLIB_SendPacket(net_addr_t *addr, net_packet_t *packet)
     }
 }
 
-static boolean NETLIB_RecvPacket(net_addr_t **addr, net_packet_t **packet)
+static boolean RecvPacket(net_addr_t **addr, net_packet_t **packet)
 {
     int result;
 
@@ -315,7 +315,7 @@ static boolean NETLIB_RecvPacket(net_addr_t **addr, net_packet_t **packet)
     return true;
 }
 
-static void NETLIB_AddrToString(net_addr_t *addr, char *buffer, int buffer_len)
+static void AddrToString(net_addr_t *addr, char *buffer, int buffer_len)
 {
     ip_address_t *ip;
     uint32_t host;
@@ -340,7 +340,7 @@ static void NETLIB_AddrToString(net_addr_t *addr, char *buffer, int buffer_len)
     }
 }
 
-static net_addr_t *NETLIB_ResolveAddress(const char *address)
+static net_addr_t *ResolveAddress(const char *address)
 {
     ip_address_t ip;
     char *addr_hostname;
@@ -377,7 +377,7 @@ static net_addr_t *NETLIB_ResolveAddress(const char *address)
     }
 }
 
-static void NETLIB_Shutdown(void)
+static void Shutdown(void)
 {
     if (!initted)
     {
@@ -391,12 +391,12 @@ static void NETLIB_Shutdown(void)
 
 net_module_t netlib_module =
 {
-    NETLIB_InitClient,
-    NETLIB_InitServer,
-    NETLIB_SendPacket,
-    NETLIB_RecvPacket,
-    NETLIB_AddrToString,
-    NETLIB_FreeAddress,
-    NETLIB_ResolveAddress,
-    NETLIB_Shutdown,
+    InitClient,
+    InitServer,
+    SendPacket,
+    RecvPacket,
+    AddrToString,
+    FreeAddress,
+    ResolveAddress,
+    Shutdown,
 };

@@ -249,7 +249,7 @@ void NetUpdate(void)
     }
 }
 
-static void D_Disconnected(void)
+static void Disconnected(void)
 {
     // In drone mode, the game cannot continue once disconnected.
 
@@ -276,7 +276,7 @@ void D_ReceiveTic(ticcmd_t *ticcmds, boolean *players_mask)
 
     if (ticcmds == NULL || players_mask == NULL)
     {
-        D_Disconnected();
+        Disconnected();
         return;
     }
 

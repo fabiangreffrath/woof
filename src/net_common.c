@@ -48,8 +48,8 @@ struct net_reliable_packet_s
 
 static FILE *net_debug = NULL;
 
-static void NET_Conn_Init(net_connection_t *conn, net_addr_t *addr,
-                          net_protocol_t protocol)
+static void ConnectionInit(net_connection_t *conn, net_addr_t *addr,
+                           net_protocol_t protocol)
 {
     conn->last_send_time = -1;
     conn->num_retries = 0;
@@ -66,7 +66,7 @@ static void NET_Conn_Init(net_connection_t *conn, net_addr_t *addr,
 void NET_Conn_InitClient(net_connection_t *conn, net_addr_t *addr,
                          net_protocol_t protocol)
 {
-    NET_Conn_Init(conn, addr, protocol);
+    ConnectionInit(conn, addr, protocol);
     conn->state = NET_CONN_STATE_CONNECTING;
 }
 
@@ -75,7 +75,7 @@ void NET_Conn_InitClient(net_connection_t *conn, net_addr_t *addr,
 void NET_Conn_InitServer(net_connection_t *conn, net_addr_t *addr,
                          net_protocol_t protocol)
 {
-    NET_Conn_Init(conn, addr, protocol);
+    ConnectionInit(conn, addr, protocol);
     conn->state = NET_CONN_STATE_CONNECTED;
 }
 
@@ -89,8 +89,8 @@ void NET_Conn_SendPacket(net_connection_t *conn, net_packet_t *packet)
     NET_SendPacket(conn->addr, packet);
 }
 
-static void NET_Conn_ParseDisconnect(net_connection_t *conn,
-                                     net_packet_t *packet)
+static void ConnectionParseDisconnect(net_connection_t *conn,
+                                      net_packet_t *packet)
 {
     net_packet_t *reply;
 
@@ -110,8 +110,8 @@ static void NET_Conn_ParseDisconnect(net_connection_t *conn,
 
 // Parse a DISCONNECT_ACK packet
 
-static void NET_Conn_ParseDisconnectACK(net_connection_t *conn,
-                                        net_packet_t *packet)
+static void ConnectionParseDisconnectACK(net_connection_t *conn,
+                                         net_packet_t *packet)
 {
 
     if (conn->state == NET_CONN_STATE_DISCONNECTING)
@@ -125,7 +125,7 @@ static void NET_Conn_ParseDisconnectACK(net_connection_t *conn,
     }
 }
 
-static void NET_Conn_ParseReliableACK(net_connection_t *conn,
+static void ConnectionParseReliableACK(net_connection_t *conn,
                                       net_packet_t *packet)
 {
     unsigned int seq;
@@ -161,7 +161,7 @@ static void NET_Conn_ParseReliableACK(net_connection_t *conn,
 //
 // Returns true if the packet should be discarded (incorrect sequence)
 
-static boolean NET_Conn_ReliablePacket(net_connection_t *conn,
+static boolean ConnectionReliablePacket(net_connection_t *conn,
                                        net_packet_t *packet)
 {
     unsigned int seq;
@@ -224,7 +224,7 @@ boolean NET_Conn_Packet(net_connection_t *conn, net_packet_t *packet,
 
     if (*packet_type & NET_RELIABLE_PACKET)
     {
-        if (NET_Conn_ReliablePacket(conn, packet))
+        if (ConnectionReliablePacket(conn, packet))
         {
             // Invalid packet: eat it.
 
@@ -239,16 +239,16 @@ boolean NET_Conn_Packet(net_connection_t *conn, net_packet_t *packet,
     switch (*packet_type)
     {
         case NET_PACKET_TYPE_DISCONNECT:
-            NET_Conn_ParseDisconnect(conn, packet);
+            ConnectionParseDisconnect(conn, packet);
             break;
         case NET_PACKET_TYPE_DISCONNECT_ACK:
-            NET_Conn_ParseDisconnectACK(conn, packet);
+            ConnectionParseDisconnectACK(conn, packet);
             break;
         case NET_PACKET_TYPE_KEEPALIVE:
             // No special action needed.
             break;
         case NET_PACKET_TYPE_RELIABLE_ACK:
-            NET_Conn_ParseReliableACK(conn, packet);
+            ConnectionParseReliableACK(conn, packet);
             break;
         default:
             // Not a common packet

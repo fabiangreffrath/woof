@@ -94,7 +94,7 @@ DEH_BEGIN_MAPPING(state_mapping, state_t)
     DEH_UNSUPPORTED_MAPPING("Min brightness")
 DEH_END_MAPPING
 
-static int DEH_FrameStart(deh_context_t *context, char *line)
+static int FrameStart(deh_context_t *context, char *line)
 {
     int frame_number = -1;
 
@@ -116,7 +116,7 @@ static int DEH_FrameStart(deh_context_t *context, char *line)
     return frame_number;
 }
 
-static void DEH_FrameParseLine(deh_context_t *context, char *line, int tag)
+static void FrameParseLine(deh_context_t *context, char *line, int tag)
 {
     if (tag == -1)
     {
@@ -170,7 +170,7 @@ static void DEH_FrameParseLine(deh_context_t *context, char *line, int tag)
     DEH_SetMapping(context, &state_mapping, state, variable_name, ivalue, value);
 }
 
-static void DEH_FrameSHA1Sum(sha1_context_t *context)
+static void FrameSHA1Sum(sha1_context_t *context)
 {
     for (int i = 0; i < num_states; ++i)
     {
@@ -182,8 +182,8 @@ deh_section_t deh_section_frame =
 {
     "Frame",
     NULL,
-    DEH_FrameStart,
-    DEH_FrameParseLine,
+    FrameStart,
+    FrameParseLine,
     NULL,
-    DEH_FrameSHA1Sum,
+    FrameSHA1Sum,
 };

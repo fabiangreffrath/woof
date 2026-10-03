@@ -244,7 +244,7 @@ char *NET_ReadSafeString(net_packet_t *packet)
 
 // Dynamically increases the size of a packet
 
-static void NET_IncreasePacket(net_packet_t *packet)
+static void IncreasePacket(net_packet_t *packet)
 {
     byte *newdata;
 
@@ -268,7 +268,7 @@ void NET_WriteInt8(net_packet_t *packet, unsigned int i)
 {
     if (packet->len + 1 > packet->alloced)
     {
-        NET_IncreasePacket(packet);
+        IncreasePacket(packet);
     }
 
     packet->data[packet->len] = i;
@@ -283,7 +283,7 @@ void NET_WriteInt16(net_packet_t *packet, unsigned int i)
 
     if (packet->len + 2 > packet->alloced)
     {
-        NET_IncreasePacket(packet);
+        IncreasePacket(packet);
     }
 
     p = packet->data + packet->len;
@@ -302,7 +302,7 @@ void NET_WriteInt32(net_packet_t *packet, unsigned int i)
 
     if (packet->len + 4 > packet->alloced)
     {
-        NET_IncreasePacket(packet);
+        IncreasePacket(packet);
     }
 
     p = packet->data + packet->len;
@@ -326,7 +326,7 @@ void NET_WriteString(net_packet_t *packet, const char *string)
 
     while (packet->len + string_size > packet->alloced)
     {
-        NET_IncreasePacket(packet);
+        IncreasePacket(packet);
     }
 
     p = packet->data + packet->len;

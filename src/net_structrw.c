@@ -522,7 +522,7 @@ boolean NET_ReadWaitData(net_packet_t *packet, net_waitdata_t *data)
            && NET_ReadInt8(packet, (unsigned int *)&data->is_freedoom);
 }
 
-static boolean NET_ReadBlob(net_packet_t *packet, uint8_t *buf, size_t len)
+static boolean ReadBlob(net_packet_t *packet, uint8_t *buf, size_t len)
 {
     unsigned int b;
     int i;
@@ -540,7 +540,7 @@ static boolean NET_ReadBlob(net_packet_t *packet, uint8_t *buf, size_t len)
     return true;
 }
 
-static void NET_WriteBlob(net_packet_t *packet, uint8_t *buf, size_t len)
+static void WriteBlob(net_packet_t *packet, uint8_t *buf, size_t len)
 {
     int i;
 
@@ -552,12 +552,12 @@ static void NET_WriteBlob(net_packet_t *packet, uint8_t *buf, size_t len)
 
 boolean NET_ReadSHA1Sum(net_packet_t *packet, sha1_digest_t digest)
 {
-    return NET_ReadBlob(packet, digest, sizeof(sha1_digest_t));
+    return ReadBlob(packet, digest, sizeof(sha1_digest_t));
 }
 
 void NET_WriteSHA1Sum(net_packet_t *packet, sha1_digest_t digest)
 {
-    NET_WriteBlob(packet, digest, sizeof(sha1_digest_t));
+    WriteBlob(packet, digest, sizeof(sha1_digest_t));
 }
 
 static net_protocol_t ParseProtocolName(const char *name)

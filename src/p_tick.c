@@ -316,7 +316,7 @@ void P_SetTarget(mobj_t **mop, mobj_t *targ)
 // external and using P_RemoveThinkerDelayed() implicitly.
 //
 
-static void P_RunThinkers (void)
+static void RunThinkers(void)
 {
   for (currentthinker = thinkercap.next;
        currentthinker != &thinkercap;
@@ -328,7 +328,7 @@ static void P_RunThinkers (void)
   T_MusInfo();
 }
 
-static void P_FrozenTicker (void)
+static void FrozenTicker(void)
 {
   int i;
 
@@ -384,7 +384,7 @@ void P_Ticker (void)
 
   if (frozen_mode)
   {
-    P_FrozenTicker();
+    FrozenTicker();
   }
   else
   {
@@ -396,7 +396,7 @@ void P_Ticker (void)
       P_PlayerThink(&players[i]);
   }
 
-  P_RunThinkers();
+  RunThinkers();
   P_UpdateSpecials();
   P_RespawnSpecials();
   P_MapEnd();

@@ -443,7 +443,7 @@ void P_XYMovement (mobj_t* mo)
 //
 // Attempt vertical movement.
 
-static void P_ZMovement (mobj_t* mo)
+static void DoZMovement(mobj_t* mo)
 {
   // killough 7/11/98:
   // BFG fireballs bounced on floors and ceilings in Pre-Beta Doom
@@ -738,7 +738,7 @@ void P_NightmareRespawn(mobj_t* mobj)
 }
 
 // [crispy] support MUSINFO lump (dynamic music changing)
-static inline void MusInfoThinker (mobj_t *thing)
+static inline void ThinkerMusInfo(mobj_t *thing)
 {
   if (musinfo.mapthing != thing &&
       thing->subsector->sector == players[displayplayer].mo->subsector->sector)
@@ -758,7 +758,7 @@ void P_MobjThinker (mobj_t* mobj)
   // [crispy] support MUSINFO lump (dynamic music changing)
   if (mobj->type == MT_MUSICSOURCE)
   {
-      MusInfoThinker(mobj);
+      ThinkerMusInfo(mobj);
       return;
   }
   // [FG] suppress interpolation of player missiles for the first tic
@@ -796,7 +796,7 @@ void P_MobjThinker (mobj_t* mobj)
 
   if (mobj->z != mobj->floorz || mobj->momz)
     {
-      P_ZMovement(mobj);
+      DoZMovement(mobj);
       if (mobj->thinker.function.p1 == P_RemoveMobjThinkerDelayed) // killough
 	return;       // mobj was removed
     }

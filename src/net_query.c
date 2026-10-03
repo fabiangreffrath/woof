@@ -167,7 +167,7 @@ boolean NET_Query_CheckAddedToMaster(boolean *result)
 
 // Send a query to the master server.
 
-static void NET_Query_SendMasterQuery(net_addr_t *addr)
+static void SendMasterQuery(net_addr_t *addr)
 {
     net_packet_t *packet;
 
@@ -256,7 +256,7 @@ static void FreeTargets(void)
 
 // Transmit a query packet
 
-static void NET_Query_SendQuery(net_addr_t *addr)
+static void SendQuery(net_addr_t *addr)
 {
     net_packet_t *request;
 
@@ -275,9 +275,8 @@ static void NET_Query_SendQuery(net_addr_t *addr)
     NET_FreePacket(request);
 }
 
-static void NET_Query_ParseResponse(net_addr_t *addr, net_packet_t *packet,
-                                    net_query_callback_t callback,
-                                    void *user_data)
+static void ParseResponse(net_addr_t *addr, net_packet_t *packet,
+                          net_query_callback_t callback, void *user_data)
 {
     unsigned int packet_type;
     net_querydata_t querydata;
@@ -347,7 +346,7 @@ static void NET_Query_ParseResponse(net_addr_t *addr, net_packet_t *packet,
 
 // Parse a response packet from the master server.
 
-static void NET_Query_ParseMasterResponse(net_addr_t *master_addr,
+static void ParseMasterResponse(net_addr_t *master_addr,
                                           net_packet_t *packet)
 {
     unsigned int packet_type;
@@ -392,9 +391,8 @@ static void NET_Query_ParseMasterResponse(net_addr_t *master_addr,
     target->state = QUERY_TARGET_RESPONDED;
 }
 
-static void NET_Query_ParsePacket(net_addr_t *addr, net_packet_t *packet,
-                                  net_query_callback_t callback,
-                                  void *user_data)
+static void ParsePacket(net_addr_t *addr, net_packet_t *packet,
+                        net_query_callback_t callback, void *user_data)
 {
     query_target_t *target;
 
@@ -404,23 +402,22 @@ static void NET_Query_ParsePacket(net_addr_t *addr, net_packet_t *packet,
 
     if (target != NULL && target->type == QUERY_TARGET_MASTER)
     {
-        NET_Query_ParseMasterResponse(addr, packet);
+        ParseMasterResponse(addr, packet);
     }
     else
     {
-        NET_Query_ParseResponse(addr, packet, callback, user_data);
+        ParseResponse(addr, packet, callback, user_data);
     }
 }
 
-static void NET_Query_GetResponse(net_query_callback_t callback,
-                                  void *user_data)
+static void GetResponse(net_query_callback_t callback, void *user_data)
 {
     net_addr_t *addr;
     net_packet_t *packet;
 
     if (NET_RecvPacket(query_context, &addr, &packet))
     {
-        NET_Query_ParsePacket(addr, packet, callback, user_data);
+        ParsePacket(addr, packet, callback, user_data);
         NET_ReleaseAddress(addr);
         NET_FreePacket(packet);
     }
@@ -466,15 +463,15 @@ static void SendOneQuery(void)
     switch (targets[i].type)
     {
         case QUERY_TARGET_SERVER:
-            NET_Query_SendQuery(targets[i].addr);
+            SendQuery(targets[i].addr);
             break;
 
         case QUERY_TARGET_BROADCAST:
-            NET_Query_SendQuery(NULL);
+            SendQuery(NULL);
             break;
 
         case QUERY_TARGET_MASTER:
-            NET_Query_SendMasterQuery(targets[i].addr);
+            SendMasterQuery(targets[i].addr);
             break;
     }
 
@@ -555,14 +552,14 @@ int NET_Query_Poll(net_query_callback_t callback, void *user_data)
 
     // Check for a response
 
-    NET_Query_GetResponse(callback, user_data);
+    GetResponse(callback, user_data);
 
     return !AllTargetsDone();
 }
 
 // Stop the query loop
 
-static void NET_Query_ExitLoop(void)
+static void ExitLoop(void)
 {
     query_loop_running = false;
 }
@@ -570,7 +567,7 @@ static void NET_Query_ExitLoop(void)
 // Loop waiting for responses.
 // The specified callback is invoked when a new server responds.
 
-static void NET_Query_QueryLoop(net_query_callback_t callback, void *user_data)
+static void QueryLoop(net_query_callback_t callback, void *user_data)
 {
     query_loop_running = true;
 
@@ -600,10 +597,10 @@ void NET_Query_Init(void)
 
 // Callback that exits the query loop when the first server is found.
 
-static void NET_Query_ExitCallback(net_addr_t *addr, net_querydata_t *data,
-                                   unsigned int ping_time, void *user_data)
+static void ExitCallback(net_addr_t *addr, net_querydata_t *data,
+                         unsigned int ping_time, void *user_data)
 {
-    NET_Query_ExitLoop();
+    ExitLoop();
 }
 
 // Search the targets list and find a target that has responded.
@@ -758,8 +755,8 @@ static void PrintHeader(void)
 
 // Callback function that just prints information in a table.
 
-static void NET_QueryPrintCallback(net_addr_t *addr, net_querydata_t *data,
-                                   unsigned int ping_time, void *user_data)
+static void QueryPrintCallback(net_addr_t *addr, net_querydata_t *data,
+                               unsigned int ping_time, void *user_data)
 {
     // If this is the first server, print the header.
 
@@ -792,7 +789,7 @@ void NET_LANQuery(void)
     {
         I_Printf(VB_INFO, "Searching for servers on local LAN ...");
 
-        NET_Query_QueryLoop(NET_QueryPrintCallback, NULL);
+        QueryLoop(QueryPrintCallback, NULL);
 
         I_Printf(VB_INFO, "%i server(s) found.", GetNumResponses());
         FreeTargets();
@@ -805,7 +802,7 @@ void NET_MasterQuery(void)
     {
         I_Printf(VB_INFO, "Searching for servers on Internet ...");
 
-        NET_Query_QueryLoop(NET_QueryPrintCallback, NULL);
+        QueryLoop(QueryPrintCallback, NULL);
 
         I_Printf(VB_INFO, "%i server(s) found.", GetNumResponses());
         FreeTargets();
@@ -834,13 +831,13 @@ void NET_QueryAddress(const char *addr_str)
 
     // Run query loop.
 
-    NET_Query_QueryLoop(NET_Query_ExitCallback, NULL);
+    QueryLoop(ExitCallback, NULL);
 
     // Check if the target responded.
 
     if (target->state == QUERY_TARGET_RESPONDED)
     {
-        NET_QueryPrintCallback(addr, &target->data, target->ping_time, NULL);
+        QueryPrintCallback(addr, &target->data, target->ping_time, NULL);
         NET_ReleaseAddress(addr);
         FreeTargets();
     }
@@ -865,7 +862,7 @@ net_addr_t *NET_FindLANServer(void)
 
     // Run the query loop, and stop at the first target found.
 
-    NET_Query_QueryLoop(NET_Query_ExitCallback, NULL);
+    QueryLoop(ExitCallback, NULL);
 
     responder = FindFirstResponder();
 

@@ -35,9 +35,9 @@ typedef enum wipefx_e
   wipe_NUMWIPES,
 } wipefx_t;
 
-int wipe_ScreenWipe (int x, int y, int width, int height, int ticks);
-int wipe_StartScreen(int x, int y, int width, int height);
-int wipe_EndScreen  (int x, int y, int width, int height);
+int Wipe_ScreenWipe (int x, int y, int width, int height, int ticks);
+int Wipe_StartScreen(int x, int y, int width, int height);
+int Wipe_EndScreen  (int x, int y, int width, int height);
 
 extern void F_SetWipe(void);
 

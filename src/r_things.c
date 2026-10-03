@@ -134,8 +134,8 @@ void R_InitSpritesRes(void)
 // Local function for R_InitSprites.
 //
 
-static void R_InstallSpriteLump(int lump, unsigned frame,
-                                unsigned rotation, boolean flipped)
+static void InstallSpriteLump(int lump, unsigned frame, unsigned rotation,
+                              boolean flipped)
 {
   if (frame == '^' - 'A')
   {
@@ -252,12 +252,12 @@ void R_InitSpriteDefs(char **namelist)
                     (lump->name[2] ^ spritename[2]) |
                     (lump->name[3] ^ spritename[3])))
                 {
-                  R_InstallSpriteLump(j+firstspritelump,
+                  InstallSpriteLump(j+firstspritelump,
                                       lump->name[4] - 'A',
                                       lump->name[5] - '0',
                                       false);
                   if (lump->name[6])
-                    R_InstallSpriteLump(j+firstspritelump,
+                    InstallSpriteLump(j+firstspritelump,
                                         lump->name[6] - 'A',
                                         lump->name[7] - '0',
                                         true);
@@ -508,7 +508,7 @@ inline const lighttable_t *const GetThingTint(const mobj_t *const mo,
 
 boolean flipcorpses = false;
 
-static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
+static void ProjectSprite(mobj_t* thing, int lightlevel_override)
 {
   fixed_t   gzt;               // killough 3/27/98
   fixed_t   tx, txc;
@@ -812,7 +812,7 @@ void R_AddSprites(sector_t* sec, int lightlevel_override)
   // Handle all things in sector.
 
   for (thing = sec->thinglist; thing; thing = thing->snext)
-    R_ProjectSprite(thing, lightlevel_override);
+    ProjectSprite(thing, lightlevel_override);
 
   if (STRICTMODE(draw_nearby_sprites))
   {
@@ -843,7 +843,7 @@ void R_NearbySprites (void)
     // [FG] sprites in sector have already been projected
     if (sec->validcount != validcount)
     {
-      R_ProjectSprite(thing, (floorlightlevel + ceilinglightlevel) / 2);
+      ProjectSprite(thing, (floorlightlevel + ceilinglightlevel) / 2);
     }
   }
 

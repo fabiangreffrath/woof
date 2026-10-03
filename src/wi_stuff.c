@@ -669,12 +669,12 @@ static boolean SetupMusic(boolean enteringcondition)
 }
 
 // ====================================================================
-// WI_slamBackground
+// SlamBackground
 // Purpose: Put the full-screen background up prior to patches
 // Args:    none
 // Returns: void
 //
-void WI_slamBackground(void)
+void SlamBackground(void)
 {
     const char *name;
 
@@ -703,32 +703,19 @@ void WI_slamBackground(void)
       V_CachePatchName(W_CheckWidescreenPatch(name), PU_CACHE));
 }
 
-// ====================================================================
-// WI_Responder
-// Purpose: Draw animations on intermission background screen
-// Args:    ev    -- event pointer, not actually used here.
-// Returns: False -- dummy routine
-//
-// The ticker is used to detect keys
-//  because of timing issues in netgames.
-boolean WI_Responder(event_t* ev)
-{
-  return false;
-}
-
-static void WI_DrawString(int y, const char* str)
+static void DrawString(int y, const char* str)
 {
   MN_DrawString(160 - (MN_GetPixelWidth(str) / 2), y, CR_GRAY, str);
 }
 
 
 // ====================================================================
-// WI_drawLF
+// DrawFinishedLevel
 // Purpose: Draw the "Finished" level name before showing stats
 // Args:    none
 // Returns: void
 //
-static void WI_drawLF(void)
+static void DrawFinishedLevel(void)
 {
     int y = WI_TITLEY;
 
@@ -737,13 +724,13 @@ static void WI_drawLF(void)
     // The level defines a new name but no texture for the name.
     if (mapinfo && mapinfo->levelname && !mapinfo->levelpic[0])
     {
-        WI_DrawString(y, mapinfo->levelname);
+        DrawString(y, mapinfo->levelname);
 
         y += (5 * SHORT(hu_font['A' - HU_FONTSTART]->height) / 4);
 
         if (mapinfo->author)
         {
-            WI_DrawString(y, mapinfo->author);
+            DrawString(y, mapinfo->author);
 
             y += (5 * SHORT(hu_font['A' - HU_FONTSTART]->height) / 4);
         }
@@ -776,7 +763,7 @@ static void WI_drawLF(void)
 // Args:    none
 // Returns: void
 //
-static void WI_drawEL(void)
+static void DrawEnteringLevel(void)
 {
     int y = WI_TITLEY;
 
@@ -790,13 +777,13 @@ static void WI_drawEL(void)
     {
         y += (5 * SHORT(entering->height)) / 4;
 
-        WI_DrawString(y, mapinfo->levelname);
+        DrawString(y, mapinfo->levelname);
 
         if (mapinfo->author)
         {
             y += (5 * SHORT(hu_font['A' - HU_FONTSTART]->height) / 4);
 
-            WI_DrawString(y, mapinfo->author);
+            DrawString(y, mapinfo->author);
         }
     }
     else if (mapinfo && mapinfo->levelpic[0])
@@ -828,16 +815,13 @@ static void WI_drawEL(void)
 }
 
 // ====================================================================
-// WI_drawOnLnode
+// DrawOnLNode
 // Purpose: Draw patches at a location based on episode/map
 // Args:    n   -- index to map# within episode
 //          c[] -- array of patches to be drawn
 // Returns: void
 //
-static void
-WI_drawOnLnode  // draw stuff at a location by episode/map#
-( int   n,
-  patch_t*  c[] )
+static void DrawOnLNode(int n, patch_t *c[])
 {
   int   i;
   int   left;
@@ -880,12 +864,12 @@ WI_drawOnLnode  // draw stuff at a location by episode/map#
 
 
 // ====================================================================
-// WI_initAnimatedBack
+// InitAnimatedBack
 // Purpose: Initialize pointers and styles for background animation
 // Args:    firstcall -- [Woof!] check if animations needs to be reset
 // Returns: void
 //
-static void WI_initAnimatedBack(boolean firstcall)
+static void InitAnimatedBack(boolean firstcall)
 {
   int   i;
   anim_t* a;
@@ -935,12 +919,12 @@ static void WI_initAnimatedBack(boolean firstcall)
 
 
 // ====================================================================
-// WI_updateAnimatedBack
+// UpdateAnimatedBack
 // Purpose: Figure out what animation we do on this iteration
 // Args:    none
 // Returns: void
 //
-static void WI_updateAnimatedBack(void)
+static void UpdateAnimatedBack(void)
 {
   int   i;
   anim_t* a;
@@ -1006,12 +990,12 @@ static void WI_updateAnimatedBack(void)
 
 
 // ====================================================================
-// WI_drawAnimatedBack
+// DrawAnimatedBack
 // Purpose: Actually do the animation (whew!)
 // Args:    none
 // Returns: void
 //
-static void WI_drawAnimatedBack(void)
+static void DrawAnimatedBack(void)
 {
   int     i;
   anim_t*   a;
@@ -1047,7 +1031,7 @@ static void WI_drawAnimatedBack(void)
 
 
 // ====================================================================
-// WI_drawNum
+// DrawNum
 // Purpose: Draws a number.  If digits > 0, then use that many digits
 //          minimum, otherwise only use as many as necessary
 // Args:    x, y   -- location
@@ -1055,12 +1039,7 @@ static void WI_drawAnimatedBack(void)
 //          digits -- number of digits minimum or zero
 // Returns: new x position after drawing (note we are going to the left)
 //
-static int
-WI_drawNum
-( int   x,
-  int   y,
-  int   n,
-  int   digits )
+static int DrawNum(int x, int y, int n, int digits)
 {
   int   fontwidth = SHORT(num[0]->width);
   int   neg;
@@ -1115,36 +1094,32 @@ WI_drawNum
 
 
 // ====================================================================
-// WI_drawPercent
+// DrawPercent
 // Purpose: Draws a percentage, really just a call to WI_drawNum
 //          after putting a percent sign out there
 // Args:    x, y   -- location
 //          p      -- the percentage value to be drawn, no negatives
 // Returns: void
 //
-static void
-WI_drawPercent
-( int   x,
-  int   y,
-  int   p )
+static void DrawPercent(int x, int y, int p)
 {
   if (p < 0)
     return;
 
   V_DrawPatch(x, y, percent);
-  WI_drawNum(x, y, p, -1);
+  DrawNum(x, y, p, -1);
 }
 
 
 // ====================================================================
-// WI_drawTime
+// DrawTime
 // Purpose: Draws the level completion time or par time, or "Sucks"
 //          if 1 hour or more
 // Args:    x, y   -- location
 //          t      -- the time value to be drawn
 // Returns: void
 //
-static void WI_drawTime(int x, int y, int seconds, boolean suck)
+static void DrawTime(int x, int y, int seconds, boolean suck)
 {
     if (seconds < 0)
     {
@@ -1168,24 +1143,24 @@ static void WI_drawTime(int x, int y, int seconds, boolean suck)
 
     const short colon_width = SHORT(colon->width);
 
-    x = WI_drawNum(x, y, seconds, 2) - colon_width;
+    x = DrawNum(x, y, seconds, 2) - colon_width;
     V_DrawPatch(x, y, colon);
 
     // [FG] print at most in hhhh:mm:ss format
     if (hours)
     {
-        x = WI_drawNum(x, y, minutes, 2) - colon_width;
+        x = DrawNum(x, y, minutes, 2) - colon_width;
         V_DrawPatch(x, y, colon);
-        WI_drawNum(x, y, hours, -1);
+        DrawNum(x, y, hours, -1);
     }
     else if (minutes)
     {
-        WI_drawNum(x, y, minutes, -1);
+        DrawNum(x, y, minutes, -1);
     }
 }
 
 // ====================================================================
-// WI_unloadData
+// UnloadData
 // Purpose: Free up the space allocated during WI_loadData
 // Args:    none
 // Returns: void
@@ -1193,7 +1168,7 @@ static void WI_drawTime(int x, int y, int seconds, boolean suck)
 
 static boolean wi_inited = false;
 
-static void WI_unloadData(void)
+static void UnloadData(void)
 {
   int   i;
   int   j;
@@ -1264,24 +1239,24 @@ static void WI_unloadData(void)
 
 
 // ====================================================================
-// WI_End
+// End
 // Purpose: Unloads data structures (inverse of WI_Start)
 // Args:    none
 // Returns: void
 //
-static void WI_End(void)
+static void End(void)
 {
-  WI_unloadData();
+  UnloadData();
 }
 
 
 // ====================================================================
-// WI_initNoState
+// InitNoState
 // Purpose: Clear state, ready for end of level activity
 // Args:    none
 // Returns: void
 //
-static void WI_initNoState(void)
+static void InitNoState(void)
 {
   state = NoState;
   acceleratestage = 0;
@@ -1290,33 +1265,33 @@ static void WI_initNoState(void)
 
 
 // ====================================================================
-// WI_updateNoState
+// UpdateNoState
 // Purpose: Cycle until end of level activity is done
 // Args:    none
 // Returns: void
 //
-static void WI_updateNoState(void)
+static void UpdateNoState(void)
 {
-  WI_updateAnimatedBack();
+  UpdateAnimatedBack();
 
   if (!--cnt)
     {
-      WI_End();
+      End();
       G_WorldDone();
     }
 }
 
 static boolean    snl_pointeron = false;
 
-static void WI_loadData(void);
+static void LoadData(void);
 
 // ====================================================================
-// WI_initShowNextLoc
+// InitShowNextLoc
 // Purpose: Prepare to show the next level's location
 // Args:    none
 // Returns: void
 //
-static void WI_initShowNextLoc(void)
+static void InitShowNextLoc(void)
 {
   SetupMusic(true);
 
@@ -1340,41 +1315,41 @@ static void WI_initShowNextLoc(void)
     {
       wbs->epsd = wbs->nextep;
       wbs->last = wbs->next - 1;
-      WI_loadData();
+      LoadData();
     }
   }
 
   acceleratestage = 0;
   cnt = SHOWNEXTLOCDELAY * TICRATE;
 
-  WI_initAnimatedBack(false);
+  InitAnimatedBack(false);
 }
 
 
 // ====================================================================
-// WI_updateShowNextLoc
+// UpdateShowNextLoc
 // Purpose: Prepare to show the next level's location
 // Args:    none
 // Returns: void
 //
-static void WI_updateShowNextLoc(void)
+static void UpdateShowNextLoc(void)
 {
-  WI_updateAnimatedBack();
+  UpdateAnimatedBack();
 
   if (!--cnt || acceleratestage)
-    WI_initNoState();
+    InitNoState();
   else
     snl_pointeron = (cnt & 31) < 20;
 }
 
 
 // ====================================================================
-// WI_drawShowNextLoc
+// DrawShowNextLoc
 // Purpose: Show the next level's location on animated backgrounds
 // Args:    none
 // Returns: void
 //
-static void WI_drawShowNextLoc(void)
+static void DrawShowNextLoc(void)
 {
   int   i;
   int   last;
@@ -1384,15 +1359,15 @@ static void WI_drawShowNextLoc(void)
       return;
   }
 
-  WI_slamBackground();
+  SlamBackground();
 
   // draw animated background
-  WI_drawAnimatedBack();
+  DrawAnimatedBack();
 
   // custom interpic.
   if (exitpic || (enterpic && state != StatCount))
   {
-    WI_drawEL();
+    DrawEnteringLevel();
     return;
   }
 
@@ -1400,7 +1375,7 @@ static void WI_drawShowNextLoc(void)
     {
       if (wbs->epsd > 2)
         {
-          WI_drawEL();  // "Entering..." if not E1 or E2
+          DrawEnteringLevel();  // "Entering..." if not E1 or E2
           return;
         }
 
@@ -1410,44 +1385,44 @@ static void WI_drawShowNextLoc(void)
 
       // draw a splat on taken cities.
       for (i=0 ; i<=last ; i++)
-        WI_drawOnLnode(i, splat);
+        DrawOnLNode(i, splat);
 
       // splat the secret level?
       if (wbs->didsecret)
-        WI_drawOnLnode(8, splat);
+        DrawOnLNode(8, splat);
 
       // draw flashing ptr
       if (snl_pointeron)
-        WI_drawOnLnode(wbs->next, yah);
+        DrawOnLNode(wbs->next, yah);
       }
     }
 
   // draws which level you are entering..
   if ( (gamemode != commercial)
        || wbs->next != 30)  // check for MAP30 end game
-    WI_drawEL();
+    DrawEnteringLevel();
 }
 
 // ====================================================================
-// WI_drawNoState
+// DrawNoState
 // Purpose: Draw the pointer and next location
 // Args:    none
 // Returns: void
 //
-static void WI_drawNoState(void)
+static void DrawNoState(void)
 {
   snl_pointeron = true;
-  WI_drawShowNextLoc();
+  DrawShowNextLoc();
 }
 
 // ====================================================================
-// WI_fragSum
+// FragSum
 // Purpose: Calculate frags for this player based on the current totals
 //          of all the other players.  Subtract self-frags.
 // Args:    playernum -- the player to be calculated
 // Returns: the total frags for this player
 //
-static int WI_fragSum(int playernum)
+static int FragSum(int playernum)
 {
   int   i;
   int   frags = 0;
@@ -1475,13 +1450,13 @@ static int    dm_frags[MAXPLAYERS][MAXPLAYERS];  // frags matrix
 static int    dm_totals[MAXPLAYERS];  // totals by player
 
 // ====================================================================
-// WI_initDeathmatchStats
+// InitDeathmatchStats
 // Purpose: Set up to display DM stats at end of level.  Calculate
 //          frags for all players.
 // Args:    none
 // Returns: void
 //
-static void WI_initDeathmatchStats(void)
+static void InitDeathmatchStats(void)
 {
 
   int   i; // looping variables
@@ -1504,26 +1479,26 @@ static void WI_initDeathmatchStats(void)
           dm_totals[i] = 0;
         }
     }
-  WI_initAnimatedBack(true);
+  InitAnimatedBack(true);
 }
 
 
 // ====================================================================
-// WI_initDeathmatchStats
+// UpdateDeathmatchStats
 // Purpose: Set up to display DM stats at end of level.  Calculate
 //          frags for all players.  Lots of noise and drama around
 //          the presentation.
 // Args:    none
 // Returns: void
 //
-static void WI_updateDeathmatchStats(void)
+static void UpdateDeathmatchStats(void)
 {
   int   i;
   int   j;
 
   boolean stillticking;
 
-  WI_updateAnimatedBack();
+  UpdateAnimatedBack();
 
   if (acceleratestage && dm_state != 4)  // still ticking
     {
@@ -1537,7 +1512,7 @@ static void WI_updateDeathmatchStats(void)
                 if (playeringame[j])
                   dm_frags[i][j] = plrs[i].frags[j];
 
-              dm_totals[i] = WI_fragSum(i);
+              dm_totals[i] = FragSum(i);
             }
         }
 
@@ -1577,7 +1552,7 @@ static void WI_updateDeathmatchStats(void)
                       stillticking = true;
                     }
                 }
-              dm_totals[i] = WI_fragSum(i);
+              dm_totals[i] = FragSum(i);
 
               if (dm_totals[i] > 999)
                 dm_totals[i] = 999;
@@ -1601,11 +1576,11 @@ static void WI_updateDeathmatchStats(void)
             S_StartSound(0, sfx_intdms);
 
             if (NextLocAnimation())
-              WI_initShowNextLoc();
+              InitShowNextLoc();
             else if (gamemode == commercial)
-              WI_initNoState();
+              InitNoState();
             else
-              WI_initShowNextLoc();
+              InitShowNextLoc();
           }
       }
     else
@@ -1621,12 +1596,12 @@ static void WI_updateDeathmatchStats(void)
 
 
 // ====================================================================
-// WI_drawDeathmatchStats
+// DrawDeathmatchStats
 // Purpose: Draw the stats on the screen in a matrix
 // Args:    none
 // Returns: void
 //
-static void WI_drawDeathmatchStats(void)
+static void DrawDeathmatchStats(void)
 {
   int   i;
   int   j;
@@ -1634,11 +1609,11 @@ static void WI_drawDeathmatchStats(void)
   int   y;
   int   w;
 
-  WI_slamBackground();
+  SlamBackground();
 
   // draw animated background
-  WI_drawAnimatedBack();
-  WI_drawLF();
+  DrawAnimatedBack();
+  DrawFinishedLevel();
 
   // draw stat titles (top line)
   V_DrawPatch(DM_TOTALSX-SHORT(total->width)/2,
@@ -1699,17 +1674,17 @@ static void WI_drawDeathmatchStats(void)
           for (j=0 ; j<MAXPLAYERS ; j++)
             {
               if (playeringame[j])
-                WI_drawNum(x+w, y, dm_frags[i][j], 2);
+                DrawNum(x+w, y, dm_frags[i][j], 2);
 
               x += DM_SPACINGX;
             }
-          WI_drawNum(DM_TOTALSX+w, y, dm_totals[i], 2);
+          DrawNum(DM_TOTALSX+w, y, dm_totals[i], 2);
         }
       y += WI_SPACINGY;
     }
 }
 
-static void WI_overlayDeathmatchStats(void)
+static void OverlayDeathmatchStats(void)
 {
     V_DrawPatch(DM_TOTALSX - SHORT(total->width) / 2,
                 DM_MATRIXY - WI_SPACINGY + 10, total);
@@ -1745,7 +1720,7 @@ static void WI_overlayDeathmatchStats(void)
             {
                 if (playeringame[j])
                 {
-                    WI_drawNum(x2 + w, y + 10, CLAMP(players[i].frags[j], -999, 999), 2);
+                    DrawNum(x2 + w, y + 10, CLAMP(players[i].frags[j], -999, 999), 2);
 
                     if (i != j)
                     {
@@ -1758,7 +1733,7 @@ static void WI_overlayDeathmatchStats(void)
                 }
                 x2 += DM_SPACINGX;
             }
-            WI_drawNum(DM_TOTALSX + w, y + 10, CLAMP(totals, -999, 999), 2);
+            DrawNum(DM_TOTALSX + w, y + 10, CLAMP(totals, -999, 999), 2);
         }
         x += DM_SPACINGX;
         y += WI_SPACINGY;
@@ -1775,12 +1750,12 @@ static int  ng_state;
 
 
 // ====================================================================
-// WI_initNetgameStats
+// InitNetgameStats
 // Purpose: Prepare for coop game stats
 // Args:    none
 // Returns: void
 //
-static void WI_initNetgameStats(void)
+static void InitNetgameStats(void)
 {
   int i;
 
@@ -1797,30 +1772,30 @@ static void WI_initNetgameStats(void)
 
       cnt_kills[i] = cnt_items[i] = cnt_secret[i] = cnt_frags[i] = 0;
 
-      dofrags += WI_fragSum(i);
+      dofrags += FragSum(i);
     }
 
   dofrags = !!dofrags; // set to true or false - did we have frags?
 
-  WI_initAnimatedBack(true);
+  InitAnimatedBack(true);
 }
 
 
 // ====================================================================
-// WI_updateNetgameStats
+// UpdateNetgameStats
 // Purpose: Calculate coop stats as we display them with noise and fury
 // Args:    none
 // Returns: void
 // Comment: This stuff sure is complicated for what it does
 //
-static void WI_updateNetgameStats(void)
+static void UpdateNetgameStats(void)
 {
   int   i;
   int   fsum;
 
   boolean stillticking;
 
-  WI_updateAnimatedBack();
+  UpdateAnimatedBack();
 
   if (acceleratestage && ng_state != 10)
     {
@@ -1838,7 +1813,7 @@ static void WI_updateNetgameStats(void)
           cnt_secret[i] = wbs->maxsecret ?
             (plrs[i].ssecret * 100) / wbs->maxsecret : 100;
           if (dofrags)
-            cnt_frags[i] = WI_fragSum(i);  // we had frags
+            cnt_frags[i] = FragSum(i);  // we had frags
         }
       S_StartSound(0, sfx_inttot);  // bang
       ng_state = 10;
@@ -1942,7 +1917,7 @@ static void WI_updateNetgameStats(void)
 
                 cnt_frags[i] += 1;
 
-                if (cnt_frags[i] >= (fsum = WI_fragSum(i)))
+                if (cnt_frags[i] >= (fsum = FragSum(i)))
                   cnt_frags[i] = fsum;
                 else
                   stillticking = true;
@@ -1962,11 +1937,11 @@ static void WI_updateNetgameStats(void)
                   S_StartSound(0, sfx_intnex);
 
                   if (NextLocAnimation())
-                    WI_initShowNextLoc();
+                    InitShowNextLoc();
                   else if (gamemode == commercial)
-                    WI_initNoState();
+                    InitNoState();
                   else
-                    WI_initShowNextLoc();
+                    InitShowNextLoc();
                 }
             }
           else
@@ -1982,24 +1957,24 @@ static void WI_updateNetgameStats(void)
 
 
 // ====================================================================
-// WI_drawNetgameStats
+// DrawNetgameStats
 // Purpose: Put the coop stats on the screen
 // Args:    none
 // Returns: void
 //
-static void WI_drawNetgameStats(void)
+static void DrawNetgameStats(void)
 {
   int   i;
   int   x;
   int   y;
   int   pwidth = SHORT(percent->width);
 
-  WI_slamBackground();
+  SlamBackground();
 
   // draw animated background
-  WI_drawAnimatedBack();
+  DrawAnimatedBack();
 
-  WI_drawLF();
+  DrawFinishedLevel();
 
   // draw stat titles (top line)
   V_DrawPatch(NG_STATSX+NG_SPACINGX-SHORT(kills->width),
@@ -2030,18 +2005,18 @@ static void WI_drawNetgameStats(void)
         V_DrawPatch(x-SHORT(p[i]->width), y, star);
 
       x += NG_SPACINGX;
-      WI_drawPercent(x-pwidth, y+10, cnt_kills[i]); x += NG_SPACINGX;
-      WI_drawPercent(x-pwidth, y+10, cnt_items[i]); x += NG_SPACINGX;
-      WI_drawPercent(x-pwidth, y+10, cnt_secret[i]);  x += NG_SPACINGX;
+      DrawPercent(x-pwidth, y+10, cnt_kills[i]); x += NG_SPACINGX;
+      DrawPercent(x-pwidth, y+10, cnt_items[i]); x += NG_SPACINGX;
+      DrawPercent(x-pwidth, y+10, cnt_secret[i]);  x += NG_SPACINGX;
 
       if (dofrags)
-        WI_drawNum(x, y+10, cnt_frags[i], -1);
+        DrawNum(x, y+10, cnt_frags[i], -1);
 
       y += WI_SPACINGY;
     }
 }
 
-static void WI_overlayNetgameStats(void)
+static void OverlayNetgameStats(void)
 {
     dofrags = false;
 
@@ -2071,11 +2046,11 @@ static void WI_overlayNetgameStats(void)
         }
 
         x += NG_SPACINGX;
-        WI_drawPercent(x - pwidth, y + 10, 100 * players[i].killcount / (totalkills ? totalkills : 1));
+        DrawPercent(x - pwidth, y + 10, 100 * players[i].killcount / (totalkills ? totalkills : 1));
         x += NG_SPACINGX;
-        WI_drawPercent(x - pwidth, y + 10, 100 * players[i].itemcount / (totalitems ? totalitems : 1));
+        DrawPercent(x - pwidth, y + 10, 100 * players[i].itemcount / (totalitems ? totalitems : 1));
         x += NG_SPACINGX;
-        WI_drawPercent(x - pwidth, y + 10, totalsecret ? (100 * players[i].secretcount / totalsecret) : 100);
+        DrawPercent(x - pwidth, y + 10, totalsecret ? (100 * players[i].secretcount / totalsecret) : 100);
 
         y += WI_SPACINGY;
     }
@@ -2083,36 +2058,36 @@ static void WI_overlayNetgameStats(void)
 
 boolean wi_overlay = false;
 
-void WI_drawOverlayStats(void)
+void WI_DrawOverlayStats(void)
 {
     if (!wi_inited)
     {
-        WI_loadData();
+        LoadData();
     }
 
     V_ShadeScreen();
 
     if (deathmatch)
     {
-        WI_overlayDeathmatchStats();
+        OverlayDeathmatchStats();
     }
     else if (netgame)
     {
-        WI_overlayNetgameStats();
+        OverlayNetgameStats();
     }
 }
 
 static int  sp_state;
 
 // ====================================================================
-// WI_initStats
+// InitStats
 // Purpose: Get ready for single player stats
 // Args:    none
 // Returns: void
 // Comment: Seems like we could do all these stats in a more generic
 //          set of routines that weren't duplicated for dm, coop, sp
 //
-static void WI_initStats(void)
+static void InitStats(void)
 {
   state = StatCount;
   acceleratestage = 0;
@@ -2121,18 +2096,18 @@ static void WI_initStats(void)
   cnt_time = cnt_par = cnt_total_time = -1;
   cnt_pause = TICRATE;
 
-  WI_initAnimatedBack(true);
+  InitAnimatedBack(true);
 }
 
 // ====================================================================
-// WI_updateStats
+// UpdateStats
 // Purpose: Calculate solo stats
 // Args:    none
 // Returns: void
 //
-static void WI_updateStats(void)
+static void UpdateStats(void)
 {
-  WI_updateAnimatedBack();
+  UpdateAnimatedBack();
 
   if (acceleratestage && sp_state != 10)
     {
@@ -2243,11 +2218,11 @@ static void WI_updateStats(void)
                   S_StartSound(0, sfx_intnex);
 
                   if (NextLocAnimation())
-                    WI_initShowNextLoc();
+                    InitShowNextLoc();
                   else if (gamemode == commercial)
-                    WI_initNoState();
+                    InitNoState();
                   else
-                    WI_initShowNextLoc();
+                    InitShowNextLoc();
                 }
             }
           else
@@ -2262,12 +2237,12 @@ static void WI_updateStats(void)
 }
 
 // ====================================================================
-// WI_drawStats
+// DrawStats
 // Purpose: Put the solo stats on the screen
 // Args:    none
 // Returns: void
 //
-static void WI_drawStats(void)
+static void DrawStats(void)
 {
   // line height
   int lh;
@@ -2275,21 +2250,21 @@ static void WI_drawStats(void)
 
   lh = (3*SHORT(num[0]->height))/2;
 
-  WI_slamBackground();
+  SlamBackground();
 
   // draw animated background
-  WI_drawAnimatedBack();
+  DrawAnimatedBack();
 
-  WI_drawLF();
+  DrawFinishedLevel();
 
   V_DrawPatch(SP_STATSX, SP_STATSY, kills);
-  WI_drawPercent(SCREENWIDTH - SP_STATSX, SP_STATSY, cnt_kills[0]);
+  DrawPercent(SCREENWIDTH - SP_STATSX, SP_STATSY, cnt_kills[0]);
 
   V_DrawPatch(SP_STATSX, SP_STATSY+lh, items);
-  WI_drawPercent(SCREENWIDTH - SP_STATSX, SP_STATSY+lh, cnt_items[0]);
+  DrawPercent(SCREENWIDTH - SP_STATSX, SP_STATSY+lh, cnt_items[0]);
 
   V_DrawPatch(SP_STATSX, SP_STATSY+2*lh, sp_secret);
-  WI_drawPercent(SCREENWIDTH - SP_STATSX, SP_STATSY+2*lh, cnt_secret[0]);
+  DrawPercent(SCREENWIDTH - SP_STATSX, SP_STATSY+2*lh, cnt_secret[0]);
 
   const boolean draw_partime = (W_IsIWADLump(maplump) || bex_partimes || umapinfo_partimes) &&
                                (wbs->epsd < 3 || umapinfo_partimes);
@@ -2302,7 +2277,7 @@ static void WI_drawStats(void)
   // Why add a hardcoded +8 you ask?
   // in oder to allow >1h long times, some minor alignment shifting is needed
   // i.e. PrBoom switched SP_TIMEX to 8, instead of vanilla's 16
-  WI_drawTime((wide_time ? (SCREENWIDTH - SP_TIMEX) : (SCREENWIDTH/2 + 8)),
+  DrawTime((wide_time ? (SCREENWIDTH - SP_TIMEX) : (SCREENWIDTH/2 + 8)),
               SP_TIMEY, cnt_time, true);
 
   // Ty 04/11/98: redid logic: should skip only if with pwad but
@@ -2313,12 +2288,12 @@ static void WI_drawStats(void)
   if (draw_partime)
   {
     V_DrawPatch(SCREENWIDTH/2 + SP_TIMEX, SP_TIMEY, par);
-    WI_drawTime(SCREENWIDTH - SP_TIMEX, SP_TIMEY, cnt_par, true);
+    DrawTime(SCREENWIDTH - SP_TIMEX, SP_TIMEY, cnt_par, true);
   }
 
   // [FG] draw total time alongside level time and par time
   V_DrawPatch(SP_TIMEX, SP_TIMEY + 16, total);
-  WI_drawTime((wide_total ? (SCREENWIDTH - SP_TIMEX) : (SCREENWIDTH/2 + 8)),
+  DrawTime((wide_total ? (SCREENWIDTH - SP_TIMEX) : (SCREENWIDTH/2 + 8)),
               SP_TIMEY + 16, cnt_total_time, false);
 }
 
@@ -2330,7 +2305,7 @@ static void WI_drawStats(void)
 // Args:    none
 // Returns: void
 //
-void WI_checkForAccelerate(void)
+void WI_CheckForAccelerate(void)
 {
   int   i;
   player_t  *player;
@@ -2382,36 +2357,36 @@ void WI_Ticker(void)
         S_ChangeMusic(mus_inter, true);
     }
 
-  WI_checkForAccelerate();
+  WI_CheckForAccelerate();
 
   switch (state)
     {
     case StatCount:
-      if (deathmatch) WI_updateDeathmatchStats();
+      if (deathmatch) UpdateDeathmatchStats();
       else
-        if (netgame) WI_updateNetgameStats();
-        else WI_updateStats();
+        if (netgame) UpdateNetgameStats();
+        else UpdateStats();
       WI_UpdateWidgets();
       break;
 
     case ShowNextLoc:
-      WI_updateShowNextLoc();
+      UpdateShowNextLoc();
       break;
 
     case NoState:
-      WI_updateNoState();
+      UpdateNoState();
       break;
     }
 }
 
 // ====================================================================
-// WI_loadData
+// LoadData
 // Purpose: Initialize intermission data such as background graphics,
 //          patches, map names, etc.
 // Args:    none
 // Returns: void
 //
-static void WI_loadData(void)
+static void LoadData(void)
 {
   int   i,j;
   char name[32];
@@ -2598,35 +2573,35 @@ void WI_Drawer (void)
     {
     case StatCount:
       if (deathmatch)
-        WI_drawDeathmatchStats();
+        DrawDeathmatchStats();
       else
         if (netgame)
-          WI_drawNetgameStats();
+          DrawNetgameStats();
         else
-          WI_drawStats();
+          DrawStats();
       // [FG] draw Time widget on intermission screen
       WI_DrawWidgets();
       break;
 
     case ShowNextLoc:
-      WI_drawShowNextLoc();
+      DrawShowNextLoc();
       break;
 
     case NoState:
-      WI_drawNoState();
+      DrawNoState();
       break;
     }
 }
 
 
 // ====================================================================
-// WI_initVariables
+// InitVariables
 // Purpose: Initialize the intermission information structure
 //          Note: wbstartstruct_t is defined in d_player.h
 // Args:    wbstartstruct -- pointer to the structure with the data
 // Returns: void
 //
-static void WI_initVariables(wbstartstruct_t* wbstartstruct)
+static void InitVariables(wbstartstruct_t* wbstartstruct)
 {
 
   wbs = wbstartstruct;
@@ -2681,7 +2656,7 @@ static void WI_initVariables(wbstartstruct_t* wbstartstruct)
 //
 void WI_Start(wbstartstruct_t* wbstartstruct)
 {
-  WI_initVariables(wbstartstruct);
+  InitVariables(wbstartstruct);
 
   exitpic = NULL;
   enterpic = NULL;
@@ -2689,15 +2664,15 @@ void WI_Start(wbstartstruct_t* wbstartstruct)
 
   MI_WI_Start(wbstartstruct, &exitpic, &enterpic, &animation);
 
-  WI_loadData();
+  LoadData();
 
   if (deathmatch)
-    WI_initDeathmatchStats();
+    InitDeathmatchStats();
   else
     if (netgame)
-      WI_initNetgameStats();
+      InitNetgameStats();
     else
-      WI_initStats();
+      InitStats();
 
   wi_overlay = false;
 }

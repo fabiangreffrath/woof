@@ -220,7 +220,7 @@ DEH_END_MAPPING
      !strcasecmp(str, "Decal")      || !strcasecmp(str, "Physical height") || \
      !strcasecmp(str, "Projectile pass height"))
 
-static int DEH_ThingStart(deh_context_t *context, char *line)
+static int ThingStart(deh_context_t *context, char *line)
 {
     int thing_number = -1;
 
@@ -245,7 +245,7 @@ static int DEH_ThingStart(deh_context_t *context, char *line)
     return thing_number;
 }
 
-static void DEH_ThingParseLine(deh_context_t *context, char *line, int tag)
+static void ThingParseLine(deh_context_t *context, char *line, int tag)
 {
     if (tag == -1)
     {
@@ -334,7 +334,7 @@ static void DEH_ThingParseLine(deh_context_t *context, char *line, int tag)
     DEH_SetMapping(context, &thing_mapping, mobj, variable_name, ivalue, value);
 }
 
-static void DEH_ThingSHA1Sum(sha1_context_t *context)
+static void ThingSHA1Sum(sha1_context_t *context)
 {
     for (int i = 0; i < NUMMOBJTYPES; ++i)
     {
@@ -346,8 +346,8 @@ deh_section_t deh_section_thing =
 {
     "Thing",
     NULL,
-    DEH_ThingStart,
-    DEH_ThingParseLine,
+    ThingStart,
+    ThingParseLine,
     NULL,
-    DEH_ThingSHA1Sum,
+    ThingSHA1Sum,
 };
