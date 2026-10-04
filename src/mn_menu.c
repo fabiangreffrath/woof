@@ -1076,7 +1076,7 @@ static void ReadSaveGameContents(char *name, int slot, boolean read_screenshot)
     unsigned char *decomp_str = NULL;
     mz_ulong decomp_len = (mz_ulong)saveg_read32();
 
-    if (CheckStreamLength((int32_t)decomp_len) && CheckZlibHeader(save_p))
+    if (M_CheckStreamLength((int32_t)decomp_len) && M_CheckZlibHeader(save_p))
     {
         decomp_str = malloc((size_t)decomp_len);
 
@@ -1109,7 +1109,7 @@ static void ReadSaveGameContents(char *name, int slot, boolean read_screenshot)
     // Check for JSON stream
 
     json_t *root = NULL;
-    if (CheckJSONStream(json_str, json_len))
+    if (M_CheckJSONStream(json_str, json_len))
     {
         root = JS_OpenString((char *)json_str, json_len);
     }
