@@ -20,29 +20,29 @@
 #include "doomtype.h"
 #include "i_system.h"
 #include "m_misc.h"
-#include "net_defs.h"
-#include "net_loop.h"
-#include "net_packet.h"
+#include "nw_defs.h"
+#include "nw_loop.h"
+#include "nw_packet.h"
 
 #define MAX_QUEUE_SIZE 16
 
 typedef struct
 {
-    net_packet_t *packets[MAX_QUEUE_SIZE];
+    nw_packet_t *packets[MAX_QUEUE_SIZE];
     int head, tail;
 } packet_queue_t;
 
 static packet_queue_t client_queue;
 static packet_queue_t server_queue;
-static net_addr_t client_addr;
-static net_addr_t server_addr;
+static nw_addr_t client_addr;
+static nw_addr_t server_addr;
 
 static void QueueInit(packet_queue_t *queue)
 {
     queue->head = queue->tail = 0;
 }
 
-static void QueuePush(packet_queue_t *queue, net_packet_t *packet)
+static void QueuePush(packet_queue_t *queue, nw_packet_t *packet)
 {
     int new_tail;
 
@@ -59,9 +59,9 @@ static void QueuePush(packet_queue_t *queue, net_packet_t *packet)
     queue->tail = new_tail;
 }
 
-static net_packet_t *QueuePop(packet_queue_t *queue)
+static nw_packet_t *QueuePop(packet_queue_t *queue)
 {
-    net_packet_t *packet;
+    nw_packet_t *packet;
 
     if (queue->tail == queue->head)
     {
@@ -82,27 +82,27 @@ static net_packet_t *QueuePop(packet_queue_t *queue)
 //
 //-----------------------------------------------------------------------------
 
-static boolean NET_CL_InitClient(void)
+static boolean NW_CL_InitClient(void)
 {
     QueueInit(&client_queue);
 
     return true;
 }
 
-static boolean NET_CL_InitServer(void)
+static boolean NW_CL_InitServer(void)
 {
     I_Error("attempted to initialize client pipe end as a server!");
     return false;
 }
 
-static void NET_CL_SendPacket(net_addr_t *addr, net_packet_t *packet)
+static void NW_CL_SendPacket(nw_addr_t *addr, nw_packet_t *packet)
 {
-    QueuePush(&server_queue, NET_PacketDup(packet));
+    QueuePush(&server_queue, NW_PacketDup(packet));
 }
 
-static boolean NET_CL_RecvPacket(net_addr_t **addr, net_packet_t **packet)
+static boolean NW_CL_RecvPacket(nw_addr_t **addr, nw_packet_t **packet)
 {
-    net_packet_t *popped;
+    nw_packet_t *popped;
 
     popped = QueuePop(&client_queue);
 
@@ -110,7 +110,7 @@ static boolean NET_CL_RecvPacket(net_addr_t **addr, net_packet_t **packet)
     {
         *packet = popped;
         *addr = &client_addr;
-        client_addr.module = &net_loop_client_module;
+        client_addr.module = &nw_loop_client_module;
 
         return true;
     }
@@ -118,20 +118,20 @@ static boolean NET_CL_RecvPacket(net_addr_t **addr, net_packet_t **packet)
     return false;
 }
 
-static void NET_CL_AddrToString(net_addr_t *addr, char *buffer, int buffer_len)
+static void NW_CL_AddrToString(nw_addr_t *addr, char *buffer, int buffer_len)
 {
     M_snprintf(buffer, buffer_len, "local server");
 }
 
-static void NET_CL_FreeAddress(net_addr_t *addr)
+static void NW_CL_FreeAddress(nw_addr_t *addr)
 {
 }
 
-static net_addr_t *NET_CL_ResolveAddress(const char *address)
+static nw_addr_t *NW_CL_ResolveAddress(const char *address)
 {
     if (address == NULL)
     {
-        client_addr.module = &net_loop_client_module;
+        client_addr.module = &nw_loop_client_module;
 
         return &client_addr;
     }
@@ -141,15 +141,15 @@ static net_addr_t *NET_CL_ResolveAddress(const char *address)
     }
 }
 
-net_module_t net_loop_client_module =
+nw_module_t nw_loop_client_module =
 {
-    NET_CL_InitClient,
-    NET_CL_InitServer,
-    NET_CL_SendPacket,
-    NET_CL_RecvPacket,
-    NET_CL_AddrToString,
-    NET_CL_FreeAddress,
-    NET_CL_ResolveAddress,
+    NW_CL_InitClient,
+    NW_CL_InitServer,
+    NW_CL_SendPacket,
+    NW_CL_RecvPacket,
+    NW_CL_AddrToString,
+    NW_CL_FreeAddress,
+    NW_CL_ResolveAddress,
 };
 
 //-----------------------------------------------------------------------------
@@ -158,27 +158,27 @@ net_module_t net_loop_client_module =
 //
 //-----------------------------------------------------------------------------
 
-static boolean NET_SV_InitClient(void)
+static boolean NW_SV_InitClient(void)
 {
     I_Error("attempted to initialize server pipe end as a client!");
     return false;
 }
 
-static boolean NET_SV_InitServer(void)
+static boolean NW_SV_InitServer(void)
 {
     QueueInit(&server_queue);
 
     return true;
 }
 
-static void NET_SV_SendPacket(net_addr_t *addr, net_packet_t *packet)
+static void NW_SV_SendPacket(nw_addr_t *addr, nw_packet_t *packet)
 {
-    QueuePush(&client_queue, NET_PacketDup(packet));
+    QueuePush(&client_queue, NW_PacketDup(packet));
 }
 
-static boolean NET_SV_RecvPacket(net_addr_t **addr, net_packet_t **packet)
+static boolean NW_SV_RecvPacket(nw_addr_t **addr, nw_packet_t **packet)
 {
-    net_packet_t *popped;
+    nw_packet_t *popped;
 
     popped = QueuePop(&server_queue);
 
@@ -186,7 +186,7 @@ static boolean NET_SV_RecvPacket(net_addr_t **addr, net_packet_t **packet)
     {
         *packet = popped;
         *addr = &server_addr;
-        server_addr.module = &net_loop_server_module;
+        server_addr.module = &nw_loop_server_module;
 
         return true;
     }
@@ -194,20 +194,20 @@ static boolean NET_SV_RecvPacket(net_addr_t **addr, net_packet_t **packet)
     return false;
 }
 
-static void NET_SV_AddrToString(net_addr_t *addr, char *buffer, int buffer_len)
+static void NW_SV_AddrToString(nw_addr_t *addr, char *buffer, int buffer_len)
 {
     M_snprintf(buffer, buffer_len, "local client");
 }
 
-static void NET_SV_FreeAddress(net_addr_t *addr)
+static void NW_SV_FreeAddress(nw_addr_t *addr)
 {
 }
 
-static net_addr_t *NET_SV_ResolveAddress(const char *address)
+static nw_addr_t *NW_SV_ResolveAddress(const char *address)
 {
     if (address == NULL)
     {
-        server_addr.module = &net_loop_server_module;
+        server_addr.module = &nw_loop_server_module;
         return &server_addr;
     }
     else
@@ -216,13 +216,13 @@ static net_addr_t *NET_SV_ResolveAddress(const char *address)
     }
 }
 
-net_module_t net_loop_server_module =
+nw_module_t nw_loop_server_module =
 {
-    NET_SV_InitClient,
-    NET_SV_InitServer,
-    NET_SV_SendPacket,
-    NET_SV_RecvPacket,
-    NET_SV_AddrToString,
-    NET_SV_FreeAddress,
-    NET_SV_ResolveAddress,
+    NW_SV_InitClient,
+    NW_SV_InitServer,
+    NW_SV_SendPacket,
+    NW_SV_RecvPacket,
+    NW_SV_AddrToString,
+    NW_SV_FreeAddress,
+    NW_SV_ResolveAddress,
 };

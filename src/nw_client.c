@@ -25,13 +25,13 @@
 #include "i_timer.h"
 #include "m_fixed.h"
 #include "m_misc.h"
-#include "net_client.h"
-#include "net_common.h"
-#include "net_io.h"
-#include "net_packet.h"
-#include "net_query.h"
-#include "net_server.h"
-#include "net_structrw.h"
+#include "nw_client.h"
+#include "nw_common.h"
+#include "nw_io.h"
+#include "nw_packet.h"
+#include "nw_query.h"
+#include "nw_server.h"
+#include "nw_structrw.h"
 
 typedef enum
 {
@@ -47,7 +47,7 @@ typedef enum
 
     CLIENT_STATE_IN_GAME,
 
-} net_clientstate_t;
+} nw_clientstate_t;
 
 // Type of structure used in the receive window
 
@@ -63,9 +63,9 @@ typedef struct
 
     // Tic data from server
 
-    net_full_ticcmd_t cmd;
+    nw_full_ticcmd_t cmd;
 
-} net_server_recv_t;
+} nw_server_recv_t;
 
 // Type of structure used in the send window
 
@@ -85,38 +85,38 @@ typedef struct
 
     // Ticcmd diff
 
-    net_ticdiff_t cmd;
-} net_server_send_t;
+    nw_ticdiff_t cmd;
+} nw_server_send_t;
 
-static net_connection_t client_connection;
-static net_clientstate_t client_state;
-static net_addr_t *server_addr;
-static net_context_t *client_context;
+static nw_connection_t client_connection;
+static nw_clientstate_t client_state;
+static nw_addr_t *server_addr;
+static nw_context_t *client_context;
 
 // game settings, as received from the server when the game started
 
-static net_gamesettings_t settings;
+static nw_gamesettings_t settings;
 
 // Why did the server reject us?
-char *net_client_reject_reason = NULL;
+char *nw_client_reject_reason = NULL;
 
 // true if the client code is in use
 
-boolean net_client_connected;
+boolean nw_client_connected;
 
 // true if we have received waiting data from the server,
 // and the wait data that was received.
 
-boolean net_client_received_wait_data;
-net_waitdata_t net_client_wait_data;
+boolean nw_client_received_wait_data;
+nw_waitdata_t nw_client_wait_data;
 
 // Waiting at the initial wait screen for the game to be launched?
 
-boolean net_waiting_for_launch = false;
+boolean nw_waiting_for_launch = false;
 
 // Name that we send to the server
 
-const char *net_player_name = NULL;
+const char *nw_player_name = NULL;
 
 // Connected but not participating in the game (observer)
 
@@ -128,13 +128,13 @@ static ticcmd_t last_ticcmd;
 
 // Buffer of ticcmd diffs being sent to the server
 
-static net_server_send_t send_queue[BACKUPTICS];
+static nw_server_send_t send_queue[BACKUPTICS];
 
 // Receive window
 
-static ticcmd_t recvwindow_cmd_base[NET_MAXPLAYERS];
+static ticcmd_t recvwindow_cmd_base[NW_MAXPLAYERS];
 static int recvwindow_start;
-static net_server_recv_t recvwindow[BACKUPTICS];
+static nw_server_recv_t recvwindow[BACKUPTICS];
 
 // Whether we need to send an acknowledgement and
 // when gamedata was last received.
@@ -150,18 +150,18 @@ static int last_latency;
 
 // Hash checksums of our wad directory and dehacked data.
 
-sha1_digest_t net_local_wad_sha1sum;
-sha1_digest_t net_local_deh_sha1sum;
+sha1_digest_t nw_local_wad_sha1sum;
+sha1_digest_t nw_local_deh_sha1sum;
 
 // Are we playing with the freedoom IWAD?
 
-unsigned int net_local_is_freedoom;
+unsigned int nw_local_is_freedoom;
 
-#define NET_CL_ExpandTicNum(b) NET_ExpandTicNum(recvwindow_start, (b))
+#define NW_CL_ExpandTicNum(b) NW_ExpandTicNum(recvwindow_start, (b))
 
 // Called when we become disconnected from the server
 
-static void NET_CL_Disconnected(void)
+static void NW_CL_Disconnected(void)
 {
     D_ReceiveTic(NULL, NULL);
 }
@@ -206,23 +206,23 @@ static void UpdateClockSync(unsigned int seq, unsigned int remote_latency)
     last_error = error;
     last_latency = latency;
 
-    NET_Log("client: latency %d, remote %d -> offset=%dms, cumul_error=%d",
+    NW_Log("client: latency %d, remote %d -> offset=%dms, cumul_error=%d",
             latency, remote_latency, offsetms / FRACUNIT, cumul_error);
 }
 
-// Expand a net_full_ticcmd_t, applying the diffs in cmd->cmds as
+// Expand a nw_full_ticcmd_t, applying the diffs in cmd->cmds as
 // patches against recvwindow_cmd_base.  Place the results into
 // the d_net.c structures (netcmds/nettics) and save the new ticcmd
 // back into recvwindow_cmd_base.
 
-static void NET_CL_ExpandFullTiccmd(net_full_ticcmd_t *cmd, unsigned int seq,
+static void NW_CL_ExpandFullTiccmd(nw_full_ticcmd_t *cmd, unsigned int seq,
                                     ticcmd_t *ticcmds)
 {
     int i;
 
     // Expand tic diffs for all players
 
-    for (i = 0; i < NET_MAXPLAYERS; ++i)
+    for (i = 0; i < NW_MAXPLAYERS; ++i)
     {
         if (i == settings.consoleplayer && !drone)
         {
@@ -231,14 +231,14 @@ static void NET_CL_ExpandFullTiccmd(net_full_ticcmd_t *cmd, unsigned int seq,
 
         if (cmd->playeringame[i])
         {
-            net_ticdiff_t *diff;
+            nw_ticdiff_t *diff;
 
             diff = &cmd->cmds[i];
 
             // Use the ticcmd diff to patch the previous ticcmd to
             // the new ticcmd
 
-            NET_TiccmdPatch(&recvwindow_cmd_base[i], diff, &ticcmds[i]);
+            NW_TiccmdPatch(&recvwindow_cmd_base[i], diff, &ticcmds[i]);
 
             // Store a copy for next time
 
@@ -249,51 +249,51 @@ static void NET_CL_ExpandFullTiccmd(net_full_ticcmd_t *cmd, unsigned int seq,
 
 // Advance the receive window
 
-static void NET_CL_AdvanceWindow(void)
+static void NW_CL_AdvanceWindow(void)
 {
-    ticcmd_t ticcmds[NET_MAXPLAYERS];
+    ticcmd_t ticcmds[NW_MAXPLAYERS];
 
     while (recvwindow[0].active)
     {
         // Expand tic diff data into d_net.c structures
 
-        NET_CL_ExpandFullTiccmd(&recvwindow[0].cmd, recvwindow_start, ticcmds);
+        NW_CL_ExpandFullTiccmd(&recvwindow[0].cmd, recvwindow_start, ticcmds);
         D_ReceiveTic(ticcmds, recvwindow[0].cmd.playeringame);
 
         // Advance the window
 
         memmove(recvwindow, recvwindow + 1,
-                sizeof(net_server_recv_t) * (BACKUPTICS - 1));
-        memset(&recvwindow[BACKUPTICS - 1], 0, sizeof(net_server_recv_t));
+                sizeof(nw_server_recv_t) * (BACKUPTICS - 1));
+        memset(&recvwindow[BACKUPTICS - 1], 0, sizeof(nw_server_recv_t));
 
         ++recvwindow_start;
 
-        NET_Log("client: advanced receive window to %d", recvwindow_start);
+        NW_Log("client: advanced receive window to %d", recvwindow_start);
     }
 }
 
 // Shut down the client code, etc.  Invoked after a disconnect.
 
-static void NET_CL_Shutdown(void)
+static void NW_CL_Shutdown(void)
 {
-    if (net_client_connected)
+    if (nw_client_connected)
     {
-        net_client_connected = false;
+        nw_client_connected = false;
 
-        NET_ReleaseAddress(server_addr);
+        NW_ReleaseAddress(server_addr);
 
         // Shut down network module, etc.  To do.
     }
 }
 
-void NET_CL_LaunchGame(void)
+void NW_CL_LaunchGame(void)
 {
-    NET_Conn_NewReliable(&client_connection, NET_PACKET_TYPE_LAUNCH);
+    NW_Conn_NewReliable(&client_connection, NW_PACKET_TYPE_LAUNCH);
 }
 
-void NET_CL_StartGame(net_gamesettings_t *settings)
+void NW_CL_StartGame(nw_gamesettings_t *settings)
 {
-    net_packet_t *packet;
+    nw_packet_t *packet;
 
     // Start from a ticcmd of all zeros
 
@@ -302,33 +302,33 @@ void NET_CL_StartGame(net_gamesettings_t *settings)
     // Send packet
 
     packet =
-        NET_Conn_NewReliable(&client_connection, NET_PACKET_TYPE_GAMESTART);
+        NW_Conn_NewReliable(&client_connection, NW_PACKET_TYPE_GAMESTART);
 
-    NET_WriteSettings(packet, settings);
+    NW_WriteSettings(packet, settings);
 }
 
-static void NET_CL_SendGameDataACK(void)
+static void NW_CL_SendGameDataACK(void)
 {
-    net_packet_t *packet;
+    nw_packet_t *packet;
 
-    packet = NET_NewPacket(10);
+    packet = NW_NewPacket(10);
 
-    NET_WriteInt16(packet, NET_PACKET_TYPE_GAMEDATA_ACK);
-    NET_WriteInt8(packet, recvwindow_start & 0xff);
+    NW_WriteInt16(packet, NW_PACKET_TYPE_GAMEDATA_ACK);
+    NW_WriteInt8(packet, recvwindow_start & 0xff);
 
-    NET_Conn_SendPacket(&client_connection, packet);
+    NW_Conn_SendPacket(&client_connection, packet);
 
-    NET_FreePacket(packet);
+    NW_FreePacket(packet);
 
     need_to_acknowledge = false;
 }
 
-static void NET_CL_SendTics(int start, int end)
+static void NW_CL_SendTics(int start, int end)
 {
-    net_packet_t *packet;
+    nw_packet_t *packet;
     int i;
 
-    if (!net_client_connected)
+    if (!nw_client_connected)
     {
         // Disconnected from server
 
@@ -342,36 +342,36 @@ static void NET_CL_SendTics(int start, int end)
 
     // Build a new packet to send to the server
 
-    packet = NET_NewPacket(512);
-    NET_WriteInt16(packet, NET_PACKET_TYPE_GAMEDATA);
+    packet = NW_NewPacket(512);
+    NW_WriteInt16(packet, NW_PACKET_TYPE_GAMEDATA);
 
     // Write the start tic and number of tics.  Send only the low byte
     // of start - it can be inferred by the server.
 
-    NET_WriteInt8(packet, recvwindow_start & 0xff);
-    NET_WriteInt8(packet, start & 0xff);
-    NET_WriteInt8(packet, end - start + 1);
+    NW_WriteInt8(packet, recvwindow_start & 0xff);
+    NW_WriteInt8(packet, start & 0xff);
+    NW_WriteInt8(packet, end - start + 1);
 
     // Add the tics.
 
     for (i = start; i <= end; ++i)
     {
-        net_server_send_t *sendobj;
+        nw_server_send_t *sendobj;
 
         sendobj = &send_queue[i % BACKUPTICS];
 
-        NET_WriteInt16(packet, last_latency);
+        NW_WriteInt16(packet, last_latency);
 
-        NET_WriteTiccmdDiff(packet, &sendobj->cmd, settings.lowres_turn);
+        NW_WriteTiccmdDiff(packet, &sendobj->cmd, settings.lowres_turn);
     }
 
     // Send the packet
 
-    NET_Conn_SendPacket(&client_connection, packet);
+    NW_Conn_SendPacket(&client_connection, packet);
 
     // All done!
 
-    NET_FreePacket(packet);
+    NW_FreePacket(packet);
 
     // Acknowledgement has been sent as part of the packet
 
@@ -380,15 +380,15 @@ static void NET_CL_SendTics(int start, int end)
 
 // Add a new ticcmd to the send queue
 
-void NET_CL_SendTiccmd(ticcmd_t *ticcmd, int maketic)
+void NW_CL_SendTiccmd(ticcmd_t *ticcmd, int maketic)
 {
-    net_ticdiff_t diff;
-    net_server_send_t *sendobj;
+    nw_ticdiff_t diff;
+    nw_server_send_t *sendobj;
     int starttic, endtic;
 
     // Calculate the difference to the last ticcmd
 
-    NET_TiccmdDiff(&last_ticcmd, ticcmd, &diff);
+    NW_TiccmdDiff(&last_ticcmd, ticcmd, &diff);
 
     // Store in the send queue
 
@@ -410,37 +410,37 @@ void NET_CL_SendTiccmd(ticcmd_t *ticcmd, int maketic)
         starttic = 0;
     }
 
-    NET_Log("client: generated tic %d, sending %d-%d", maketic, starttic,
+    NW_Log("client: generated tic %d, sending %d-%d", maketic, starttic,
             endtic);
-    NET_CL_SendTics(starttic, endtic);
+    NW_CL_SendTics(starttic, endtic);
 }
 
 // Parse a SYN packet received back from the server indicating a successful
 // connection attempt.
-static void NET_CL_ParseSYN(net_packet_t *packet)
+static void NW_CL_ParseSYN(nw_packet_t *packet)
 {
-    net_protocol_t protocol;
+    nw_protocol_t protocol;
     char *server_version;
 
-    NET_Log("client: processing SYN response");
+    NW_Log("client: processing SYN response");
 
-    server_version = NET_ReadSafeString(packet);
+    server_version = NW_ReadSafeString(packet);
     if (server_version == NULL)
     {
-        NET_Log("client: error: failed to read server version");
+        NW_Log("client: error: failed to read server version");
         return;
     }
 
-    protocol = NET_ReadProtocol(packet);
-    if (protocol == NET_PROTOCOL_UNKNOWN)
+    protocol = NW_ReadProtocol(packet);
+    if (protocol == NW_PROTOCOL_UNKNOWN)
     {
-        NET_Log("client: error: can't find a common protocol");
+        NW_Log("client: error: can't find a common protocol");
         return;
     }
 
     // We are now successfully connected.
-    NET_Log("client: connected to server");
-    client_connection.state = NET_CONN_STATE_CONNECTED;
+    NW_Log("client: connected to server");
+    client_connection.state = NW_CONN_STATE_CONNECTED;
     client_connection.protocol = protocol;
 
     // Even though we have negotiated a compatible protocol, the game may still
@@ -450,7 +450,7 @@ static void NET_CL_ParseSYN(net_packet_t *packet)
     if (strcmp(server_version, PROJECT_STRING) != 0)
     {
         I_Printf(VB_WARNING,
-                 "NET_CL_ParseSYN: This is '%s', but the server is "
+                 "NW_CL_ParseSYN: This is '%s', but the server is "
                  "'%s'. It is possible that this mismatch may cause the game "
                  "to desync.",
                  PROJECT_STRING, server_version);
@@ -459,42 +459,42 @@ static void NET_CL_ParseSYN(net_packet_t *packet)
 
 static void SetRejectReason(const char *s)
 {
-    free(net_client_reject_reason);
+    free(nw_client_reject_reason);
     if (s != NULL)
     {
-        net_client_reject_reason = strdup(s);
+        nw_client_reject_reason = strdup(s);
     }
     else
     {
-        net_client_reject_reason = NULL;
+        nw_client_reject_reason = NULL;
     }
 }
 
-static void NET_CL_ParseReject(net_packet_t *packet)
+static void NW_CL_ParseReject(nw_packet_t *packet)
 {
     char *msg;
 
-    msg = NET_ReadSafeString(packet);
+    msg = NW_ReadSafeString(packet);
     if (msg == NULL)
     {
         return;
     }
 
-    if (client_connection.state == NET_CONN_STATE_CONNECTING)
+    if (client_connection.state == NW_CONN_STATE_CONNECTING)
     {
-        client_connection.state = NET_CONN_STATE_DISCONNECTED;
-        client_connection.disconnect_reason = NET_DISCONNECT_REMOTE;
+        client_connection.state = NW_CONN_STATE_DISCONNECTED;
+        client_connection.disconnect_reason = NW_DISCONNECT_REMOTE;
         SetRejectReason(msg);
     }
 }
 
 // data received while we are waiting for the game to start
 
-static void NET_CL_ParseWaitingData(net_packet_t *packet)
+static void NW_CL_ParseWaitingData(nw_packet_t *packet)
 {
-    net_waitdata_t wait_data;
+    nw_waitdata_t wait_data;
 
-    if (!NET_ReadWaitData(packet, &wait_data))
+    if (!NW_ReadWaitData(packet, &wait_data))
     {
         // Invalid packet?
         return;
@@ -502,7 +502,7 @@ static void NET_CL_ParseWaitingData(net_packet_t *packet)
 
     if (wait_data.num_players > wait_data.max_players
         || wait_data.ready_players > wait_data.num_players
-        || wait_data.max_players > NET_MAXPLAYERS)
+        || wait_data.max_players > NW_MAXPLAYERS)
     {
         // insane data
 
@@ -518,19 +518,19 @@ static void NET_CL_ParseWaitingData(net_packet_t *packet)
         return;
     }
 
-    memcpy(&net_client_wait_data, &wait_data, sizeof(net_waitdata_t));
-    net_client_received_wait_data = true;
+    memcpy(&nw_client_wait_data, &wait_data, sizeof(nw_waitdata_t));
+    nw_client_received_wait_data = true;
 }
 
-static void NET_CL_ParseLaunch(net_packet_t *packet)
+static void NW_CL_ParseLaunch(nw_packet_t *packet)
 {
     unsigned int num_players;
 
-    NET_Log("client: processing launch packet");
+    NW_Log("client: processing launch packet");
 
     if (client_state != CLIENT_STATE_WAITING_LAUNCH)
     {
-        NET_Log("client: error: not in waiting launch state, client_state=%d",
+        NW_Log("client: error: not in waiting launch state, client_state=%d",
                 client_state);
         return;
     }
@@ -539,39 +539,39 @@ static void NET_CL_ParseLaunch(net_packet_t *packet)
     // in the game when it starts, so that we can do the startup
     // progress indicator (the wait data is unreliable).
 
-    if (!NET_ReadInt8(packet, &num_players))
+    if (!NW_ReadInt8(packet, &num_players))
     {
-        NET_Log("client: error: failed to read number of players");
+        NW_Log("client: error: failed to read number of players");
         return;
     }
 
-    net_client_wait_data.num_players = num_players;
+    nw_client_wait_data.num_players = num_players;
     client_state = CLIENT_STATE_WAITING_START;
-    NET_Log("client: now waiting for game start");
+    NW_Log("client: now waiting for game start");
 }
 
-static void NET_CL_ParseGameStart(net_packet_t *packet)
+static void NW_CL_ParseGameStart(nw_packet_t *packet)
 {
-    NET_Log("client: processing game start packet");
+    NW_Log("client: processing game start packet");
 
-    if (!NET_ReadSettings(packet, &settings))
+    if (!NW_ReadSettings(packet, &settings))
     {
-        NET_Log("client: error: failed to read settings");
+        NW_Log("client: error: failed to read settings");
         return;
     }
 
     if (client_state != CLIENT_STATE_WAITING_START)
     {
-        NET_Log("client: error: not in waiting start state, client_state=%d",
+        NW_Log("client: error: not in waiting start state, client_state=%d",
                 client_state);
         return;
     }
 
-    if (settings.num_players > NET_MAXPLAYERS
+    if (settings.num_players > NW_MAXPLAYERS
         || settings.consoleplayer >= (signed int)settings.num_players)
     {
         // insane values
-        NET_Log("client: error: bad settings, num_players=%d, consoleplayer=%d",
+        NW_Log("client: error: bad settings, num_players=%d, consoleplayer=%d",
                 settings.num_players, settings.consoleplayer);
         return;
     }
@@ -581,12 +581,12 @@ static void NET_CL_ParseGameStart(net_packet_t *packet)
     {
         // Invalid player number: must be positive for real players,
         // negative for drones
-        NET_Log("client: error: mismatch: drone=%d, consoleplayer=%d", drone,
+        NW_Log("client: error: mismatch: drone=%d, consoleplayer=%d", drone,
                 settings.consoleplayer);
         return;
     }
 
-    NET_Log("client: beginning game state");
+    NW_Log("client: beginning game state");
     client_state = CLIENT_STATE_IN_GAME;
 
     // Clear the receive window
@@ -600,20 +600,20 @@ static void NET_CL_ParseGameStart(net_packet_t *packet)
     memset(&send_queue, 0x00, sizeof(send_queue));
 }
 
-static void NET_CL_SendResendRequest(int start, int end)
+static void NW_CL_SendResendRequest(int start, int end)
 {
-    net_packet_t *packet;
+    nw_packet_t *packet;
     unsigned int nowtime;
     int i;
 
     // printf("CL: Send resend %i-%i\n", start, end);
 
-    packet = NET_NewPacket(64);
-    NET_WriteInt16(packet, NET_PACKET_TYPE_GAMEDATA_RESEND);
-    NET_WriteInt32(packet, start);
-    NET_WriteInt8(packet, end - start + 1);
-    NET_Conn_SendPacket(&client_connection, packet);
-    NET_FreePacket(packet);
+    packet = NW_NewPacket(64);
+    NW_WriteInt16(packet, NW_PACKET_TYPE_GAMEDATA_RESEND);
+    NW_WriteInt32(packet, start);
+    NW_WriteInt8(packet, end - start + 1);
+    NW_Conn_SendPacket(&client_connection, packet);
+    NW_FreePacket(packet);
 
     nowtime = I_GetTimeMS();
 
@@ -636,7 +636,7 @@ static void NET_CL_SendResendRequest(int start, int end)
 
 // Check for expired resend requests
 
-static void NET_CL_CheckResends(void)
+static void NW_CL_CheckResends(void)
 {
     int i;
     int resend_start, resend_end;
@@ -651,7 +651,7 @@ static void NET_CL_CheckResends(void)
 
     for (i = 0; i < BACKUPTICS; ++i)
     {
-        net_server_recv_t *recvobj;
+        nw_server_recv_t *recvobj;
         boolean need_resend;
 
         recvobj = &recvwindow[i];
@@ -687,11 +687,11 @@ static void NET_CL_CheckResends(void)
         else if (resend_start >= 0)
         {
             // End of a run of resend tics
-            NET_Log("client: resend request timed out for %d-%d (%d)",
+            NW_Log("client: resend request timed out for %d-%d (%d)",
                     recvwindow_start + resend_start,
                     recvwindow_start + resend_end,
                     recvwindow[resend_start].resend_time);
-            NET_CL_SendResendRequest(recvwindow_start + resend_start,
+            NW_CL_SendResendRequest(recvwindow_start + resend_start,
                                      recvwindow_start + resend_end);
             resend_start = -1;
         }
@@ -699,10 +699,10 @@ static void NET_CL_CheckResends(void)
 
     if (resend_start >= 0)
     {
-        NET_Log("client: resend request timed out for %d-%d (%d)",
+        NW_Log("client: resend request timed out for %d-%d (%d)",
                 recvwindow_start + resend_start, recvwindow_start + resend_end,
                 recvwindow[resend_start].resend_time);
-        NET_CL_SendResendRequest(recvwindow_start + resend_start,
+        NW_CL_SendResendRequest(recvwindow_start + resend_start,
                                  recvwindow_start + resend_end);
     }
 
@@ -712,30 +712,30 @@ static void NET_CL_CheckResends(void)
 
     if (need_to_acknowledge && nowtime - gamedata_recv_time > 200)
     {
-        NET_Log("client: no game data received since %d: triggering ack",
+        NW_Log("client: no game data received since %d: triggering ack",
                 gamedata_recv_time);
-        NET_CL_SendGameDataACK();
+        NW_CL_SendGameDataACK();
     }
 }
 
-// Parsing of NET_PACKET_TYPE_GAMEDATA packets
+// Parsing of NW_PACKET_TYPE_GAMEDATA packets
 // (packets containing the actual ticcmd data)
 
-static void NET_CL_ParseGameData(net_packet_t *packet)
+static void NW_CL_ParseGameData(nw_packet_t *packet)
 {
-    net_server_recv_t *recvobj;
+    nw_server_recv_t *recvobj;
     unsigned int seq, num_tics;
     unsigned int nowtime;
     int resend_start, resend_end;
     unsigned long i;
     int index;
 
-    NET_Log("client: processing game data packet");
+    NW_Log("client: processing game data packet");
 
     // Read header
-    if (!NET_ReadInt8(packet, &seq) || !NET_ReadInt8(packet, &num_tics))
+    if (!NW_ReadInt8(packet, &seq) || !NW_ReadInt8(packet, &num_tics))
     {
-        NET_Log("client: error: failed to read header");
+        NW_Log("client: error: failed to read header");
         return;
     }
 
@@ -751,18 +751,18 @@ static void NET_CL_ParseGameData(net_packet_t *packet)
     }
 
     // Expand byte value into the full tic number
-    seq = NET_CL_ExpandTicNum(seq);
-    NET_Log("client: got game data, seq=%d, num_tics=%d", seq, num_tics);
+    seq = NW_CL_ExpandTicNum(seq);
+    NW_Log("client: got game data, seq=%d, num_tics=%d", seq, num_tics);
 
     for (i = 0; i < num_tics; ++i)
     {
-        net_full_ticcmd_t cmd;
+        nw_full_ticcmd_t cmd;
 
         index = seq - recvwindow_start + i;
 
-        if (!NET_ReadFullTiccmd(packet, &cmd, settings.lowres_turn))
+        if (!NW_ReadFullTiccmd(packet, &cmd, settings.lowres_turn))
         {
-            NET_Log("client: error: failed to read ticcmd %lu",
+            NW_Log("client: error: failed to read ticcmd %lu",
                     (unsigned long)i);
             return;
         }
@@ -780,7 +780,7 @@ static void NET_CL_ParseGameData(net_packet_t *packet)
 
         recvobj->active = true;
         recvobj->cmd = cmd;
-        NET_Log("client: stored tic %lu in receive window",
+        NW_Log("client: stored tic %lu in receive window",
                 (unsigned long)seq + i);
 
         // If a packet is lost or arrives out of order, we might get
@@ -840,41 +840,41 @@ static void NET_CL_ParseGameData(net_packet_t *packet)
     // Possibly send a resend request
     if (resend_start < resend_end)
     {
-        NET_Log("client: request resend for %d-%d before %d",
+        NW_Log("client: request resend for %d-%d before %d",
                 recvwindow_start + resend_start,
                 recvwindow_start + resend_end - 1, seq);
-        NET_CL_SendResendRequest(recvwindow_start + resend_start,
+        NW_CL_SendResendRequest(recvwindow_start + resend_start,
                                  recvwindow_start + resend_end - 1);
     }
 }
 
 // Parse a resend request from the server due to a dropped packet
 
-static void NET_CL_ParseResendRequest(net_packet_t *packet)
+static void NW_CL_ParseResendRequest(nw_packet_t *packet)
 {
     static unsigned int start;
     static unsigned int end;
     static unsigned int num_tics;
 
-    NET_Log("client: processing resend request");
+    NW_Log("client: processing resend request");
 
     if (drone)
     {
         // Drones don't send gamedata.
-        NET_Log("client: error: resend request but we're a drone?");
+        NW_Log("client: error: resend request but we're a drone?");
         return;
     }
 
-    if (!NET_ReadInt32(packet, &start) || !NET_ReadInt8(packet, &num_tics))
+    if (!NW_ReadInt32(packet, &start) || !NW_ReadInt8(packet, &num_tics))
     {
-        NET_Log("client: error: couldn't read start and num_tics");
+        NW_Log("client: error: couldn't read start and num_tics");
         return;
     }
 
     end = start + num_tics - 1;
 
     // printf("requested resend %i-%i .. ", start, end);
-    NET_Log("client: resend request: start=%d, num_tics=%d", start, num_tics);
+    NW_Log("client: resend request: start=%d, num_tics=%d", start, num_tics);
 
     // Check we have the tics being requested.  If not, reduce the
     // window of tics to only what we have.
@@ -896,22 +896,22 @@ static void NET_CL_ParseResendRequest(net_packet_t *packet)
     // Resend those tics
     if (start <= end)
     {
-        NET_Log("client: resending %d-%d", start, end);
-        NET_CL_SendTics(start, end);
+        NW_Log("client: resending %d-%d", start, end);
+        NW_CL_SendTics(start, end);
     }
     else
     {
-        NET_Log("client: don't have the tics to resend");
+        NW_Log("client: don't have the tics to resend");
     }
 }
 
 // Console message that the server wants the client to print
 
-static void NET_CL_ParseConsoleMessage(net_packet_t *packet)
+static void NW_CL_ParseConsoleMessage(nw_packet_t *packet)
 {
     char *msg;
 
-    msg = NET_ReadSafeString(packet);
+    msg = NW_ReadSafeString(packet);
 
     if (msg == NULL)
     {
@@ -923,20 +923,20 @@ static void NET_CL_ParseConsoleMessage(net_packet_t *packet)
 
 // parse a received packet
 
-static void NET_CL_ParsePacket(net_packet_t *packet)
+static void NW_CL_ParsePacket(nw_packet_t *packet)
 {
     unsigned int packet_type;
 
-    if (!NET_ReadInt16(packet, &packet_type))
+    if (!NW_ReadInt16(packet, &packet_type))
     {
         return;
     }
 
-    NET_Log("client: packet from server, type %d",
-            packet_type & ~NET_RELIABLE_PACKET);
-    NET_LogPacket(packet);
+    NW_Log("client: packet from server, type %d",
+            packet_type & ~NW_RELIABLE_PACKET);
+    NW_LogPacket(packet);
 
-    if (NET_Conn_Packet(&client_connection, packet, &packet_type))
+    if (NW_Conn_Packet(&client_connection, packet, &packet_type))
     {
         // Packet eaten by the common connection code
     }
@@ -944,36 +944,36 @@ static void NET_CL_ParsePacket(net_packet_t *packet)
     {
         switch (packet_type)
         {
-            case NET_PACKET_TYPE_SYN:
-                NET_CL_ParseSYN(packet);
+            case NW_PACKET_TYPE_SYN:
+                NW_CL_ParseSYN(packet);
                 break;
 
-            case NET_PACKET_TYPE_REJECTED:
-                NET_CL_ParseReject(packet);
+            case NW_PACKET_TYPE_REJECTED:
+                NW_CL_ParseReject(packet);
                 break;
 
-            case NET_PACKET_TYPE_WAITING_DATA:
-                NET_CL_ParseWaitingData(packet);
+            case NW_PACKET_TYPE_WAITING_DATA:
+                NW_CL_ParseWaitingData(packet);
                 break;
 
-            case NET_PACKET_TYPE_LAUNCH:
-                NET_CL_ParseLaunch(packet);
+            case NW_PACKET_TYPE_LAUNCH:
+                NW_CL_ParseLaunch(packet);
                 break;
 
-            case NET_PACKET_TYPE_GAMESTART:
-                NET_CL_ParseGameStart(packet);
+            case NW_PACKET_TYPE_GAMESTART:
+                NW_CL_ParseGameStart(packet);
                 break;
 
-            case NET_PACKET_TYPE_GAMEDATA:
-                NET_CL_ParseGameData(packet);
+            case NW_PACKET_TYPE_GAMEDATA:
+                NW_CL_ParseGameData(packet);
                 break;
 
-            case NET_PACKET_TYPE_GAMEDATA_RESEND:
-                NET_CL_ParseResendRequest(packet);
+            case NW_PACKET_TYPE_GAMEDATA_RESEND:
+                NW_CL_ParseResendRequest(packet);
                 break;
 
-            case NET_PACKET_TYPE_CONSOLE_MESSAGE:
-                NET_CL_ParseConsoleMessage(packet);
+            case NW_PACKET_TYPE_CONSOLE_MESSAGE:
+                NW_CL_ParseConsoleMessage(packet);
                 break;
 
             default:
@@ -985,89 +985,89 @@ static void NET_CL_ParsePacket(net_packet_t *packet)
 // "Run" the client code: check for new packets, send packets as
 // needed
 
-void NET_CL_Run(void)
+void NW_CL_Run(void)
 {
-    net_addr_t *addr;
-    net_packet_t *packet;
+    nw_addr_t *addr;
+    nw_packet_t *packet;
 
-    if (!net_client_connected)
+    if (!nw_client_connected)
     {
         return;
     }
 
-    while (NET_RecvPacket(client_context, &addr, &packet))
+    while (NW_RecvPacket(client_context, &addr, &packet))
     {
         // only accept packets from the server
 
         if (addr == server_addr)
         {
-            NET_CL_ParsePacket(packet);
+            NW_CL_ParsePacket(packet);
         }
 
-        NET_FreePacket(packet);
-        NET_ReleaseAddress(addr);
+        NW_FreePacket(packet);
+        NW_ReleaseAddress(addr);
     }
 
     // Run the common connection code to send any packets as needed
 
-    NET_Conn_Run(&client_connection);
+    NW_Conn_Run(&client_connection);
 
-    if (client_connection.state == NET_CONN_STATE_DISCONNECTED
-        || client_connection.state == NET_CONN_STATE_DISCONNECTED_SLEEP)
+    if (client_connection.state == NW_CONN_STATE_DISCONNECTED
+        || client_connection.state == NW_CONN_STATE_DISCONNECTED_SLEEP)
     {
-        NET_CL_Disconnected();
+        NW_CL_Disconnected();
 
-        NET_CL_Shutdown();
+        NW_CL_Shutdown();
     }
 
-    net_waiting_for_launch = client_connection.state == NET_CONN_STATE_CONNECTED
+    nw_waiting_for_launch = client_connection.state == NW_CONN_STATE_CONNECTED
                              && client_state == CLIENT_STATE_WAITING_LAUNCH;
 
     if (client_state == CLIENT_STATE_IN_GAME)
     {
         // Possibly advance the receive window
 
-        NET_CL_AdvanceWindow();
+        NW_CL_AdvanceWindow();
 
         // Check if our resend requests have timed out
 
-        NET_CL_CheckResends();
+        NW_CL_CheckResends();
     }
 }
 
-static void NET_CL_SendSYN(net_connect_data_t *data)
+static void NW_CL_SendSYN(nw_connect_data_t *data)
 {
-    net_packet_t *packet;
+    nw_packet_t *packet;
 
-    NET_Log("client: sending SYN");
+    NW_Log("client: sending SYN");
 
-    packet = NET_NewPacket(10);
-    NET_WriteInt16(packet, NET_PACKET_TYPE_SYN);
-    NET_WriteInt32(packet, NET_MAGIC_NUMBER);
-    NET_WriteString(packet, PROJECT_STRING);
-    NET_WriteProtocolList(packet);
-    NET_WriteConnectData(packet, data);
-    NET_WriteString(packet, net_player_name);
-    NET_Conn_SendPacket(&client_connection, packet);
-    NET_FreePacket(packet);
+    packet = NW_NewPacket(10);
+    NW_WriteInt16(packet, NW_PACKET_TYPE_SYN);
+    NW_WriteInt32(packet, NW_MAGIC_NUMBER);
+    NW_WriteString(packet, PROJECT_STRING);
+    NW_WriteProtocolList(packet);
+    NW_WriteConnectData(packet, data);
+    NW_WriteString(packet, nw_player_name);
+    NW_Conn_SendPacket(&client_connection, packet);
+    NW_FreePacket(packet);
 }
 
 // Connect to a server
-boolean NET_CL_Connect(net_addr_t *addr, net_connect_data_t *data)
+boolean NW_CL_Connect(nw_addr_t *addr, nw_connect_data_t *data)
 {
     int start_time;
     int last_send_time;
     boolean sent_hole_punch;
 
     server_addr = addr;
-    NET_ReferenceAddress(addr);
+    NW_ReferenceAddress(addr);
 
-    memcpy(net_local_wad_sha1sum, data->wad_sha1sum, sizeof(sha1_digest_t));
-    memcpy(net_local_deh_sha1sum, data->deh_sha1sum, sizeof(sha1_digest_t));
-    net_local_is_freedoom = data->is_freedoom;
+    memcpy(nw_local_wad_sha1sum, data->wad_sha1sum, sizeof(sha1_digest_t));
+    memcpy(nw_local_deh_sha1sum, data->deh_sha1sum, sizeof(sha1_digest_t));
+    nw_local_is_freedoom = data->is_freedoom;
 
     // create a new network I/O context and add just the necessary module
-    client_context = NET_NewContext();
+    client_context = NW_NewContext();
 
     // initialize module for client mode
     if (!addr->module->InitClient())
@@ -1076,27 +1076,27 @@ boolean NET_CL_Connect(net_addr_t *addr, net_connect_data_t *data)
         return false;
     }
 
-    NET_AddModule(client_context, addr->module);
+    NW_AddModule(client_context, addr->module);
 
-    net_client_connected = true;
-    net_client_received_wait_data = false;
+    nw_client_connected = true;
+    nw_client_received_wait_data = false;
     sent_hole_punch = false;
 
-    NET_Conn_InitClient(&client_connection, addr, NET_PROTOCOL_UNKNOWN);
+    NW_Conn_InitClient(&client_connection, addr, NW_PROTOCOL_UNKNOWN);
 
     // try to connect
     start_time = I_GetTimeMS();
     last_send_time = -1;
     SetRejectReason("Unknown reason");
 
-    while (client_connection.state == NET_CONN_STATE_CONNECTING)
+    while (client_connection.state == NW_CONN_STATE_CONNECTING)
     {
         int nowtime = I_GetTimeMS();
 
         // Send a SYN packet every second.
         if (nowtime - last_send_time > 1000 || last_send_time < 0)
         {
-            NET_CL_SendSYN(data);
+            NW_CL_SendSYN(data);
             last_send_time = nowtime;
         }
 
@@ -1109,25 +1109,25 @@ boolean NET_CL_Connect(net_addr_t *addr, net_connect_data_t *data)
 
         if (!sent_hole_punch && nowtime - start_time > 2000)
         {
-            NET_Log("client: no response to SYN, requesting hole punch");
-            NET_RequestHolePunch(client_context, addr);
+            NW_Log("client: no response to SYN, requesting hole punch");
+            NW_RequestHolePunch(client_context, addr);
             sent_hole_punch = true;
         }
 
         // run client code
-        NET_CL_Run();
+        NW_CL_Run();
 
         // run the server, just in case we are doing a loopback connect
-        NET_SV_Run();
+        NW_SV_Run();
 
         // Don't hog the CPU
         I_Sleep(1);
     }
 
-    if (client_connection.state == NET_CONN_STATE_CONNECTED)
+    if (client_connection.state == NW_CONN_STATE_CONNECTED)
     {
         // connected ok!
-        NET_Log("client: connected successfully");
+        NW_Log("client: connected successfully");
         SetRejectReason(NULL);
         client_state = CLIENT_STATE_WAITING_LAUNCH;
         drone = data->drone;
@@ -1137,8 +1137,8 @@ boolean NET_CL_Connect(net_addr_t *addr, net_connect_data_t *data)
     else
     {
         // failed to connect
-        NET_Log("client: failed to connect");
-        NET_CL_Shutdown();
+        NW_Log("client: failed to connect");
+        NW_CL_Shutdown();
 
         return false;
     }
@@ -1146,71 +1146,71 @@ boolean NET_CL_Connect(net_addr_t *addr, net_connect_data_t *data)
 
 // read game settings received from server
 
-boolean NET_CL_GetSettings(net_gamesettings_t *_settings)
+boolean NW_CL_GetSettings(nw_gamesettings_t *_settings)
 {
     if (client_state != CLIENT_STATE_IN_GAME)
     {
         return false;
     }
 
-    memcpy(_settings, &settings, sizeof(net_gamesettings_t));
+    memcpy(_settings, &settings, sizeof(nw_gamesettings_t));
 
     return true;
 }
 
 // disconnect from the server
 
-void NET_CL_Disconnect(void)
+void NW_CL_Disconnect(void)
 {
     int start_time;
 
-    if (!net_client_connected)
+    if (!nw_client_connected)
     {
         return;
     }
 
-    NET_Log("client: beginning disconnect");
-    NET_Conn_Disconnect(&client_connection);
+    NW_Log("client: beginning disconnect");
+    NW_Conn_Disconnect(&client_connection);
 
     start_time = I_GetTimeMS();
 
-    while (client_connection.state != NET_CONN_STATE_DISCONNECTED
-           && client_connection.state != NET_CONN_STATE_DISCONNECTED_SLEEP)
+    while (client_connection.state != NW_CONN_STATE_DISCONNECTED
+           && client_connection.state != NW_CONN_STATE_DISCONNECTED_SLEEP)
     {
         if (I_GetTimeMS() - start_time > 5000)
         {
             // time out after 5 seconds
 
-            NET_Log("client: no acknowledgement of disconnect received");
+            NW_Log("client: no acknowledgement of disconnect received");
             client_state = CLIENT_STATE_WAITING_START;
 
             I_Printf(VB_WARNING,
-                     "NET_CL_Disconnect: Timeout while disconnecting "
+                     "NW_CL_Disconnect: Timeout while disconnecting "
                      "from server");
             break;
         }
 
-        NET_CL_Run();
-        NET_SV_Run();
+        NW_CL_Run();
+        NW_SV_Run();
 
         I_Sleep(1);
     }
 
     // Finished sending disconnect packets, etc.
-    NET_Log("client: disconnect complete");
-    NET_CL_Shutdown();
+    NW_Log("client: disconnect complete");
+    NW_CL_Shutdown();
 }
 
-void NET_CL_Init(void)
+void NW_CL_Init(void)
 {
-    if (net_player_name == NULL)
+    if (nw_player_name == NULL)
     {
-        net_player_name = M_StringDuplicate(DEFAULT_PLAYER_NAME);
+        nw_player_name = M_StringDuplicate(DEFAULT_PLAYER_NAME);
     }
 }
 
-void NET_Init(void)
+void NW_Init(void)
 {
-    NET_OpenLog();
-    NET_CL_Init();
+    NW_OpenLog();
+    NW_CL_Init();
 }

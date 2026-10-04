@@ -24,9 +24,9 @@
 #include "execute.h"
 #include "m_misc.h"
 #include "multiplayer.h"
-#include "net_defs.h"
-#include "net_io.h"
-#include "net_query.h"
+#include "nw_defs.h"
+#include "nw_io.h"
+#include "nw_query.h"
 
 #include "textscreen.h"
 
@@ -775,7 +775,7 @@ static void SelectQueryAddress(TXT_UNCAST_ARG(button),
                                TXT_UNCAST_ARG(querydata))
 {
     TXT_CAST_ARG(txt_button_t, button);
-    TXT_CAST_ARG(net_querydata_t, querydata);
+    TXT_CAST_ARG(nw_querydata_t, querydata);
     int i;
 
     if (querydata->server_state != 0)
@@ -829,8 +829,8 @@ static void SelectQueryAddress(TXT_UNCAST_ARG(button),
     TXT_CloseWindow(query_window);
 }
 
-static void QueryResponseCallback(net_addr_t *addr,
-                                  net_querydata_t *querydata,
+static void QueryResponseCallback(nw_addr_t *addr,
+                                  nw_querydata_t *querydata,
                                   unsigned int ping_time,
                                   TXT_UNCAST_ARG(results_table))
 {
@@ -841,10 +841,10 @@ static void QueryResponseCallback(net_addr_t *addr,
     // When we connect we'll have to negotiate a common protocol that we
     // can agree upon between the client and server. If we can't then we
     // won't be able to connect, so it's pointless to include it in the
-    // results list. If protocol==NET_PROTOCOL_UNKNOWN then this may be
+    // results list. If protocol==NW_PROTOCOL_UNKNOWN then this may be
     // an old, pre-3.0 Chocolate Doom server that doesn't support the new
     // protocol negotiation mechanism, or it may be an incompatible fork.
-    if (querydata->protocol == NET_PROTOCOL_UNKNOWN)
+    if (querydata->protocol == NW_PROTOCOL_UNKNOWN)
     {
         return;
     }
@@ -868,7 +868,7 @@ static void QueryResponseCallback(net_addr_t *addr,
 
     TXT_AddWidgets(results_table,
                    TXT_NewLabel(ping_time_str),
-                   TXT_NewButton2(NET_AddrToString(addr),
+                   TXT_NewButton2(NW_AddrToString(addr),
                                   SelectQueryAddress, querydata),
                    TXT_NewLabel(description),
                    NULL);
@@ -880,7 +880,7 @@ static void QueryPeriodicCallback(TXT_UNCAST_ARG(results_table))
 {
     TXT_CAST_ARG(txt_table_t, results_table);
 
-    if (!NET_Query_Poll(QueryResponseCallback, results_table))
+    if (!NW_Query_Poll(QueryResponseCallback, results_table))
     {
         TXT_SetPeriodicCallback(NULL, NULL, 0);
 
@@ -921,14 +921,14 @@ static void ServerQueryWindow(const char *title)
 static void FindInternetServer(TXT_UNCAST_ARG(widget),
                                TXT_UNCAST_ARG(user_data))
 {
-    NET_StartMasterQuery();
+    NW_StartMasterQuery();
     ServerQueryWindow("Find Internet server");
 }
 
 static void FindLANServer(TXT_UNCAST_ARG(widget),
                           TXT_UNCAST_ARG(user_data))
 {
-    NET_StartLANQuery();
+    NW_StartLANQuery();
     ServerQueryWindow("Find LAN server");
 }
 

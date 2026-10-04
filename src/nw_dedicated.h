@@ -11,15 +11,13 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
-// Graphical stuff related to the networking code:
 //
-//  * The client waiting screen when we are waiting for the server to
-//    start the game.
+// Dedicated server code.
 //
 
-#ifndef NET_GUI_H
-#define NET_GUI_H
+#ifndef NW_DEDICATED_H
+#define NW_DEDICATED_H
 
-extern void NET_WaitForLaunch(void);
+void NW_DedicatedServer(void);
 
-#endif /* #ifndef NET_GUI_H */
+#endif /* #ifndef NW_DEDICATED_H */

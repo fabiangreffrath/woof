@@ -21,9 +21,9 @@
 #include "i_system.h"
 #include "i_timer.h"
 #include "m_argv.h"
-#include "net_common.h"
-#include "net_netlib.h"
-#include "net_server.h"
+#include "nw_common.h"
+#include "nw_sdl.h"
+#include "nw_server.h"
 
 //
 // People can become confused about how dedicated servers work.  Game
@@ -58,18 +58,18 @@ static void CheckForClientOptions(void)
     }
 }
 
-void NET_DedicatedServer(void)
+void NW_DedicatedServer(void)
 {
     CheckForClientOptions();
 
-    NET_OpenLog();
-    NET_SV_Init();
-    NET_SV_AddModule(&netlib_module);
-    NET_SV_RegisterWithMaster();
+    NW_OpenLog();
+    NW_SV_Init();
+    NW_SV_AddModule(&netlib_module);
+    NW_SV_RegisterWithMaster();
 
     while (true)
     {
-        NET_SV_Run();
+        NW_SV_Run();
         // TODO: Block on socket instead of polling.
         I_Sleep(1);
     }
