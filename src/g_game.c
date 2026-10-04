@@ -2334,8 +2334,8 @@ static void DoSaveGame(char *name)
                                   (const unsigned char *)json_str,
                                   (mz_ulong)json_len, MZ_BEST_SPEED);
 
-        if (mz_ret == MZ_OK && CheckStreamLength((int32_t)json_len)
-            && CheckStreamLength((int32_t)compressed_len))
+        if (mz_ret == MZ_OK && M_CheckStreamLength((int32_t)json_len)
+            && M_CheckStreamLength((int32_t)compressed_len))
         {
             free(json_str);
             save_p = savebuffer =
@@ -2779,13 +2779,13 @@ static boolean DoLoadGame()
 
     save_p = savebuffer + SAVESTRINGSIZE;
     decomp_len = (mz_ulong)saveg_read32();
-    if (!CheckStreamLength((int32_t)decomp_len) || !CheckZlibHeader(save_p))
+    if (!M_CheckStreamLength((int32_t)decomp_len) || !M_CheckZlibHeader(save_p))
     {
         save_p = savebuffer;
         decomp_len = (mz_ulong)saveg_read32();
     }
 
-    if (CheckStreamLength((int32_t)decomp_len) && CheckZlibHeader(save_p))
+    if (M_CheckStreamLength((int32_t)decomp_len) && M_CheckZlibHeader(save_p))
     {
         decomp_str = malloc((size_t)decomp_len);
 
@@ -2818,7 +2818,7 @@ static boolean DoLoadGame()
     // Check for JSON stream
 
     json_t *root = NULL;
-    if (CheckJSONStream(json_str, json_len))
+    if (M_CheckJSONStream(json_str, json_len))
     {
         root = JS_OpenString((char *)json_str, json_len);
     }
