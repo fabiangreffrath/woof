@@ -119,6 +119,7 @@ set(CMAKE_FIND_FRAMEWORK NEVER)
 
 # Library requirements.
 find_package(SDL3 3.4.0 REQUIRED)
+find_package(SDL3_net REQUIRED)
 find_package(OpenAL REQUIRED)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     find_package(ALSA REQUIRED)
@@ -224,5 +225,4 @@ add_subdirectory(third-party)
 add_subdirectory(src)
 add_subdirectory(setup)
 add_subdirectory(man)
-add_subdirectory(netlib)
 add_subdirectory(cmake/packaging)

@@ -226,13 +226,13 @@ endif()
 target_link_libraries(
     woof
     PRIVATE SDL3::SDL3
+            SDL3_net::SDL3_net
             OpenAL::OpenAL
             libebur128::libebur128
             yyjson::yyjson
             pffft::pffft
             miniz::miniz
             spng::spng
-            netlib
             base64
             md5
             sha1
@@ -335,9 +335,9 @@ target_include_directories(woof-setup PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 target_link_libraries(
   woof-setup
   PRIVATE SDL3::SDL3
+          SDL3_net::SDL3_net
           textscreen
           setup
-          netlib
 )
 
 if(MSVC)

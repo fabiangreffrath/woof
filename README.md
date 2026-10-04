@@ -294,13 +294,7 @@ Copyright:
  © 2025 Zokum.  
 License: [CC BY-SA](https://creativecommons.org/licenses/by-sa/4.0/)
 
-Files: `netlib/*`  
-Copyright:  
- © 1997-2025 Sam Lantinga;  
- © 2012 Simeon Maxein.  
-License: [zlib](https://opensource.org/license/zlib)
-
-Files: `third-party/libebur128/*`  
+Files: `third-party/libebur128/*`
 Copyright:  
  © 2011 Jan Kokemüller.  
 License: [MIT](https://opensource.org/licenses/MIT)
