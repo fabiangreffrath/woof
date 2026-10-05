@@ -31,6 +31,7 @@
 #include "d_iwad.h"
 #include "d_main.h"
 #include "d_player.h"
+#include "d_rollback.h"
 #include "d_ticcmd.h"
 #include "deh_bex_partimes.h"
 #include "deh_main.h"
@@ -393,7 +394,8 @@ static void (*UpdateLocalView)(void);
 
 void G_UpdateLocalViewFunction(void)
 {
-  if (lowres_turn && fake_longtics && (!netgame || solonet))
+  // !!! TODO
+  if (lowres_turn && fake_longtics)
   {
     UpdateLocalView = UpdateLocalView_FakeLongTics;
   }
@@ -3109,7 +3111,7 @@ void G_Ticker(void)
     }
   else
     {
-      if (!timingdemo && !paused
+      if (!timingdemo && !paused && !netgame
           && gamestate == GS_LEVEL && gameaction == ga_nothing)
         G_SaveAutoKeyframe();
 
@@ -3156,7 +3158,7 @@ void G_Ticker(void)
 		  displaymsg("%s is turbo!", DEH_StringColorized(strings_players[i])); // killough 9/29/98
 		}
 
-	      if (netgame && !netdemo && !(gametic%ticdup) )
+	      if (netgame && !netdemo && !rollback_enabled && !(gametic%ticdup) )
 		{
 		  if (gametic > BACKUPTICS
 		      && consistancy[i][buf] != cmd->consistancy)
@@ -3173,7 +3175,8 @@ void G_Ticker(void)
       if (demoplayback)
         ++playback_tic;
 
-      HU_UpdateCommandHistory(&players[displayplayer].cmd);
+      if (!rollback_resim)
+        HU_UpdateCommandHistory(&players[displayplayer].cmd);
 
       // check for special buttons
       for (i=0; i<MAXPLAYERS; i++)

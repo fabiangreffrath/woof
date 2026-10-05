@@ -73,7 +73,7 @@ void NW_WriteSettings(nw_packet_t *packet, nw_gamesettings_t *settings)
     NW_WriteInt8(packet, settings->skill);
     NW_WriteInt8(packet, settings->gameversion);
     NW_WriteInt8(packet, settings->lowres_turn);
-    NW_WriteInt8(packet, settings->new_sync);
+    NW_WriteInt8(packet, settings->syncmode);
     NW_WriteInt32(packet, settings->timelimit);
     NW_WriteInt8(packet, settings->loadgame);
     NW_WriteInt8(packet, settings->random);
@@ -108,7 +108,7 @@ boolean NW_ReadSettings(nw_packet_t *packet, nw_gamesettings_t *settings)
            && NW_ReadSInt8(packet, &settings->skill)
            && NW_ReadInt8(packet, (unsigned int *)&settings->gameversion)
            && NW_ReadInt8(packet, (unsigned int *)&settings->lowres_turn)
-           && NW_ReadInt8(packet, (unsigned int *)&settings->new_sync)
+           && NW_ReadInt8(packet, (unsigned int *)&settings->syncmode)
            && NW_ReadInt32(packet, (unsigned int *)&settings->timelimit)
            && NW_ReadSInt8(packet, (signed int *)&settings->loadgame)
            && NW_ReadInt8(packet, (unsigned int *)&settings->random)

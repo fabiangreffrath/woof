@@ -203,7 +203,7 @@ typedef struct
     int skill;
     int gameversion;
     int lowres_turn;
-    int new_sync;
+    int syncmode;
     int timelimit;
     int loadgame;
     int random; // [Strife only]

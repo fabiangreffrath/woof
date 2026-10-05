@@ -454,6 +454,9 @@ keyframe_t *P_SaveKeyframe(int tic)
             playback_tic,
             playback_totaltics);
 
+    writex(playeringame, sizeof(playeringame[0]), MAXPLAYERS);
+    write32(bodyqueslot, bodyquesize);
+
     ArchivePlayers();
     ArchiveWorld();
     ArchivePlayState(keyframe);
@@ -480,6 +483,10 @@ void P_LoadKeyframe(const keyframe_t *keyframe)
     totalleveltimes = read32();
     playback_tic = read32();
     playback_totaltics = read32();
+
+    readx(playeringame, sizeof(playeringame[0]), MAXPLAYERS);
+    bodyqueslot = read32();
+    bodyquesize = read32();
 
     P_MapStart();
     UnArchivePlayers();
