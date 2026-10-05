@@ -962,8 +962,8 @@ void MN_ForcedLoadGame(const char *msg)
 // Selected from DOOM menu
 //
 
-static setup_tab_t load_tabs[] = {{"Q"}, {"1"}, {"2"}, {"3"}, {"4"},
-                                  {"5"}, {"6"}, {"7"}, {"8"}, {NULL}};
+static setup_tab_t load_tabs[] = {{" Q "}, {" 1 "}, {" 2 "}, {" 3 "}, {" 4 "},
+                                  {" 5 "}, {" 6 "}, {" 7 "}, {" 8 "}, {NULL}};
 
 static void M_LoadGame(int choice)
 {
@@ -1370,8 +1370,8 @@ static void M_SaveSelect(int choice)
 // Selected from DOOM menu
 //
 
-static setup_tab_t save_tabs[] = {{"1"}, {"2"}, {"3"}, {"4"}, {"5"},
-                                  {"6"}, {"7"}, {"8"}, {NULL}};
+static setup_tab_t save_tabs[] = {{" 1 "}, {" 2 "}, {" 3 "}, {" 4 "}, {" 5 "},
+                                  {" 6 "}, {" 7 "}, {" 8 "}, {NULL}};
 
 static void M_SaveGame(int choice)
 {
