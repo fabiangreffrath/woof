@@ -45,7 +45,7 @@ arena_t *activeplats_arena;
 // jff 02/08/98 all cases with labels beginning with gen added to support
 // generalized line type behaviors.
 
-static void T_PlatRaise(plat_t* plat)
+static void ThinkerPlatRaise(plat_t* plat)
 {
   result_e      res;
 
@@ -162,7 +162,7 @@ static void T_PlatRaise(plat_t* plat)
 
 void T_PlatRaiseAdapter(mobj_t *mo)
 {
-    T_PlatRaise((plat_t *)mo);
+    ThinkerPlatRaise((plat_t *)mo);
 }
 
 //

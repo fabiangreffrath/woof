@@ -253,7 +253,7 @@ static boolean UpdatePlayer(void)
 
         // Read the next chunk of data, refill the buffer, and queue it back on
         // the source.
-        frames = active_module->I_FillStream(player.data, BUFFER_SAMPLES);
+        frames = active_module->FillStream(player.data, BUFFER_SAMPLES);
 
         if (frames > 0)
         {
@@ -309,7 +309,7 @@ static boolean StartPlayer(void)
     alSourceRewind(player.source);
     alSourcei(player.source, AL_BUFFER, 0);
 
-    active_module->I_PlayStream(player.looping);
+    active_module->PlayStream(player.looping);
 
     // Fill the buffer queue
     for (i = 0; i < NUM_BUFFERS; i++)
@@ -318,7 +318,7 @@ static boolean StartPlayer(void)
         ALsizei size;
 
         // Get some data to give it to the buffer
-        frames = active_module->I_FillStream(player.data, BUFFER_SAMPLES);
+        frames = active_module->FillStream(player.data, BUFFER_SAMPLES);
 
         if (frames < 1)
         {
@@ -397,7 +397,7 @@ boolean I_OAL_InitStream(void)
 
     for (int i = 0; i < arrlen(stream_modules); ++i)
     {
-        stream_modules[i]->I_InitStream(0);
+        stream_modules[i]->InitStream(0);
     }
 
     music_initialized = true;
@@ -414,7 +414,7 @@ void I_OAL_ShutdownStream(void)
 
     for (int i = 0; i < arrlen(stream_modules); ++i)
     {
-        stream_modules[i]->I_ShutdownStream();
+        stream_modules[i]->ShutdownStream();
     }
 
     alDeleteSources(1, &player.source);
@@ -429,18 +429,18 @@ void I_OAL_ShutdownStream(void)
     music_initialized = false;
 }
 
-static boolean I_OAL_InitMusic(int device)
+static boolean InitMusic(int device)
 {
     int count_devices = 0;
 
     for (int i = 0; i < arrlen(midi_modules); ++i)
     {
-        const char **strings = midi_modules[i]->I_DeviceList();
+        const char **strings = midi_modules[i]->DeviceList();
 
         if (device >= count_devices
             && device < count_devices + array_size(strings))
         {
-            return midi_modules[i]->I_InitStream(device - count_devices);
+            return midi_modules[i]->InitStream(device - count_devices);
         }
 
         count_devices += array_size(strings);
@@ -455,7 +455,7 @@ static int fl_gain;
 
 static int opl_gain;
 
-static void I_OAL_SetMusicVolume(int volume)
+static void SetMusicVolume(int volume)
 {
     if (!music_initialized)
     {
@@ -481,7 +481,7 @@ static void I_OAL_SetMusicVolume(int volume)
     }
 }
 
-static void I_OAL_PauseSong(void *handle)
+static void PauseSong(void *handle)
 {
     if (!music_initialized)
     {
@@ -492,7 +492,7 @@ static void I_OAL_PauseSong(void *handle)
     player.paused = true;
 }
 
-static void I_OAL_ResumeSong(void *handle)
+static void ResumeSong(void *handle)
 {
     if (!music_initialized)
     {
@@ -503,7 +503,7 @@ static void I_OAL_ResumeSong(void *handle)
     player.paused = false;
 }
 
-static void I_OAL_PlaySong(void *handle, boolean looping)
+static void PlaySong(void *handle, boolean looping)
 {
     if (!music_initialized)
     {
@@ -526,7 +526,7 @@ static void I_OAL_PlaySong(void *handle, boolean looping)
     player_thread_handle = SDL_CreateThread(PlayerThread, NULL, NULL);
 }
 
-static void I_OAL_StopSong(void *handle)
+static void StopSong(void *handle)
 {
     if (!music_initialized || !SDL_GetAtomicInt(&player_thread_running))
     {
@@ -544,7 +544,7 @@ static void I_OAL_StopSong(void *handle)
     }
 }
 
-static void I_OAL_UnRegisterSong(void *handle)
+static void UnRegisterSong(void *handle)
 {
     if (!music_initialized)
     {
@@ -553,7 +553,7 @@ static void I_OAL_UnRegisterSong(void *handle)
 
     if (active_module)
     {
-        active_module->I_CloseStream();
+        active_module->CloseStream();
     }
 
     ShutdownAutoGain();
@@ -565,25 +565,25 @@ static void I_OAL_UnRegisterSong(void *handle)
     }
 }
 
-static void I_OAL_ShutdownMusic(void)
+static void ShutdownMusic(void)
 {
     if (!music_initialized)
     {
         return;
     }
 
-    I_OAL_StopSong(NULL);
-    I_OAL_UnRegisterSong(NULL);
+    StopSong(NULL);
+    UnRegisterSong(NULL);
 
     for (int i = 0; i < arrlen(midi_modules); ++i)
     {
-        midi_modules[i]->I_ShutdownStream();
+        midi_modules[i]->ShutdownStream();
     }
 }
 
 // Prebuffers some audio from the file, and starts playing the source.
 
-static void *I_OAL_RegisterSong(void *data, int len)
+static void *RegisterSong(void *data, int len)
 {
     if (!music_initialized)
     {
@@ -592,8 +592,8 @@ static void *I_OAL_RegisterSong(void *data, int len)
 
     for (int i = 0; i < arrlen(all_modules); ++i)
     {
-        if (all_modules[i]->I_OpenStream(data, len, &player.format,
-                                            &player.freq, &player.frame_size))
+        if (all_modules[i]->OpenStream(data, len, &player.format, &player.freq,
+                                       &player.frame_size))
         {
             active_module = all_modules[i];
             InitAutoGain();
@@ -604,7 +604,7 @@ static void *I_OAL_RegisterSong(void *data, int len)
     return NULL;
 }
 
-static const char **I_OAL_DeviceList(void)
+static const char **DeviceList(void)
 {
     static const char **devices = NULL;
 
@@ -615,7 +615,7 @@ static const char **I_OAL_DeviceList(void)
 
     for (int i = 0; i < arrlen(midi_modules); ++i)
     {
-        const char **strings = midi_modules[i]->I_DeviceList();
+        const char **strings = midi_modules[i]->DeviceList();
 
         for (int k = 0; k < array_size(strings); ++k)
         {
@@ -626,7 +626,7 @@ static const char **I_OAL_DeviceList(void)
     return devices;
 }
 
-static midiplayertype_t I_OAL_MidiPlayerType(void)
+static midiplayertype_t MidiPlayerType(void)
 {
 #if defined (HAVE_FLUIDSYNTH)
     if (active_module == &stream_fl_module)
@@ -641,7 +641,7 @@ static midiplayertype_t I_OAL_MidiPlayerType(void)
     return midiplayer_none;
 }
 
-static void I_OAL_BindVariables(void)
+static void BindVariables(void)
 {
     BIND_BOOL_MUSIC(auto_gain, true, "Auto Gain");
 #if defined (HAVE_FLUIDSYNTH)
@@ -654,28 +654,28 @@ static void I_OAL_BindVariables(void)
     }
 }
 
-static const char *I_OAL_MusicFormat(void)
+static const char *MusicFormat(void)
 {
     if (active_module)
     {
-        return active_module->I_MusicFormat();
+        return active_module->MusicFormat();
     }
     return "None";
 }
 
 music_module_t music_oal_module =
 {
-    I_OAL_InitMusic,
-    I_OAL_ShutdownMusic,
-    I_OAL_SetMusicVolume,
-    I_OAL_PauseSong,
-    I_OAL_ResumeSong,
-    I_OAL_RegisterSong,
-    I_OAL_PlaySong,
-    I_OAL_StopSong,
-    I_OAL_UnRegisterSong,
-    I_OAL_DeviceList,
-    I_OAL_BindVariables,
-    I_OAL_MidiPlayerType,
-    I_OAL_MusicFormat,
+    InitMusic,
+    ShutdownMusic,
+    SetMusicVolume,
+    PauseSong,
+    ResumeSong,
+    RegisterSong,
+    PlaySong,
+    StopSong,
+    UnRegisterSong,
+    DeviceList,
+    BindVariables,
+    MidiPlayerType,
+    MusicFormat,
 };

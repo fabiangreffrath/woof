@@ -95,7 +95,7 @@ static void RestoreOldMode(void)
 }
 #endif
 
-static void I_ShutdownPrintf(void)
+static void ShutdownPrintf(void)
 {
 #ifdef _WIN32
     SetConsoleOutputCP(OldCodePage);
@@ -133,7 +133,7 @@ void I_InitPrintf(void)
         verbosity = VB_ERROR;
     }
 
-    I_AtExit(I_ShutdownPrintf, true);
+    I_AtExit(ShutdownPrintf, true);
 }
 
 static boolean whole_line = true;

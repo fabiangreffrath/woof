@@ -45,7 +45,7 @@ void M_Ticker(void);
 // Called by main loop,
 // draws the menus directly into the screen buffer.
 
-void M_Drawer(void);
+void MN_Drawer(void);
 
 // Called by D_DoomMain,
 // loads the config file.
@@ -100,7 +100,7 @@ int MN_StringWidth(const char *string);
 int MN_GetPixelWidth(const char *ch);
 void MN_DrawString(int cx, int cy, int color, const char *ch);
 
-void M_StartSound(int sound_id);
+void MN_StartSound(int sound_id);
 
 void MN_BindMenuVariables(void);
 

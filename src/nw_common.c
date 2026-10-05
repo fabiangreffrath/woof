@@ -48,8 +48,8 @@ struct nw_reliable_packet_s
 
 static FILE *nw_debug = NULL;
 
-static void NW_Conn_Init(nw_connection_t *conn, nw_addr_t *addr,
-                          nw_protocol_t protocol)
+static void ConnectionInit(nw_connection_t *conn, nw_addr_t *addr,
+                           nw_protocol_t protocol)
 {
     conn->last_send_time = -1;
     conn->num_retries = 0;
@@ -66,7 +66,7 @@ static void NW_Conn_Init(nw_connection_t *conn, nw_addr_t *addr,
 void NW_Conn_InitClient(nw_connection_t *conn, nw_addr_t *addr,
                          nw_protocol_t protocol)
 {
-    NW_Conn_Init(conn, addr, protocol);
+    ConnectionInit(conn, addr, protocol);
     conn->state = NW_CONN_STATE_CONNECTING;
 }
 
@@ -75,7 +75,7 @@ void NW_Conn_InitClient(nw_connection_t *conn, nw_addr_t *addr,
 void NW_Conn_InitServer(nw_connection_t *conn, nw_addr_t *addr,
                          nw_protocol_t protocol)
 {
-    NW_Conn_Init(conn, addr, protocol);
+    ConnectionInit(conn, addr, protocol);
     conn->state = NW_CONN_STATE_CONNECTED;
 }
 
@@ -89,8 +89,8 @@ void NW_Conn_SendPacket(nw_connection_t *conn, nw_packet_t *packet)
     NW_SendPacket(conn->addr, packet);
 }
 
-static void NW_Conn_ParseDisconnect(nw_connection_t *conn,
-                                     nw_packet_t *packet)
+static void ConnectionParseDisconnect(nw_connection_t *conn,
+                                      nw_packet_t *packet)
 {
     nw_packet_t *reply;
 
@@ -110,8 +110,8 @@ static void NW_Conn_ParseDisconnect(nw_connection_t *conn,
 
 // Parse a DISCONNECT_ACK packet
 
-static void NW_Conn_ParseDisconnectACK(nw_connection_t *conn,
-                                        nw_packet_t *packet)
+static void ConnectionParseDisconnectACK(nw_connection_t *conn,
+                                         nw_packet_t *packet)
 {
 
     if (conn->state == NW_CONN_STATE_DISCONNECTING)
@@ -125,7 +125,7 @@ static void NW_Conn_ParseDisconnectACK(nw_connection_t *conn,
     }
 }
 
-static void NW_Conn_ParseReliableACK(nw_connection_t *conn,
+static void ConnectionParseReliableACK(nw_connection_t *conn,
                                       nw_packet_t *packet)
 {
     unsigned int seq;
@@ -161,8 +161,8 @@ static void NW_Conn_ParseReliableACK(nw_connection_t *conn,
 //
 // Returns true if the packet should be discarded (incorrect sequence)
 
-static boolean NW_Conn_ReliablePacket(nw_connection_t *conn,
-                                       nw_packet_t *packet)
+static boolean ConnectionReliablePacket(nw_connection_t *conn,
+                                        nw_packet_t *packet)
 {
     unsigned int seq;
     nw_packet_t *reply;
@@ -224,7 +224,7 @@ boolean NW_Conn_Packet(nw_connection_t *conn, nw_packet_t *packet,
 
     if (*packet_type & NW_RELIABLE_PACKET)
     {
-        if (NW_Conn_ReliablePacket(conn, packet))
+        if (ConnectionReliablePacket(conn, packet))
         {
             // Invalid packet: eat it.
 
@@ -239,16 +239,16 @@ boolean NW_Conn_Packet(nw_connection_t *conn, nw_packet_t *packet,
     switch (*packet_type)
     {
         case NW_PACKET_TYPE_DISCONNECT:
-            NW_Conn_ParseDisconnect(conn, packet);
+            ConnectionParseDisconnect(conn, packet);
             break;
         case NW_PACKET_TYPE_DISCONNECT_ACK:
-            NW_Conn_ParseDisconnectACK(conn, packet);
+            ConnectionParseDisconnectACK(conn, packet);
             break;
         case NW_PACKET_TYPE_KEEPALIVE:
             // No special action needed.
             break;
         case NW_PACKET_TYPE_RELIABLE_ACK:
-            NW_Conn_ParseReliableACK(conn, packet);
+            ConnectionParseReliableACK(conn, packet);
             break;
         default:
             // Not a common packet

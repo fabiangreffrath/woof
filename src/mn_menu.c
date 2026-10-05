@@ -199,56 +199,56 @@ static menu_t *currentMenu; // current menudef
 //
 // PROTOTYPES
 //
-static void M_NewGame(int choice);
-static void M_Episode(int choice);
-static void M_LoadGame(int choice);
-static void M_SaveGame(int choice);
-static void M_EndGame(int choice);
-static void M_ReadThis(int choice);
-static void M_ReadThis2(int choice);
-static void M_QuitDOOM(int choice);
+static void NewGame(int choice);
+static void Episode(int choice);
+static void LoadGame(int choice);
+static void SaveGame(int choice);
+static void EndGame(int choice);
+static void ReadThis(int choice);
+static void ReadThis2(int choice);
+static void QuitDOOM(int choice);
 
-static void M_ChangeMessages(int choice);
-static void M_SfxVol(int choice);
-static void M_MusicVol(int choice);
+static void ChangeMessages(int choice);
+static void MenuItemSfxVol(int choice);
+static void MenuItemMusicVol(int choice);
 /* void M_ChangeDetail(int choice);  unused -- killough */
 
-static void M_FinishReadThis(int choice);
-static void M_LoadSelect(int choice);
-static void M_SaveSelect(int choice);
-static void M_ReadSaveStrings(void);
-static void M_QuickSave(void);
-static void M_QuickLoad(void);
+static void FinishReadThis(int choice);
+static void LoadSelect(int choice);
+static void SaveSelect(int choice);
+static void ReadSaveStrings(void);
+static void QuickSave(void);
+static void QuickLoad(void);
 
-static void M_DrawMainMenu(void);
-static void M_DrawReadThis1(void);
-static void M_DrawReadThis2(void);
-static void M_DrawNewGame(void);
-static void M_DrawEpisode(void);
-static void M_DrawSound(void);
-static void M_DrawLoad(void);
-static void M_DrawSave(void);
-static void M_DrawSetup(void); // phares 3/21/98
+static void DrawMainMenu(void);
+static void DrawReadThis1(void);
+static void DrawReadThis2(void);
+static void DrawNewGame(void);
+static void DrawEpisode(void);
+static void DrawSound(void);
+static void DrawLoad(void);
+static void DrawSave(void);
+static void DrawSetup(void); // phares 3/21/98
 
-static void M_DrawSaveLoadBorder(int x, int y, byte *cr);
-static void M_DrawThermo(int x, int y, int thermWidth, int thermDot, byte *cr);
+static void DrawSaveLoadBorder(int x, int y, byte *cr);
+static void DrawThermo(int x, int y, int thermWidth, int thermDot, byte *cr);
 static void WriteTextCR(int x, int y, byte *cr, const char *string);
 static void WriteText(int x, int y, const char *string);
-static void M_StartMessage(const char *string, void (*routine)(int), boolean input);
+static void StartMessage(const char *string, void (*routine)(int), boolean input);
 
 // phares 3/30/98
 // prototypes added to support Setup Menus and Extended HELP screens
 
-static void M_Setup(int choice);
+static void Setup(int choice);
 
-static void M_InitExtendedHelp(void);
-static void M_ExtHelpNextScreen(int choice);
-static void M_ExtHelp(int choice);
-static void M_DrawExtHelp(void);
+static void InitExtendedHelp(void);
+static void ExtendedHelpNextScreen(int choice);
+static void ExtendedHelp(int choice);
+static void DrawExtendedHelp(void);
 
-static void M_CustomSkill(int choice);
+static void CustomSkill(int choice);
 
-static void M_PauseSound(void)
+static void PauseSound(void)
 {
     if (!paused && gamestate == GS_LEVEL && !demoplayback && !netgame)
     {
@@ -256,7 +256,7 @@ static void M_PauseSound(void)
     }
 }
 
-static void M_ResumeSound(void)
+static void ResumeSound(void)
 {
     if (!paused && gamestate == GS_LEVEL && !demoplayback && !netgame)
     {
@@ -314,21 +314,21 @@ enum
     {0, 0, SCREENWIDTH, LINEHEIGHT}
 
 static menuitem_t MainMenu[] = {
-    {1, "M_NGAME",  M_NewGame,  'n', "New Game",   MAIN_MENU_RECT},
+    {1, "M_NGAME",  NewGame,  'n', "New Game",   MAIN_MENU_RECT},
     // change M_Options to M_Setup
-    {1, "M_OPTION", M_Setup,    'o', "Options",    MAIN_MENU_RECT},
-    {1, "M_LOADG",  M_LoadGame, 'l', "Load Game",  MAIN_MENU_RECT},
-    {1, "M_SAVEG",  M_SaveGame, 's', "Save Game",  MAIN_MENU_RECT},
+    {1, "M_OPTION", Setup,    'o', "Options",    MAIN_MENU_RECT},
+    {1, "M_LOADG",  LoadGame, 'l', "Load Game",  MAIN_MENU_RECT},
+    {1, "M_SAVEG",  SaveGame, 's', "Save Game",  MAIN_MENU_RECT},
     // Another hickup with Special edition.
-    {1, "M_RDTHIS", M_ReadThis, 'r', "Read This!", MAIN_MENU_RECT},
-    {1, "M_QUITG",  M_QuitDOOM, 'q', "Quit",       MAIN_MENU_RECT}
+    {1, "M_RDTHIS", ReadThis, 'r', "Read This!", MAIN_MENU_RECT},
+    {1, "M_QUITG",  QuitDOOM, 'q', "Quit",       MAIN_MENU_RECT}
 };
 
 static menu_t MainDef = {
     main_end,       // number of menu items
     NULL,           // previous menu screen
     MainMenu,       // table that defines menu items
-    M_DrawMainMenu, // drawing routine
+    DrawMainMenu, // drawing routine
     97,
     64, // initial cursor position
     0   // last menu item the user was on
@@ -338,7 +338,7 @@ static menu_t MainDef = {
 // M_DrawMainMenu
 //
 
-static void M_DrawMainMenu(void)
+static void DrawMainMenu(void)
 {
     options_active = false;
 
@@ -374,18 +374,18 @@ enum // killough 10/98
 // The definitions of the Read This! screens
 
 static menuitem_t ReadMenu1[] = {
-    {1, "", M_ReadThis2, 0}
+    {1, "", ReadThis2, 0}
 };
 
 static menuitem_t ReadMenu2[] = {
-    {1, "", M_FinishReadThis, 0}
+    {1, "", FinishReadThis, 0}
 };
 
 static menu_t ReadDef1 = {
     read1_end,
     &MainDef,
     ReadMenu1,
-    M_DrawReadThis1,
+    DrawReadThis1,
     330, 175,
     // 280,185,              // killough 2/21/98: fix help screens
     0
@@ -395,7 +395,7 @@ static menu_t ReadDef2 = {
     read2_end,
     &ReadDef1,
     ReadMenu2,
-    M_DrawReadThis2,
+    DrawReadThis2,
     330, 175,
     0
 };
@@ -404,17 +404,17 @@ static menu_t ReadDef2 = {
 // M_ReadThis
 //
 
-static void M_ReadThis(int choice)
+static void ReadThis(int choice)
 {
     SetNextMenu(&ReadDef1);
 }
 
-static void M_ReadThis2(int choice)
+static void ReadThis2(int choice)
 {
     SetNextMenu(&ReadDef2);
 }
 
-static void M_FinishReadThis(int choice)
+static void FinishReadThis(int choice)
 {
     SetNextMenu(&MainDef);
 }
@@ -425,7 +425,7 @@ static void M_FinishReadThis(int choice)
 //
 // killough 10/98: updated with new screens
 
-static void M_DrawReadThis1(void)
+static void DrawReadThis1(void)
 {
     V_DrawPatchFullScreen(
         V_CachePatchName(W_CheckWidescreenPatch("HELP2"), PU_CACHE));
@@ -436,7 +436,7 @@ static void M_DrawReadThis1(void)
 //
 // killough 10/98: updated with new screens
 
-static void M_DrawReadThis2(void)
+static void DrawReadThis2(void)
 {
     // Display help screen from PWAD
     int helplump;
@@ -452,7 +452,7 @@ static void M_DrawReadThis2(void)
     V_DrawPatchFullScreen(V_CachePatchNum(helplump, PU_CACHE));
 }
 
-static void M_DrawReadThisCommercial(void)
+static void DrawReadThisCommercial(void)
 {
     V_DrawPatchFullScreen(
         V_CachePatchName(W_CheckWidescreenPatch("HELP"), PU_CACHE));
@@ -489,23 +489,23 @@ enum
 
 static menuitem_t EpisodeMenu[MAX_EPISODES] = // added a few free entries for UMAPINFO
 {
-    {1, "M_EPI1", M_Episode, 'k', "Knee-Deep in the Dead", EPISODES_RECT(0)},
-    {1, "M_EPI2", M_Episode, 't', "The Shores of Hell",    EPISODES_RECT(1)},
-    {1, "M_EPI3", M_Episode, 'i', "Inferno",               EPISODES_RECT(2)},
-    {1, "M_EPI4", M_Episode, 't', "Thy Flesh Consumed",    EPISODES_RECT(3)},
-    {1, "",       M_Episode, '0', NULL, EPISODES_RECT(4)},
-    {1, "",       M_Episode, '0', NULL, EPISODES_RECT(5)},
-    {1, "",       M_Episode, '0', NULL, EPISODES_RECT(6)},
-    {1, "",       M_Episode, '0', NULL, EPISODES_RECT(7)},
-    {1, "",       M_Episode, '0', NULL, EPISODES_RECT(8)},
-    {1, "",       M_Episode, '0', NULL, EPISODES_RECT(9)}
+    {1, "M_EPI1", Episode, 'k', "Knee-Deep in the Dead", EPISODES_RECT(0)},
+    {1, "M_EPI2", Episode, 't', "The Shores of Hell",    EPISODES_RECT(1)},
+    {1, "M_EPI3", Episode, 'i', "Inferno",               EPISODES_RECT(2)},
+    {1, "M_EPI4", Episode, 't', "Thy Flesh Consumed",    EPISODES_RECT(3)},
+    {1, "",       Episode, '0', NULL, EPISODES_RECT(4)},
+    {1, "",       Episode, '0', NULL, EPISODES_RECT(5)},
+    {1, "",       Episode, '0', NULL, EPISODES_RECT(6)},
+    {1, "",       Episode, '0', NULL, EPISODES_RECT(7)},
+    {1, "",       Episode, '0', NULL, EPISODES_RECT(8)},
+    {1, "",       Episode, '0', NULL, EPISODES_RECT(9)}
 };
 
 static menu_t EpiDef = {
     ep_end,        // # of menu items
     &MainDef,      // previous menu
     EpisodeMenu,   // menuitem_t ->
-    M_DrawEpisode, // drawing routine ->
+    DrawEpisode, // drawing routine ->
     48, M_Y_EPISODES, // x,y
     ep1           // lastOn
 };
@@ -569,18 +569,18 @@ void MN_AddEpisode(const char *map, const char *gfx, const char *txt, char key)
     }
 }
 
-static void M_DrawEpisode(void)
+static void DrawEpisode(void)
 {
     MN_DrawTitle(54, EpiDef.y - 25, "M_EPISOD", "Which Episode?");
 }
 
-static void M_Episode(int choice)
+static void Episode(int choice)
 {
     if (!EpiCustom)
     {
         if ((gamemode == shareware) && choice)
         {
-            M_StartMessage(DEH_String(SWSTRING), NULL, false);
+            StartMessage(DEH_String(SWSTRING), NULL, false);
             SetNextMenu(&ReadDef1);
             return;
         }
@@ -626,14 +626,14 @@ static menuitem_t NewGameMenu[] = {
     {1, "M_HURT",  M_ChooseSkill, 'h', "Hurt me plenty.",       NEW_GAME_RECT(2)},
     {1, "M_ULTRA", M_ChooseSkill, 'u', "Ultra-Violence.",       NEW_GAME_RECT(3)},
     {1, "M_NMARE", M_ChooseSkill, 'n', "Nightmare!",            NEW_GAME_RECT(4)},
-    {1, "M_CSTSKL", M_CustomSkill, 'c', "Custom Skill...",      NEW_GAME_RECT(5), MF_OPTLUMP}
+    {1, "M_CSTSKL", CustomSkill, 'c', "Custom Skill...",      NEW_GAME_RECT(5), MF_OPTLUMP}
 };
 
 static menu_t NewDef = {
     newg_end,      // # of menu items
     &EpiDef,       // previous menu
     NewGameMenu,   // menuitem_t ->
-    M_DrawNewGame, // drawing routine ->
+    DrawNewGame, // drawing routine ->
     48, M_Y_NEWGAME, // x,y
     hurtme       // lastOn
 };
@@ -642,24 +642,24 @@ static menu_t NewDef = {
 // M_NewGame
 //
 
-static void M_DrawNewGame(void)
+static void DrawNewGame(void)
 {
     customskill_active = false;
     MN_DrawTitle(96, 14, "M_NEWG", "NEW GAME");
     MN_DrawTitle(54, 38, "M_SKILL", "Choose Skill Level:");
 }
 
-static void M_NewGame(int choice)
+static void NewGame(int choice)
 {
     if (netgame && !demoplayback)
     {
-        M_StartMessage(DEH_String(NEWGAME), NULL, false);
+        StartMessage(DEH_String(NEWGAME), NULL, false);
         return;
     }
 
     if (demorecording) // killough 5/26/98: exclude during demo recordings
     {
-        M_StartMessage("you can't start a new game\n"
+        StartMessage("you can't start a new game\n"
                        "while recording a demo!\n\n" PRESSKEY,
                        NULL, false); // killough 5/26/98: not externalized
         return;
@@ -676,7 +676,7 @@ static void M_NewGame(int choice)
     }
 }
 
-static void M_VerifyNightmare(int ch)
+static void VerifyNightmare(int ch)
 {
     if (ch != 'y')
     {
@@ -704,7 +704,7 @@ void M_ChooseSkill(int choice)
 {
     if (choice == nightmare)
     {
-        M_StartMessage(DEH_String(NIGHTMARE), M_VerifyNightmare, true);
+        StartMessage(DEH_String(NIGHTMARE), VerifyNightmare, true);
         return;
     }
 
@@ -724,7 +724,7 @@ void M_ChooseSkill(int choice)
     MN_ClearMenus();
 }
 
-static void M_CustomSkill(int choice)
+static void CustomSkill(int choice)
 {
     customskill_active = true;
     MN_CustomSkill();
@@ -757,15 +757,15 @@ enum
 // The definitions of the Load Game screen
 
 static menuitem_t LoadMenu[] = {
-    {1, "", M_LoadSelect, '1', NULL, SAVE_LOAD_RECT(0)},
-    {1, "", M_LoadSelect, '2', NULL, SAVE_LOAD_RECT(1)},
-    {1, "", M_LoadSelect, '3', NULL, SAVE_LOAD_RECT(2)},
-    {1, "", M_LoadSelect, '4', NULL, SAVE_LOAD_RECT(3)},
-    {1, "", M_LoadSelect, '5', NULL, SAVE_LOAD_RECT(4)},
-    {1, "", M_LoadSelect, '6', NULL, SAVE_LOAD_RECT(5)},
+    {1, "", LoadSelect, '1', NULL, SAVE_LOAD_RECT(0)},
+    {1, "", LoadSelect, '2', NULL, SAVE_LOAD_RECT(1)},
+    {1, "", LoadSelect, '3', NULL, SAVE_LOAD_RECT(2)},
+    {1, "", LoadSelect, '4', NULL, SAVE_LOAD_RECT(3)},
+    {1, "", LoadSelect, '5', NULL, SAVE_LOAD_RECT(4)},
+    {1, "", LoadSelect, '6', NULL, SAVE_LOAD_RECT(5)},
     //  jff 3/15/98 extend number of slots
-    {1, "", M_LoadSelect, '7', NULL, SAVE_LOAD_RECT(6)},
-    {1, "", M_LoadSelect, '8', NULL, SAVE_LOAD_RECT(7)},
+    {1, "", LoadSelect, '7', NULL, SAVE_LOAD_RECT(6)},
+    {1, "", LoadSelect, '8', NULL, SAVE_LOAD_RECT(7)},
 };
 
 static menu_t LoadDef =
@@ -773,7 +773,7 @@ static menu_t LoadDef =
     load_end,
     &MainDef,
     LoadMenu,
-    M_DrawLoad,
+    DrawLoad,
     M_X_LOADSAVE,
     M_Y_LOADSAVE, // jff 3/15/98 move menu up
     0
@@ -784,7 +784,7 @@ static menu_t LoadDef =
 
 static int snapshot_width, snapshot_height;
 
-static void M_DrawBorderedSnapshot(int slot)
+static void DrawBorderedSnapshot(int slot)
 {
     // [FG] a snapshot window smaller than 80*48 px is considered too small
     if (snapshot_width < SCREENWIDTH / 4)
@@ -830,7 +830,7 @@ static void M_DrawBorderedSnapshot(int slot)
 
 static boolean delete_verify = false;
 
-static void M_DeleteGame(int slot)
+static void DeleteGame(int slot)
 {
     char *name = G_SaveGameName(slot, savepage);
     M_remove(name);
@@ -844,7 +844,7 @@ static void M_DeleteGame(int slot)
     G_ClearPendingSaveSlot(slot);
 }
 
-static void M_DrawSaveLoadBorders(void)
+static void DrawSaveLoadBorders(void)
 {
     const int num_slots = currentMenu->numitems;
     const int x = currentMenu->x;
@@ -856,7 +856,7 @@ static void M_DrawSaveLoadBorders(void)
         const menuitem_t *item = &currentMenu->menuitems[i];
         byte *cr = (item->flags & MF_HILITE) ? xlat[CR_BRIGHT].table : NULL;
 
-        M_DrawSaveLoadBorder(x, y, cr);
+        DrawSaveLoadBorder(x, y, cr);
 
         byte *cr2 = (savepage == QUICKSAVEPAGE && i == quickSaveSlot)
                         ? xlat[CR_GOLD].table
@@ -869,17 +869,17 @@ static void M_DrawSaveLoadBorders(void)
 // M_LoadGame & Cie.
 //
 
-static void M_DrawLoad(void)
+static void DrawLoad(void)
 {
     // jff 3/15/98 use symbolic load position
     MN_DrawTitle(M_X_CENTER, LOADGRAPHIC_Y, "M_LOADG", "Load Game");
-    M_DrawSaveLoadBorders();
+    DrawSaveLoadBorders();
 
     int index = (menu_input == mouse_mode ? highlight_item : itemOn);
 
     if (index < currentMenu->numitems)
     {
-        M_DrawBorderedSnapshot(index);
+        DrawBorderedSnapshot(index);
     }
 
     MN_SetCurrentPage(savepage + 1);
@@ -890,7 +890,7 @@ static void M_DrawLoad(void)
 // Draw border for the savegame description
 //
 
-static void M_DrawSaveLoadBorder(int x, int y, byte *cr)
+static void DrawSaveLoadBorder(int x, int y, byte *cr)
 {
     int i;
 
@@ -933,7 +933,7 @@ static void LoadGameAtSlot(int slot, int page)
 // User wants to load this game
 //
 
-static void M_LoadSelect(int choice)
+static void LoadSelect(int choice)
 {
     int slot = choice;
 
@@ -944,7 +944,7 @@ static void M_LoadSelect(int choice)
 // killough 5/15/98: add forced loadgames
 //
 
-static void M_VerifyForcedLoadGame(int ch)
+static void VerifyForcedLoadGame(int ch)
 {
     if (ch == 'y')
     {
@@ -955,7 +955,7 @@ static void M_VerifyForcedLoadGame(int ch)
 
 void MN_ForcedLoadGame(const char *msg)
 {
-    M_StartMessage(strdup(msg), M_VerifyForcedLoadGame, true); // free()'d above
+    StartMessage(strdup(msg), VerifyForcedLoadGame, true); // free()'d above
 }
 
 //
@@ -965,26 +965,26 @@ void MN_ForcedLoadGame(const char *msg)
 static setup_tab_t load_tabs[] = {{" Q "}, {" 1 "}, {" 2 "}, {" 3 "}, {" 4 "},
                                   {" 5 "}, {" 6 "}, {" 7 "}, {" 8 "}, {NULL}};
 
-static void M_LoadGame(int choice)
+static void LoadGame(int choice)
 {
     delete_verify = false;
 
     if (netgame && !demoplayback) // killough 5/26/98: add !demoplayback
     {
-        M_StartMessage(DEH_String(LOADNET), NULL, false); // Ty 03/27/98 - externalized
+        StartMessage(DEH_String(LOADNET), NULL, false); // Ty 03/27/98 - externalized
         return;
     }
 
     if (demorecording) // killough 5/26/98: exclude during demo recordings
     {
-        M_StartMessage("you can't load a game\n"
+        StartMessage("you can't load a game\n"
                        "while recording a demo!\n\n" PRESSKEY,
                        NULL, false); // killough 5/26/98: not externalized
         return;
     }
 
     SetNextMenu(&LoadDef);
-    M_ReadSaveStrings();
+    ReadSaveStrings();
     MN_SetCurrentTabs(load_tabs);
 }
 
@@ -996,15 +996,15 @@ static void M_LoadGame(int choice)
 // The definitions of the Save Game screen
 
 static menuitem_t SaveMenu[] = {
-    {1, "", M_SaveSelect, '1', NULL, SAVE_LOAD_RECT(0)},
-    {1, "", M_SaveSelect, '2', NULL, SAVE_LOAD_RECT(1)},
-    {1, "", M_SaveSelect, '3', NULL, SAVE_LOAD_RECT(2)},
-    {1, "", M_SaveSelect, '4', NULL, SAVE_LOAD_RECT(3)},
-    {1, "", M_SaveSelect, '5', NULL, SAVE_LOAD_RECT(4)},
-    {1, "", M_SaveSelect, '6', NULL, SAVE_LOAD_RECT(5)},
+    {1, "", SaveSelect, '1', NULL, SAVE_LOAD_RECT(0)},
+    {1, "", SaveSelect, '2', NULL, SAVE_LOAD_RECT(1)},
+    {1, "", SaveSelect, '3', NULL, SAVE_LOAD_RECT(2)},
+    {1, "", SaveSelect, '4', NULL, SAVE_LOAD_RECT(3)},
+    {1, "", SaveSelect, '5', NULL, SAVE_LOAD_RECT(4)},
+    {1, "", SaveSelect, '6', NULL, SAVE_LOAD_RECT(5)},
     //  jff 3/15/98 extend number of slots
-    {1, "", M_SaveSelect, '7', NULL, SAVE_LOAD_RECT(6)},
-    {1, "", M_SaveSelect, '8', NULL, SAVE_LOAD_RECT(7)},
+    {1, "", SaveSelect, '7', NULL, SAVE_LOAD_RECT(6)},
+    {1, "", SaveSelect, '8', NULL, SAVE_LOAD_RECT(7)},
 };
 
 static menu_t SaveDef =
@@ -1012,7 +1012,7 @@ static menu_t SaveDef =
     load_end, // same number of slots as the Load Game screen
     &MainDef,
     SaveMenu,
-    M_DrawSave,
+    DrawSave,
     M_X_LOADSAVE,
     M_Y_LOADSAVE, // jff 3/15/98 move menu up
     0
@@ -1188,7 +1188,7 @@ static void UpdateRectX(menu_t *menu, int x)
 // M_ReadSaveStrings
 //  read the strings from the savegame files
 //
-static void M_ReadSaveStrings(void)
+static void ReadSaveStrings(void)
 {
     // [FG] shift savegame descriptions a bit to the right
     //      to make room for the snapshots on the left
@@ -1212,13 +1212,13 @@ static void M_ReadSaveStrings(void)
 //
 //  M_SaveGame & Cie.
 //
-static void M_DrawSave(void)
+static void DrawSave(void)
 {
     int i;
 
     // jff 3/15/98 use symbolic load position
     MN_DrawTitle(M_X_CENTER, LOADGRAPHIC_Y, "M_SAVEG", "Save Game");
-    M_DrawSaveLoadBorders();
+    DrawSaveLoadBorders();
 
     if (saveStringEnter)
     {
@@ -1231,7 +1231,7 @@ static void M_DrawSave(void)
 
     if (index < currentMenu->numitems)
     {
-        M_DrawBorderedSnapshot(index);
+        DrawBorderedSnapshot(index);
     }
 
     MN_SetCurrentPage(savepage);
@@ -1241,7 +1241,7 @@ static void M_DrawSave(void)
 //
 // M_Responder calls this when user is finished
 //
-static void M_DoSave(int slot, int page)
+static void DoSave(int slot, int page)
 {
     G_SaveGame(slot, page, savegamestrings[slot]);
     MN_ClearMenus();
@@ -1327,7 +1327,7 @@ static boolean GamepadSave(int choice)
     {
         // Immediately save game using a default name.
         SetDefaultSaveName(savegamestrings[choice], NULL);
-        M_DoSave(choice, savepage);
+        DoSave(choice, savepage);
         LoadDef.lastOn = choice;
         return true;
     }
@@ -1338,7 +1338,7 @@ static boolean GamepadSave(int choice)
 //
 // User wants to save. Start string input for M_Responder
 //
-static void M_SaveSelect(int choice)
+static void SaveSelect(int choice)
 {
     if (GamepadSave(choice))
     {
@@ -1373,14 +1373,14 @@ static void M_SaveSelect(int choice)
 static setup_tab_t save_tabs[] = {{" 1 "}, {" 2 "}, {" 3 "}, {" 4 "}, {" 5 "},
                                   {" 6 "}, {" 7 "}, {" 8 "}, {NULL}};
 
-static void M_SaveGame(int choice)
+static void SaveGame(int choice)
 {
     delete_verify = false;
 
     // killough 10/6/98: allow savegames during single-player demo playback
     if (!usergame && (!demoplayback || netgame))
     {
-        M_StartMessage(DEH_String(SAVEDEAD), NULL, false);
+        StartMessage(DEH_String(SAVEDEAD), NULL, false);
         return;
     }
 
@@ -1391,7 +1391,7 @@ static void M_SaveGame(int choice)
 
     savepage = MAX(savepage, 0);
     SetNextMenu(&SaveDef);
-    M_ReadSaveStrings();
+    ReadSaveStrings();
     MN_SetCurrentTabs(save_tabs);
 }
 
@@ -1405,7 +1405,7 @@ static int quitsounds[8] = {sfx_pldeth, sfx_dmpain, sfx_popain, sfx_slop,
 static int quitsounds2[8] = {sfx_vilact, sfx_getpow, sfx_boscub, sfx_slop,
                              sfx_skeswg, sfx_kntdth, sfx_bspact, sfx_sgtatk};
 
-static void M_QuitResponse(int ch)
+static void QuitResponse(int ch)
 {
     if (ch != 'y')
     {
@@ -1417,18 +1417,18 @@ static void M_QuitResponse(int ch)
     {
         if (gamemode == commercial)
         {
-            M_StartSound(quitsounds2[(gametic >> 2) & 7]);
+            MN_StartSound(quitsounds2[(gametic >> 2) & 7]);
         }
         else
         {
-            M_StartSound(quitsounds[(gametic >> 2) & 7]);
+            MN_StartSound(quitsounds[(gametic >> 2) & 7]);
         }
         I_WaitVBL(105);
     }
     I_SafeExit(0); // killough
 }
 
-static void M_QuitDOOM(int choice)
+static void QuitDOOM(int choice)
 {
     static char endstring[160];
 
@@ -1439,11 +1439,11 @@ static void M_QuitDOOM(int choice)
 
     if (quit_prompt)
     {
-        M_StartMessage(endstring, M_QuitResponse, true);
+        StartMessage(endstring, QuitResponse, true);
     }
     else
     {
-        M_QuitResponse('y');
+        QuitResponse('y');
     }
 }
 
@@ -1470,20 +1470,20 @@ enum
     {80 /*SoundDef.x*/, 64 /*SoundDef.y*/ + LINEHEIGHT *(n), (16 + 2) * 8, 13}
 
 static menuitem_t SoundMenu[] = {
-    {2,  "M_SFXVOL", M_SfxVol,   's', "Sfx Volume", {0},                           MF_THRM_STR},
+    {2,  "M_SFXVOL", MenuItemSfxVol,   's', "Sfx Volume", {0},                           MF_THRM_STR},
     {-1, "",         NULL,       0,   NULL, THERMO_VOLUME_RECT(sfx_vol_thermo),   MF_THRM    },
-    {2,  "M_MUSVOL", M_MusicVol, 'm', "Music Volume", {0},                         MF_THRM_STR},
+    {2,  "M_MUSVOL", MenuItemMusicVol, 'm', "Music Volume", {0},                         MF_THRM_STR},
     {-1, "",         NULL,       0,   NULL, THERMO_VOLUME_RECT(music_vol_thermo), MF_THRM    },
 };
 
-static menu_t SoundDef = {sound_end, &MainDef, SoundMenu, M_DrawSound,
+static menu_t SoundDef = {sound_end, &MainDef, SoundMenu, DrawSound,
                           80,        64,       0};
 
 //
 // Change Sfx & Music volumes
 //
 
-static void M_DrawSound(void)
+static void DrawSound(void)
 {
     MN_DrawTitle(M_X_CENTER, 38, "M_SVOL", "Sound Volume");
 
@@ -1500,7 +1500,7 @@ static void M_DrawSound(void)
         cr = NULL;
     }
 
-    M_DrawThermo(SoundDef.x, SoundDef.y + LINEHEIGHT * sfx_vol_thermo, 16,
+    DrawThermo(SoundDef.x, SoundDef.y + LINEHEIGHT * sfx_vol_thermo, 16,
                  snd_SfxVolume, cr);
 
     if (index == music_vol_thermo && (item->flags & MF_HILITE))
@@ -1512,7 +1512,7 @@ static void M_DrawSound(void)
         cr = NULL;
     }
 
-    M_DrawThermo(SoundDef.x, SoundDef.y + LINEHEIGHT * music_vol_thermo, 16,
+    DrawThermo(SoundDef.x, SoundDef.y + LINEHEIGHT * music_vol_thermo, 16,
                  snd_MusicVolume, cr);
 }
 
@@ -1523,7 +1523,7 @@ void M_Sound(int choice)
 
 #define M_MAX_VOL 15
 
-static void M_SfxVol(int choice)
+static void MenuItemSfxVol(int choice)
 {
     switch (choice)
     {
@@ -1550,7 +1550,7 @@ static void M_SfxVol(int choice)
     S_SetSfxVolume(snd_SfxVolume /* *8 */);
 }
 
-static void M_MusicVol(int choice)
+static void MenuItemMusicVol(int choice)
 {
     switch (choice)
     {
@@ -1582,11 +1582,11 @@ static void M_MusicVol(int choice)
 //    M_QuickSave
 //
 
-static void M_QuickSave(void)
+static void QuickSave(void)
 {
     if (!usergame && (!demoplayback || netgame)) // killough 10/98
     {
-        M_StartSound(sfx_mnuerr);
+        MN_StartSound(sfx_mnuerr);
         return;
     }
 
@@ -1625,8 +1625,8 @@ static void M_QuickSave(void)
     }
 
     SetDefaultSaveName(savegamestrings[quickSaveSlot], "Quick");
-    M_DoSave(quickSaveSlot, QUICKSAVEPAGE);
-    M_StartSound(sfx_mnucls);
+    DoSave(quickSaveSlot, QUICKSAVEPAGE);
+    MN_StartSound(sfx_mnucls);
 }
 
 /////////////////////////////
@@ -1634,19 +1634,19 @@ static void M_QuickSave(void)
 // M_QuickLoad
 //
 
-static void M_QuickLoad(void)
+static void QuickLoad(void)
 {
     if (netgame && !demoplayback) // killough 5/26/98: add !demoplayback
     {
-        M_StartSound(sfx_mnuopn);
-        M_StartMessage(DEH_String(QLOADNET), NULL, false);
+        MN_StartSound(sfx_mnuopn);
+        StartMessage(DEH_String(QLOADNET), NULL, false);
         return;
     }
 
     if (demorecording) // killough 5/26/98: exclude during demo recordings
     {
-        M_StartSound(sfx_mnuopn);
-        M_StartMessage("you can't quickload\n"
+        MN_StartSound(sfx_mnuopn);
+        StartMessage("you can't quickload\n"
                        "while recording a demo!\n\n" PRESSKEY,
                        NULL, false); // killough 5/26/98: not externalized
         return;
@@ -1656,12 +1656,12 @@ static void M_QuickLoad(void)
     if (quickSaveSlot <= AUTOSAVESLOT)
     {
         MN_StartControlPanel();
-        M_LoadGame(0);
+        LoadGame(0);
         return;
     }
 
     LoadGameAtSlot(quickSaveSlot, QUICKSAVEPAGE);
-    M_StartSound(sfx_mnucls);
+    MN_StartSound(sfx_mnucls);
 }
 
 /////////////////////////////
@@ -1669,7 +1669,7 @@ static void M_QuickLoad(void)
 // M_EndGame
 //
 
-static void M_EndGameResponse(int ch)
+static void EndGameResponse(int ch)
 {
     if (ch != 'y')
     {
@@ -1688,14 +1688,14 @@ static void M_EndGameResponse(int ch)
     D_StartTitle();
 }
 
-static void M_EndGame(int choice)
+static void EndGame(int choice)
 {
     if (netgame)
     {
-        M_StartMessage(DEH_String(NETEND), NULL, false);
+        StartMessage(DEH_String(NETEND), NULL, false);
         return;
     }
-    M_StartMessage(DEH_String(ENDGAME), M_EndGameResponse, true);
+    StartMessage(DEH_String(ENDGAME), EndGameResponse, true);
 }
 
 /////////////////////////////
@@ -1703,7 +1703,7 @@ static void M_EndGame(int choice)
 //    Toggle messages on/off
 //
 
-static void M_ChangeMessages(int choice)
+static void ChangeMessages(int choice)
 {
     show_messages = 1 - show_messages;
 
@@ -1726,7 +1726,7 @@ static void M_ChangeMessages(int choice)
 // hud_displayed is toggled by + or = in fullscreen
 // hud_displayed is cleared by -
 
-static void M_SizeDisplay(int choice)
+static void SizeDisplay(int choice)
 {
     if (choice == 0 && screenblocks > 3)
     {
@@ -1741,7 +1741,7 @@ static void M_SizeDisplay(int choice)
         return;
     }
     R_SetViewSize(screenblocks /*, detailLevel obsolete -- killough */);
-    M_StartSound(sfx_mnusli);
+    MN_StartSound(sfx_mnusli);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1765,14 +1765,14 @@ static int extended_help_count; // number of user-defined help screens found
 static int extended_help_index; // index of current extended help screen
 
 static menuitem_t ExtHelpMenu[] = {
-    {1, "", M_ExtHelpNextScreen, 0}
+    {1, "", ExtendedHelpNextScreen, 0}
 };
 
 static menu_t ExtHelpDef = {
     1,           // # of menu items
     &ReadDef1,   // previous menu
     ExtHelpMenu, // menuitem_t ->
-    M_DrawExtHelp, // drawing routine ->
+    DrawExtendedHelp, // drawing routine ->
     330, 181, // x,y
     0    // lastOn
 };
@@ -1780,7 +1780,7 @@ static menu_t ExtHelpDef = {
 // M_ExtHelpNextScreen establishes the number of the next HELP screen in
 // the series.
 
-static void M_ExtHelpNextScreen(int choice)
+static void ExtendedHelpNextScreen(int choice)
 {
     if (++extended_help_index > extended_help_count)
     {
@@ -1796,7 +1796,7 @@ static void M_ExtHelpNextScreen(int choice)
 // Routine to look for HELPnn screens and create a menu
 // definition structure that defines extended help screens.
 
-static void M_InitExtendedHelp(void)
+static void InitExtendedHelp(void)
 {
     int index, i;
     char namebfr[] = "HELPnn"; // haleyjd: can't write into constant
@@ -1814,7 +1814,7 @@ static void M_InitExtendedHelp(void)
                 // Restore extended help functionality
                 // for all game versions
                 ExtHelpDef.prevMenu = &ReadDef2; // previous menu
-                ReadMenu2[0].routine = M_ExtHelp;
+                ReadMenu2[0].routine = ExtendedHelp;
             }
             return;
         }
@@ -1824,7 +1824,7 @@ static void M_InitExtendedHelp(void)
 
 // Initialization for the extended HELP screens.
 
-static void M_ExtHelp(int choice)
+static void ExtendedHelp(int choice)
 {
     extended_help_index = 1; // Start with first extended help screen
     SetNextMenu(&ExtHelpDef);
@@ -1832,7 +1832,7 @@ static void M_ExtHelp(int choice)
 
 // Initialize the drawing part of the extended HELP screens.
 
-static void M_DrawExtHelp(void)
+static void DrawExtendedHelp(void)
 {
     char namebfr[] = "HELPnn"; // [FG] char array!
     namebfr[4] = extended_help_index / 10 + 0x30;
@@ -1873,7 +1873,7 @@ static menuitem_t SetupMenu[] = {
 //
 // M_DoNothing does just that: nothing. Just a placeholder.
 
-static void M_DoNothing(int choice)
+static void DoNothing(int choice)
 {
 }
 
@@ -1894,7 +1894,7 @@ enum
 // can understand, while the Setup Menu code is working. Another placeholder.
 
 static menuitem_t Generic_Setup[] = {
-    {1, "", M_DoNothing, 0}
+    {1, "", DoNothing, 0}
 };
 
 /////////////////////////////
@@ -1907,7 +1907,7 @@ static menu_t SetupDef = {
     ss_comp + 1,   // number of Setup Menu items (Key Bindings, etc.)
     &MainDef,      // menu to return to when BACKSPACE is hit on this menu
     SetupMenu,     // definition of items to show on the Setup Screen
-    M_DrawSetup,   // program that draws the Setup Screen
+    DrawSetup,   // program that draws the Setup Screen
     60, M_Y_SETUP, // x,y position of the skull (modified when the skull is
                    // drawn). The skull is parked on the upper-left corner
                    // of the Setup screens, since it isn't needed as a cursor
@@ -2054,7 +2054,7 @@ void MN_SetNextMenuAlt(ss_types type)
 //
 // Draws the Title for the main Setup screen
 
-static void M_DrawSetup(void)
+static void DrawSetup(void)
 {
     MN_DrawTitle(M_X_CENTER, 15, "M_OPTTTL", "OPTIONS");
 }
@@ -2064,7 +2064,7 @@ static void M_DrawSetup(void)
 // Uses the SetupDef structure to draw the menu items for the main
 // Setup screen
 
-static void M_Setup(int choice)
+static void Setup(int choice)
 {
     options_active = true;
 
@@ -2090,7 +2090,7 @@ void MN_ClearMenus(void)
 
     I_SetSensorEventState(false);
     G_ClearInput();
-    M_ResumeSound();
+    ResumeSound();
     MN_SetCurrentTabs(NULL);
 }
 
@@ -2104,7 +2104,7 @@ static boolean MenuBack(void)
     currentMenu = currentMenu->prevMenu;
     itemOn = currentMenu->lastOn;
     highlight_item = 0;
-    M_StartSound(sfx_mnubak);
+    MN_StartSound(sfx_mnubak);
     return true;
 }
 
@@ -2185,13 +2185,13 @@ void M_Init(void)
 
     if (gameversion >= exe_ultimate)
     {
-        MainMenu[readthis].routine = M_ReadThis2;
+        MainMenu[readthis].routine = ReadThis2;
         ReadDef2.prevMenu = NULL;
     }
 
     if (gameversion == exe_final || gameversion == exe_final2)
     {
-        ReadDef2.routine = M_DrawReadThisCommercial;
+        ReadDef2.routine = DrawReadThisCommercial;
         // [crispy] rearrange Skull in Final Doom HELP screen
         ReadDef2.y -= 10;
     }
@@ -2208,20 +2208,20 @@ void M_Init(void)
         {
             NewDef.prevMenu = &MainDef;
         }
-        ReadDef1.routine = M_DrawReadThisCommercial;
+        ReadDef1.routine = DrawReadThisCommercial;
         ReadDef1.x = 330;
         ReadDef1.y = 165;
-        ReadMenu1[0].routine = M_FinishReadThis;
+        ReadMenu1[0].routine = FinishReadThis;
     }
 
     if (pwad_help2)
     {
-        MainMenu[readthis].routine = M_ReadThis;
+        MainMenu[readthis].routine = ReadThis;
         ReadDef2.prevMenu = &ReadDef1;
     }
     else if (gamemode == retail)
     {
-        MainMenu[readthis].routine = M_ReadThis2;
+        MainMenu[readthis].routine = ReadThis2;
         ReadDef2.prevMenu = NULL;
     }
 
@@ -2235,7 +2235,7 @@ void M_Init(void)
     }
 
     MN_SetupResetMenu();
-    M_InitExtendedHelp(); // init extended help screens // phares 3/30/98
+    InitExtendedHelp(); // init extended help screens // phares 3/30/98
 
     // [crispy] remove DOS reference from the game quit confirmation dialogs
     {
@@ -2395,14 +2395,14 @@ boolean M_ShortcutResponder(const event_t *ev)
     if (M_InputActivated(input_savegame)) // Save Game
     {
         MN_StartControlPanel();
-        M_SaveGame(0);
+        SaveGame(0);
         return true;
     }
 
     if (M_InputActivated(input_loadgame)) // Load Game
     {
         MN_StartControlPanel();
-        M_LoadGame(0);
+        LoadGame(0);
         return true;
     }
 
@@ -2416,28 +2416,28 @@ boolean M_ShortcutResponder(const event_t *ev)
 
     if (M_InputActivated(input_quicksave)) // Quicksave
     {
-        M_QuickSave();
+        QuickSave();
         return true;
     }
 
     if (M_InputActivated(input_endgame)) // End game
     {
-        M_PauseSound();
-        M_StartSound(sfx_mnuopn);
-        M_EndGame(0);
+        PauseSound();
+        MN_StartSound(sfx_mnuopn);
+        EndGame(0);
         return true;
     }
 
     if (M_InputActivated(input_messages)) // Toggle messages
     {
-        M_ChangeMessages(0);
-        M_StartSound(sfx_mnuopn);
+        ChangeMessages(0);
+        MN_StartSound(sfx_mnuopn);
         return true;
     }
 
     if (M_InputActivated(input_quickload)) // Quickload
     {
-        M_QuickLoad();
+        QuickLoad();
         return true;
     }
 
@@ -2445,10 +2445,10 @@ boolean M_ShortcutResponder(const event_t *ev)
     {
         if (quit_prompt)
         {
-            M_PauseSound();
-            M_StartSound(sfx_mnuopn);
+            PauseSound();
+            MN_StartSound(sfx_mnuopn);
         }
-        M_QuitDOOM(0);
+        QuitDOOM(0);
         return true;
     }
 
@@ -2470,7 +2470,7 @@ boolean M_ShortcutResponder(const event_t *ev)
         {
             return false;
         }
-        M_SizeDisplay(0);
+        SizeDisplay(0);
         return true;
     }
 
@@ -2480,7 +2480,7 @@ boolean M_ShortcutResponder(const event_t *ev)
         {                               // key_hud==key_zoomin
             return false;
         }
-        M_SizeDisplay(1);
+        SizeDisplay(1);
         return true;
     }
 
@@ -2647,7 +2647,7 @@ static void CursorPosition(void)
             if (highlight_item != cursor)
             {
                 highlight_item = cursor;
-                M_StartSound(sfx_mnusel);
+                MN_StartSound(sfx_mnusel);
             }
         }
     }
@@ -2674,15 +2674,15 @@ static boolean SaveLoadResponder(menu_action_t action, int ch)
     {
         if (M_ToUpper(ch) == 'Y' || action == MENU_ENTER)
         {
-            M_DeleteGame(old_menu_input == mouse_mode ? highlight_item : itemOn);
-            M_ReadSaveStrings();
-            M_StartSound(sfx_mnusel);
+            DeleteGame(old_menu_input == mouse_mode ? highlight_item : itemOn);
+            ReadSaveStrings();
+            MN_StartSound(sfx_mnusel);
             delete_verify = false;
         }
         else if (M_ToUpper(ch) == 'N' || action == MENU_BACKSPACE
                  || action == MENU_ESCAPE)
         {
-            M_StartSound(sfx_mnusel);
+            MN_StartSound(sfx_mnusel);
             delete_verify = false;
         }
         return true;
@@ -2696,8 +2696,8 @@ static boolean SaveLoadResponder(menu_action_t action, int ch)
         if (savepage > savepage_min)
         {
             savepage--;
-            M_ReadSaveStrings();
-            M_StartSound(sfx_mnumov);
+            ReadSaveStrings();
+            MN_StartSound(sfx_mnumov);
         }
         return true;
     }
@@ -2706,8 +2706,8 @@ static boolean SaveLoadResponder(menu_action_t action, int ch)
         if (savepage < savepage_max)
         {
             savepage++;
-            M_ReadSaveStrings();
-            M_StartSound(sfx_mnumov);
+            ReadSaveStrings();
+            MN_StartSound(sfx_mnumov);
         }
         return true;
     }
@@ -2754,7 +2754,7 @@ static boolean MouseResponder(void)
             {
                 savepage--;
             }
-            M_ReadSaveStrings();
+            ReadSaveStrings();
             return true;
         }
     }
@@ -2803,7 +2803,7 @@ static boolean MouseResponder(void)
         if (current_item->routine)
         {
             current_item->routine(value);
-            M_StartSound(sfx_mnusli);
+            MN_StartSound(sfx_mnusli);
         }
 
         return true;
@@ -2976,7 +2976,7 @@ boolean M_Responder(event_t *ev)
             saveStringEnter = 0;
             if (savegamestrings[saveSlot][0])
             {
-                M_DoSave(saveSlot, savepage);
+                DoSave(saveSlot, savepage);
             }
         }
         else if (ev->type == ev_text)
@@ -3023,8 +3023,8 @@ boolean M_Responder(event_t *ev)
         I_SetSensorEventState(false);
         G_ClearInput();
         menuactive = false;
-        M_ResumeSound();
-        M_StartSound(sfx_mnucls);
+        ResumeSound();
+        MN_StartSound(sfx_mnucls);
         return true;
     }
 
@@ -3088,7 +3088,7 @@ boolean M_Responder(event_t *ev)
             {
                 itemOn++;
             }
-            M_StartSound(sfx_mnumov);
+            MN_StartSound(sfx_mnumov);
         } while (currentMenu->menuitems[itemOn].status == -1);
         return true;
     }
@@ -3105,7 +3105,7 @@ boolean M_Responder(event_t *ev)
             {
                 itemOn--;
             }
-            M_StartSound(sfx_mnumov);
+            MN_StartSound(sfx_mnumov);
         } while (currentMenu->menuitems[itemOn].status == -1);
         return true;
     }
@@ -3115,7 +3115,7 @@ boolean M_Responder(event_t *ev)
         if (currentMenu->menuitems[itemOn].routine
             && currentMenu->menuitems[itemOn].status == 2)
         {
-            M_StartSound(sfx_mnusli);
+            MN_StartSound(sfx_mnusli);
             currentMenu->menuitems[itemOn].routine(CHOICE_LEFT);
         }
         return true;
@@ -3126,7 +3126,7 @@ boolean M_Responder(event_t *ev)
         if (currentMenu->menuitems[itemOn].routine
             && currentMenu->menuitems[itemOn].status == 2)
         {
-            M_StartSound(sfx_mnusli);
+            MN_StartSound(sfx_mnusli);
             currentMenu->menuitems[itemOn].routine(CHOICE_RIGHT);
         }
         return true;
@@ -3142,17 +3142,17 @@ boolean M_Responder(event_t *ev)
             if (currentMenu->menuitems[itemOn].status == 2)
             {
                 currentMenu->menuitems[itemOn].routine(CHOICE_RIGHT);
-                M_StartSound(sfx_mnusli);
+                MN_StartSound(sfx_mnusli);
             }
             else
             {
                 currentMenu->menuitems[itemOn].routine(itemOn);
-                M_StartSound(sfx_mnuact);
+                MN_StartSound(sfx_mnuact);
             }
         }
         else
         {
-            M_StartSound(sfx_mnuerr); // [FG] disabled menu item
+            MN_StartSound(sfx_mnuerr); // [FG] disabled menu item
         }
         // jff 3/24/98 remember last skill selected
         //  killough 10/98 moved to skill-specific functions
@@ -3163,7 +3163,7 @@ boolean M_Responder(event_t *ev)
     {
         currentMenu->lastOn = itemOn;
         MN_ClearMenus();
-        M_StartSound(sfx_mnucls);
+        MN_StartSound(sfx_mnucls);
         help_input = old_help_input;
         menu_input = old_menu_input;
         MN_ResetMouseCursor();
@@ -3198,12 +3198,12 @@ boolean M_Responder(event_t *ev)
             }
             itemOn = currentMenu->lastOn;
             highlight_item = 0;
-            M_StartSound(sfx_mnubak);
+            MN_StartSound(sfx_mnubak);
         }
         else
         {
             MN_ClearMenus();
-            M_StartSound(sfx_mnucls);
+            MN_StartSound(sfx_mnucls);
         }
         help_input = old_help_input;
         menu_input = old_menu_input;
@@ -3219,7 +3219,7 @@ boolean M_Responder(event_t *ev)
         {
             if (AllowDeleteSaveGame())
             {
-                M_StartSound(sfx_mnusel);
+                MN_StartSound(sfx_mnusel);
                 currentMenu->lastOn = itemOn;
                 help_input = old_help_input;
                 menu_input = old_menu_input;
@@ -3228,7 +3228,7 @@ boolean M_Responder(event_t *ev)
             }
             else
             {
-                M_StartSound(sfx_mnuerr);
+                MN_StartSound(sfx_mnuerr);
             }
         }
     }
@@ -3242,7 +3242,7 @@ boolean M_Responder(event_t *ev)
             if (currentMenu->menuitems[i].alphaKey == ch)
             {
                 itemOn = i;
-                M_StartSound(sfx_mnumov);
+                MN_StartSound(sfx_mnumov);
                 return true;
             }
         }
@@ -3252,7 +3252,7 @@ boolean M_Responder(event_t *ev)
             if (currentMenu->menuitems[i].alphaKey == ch)
             {
                 itemOn = i;
-                M_StartSound(sfx_mnumov);
+                MN_StartSound(sfx_mnumov);
                 return true;
             }
         }
@@ -3302,8 +3302,8 @@ void MN_StartControlPanel(void)
     I_SetSensorEventState(true);
     G_ClearInput();
 
-    M_PauseSound();
-    M_StartSound(sfx_mnuopn);
+    PauseSound();
+    MN_StartSound(sfx_mnuopn);
 }
 
 //
@@ -3320,7 +3320,7 @@ boolean MN_MenuIsShaded(void)
            && menu_backdrop == MENU_BG_DARK;
 }
 
-void M_Drawer(void)
+void MN_Drawer(void)
 {
     // Horiz. & Vertically center string and print it.
     // killough 9/29/98: simplified code, removed 40-character width limit
@@ -3489,7 +3489,7 @@ void M_Drawer(void)
 // Message Routines
 //
 
-static void M_StartMessage(const char *string, void (*routine)(int), boolean input)
+static void StartMessage(const char *string, void (*routine)(int), boolean input)
 {
     messageLastMenuActive = menuactive;
     messageToPrint = 1;
@@ -3509,7 +3509,7 @@ static void M_StartMessage(const char *string, void (*routine)(int), boolean inp
 // M_DrawThermo draws the thermometer graphic for Mouse Sensitivity,
 // Sound Volume, etc.
 //
-static void M_DrawThermo(int x, int y, int thermWidth, int thermDot, byte *cr)
+static void DrawThermo(int x, int y, int thermWidth, int thermDot, byte *cr)
 {
     int xx;
     int i;
@@ -3600,7 +3600,7 @@ static void WriteText(int x, int y, const char *string)
     WriteTextCR(x, y, NULL, string);
 }
 
-void M_StartSound(int sound_id)
+void MN_StartSound(int sound_id)
 {
     S_StartSoundPitch(NULL, sound_id, PITCH_NONE);
 }
