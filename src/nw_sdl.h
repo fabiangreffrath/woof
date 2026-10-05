@@ -11,13 +11,15 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
+// DESCRIPTION:
+//     Networking module which uses SDL_net
 //
-// Dedicated server code.
-//
 
-#ifndef NET_DEDICATED_H
-#define NET_DEDICATED_H
+#ifndef NW_SDL_H
+#define NW_SDL_H
 
-void NET_DedicatedServer(void);
+#include "nw_defs.h"
 
-#endif /* #ifndef NET_DEDICATED_H */
+extern nw_module_t netlib_module;
+
+#endif /* #ifndef NW_SDL_H */

@@ -29,18 +29,18 @@
 #include "i_video.h"
 #include "m_argv.h"
 #include "m_misc.h"
-#include "net_client.h"
-#include "net_defs.h"
-#include "net_gui.h"
-#include "net_query.h"
-#include "net_server.h"
+#include "nw_client.h"
+#include "nw_defs.h"
+#include "nw_gui.h"
+#include "nw_query.h"
+#include "nw_server.h"
 
 #include "textscreen.h"
 
 static txt_window_t *window;
 static int old_max_players;
-static txt_label_t *player_labels[NET_MAXPLAYERS];
-static txt_label_t *ip_labels[NET_MAXPLAYERS];
+static txt_label_t *player_labels[NW_MAXPLAYERS];
+static txt_label_t *ip_labels[NW_MAXPLAYERS];
 static txt_label_t *drone_label;
 static txt_label_t *master_msg_label;
 static boolean had_warning;
@@ -58,7 +58,7 @@ static void EscapePressed(TXT_UNCAST_ARG(widget), void *unused)
 
 static void StartGame(TXT_UNCAST_ARG(widget), TXT_UNCAST_ARG(unused))
 {
-    NET_CL_LaunchGame();
+    NW_CL_LaunchGame();
 }
 
 static void OpenWaitDialog(void)
@@ -104,7 +104,7 @@ static void BuildWindow(void)
 
     // Player labels
 
-    for (i = 0; i < net_client_wait_data.max_players; ++i)
+    for (i = 0; i < nw_client_wait_data.max_players; ++i)
     {
         M_snprintf(buf, sizeof(buf), " %i. ", i + 1);
         TXT_AddWidget(table, TXT_NewLabel(buf));
@@ -129,9 +129,9 @@ static void UpdateGUI(void)
     // contents of the window. This includes when the first
     // waiting data packet is received.
 
-    if (net_client_received_wait_data)
+    if (nw_client_received_wait_data)
     {
-        if (net_client_wait_data.max_players != old_max_players)
+        if (nw_client_wait_data.max_players != old_max_players)
         {
             BuildWindow();
         }
@@ -141,11 +141,11 @@ static void UpdateGUI(void)
         return;
     }
 
-    for (i = 0; i < net_client_wait_data.max_players; ++i)
+    for (i = 0; i < nw_client_wait_data.max_players; ++i)
     {
         txt_color_t color = TXT_COLOR_BRIGHT_WHITE;
 
-        if ((signed)i == net_client_wait_data.consoleplayer)
+        if ((signed)i == nw_client_wait_data.consoleplayer)
         {
             color = TXT_COLOR_YELLOW;
         }
@@ -153,11 +153,11 @@ static void UpdateGUI(void)
         TXT_SetFGColor(player_labels[i], color);
         TXT_SetFGColor(ip_labels[i], color);
 
-        if (i < net_client_wait_data.num_players)
+        if (i < nw_client_wait_data.num_players)
         {
             TXT_SetLabel(player_labels[i],
-                         net_client_wait_data.player_names[i]);
-            TXT_SetLabel(ip_labels[i], net_client_wait_data.player_addrs[i]);
+                         nw_client_wait_data.player_names[i]);
+            TXT_SetLabel(ip_labels[i], nw_client_wait_data.player_addrs[i]);
         }
         else
         {
@@ -166,10 +166,10 @@ static void UpdateGUI(void)
         }
     }
 
-    if (net_client_wait_data.num_drones > 0)
+    if (nw_client_wait_data.num_drones > 0)
     {
         M_snprintf(buf, sizeof(buf), " (+%i observer clients)",
-                   net_client_wait_data.num_drones);
+                   nw_client_wait_data.num_drones);
         TXT_SetLabel(drone_label, buf);
     }
     else
@@ -177,7 +177,7 @@ static void UpdateGUI(void)
         TXT_SetLabel(drone_label, "");
     }
 
-    if (net_client_wait_data.is_controller)
+    if (nw_client_wait_data.is_controller)
     {
         startgame = TXT_NewWindowAction(' ', "Start game");
         TXT_SignalConnect(startgame, "pressed", StartGame, NULL);
@@ -213,7 +213,7 @@ static void CheckMasterStatus(void)
 {
     boolean added;
 
-    if (!NET_Query_CheckAddedToMaster(&added))
+    if (!NW_Query_CheckAddedToMaster(&added))
     {
         return;
     }
@@ -263,11 +263,11 @@ static void CheckAutoLaunch(void)
 {
     int nodes;
 
-    if (net_client_received_wait_data && net_client_wait_data.is_controller
+    if (nw_client_received_wait_data && nw_client_wait_data.is_controller
         && expected_nodes > 0)
     {
         nodes =
-            net_client_wait_data.num_players + net_client_wait_data.num_drones;
+            nw_client_wait_data.num_players + nw_client_wait_data.num_drones;
 
         if (nodes >= expected_nodes)
         {
@@ -277,7 +277,7 @@ static void CheckAutoLaunch(void)
     }
 }
 
-void NET_WaitForLaunch(void)
+void NW_WaitForLaunch(void)
 {
     if (!TXT_Init())
     {
@@ -293,7 +293,7 @@ void NET_WaitForLaunch(void)
     OpenWaitDialog();
     had_warning = false;
 
-    while (net_waiting_for_launch)
+    while (nw_waiting_for_launch)
     {
         UpdateGUI();
         CheckAutoLaunch();
@@ -302,10 +302,10 @@ void NET_WaitForLaunch(void)
         TXT_DispatchEvents();
         TXT_DrawDesktop();
 
-        NET_CL_Run();
-        NET_SV_Run();
+        NW_CL_Run();
+        NW_SV_Run();
 
-        if (!net_client_connected)
+        if (!nw_client_connected)
         {
             I_Error("Lost connection to server");
         }

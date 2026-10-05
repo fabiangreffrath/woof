@@ -117,6 +117,7 @@ The following build system and libraries need to be installed:
  
  * [CMake](https://cmake.org) (>= 3.15)
  * [SDL3](https://github.com/libsdl-org/SDL) (>= 3.4.0)
+ * [SDL3_net](https://github.com/libsdl-org/SDL_net/)
  * [openal-soft](https://github.com/kcat/openal-soft) (>= 1.22.0 for PC Speaker emulation)
  * [libsndfile](https://github.com/libsndfile/libsndfile) (>= 1.1.0 for MPEG support, optional)
  * [yyjson](https://github.com/ibireme/yyjson) (>= 0.10.0, optional)
@@ -294,13 +295,7 @@ Copyright:
  © 2025 Zokum.  
 License: [CC BY-SA](https://creativecommons.org/licenses/by-sa/4.0/)
 
-Files: `netlib/*`  
-Copyright:  
- © 1997-2025 Sam Lantinga;  
- © 2012 Simeon Maxein.  
-License: [zlib](https://opensource.org/license/zlib)
-
-Files: `third-party/libebur128/*`  
+Files: `third-party/libebur128/*`
 Copyright:  
  © 2011 Jan Kokemüller.  
 License: [MIT](https://opensource.org/licenses/MIT)

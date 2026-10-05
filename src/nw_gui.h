@@ -11,16 +11,15 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
-// DESCRIPTION:
-//      Loopback network module for server compiled into the client
+// Graphical stuff related to the networking code:
+//
+//  * The client waiting screen when we are waiting for the server to
+//    start the game.
 //
 
-#ifndef NET_LOOP_H
-#define NET_LOOP_H
+#ifndef NW_GUI_H
+#define NW_GUI_H
 
-#include "net_defs.h"
+extern void NW_WaitForLaunch(void);
 
-extern net_module_t net_loop_client_module;
-extern net_module_t net_loop_server_module;
-
-#endif /* #ifndef NET_LOOP_H */
+#endif /* #ifndef NW_GUI_H */

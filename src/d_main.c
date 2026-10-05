@@ -74,8 +74,8 @@
 #include "mn_menu.h"
 #include "m_misc.h"
 #include "m_swap.h"
-#include "net_client.h"
-#include "net_dedicated.h"
+#include "nw_client.h"
+#include "nw_dedicated.h"
 #include "deh_misc.h" // deh_max_health_bonus
 #include "p_ambient.h"
 #include "p_setup.h"
@@ -1663,7 +1663,7 @@ void D_DoomMain(void)
   {
       I_Printf(VB_INFO, "Dedicated server mode.");
       I_InitTimer();
-      NET_DedicatedServer();
+      NW_DedicatedServer();
 
       // Never returns
   }
@@ -2242,8 +2242,8 @@ void D_DoomMain(void)
   I_InitSound();
   I_InitMusic();
 
-  I_Printf(VB_INFO, "NET_Init: Init network subsystem.");
-  NET_Init();
+  I_Printf(VB_INFO, "NW_Init: Init network subsystem.");
+  NW_Init();
 
   // Initial netgame startup. Connect to server etc.
   D_ConnectNetGame();
@@ -2513,7 +2513,7 @@ void D_BindMiscVariables(void)
     "Palette changes when taking damage or picking up items (0 = Off; 1 = On; 2 = Reduced)");
   BIND_NUM_GENERAL(organize_savefiles, -1, -1, 1,
     "Organize save files");
-  M_BindStr("net_player_name", &net_player_name, DEFAULT_PLAYER_NAME, wad_no,
+  M_BindStr("nw_player_name", &nw_player_name, DEFAULT_PLAYER_NAME, wad_no,
     "Network setup player name");
 
   M_BindBool("colored_blood", &colored_blood, NULL, false, ss_enem, wad_no,

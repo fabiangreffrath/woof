@@ -12,14 +12,15 @@
 // GNU General Public License for more details.
 //
 // DESCRIPTION:
-//     Networking module which uses netlib
+//      Loopback network module for server compiled into the client
 //
 
-#ifndef NET_NETLIB_H
-#define NET_NETLIB_H
+#ifndef NW_LOOP_H
+#define NW_LOOP_H
 
-#include "net_defs.h"
+#include "nw_defs.h"
 
-extern net_module_t netlib_module;
+extern nw_module_t nw_loop_client_module;
+extern nw_module_t nw_loop_server_module;
 
-#endif /* #ifndef NET_NETLIB_H */
+#endif /* #ifndef NW_LOOP_H */

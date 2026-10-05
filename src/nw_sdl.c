@@ -12,39 +12,40 @@
 // GNU General Public License for more details.
 //
 // DESCRIPTION:
-//     Networking module which uses netlib
+//     Networking module which uses SDL_net
 //
 
 #include <stdlib.h>
 #include <string.h>
 
+#include <SDL3/SDL.h>
+#include <SDL3_net/SDL_net.h>
+
 #include "doomtype.h"
 #include "i_system.h"
 #include "m_argv.h"
 #include "m_misc.h"
-#include "net_defs.h"
-#include "net_io.h"
-#include "net_packet.h"
-#include "net_netlib.h"
+#include "nw_defs.h"
+#include "nw_io.h"
+#include "nw_packet.h"
+#include "nw_sdl.h"
 #include "z_zone.h"
 
 //
 // NETWORKING
 //
 
-#include "netlib.h"
-
 #define DEFAULT_PORT 2342
 
 static boolean initted = false;
 static int port = DEFAULT_PORT;
-static udp_socket_t udpsocket;
-static udp_packet_t *recvpacket;
+static NET_DatagramSocket *udpsocket;
 
 typedef struct
 {
-    net_addr_t net_addr;
-    ip_address_t netlib_addr;
+    nw_addr_t nw_addr;
+    NET_Address *address;
+    Uint16 port;
 } addrpair_t;
 
 static addrpair_t **addr_table;
@@ -60,15 +61,11 @@ static void InitAddrTable(void)
     memset(addr_table, 0, sizeof(addrpair_t *) * addr_table_size);
 }
 
-static boolean AddressesEqual(ip_address_t *a, ip_address_t *b)
-{
-    return a->host == b->host && a->port == b->port;
-}
-
 // Finds an address by searching the table.  If the address is not found,
-// it is added to the table.
+// it is added to the table.  A reference is taken on the address, which
+// is released again when the entry is freed.
 
-static net_addr_t *FindAddress(ip_address_t *addr)
+static nw_addr_t *FindAddress(NET_Address *address, Uint16 address_port)
 {
     addrpair_t *new_entry;
     int empty_entry = -1;
@@ -82,9 +79,10 @@ static net_addr_t *FindAddress(ip_address_t *addr)
     for (i = 0; i < addr_table_size; ++i)
     {
         if (addr_table[i] != NULL
-            && AddressesEqual(addr, &addr_table[i]->netlib_addr))
+            && NET_CompareAddresses(address, addr_table[i]->address) == 0
+            && address_port == addr_table[i]->port)
         {
-            return &addr_table[i]->net_addr;
+            return &addr_table[i]->nw_addr;
         }
 
         if (empty_entry < 0 && addr_table[i] == NULL)
@@ -125,24 +123,26 @@ static net_addr_t *FindAddress(ip_address_t *addr)
 
     new_entry = Z_Malloc(sizeof(addrpair_t), PU_STATIC, 0);
 
-    new_entry->netlib_addr = *addr;
-    new_entry->net_addr.refcount = 0;
-    new_entry->net_addr.handle = &new_entry->netlib_addr;
-    new_entry->net_addr.module = &netlib_module;
+    new_entry->address = NET_RefAddress(address);
+    new_entry->port = address_port;
+    new_entry->nw_addr.refcount = 0;
+    new_entry->nw_addr.handle = new_entry;
+    new_entry->nw_addr.module = &netlib_module;
 
     addr_table[empty_entry] = new_entry;
 
-    return &new_entry->net_addr;
+    return &new_entry->nw_addr;
 }
 
-static void NETLIB_FreeAddress(net_addr_t *addr)
+static void NW_SDL_FreeAddress(nw_addr_t *addr)
 {
     int i;
 
     for (i = 0; i < addr_table_size; ++i)
     {
-        if (addr == &addr_table[i]->net_addr)
+        if (addr == &addr_table[i]->nw_addr)
         {
+            NET_UnrefAddress(addr_table[i]->address);
             Z_Free(addr_table[i]);
             addr_table[i] = NULL;
             return;
@@ -152,7 +152,37 @@ static void NETLIB_FreeAddress(net_addr_t *addr)
     I_Error("Attempted to remove an unused address!");
 }
 
-static boolean NETLIB_InitClient(void)
+static boolean NW_SDL_InitSocket(Uint16 bind_port)
+{
+    SDL_PropertiesID props;
+
+    if (!NET_Init())
+    {
+        I_Error("Failed to initialize SDL_net: %s", SDL_GetError());
+    }
+
+    props = SDL_CreateProperties();
+    SDL_SetBooleanProperty(props,
+                           NET_PROP_DATAGRAM_SOCKET_ALLOW_BROADCAST_BOOLEAN,
+                           true);
+    udpsocket = NET_CreateDatagramSocket(NULL, bind_port, props);
+    SDL_DestroyProperties(props);
+
+    if (udpsocket == NULL)
+    {
+        return false;
+    }
+
+#ifdef DROP_PACKETS
+    NET_SimulateDatagramPacketLoss(udpsocket, 25);
+#endif
+
+    initted = true;
+
+    return true;
+}
+
+static boolean NW_SDL_InitClient(void)
 {
     int p;
 
@@ -175,30 +205,15 @@ static boolean NETLIB_InitClient(void)
         port = M_ParmArgToInt(p);
     }
 
-    if (netlib_init() < 0)
+    if (!NW_SDL_InitSocket(0))
     {
-        I_Error("Failed to initialize SDLNet: %s", netlib_get_error());
+        I_Error("Unable to open a socket: %s", SDL_GetError());
     }
-
-    udpsocket = netlib_udp_open(0);
-
-    if (udpsocket == NULL)
-    {
-        I_Error("Unable to open a socket!");
-    }
-
-    recvpacket = netlib_alloc_packet(1500);
-
-#ifdef DROP_PACKETS
-    srand(time(NULL));
-#endif
-
-    initted = true;
 
     return true;
 }
 
-static boolean NETLIB_InitServer(void)
+static boolean NW_SDL_InitServer(void)
 {
     int p;
 
@@ -210,44 +225,28 @@ static boolean NETLIB_InitServer(void)
     p = M_CheckParmWithArgs("-port", 1);
     if (p > 0)
     {
-        port = atoi(myargv[p + 1]);
+        port = M_ParmArgToInt(p);
     }
 
-    if (netlib_init() < 0)
+    if (!NW_SDL_InitSocket(port))
     {
-        I_Error("Failed to initialize SDLNet: %s", netlib_get_error());
+        I_Error("Unable to bind to port %i: %s", port, SDL_GetError());
     }
-
-    udpsocket = netlib_udp_open(port);
-
-    if (udpsocket == NULL)
-    {
-        I_Error("Unable to bind to port %i", port);
-    }
-
-    recvpacket = netlib_alloc_packet(1500);
-#ifdef DROP_PACKETS
-    srand(time(NULL));
-#endif
-
-    initted = true;
 
     return true;
 }
 
-static void NETLIB_SendPacket(net_addr_t *addr, net_packet_t *packet)
+static void NW_SDL_SendPacket(nw_addr_t *addr, nw_packet_t *packet)
 {
-    udp_packet_t netlib_packet;
-    ip_address_t ip;
+    addrpair_t *entry;
+    NET_Address *address = NULL;
+    Uint16 send_port = port;
 
-    if (addr == &net_broadcast_addr)
+    if (addr != &nw_broadcast_addr)
     {
-        netlib_resolve_host(&ip, NULL, port);
-        ip.host = INADDR_BROADCAST;
-    }
-    else
-    {
-        ip = *((ip_address_t *)addr->handle);
+        entry = (addrpair_t *)addr->handle;
+        address = entry->address;
+        send_port = entry->port;
     }
 
 #if 0
@@ -266,86 +265,81 @@ static void NETLIB_SendPacket(net_addr_t *addr, net_packet_t *packet)
     }
 #endif
 
-#ifdef DROP_PACKETS
-    if ((rand() % 4) == 0)
-    {
-        return;
-    }
-#endif
+    // Sending to a NULL address broadcasts the packet; the socket must
+    // have been created with broadcast permission for this to work.
 
-    netlib_packet.channel = 0;
-    netlib_packet.data = packet->data;
-    netlib_packet.len = packet->len;
-    netlib_packet.address = ip;
-
-    if (!netlib_udp_send(udpsocket, -1, &netlib_packet))
+    if (!NET_SendDatagram(udpsocket, address, send_port, packet->data,
+                          (int)packet->len))
     {
-        I_Error("Error transmitting packet: %s", netlib_get_error());
+        I_Error("Error transmitting packet: %s", SDL_GetError());
     }
 }
 
-static boolean NETLIB_RecvPacket(net_addr_t **addr, net_packet_t **packet)
+static boolean NW_SDL_RecvPacket(nw_addr_t **addr, nw_packet_t **packet)
 {
-    int result;
+    NET_Datagram *dgram;
 
-    result = netlib_udp_recv(udpsocket, recvpacket);
-
-    if (result < 0)
+    if (!NET_ReceiveDatagram(udpsocket, &dgram))
     {
-        I_Error("Error receiving packet: %s", netlib_get_error());
+        I_Error("Error receiving packet: %s", SDL_GetError());
     }
 
     // no packets received
 
-    if (result == 0)
+    if (dgram == NULL)
     {
         return false;
     }
 
     // Put the data into a new packet structure
 
-    *packet = NET_NewPacket(recvpacket->len);
-    memcpy((*packet)->data, recvpacket->data, recvpacket->len);
-    (*packet)->len = recvpacket->len;
+    *packet = NW_NewPacket(dgram->buflen);
+    memcpy((*packet)->data, dgram->buf, dgram->buflen);
+    (*packet)->len = dgram->buflen;
 
     // Address
 
-    *addr = FindAddress(&recvpacket->address);
+    *addr = FindAddress(dgram->addr, dgram->port);
+
+    NET_DestroyDatagram(dgram);
 
     return true;
 }
 
-static void NETLIB_AddrToString(net_addr_t *addr, char *buffer, int buffer_len)
+static void NW_SDL_AddrToString(nw_addr_t *addr, char *buffer, int buffer_len)
 {
-    ip_address_t *ip;
-    uint32_t host;
-    uint16_t port;
+    addrpair_t *entry;
+    const char *address;
 
-    ip = (ip_address_t *)addr->handle;
-    host = netlib_read32(&ip->host);
-    port = netlib_read16(&ip->port);
+    entry = (addrpair_t *)addr->handle;
+    address = NET_GetAddressString(entry->address);
 
-    M_snprintf(buffer, buffer_len, "%i.%i.%i.%i", (host >> 24) & 0xff,
-               (host >> 16) & 0xff, (host >> 8) & 0xff, host & 0xff);
+    if (address == NULL)
+    {
+        M_snprintf(buffer, buffer_len, "(unresolved)");
+        return;
+    }
+
+    M_StringCopy(buffer, address, buffer_len);
 
     // If we are using the default port we just need to show the IP address,
     // but otherwise we need to include the port. This is important because
     // we use the string representation in the setup tool to provided an
     // address to connect to.
-    if (port != DEFAULT_PORT)
+    if (entry->port != DEFAULT_PORT)
     {
         char portbuf[10];
-        M_snprintf(portbuf, sizeof(portbuf), ":%i", port);
+        M_snprintf(portbuf, sizeof(portbuf), ":%i", entry->port);
         M_StringConcat(buffer, portbuf, buffer_len);
     }
 }
 
-static net_addr_t *NETLIB_ResolveAddress(const char *address)
+static nw_addr_t *NW_SDL_ResolveAddress(const char *address)
 {
-    ip_address_t ip;
+    NET_Address *nw_address;
     char *addr_hostname;
     int addr_port;
-    int result;
+    nw_addr_t *result = NULL;
     char *colon;
 
     colon = strchr(address, ':');
@@ -361,42 +355,48 @@ static net_addr_t *NETLIB_ResolveAddress(const char *address)
         addr_port = port;
     }
 
-    result = netlib_resolve_host(&ip, addr_hostname, addr_port);
+    nw_address = NET_ResolveHostname(addr_hostname);
 
     free(addr_hostname);
 
-    if (result)
+    if (nw_address != NULL)
     {
-        // unable to resolve
+        if (NET_WaitUntilResolved(nw_address, -1) == NET_SUCCESS)
+        {
+            result = FindAddress(nw_address, (Uint16)addr_port);
+        }
 
-        return NULL;
+        NET_UnrefAddress(nw_address);
     }
-    else
-    {
-        return FindAddress(&ip);
-    }
+
+    return result;
 }
 
-static void NETLIB_Shutdown(void)
+static void NW_SDL_Shutdown(void)
 {
     if (!initted)
     {
         return;
     }
 
-    netlib_quit();
+    NET_DestroyDatagramSocket(udpsocket);
+    udpsocket = NULL;
+
+    NET_Quit();
+
+    initted = false;
 }
 
 // Complete module
 
-net_module_t netlib_module =
+nw_module_t netlib_module =
 {
-    NETLIB_InitClient,
-    NETLIB_InitServer,
-    NETLIB_SendPacket,
-    NETLIB_RecvPacket,
-    NETLIB_AddrToString,
-    NETLIB_FreeAddress,
-    NETLIB_ResolveAddress,
-    NETLIB_Shutdown,
+    NW_SDL_InitClient,
+    NW_SDL_InitServer,
+    NW_SDL_SendPacket,
+    NW_SDL_RecvPacket,
+    NW_SDL_AddrToString,
+    NW_SDL_FreeAddress,
+    NW_SDL_ResolveAddress,
+    NW_SDL_Shutdown,
 };

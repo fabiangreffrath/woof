@@ -30,21 +30,21 @@
 #include "i_video.h"
 #include "m_argv.h"
 #include "m_fixed.h"
-#include "net_client.h"
-#include "net_gui.h"
-#include "net_io.h"
-#include "net_loop.h"
-#include "net_query.h"
-#include "net_netlib.h"
-#include "net_server.h"
+#include "nw_client.h"
+#include "nw_gui.h"
+#include "nw_io.h"
+#include "nw_loop.h"
+#include "nw_query.h"
+#include "nw_sdl.h"
+#include "nw_server.h"
 #include "s_sound.h"
 
 // The complete set of data for a particular tic.
 
 typedef struct
 {
-    ticcmd_t cmds[NET_MAXPLAYERS];
-    boolean ingame[NET_MAXPLAYERS];
+    ticcmd_t cmds[NW_MAXPLAYERS];
+    boolean ingame[NW_MAXPLAYERS];
 } ticcmd_set_t;
 
 // Maximum time that we wait in TryRunTics() for netgame data to be
@@ -97,7 +97,7 @@ static boolean new_sync = true;
 // This is distinct from playeringame[] used by the game code, which may
 // modify playeringame[] when playing back multiplayer demos.
 
-static boolean local_playeringame[NET_MAXPLAYERS];
+static boolean local_playeringame[NW_MAXPLAYERS];
 
 // Requested player class "sent" to the server on connect.
 // If we are only doing a single player game then this needs to be remembered
@@ -109,10 +109,10 @@ static int player_class;
 
 static int GetAdjustedTime(void)
 {
-    // Use the adjustments from net_client.c only if we are
+    // Use the adjustments from nw_client.c only if we are
     // using the new sync mode.
 
-    if (new_sync && net_client_connected)
+    if (new_sync && nw_client_connected)
     {
         int time_ms;
 
@@ -158,7 +158,7 @@ static boolean BuildNewTic(void)
         // If playing single player, do not allow tics to buffer
         // up very far
 
-        if (!net_client_connected && maketic - gameticdiv > 2)
+        if (!nw_client_connected && maketic - gameticdiv > 2)
         {
             return false;
         }
@@ -182,9 +182,9 @@ static boolean BuildNewTic(void)
     memset(&cmd, 0, sizeof(ticcmd_t));
     G_BuildTiccmd(&cmd);
 
-    if (net_client_connected)
+    if (nw_client_connected)
     {
-        NET_CL_SendTiccmd(&cmd, maketic);
+        NW_CL_SendTiccmd(&cmd, maketic);
     }
 
     ticdata[maketic % BACKUPTICS].cmds[localplayer] = cmd;
@@ -218,8 +218,8 @@ void NetUpdate(void)
 
     // Run network subsystems
 
-    NET_CL_Run();
-    NET_SV_Run();
+    NW_CL_Run();
+    NW_SV_Run();
 
     // check time
     nowtime = GetAdjustedTime() / ticdup;
@@ -280,7 +280,7 @@ void D_ReceiveTic(ticcmd_t *ticcmds, boolean *players_mask)
         return;
     }
 
-    for (i = 0; i < NET_MAXPLAYERS; ++i)
+    for (i = 0; i < NW_MAXPLAYERS; ++i)
     {
         if (!drone && i == localplayer)
         {
@@ -311,22 +311,22 @@ void D_StartGameLoop(void)
 // Block until the game start message is received from the server.
 //
 
-static void BlockUntilStart(net_gamesettings_t *settings,
+static void BlockUntilStart(nw_gamesettings_t *settings,
                             netgame_startup_callback_t callback)
 {
-    while (!NET_CL_GetSettings(settings))
+    while (!NW_CL_GetSettings(settings))
     {
-        NET_CL_Run();
-        NET_SV_Run();
+        NW_CL_Run();
+        NW_SV_Run();
 
-        if (!net_client_connected)
+        if (!nw_client_connected)
         {
             I_Error("Lost connection to server");
         }
 
         if (callback != NULL
-            && !callback(net_client_wait_data.ready_players,
-                         net_client_wait_data.num_players))
+            && !callback(nw_client_wait_data.ready_players,
+                         nw_client_wait_data.num_players))
         {
             I_Error("Netgame startup aborted.");
         }
@@ -335,7 +335,7 @@ static void BlockUntilStart(net_gamesettings_t *settings,
     }
 }
 
-void D_StartNetGame(net_gamesettings_t *settings,
+void D_StartNetGame(nw_gamesettings_t *settings,
                     netgame_startup_callback_t callback)
 {
     int i;
@@ -394,17 +394,17 @@ void D_StartNetGame(net_gamesettings_t *settings,
         settings->ticdup = 1;
     }
 
-    if (net_client_connected)
+    if (nw_client_connected)
     {
         // Send our game settings and block until game start is received
         // from the server.
 
-        NET_CL_StartGame(settings);
+        NW_CL_StartGame(settings);
         BlockUntilStart(settings, callback);
 
         // Read the game settings that were received.
 
-        NET_CL_GetSettings(settings);
+        NW_CL_GetSettings(settings);
     }
 
     if (drone)
@@ -416,7 +416,7 @@ void D_StartNetGame(net_gamesettings_t *settings,
 
     localplayer = settings->consoleplayer;
 
-    for (i = 0; i < NET_MAXPLAYERS; ++i)
+    for (i = 0; i < NW_MAXPLAYERS; ++i)
     {
         local_playeringame[i] = i < settings->num_players;
     }
@@ -438,10 +438,10 @@ void D_StartNetGame(net_gamesettings_t *settings,
     //}
 }
 
-boolean D_InitNetGame(net_connect_data_t *connect_data)
+boolean D_InitNetGame(nw_connect_data_t *connect_data)
 {
     boolean result = false;
-    net_addr_t *addr = NULL;
+    nw_addr_t *addr = NULL;
     int i;
 
     // Call D_QuitNetGame on exit:
@@ -459,14 +459,14 @@ boolean D_InitNetGame(net_connect_data_t *connect_data)
 
     if (M_CheckParm("-server") > 0 || M_CheckParm("-privateserver") > 0)
     {
-        NET_SV_Init();
-        NET_SV_AddModule(&net_loop_server_module);
-        NET_SV_AddModule(&netlib_module);
-        NET_SV_RegisterWithMaster();
+        NW_SV_Init();
+        NW_SV_AddModule(&nw_loop_server_module);
+        NW_SV_AddModule(&netlib_module);
+        NW_SV_RegisterWithMaster();
 
-        net_loop_client_module.InitClient();
-        addr = net_loop_client_module.ResolveAddress(NULL);
-        NET_ReferenceAddress(addr);
+        nw_loop_client_module.InitClient();
+        addr = nw_loop_client_module.ResolveAddress(NULL);
+        NW_ReferenceAddress(addr);
     }
     else
     {
@@ -482,7 +482,7 @@ boolean D_InitNetGame(net_connect_data_t *connect_data)
 
         if (i > 0)
         {
-            addr = NET_FindLANServer();
+            addr = NW_FindLANServer();
 
             if (addr == NULL)
             {
@@ -505,7 +505,7 @@ boolean D_InitNetGame(net_connect_data_t *connect_data)
         {
             netlib_module.InitClient();
             addr = netlib_module.ResolveAddress(myargv[i + 1]);
-            NET_ReferenceAddress(addr);
+            NW_ReferenceAddress(addr);
 
             if (addr == NULL)
             {
@@ -521,19 +521,19 @@ boolean D_InitNetGame(net_connect_data_t *connect_data)
             connect_data->drone = true;
         }
 
-        if (!NET_CL_Connect(addr, connect_data))
+        if (!NW_CL_Connect(addr, connect_data))
         {
             I_Error("Failed to connect to %s:\n%s\n",
-                    NET_AddrToString(addr), net_client_reject_reason);
+                    NW_AddrToString(addr), nw_client_reject_reason);
         }
 
         I_Printf(VB_INFO, "D_InitNetGame: Connected to %s",
-                 NET_AddrToString(addr));
-        NET_ReleaseAddress(addr);
+                 NW_AddrToString(addr));
+        NW_ReleaseAddress(addr);
 
         // Wait for launch message received from server.
 
-        NET_WaitForLaunch();
+        NW_WaitForLaunch();
 
         result = true;
     }
@@ -543,12 +543,12 @@ boolean D_InitNetGame(net_connect_data_t *connect_data)
 
 boolean D_CheckNetConnect(void)
 {
-    return net_client_connected;
+    return nw_client_connected;
 }
 
 void D_CheckNetPlaybackSkip(void)
 {
-    if (!net_client_connected)
+    if (!nw_client_connected)
     {
         return;
     }
@@ -572,8 +572,8 @@ void D_CheckNetPlaybackSkip(void)
 //
 void D_QuitNetGame(void)
 {
-    NET_SV_Shutdown();
-    NET_CL_Disconnect();
+    NW_SV_Shutdown();
+    NW_CL_Disconnect();
     netlib_module.Shutdown();
 }
 
@@ -583,7 +583,7 @@ static int GetLowTic(void)
 
     lowtic = maketic;
 
-    if (net_client_connected)
+    if (nw_client_connected)
     {
         if (drone || recvtic < lowtic)
         {
@@ -608,7 +608,7 @@ static void OldNetSync(void)
     // ideally maketic should be 1 - 3 tics above lowtic
     // if we are consistantly slower, speed up time
 
-    for (i = 0; i < NET_MAXPLAYERS; i++)
+    for (i = 0; i < NW_MAXPLAYERS; i++)
     {
         if (local_playeringame[i])
         {
@@ -657,9 +657,9 @@ static boolean PlayersInGame(void)
     // If we are connected to a server, check if there are any players
     // in the game.
 
-    if (net_client_connected)
+    if (nw_client_connected)
     {
-        for (i = 0; i < NET_MAXPLAYERS; ++i)
+        for (i = 0; i < NW_MAXPLAYERS; ++i)
         {
             result = result || local_playeringame[i];
         }
@@ -681,9 +681,9 @@ int D_GetPlayersInNetGame(void)
     int i;
     int result = 0;
 
-    if (net_client_connected)
+    if (nw_client_connected)
     {
-        for (i = 0; i < NET_MAXPLAYERS; ++i)
+        for (i = 0; i < NW_MAXPLAYERS; ++i)
         {
             if (local_playeringame[i])
             {
@@ -703,7 +703,7 @@ static void TicdupSquash(ticcmd_set_t *set)
     ticcmd_t *cmd;
     unsigned int i;
 
-    for (i = 0; i < NET_MAXPLAYERS; ++i)
+    for (i = 0; i < NW_MAXPLAYERS; ++i)
     {
         cmd = &set->cmds[i];
         cmd->chatchar = 0;
@@ -721,7 +721,7 @@ static void SinglePlayerClear(ticcmd_set_t *set)
 {
     unsigned int i;
 
-    for (i = 0; i < NET_MAXPLAYERS; ++i)
+    for (i = 0; i < NW_MAXPLAYERS; ++i)
     {
         if (i != localplayer)
         {
@@ -812,7 +812,7 @@ void TryRunTics(void)
             counts = 1;
         }
 
-        if (net_client_connected)
+        if (nw_client_connected)
         {
             OldNetSync();
         }
@@ -862,7 +862,7 @@ void TryRunTics(void)
 
         set = &ticdata[(gametic / ticdup) % BACKUPTICS];
 
-        if (!net_client_connected)
+        if (!nw_client_connected)
         {
             SinglePlayerClear(set);
         }
