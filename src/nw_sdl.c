@@ -127,7 +127,7 @@ static nw_addr_t *FindAddress(NET_Address *address, Uint16 address_port)
     new_entry->port = address_port;
     new_entry->nw_addr.refcount = 0;
     new_entry->nw_addr.handle = new_entry;
-    new_entry->nw_addr.module = &netlib_module;
+    new_entry->nw_addr.module = &nw_sdl_module;
 
     addr_table[empty_entry] = new_entry;
 
@@ -389,7 +389,7 @@ static void NW_SDL_Shutdown(void)
 
 // Complete module
 
-nw_module_t netlib_module =
+nw_module_t nw_sdl_module =
 {
     NW_SDL_InitClient,
     NW_SDL_InitServer,

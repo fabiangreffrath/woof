@@ -64,7 +64,7 @@ void NW_DedicatedServer(void)
 
     NW_OpenLog();
     NW_SV_Init();
-    NW_SV_AddModule(&netlib_module);
+    NW_SV_AddModule(&nw_sdl_module);
     NW_SV_RegisterWithMaster();
 
     while (true)

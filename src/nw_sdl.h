@@ -20,6 +20,6 @@
 
 #include "nw_defs.h"
 
-extern nw_module_t netlib_module;
+extern nw_module_t nw_sdl_module;
 
 #endif /* #ifndef NW_SDL_H */

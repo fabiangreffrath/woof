@@ -587,8 +587,8 @@ void NW_Query_Init(void)
     if (query_context == NULL)
     {
         query_context = NW_NewContext();
-        NW_AddModule(query_context, &netlib_module);
-        netlib_module.InitClient();
+        NW_AddModule(query_context, &nw_sdl_module);
+        nw_sdl_module.InitClient();
     }
 
     free(targets);
