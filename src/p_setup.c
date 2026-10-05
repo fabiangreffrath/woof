@@ -711,7 +711,7 @@ int P_GroupLines (void)
       sectors[i].lines = linebuffer;
       linebuffer += sectors[i].linecount;
     }
-  
+
   for (i=0; i<numlines; i++)
     {
       AddLineToSector(lines[i].frontsector, &lines[i]);

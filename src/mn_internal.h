@@ -157,7 +157,7 @@ enum
     S_THRM_SIZE4 =  (1u << 28), // Thermo bar size 4
     S_PCT =         (1u << 29), // Show % sign
     S_CENTER =      (1u << 30), // Centered
-}; 
+};
 
 // S_SHOWDESC  = the set of items whose description should be displayed
 // S_SHOWSET   = the set of items whose setting should be displayed

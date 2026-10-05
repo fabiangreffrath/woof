@@ -26,7 +26,7 @@
 struct player_s;
 struct mobj_s;
 
-// Ty 03/09/98 Moved to an int in p_inter.c for deh and externalization 
+// Ty 03/09/98 Moved to an int in p_inter.c for deh and externalization
 #define MAXHEALTH maxhealth
 
 // follow a player exlusively for 3 seconds

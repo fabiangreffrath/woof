@@ -131,7 +131,7 @@ void P_CalcHeight (player_t* player)
   }
   else
   {
-  if (player->bob > MAXBOB)                             
+  if (player->bob > MAXBOB)
     player->bob = MAXBOB;
   }
 
@@ -308,13 +308,13 @@ void P_DeathThink (player_t* player)
 	  if (player->damagecount)
 	    player->damagecount--;
 	}
-      else 
+      else
 	if (delta < ANG180)
 	  player->mo->angle += ANG5;
 	else
 	  player->mo->angle -= ANG5;
     }
-  else 
+  else
     if (player->damagecount)
       player->damagecount--;
 
@@ -569,7 +569,7 @@ void P_PlayerThink (player_t* player)
       player->fixedcolormap = 0;
   }
   else
-  player->fixedcolormap = 
+  player->fixedcolormap =
 
     beta_emulation ?    /* Beta Emulation */
     player->powers[pw_infrared] > 4*32 ||

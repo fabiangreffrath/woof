@@ -783,7 +783,7 @@ static const int scancode_translate_table[] = SCANCODE_TO_KEYS_ARRAY;
 static boolean text_input_enabled;
 
 // key tables
-// jff 5/10/98 french support removed, 
+// jff 5/10/98 french support removed,
 // as it was not being used and couldn't be easily tested
 //
 

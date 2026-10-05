@@ -700,7 +700,7 @@ static void R_Subsector(int num)
                 GetCeilingTint(frontsector)
                 ) : NULL;
 
-  // killough 9/18/98: Fix underwater slowdown, by passing real sector 
+  // killough 9/18/98: Fix underwater slowdown, by passing real sector
   // instead of fake one. Improve sprite lighting by basing sprite
   // lightlevels on floor & ceiling lightlevels in the surrounding area.
   //
@@ -710,7 +710,7 @@ static void R_Subsector(int num)
   // That is part of the 242 effect!!!  If you simply pass sub->sector to
   // the old code you will not get correct lighting for underwater sprites!!!
   // Either you must pass the fake sector and handle validcount here, on the
-  // real sector, or you must account for the lighting in some other way, 
+  // real sector, or you must account for the lighting in some other way,
   // like passing it as an argument.
 
   R_AddSprites(sub->sector, (floorlightlevel+ceilinglightlevel)/2);

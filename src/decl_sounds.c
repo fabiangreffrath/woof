@@ -299,7 +299,7 @@ void DECL_ParseAmbient(scanner_t *sc)
             int index = SC_GetNumber(sc);
             if (index < 1 || index > MAX_AMBIENT_DATA)
             {
-                SC_Error(sc, "Index not in range 1 to %d (found %d).", 
+                SC_Error(sc, "Index not in range 1 to %d (found %d).",
                          MAX_AMBIENT_DATA, index);
             }
             ambient.index = index;

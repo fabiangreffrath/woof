@@ -554,7 +554,7 @@ boolean M_ParseOption(const char *p, boolean wad)
                     *dp->current.i = parm;
                 }
             }
-            *dp->location.i = parm; // Change default 
+            *dp->location.i = parm; // Change default
         }
     }
     else if (dp->type == input)

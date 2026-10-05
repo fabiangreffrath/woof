@@ -46,7 +46,7 @@
 static void T_FireFlicker(fireflicker_t *flick)
 {
   int amount;
-  
+
   if (--flick->count)
     return;
 
@@ -257,7 +257,7 @@ void P_SpawnStrobeFlash
   flash->thinker.function.p1 = T_StrobeFlashAdapter;
   flash->maxlight = sector->lightlevel;
   flash->minlight = P_FindMinSurroundingLight(sector, sector->lightlevel);
-  
+
   if (flash->minlight == flash->maxlight)
     flash->minlight = 0;
 
@@ -343,7 +343,7 @@ int EV_StartLightStrobing(line_t* line)
 int EV_TurnTagLightsOff(line_t* line)
 {
   int j;
-  
+
   // search sectors for those with same tag as activating line
 
   // killough 10/98: replaced inefficient search with fast search
@@ -393,10 +393,10 @@ int EV_LightTurnOn(line_t *line, int bright)
 	    tbright = temp->lightlevel;
 
       sector->lightlevel = tbright;
-      
-      //jff 5/17/98 unless compatibility optioned 
+
+      //jff 5/17/98 unless compatibility optioned
       //then maximum near ANY tagged sector
-      
+
       if (comp[comp_model])
 	bright = tbright;
     }
@@ -419,7 +419,7 @@ int EV_LightTurnOnPartway(line_t *line, fixed_t level)
 {
   int i;
 
-  if (level < 0)          // clip at extremes 
+  if (level < 0)          // clip at extremes
     level = 0;
   if (level > FRACUNIT)
     level = FRACUNIT;

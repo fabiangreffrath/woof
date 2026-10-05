@@ -265,7 +265,7 @@ void P_UnsetThingPosition (mobj_t *thing)
       //
       // If this Thing is being removed entirely, then the calling
       // routine will clear out the nodes in sector_list.
-      
+
       sector_list = thing->touching_sectorlist;
       thing->touching_sectorlist = NULL; //to be restored by P_SetThingPosition
     }
@@ -273,7 +273,7 @@ void P_UnsetThingPosition (mobj_t *thing)
   if (!(thing->flags & MF_NOBLOCKMAP))
     {
       // inert things don't need to be in blockmap
-      
+
       // killough 8/11/98: simpler scheme using pointers-to-pointers for prev
       // pointers, allows head node pointers to be treated like everything else
       //
@@ -739,7 +739,7 @@ boolean P_TraverseIntercepts(traverser_t func, fixed_t maxfrac)
 }
 
 // Intercepts Overrun emulation, from PrBoom-plus.
-// Thanks to Andrey Budko (entryway) for researching this and his 
+// Thanks to Andrey Budko (entryway) for researching this and his
 // implementation of Intercepts Overrun emulation in PrBoom-plus
 // which this is based on.
 
@@ -852,7 +852,7 @@ static void InterceptsOverrun(int num_intercepts, intercept_t *intercept)
     // the values from the intercept structure.
     //
     // Note: the ->d.{thing,line} member should really have its
-    // address translated into the correct address value for 
+    // address translated into the correct address value for
     // Vanilla Doom.
 
     InterceptsMemoryOverrun(location, intercept->frac);
