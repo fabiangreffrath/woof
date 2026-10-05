@@ -360,8 +360,8 @@ static inline int is_boundary(char c)
     return c == '\0' || isspace((unsigned char)c) || ispunct((unsigned char)c);
 }
 
-static char *M_StringReplaceEx(const char *haystack, const char *needle,
-                               const char *replacement, const boolean whole_word)
+static char *StringReplaceEx(const char *haystack, const char *needle,
+                             const char *replacement, const boolean whole_word)
 {
     char *result, *dst;
     const char *p;
@@ -434,13 +434,13 @@ static char *M_StringReplaceEx(const char *haystack, const char *needle,
 char *M_StringReplace(const char *haystack, const char *needle,
                       const char *replacement)
 {
-    return M_StringReplaceEx(haystack, needle, replacement, false);
+    return StringReplaceEx(haystack, needle, replacement, false);
 }
 
 char *M_StringReplaceWord(const char *haystack, const char *needle,
                           const char *replacement)
 {
-    return M_StringReplaceEx(haystack, needle, replacement, true);
+    return StringReplaceEx(haystack, needle, replacement, true);
 }
 
 // Safe string copy function that works like OpenBSD's strlcpy().
@@ -727,4 +727,30 @@ boolean M_ParseVersion(const char *s, version_t *v)
         return true;
     }
     return false;
+}
+
+int M_CheckStreamLength(int32_t length)
+{
+    return length > 0 && length < (1 << 28); // 256 MiB
+}
+
+int M_CheckZlibHeader(uint8_t *c)
+{
+    return c[0] == 0x78 /* ZLIB_MAGIC_BYTE */ && ((c[0] << 8) + c[1]) % 31 == 0;
+}
+
+int M_CheckJSONStream(uint8_t *c, size_t length)
+{
+    int ends_with_brace = (c[--length] == '}');
+
+    int starts_with_brace = (*c++ == '{');
+
+    // skip white-space characters
+    while (*c == '\n' || *c == ' ')
+    {
+        c++;
+    }
+    int next_is_quote = (*c == '"');
+
+    return starts_with_brace && next_is_quote && ends_with_brace;
 }

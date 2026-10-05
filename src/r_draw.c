@@ -69,7 +69,7 @@ static pixel_t *background_buffer = NULL;
 // Source is the top of the column to scale.
 //
 
-const lighttable_t *dc_colormap[2]; // [crispy] brightmaps
+const lighttable_t *dc_colormap;
 int dc_x;
 int dc_yl;
 int dc_yh;
@@ -114,9 +114,8 @@ void R_DrawColumn(void)
     const fixed_t fracstep = dc_iscale;
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
-    const byte *source = dc_source;
-    const lighttable_t *const *colormap = dc_colormap;
-    const byte *brightmap = dc_brightmap;
+    const byte *const source = dc_source;
+    const lighttable_t *const colormap = dc_colormap;
     int heightmask = dc_texheight - 1;
 
     byte src;
@@ -141,7 +140,7 @@ void R_DrawColumn(void)
         do
         {
             src = source[frac >> 16];
-            *dest++ = colormap[brightmap[src]][src];
+            *dest++ = colormap[src];
 
             if ((frac += fracstep) >= heightmask)
             {
@@ -160,7 +159,7 @@ void R_DrawColumn(void)
         while (count--)
         {
             src = source[(frac >> FRACBITS) & heightmask];
-            *dest++ = colormap[brightmap[src]][src];
+            *dest++ = colormap[src];
             frac += fracstep;
         }
     }
@@ -197,9 +196,8 @@ void R_DrawTLColumn(void)
     const fixed_t fracstep = dc_iscale;
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
-    const byte *source = dc_source;
-    const lighttable_t *const *colormap = dc_colormap;
-    const byte *brightmap = dc_brightmap;
+    const byte *const source = dc_source;
+    const lighttable_t *const colormap = dc_colormap;
     int heightmask = dc_texheight - 1;
 
     byte src;
@@ -224,7 +222,7 @@ void R_DrawTLColumn(void)
         do
         {
             src = source[frac >> 16];
-            *dest = tranmap[(*dest << 8) + colormap[brightmap[src]][src]];
+            *dest = tranmap[(*dest << 8) + colormap[src]];
             dest++;
 
             if ((frac += fracstep) >= heightmask)
@@ -244,7 +242,7 @@ void R_DrawTLColumn(void)
         while (count--)
         {
             src = source[(frac >> FRACBITS) & heightmask];
-            *dest = tranmap[(*dest << 8) + colormap[brightmap[src]][src]];
+            *dest = tranmap[(*dest << 8) + colormap[src]];
             dest++;
             frac += fracstep;
         }
@@ -276,8 +274,8 @@ void R_DrawSkyColumn(void)
     const fixed_t fracstep = dc_iscale;
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
-    const byte *source = dc_source;
-    const lighttable_t *colormap = dc_colormap[0];
+    const byte *const source = dc_source;
+    const lighttable_t *const colormap = dc_colormap;
     const byte skycolor = dc_skycolor;
 
     // Fill in the median color here
@@ -401,7 +399,7 @@ static const int fuzzoffset[FUZZTABLE] =
     FUZZOFF,-FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,FUZZOFF,FUZZOFF,-FUZZOFF,
     FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,-FUZZOFF,-FUZZOFF,FUZZOFF,
     FUZZOFF,-FUZZOFF,-FUZZOFF,-FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,
-    FUZZOFF,FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,-FUZZOFF,FUZZOFF 
+    FUZZOFF,FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,-FUZZOFF,FUZZOFF
 };
 
 static int fuzzpos = 0;
@@ -811,10 +809,9 @@ void R_DrawTranslatedColumn(void)
     const fixed_t fracstep = dc_iscale;
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
-    const byte *source = dc_source;
-    const byte *translation = dc_translation;
-    const lighttable_t *const *colormap = dc_colormap;
-    const byte *brightmap = dc_brightmap;
+    const byte *const source = dc_source;
+    const byte *const translation = dc_translation;
+    const lighttable_t *const colormap = dc_colormap;
     int heightmask = dc_texheight - 1;
 
     byte src;
@@ -839,7 +836,7 @@ void R_DrawTranslatedColumn(void)
         do
         {
             src = source[frac >> 16];
-            *dest++ = colormap[brightmap[src]][translation[src]];
+            *dest++ = colormap[translation[src]];
 
             if ((frac += fracstep) >= heightmask)
             {
@@ -858,7 +855,7 @@ void R_DrawTranslatedColumn(void)
         while (count--)
         {
             src = source[(frac >> FRACBITS) & heightmask];
-            *dest++ = colormap[brightmap[src]][translation[src]];
+            *dest++ = colormap[translation[src]];
             frac += fracstep;
         }
     }
@@ -917,16 +914,15 @@ void R_DrawTRTLColumn(void)
     const fixed_t fracstep = dc_iscale;
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
-    const byte *source = dc_source;
-    const byte *translation = dc_translation;
-    const lighttable_t *const *colormap = dc_colormap;
-    const byte *brightmap = dc_brightmap;
+    const byte *const source = dc_source;
+    const byte *const translation = dc_translation;
+    const lighttable_t *const colormap = dc_colormap;
     int heightmask = dc_texheight - 1;
 
     byte src;
 
     #define SRCPIXEL \
-      tranmap[(*dest << 8) + colormap[brightmap[src]][translation[src]]]
+      tranmap[(*dest << 8) + colormap[translation[src]]]
 
     if (dc_texheight & heightmask)
     {
@@ -978,7 +974,7 @@ void R_DrawTRTLColumn(void)
 }
 
 //
-// R_DrawSpan 
+// R_DrawSpan
 // With DOOM style restrictions on view orientation,
 //  the floors and ceilings consist of horizontal slices
 //  or spans with constant z depth.
@@ -994,8 +990,7 @@ int ds_y;
 int ds_x1;
 int ds_x2;
 
-const lighttable_t *ds_colormap[2];
-const byte *ds_brightmap;
+const lighttable_t *ds_colormap;
 
 uint32_t ds_xfrac;
 uint32_t ds_yfrac;
@@ -1009,9 +1004,8 @@ void R_DrawSpan(void)
 {
     int count = ds_x2 - ds_x1 + 1;
     pixel_t *dest = xlookup[ds_x1] + rowofs[ds_y];
-    const byte *source = ds_source;
-    const lighttable_t *const *colormap = ds_colormap;
-    const byte *brightmap = ds_brightmap;
+    const byte *const source = ds_source;
+    const lighttable_t *const colormap = ds_colormap;
 
     // SoM: we only need 6 bits for the integer part (0 thru 63) so the rest
     // can be used for the fraction part. This allows calculation of the memory
@@ -1032,7 +1026,7 @@ void R_DrawSpan(void)
         // because we don't have the uber complicated math to calculate it now,
         // so that was a memory write we didn't need!
         src = source[((yf >> YSHIFT) & YMASK) | (xf >> XSHIFT)];
-        *dest = colormap[brightmap[src]][src];
+        *dest = colormap[src];
         dest += linesize;
         xf += xs;
         yf += ys;
@@ -1051,7 +1045,7 @@ void R_InitBufferRes(void)
 }
 
 //
-// R_InitBuffer 
+// R_InitBuffer
 // Creats lookup tables that avoid
 //  multiplies and other hazzles
 //  for getting the framebuffer address
@@ -1156,7 +1150,7 @@ void R_FillBackScreen(void)
 // Copy a screen buffer.
 //
 
-static void R_VideoErase(int x, int y, int w, int h)
+static void VideoErase(int x, int y, int w, int h)
 {
     if (background_buffer == NULL)
     {
@@ -1171,7 +1165,7 @@ static void R_VideoErase(int x, int y, int w, int h)
 // Draws the border around the view
 //  for different size windows?
 //
-// killough 11/98: 
+// killough 11/98:
 // Rewritten to avoid relying on screen wraparound, so that it
 // can scale to hires automatically in R_VideoErase().
 //
@@ -1184,15 +1178,15 @@ void R_DrawViewBorder(void)
     }
 
     // copy top
-    R_VideoErase(0, 0, video.unscaledw, scaledviewy);
+    VideoErase(0, 0, video.unscaledw, scaledviewy);
 
     // copy sides
-    R_VideoErase(0, scaledviewy, scaledviewx, scaledviewheight);
+    VideoErase(0, scaledviewy, scaledviewx, scaledviewheight);
     int side = scaledviewx + scaledviewwidth;
-    R_VideoErase(side, scaledviewy, video.unscaledw - side, scaledviewheight);
+    VideoErase(side, scaledviewy, video.unscaledw - side, scaledviewheight);
 
     // copy bottom
-    R_VideoErase(0, scaledviewy + scaledviewheight, video.unscaledw,
+    VideoErase(0, scaledviewy + scaledviewheight, video.unscaledw,
                  scaledviewy);
 }
 

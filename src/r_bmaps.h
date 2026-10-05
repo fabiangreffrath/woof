@@ -22,10 +22,14 @@
 
 #include "doomtype.h"
 
-extern const byte nobrightmap[];
+extern const byte *nobrightmap;
 
 extern boolean brightmaps;
 extern boolean force_brightmaps;
+
+extern boolean use_brightmaps;
+
+void R_ToggleBrightmaps(void);
 
 void R_ParseBrightmaps(int lumpnum);
 
@@ -33,6 +37,12 @@ const byte *R_BrightmapForTexName(const char *texname);
 const byte *R_BrightmapForSprite(const int type);
 const byte *R_BrightmapForFlatNum(const int num);
 const byte *R_BrightmapForState(const int state);
+
+const lighttable_t *R_GetBrightmappedColormap(
+    const lighttable_t *orig_colormap,
+    const lighttable_t *full_colormap,
+    const byte *brightmap
+);
 
 extern const byte **texturebrightmap;
 

@@ -12,10 +12,10 @@
 // GNU General Public License for more details.
 //
 // DESCRIPTION:
-//      Network packet manipulation (net_packet_t)
+//      Network packet manipulation (nw_packet_t)
 //
 
-#include "net_packet.h"
+#include "nw_packet.h"
 #include "m_misc.h"
 #include "z_zone.h"
 #include <ctype.h>
@@ -23,11 +23,11 @@
 
 static int total_packet_memory = 0;
 
-net_packet_t *NET_NewPacket(int initial_size)
+nw_packet_t *NW_NewPacket(int initial_size)
 {
-    net_packet_t *packet;
+    nw_packet_t *packet;
 
-    packet = (net_packet_t *)Z_Malloc(sizeof(net_packet_t), PU_STATIC, 0);
+    packet = (nw_packet_t *)Z_Malloc(sizeof(nw_packet_t), PU_STATIC, 0);
 
     if (initial_size == 0)
     {
@@ -39,7 +39,7 @@ net_packet_t *NET_NewPacket(int initial_size)
     packet->len = 0;
     packet->pos = 0;
 
-    total_packet_memory += sizeof(net_packet_t) + initial_size;
+    total_packet_memory += sizeof(nw_packet_t) + initial_size;
 
     // printf("total packet memory: %i bytes\n", total_packet_memory);
     // printf("%p: allocated\n", packet);
@@ -49,22 +49,22 @@ net_packet_t *NET_NewPacket(int initial_size)
 
 // duplicates an existing packet
 
-net_packet_t *NET_PacketDup(net_packet_t *packet)
+nw_packet_t *NW_PacketDup(nw_packet_t *packet)
 {
-    net_packet_t *newpacket;
+    nw_packet_t *newpacket;
 
-    newpacket = NET_NewPacket(packet->len);
+    newpacket = NW_NewPacket(packet->len);
     memcpy(newpacket->data, packet->data, packet->len);
     newpacket->len = packet->len;
 
     return newpacket;
 }
 
-void NET_FreePacket(net_packet_t *packet)
+void NW_FreePacket(nw_packet_t *packet)
 {
     // printf("%p: destroyed\n", packet);
 
-    total_packet_memory -= sizeof(net_packet_t) + packet->alloced;
+    total_packet_memory -= sizeof(nw_packet_t) + packet->alloced;
     Z_Free(packet->data);
     Z_Free(packet);
 }
@@ -72,7 +72,7 @@ void NET_FreePacket(net_packet_t *packet)
 // Read a byte from the packet, returning true if read
 // successfully
 
-boolean NET_ReadInt8(net_packet_t *packet, unsigned int *data)
+boolean NW_ReadInt8(nw_packet_t *packet, unsigned int *data)
 {
     if (packet->pos + 1 > packet->len)
     {
@@ -89,7 +89,7 @@ boolean NET_ReadInt8(net_packet_t *packet, unsigned int *data)
 // Read a 16-bit integer from the packet, returning true if read
 // successfully
 
-boolean NET_ReadInt16(net_packet_t *packet, unsigned int *data)
+boolean NW_ReadInt16(nw_packet_t *packet, unsigned int *data)
 {
     byte *p;
 
@@ -109,7 +109,7 @@ boolean NET_ReadInt16(net_packet_t *packet, unsigned int *data)
 // Read a 32-bit integer from the packet, returning true if read
 // successfully
 
-boolean NET_ReadInt32(net_packet_t *packet, unsigned int *data)
+boolean NW_ReadInt32(nw_packet_t *packet, unsigned int *data)
 {
     byte *p;
 
@@ -128,9 +128,9 @@ boolean NET_ReadInt32(net_packet_t *packet, unsigned int *data)
 
 // Signed read functions
 
-boolean NET_ReadSInt8(net_packet_t *packet, signed int *data)
+boolean NW_ReadSInt8(nw_packet_t *packet, signed int *data)
 {
-    if (NET_ReadInt8(packet, (unsigned int *)data))
+    if (NW_ReadInt8(packet, (unsigned int *)data))
     {
         if (*data & (1 << 7))
         {
@@ -145,9 +145,9 @@ boolean NET_ReadSInt8(net_packet_t *packet, signed int *data)
     }
 }
 
-boolean NET_ReadSInt16(net_packet_t *packet, signed int *data)
+boolean NW_ReadSInt16(nw_packet_t *packet, signed int *data)
 {
-    if (NET_ReadInt16(packet, (unsigned int *)data))
+    if (NW_ReadInt16(packet, (unsigned int *)data))
     {
         if (*data & (1 << 15))
         {
@@ -162,9 +162,9 @@ boolean NET_ReadSInt16(net_packet_t *packet, signed int *data)
     }
 }
 
-boolean NET_ReadSInt32(net_packet_t *packet, signed int *data)
+boolean NW_ReadSInt32(nw_packet_t *packet, signed int *data)
 {
-    if (NET_ReadInt32(packet, (unsigned int *)data))
+    if (NW_ReadInt32(packet, (unsigned int *)data))
     {
         if (*data & (1U << 31))
         {
@@ -182,7 +182,7 @@ boolean NET_ReadSInt32(net_packet_t *packet, signed int *data)
 // Read a string from the packet.  Returns NULL if a terminating
 // NUL character was not found before the end of the packet.
 
-char *NET_ReadString(net_packet_t *packet)
+char *NW_ReadString(nw_packet_t *packet)
 {
     char *start;
 
@@ -214,11 +214,11 @@ char *NET_ReadString(net_packet_t *packet)
 // Read a string from the packet, but (potentially) modify it to strip
 // out any unprintable characters which could be malicious control codes.
 // Note that this may modify the original packet contents.
-char *NET_ReadSafeString(net_packet_t *packet)
+char *NW_ReadSafeString(nw_packet_t *packet)
 {
     char *r, *w, *result;
 
-    result = NET_ReadString(packet);
+    result = NW_ReadString(packet);
     if (result == NULL)
     {
         return NULL;
@@ -244,7 +244,7 @@ char *NET_ReadSafeString(net_packet_t *packet)
 
 // Dynamically increases the size of a packet
 
-static void NET_IncreasePacket(net_packet_t *packet)
+static void IncreasePacket(nw_packet_t *packet)
 {
     byte *newdata;
 
@@ -264,11 +264,11 @@ static void NET_IncreasePacket(net_packet_t *packet)
 
 // Write a single byte to the packet
 
-void NET_WriteInt8(net_packet_t *packet, unsigned int i)
+void NW_WriteInt8(nw_packet_t *packet, unsigned int i)
 {
     if (packet->len + 1 > packet->alloced)
     {
-        NET_IncreasePacket(packet);
+        IncreasePacket(packet);
     }
 
     packet->data[packet->len] = i;
@@ -277,13 +277,13 @@ void NET_WriteInt8(net_packet_t *packet, unsigned int i)
 
 // Write a 16-bit integer to the packet
 
-void NET_WriteInt16(net_packet_t *packet, unsigned int i)
+void NW_WriteInt16(nw_packet_t *packet, unsigned int i)
 {
     byte *p;
 
     if (packet->len + 2 > packet->alloced)
     {
-        NET_IncreasePacket(packet);
+        IncreasePacket(packet);
     }
 
     p = packet->data + packet->len;
@@ -296,13 +296,13 @@ void NET_WriteInt16(net_packet_t *packet, unsigned int i)
 
 // Write a single byte to the packet
 
-void NET_WriteInt32(net_packet_t *packet, unsigned int i)
+void NW_WriteInt32(nw_packet_t *packet, unsigned int i)
 {
     byte *p;
 
     if (packet->len + 4 > packet->alloced)
     {
-        NET_IncreasePacket(packet);
+        IncreasePacket(packet);
     }
 
     p = packet->data + packet->len;
@@ -315,7 +315,7 @@ void NET_WriteInt32(net_packet_t *packet, unsigned int i)
     packet->len += 4;
 }
 
-void NET_WriteString(net_packet_t *packet, const char *string)
+void NW_WriteString(nw_packet_t *packet, const char *string)
 {
     byte *p;
     size_t string_size;
@@ -326,7 +326,7 @@ void NET_WriteString(net_packet_t *packet, const char *string)
 
     while (packet->len + string_size > packet->alloced)
     {
-        NET_IncreasePacket(packet);
+        IncreasePacket(packet);
     }
 
     p = packet->data + packet->len;

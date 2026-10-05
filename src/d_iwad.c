@@ -291,7 +291,7 @@ static const root_path_t steam_paths[] =
 
 // Values installed by other versions (non-GOG.com, non-Steam)
 
-static const root_path_t misc_paths[] = 
+static const root_path_t misc_paths[] =
 {
     // Doom Collector's Edition
     {

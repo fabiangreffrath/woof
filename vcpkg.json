@@ -35,6 +35,7 @@
         }
       ]
     },
+    "sdl3-net",
     {
       "name": "yyjson",
       "default-features": false,

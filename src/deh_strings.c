@@ -108,7 +108,7 @@ static void InitHashTable(void)
     hash_table = calloc(hash_table_length, sizeof(deh_substitution_t *));
 }
 
-static void DEH_AddToHashtable(deh_substitution_t *sub);
+static void AddToHashtable(deh_substitution_t *sub);
 
 static void IncreaseHashtable(void)
 {
@@ -125,7 +125,7 @@ static void IncreaseHashtable(void)
     {
         if (old_table[i] != NULL)
         {
-            DEH_AddToHashtable(old_table[i]);
+            AddToHashtable(old_table[i]);
         }
     }
 
@@ -133,7 +133,7 @@ static void IncreaseHashtable(void)
     free(old_table);
 }
 
-static void DEH_AddToHashtable(deh_substitution_t *sub)
+static void AddToHashtable(deh_substitution_t *sub)
 {
     // if the hash table is more than 60% full, increase its size
     if ((hash_table_entries * 10) / hash_table_length > 6)
@@ -187,7 +187,7 @@ void DEH_AddStringReplacement(const char *from_text, const char *to_text)
         sub->to_text = malloc(to_len);
         memcpy(sub->to_text, to_text, to_len);
 
-        DEH_AddToHashtable(sub);
+        AddToHashtable(sub);
     }
 }
 

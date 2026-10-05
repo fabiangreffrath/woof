@@ -196,7 +196,7 @@ void ST_ResetMessages(void)
 }
 
 // key tables
-// jff 5/10/98 french support removed, 
+// jff 5/10/98 french support removed,
 // as it was not being used and couldn't be easily tested
 //
 

@@ -53,13 +53,13 @@ static pixel_t *wipe_scr;
 
 static int fade_tick;
 
-static int wipe_init(int width, int height, int ticks)
+static int WipeInit(int width, int height, int ticks)
 {
     fade_tick = 0;
     return 0;
 }
 
-static int wipe_doCrossfade(int width, int height, int ticks)
+static int WipeDoCrossfade(int width, int height, int ticks)
 {
     if (ticks <= 0)
     {
@@ -90,7 +90,7 @@ static int wipe_doCrossfade(int width, int height, int ticks)
     return (fade_tick > 64);
 }
 
-static int wipe_exit(int width, int height, int ticks)
+static int WipeExit(int width, int height, int ticks)
 {
     Z_Free(wipe_scr_start);
     Z_Free(wipe_scr_end);
@@ -100,7 +100,7 @@ static int wipe_exit(int width, int height, int ticks)
 static int *ybuff1, *ybuff2;
 static int *curry, *prevy;
 
-static int wipe_initMelt(int width, int height, int ticks)
+static int WipeInitMelt(int width, int height, int ticks)
 {
     wipe_columns = video.unscaledw / 2;
 
@@ -131,7 +131,7 @@ static int wipe_initMelt(int width, int height, int ticks)
     return 0;
 }
 
-static int wipe_doMelt(int width, int height, int ticks)
+static int WipeDoMelt(int width, int height, int ticks)
 {
     boolean done = true;
 
@@ -175,7 +175,7 @@ static int wipe_doMelt(int width, int height, int ticks)
     return done;
 }
 
-static int wipe_renderMelt(int width, int height, int ticks)
+static int WipeRenderMelt(int width, int height, int ticks)
 {
     boolean done = true;
 
@@ -244,15 +244,15 @@ static int wipe_renderMelt(int width, int height, int ticks)
     return done;
 }
 
-static int wipe_exitMelt(int width, int height, int ticks)
+static int WipeExitMelt(int width, int height, int ticks)
 {
     Z_Free(ybuff1);
     Z_Free(ybuff2);
-    wipe_exit(width, height, ticks);
+    WipeExit(width, height, ticks);
     return 0;
 }
 
-int wipe_StartScreen(int x, int y, int width, int height)
+int Wipe_StartScreen(int x, int y, int width, int height)
 {
     int size = width * height;
     wipe_scr_start = Z_Malloc(size * sizeof(*wipe_scr_start), PU_STATIC, NULL);
@@ -260,7 +260,7 @@ int wipe_StartScreen(int x, int y, int width, int height)
     return 0;
 }
 
-int wipe_EndScreen(int x, int y, int width, int height)
+int Wipe_EndScreen(int x, int y, int width, int height)
 {
     int size = width * height;
     wipe_scr_end = Z_Malloc(size * sizeof(*wipe_scr_end), PU_STATIC, NULL);
@@ -268,7 +268,7 @@ int wipe_EndScreen(int x, int y, int width, int height)
     return 0;
 }
 
-static int wipe_NOP(int width, int height, int tics)
+static int WipeNOP(int width, int height, int tics)
 {
     return tics > 0;
 }
@@ -322,7 +322,7 @@ static unsigned int rndbits_y;
 static unsigned int rndmask;
 static unsigned int lastrndval;
 
-static int wipe_initFizzle(int width, int height, int ticks)
+static int WipeInitFizzle(int width, int height, int ticks)
 {
     int rndbits_x = log2_ceil(video.unscaledw);
     rndbits_y = log2_ceil(WIPE_ROWS);
@@ -346,7 +346,7 @@ static int wipe_initFizzle(int width, int height, int ticks)
     return 0;
 }
 
-static int wipe_doFizzle(int width, int height, int ticks)
+static int WipeDoFizzle(int width, int height, int ticks)
 {
     if (ticks <= 0)
     {
@@ -414,14 +414,14 @@ typedef struct
 } wipe_t;
 
 static wipe_t wipes[] = {
-    {wipe_init,       wipe_NOP,         wipe_NOP,        wipe_exit    },
-    {wipe_initMelt,   wipe_doMelt,      wipe_renderMelt, wipe_exitMelt},
-    {wipe_init,       wipe_doCrossfade, wipe_NOP,        wipe_exit    },
-    {wipe_initFizzle, wipe_doFizzle,    wipe_NOP,        wipe_exit    },
+    {WipeInit,       WipeNOP,         WipeNOP,        WipeExit    },
+    {WipeInitMelt,   WipeDoMelt,      WipeRenderMelt, WipeExitMelt},
+    {WipeInit,       WipeDoCrossfade, WipeNOP,        WipeExit    },
+    {WipeInitFizzle, WipeDoFizzle,    WipeNOP,        WipeExit    },
 };
 
 // killough 3/5/98: reformatted and cleaned up
-int wipe_ScreenWipe(int x, int y, int width, int height, int ticks)
+int Wipe_ScreenWipe(int x, int y, int width, int height, int ticks)
 {
     wipefx_t wipeno = (screen_wipe_internal == wipe_Default)
                           ? screen_wipe

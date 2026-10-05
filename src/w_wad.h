@@ -69,7 +69,7 @@ typedef enum
   ns_hires // [Woof!] namespace to avoid conflicts with high-resolution textures
 } namespace_t;
 
-typedef struct archive_s archive_t; 
+typedef struct archive_s archive_t;
 
 typedef struct
 {

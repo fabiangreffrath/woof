@@ -14,30 +14,30 @@
 // Network server code
 //
 
-#ifndef NET_SERVER_H
-#define NET_SERVER_H
+#ifndef NW_SERVER_H
+#define NW_SERVER_H
 
-#include "net_defs.h"
+#include "nw_defs.h"
 
 // initialize server and wait for connections
 
-void NET_SV_Init(void);
+void NW_SV_Init(void);
 
 // run server: check for new packets received etc.
 
-void NET_SV_Run(void);
+void NW_SV_Run(void);
 
 // Shut down the server
 // Blocks until all clients disconnect, or until a 5 second timeout
 
-void NET_SV_Shutdown(void);
+void NW_SV_Shutdown(void);
 
 // Add a network module to the context used by the server
 
-void NET_SV_AddModule(net_module_t *module);
+void NW_SV_AddModule(nw_module_t *module);
 
 // Register server with master server.
 
-void NET_SV_RegisterWithMaster(void);
+void NW_SV_RegisterWithMaster(void);
 
-#endif /* #ifndef NET_SERVER_H */
+#endif /* #ifndef NW_SERVER_H */

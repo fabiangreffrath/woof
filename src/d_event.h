@@ -14,7 +14,7 @@
 //
 // DESCRIPTION:
 //
-//    
+//
 //-----------------------------------------------------------------------------
 
 
@@ -61,7 +61,7 @@ typedef struct event_s
 } event_t;
 
 #define EV_RESIZE_VIEWPORT 1
- 
+
 typedef enum
 {
   ga_nothing,
@@ -96,7 +96,7 @@ typedef enum
   // Flag: game events, not really buttons.
   BT_SPECIAL      = 128,
   BT_SPECIALMASK  = 3,
-    
+
   // Flag, weapon change pending.
   // If true, the next 4 bits hold weapon num.
   BT_CHANGE       = 4,
@@ -115,13 +115,13 @@ typedef enum
   // Reload level.
   BTS_RELOAD      = 3,
 
-  // Savegame slot numbers occupy the second byte of buttons.    
+  // Savegame slot numbers occupy the second byte of buttons.
   BTS_SAVEMASK    = (4+8+16),
   BTS_SAVESHIFT   = 2,
 
   // [crispy] demo joined.
   BT_JOIN = 64
-  
+
 } buttoncode_t;
 
 

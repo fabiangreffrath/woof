@@ -38,7 +38,7 @@
 #include "sounds.h"
 
 ///////////////////////////////////////////////////////////////////////
-// 
+//
 // Plane (floor or ceiling), Floor motion and Elevator action routines
 //
 ///////////////////////////////////////////////////////////////////////
@@ -49,12 +49,12 @@
 // Move a plane (floor or ceiling) and check for crushing. Called
 // every tick by all actions that move floors or ceilings.
 //
-// Passed the sector to move a plane in, the speed to move it at, 
+// Passed the sector to move a plane in, the speed to move it at,
 // the dest height it is to achieve, whether it crushes obstacles,
-// whether it moves a floor or ceiling, and the direction up or down 
+// whether it moves a floor or ceiling, and the direction up or down
 // to move.
 //
-// Returns a result_e: 
+// Returns a result_e:
 //  ok - plane moved normally, has not achieved destination yet
 //  pastdest - plane moved normally and is now at destination height
 //  crushed - plane encountered an obstacle, is holding until removed
@@ -68,7 +68,7 @@ result_e T_MovePlane
   int           direction )
 {
   boolean       flag;
-  fixed_t       lastpos;     
+  fixed_t       lastpos;
   fixed_t       destheight; //jff 02/04/98 used to keep floors/ceilings
                             // from moving thru each other
 
@@ -93,7 +93,7 @@ result_e T_MovePlane
             lastpos = sector->floorheight;
             sector->floorheight = dest;
             flag = P_CheckSector(sector,crush); //jff 3/19/98 use faster chk
-            if (flag == true)                   
+            if (flag == true)
             {
               sector->floorheight =lastpos;
               P_CheckSector(sector,crush);      //jff 3/19/98 use faster chk
@@ -116,7 +116,7 @@ result_e T_MovePlane
             }
           }
           break;
-                                                
+
         case 1:
           // Moving a floor up
           // jff 02/04/98 keep floor from moving thru ceilings
@@ -155,7 +155,7 @@ result_e T_MovePlane
           break;
       }
       break;
-                                                                        
+
     case 1:
       // moving a ceiling
 
@@ -204,7 +204,7 @@ result_e T_MovePlane
             }
           }
           break;
-                                                
+
         case 1:
           // moving a ceiling up
           if (sector->ceilingheight + speed > dest)
@@ -234,17 +234,17 @@ result_e T_MovePlane
 //
 // T_MoveFloor()
 //
-// Move a floor to it's destination (up or down). 
+// Move a floor to it's destination (up or down).
 // Called once per tick for each moving floor.
 //
 // Passed a floormove_t structure that contains all pertinent info about the
 // move. See P_SPEC.H for fields.
 // No return value.
 //
-// jff 02/08/98 all cases with labels beginning with gen added to support 
+// jff 02/08/98 all cases with labels beginning with gen added to support
 // generalized line type behaviors.
 
-static void T_MoveFloor(floormove_t* floor)
+static void ThinkerMoveFloor(floormove_t* floor)
 {
   result_e      res;
 
@@ -257,10 +257,10 @@ static void T_MoveFloor(floormove_t* floor)
     0,
     floor->direction
   );
-  
+
   if (!(leveltime&7))     // make the floormove sound
     S_StartSoundPitch((mobj_t *)&floor->sector->soundorg, sfx_stnmov, PITCH_NONE);
-    
+
   if (res == pastdest)    // if destination height is reached
   {
     if (floor->direction == 1)       // going up
@@ -324,7 +324,7 @@ static void T_MoveFloor(floormove_t* floor)
       if (sec->prevsec==-1)           // if all thinkers previous are done
       {
         sec = floor->sector;          // search forward
-        while (sec->nextsec!=-1 && sectors[sec->nextsec].stairlock!=-2) 
+        while (sec->nextsec!=-1 && sectors[sec->nextsec].stairlock!=-2)
           sec = &sectors[sec->nextsec];
         if (sec->nextsec==-1)         // if all thinkers ahead are done too
         {
@@ -345,7 +345,7 @@ static void T_MoveFloor(floormove_t* floor)
 
 void T_MoveFloorAdapter(mobj_t *mobj)
 {
-    T_MoveFloor((floormove_t *)mobj);
+    ThinkerMoveFloor((floormove_t *)mobj);
 }
 
 //
@@ -360,7 +360,7 @@ void T_MoveFloorAdapter(mobj_t *mobj)
 //
 // jff 02/22/98 added to support parallel floor/ceiling motion
 //
-static void T_MoveElevator(elevator_t *elevator)
+static void ThinkerMoveElevator(elevator_t *elevator)
 {
   result_e      res;
 
@@ -416,7 +416,7 @@ static void T_MoveElevator(elevator_t *elevator)
   // make floor move sound
   if (!(leveltime&7))
     S_StartSoundPitch((mobj_t *)&elevator->sector->soundorg, sfx_stnmov, PITCH_NONE);
-    
+
   if (res == pastdest)            // if destination height acheived
   {
     elevator->sector->floordata = NULL;     //jff 2/22/98
@@ -430,11 +430,11 @@ static void T_MoveElevator(elevator_t *elevator)
 
 void T_MoveElevatorAdapter(mobj_t *mobj)
 {
-    T_MoveElevator((elevator_t *)mobj);
+    ThinkerMoveElevator((elevator_t *)mobj);
 }
 
 ///////////////////////////////////////////////////////////////////////
-// 
+//
 // Floor motion linedef handlers
 //
 ///////////////////////////////////////////////////////////////////////
@@ -463,11 +463,11 @@ int EV_DoFloor
   while ((secnum = P_FindSectorFromLineTag(line,secnum)) >= 0)
   {
     sec = &sectors[secnum];
-              
+
     // Don't start a second thinker on the same floor
     if (P_SectorActive(floor_special,sec)) //jff 2/23/98
       continue;
-      
+
     // new floor thinker
     rtn = 1;
     floor = arena_alloc(thinkers_arena, floormove_t);
@@ -591,7 +591,7 @@ int EV_DoFloor
         {
           int minsize = INT_MAX;
           side_t*     side;
-                      
+
           if (!comp[comp_model])  // killough 10/98
 	    minsize = 32000<<FRACBITS; //jff 3/13/98 no ovf
           floor->direction = 1;
@@ -623,9 +623,9 @@ int EV_DoFloor
               floor->floordestheight = 32000;        //jff 3/13/98 do not
             floor->floordestheight<<=FRACBITS;       // allow height overflow
           }
-        }                                            
+        }
       break;
-        
+
       case lowerAndChange:
         floor->direction = -1;
         floor->sector = sec;
@@ -636,7 +636,7 @@ int EV_DoFloor
         // jff 1/24/98 make sure floor->newspecial gets initialized
         // in case no surrounding sector is at floordestheight
         // --> should not affect compatibility <--
-        floor->newspecial = sec->special; 
+        floor->newspecial = sec->special;
         //jff 3/14/98 transfer both old and new special
         floor->oldspecial = sec->oldspecial;
 
@@ -683,7 +683,7 @@ int EV_DoChange
   while ((secnum = P_FindSectorFromLineTag(line,secnum)) >= 0)
   {
     sec = &sectors[secnum];
-              
+
     rtn = 1;
 
     // handle trigger or numeric change type
@@ -724,7 +724,7 @@ int EV_DoChange
 // [FG] Compatibility bug in EV_BuildStairs
 // http://prboom.sourceforge.net/mbf-bugs.html
 
-static int P_FindSectorFromLineTagWithLowerBound(const line_t* line, int start, int min)
+static int FindSectorFromLineTagWithLowerBound(const line_t* line, int start, int min)
 {
   // Emulate original Doom's linear lower-bounded P_FindSectorFromLineTag
   // as needed
@@ -747,12 +747,12 @@ int EV_BuildStairs
   int                   texture;
   int                   ok;
   int                   rtn;
-    
+
   sector_t*             sec;
   sector_t*             tsec;
 
   floormove_t*  floor;
-    
+
   fixed_t               stairsize;
   fixed_t               speed;
 
@@ -765,15 +765,15 @@ int EV_BuildStairs
 // http://prboom.sourceforge.net/mbf-bugs.html
 
   // start a stair at each sector tagged the same as the linedef
-  while ((ssec = P_FindSectorFromLineTagWithLowerBound(line,ssec,minssec)) >= 0)
+  while ((ssec = FindSectorFromLineTagWithLowerBound(line,ssec,minssec)) >= 0)
   {
     secnum = ssec;
     sec = &sectors[secnum];
-              
+
     // don't start a stair if the first step's floor is already moving
     if (P_SectorActive(floor_special,sec)) //jff 2/22/98
       continue;
-      
+
     // create new floor thinker for first step
     rtn = 1;
     floor = arena_alloc(thinkers_arena, floormove_t);
@@ -810,9 +810,9 @@ int EV_BuildStairs
     floor->speed = speed;
     height = sec->floorheight + stairsize;
     floor->floordestheight = height;
-              
+
     texture = sec->floorpic;
-      
+
     // Find next sector to raise
     //   1. Find 2-sided line with same sector side[0] (lowest numbered)
     //   2. Other side is the next sector to raise
@@ -825,10 +825,10 @@ int EV_BuildStairs
       {
         if ( !((sec->lines[i])->flags & ML_TWOSIDED) )
           continue;
-                                  
+
         tsec = (sec->lines[i])->frontsector;
         newsecnum = tsec-sectors;
-          
+
         if (secnum != newsecnum)
           continue;
 
@@ -961,19 +961,19 @@ int EV_DoDonut(line_t*  line)
   while ((secnum = P_FindSectorFromLineTag(line,secnum)) >= 0)
   {
     s1 = &sectors[secnum];                // s1 is pillar's sector
-              
+
     // do not start the donut if the pillar is already moving
     if (P_SectorActive(floor_special,s1)) //jff 2/22/98
       continue;
-                      
+
     s2 = getNextSector(s1->lines[0],s1);  // s2 is pool's sector
     if (!s2) continue;                    // note lowest numbered line around
-                                          // pillar must be two-sided 
+                                          // pillar must be two-sided
 
     // do not start the donut if the pool is already moving
     if (!comp[comp_floors] && P_SectorActive(floor_special,s2))
       continue;                           //jff 5/7/98
-                      
+
     // find a two sided line around the pool whose other side isn't the pillar
     for (i = 0;i < s2->linecount;i++)
     {
@@ -1030,7 +1030,7 @@ int EV_DoDonut(line_t*  line)
       floor->texture = s3_floorpic;
       floor->newspecial = 0;
       floor->floordestheight = s3_floorheight;
-        
+
       //  Spawn lowering donut-hole pillar
       floor = arena_alloc(thinkers_arena, floormove_t);
       P_AddThinker (&floor->thinker);
@@ -1072,11 +1072,11 @@ int EV_DoElevator
   while ((secnum = P_FindSectorFromLineTag(line,secnum)) >= 0)
   {
     sec = &sectors[secnum];
-              
+
     // If either floor or ceiling is already activated, skip it
     if (sec->floordata || sec->ceilingdata) //jff 2/22/98
       continue;
-      
+
     // create and initialize new elevator thinker
     rtn = 1;
     elevator = arena_alloc(thinkers_arena, elevator_t);

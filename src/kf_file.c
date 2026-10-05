@@ -31,14 +31,12 @@
 #include "p_map.h"
 #include "p_maputl.h"
 #include "p_mobj.h"
-#include "p_saveg.h"
 #include "p_setup.h"
 #include "p_spec.h"
 #include "p_tick.h"
 #include "r_defs.h"
 #include "r_state.h"
-
-#include "miniz.h"
+#include "z_zone.h"
 
 #include <stddef.h>
 #include <stdint.h>
@@ -170,13 +168,10 @@ static uintptr_t *platlist_pointers;
         (ptr) = (index != null_index) ? (base) + index : NULL; \
     } while (0)
 
-#define JS_SetIdx(doc, obj, key, ptr, base)                             \
-    do                                                                  \
-    {                                                                   \
-        JS_SetInt(doc, obj, key, ptr ? (int)(ptr - base) : null_index); \
-    } while (0)
+#define JS_SetIdx(doc, obj, key, ptr, base) \
+    JS_SetInt(doc, obj, key, (ptr) ? (int)(ptr - base) : null_index)
 
-inline static thinker_t *readp_thinker_index(int index)
+inline static thinker_t *getptr_thinker_index(int index)
 {
     if (index == null_index)
     {
@@ -200,12 +195,12 @@ inline static thinker_t *readp_thinker_index(int index)
     }
 }
 
-static thinker_t *readp_thinker(int index)
+static thinker_t *getptr_thinker(int index)
 {
-    return readp_thinker_index(index);
+    return getptr_thinker_index(index);
 }
 
-static int writep_thinker(const thinker_t *thinker)
+static int getidx_thinker(const thinker_t *thinker)
 {
     int index;
     if (!thinker)
@@ -227,17 +222,17 @@ static int writep_thinker(const thinker_t *thinker)
     return index;
 }
 
-static mobj_t *readp_mobj(int index)
+static mobj_t *getptr_mobj(int index)
 {
-    return (mobj_t *)readp_thinker(index);
+    return (mobj_t *)getptr_thinker(index);
 }
 
-static int writep_mobj(const mobj_t *mobj)
+static int getidx_mobj(const mobj_t *mobj)
 {
-    return mobj ? writep_thinker(&mobj->thinker) : null_index;
+    return mobj ? getidx_thinker(&mobj->thinker) : null_index;
 }
 
-static msecnode_t *readp_msecnode(int index)
+static msecnode_t *getptr_msecnode(int index)
 {
     if (index == null_index)
     {
@@ -250,7 +245,7 @@ static msecnode_t *readp_msecnode(int index)
     return (msecnode_t *)msecnode_pointers[index];
 }
 
-static int writep_msecnode(const msecnode_t *node)
+static int getidx_msecnode(const msecnode_t *node)
 {
     int index;
     if (!node)
@@ -264,7 +259,7 @@ static int writep_msecnode(const msecnode_t *node)
     return index;
 }
 
-static ceilinglist_t *readp_activeceilings(int index)
+static ceilinglist_t *getptr_activeceilings(int index)
 {
     if (index == null_index)
     {
@@ -277,7 +272,7 @@ static ceilinglist_t *readp_activeceilings(int index)
     return (ceilinglist_t *)ceilinglist_pointers[index];
 }
 
-static int writep_activeceilings(const ceilinglist_t *cl)
+static int getidx_activeceilings(const ceilinglist_t *cl)
 {
     int index;
     if (!cl)
@@ -291,7 +286,7 @@ static int writep_activeceilings(const ceilinglist_t *cl)
     return index;
 }
 
-static platlist_t *readp_activeplats(int index)
+static platlist_t *getptr_activeplats(int index)
 {
     if (index == null_index)
     {
@@ -304,7 +299,7 @@ static platlist_t *readp_activeplats(int index)
     return (platlist_t *)platlist_pointers[index];
 }
 
-static int writep_activeplats(const platlist_t *pl)
+static int getidx_activeplats(const platlist_t *pl)
 {
     int index;
     if (!pl)
@@ -342,7 +337,7 @@ static json_mut_t *write_mapthing_t(mapthing_t *str, json_mut_doc_t *doc)
     return obj;
 }
 
-static thinker_t *readp_thclass(int index)
+static thinker_t *getptr_thclass(int index)
 {
     for (int tclass = 0; tclass < NUMTHCLASS; ++tclass)
     {
@@ -351,10 +346,10 @@ static thinker_t *readp_thclass(int index)
             return &thinkerclasscap[tclass];
         }
     }
-    return readp_thinker_index(index);
+    return getptr_thinker_index(index);
 }
 
-static int writep_thclass(thinker_t *str)
+static int getidx_thclass(thinker_t *str)
 {
     int tclass;
     for (tclass = 0; tclass < NUMTHCLASS; ++tclass)
@@ -364,16 +359,16 @@ static int writep_thclass(thinker_t *str)
             return tclass_to_index[tclass];
         }
     }
-    return writep_thinker(str);
+    return getidx_thinker(str);
 }
 
 static void read_thinker_t(thinker_t *str, thinker_class_t tc, json_t *obj)
 {
-    str->prev = readp_thinker(JS_GetIntegerValue(obj, "prev"));
-    str->next = readp_thinker(JS_GetIntegerValue(obj, "next"));
+    str->prev = getptr_thinker(JS_GetIntegerValue(obj, "prev"));
+    str->next = getptr_thinker(JS_GetIntegerValue(obj, "next"));
     str->function.p1 = actions[tc];
-    str->cnext = readp_thclass(JS_GetIntegerValue(obj, "cnext"));
-    str->cprev = readp_thclass(JS_GetIntegerValue(obj, "cprev"));
+    str->cnext = getptr_thclass(JS_GetIntegerValue(obj, "cnext"));
+    str->cprev = getptr_thclass(JS_GetIntegerValue(obj, "cprev"));
     str->references = JS_GetIntegerValue(obj, "references");
 }
 
@@ -381,10 +376,10 @@ static json_mut_t *write_thinker_t(thinker_t *str, json_mut_doc_t *doc)
 {
     json_mut_t *obj = JS_NewObject(doc);
 
-    JS_SetInt(doc, obj, "prev", writep_thinker(str->prev));
-    JS_SetInt(doc, obj, "next", writep_thinker(str->next));
-    JS_SetInt(doc, obj, "cnext", writep_thclass(str->cnext));
-    JS_SetInt(doc, obj, "cprev", writep_thclass(str->cprev));
+    JS_SetInt(doc, obj, "prev", getidx_thinker(str->prev));
+    JS_SetInt(doc, obj, "next", getidx_thinker(str->next));
+    JS_SetInt(doc, obj, "cnext", getidx_thclass(str->cnext));
+    JS_SetInt(doc, obj, "cprev", getidx_thclass(str->cprev));
     JS_SetInt(doc, obj, "references", str->references);
 
     return obj;
@@ -444,7 +439,7 @@ static void read_mobj_t(mobj_t *str, thinker_class_t tc, json_t *obj)
     str->movedir = JS_GetIntegerValue(obj, "movedir");
     str->movecount = JS_GetIntegerValue(obj, "movecount");
     str->strafecount = JS_GetIntegerValue(obj, "strafecount");
-    str->target = readp_mobj(JS_GetIntegerValue(obj, "target"));
+    str->target = getptr_mobj(JS_GetIntegerValue(obj, "target"));
     str->reactiontime = JS_GetIntegerValue(obj, "reactiontime");
     str->threshold = JS_GetIntegerValue(obj, "threshold");
     str->pursuecount = JS_GetIntegerValue(obj, "pursuecount");
@@ -454,14 +449,14 @@ static void read_mobj_t(mobj_t *str, thinker_class_t tc, json_t *obj)
 
     read_mapthing_t(&str->spawnpoint, JS_GetObject(obj, "spawnpoint"));
 
-    str->tracer = readp_mobj(JS_GetIntegerValue(obj, "tracer"));
-    str->lastenemy = readp_mobj(JS_GetIntegerValue(obj, "lastenemy"));
-    str->above_thing = readp_mobj(JS_GetIntegerValue(obj, "above_thing"));
-    str->below_thing = readp_mobj(JS_GetIntegerValue(obj, "below_thing"));
+    str->tracer = getptr_mobj(JS_GetIntegerValue(obj, "tracer"));
+    str->lastenemy = getptr_mobj(JS_GetIntegerValue(obj, "lastenemy"));
+    str->above_thing = getptr_mobj(JS_GetIntegerValue(obj, "above_thing"));
+    str->below_thing = getptr_mobj(JS_GetIntegerValue(obj, "below_thing"));
     str->friction = JS_GetIntegerValue(obj, "friction");
     str->movefactor = JS_GetIntegerValue(obj, "movefactor");
     str->touching_sectorlist =
-        readp_msecnode(JS_GetIntegerValue(obj, "touching_sectorlist"));
+        getptr_msecnode(JS_GetIntegerValue(obj, "touching_sectorlist"));
     str->interp = JS_GetIntegerValue(obj, "interp");
     str->oldx = JS_GetIntegerValue(obj, "oldx");
     str->oldy = JS_GetIntegerValue(obj, "oldy");
@@ -528,7 +523,7 @@ static json_mut_t *write_mobj_t(mobj_t *str, json_mut_doc_t *doc)
     JS_SetInt(doc, obj, "movedir", str->movedir);
     JS_SetInt(doc, obj, "movecount", str->movecount);
     JS_SetInt(doc, obj, "strafecount", str->strafecount);
-    JS_SetInt(doc, obj, "target", writep_mobj(str->target));
+    JS_SetInt(doc, obj, "target", getidx_mobj(str->target));
     JS_SetInt(doc, obj, "reactiontime", str->reactiontime);
     JS_SetInt(doc, obj, "threshold", str->threshold);
     JS_SetInt(doc, obj, "pursuecount", str->pursuecount);
@@ -538,14 +533,14 @@ static json_mut_t *write_mobj_t(mobj_t *str, json_mut_doc_t *doc)
 
     JS_SetObject(doc, obj, "spawnpoint", write_mapthing_t(&str->spawnpoint, doc));
 
-    JS_SetInt(doc, obj, "tracer", writep_mobj(str->tracer));
-    JS_SetInt(doc, obj, "lastenemy", writep_mobj(str->lastenemy));
-    JS_SetInt(doc, obj, "above_thing", writep_mobj(str->above_thing));
-    JS_SetInt(doc, obj, "below_thing", writep_mobj(str->below_thing));
+    JS_SetInt(doc, obj, "tracer", getidx_mobj(str->tracer));
+    JS_SetInt(doc, obj, "lastenemy", getidx_mobj(str->lastenemy));
+    JS_SetInt(doc, obj, "above_thing", getidx_mobj(str->above_thing));
+    JS_SetInt(doc, obj, "below_thing", getidx_mobj(str->below_thing));
     JS_SetInt(doc, obj, "friction", str->friction);
     JS_SetInt(doc, obj, "movefactor", str->movefactor);
     JS_SetInt(doc, obj, "touching_sectorlist",
-              writep_msecnode(str->touching_sectorlist));
+              getidx_msecnode(str->touching_sectorlist));
     JS_SetInt(doc, obj, "interp", str->interp);
     JS_SetInt(doc, obj, "oldx", str->oldx);
     JS_SetInt(doc, obj, "oldy", str->oldy);
@@ -614,7 +609,7 @@ static json_mut_t *write_pspdef_t(pspdef_t *str, json_mut_doc_t *doc)
 
 static void read_player_t(player_t *str, json_t *obj)
 {
-    str->mo = readp_mobj(JS_GetIntegerValue(obj, "mo"));
+    str->mo = getptr_mobj(JS_GetIntegerValue(obj, "mo"));
     str->playerstate = JS_GetIntegerValue(obj, "playerstate");
 
     read_ticcmd_t(&str->cmd, JS_GetObject(obj, "ticcmd"));
@@ -693,7 +688,7 @@ static void read_player_t(player_t *str, json_t *obj)
     str->message = NULL;
     str->damagecount = JS_GetIntegerValue(obj, "damagecount");
     str->bonuscount = JS_GetIntegerValue(obj, "bonuscount");
-    str->attacker = readp_mobj(JS_GetIntegerValue(obj, "attacker"));
+    str->attacker = getptr_mobj(JS_GetIntegerValue(obj, "attacker"));
     str->extralight = JS_GetIntegerValue(obj, "extralight");
     str->fixedcolormap = JS_GetIntegerValue(obj, "fixedcolormap");
     str->colormap = JS_GetIntegerValue(obj, "colormap");
@@ -735,7 +730,7 @@ static json_mut_t *write_player_t(player_t *str, json_mut_doc_t *doc)
 {
     json_mut_t *obj = JS_NewObject(doc);
 
-    JS_SetInt(doc, obj, "mo", writep_mobj(str->mo));
+    JS_SetInt(doc, obj, "mo", getidx_mobj(str->mo));
     JS_SetInt(doc, obj, "playerstate", str->playerstate);
 
     JS_SetObject(doc, obj, "ticcmd", write_ticcmd_t(&str->cmd, doc));
@@ -808,7 +803,7 @@ static json_mut_t *write_player_t(player_t *str, json_mut_doc_t *doc)
     // str->message;
     JS_SetInt(doc, obj, "damagecount", str->damagecount);
     JS_SetInt(doc, obj, "bonuscount", str->bonuscount);
-    JS_SetInt(doc, obj, "attacker", writep_mobj(str->attacker));
+    JS_SetInt(doc, obj, "attacker", getidx_mobj(str->attacker));
     JS_SetInt(doc, obj, "extralight", str->extralight);
     JS_SetInt(doc, obj, "fixedcolormap", str->fixedcolormap);
     JS_SetInt(doc, obj, "colormap", str->colormap);
@@ -861,7 +856,7 @@ static void read_ceiling_t(ceiling_t *str, thinker_class_t tc, json_t *obj)
     str->direction = JS_GetIntegerValue(obj, "direction");
     str->tag = JS_GetIntegerValue(obj, "tag");
     str->olddirection = JS_GetIntegerValue(obj, "olddirection");
-    str->list = readp_activeceilings(JS_GetIntegerValue(obj, "list"));
+    str->list = getptr_activeceilings(JS_GetIntegerValue(obj, "list"));
 }
 
 static json_mut_t *write_ceiling_t(ceiling_t *str, json_mut_doc_t *doc)
@@ -883,7 +878,7 @@ static json_mut_t *write_ceiling_t(ceiling_t *str, json_mut_doc_t *doc)
     JS_SetInt(doc, obj, "direction", str->direction);
     JS_SetInt(doc, obj, "tag", str->tag);
     JS_SetInt(doc, obj, "olddirection", str->olddirection);
-    JS_SetInt(doc, obj, "list", writep_activeceilings(str->list));
+    JS_SetInt(doc, obj, "list", getidx_activeceilings(str->list));
 
     return obj;
 }
@@ -971,7 +966,7 @@ static void read_plat_t(plat_t *str, thinker_class_t tc, json_t *obj)
     str->crush = JS_GetIntegerValue(obj, "crush");
     str->tag = JS_GetIntegerValue(obj, "tag");
     str->type = JS_GetIntegerValue(obj, "type");
-    str->list = readp_activeplats(JS_GetIntegerValue(obj, "list"));
+    str->list = getptr_activeplats(JS_GetIntegerValue(obj, "list"));
 }
 
 static json_mut_t *write_plat_t(plat_t *str, json_mut_doc_t *doc)
@@ -991,7 +986,7 @@ static json_mut_t *write_plat_t(plat_t *str, json_mut_doc_t *doc)
     JS_SetInt(doc, obj, "crush", str->crush);
     JS_SetInt(doc, obj, "tag", str->tag);
     JS_SetInt(doc, obj, "type", str->type);
-    JS_SetInt(doc, obj, "list", writep_activeplats(str->list));
+    JS_SetInt(doc, obj, "list", getidx_activeplats(str->list));
 
     return obj;
 }
@@ -1167,7 +1162,7 @@ static void read_pusher_t(pusher_t *str, json_t *obj)
     read_thinker_t(&str->thinker, tc_pusher, JS_GetObject(obj, "thinker"));
 
     str->type = JS_GetIntegerValue(obj, "type");
-    str->source = readp_mobj(JS_GetIntegerValue(obj, "source"));
+    str->source = getptr_mobj(JS_GetIntegerValue(obj, "source"));
     str->x_mag = JS_GetIntegerValue(obj, "x_mag");
     str->y_mag = JS_GetIntegerValue(obj, "y_mag");
     str->magnitude = JS_GetIntegerValue(obj, "magnitude");
@@ -1184,7 +1179,7 @@ static json_mut_t *write_pusher_t(pusher_t *str, json_mut_doc_t *doc)
     JS_SetObject(doc, obj, "thinker", write_thinker_t(&str->thinker, doc));
 
     JS_SetInt(doc, obj, "type", str->type);
-    JS_SetInt(doc, obj, "source", writep_mobj(str->source));
+    JS_SetInt(doc, obj, "source", getidx_mobj(str->source));
     JS_SetInt(doc, obj, "x_mag", str->x_mag);
     JS_SetInt(doc, obj, "y_mag", str->y_mag);
     JS_SetInt(doc, obj, "magnitude", str->magnitude);
@@ -1250,8 +1245,8 @@ static void read_ambient_t(ambient_t *str, json_t *obj)
 {
     read_thinker_t(&str->thinker, tc_ambient, JS_GetObject(obj, "thinker"));
 
-    str->source = readp_mobj(JS_GetIntegerValue(obj, "source"));
-    str->origin = readp_mobj(JS_GetIntegerValue(obj, "origin"));
+    str->source = getptr_mobj(JS_GetIntegerValue(obj, "source"));
+    str->origin = getptr_mobj(JS_GetIntegerValue(obj, "origin"));
 
     read_ambient_data_t(&str->data, JS_GetObject(obj, "ambient_data"));
 
@@ -1271,8 +1266,8 @@ static json_mut_t *write_ambient_t(ambient_t *str, json_mut_doc_t *doc)
 
     JS_SetObject(doc, obj, "thinker", write_thinker_t(&str->thinker, doc));
 
-    JS_SetInt(doc, obj, "source", writep_mobj(str->source));
-    JS_SetInt(doc, obj, "origin", writep_mobj(str->origin));
+    JS_SetInt(doc, obj, "source", getidx_mobj(str->source));
+    JS_SetInt(doc, obj, "origin", getidx_mobj(str->origin));
 
     JS_SetObject(doc, obj, "ambient_data", write_ambient_data_t(&str->data, doc));
 
@@ -1338,11 +1333,11 @@ static json_mut_t *write_button_t(button_t *str, json_mut_doc_t *doc)
 static void read_msecnode_t(msecnode_t *str, json_t *obj)
 {
     JS_GetIdx(str->m_sector, sectors, obj, "m_sector");
-    str->m_thing = readp_mobj(JS_GetIntegerValue(obj, "m_thing"));
-    str->m_tprev = readp_msecnode(JS_GetIntegerValue(obj, "m_tprev"));
-    str->m_tnext = readp_msecnode(JS_GetIntegerValue(obj, "m_tnext"));
-    str->m_sprev = readp_msecnode(JS_GetIntegerValue(obj, "m_sprev"));
-    str->m_snext = readp_msecnode(JS_GetIntegerValue(obj, "m_snext"));
+    str->m_thing = getptr_mobj(JS_GetIntegerValue(obj, "m_thing"));
+    str->m_tprev = getptr_msecnode(JS_GetIntegerValue(obj, "m_tprev"));
+    str->m_tnext = getptr_msecnode(JS_GetIntegerValue(obj, "m_tnext"));
+    str->m_sprev = getptr_msecnode(JS_GetIntegerValue(obj, "m_sprev"));
+    str->m_snext = getptr_msecnode(JS_GetIntegerValue(obj, "m_snext"));
     str->visited = JS_GetIntegerValue(obj, "visited");
 }
 
@@ -1351,11 +1346,11 @@ static json_mut_t *write_msecnode_t(msecnode_t *str, json_mut_doc_t *doc)
     json_mut_t *obj = JS_NewObject(doc);
 
     JS_SetIdx(doc, obj, "m_sector", str->m_sector, sectors);
-    JS_SetInt(doc, obj, "m_thing", writep_mobj(str->m_thing));
-    JS_SetInt(doc, obj, "m_tprev", writep_msecnode(str->m_tprev));
-    JS_SetInt(doc, obj, "m_tnext", writep_msecnode(str->m_tnext));
-    JS_SetInt(doc, obj, "m_sprev", writep_msecnode(str->m_sprev));
-    JS_SetInt(doc, obj, "m_snext", writep_msecnode(str->m_snext));
+    JS_SetInt(doc, obj, "m_thing", getidx_mobj(str->m_thing));
+    JS_SetInt(doc, obj, "m_tprev", getidx_msecnode(str->m_tprev));
+    JS_SetInt(doc, obj, "m_tnext", getidx_msecnode(str->m_tnext));
+    JS_SetInt(doc, obj, "m_sprev", getidx_msecnode(str->m_sprev));
+    JS_SetInt(doc, obj, "m_snext", getidx_msecnode(str->m_snext));
     JS_SetInt(doc, obj, "visited", str->visited);
 
     return obj;
@@ -1481,7 +1476,7 @@ inline static json_mut_t *ArchiveThingList(const sector_t *sector, json_mut_doc_
 
     for (mobj_t *mobj = sector->thinglist; mobj; mobj = mobj->snext)
     {
-        JS_ArrayAddInt(doc, thinglist_arr, writep_mobj(mobj));
+        JS_ArrayAddInt(doc, thinglist_arr, getidx_mobj(mobj));
     }
 
     return thinglist_arr;
@@ -1501,7 +1496,7 @@ inline static void UnArchiveThingList(sector_t *sector, json_t *thinglist_arr)
     while (count--)
     {
         json_t *thing_obj = JS_GetArrayItem(thinglist_arr, count);
-        mobj = readp_mobj(JS_GetInteger(thing_obj));
+        mobj = getptr_mobj(JS_GetInteger(thing_obj));
 
         *sprev = mobj;
         if (mobj)
@@ -1544,17 +1539,17 @@ static void ArchiveWorld(json_mut_doc_t *doc, json_mut_t *root_mut)
 
         // Woof!
         JS_SetInt(doc, sector_obj, "soundtarget",
-                  writep_mobj(sector->soundtarget));
+                  getidx_mobj(sector->soundtarget));
         JS_SetInt(doc, sector_obj, "floordata",
-                  writep_thinker(sector->floordata));
+                  getidx_thinker(sector->floordata));
         JS_SetInt(doc, sector_obj, "ceilingdata",
-                  writep_thinker(sector->ceilingdata));
+                  getidx_thinker(sector->ceilingdata));
 
         json_mut_t *thinglist = ArchiveThingList(sector, doc);
         JS_SetArray(doc, sector_obj, "thinglist", thinglist);
 
         JS_SetInt(doc, sector_obj, "touching_thinglist",
-                  writep_msecnode(sector->touching_thinglist));
+                  getidx_msecnode(sector->touching_thinglist));
 
         JS_ArrayAddObject(doc, sectors_arr, sector_obj);
     }
@@ -1626,16 +1621,16 @@ static void UnArchiveWorld(json_t *root)
 
         // Woof!
         sector->soundtarget =
-            readp_mobj(JS_GetIntegerValue(sector_obj, "soundtarget"));
+            getptr_mobj(JS_GetIntegerValue(sector_obj, "soundtarget"));
         sector->floordata =
-            readp_thinker(JS_GetIntegerValue(sector_obj, "floordata"));
+            getptr_thinker(JS_GetIntegerValue(sector_obj, "floordata"));
         sector->ceilingdata =
-            readp_thinker(JS_GetIntegerValue(sector_obj, "ceilingdata"));
+            getptr_thinker(JS_GetIntegerValue(sector_obj, "ceilingdata"));
 
         json_t *thinglist_obj = JS_GetObject(sector_obj, "thinglist");
         UnArchiveThingList(sector, thinglist_obj);
 
-        sector->touching_thinglist = readp_msecnode(
+        sector->touching_thinglist = getptr_msecnode(
             JS_GetIntegerValue(sector_obj, "touching_thinglist"));
     }
     JS_ArrayIteratorFree(sector_iter);
@@ -2097,7 +2092,7 @@ static void ArchiveBlocklinks(json_mut_doc_t *doc, json_mut_t *root_mut)
         json_mut_t *blocklinks_arr = JS_NewArray(doc);
         for (mobj_t *mobj = blocklinks[i]; mobj; mobj = mobj->bnext)
         {
-            JS_ArrayAddInt(doc, blocklinks_arr, writep_mobj(mobj));
+            JS_ArrayAddInt(doc, blocklinks_arr, getidx_mobj(mobj));
         }
         JS_ArrayAddObject(doc, bmap_arr, blocklinks_arr);
     }
@@ -2125,7 +2120,7 @@ static void UnArchiveBlocklinks(json_t *root)
             {
                 json_t *mobj_obj = JS_GetArrayItem(blocklinks_arr, count);
 
-                mobj = readp_mobj(JS_GetInteger(mobj_obj));
+                mobj = getptr_mobj(JS_GetInteger(mobj_obj));
                 *bprev = mobj;
                 if (mobj)
                 {
@@ -2153,7 +2148,7 @@ static void ArchiveCeilingList(json_mut_doc_t *doc, json_mut_t *root_mut)
     {
         ceilinglist_t *cl = (ceilinglist_t *)table[i];
         JS_ArrayAddInt(doc, ceilinglist_arr,
-                       writep_thinker(&cl->ceiling->thinker));
+                       getidx_thinker(&cl->ceiling->thinker));
     }
     free(table);
 
@@ -2183,7 +2178,7 @@ static void UnArchiveCeilingList(json_t *ceilinglist_arr)
 
         cl = (ceilinglist_t *)ceilinglist_pointers[i];
         cl->ceiling =
-            (ceiling_t *)readp_thinker(JS_GetInteger(ceilinglist_obj));
+            (ceiling_t *)getptr_thinker(JS_GetInteger(ceilinglist_obj));
         *prev = cl;
         cl->prev = prev;
         cl->next = NULL;
@@ -2205,7 +2200,7 @@ static void ArchivePlatList(json_mut_doc_t *doc, json_mut_t *root_mut)
     for (int i = 0; i < count; ++i)
     {
         platlist_t *cl = (platlist_t *)table[i];
-        JS_ArrayAddInt(doc, platlist_arr, writep_thinker(&cl->plat->thinker));
+        JS_ArrayAddInt(doc, platlist_arr, getidx_thinker(&cl->plat->thinker));
     }
     free(table);
 
@@ -2234,7 +2229,7 @@ static void UnArchivePlatList(json_t *platlist_arr)
         json_t *platlist_obj = JS_ArrayNext(iter);
 
         pl = (platlist_t *)platlist_pointers[i];
-        pl->plat = (plat_t *)readp_thinker(JS_GetInteger(platlist_obj));
+        pl->plat = (plat_t *)getptr_thinker(JS_GetInteger(platlist_obj));
         *prev = pl;
         pl->prev = prev;
         pl->next = NULL;
@@ -2376,7 +2371,7 @@ void P_ArchiveKeyframe(json_mut_doc_t *doc, json_mut_t *root_mut)
         JS_ArrayAddObject(doc, thinkerclasscaps_arr, write_thinker_t(&thinkerclasscap[i], doc));
     }
     JS_SetArray(doc, root_mut, "thinkerclasscaps", thinkerclasscaps_arr);
-    JS_SetInt(doc, root_mut, "headsecnode", writep_msecnode(headsecnode));
+    JS_SetInt(doc, root_mut, "headsecnode", getidx_msecnode(headsecnode));
 
     ArchiveDirty(doc, root_mut);
     ArchiveWorld(doc, root_mut);
@@ -2390,8 +2385,8 @@ void P_ArchiveKeyframe(json_mut_doc_t *doc, json_mut_t *root_mut)
 
     JS_SetIdx(doc, root_mut, "ceilingline", ceilingline, lines);
     JS_SetIdx(doc, root_mut, "floorline", floorline, lines);
-    JS_SetInt(doc, root_mut, "linetarget", writep_mobj(linetarget));
-    JS_SetInt(doc, root_mut, "sector_list", writep_msecnode(sector_list));
+    JS_SetInt(doc, root_mut, "linetarget", getidx_mobj(linetarget));
+    JS_SetInt(doc, root_mut, "sector_list", getidx_msecnode(sector_list));
     JS_SetIdx(doc, root_mut, "blockline", blockline, lines);
 
     json_mut_t *tmbbox_arr = JS_NewArray(doc);
@@ -2418,10 +2413,10 @@ void P_ArchiveKeyframe(json_mut_doc_t *doc, json_mut_t *root_mut)
     ArchiveMSecNodes(doc, root_mut);
 
     JS_SetInt(doc, root_mut, "activeceilings",
-              writep_activeceilings(activeceilings));
+              getidx_activeceilings(activeceilings));
     ArchiveCeilingList(doc, root_mut);
     JS_SetInt(doc, root_mut, "activeplats",
-              writep_activeplats(activeplats));
+              getidx_activeplats(activeplats));
     ArchivePlatList(doc, root_mut);
 
     JS_SetObject(doc, root_mut, "rng", write_rng_t(&rng, doc));
@@ -2451,7 +2446,7 @@ void P_UnArchiveKeyframe(json_t *root)
     json_t *msecnodes_arr = JS_GetObject(root, "msecnodes");
     PrepareUnArchiveMSecNodes(msecnodes_arr);
 
-    headsecnode = readp_msecnode(JS_GetIntegerValue(root, "headsecnode"));
+    headsecnode = getptr_msecnode(JS_GetIntegerValue(root, "headsecnode"));
 
     UnArchiveDirty(root);
     UnArchiveWorld(root);
@@ -2465,8 +2460,8 @@ void P_UnArchiveKeyframe(json_t *root)
 
     JS_GetIdx(ceilingline, lines, root, "ceilingline");
     JS_GetIdx(floorline, lines, root, "floorline");
-    linetarget = readp_mobj(JS_GetIntegerValue(root, "linetarget"));
-    sector_list = readp_msecnode(JS_GetIntegerValue(root, "sector_list"));
+    linetarget = getptr_mobj(JS_GetIntegerValue(root, "linetarget"));
+    sector_list = getptr_msecnode(JS_GetIntegerValue(root, "sector_list"));
     JS_GetIdx(blockline, lines, root, "blockline");
 
     json_arr_iter_t *tmbbox_iter = JS_ArrayIterator(JS_GetObject(root, "tmbbox"));
@@ -2497,9 +2492,9 @@ void P_UnArchiveKeyframe(json_t *root)
     UnArchiveThinkers(thinkers_obj);
     UnArchiveMSecNodes(msecnodes_arr);
 
-    activeceilings = readp_activeceilings(JS_GetIntegerValue(root, "activeceilings"));
+    activeceilings = getptr_activeceilings(JS_GetIntegerValue(root, "activeceilings"));
     UnArchiveCeilingList(ceilinglist_arr);
-    activeplats = readp_activeplats(JS_GetIntegerValue(root, "activeplats"));
+    activeplats = getptr_activeplats(JS_GetIntegerValue(root, "activeplats"));
     UnArchivePlatList(platlist_arr);
 
     read_rng_t(&rng, JS_GetObject(root, "rng"));

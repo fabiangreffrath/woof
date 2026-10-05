@@ -70,7 +70,7 @@ void P_InitSwitchList(void)
                  2 : gamemode == commercial ? 3 : 1;
   switchlist_t *alphSwitchList;         //jff 3/23/98 pointer to switch table
 
-  //jff 3/23/98 read the switch table from a predefined lump             
+  //jff 3/23/98 read the switch table from a predefined lump
   alphSwitchList = (switchlist_t *)W_CacheLumpName("SWITCHES",PU_STATIC);
 
   for (i=0;;i++)
@@ -130,12 +130,12 @@ void P_StartButton
   int           time )
 {
   int           i;
-    
+
   // See if button is already pressed
   for (i = 0;i < MAXBUTTONS;i++)
     if (buttonlist[i].btimer && buttonlist[i].line == line)
       return;
-    
+
   for (i = 0;i < MAXBUTTONS;i++)
     if (!buttonlist[i].btimer)    // use first unused element of list
     {
@@ -145,7 +145,7 @@ void P_StartButton
       buttonlist[i].btimer = time;
       return;
     }
-    
+
   I_Printf(VB_WARNING, "no button slots left!");
 }
 

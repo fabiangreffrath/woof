@@ -105,21 +105,24 @@ static void SetLight(const int32_t lightlevel)
 }
 
 static void CalculateLighting(const lighttable_t * const thiscolormap,
-                              const fixed_t scale)
+                              const fixed_t scale,
+                              const byte *const brightmap)
 {
     if (fixedcolormapoffset)
     {
-        dc_colormap[0] = dc_colormap[1] = thiscolormap + fixedcolormapoffset;
+        dc_colormap = thiscolormap + fixedcolormapoffset;
     }
     else
     {
         // per-sector colormap
-        dc_colormap[0] = thiscolormap + walllightoffset[R_GetLightIndex(scale)];
-        dc_colormap[1] = thiscolormap;
+        const lighttable_t *const colormap =
+            thiscolormap + walllightoffset[R_GetLightIndex(scale)];
+
+        dc_colormap = R_GetBrightmappedColormap(colormap, thiscolormap, brightmap);
     }
 }
 
-static const int32_t R_SideLightLevel(const side_t *side)
+static const int32_t SideLightLevel(const side_t *side)
 {
     return (side->flags & SF_ABS_LIGHT) ? side->light
                                         : side->light + rw_lightlevel;
@@ -129,7 +132,7 @@ static void SideLightLevel_Top(const side_t *side)
 {
     const int32_t light = (side->flags & SF_ABS_LIGHT_TOP)
                         ? side->light_top
-                        : side->light_top + R_SideLightLevel(side);
+                        : side->light_top + SideLightLevel(side);
     SetLight(light);
 }
 
@@ -137,7 +140,7 @@ static void SideLightLevel_Mid(const side_t *side)
 {
     const int32_t light = (side->flags & SF_ABS_LIGHT_MID)
                         ? side->light_mid
-                        : side->light_mid + R_SideLightLevel(side);
+                        : side->light_mid + SideLightLevel(side);
     SetLight(light);
 }
 
@@ -145,7 +148,7 @@ static void SideLightLevel_Bottom(const side_t *side)
 {
     const int32_t light = (side->flags & SF_ABS_LIGHT_BOTTOM)
                         ? side->light_bottom
-                        : side->light_bottom + R_SideLightLevel(side);
+                        : side->light_bottom + SideLightLevel(side);
     SetLight(light);
 }
 
@@ -154,7 +157,7 @@ static void SideLightLevel_Bottom(const side_t *side)
 //
 
 static const lighttable_t * const GetSideTint(const side_t * const side,
-                                                     const sector_t * const sect)
+                                              const sector_t * const sect)
 {
   const int32_t tint = (side->tint >= 0) ? side->tint : sect->tint;
   return (tint >= 0) ? colormaps[tint] : fullcolormap;
@@ -220,9 +223,7 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
 
   dc_texturemid += side->interprowoffset + side->offsety_mid;
 
-  dc_brightmap = (STRICTMODE(brightmaps) || force_brightmaps)
-               ? texturebrightmap[texnum]
-               : nobrightmap;
+  const byte *const brightmap = texturebrightmap[texnum];
 
   // draw the columns
   for (dc_x = x1 ; dc_x <= x2 ; dc_x++, spryscale += rw_scalestep)
@@ -230,7 +231,7 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
       {
         fixed_t column = maskedtexturecol[dc_x] + FixedToInt(side->offsetx_mid);
         // killough 11/98:
-        CalculateLighting(thiscolormap, spryscale);
+        CalculateLighting(thiscolormap, spryscale, brightmap);
 
         // killough 3/2/98:
         //
@@ -342,7 +343,7 @@ static const struct
     { 128 * FRACUNIT,  9}
 };
 
-void R_FixWiggle (sector_t *sector)
+static void FixWiggle(sector_t *sector)
 {
     static int lastheight = 0;
     int height = (sector->interpceilingheight - sector->interpfloorheight) >> FRACBITS;
@@ -378,13 +379,11 @@ void R_FixWiggle (sector_t *sector)
 
 static boolean didsolidcol; // True if at least one column was marked solid
 
-static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
+static void RenderSegLoop(const lighttable_t * const thiscolormap)
 {
   fixed_t  texturecolumn = 0;   // shut up compiler warning
 
   rendered_segs++;
-
-  const boolean use_brightmaps = (STRICTMODE(brightmaps) || force_brightmaps);
 
   for ( ; rw_x < rw_stopx ; rw_x++)
     {
@@ -447,10 +446,14 @@ static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
           dc_texturemid = rw_midtexturemid;
           dc_source = R_GetColumn(midtexture, texturecolumn + FixedToInt(curline->sidedef->offsetx_mid));
           dc_texheight = textureheight[midtexture]>>FRACBITS; // killough
-          dc_brightmap = use_brightmaps ? texturebrightmap[midtexture] : nobrightmap;
+
+          const byte *const brightmap = texturebrightmap[midtexture];
+
           SideLightLevel_Mid(curline->sidedef);
-          CalculateLighting(thiscolormap, rw_scale);
+          CalculateLighting(thiscolormap, rw_scale, brightmap);
+
           colfunc ();
+
           ceilingclip[rw_x] = viewheight;
           floorclip[rw_x] = -1;
         }
@@ -473,10 +476,14 @@ static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
                   dc_texturemid = rw_toptexturemid;
                   dc_source = R_GetColumn(toptexture, texturecolumn + FixedToInt(curline->sidedef->offsetx_top));
                   dc_texheight = textureheight[toptexture]>>FRACBITS;//killough
-                  dc_brightmap = use_brightmaps ? texturebrightmap[toptexture] : nobrightmap;
+
+                  const byte *const brightmap = texturebrightmap[toptexture];
+
                   SideLightLevel_Top(curline->sidedef);
-                  CalculateLighting(thiscolormap, rw_scale);
+                  CalculateLighting(thiscolormap, rw_scale, brightmap);
+
                   colfunc ();
+
                   ceilingclip[rw_x] = mid;
                 }
               else
@@ -502,10 +509,14 @@ static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
                   dc_texturemid = rw_bottomtexturemid;
                   dc_source = R_GetColumn(bottomtexture, texturecolumn + FixedToInt(curline->sidedef->offsetx_bottom));
                   dc_texheight = textureheight[bottomtexture]>>FRACBITS; // killough
-                  dc_brightmap = use_brightmaps ? texturebrightmap[bottomtexture] : nobrightmap;
+
+                  const byte *const brightmap = texturebrightmap[bottomtexture];
+
                   SideLightLevel_Bottom(curline->sidedef);
-                  CalculateLighting(thiscolormap, rw_scale);
+                  CalculateLighting(thiscolormap, rw_scale, brightmap);
+
                   colfunc ();
+
                   floorclip[rw_x] = mid;
                 }
               else
@@ -538,7 +549,7 @@ static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
 // below function is ripped from Crispy
 // WiggleFix: move R_ScaleFromGlobalAngle function to r_segs.c,
 // above R_StoreWallRange
-static fixed_t R_ScaleFromGlobalAngle (angle_t visangle)
+static fixed_t ScaleFromGlobalAngle (angle_t visangle)
 {
     angle_t anglea = ANG90 + (visangle - viewangle);
     angle_t angleb = ANG90 + (visangle - rw_normalangle);
@@ -626,19 +637,19 @@ void R_StoreWallRange(const int start, const int stop)
 
   // WiggleFix: add this line, in r_segs.c:R_StoreWallRange,
   // right before calls to R_ScaleFromGlobalAngle
-  R_FixWiggle(frontsector);
+  FixWiggle(frontsector);
 
   // killough 1/6/98, 2/1/98: remove limit on openings
-  // killough 8/1/98: Replaced code with a static limit 
+  // killough 8/1/98: Replaced code with a static limit
   // guaranteed to be big enough
 
   // calculate scale at both ends and step
   ds_p->scale1 = rw_scale =
-    R_ScaleFromGlobalAngle (viewangle + xtoviewangle[start]);
+    ScaleFromGlobalAngle (viewangle + xtoviewangle[start]);
 
   if (stop > start)
     {
-      ds_p->scale2 = R_ScaleFromGlobalAngle (viewangle + xtoviewangle[stop]);
+      ds_p->scale2 = ScaleFromGlobalAngle (viewangle + xtoviewangle[stop]);
       ds_p->scalestep = rw_scalestep = (ds_p->scale2-rw_scale) / (stop-start);
     }
   else
@@ -922,7 +933,7 @@ void R_StoreWallRange(const int start, const int stop)
 
   didsolidcol = false;
 
-  R_RenderSegLoop(GetSideTint(sidedef, sidedef->sector));
+  RenderSegLoop(GetSideTint(sidedef, sidedef->sector));
 
   // cph - if a column was made solid by this wall, we _must_ save full clipping
   // info

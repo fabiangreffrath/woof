@@ -106,13 +106,13 @@ static textscreen_t textscreens[] = {
 static const char *finaletext;
 static const char *finaleflat;
 
-static void F_StartCast(void);
-static boolean F_CastTicker(void);
-static boolean F_CastResponder(event_t *ev);
-static void F_CastDrawer(void);
-static void F_TextWrite(void);
-static void F_BunnyScroll(void);
-static float Get_TextSpeed(void);
+static void StartCast(void);
+static boolean CastTicker(void);
+static boolean CastResponder(event_t *ev);
+static void CastDrawer(void);
+static void TextWrite(void);
+static void BunnyScroll(void);
+static float GetTextSpeed(void);
 
 static int midstage;                 // whether we're in "mid-stage"
 
@@ -182,8 +182,8 @@ typedef struct end_finale_s
 
 static end_finale_t *endfinale;
 
-static void ParseEndFinale_CastFrame(json_t *js_frame, cast_frame_t **frames,
-                                     int *framecount, const char *lump)
+static void ParseCastFrame(json_t *js_frame, cast_frame_t **frames,
+                           int *framecount, const char *lump)
 {
     cast_frame_t cast_frame = {0};
     const char *frame_lump = JS_GetStringValue(js_frame, "lump");
@@ -209,8 +209,7 @@ static void ParseEndFinale_CastFrame(json_t *js_frame, cast_frame_t **frames,
     (*framecount)++;
 }
 
-static cast_anim_t ParseEndFinale_CastAnims(json_t *js_castanim_entry,
-                                            const char *lump)
+static cast_anim_t ParseCastAnims(json_t *js_castanim_entry, const char *lump)
 {
     cast_anim_t out = {0};
     out.name = DEH_StringForMnemonic(JS_GetStringValue(js_castanim_entry, "name"));
@@ -220,7 +219,7 @@ static cast_anim_t ParseEndFinale_CastAnims(json_t *js_castanim_entry,
     json_t *js_alive_frame = NULL;
     JS_ArrayForEach(js_alive_frame, js_alive_frame_list)
     {
-        ParseEndFinale_CastFrame(js_alive_frame, &out.aliveframes,
+        ParseCastFrame(js_alive_frame, &out.aliveframes,
                                  &out.aliveframescount, lump);
     }
 
@@ -228,15 +227,15 @@ static cast_anim_t ParseEndFinale_CastAnims(json_t *js_castanim_entry,
     json_t *js_death_frame_list = JS_GetObject(js_castanim_entry, "deathframes");
     JS_ArrayForEach(js_death_frame, js_death_frame_list)
     {
-        ParseEndFinale_CastFrame(js_death_frame, &out.deathframes,
+        ParseCastFrame(js_death_frame, &out.deathframes,
                                  &out.deathframescount, lump);
     }
 
     return out;
 }
 
-static void ParseEndFinale_CastRollCall(json_t *js_castrollcall,
-                                        end_finale_t *out, const char *lump)
+static void ParseCastRollCall(json_t *js_castrollcall, end_finale_t *out,
+                              const char *lump)
 {
     json_t *js_castanim_list = JS_GetObject(js_castrollcall, "castanims");
 
@@ -244,14 +243,13 @@ static void ParseEndFinale_CastRollCall(json_t *js_castrollcall,
     JS_ArrayForEach(js_castanim_entry, js_castanim_list)
     {
         cast_anim_t castanim_entry =
-            ParseEndFinale_CastAnims(js_castanim_entry, lump);
+            ParseCastAnims(js_castanim_entry, lump);
         out->cast_animscount++;
         array_push(out->cast_anims, castanim_entry);
     }
 }
 
-static void ParseEndFinale_Bunny(json_t *js_bunny, end_finale_t *out,
-                                 const char *lump)
+static void ParseBunny(json_t *js_bunny, end_finale_t *out, const char *lump)
 {
     out->bunny_overlay = JS_GetIntegerValue(js_bunny, "overlay");
     out->bunny_overlaycount = JS_GetIntegerValue(js_bunny, "overlaycount");
@@ -271,7 +269,7 @@ static void ParseEndFinale_Bunny(json_t *js_bunny, end_finale_t *out,
     }
 }
 
-static end_finale_t *F_ParseEndFinale(const char *lump)
+static end_finale_t *ParseEndFinale(const char *lump)
 {
     // Does the JSON lump even exist?
     json_t *json = JS_Open(lump, "finale", (version_t){1, 0, 0});
@@ -314,11 +312,11 @@ static end_finale_t *F_ParseEndFinale(const char *lump)
     switch (out->type)
     {
         case END_CAST:
-            ParseEndFinale_CastRollCall(JS_GetObject(data, "castrollcall"), out, lump);
+            ParseCastRollCall(JS_GetObject(data, "castrollcall"), out, lump);
             break;
 
         case END_SCROLL:
-            ParseEndFinale_Bunny(JS_GetObject(data, "bunny"), out, lump);
+            ParseBunny(JS_GetObject(data, "bunny"), out, lump);
             break;
 
         case END_ART:
@@ -342,7 +340,7 @@ static end_finale_t *F_ParseEndFinale(const char *lump)
 // UMAPINFO
 //
 
-static boolean MapInfo_StartFinale(void)
+static boolean MapInfoStartFinale(void)
 {
     mapinfo_finale = false;
 
@@ -383,7 +381,7 @@ static boolean MapInfo_StartFinale(void)
 
     if (W_CheckNumForName(gamemapinfo->endfinale) >= 0)
     {
-        endfinale = F_ParseEndFinale(gamemapinfo->endfinale);
+        endfinale = ParseEndFinale(gamemapinfo->endfinale);
     }
 
     mapinfo_finale = true;
@@ -391,7 +389,7 @@ static boolean MapInfo_StartFinale(void)
     return lumpnum >= 0;
 }
 
-static boolean MapInfo_Ticker()
+static boolean MapInfoTicker()
 {
     if (!mapinfo_finale)
     {
@@ -402,7 +400,7 @@ static boolean MapInfo_Ticker()
 
     if (!demo_compatibility || !critical)
     {
-        WI_checkForAccelerate();
+        WI_CheckForAccelerate();
     }
     else
     {
@@ -422,7 +420,7 @@ static boolean MapInfo_Ticker()
 
         if (finalestage == FINALE_STAGE_CAST)
         {
-            if (F_CastTicker())
+            if (CastTicker())
             {
                 gameaction = ga_worlddone;
             }
@@ -432,7 +430,7 @@ static boolean MapInfo_Ticker()
             int textcount = 0;
             if (finaletext)
             {
-                float speed = demo_compatibility ? TEXTSPEED : Get_TextSpeed();
+                float speed = demo_compatibility ? TEXTSPEED : GetTextSpeed();
                 textcount = strlen(finaletext) * speed
                             + (midstage ? NEWTEXTWAIT : TEXTWAIT);
             }
@@ -453,14 +451,14 @@ static boolean MapInfo_Ticker()
             {
                 if (endfinale->type == END_CAST)
                 {
-                    F_StartCast();
+                    StartCast();
                 }
                 else
                 {
                     finalecount = 0;
                     finalestage = FINALE_STAGE_ART;
                     F_SetWipe(); // force a wipe
-                    S_ChangeMusInfoMusic(W_GetNumForName(endfinale->music), 
+                    S_ChangeMusInfoMusic(W_GetNumForName(endfinale->music),
                                          endfinale->musicloops);
                     if (endfinale->type == END_ART)
                     {
@@ -470,7 +468,7 @@ static boolean MapInfo_Ticker()
             }
             else if (gamemapinfo->finale == EG_CastRollCall)
             {
-                F_StartCast();
+                StartCast();
             }
             else
             {
@@ -496,7 +494,7 @@ static boolean MapInfo_Ticker()
     return true;
 }
 
-static boolean MapInfo_Drawer(void)
+static boolean MapInfoDrawer(void)
 {
     if (!mapinfo_finale)
     {
@@ -508,13 +506,13 @@ static boolean MapInfo_Drawer(void)
         case FINALE_STAGE_TEXT:
             if (finaletext)
             {
-                F_TextWrite();
+                TextWrite();
             }
             break;
         case FINALE_STAGE_ART:
             if (gamemapinfo->finale == EG_BunnyScroll)
             {
-                F_BunnyScroll();
+                BunnyScroll();
             }
             else if (gamemapinfo->endpic[0])
             {
@@ -524,7 +522,7 @@ static boolean MapInfo_Drawer(void)
             }
             break;
         case FINALE_STAGE_CAST:
-            F_CastDrawer();
+            CastDrawer();
             break;
     }
 
@@ -568,7 +566,7 @@ void F_StartFinale (void)
     }
   }
 
-  if (!MapInfo_StartFinale())
+  if (!MapInfoStartFinale())
   {
       S_ChangeMusic(music_id, true);
   }
@@ -580,17 +578,17 @@ void F_StartFinale (void)
 boolean F_Responder (event_t *event)
 {
   if (finalestage == FINALE_STAGE_CAST)
-    return F_CastResponder(event);
-        
+    return CastResponder(event);
+
   return false;
 }
 
 // Get_TextSpeed() returns the value of the text display speed  // phares
 // Rewritten to allow user-directed acceleration -- killough 3/28/98
 
-static float Get_TextSpeed(void)
+static float GetTextSpeed(void)
 {
-  return midstage ? NEWTEXTSPEED : (midstage=acceleratestage) ? 
+  return midstage ? NEWTEXTSPEED : (midstage=acceleratestage) ?
     acceleratestage=0, NEWTEXTSPEED : TEXTSPEED;
 }
 
@@ -609,14 +607,14 @@ static float Get_TextSpeed(void)
 
 void F_Ticker(void)
 {
-  if (MapInfo_Ticker())
+  if (MapInfoTicker())
   {
       return;
   }
 
   int i;
   if (!demo_compatibility)
-    WI_checkForAccelerate();  // killough 3/28/98: check for acceleration
+    WI_CheckForAccelerate();  // killough 3/28/98: check for acceleration
   else
     if (gamemode == commercial && finalecount > 50) // check for skipping
       for (i=0; i<MAXPLAYERS; i++)
@@ -625,13 +623,13 @@ void F_Ticker(void)
 
   // advance animation
   finalecount++;
- 
+
   if (finalestage == FINALE_STAGE_CAST)
-    F_CastTicker();
+    CastTicker();
 
   if (finalestage == FINALE_STAGE_TEXT)
     {
-      float speed = demo_compatibility ? TEXTSPEED : Get_TextSpeed();
+      float speed = demo_compatibility ? TEXTSPEED : GetTextSpeed();
       if (finalecount > strlen(finaletext)*speed +  // phares
           (midstage ? NEWTEXTWAIT : TEXTWAIT) ||  // killough 2/28/98:
           (midstage && acceleratestage))       // changed to allow acceleration
@@ -649,7 +647,7 @@ void F_Ticker(void)
             {
             next_level:
               if (gamemap == 30)
-                F_StartCast();              // cast of Doom 2 characters
+                StartCast();              // cast of Doom 2 characters
               else
                 gameaction = ga_worlddone;  // next level, e.g. MAP07
             }
@@ -668,7 +666,7 @@ void F_Ticker(void)
 // text can be increased, and there's still time to read what's     //   |
 // written.                                                         // phares
 
-static void F_TextWrite(void)
+static void TextWrite(void)
 {
   int         w;         // killough 8/9/98: move variables below
   int         count;
@@ -676,7 +674,7 @@ static void F_TextWrite(void)
   int         c;
   int         cx;
   int         cy;
-  
+
   // [FG] if interbackdrop does not specify a valid flat, draw it as a patch instead
   if (gamemapinfo && W_CheckNumForName(finaleflat) != -1 &&
       (W_CheckNumForName)(finaleflat, ns_flats) == -1)
@@ -695,8 +693,8 @@ static void F_TextWrite(void)
   cx = 10;
   cy = 10;
   ch = finaletext;
-      
-  count = (int)((finalecount - 10)/Get_TextSpeed());                 // phares
+
+  count = (int)((finalecount - 10)/GetTextSpeed());                 // phares
   if (count < 0)
     count = 0;
 
@@ -711,14 +709,14 @@ static void F_TextWrite(void)
       cy += 11;
       continue;
     }
-              
+
     c = M_ToUpper(c) - HU_FONTSTART;
     if (c < 0 || c >= HU_FONTSIZE || hu_font[c] == NULL)
     {
       cx += 4;
       continue;
     }
-              
+
     w = SHORT (hu_font[c]->width);
     if (cx + w > video.unscaledw - video.deltaw)
     {
@@ -740,7 +738,7 @@ static cast_frame_t *ef_current_frame = NULL;
 static boolean ef_current_alive = false;
 static int ef_current_duration = 0;
 
-static void EndFinaleCast_Frame(cast_frame_t *frame)
+static void EndFinaleCastFrame(cast_frame_t *frame)
 {
     ef_current_frame = frame;
     ef_current_duration = ef_current_frame->duration;
@@ -751,7 +749,7 @@ static void EndFinaleCast_Frame(cast_frame_t *frame)
     }
 }
 
-static void EndFinaleCast_CalleeAlive(cast_anim_t *callee)
+static void EndFinaleCastCalleeAlive(cast_anim_t *callee)
 {
     ef_current_callee = callee;
     ef_current_alive = true;
@@ -759,16 +757,16 @@ static void EndFinaleCast_CalleeAlive(cast_anim_t *callee)
     {
         S_StartSound(NULL, ef_current_callee->alertsound);
     }
-    EndFinaleCast_Frame(ef_current_callee->aliveframes);
+    EndFinaleCastFrame(ef_current_callee->aliveframes);
 }
 
-static void EndFinaleCast_CalleeDead(void)
+static void EndFinaleCastCalleeDead(void)
 {
     ef_current_alive = false;
-    EndFinaleCast_Frame(ef_current_callee->deathframes);
+    EndFinaleCastFrame(ef_current_callee->deathframes);
 }
 
-static void EndFinaleCast_SetupCall(void)
+static void EndFinaleCastSetupCall(void)
 {
     S_ChangeMusInfoMusic(W_GetNumForName(endfinale->music), endfinale->musicloops);
     W_CacheLumpName(endfinale->background, PU_LEVEL);
@@ -800,7 +798,7 @@ static void EndFinaleCast_SetupCall(void)
         }
     }
 
-    EndFinaleCast_CalleeAlive(&endfinale->cast_anims[0]);
+    EndFinaleCastCalleeAlive(&endfinale->cast_anims[0]);
 }
 
 static boolean EndFinaleCast_Ticker(void)
@@ -815,7 +813,7 @@ static boolean EndFinaleCast_Ticker(void)
 
         if (ef_current_alive || (next != end))
         {
-            EndFinaleCast_Frame(next != end ? next : start);
+            EndFinaleCastFrame(next != end ? next : start);
         }
         else
         {
@@ -834,7 +832,7 @@ static boolean EndFinaleCast_Ticker(void)
 
             if (next_callee)
             {
-                EndFinaleCast_CalleeAlive(next_callee);
+                EndFinaleCastCalleeAlive(next_callee);
             }
         }
     }
@@ -852,18 +850,18 @@ static boolean EndFinaleCast_Responder(event_t *ev)
 
     if (ef_current_alive)
     {
-        EndFinaleCast_CalleeDead();
+        EndFinaleCastCalleeDead();
     }
 
     return true;
 }
 
-static void F_CastPrint(const char *text);
+static void CastPrint(const char *text);
 
 void EndFinaleCast_Drawer(void)
 {
     V_DrawPatchFullScreen(W_CacheLumpName(endfinale->background, PU_LEVEL));
-    F_CastPrint(ef_current_callee->name);
+    CastPrint(ef_current_callee->name);
     patch_t *frame = V_CacheSpriteName(ef_current_frame->frame_lump, PU_LEVEL);
     const byte *tranmap = ef_current_frame->tranmap;
     const byte *xlat = ef_current_frame->xlat;
@@ -897,14 +895,14 @@ boolean         castattacking;
 //
 // F_StartCast
 //
-static void F_StartCast(void)
+static void StartCast(void)
 {
   F_SetWipe(); // force a screen wipe
   finalestage = FINALE_STAGE_CAST;
 
   if (gamemapinfo && gamemapinfo->finale == EG_CustomFinale)
   {
-    EndFinaleCast_SetupCall();
+    EndFinaleCastSetupCall();
     return;
   }
 
@@ -942,7 +940,7 @@ static void F_StartCast(void)
 //
 // F_CastTicker
 //
-static boolean F_CastTicker(void)
+static boolean CastTicker(void)
 {
   int st;
   int sfx;
@@ -973,7 +971,7 @@ static boolean F_CastTicker(void)
     st = caststate->nextstate;
     caststate = &states[st];
     castframes++;
-      
+
     // sound hacks....
     switch (st)
     {
@@ -1005,11 +1003,11 @@ static boolean F_CastTicker(void)
       case S_PAIN_ATK3:     sfx = sfx_sklatk; break;
       default: sfx = 0; break;
     }
-            
+
     if (sfx)
       S_StartSound (NULL, sfx);
   }
-      
+
   if (castframes == 12)
   {
     // go into attack frame
@@ -1029,7 +1027,7 @@ static boolean F_CastTicker(void)
           &states[mobjinfo[castorder[castnum].type].missilestate];
     }
   }
-      
+
   if (castattacking)
   {
     if (castframes == 24
@@ -1041,7 +1039,7 @@ static boolean F_CastTicker(void)
       caststate = &states[mobjinfo[castorder[castnum].type].seestate];
     }
   }
-      
+
   casttics = caststate->tics;
   if (casttics == -1)
       casttics = 15;
@@ -1053,17 +1051,17 @@ static boolean F_CastTicker(void)
 // F_CastResponder
 //
 
-static boolean F_CastResponder(event_t* ev)
+static boolean CastResponder(event_t* ev)
 {
   if (gamemapinfo && gamemapinfo->finale == EG_CustomFinale)
     return EndFinaleCast_Responder(ev);
 
   if (ev->type != ev_keydown && ev->type != ev_mouseb_down && ev->type != ev_joyb_down)
     return false;
-                
+
   if (castdeath)
     return true;                    // already in dying frames
-                
+
   // go into death frame
   castdeath = true;
   caststate = &states[mobjinfo[castorder[castnum].type].deathstate];
@@ -1072,23 +1070,23 @@ static boolean F_CastResponder(event_t* ev)
   castattacking = false;
   if (mobjinfo[castorder[castnum].type].deathsound)
     S_StartSound (NULL, mobjinfo[castorder[castnum].type].deathsound);
-        
+
   return true;
 }
 
 
-static void F_CastPrint(const char* text)
+static void CastPrint(const char* text)
 {
   const char* ch;
   int         c;
   int         cx;
   int         w;
   int         width;
-  
+
   // find width
   ch = text;
   width = 0;
-      
+
   while (ch)
   {
     c = *ch++;
@@ -1100,11 +1098,11 @@ static void F_CastPrint(const char* text)
       width += 4;
       continue;
     }
-            
+
     w = SHORT (hu_font[c]->width);
     width += w;
   }
-  
+
   // draw it
   cx = 160-width/2;
   ch = text;
@@ -1119,7 +1117,7 @@ static void F_CastPrint(const char* text)
       cx += 4;
       continue;
     }
-              
+
     w = SHORT (hu_font[c]->width);
     V_DrawPatch(cx, 180, hu_font[c]);
     cx+=w;
@@ -1131,7 +1129,7 @@ static void F_CastPrint(const char* text)
 // F_CastDrawer
 //
 
-static void F_CastDrawer(void)
+static void CastDrawer(void)
 {
   if (gamemapinfo && gamemapinfo->finale == EG_CustomFinale)
   {
@@ -1144,20 +1142,20 @@ static void F_CastDrawer(void)
   int                 lump;
   boolean             flip;
   patch_t*            patch;
-    
+
   // erase the entire screen to a background
   // Ty 03/30/98 bg texture extern
   V_DrawPatchFullScreen(
     V_CachePatchName(W_CheckWidescreenPatch(DEH_String(BGCASTCALL)), PU_CACHE));
 
-  F_CastPrint (castorder[castnum].name);
-    
+  CastPrint (castorder[castnum].name);
+
   // draw the current frame in the middle of the screen
   sprdef = &sprites[caststate->sprite];
   sprframe = &sprdef->spriteframes[ caststate->frame & FF_FRAMEMASK];
   lump = sprframe->lump[0];
   flip = (boolean)sprframe->flip[0];
-                        
+
   patch = V_CachePatchNum (lump+firstspritelump, PU_CACHE);
   V_DrawPatchCastCall(patch, NULL, NULL, flip);
 }
@@ -1165,7 +1163,7 @@ static void F_CastDrawer(void)
 //
 // F_BunnyScroll
 //
-static void F_BunnyScroll(void)
+static void BunnyScroll(void)
 {
   int         scrolled;
   patch_t*    p1;
@@ -1219,7 +1217,7 @@ static void F_BunnyScroll(void)
     laststage = 0;
     return;
   }
-      
+
   stage = (finalecount-1180) / 5;
   if (stage > 6)
     stage = 6;
@@ -1228,7 +1226,7 @@ static void F_BunnyScroll(void)
     S_StartSound (NULL, sfx_pistol);
     laststage = stage;
   }
-      
+
   M_snprintf(name, sizeof(name), "END%i", stage);
   V_DrawPatch ((SCREENWIDTH-13*8)/2,
                (SCREENHEIGHT-8*8)/2,
@@ -1241,19 +1239,19 @@ static void F_BunnyScroll(void)
 //
 void F_Drawer (void)
 {
-  if (MapInfo_Drawer())
+  if (MapInfoDrawer())
   {
       return;
   }
 
   if (finalestage == FINALE_STAGE_CAST)
   {
-    F_CastDrawer ();
+    CastDrawer ();
     return;
   }
 
   if (finalestage == FINALE_STAGE_TEXT)
-    F_TextWrite ();
+    TextWrite ();
   else
   {
     const char* finalelump = NULL;
@@ -1269,7 +1267,7 @@ void F_Drawer (void)
            finalelump = "VICTORY2";
            break;
       case 3:
-           F_BunnyScroll();
+           BunnyScroll();
            break;
       case 4:
            finalelump = "ENDPIC";

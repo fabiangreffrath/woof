@@ -26,7 +26,7 @@
 #include "hu_obituary.h"
 #include "info.h"
 #include "m_misc.h"
-#include "net_client.h"
+#include "nw_client.h"
 #include "p_mobj.h"
 #include "v_trans.h"
 
@@ -89,7 +89,7 @@ void HU_InitObituaries(void)
     // [FG] TODO only the server knows the names of all clients,
     //           but at least we know ours...
 
-    playerstr[consoleplayer] = net_player_name;
+    playerstr[consoleplayer] = nw_player_name;
 }
 
 static inline char *StrReplace(char *str, const char *from, const char *to)

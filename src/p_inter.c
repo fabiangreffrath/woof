@@ -61,7 +61,7 @@ int clipammo[NUMAMMO] = { 10,  4,  20,  1};
 //
 
 // mbf21: take into account new weapon autoswitch flags
-static boolean P_GiveAmmoAutoSwitch(player_t *player, ammotype_t ammo, int oldammo)
+static boolean GiveAmmoAutoSwitch(player_t *player, ammotype_t ammo, int oldammo)
 {
   int i;
 
@@ -117,7 +117,7 @@ boolean P_GiveAmmo(player_t *player, ammotype_t ammo, int num)
     player->ammo[ammo] = player->maxammo[ammo];
 
   if (mbf21)
-    return P_GiveAmmoAutoSwitch(player, ammo, oldammo);
+    return GiveAmmoAutoSwitch(player, ammo, oldammo);
 
   // If non zero ammo, don't change up weapons, player was lower on purpose.
   if (oldammo)
@@ -647,7 +647,7 @@ static void WatchKill(player_t* player, mobj_t* target)
   }
 }
 
-static void P_KillMobj(mobj_t *source, mobj_t *inflictor, mobj_t *target, method_t mod)
+static void KillMobj(mobj_t *source, mobj_t *inflictor, mobj_t *target, method_t mod)
 {
   mobjtype_t item;
   mobj_t     *mo;
@@ -784,7 +784,7 @@ static void P_KillMobj(mobj_t *source, mobj_t *inflictor, mobj_t *target, method
 //
 
 // mbf21: dehacked infighting groups
-static boolean P_InfightingImmune(mobj_t *target, mobj_t *source)
+static boolean InfightingImmune(mobj_t *target, mobj_t *source)
 {
   return // not default behaviour, and same group
     mobjinfo[target->type].infighting_group != IG_DEFAULT &&
@@ -885,14 +885,14 @@ void P_DamageMobjBy(mobj_t *target,mobj_t *inflictor, mobj_t *source, int damage
         player->damagecount = 100;  // teleport stomp does 10k points...
 
 #if 0
-      // killough 11/98: 
+      // killough 11/98:
       // This is unused -- perhaps it was designed for
       // a hand-connected input device or VR helmet,
       // to pinch the player when they're hurt :)
 
       {
 	int temp = damage < 100 ? damage : 100;
-	
+
 	if (player == &players[consoleplayer])
 	  I_Tactile (40,10,40+temp*2);
       }
@@ -912,7 +912,7 @@ void P_DamageMobjBy(mobj_t *target,mobj_t *inflictor, mobj_t *source, int damage
   else
   if (target->health <= 0)
     {
-      P_KillMobj(source, inflictor, target, mod);
+      KillMobj(source, inflictor, target, mod);
       return;
     }
 
@@ -923,14 +923,14 @@ void P_DamageMobjBy(mobj_t *target,mobj_t *inflictor, mobj_t *source, int damage
       // so that a friend can tell who's hurting a player
       if (player)
 	P_SetTarget(&target->target, source);
-      
+
       // killough 9/8/98:
       // If target's health is less than 50%, move it to the front of its list.
       // This will slightly increase the chances that enemies will choose to
       // "finish it off", but its main purpose is to alert friends of danger.
       if (target->health*2 < target->info->spawnhealth)
 	{
-	  thinker_t *cap = &thinkerclasscap[target->flags & MF_FRIEND ? 
+	  thinker_t *cap = &thinkerclasscap[target->flags & MF_FRIEND ?
 					   th_friends : th_enemies];
 	  (target->thinker.cprev->cnext = target->thinker.cnext)->cprev =
 	    target->thinker.cprev;
@@ -949,9 +949,9 @@ void P_DamageMobjBy(mobj_t *target,mobj_t *inflictor, mobj_t *source, int damage
 
   if (source && source != target && !(source->flags2 & MF2_DMGIGNORED) &&
       (!target->threshold || target->flags2 & MF2_NOTHRESHOLD) &&
-      ((source->flags ^ target->flags) & MF_FRIEND || 
+      ((source->flags ^ target->flags) & MF_FRIEND ||
        monster_infighting || demo_version < DV_MBF) &&
-      !P_InfightingImmune(target, source))
+      !InfightingImmune(target, source))
     {
       // if not intent on another player, chase after this one
       //

@@ -69,7 +69,7 @@
 #include "ws_stuff.h"
 #include "z_zone.h"
 
-static int M_GetKeyString(int c, int offset);
+static int GetKeyString(int c, int offset);
 static void DrawMenuString(int cx, int cy, int color);
 static void DrawMenuStringBuffer(int flags, int x, int y, int color,
                                  const char *buffer);
@@ -456,7 +456,7 @@ static void BlinkingArrowLeft(setup_menu_t *s)
     {
         if (flags & S_CENTER)
         {
-            strcpy(menu_buffer, "  ");    
+            strcpy(menu_buffer, "  ");
         }
         return;
     }
@@ -490,7 +490,7 @@ static void BlinkingArrowRight(setup_menu_t *s)
     {
         if (flags & S_CENTER)
         {
-            strcat(menu_buffer, "  ");    
+            strcat(menu_buffer, "  ");
         }
         return;
     }
@@ -938,7 +938,7 @@ static void DrawSetting(setup_menu_t *s, int accum_y)
             switch (inputs[i].type)
             {
                 case INPUT_KEY:
-                    offset = M_GetKeyString(inputs[i].value, offset);
+                    offset = GetKeyString(inputs[i].value, offset);
                     break;
                 case INPUT_MOUSEB:
                     offset += sprintf(menu_buffer + offset, "%s",
@@ -956,7 +956,7 @@ static void DrawSetting(setup_menu_t *s, int accum_y)
         // "NONE"
         if (i == 0)
         {
-            M_GetKeyString(0, 0);
+            GetKeyString(0, 0);
         }
 
         BlinkingArrowRight(s);
@@ -1199,7 +1199,7 @@ static void DrawGyroCalibration(void)
             I_UpdateGyroCalibrationState();
             if (I_GetGyroCalibrationState() == GYRO_CALIBRATION_ACTIVE)
             {
-                M_StartSound(sfx_mnumov);
+                MN_StartSound(sfx_mnumov);
             }
             break;
 
@@ -1208,7 +1208,7 @@ static void DrawGyroCalibration(void)
             I_UpdateGyroCalibrationState();
             if (I_GetGyroCalibrationState() == GYRO_CALIBRATION_COMPLETE)
             {
-                M_StartSound(sfx_mnumov);
+                MN_StartSound(sfx_mnumov);
             }
             break;
 
@@ -1217,7 +1217,7 @@ static void DrawGyroCalibration(void)
             I_UpdateGyroCalibrationState();
             if (I_GetGyroCalibrationState() == GYRO_CALIBRATION_INACTIVE)
             {
-                M_StartSound(sfx_mnucls);
+                MN_StartSound(sfx_mnucls);
                 block_input = false;
             }
             break;
@@ -2167,7 +2167,7 @@ static void BarkSound(void)
 {
     if (default_dogs)
     {
-        M_StartSound(sfx_dgact);
+        MN_StartSound(sfx_dgact);
     }
 }
 
@@ -2487,7 +2487,7 @@ static setup_menu_t gen_settings1[] = {
      .action = UpdateFOV},
 
     {"Gamma Correction", S_THERMO, CNTR_X, M_THRM_SPC, {"gamma2"},
-     .strings_id = str_gamma, .action = V_ResetPalette},
+     .strings_id = str_gamma},
 
     {"Extra Lighting", S_THERMO | S_STRICT, CNTR_X,
      M_THRM_SPC, {"extra_level_brightness"}},
@@ -2570,9 +2570,9 @@ static const char *extra_music_strings[] = {
     "Off", "Remix", "Original"
 };
 
-static void MN_Sfx(void);
-static void MN_Music(void);
-static void MN_Equalizer(void);
+static void MenuSfx(void);
+static void MenuMusic(void);
+static void MenuEqualizer(void);
 
 static setup_menu_t gen_settings2[] = {
 
@@ -2587,7 +2587,7 @@ static setup_menu_t gen_settings2[] = {
     {"Sound Module", S_CHOICE, CNTR_X, M_SPC, {"snd_module"},
      .strings_id = str_sound_module, .action = SetSoundModule},
 
-    {"Headphones Mode", S_ONOFF, CNTR_X, M_SPC, {"snd_hrtf"}, 
+    {"Headphones Mode", S_ONOFF, CNTR_X, M_SPC, {"snd_hrtf"},
      .action = SetSoundModule},
 
     MI_GAP,
@@ -2602,11 +2602,11 @@ static setup_menu_t gen_settings2[] = {
 
     MI_GAP,
 
-    {"Sound Options", S_FUNC, CNTR_X, M_SPC, .action = MN_Sfx},
+    {"Sound Options", S_FUNC, CNTR_X, M_SPC, .action = MenuSfx},
 
-    {"Music Options", S_FUNC, CNTR_X, M_SPC, .action = MN_Music},
+    {"Music Options", S_FUNC, CNTR_X, M_SPC, .action = MenuMusic},
 
-    {"Equalizer Options", S_FUNC, CNTR_X, M_SPC, .action = MN_Equalizer},
+    {"Equalizer Options", S_FUNC, CNTR_X, M_SPC, .action = MenuEqualizer},
 
     MI_END
 };
@@ -2648,7 +2648,7 @@ static setup_menu_t *sfx_settings[] = {sfx_settings1, NULL};
 
 static setup_tab_t sfx_tabs[] = {{"Sound"}, {NULL}};
 
-static void MN_Sfx(void)
+static void MenuSfx(void)
 {
     SetItemOn(set_item_on);
     SetPageIndex(current_page);
@@ -2723,7 +2723,7 @@ static setup_menu_t *music_settings[] = {music_settings1, NULL};
 
 static setup_tab_t midi_tabs[] = {{"Music"}, {NULL}};
 
-static void MN_Music(void)
+static void MenuMusic(void)
 {
     SetItemOn(set_item_on);
     SetPageIndex(current_page);
@@ -2810,7 +2810,7 @@ void MN_UpdateEqualizerItems(void)
 
 static setup_tab_t equalizer_tabs[] = {{"Equalizer"}, {NULL}};
 
-static void MN_Equalizer(void)
+static void MenuEqualizer(void)
 {
     SetItemOn(set_item_on);
     SetPageIndex(current_page);
@@ -2967,8 +2967,8 @@ static const char *curve_strings[] = {
     "2.4",    "2.5", "2.6", "2.7",     "2.8", "2.9", "Cubed"
 };
 
-static void MN_PadAdv(void);
-static void MN_Gyro(void);
+static void MenuPadAdv(void);
+static void MenuGyro(void);
 
 static void UpdateGamepadDevice(void)
 {
@@ -3010,9 +3010,9 @@ static setup_menu_t gen_settings4[] = {
 
     MI_GAP_Y(2),
 
-    {"Advanced Options", S_FUNC, CNTR_X, M_SPC, .action = MN_PadAdv},
+    {"Advanced Options", S_FUNC, CNTR_X, M_SPC, .action = MenuPadAdv},
 
-    {"Gyro Options", S_FUNC, CNTR_X, M_SPC, .action = MN_Gyro},
+    {"Gyro Options", S_FUNC, CNTR_X, M_SPC, .action = MenuGyro},
 
     MI_END
 };
@@ -3108,7 +3108,7 @@ static setup_menu_t *padadv_settings[] = {padadv_settings1, NULL};
 
 static setup_tab_t padadv_tabs[] = {{"Advanced"}, {NULL}};
 
-static void MN_PadAdv(void)
+static void MenuPadAdv(void)
 {
     SetItemOn(set_item_on);
     SetPageIndex(current_page);
@@ -3295,7 +3295,7 @@ static void UpdateGyroItems(void)
 
 static setup_tab_t gyro_tabs[] = {{"Gyro"}, {NULL}};
 
-static void MN_Gyro(void)
+static void MenuGyro(void)
 {
     SetItemOn(set_item_on);
     SetPageIndex(current_page);
@@ -3352,7 +3352,8 @@ static setup_menu_t gen_settings5[] = {
 
     {"Voxels", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC, {"voxels_rendering"}},
 
-    {"Brightmaps", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC, {"brightmaps"}},
+    {"Brightmaps", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC, {"brightmaps"},
+     .action = R_ToggleBrightmaps},
 
     {"Stretch Short Skies", S_ONOFF, OFF_CNTR_X, M_SPC, {"stretchsky"},
      .action = R_UpdateStretchSkies},
@@ -3527,7 +3528,7 @@ static void CsBarkSound(void)
 {
     if (csmenu.helperdogs)
     {
-        M_StartSound(sfx_dgact);
+        MN_StartSound(sfx_dgact);
     }
 }
 
@@ -3630,7 +3631,7 @@ static void SelectDone(setup_menu_t *ptr)
 {
     ptr->m_flags &= ~S_SELECT;
     ptr->m_flags |= S_HILITE;
-    M_StartSound(sfx_mnusel);
+    MN_StartSound(sfx_mnusel);
     setup_select = false;
     if (print_warning_about_changes) // killough 8/15/98
     {
@@ -3830,7 +3831,7 @@ void MN_InitDefaults(void)
 //
 /////////////////////////////////////////////////////////////////////////////
 
-static int M_GetKeyString(int c, int offset)
+static int GetKeyString(int c, int offset)
 {
     const char *s;
 
@@ -4024,7 +4025,7 @@ void MN_HighlightTab(int x, int y)
                 if (highlight_tab != i)
                 {
                     highlight_tab = i;
-                    M_StartSound(sfx_mnusel);
+                    MN_StartSound(sfx_mnusel);
                 }
             }
         }
@@ -4073,7 +4074,7 @@ boolean MN_SetupCursorPostion(int x, int y)
             {
                 print_warning_about_changes = false;
                 highlight_item = i;
-                M_StartSound(sfx_mnusel);
+                MN_StartSound(sfx_mnusel);
             }
         }
     }
@@ -4134,7 +4135,7 @@ static void Choice(menu_action_t action)
 
         if (*def->location.i != value)
         {
-            M_StartSound(sfx_mnusli);
+            MN_StartSound(sfx_mnusli);
         }
         *def->location.i = value;
 
@@ -4165,7 +4166,7 @@ static void Choice(menu_action_t action)
 
         if (*def->location.i != value)
         {
-            M_StartSound(sfx_mnusli);
+            MN_StartSound(sfx_mnusli);
         }
         *def->location.i = value;
 
@@ -4433,7 +4434,7 @@ static boolean NextPage(int inc)
         current_menu[set_item_on].m_flags |= S_HILITE;
     }
 
-    M_StartSound(sfx_mnumov); // killough 10/98
+    MN_StartSound(sfx_mnumov); // killough 10/98
     return true;
 }
 
@@ -4470,7 +4471,7 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
     {
         if (ItemDisabled(current_item->m_flags))
         {
-            M_StartSound(sfx_mnuerr);
+            MN_StartSound(sfx_mnuerr);
             return true;
         }
         else if (current_item->action)
@@ -4478,7 +4479,7 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
             current_item->action();
         }
 
-        M_StartSound(sfx_mnuact);
+        MN_StartSound(sfx_mnuact);
         return true;
     }
 
@@ -4637,7 +4638,7 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
 
         if (ItemDisabled(flags))
         {
-            M_StartSound(sfx_mnuerr);
+            MN_StartSound(sfx_mnuerr);
             return true;
         }
         else if (flags & S_NUM)
@@ -4653,7 +4654,7 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
 
         current_item->m_flags |= S_SELECT;
         setup_select = true;
-        M_StartSound(sfx_mnusel);
+        MN_StartSound(sfx_mnusel);
         return true;
     }
 
@@ -4695,7 +4696,7 @@ boolean MN_SetupResponder(menu_action_t action, int ch)
         default_verify = false;              // phares 4/19/98
         print_warning_about_changes = false; // [FG] reset
         active_thermo = NULL;
-        M_StartSound(sfx_mnucls);
+        MN_StartSound(sfx_mnucls);
         return true;
     }
 
@@ -4740,7 +4741,7 @@ static boolean SetupTab(void)
         ;
     set_item_on--;
 
-    M_StartSound(sfx_mnumov);
+    MN_StartSound(sfx_mnumov);
     return true;
 }
 
@@ -4760,7 +4761,7 @@ boolean SetupLoadSaveTab(int *page)
 
     *page = highlight_tab;
 
-    M_StartSound(sfx_mnumov);
+    MN_StartSound(sfx_mnumov);
     return true;
 }
 
@@ -4876,7 +4877,7 @@ boolean MN_SetupMouseResponder(int x, int y)
             {
                 active_thermo->action();
             }
-            M_StartSound(sfx_mnusli);
+            MN_StartSound(sfx_mnusli);
         }
         return true;
     }
@@ -4889,7 +4890,7 @@ boolean MN_SetupMouseResponder(int x, int y)
     if (flags & S_ONOFF) // yes or no setting?
     {
         OnOff();
-        M_StartSound(sfx_mnusel);
+        MN_StartSound(sfx_mnusel);
         return true;
     }
 
@@ -4909,7 +4910,7 @@ boolean MN_SetupMouseResponder(int x, int y)
 
         if (*def->location.i != value)
         {
-            M_StartSound(sfx_mnusli);
+            MN_StartSound(sfx_mnusli);
         }
         *def->location.i = value;
 
