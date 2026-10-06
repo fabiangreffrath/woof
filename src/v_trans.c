@@ -288,7 +288,7 @@ static byte ColorizeBoomTranslation(palette_t pal, int cr, byte source)
     rgb.y = sRGB_LinearToByte(rgb.y);
     rgb.z = sRGB_LinearToByte(rgb.z);
 
-    return V_GetNearestColor(PAL_BASE, (byte)rgb.x, (byte)rgb.y, (byte)rgb.z);
+    return V_GetNearestColor(PAL_GLOBAL, (byte)rgb.x, (byte)rgb.y, (byte)rgb.z);
 }
 
 // [FG] dark/shaded color translation table
@@ -398,7 +398,7 @@ void V_InitColorTranslation(void)
             }
             else
             {
-                cr_p->table[i] = ColorizeBoomTranslation(PAL_BASE, cr, (byte)i);
+                cr_p->table[i] = ColorizeBoomTranslation(PAL_GLOBAL, cr, (byte)i);
             }
         }
     }
@@ -413,6 +413,6 @@ void V_InitColorTranslation(void)
         double green = sRGB_ByteToLinear(pal_rover[i].g);
         double blue  = sRGB_ByteToLinear(pal_rover[i].b);
         const byte gray = sRGB_LinearToByte(red * 0.2126 + green * 0.7152 + blue * 0.0722);
-        invul_gray[i] = V_GetNearestColor(PAL_BASE, gray, gray, gray);
+        invul_gray[i] = V_GetNearestColor(PAL_GLOBAL, gray, gray, gray);
     }
 }

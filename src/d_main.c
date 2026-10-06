@@ -216,8 +216,9 @@ void D_PostEvent(event_t *ev)
 
 void D_ProcessEvents(void)
 {
-    for (; eventtail != eventhead; eventtail = (eventtail + 1) & (MAXEVENTS - 1))
+    while (eventtail != eventhead)
     {
+        eventtail = (eventtail + 1) % MAXEVENTS;
         event_t *ev = &events[eventtail];
         M_InputTrackEvent(ev);
 
