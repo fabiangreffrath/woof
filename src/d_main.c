@@ -74,8 +74,8 @@
 #include "mn_menu.h"
 #include "m_misc.h"
 #include "m_swap.h"
-#include "net_client.h"
-#include "net_dedicated.h"
+#include "nw_client.h"
+#include "nw_dedicated.h"
 #include "deh_misc.h" // deh_max_health_bonus
 #include "p_ambient.h"
 #include "p_setup.h"
@@ -272,7 +272,7 @@ void D_Display (void)
   if (gamestate != wipegamestate)
     {
       wipe = true;
-      wipe_StartScreen(0, 0, video.width, video.height);
+      Wipe_StartScreen(0, 0, video.width, video.height);
     }
 
   if (!wipe)
@@ -358,7 +358,7 @@ void D_Display (void)
     ST_Drawer();
 
   if (wi_overlay)
-    WI_drawOverlayStats();
+    WI_DrawOverlayStats();
 
   // draw pause pic
   if (paused)
@@ -376,7 +376,7 @@ void D_Display (void)
     }
 
   // menus go directly to the screen
-  M_Drawer();          // menu is drawn even on top of everything
+  MN_Drawer();          // menu is drawn even on top of everything
   NetUpdate();         // send out any new accumulation
 
   if (demobar && demoplayback)
@@ -390,7 +390,7 @@ void D_Display (void)
     }
 
   // wipe update
-  wipe_EndScreen(0, 0, video.width, video.height);
+  Wipe_EndScreen(0, 0, video.width, video.height);
 
   wipestart = I_GetTime () - 1;
 
@@ -401,9 +401,9 @@ void D_Display (void)
 
       fractionaltic = I_GetFracTime();
 
-      done = wipe_ScreenWipe(0, 0, video.width, video.height, tics);
+      done = Wipe_ScreenWipe(0, 0, video.width, video.height, tics);
       wipestart = nowtime;
-      M_Drawer();                   // menu is drawn even on top of wipes
+      MN_Drawer();                   // menu is drawn even on top of wipes
       I_FinishUpdate();             // page flip or blit buffer
     }
   while (!done);
@@ -430,7 +430,7 @@ void D_PageTicker(void)
     return;
   }
 
-  // killough 12/98: don't advance internal demos if a single one is 
+  // killough 12/98: don't advance internal demos if a single one is
   // being played. The only time this matters is when using -loadgame with
   // -fastdemo, -playdemo, or -timedemo, and a consistency error occurs.
 
@@ -1451,7 +1451,7 @@ boolean quit_prompt;
 boolean quit_sound;
 static endoom_t show_endoom;
 
-static void D_ShowEndDoom(void)
+static void ShowEndDoom(void)
 {
   int lumpnum = W_CheckNumForName("ENDOOM");
   byte *endoom = W_CacheLumpNum(lumpnum, PU_STATIC);
@@ -1482,11 +1482,11 @@ boolean D_AllowEndDoom(void)
   return true;
 }
 
-static void D_EndDoom(void)
+static void EndDoom(void)
 {
   if (D_AllowEndDoom())
   {
-    D_ShowEndDoom();
+    ShowEndDoom();
   }
 }
 
@@ -1663,7 +1663,7 @@ void D_DoomMain(void)
   {
       I_Printf(VB_INFO, "Dedicated server mode.");
       I_InitTimer();
-      NET_DedicatedServer();
+      NW_DedicatedServer();
 
       // Never returns
   }
@@ -2242,8 +2242,8 @@ void D_DoomMain(void)
   I_InitSound();
   I_InitMusic();
 
-  I_Printf(VB_INFO, "NET_Init: Init network subsystem.");
-  NET_Init();
+  I_Printf(VB_INFO, "NW_Init: Init network subsystem.");
+  NW_Init();
 
   // Initial netgame startup. Connect to server etc.
   D_ConnectNetGame();
@@ -2315,7 +2315,7 @@ void D_DoomMain(void)
 
   // start the apropriate game based on parms
 
-  // killough 12/98: 
+  // killough 12/98:
   // Support -loadgame with -record and reimplement -recordfrom.
 
   //!
@@ -2477,7 +2477,7 @@ void D_DoomMain(void)
 
   if (!demorecording)
   {
-    I_AtExitPrio(D_EndDoom, false, "D_EndDoom", exit_priority_last);
+    I_AtExitPrio(EndDoom, false, "D_EndDoom", exit_priority_last);
   }
 
   TryRunTics();
@@ -2513,7 +2513,7 @@ void D_BindMiscVariables(void)
     "Palette changes when taking damage or picking up items (0 = Off; 1 = On; 2 = Reduced)");
   BIND_NUM_GENERAL(organize_savefiles, -1, -1, 1,
     "Organize save files");
-  M_BindStr("net_player_name", &net_player_name, DEFAULT_PLAYER_NAME, wad_no,
+  M_BindStr("nw_player_name", &nw_player_name, DEFAULT_PLAYER_NAME, wad_no,
     "Network setup player name");
 
   M_BindBool("colored_blood", &colored_blood, NULL, false, ss_enem, wad_no,

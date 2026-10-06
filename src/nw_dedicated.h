@@ -15,9 +15,9 @@
 // Dedicated server code.
 //
 
-#ifndef NET_DEDICATED_H
-#define NET_DEDICATED_H
+#ifndef NW_DEDICATED_H
+#define NW_DEDICATED_H
 
-void NET_DedicatedServer(void);
+void NW_DedicatedServer(void);
 
-#endif /* #ifndef NET_DEDICATED_H */
+#endif /* #ifndef NW_DEDICATED_H */

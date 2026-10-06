@@ -36,6 +36,7 @@ jobs:
         with:
           install-linux-dependencies: true
           version: 3-latest
+          version-sdl-net: 3-latest
 
       - uses: actions/checkout@v7
 

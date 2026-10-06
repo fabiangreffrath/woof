@@ -222,7 +222,7 @@ void P_XYMovement (mobj_t* mo)
 
   if (mo->momx > MAXMOVE)
     mo->momx = MAXMOVE;
-  else 
+  else
     if (mo->momx < -MAXMOVE)
       mo->momx = -MAXMOVE;
 
@@ -272,9 +272,9 @@ void P_XYMovement (mobj_t* mo)
 	  // killough 8/11/98: bouncing off walls
 	  // killough 10/98:
 	  // Add ability for objects other than players to bounce on ice
-	  
+
 	  if (!(mo->flags & MF_MISSILE) && demo_version >= DV_MBF &&
-	      (mo->flags & MF_BOUNCES || 
+	      (mo->flags & MF_BOUNCES ||
 	       (!player && blockline &&
 		variable_friction && mo->z <= mo->floorz &&
 		P_GetFriction(mo, NULL) > ORIG_FRICTION)))
@@ -308,7 +308,7 @@ void P_XYMovement (mobj_t* mo)
 	  else
 	    if (player)   // try to slide along it
 	      P_SlideMove (mo);
-	    else 
+	    else
 	      if (mo->flags & MF_MISSILE)
 		{
 		  // explode a missile
@@ -375,15 +375,15 @@ void P_XYMovement (mobj_t* mo)
       // killough 10/98:
       // Don't affect main player when voodoo dolls stop, except in old demos:
 
-      if (player && (unsigned)(player->mo->state - states - S_PLAY_RUN1) < 4 
+      if (player && (unsigned)(player->mo->state - states - S_PLAY_RUN1) < 4
 	  && (player->mo == mo || demo_version < DV_MBF))
 	P_SetMobjState(player->mo, S_PLAY);
 
       mo->momx = mo->momy = 0;
-      
+
       // killough 10/98: kill any bobbing momentum too (except in voodoo dolls)
       if (player && player->mo == mo)
-	player->momx = player->momy = 0; 
+	player->momx = player->momy = 0;
     }
   else
     {
@@ -444,7 +444,7 @@ void P_XYMovement (mobj_t* mo)
 //
 // Attempt vertical movement.
 
-static void P_ZMovement (mobj_t* mo)
+static void DoZMovement(mobj_t* mo)
 {
   // killough 7/11/98:
   // BFG fireballs bounced on floors and ceilings in Pre-Beta Doom
@@ -467,7 +467,7 @@ static void P_ZMovement (mobj_t* mo)
 		    FixedMul(mo->momz, (fixed_t)(FRACUNIT*.85)) :
 		    FixedMul(mo->momz, (fixed_t)(FRACUNIT*.70)) :
 		    FixedMul(mo->momz, (fixed_t)(FRACUNIT*.45)) ;
-		  
+
 		  // Bring it to rest below a certain speed
 		  if (abs(mo->momz) <= mo->info->mass*(GRAVITY*4/256))
 		    mo->momz = 0;
@@ -644,8 +644,8 @@ floater:
       mo->z = mo->ceilingz - mo->height;
 
       // cph 2001/04/15 -
-      // We might have hit a ceiling but had downward momentum (e.g. ceiling is 
-      // lowering on us), so for old demos we must still do the buggy 
+      // We might have hit a ceiling but had downward momentum (e.g. ceiling is
+      // lowering on us), so for old demos we must still do the buggy
       // momentum reversal here
       if (comp[comp_soul] && mo->flags & MF_SKULLFLY)
 	mo->momz = -mo->momz; // the skull slammed into something
@@ -739,7 +739,7 @@ void P_NightmareRespawn(mobj_t* mobj)
 }
 
 // [crispy] support MUSINFO lump (dynamic music changing)
-static inline void MusInfoThinker (mobj_t *thing)
+static inline void ThinkerMusInfo(mobj_t *thing)
 {
   if (musinfo.mapthing != thing &&
       thing->subsector->sector == players[displayplayer].mo->subsector->sector)
@@ -759,7 +759,7 @@ void P_MobjThinker (mobj_t* mobj)
   // [crispy] support MUSINFO lump (dynamic music changing)
   if (mobj->type == MT_MUSICSOURCE)
   {
-      MusInfoThinker(mobj);
+      ThinkerMusInfo(mobj);
       return;
   }
   // [FG] suppress interpolation of player missiles for the first tic
@@ -787,7 +787,7 @@ void P_MobjThinker (mobj_t* mobj)
         P_UpdateOverUnder(mobj);
     }
 
-  // killough 11/98: 
+  // killough 11/98:
   // removed old code which looked at target references
   // (we use pointer reference counting now)
 
@@ -802,7 +802,7 @@ void P_MobjThinker (mobj_t* mobj)
 
   if (mobj->z != mobj->floorz || mobj->momz)
     {
-      P_ZMovement(mobj);
+      DoZMovement(mobj);
       if (mobj->thinker.function.p1 == P_RemoveMobjThinkerDelayed) // killough
 	return;       // mobj was removed
     }
@@ -851,7 +851,7 @@ void P_MobjThinker (mobj_t* mobj)
       if (!--mobj->tics)
 	P_SetMobjState(mobj, mobj->state->nextstate);
     }
-  else                       
+  else
     if (mobj->flags & MF_COUNTKILL && respawnmonsters &&
 	++mobj->movecount >= 12*35 && !(leveltime & 31) &&
 	P_Random (pr_respawn) <= 4)
@@ -882,7 +882,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 
   // killough 8/23/98: no friends, bouncers, or touchy things in old demos
   if (demo_version < DV_MBF)
-    mobj->flags &= ~(MF_BOUNCES | MF_FRIEND | MF_TOUCHY); 
+    mobj->flags &= ~(MF_BOUNCES | MF_FRIEND | MF_TOUCHY);
   else
     if (type == MT_PLAYER)         // Except in old demos, players
       mobj->flags |= MF_FRIEND;    // are always friends.
@@ -1033,7 +1033,7 @@ void P_RemoveMobj (mobj_t *mobj)
 
 // Certain functions assume that a mobj_t pointer is non-NULL,
 // causing a crash in some situations where it is NULL.  Vanilla
-// Doom did not crash because of the lack of proper memory 
+// Doom did not crash because of the lack of proper memory
 // protection. This function substitutes NULL pointers for
 // pointers to a dummy mobj, to avoid a crash.
 
@@ -1080,7 +1080,7 @@ int P_FindDoomedNum(unsigned type)
 	    hash[h].first = i;
 	  }
     }
-  
+
   i = hash[type % num_mobj_types].first;
   while (i < num_mobj_types && mobjinfo[i].doomednum != type)
     i = hash[i].next;
@@ -1104,7 +1104,7 @@ void P_RespawnSpecials (void)
       iquehead == iquetail ||  // nothing left to respawn?
       leveltime - itemrespawntime[iquetail] < 30*35) // wait 30 seconds
     return;
-  
+
   mthing = &itemrespawnque[iquetail];
 
   x = mthing->x;
@@ -1166,7 +1166,7 @@ void P_SpawnPlayer (mapthing_t* mthing)
 
   if (mthing->type > 1)
     mobj->flags |= (mthing->type-1)<<MF_TRANSSHIFT;
-  
+
   mobj->angle      = ANG45 * (mthing->angle/45);
   mobj->player     = p;
   mobj->health     = p->health;
@@ -1226,7 +1226,7 @@ void P_SpawnMapThing (mapthing_t* mthing)
   // bits that weren't used in Doom (such as HellMaker wads). So we should
   // then simply ignore all upper bits.
 
-  if (demo_compatibility || 
+  if (demo_compatibility ||
       (demo_version >= DV_MBF && mthing->options & MTF_RESERVED))
     mthing->options &= MTF_SKILL1|MTF_SKILL2|MTF_SKILL3|MTF_SKILL4|MTF_SKILL5|MTF_AMBUSH|MTF_NOTSINGLE;
 
@@ -1375,7 +1375,7 @@ spawnit:
     mobj->tics = 1 + (P_Random (pr_spawnthing) % mobj->tics);
 
   if (!(mobj->flags & MF_FRIEND) &&
-      mthing->options & MTF_FRIEND && 
+      mthing->options & MTF_FRIEND &&
       demo_version >= DV_MBF)
     {
       mobj->flags |= MF_FRIEND;            // killough 10/98:

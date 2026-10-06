@@ -499,7 +499,7 @@ const char * const strings_players[] =
     HUSTR_PLRGREEN, HUSTR_PLRINDIGO, HUSTR_PLRBROWN, HUSTR_PLRRED,
 };
 
-const char * const strings_quit_messages[] = 
+const char * const strings_quit_messages[] =
 {
     QUITMSG,   QUITMSG1,  QUITMSG2,  QUITMSG3, QUITMSG4,  QUITMSG5,
     QUITMSG6,  QUITMSG7,  QUITMSG8,  QUITMSG9, QUITMSG10, QUITMSG11,
@@ -542,7 +542,7 @@ static boolean HandleExtendedObituary(char *mnemonic, char *string)
     return found;
 }
 
-static int DEH_BEXStringsStart(deh_context_t *context, char *line)
+static int BEXStringsStart(deh_context_t *context, char *line)
 {
     char s[10];
 
@@ -554,7 +554,7 @@ static int DEH_BEXStringsStart(deh_context_t *context, char *line)
     return 0;
 }
 
-static void DEH_BEXStringsParseLine(deh_context_t *context, char *line, int tag)
+static void BEXStringsParseLine(deh_context_t *context, char *line, int tag)
 {
     char *variable_name, *value;
 
@@ -585,8 +585,8 @@ deh_section_t deh_section_bex_strings =
 {
     "[STRINGS]",
     NULL,
-    DEH_BEXStringsStart,
-    DEH_BEXStringsParseLine,
+    BEXStringsStart,
+    BEXStringsParseLine,
     NULL,
     NULL,
 };

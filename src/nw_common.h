@@ -14,35 +14,35 @@
 // Common code shared between the client and server
 //
 
-#ifndef NET_COMMON_H
-#define NET_COMMON_H
+#ifndef NW_COMMON_H
+#define NW_COMMON_H
 
 #include "doomdef.h"
 #include "doomtype.h"
-#include "net_defs.h"
+#include "nw_defs.h"
 
 typedef enum
 {
     // Client has sent a SYN, is waiting for a SYN in response.
-    NET_CONN_STATE_CONNECTING,
+    NW_CONN_STATE_CONNECTING,
 
     // Successfully connected.
-    NET_CONN_STATE_CONNECTED,
+    NW_CONN_STATE_CONNECTED,
 
     // Sent a DISCONNECT packet, waiting for a DISCONNECT_ACK reply
-    NET_CONN_STATE_DISCONNECTING,
+    NW_CONN_STATE_DISCONNECTING,
 
     // Client successfully disconnected
-    NET_CONN_STATE_DISCONNECTED,
+    NW_CONN_STATE_DISCONNECTED,
 
     // We are disconnected, but in a sleep state, waiting for several
     // seconds.  This is in case the DISCONNECT_ACK we sent failed
     // to arrive, and we need to send another one.  We keep this as
     // a valid connection for a few seconds until we are sure that
     // the other end has successfully disconnected as well.
-    NET_CONN_STATE_DISCONNECTED_SLEEP,
+    NW_CONN_STATE_DISCONNECTED_SLEEP,
 
-} net_connstate_t;
+} nw_connstate_t;
 
 // Reason a connection was terminated
 
@@ -50,55 +50,55 @@ typedef enum
 {
     // As the result of a local disconnect request
 
-    NET_DISCONNECT_LOCAL,
+    NW_DISCONNECT_LOCAL,
 
     // As the result of a remote disconnect request
 
-    NET_DISCONNECT_REMOTE,
+    NW_DISCONNECT_REMOTE,
 
     // Timeout (no data received in a long time)
 
-    NET_DISCONNECT_TIMEOUT,
+    NW_DISCONNECT_TIMEOUT,
 
-} net_disconnect_reason_t;
+} nw_disconnect_reason_t;
 
 #define MAX_RETRIES 5
 
-typedef struct net_reliable_packet_s net_reliable_packet_t;
+typedef struct nw_reliable_packet_s nw_reliable_packet_t;
 
 typedef struct
 {
-    net_connstate_t state;
-    net_disconnect_reason_t disconnect_reason;
-    net_addr_t *addr;
-    net_protocol_t protocol;
+    nw_connstate_t state;
+    nw_disconnect_reason_t disconnect_reason;
+    nw_addr_t *addr;
+    nw_protocol_t protocol;
     int last_send_time;
     int num_retries;
     int keepalive_send_time;
     int keepalive_recv_time;
-    net_reliable_packet_t *reliable_packets;
+    nw_reliable_packet_t *reliable_packets;
     int reliable_send_seq;
     int reliable_recv_seq;
-} net_connection_t;
+} nw_connection_t;
 
-void NET_Conn_SendPacket(net_connection_t *conn, net_packet_t *packet);
-void NET_Conn_InitClient(net_connection_t *conn, net_addr_t *addr,
-                         net_protocol_t protocol);
-void NET_Conn_InitServer(net_connection_t *conn, net_addr_t *addr,
-                         net_protocol_t protocol);
-boolean NET_Conn_Packet(net_connection_t *conn, net_packet_t *packet,
+void NW_Conn_SendPacket(nw_connection_t *conn, nw_packet_t *packet);
+void NW_Conn_InitClient(nw_connection_t *conn, nw_addr_t *addr,
+                         nw_protocol_t protocol);
+void NW_Conn_InitServer(nw_connection_t *conn, nw_addr_t *addr,
+                         nw_protocol_t protocol);
+boolean NW_Conn_Packet(nw_connection_t *conn, nw_packet_t *packet,
                         unsigned int *packet_type);
-void NET_Conn_Disconnect(net_connection_t *conn);
-void NET_Conn_Run(net_connection_t *conn);
-net_packet_t *NET_Conn_NewReliable(net_connection_t *conn, int packet_type);
+void NW_Conn_Disconnect(nw_connection_t *conn);
+void NW_Conn_Run(nw_connection_t *conn);
+nw_packet_t *NW_Conn_NewReliable(nw_connection_t *conn, int packet_type);
 
 // Other miscellaneous common functions
-unsigned int NET_ExpandTicNum(unsigned int relative, unsigned int b);
-boolean NET_ValidGameSettings(GameMode_t mode, GameMission_t mission,
-                              net_gamesettings_t *settings);
+unsigned int NW_ExpandTicNum(unsigned int relative, unsigned int b);
+boolean NW_ValidGameSettings(GameMode_t mode, GameMission_t mission,
+                              nw_gamesettings_t *settings);
 
-void NET_OpenLog(void);
-void NET_Log(const char *fmt, ...) PRINTF_ATTR(1, 2);
-void NET_LogPacket(net_packet_t *packet);
+void NW_OpenLog(void);
+void NW_Log(const char *fmt, ...) PRINTF_ATTR(1, 2);
+void NW_LogPacket(nw_packet_t *packet);
 
-#endif /* #ifndef NET_COMMON_H */
+#endif /* #ifndef NW_COMMON_H */

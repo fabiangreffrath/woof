@@ -177,7 +177,7 @@ cheat_sequence_t cheats_table[] = {
   {"idbeholds",  "Berserk",           not_net | not_demo,
    {.i = cheat_pw}, pw_strength },
 
-  {"idbeholdi",  "Invisibility",      not_net | not_demo,  
+  {"idbeholdi",  "Invisibility",      not_net | not_demo,
    {.i = cheat_pw}, pw_invisibility },
 
   {"idbeholdr",  "Radiation Suit",    not_net | not_demo,
@@ -240,7 +240,7 @@ cheat_sequence_t cheats_table[] = {
   {"hom",     NULL,                   always,
    {.v = cheat_hom} },        // killough 2/07/98: HOM autodetector
 
-  {"key",     NULL,                   not_net | not_demo, 
+  {"key",     NULL,                   not_net | not_demo,
    {.v = cheat_key} },     // killough 2/16/98: generalized key cheats
 
   {"keyr",    NULL,                   not_net | not_demo,
@@ -252,13 +252,13 @@ cheat_sequence_t cheats_table[] = {
   {"keyb",    NULL,                   not_net | not_demo,
    {.v = cheat_keyx} },
 
-  {"keyrc",   NULL,                   not_net | not_demo, 
+  {"keyrc",   NULL,                   not_net | not_demo,
    {.i = cheat_keyxx}, it_redcard },
 
   {"keyyc",   NULL,                   not_net | not_demo,
    {.i = cheat_keyxx}, it_yellowcard },
 
-  {"keybc",   NULL,                   not_net | not_demo, 
+  {"keybc",   NULL,                   not_net | not_demo,
    {.i = cheat_keyxx}, it_bluecard },
 
   {"keyrs",   NULL,                   not_net | not_demo,
@@ -292,7 +292,7 @@ cheat_sequence_t cheats_table[] = {
    {.v = cheat_pitch} },      // killough 2/21/98: pitched sound toggle
 
   // killough 2/21/98: reduce RSI injury by adding simpler alias sequences:
-  {"mbfran",     NULL,                always, 
+  {"mbfran",     NULL,                always,
    {.v = cheat_tran} },    // killough 2/21/98: same as mbftran
 
   {"fast",    NULL,                   not_net | not_demo,
@@ -301,7 +301,7 @@ cheat_sequence_t cheats_table[] = {
   {"ice",     NULL,                   not_net | not_demo,
    {.v = cheat_friction} },   // phares 3/10/98: toggle variable friction effects
 
-  {"push",    NULL,                   not_net | not_demo, 
+  {"push",    NULL,                   not_net | not_demo,
    {.v = cheat_pushers} },    // phares 3/10/98: toggle pushers
 
   {"nuke",    NULL,                   not_net | not_demo,
@@ -352,7 +352,7 @@ static void cheat_speed(void)
 static void cheat_autoaim(void)
 {
   displaymsg((autoaim=!autoaim) ?
-    "Projectile autoaiming on" : 
+    "Projectile autoaiming on" :
     "Projectile autoaiming off");
 }
 
@@ -360,7 +360,7 @@ static void cheat_mus(char *buf)
 {
   int musnum;
   MI_Entry_t* entry;
-  
+
   //jff 3/20/98 note: this cheat allowed in netgame/demorecord
 
   //jff 3/17/98 avoid musnum being negative and crashing
@@ -368,7 +368,7 @@ static void cheat_mus(char *buf)
     return;
 
   displaymsg("%s", DEH_String(STSTR_MUS));
-  
+
   // First check if we have a mapinfo entry for the requested level.
   if (gamemode == commercial)
     entry = MI_MapEntry(1, 10*(buf[0]-'0') + (buf[1]-'0'));
@@ -392,7 +392,7 @@ static void cheat_mus(char *buf)
   if (gamemode == commercial)
     {
       musnum = mus_runnin + (buf[0]-'0')*10 + buf[1]-'0' - 1;
-          
+
       //jff 4/11/98 prevent IDMUS00 in DOOMII and IDMUS36 or greater
       if (musnum < mus_runnin || musnum >= NUMMUSIC)
         displaymsg("%s", DEH_String(STSTR_NOMUS));
@@ -405,7 +405,7 @@ static void cheat_mus(char *buf)
   else
     {
       musnum = mus_e1m1 + (buf[0]-'1')*9 + (buf[1]-'1');
-          
+
       //jff 4/11/98 prevent IDMUS0x IDMUSx0 in DOOMI and greater than introa
       if (musnum < mus_e1m1 || musnum >= mus_runnin)
         displaymsg("%s", DEH_String(STSTR_NOMUS));
@@ -458,11 +458,11 @@ static void cheat_god(void)
     {
       if (plyr->mo)
         plyr->mo->health = deh_god_mode_health;  // Ty 03/09/98 - deh
-          
+
       plyr->health = deh_god_mode_health;
       displaymsg("%s", DEH_String(STSTR_DQDON));
     }
-  else 
+  else
     displaymsg("%s", DEH_String(STSTR_DQDOFF));
 }
 
@@ -541,13 +541,13 @@ static void cheat_fa(void)
 
   plyr->armorpoints = deh_idfa_armor;      // Ty 03/09/98 - deh
   plyr->armortype = deh_idfa_armor_class;  // Ty 03/09/98 - deh
-        
+
   // You can't own weapons that aren't in the game // phares 02/27/98
   for (i=0;i<NUMWEAPONS;i++)
     if (!(((i == wp_plasma || i == wp_bfg) && gamemode == shareware) ||
           (i == wp_supershotgun && !ALLOW_SSG)))
       plyr->weaponowned[i] = true;
-        
+
   for (i=0;i<NUMAMMO;i++)
     if (i!=am_cell || gamemode!=shareware)
       plyr->ammo[i] = plyr->maxammo[i];
@@ -734,7 +734,7 @@ static void cheat_comp(char *buf)
 static void cheat_friction(void)
 {
   displaymsg(            // Ty 03/27/98 - *not* externalized
-    (variable_friction = !variable_friction) ? "Variable Friction enabled" : 
+    (variable_friction = !variable_friction) ? "Variable Friction enabled" :
                                                "Variable Friction disabled");
 }
 
@@ -1019,7 +1019,7 @@ static void cheat_hom(void)
 // killough 3/6/98: -fast parameter toggle
 static void cheat_fast(void)
 {
-  displaymsg((fastparm = !fastparm) ? "Fast Monsters On" : 
+  displaymsg((fastparm = !fastparm) ? "Fast Monsters On" :
     "Fast Monsters Off");  // Ty 03/27/98 - *not* externalized
   G_SetFastParms(fastparm); // killough 4/10/98: set -fast parameter correctly
 }
@@ -1037,7 +1037,7 @@ static void cheat_keyx(void)
 
 static void cheat_keyxx(int key)
 {
-  displaymsg((plyr->cards[key] = !plyr->cards[key]) ? 
+  displaymsg((plyr->cards[key] = !plyr->cards[key]) ?
     "Key Added" : "Key Removed");  // Ty 03/27/98 - *not* externalized
 }
 
@@ -1067,7 +1067,7 @@ static void cheat_weapx(char *buf)
         plyr->bonuscount += 2; // trigger evil grin now
         displaymsg("Weapon Added");  // Ty 03/27/98 - *not* externalized
       }
-      else 
+      else
         {
           displaymsg("Weapon Removed"); // Ty 03/27/98 - *not* externalized
           if (w==plyr->readyweapon)         // maybe switch if weapon removed
@@ -1097,7 +1097,7 @@ static void cheat_ammox(char *buf)
         }
   else
     if (a>=0 && a<NUMAMMO)  // Ty 03/27/98 - *not* externalized
-      { // killough 5/5/98: switch plasma and rockets for now -- KLUDGE 
+      { // killough 5/5/98: switch plasma and rockets for now -- KLUDGE
         a = a==am_cell ? am_misl : a==am_misl ? am_cell : a;  // HACK
         if ((plyr->ammo[a] = !plyr->ammo[a]))
         {
@@ -1111,7 +1111,7 @@ static void cheat_ammox(char *buf)
 
 static void cheat_smart(void)
 {
-  displaymsg((monsters_remember = !monsters_remember) ? 
+  displaymsg((monsters_remember = !monsters_remember) ?
     "Smart Monsters Enabled" : "Smart Monsters Disabled");
 }
 
@@ -1159,7 +1159,7 @@ static void InitCheats(void)
     }
 }
 
-static int M_FindCheats(char key)
+static int FindCheats(char key)
 {
     int rc = 0, matchedbefore = 0;
     cheat_sequence_t *cht;
@@ -1277,7 +1277,7 @@ boolean M_CheatResponder(event_t *ev)
         return false;
     }
 
-    if (ev->type == ev_keydown && M_FindCheats(ev->data2.i))
+    if (ev->type == ev_keydown && FindCheats(ev->data2.i))
     {
         return true;
     }

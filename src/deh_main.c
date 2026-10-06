@@ -264,7 +264,7 @@ static boolean CheckSignatures(deh_context_t *context)
 }
 
 // Parses a dehacked file by reading from the context
-static void DEH_ParseContext(deh_context_t *context)
+static void ParseContext(deh_context_t *context)
 {
     deh_section_t *current_section = NULL;
     deh_section_t *prev_section = NULL; // [crispy] remember previous line parser
@@ -382,7 +382,7 @@ int DEH_LoadFile(const char *filename)
 
     AddDEHFileName(filename);
 
-    DEH_ParseContext(context);
+    ParseContext(context);
 
     if (DEH_HadError(context))
     {
@@ -429,7 +429,7 @@ void DEH_LoadLump(int lumpnum)
         return;
     }
 
-    DEH_ParseContext(context);
+    ParseContext(context);
 
     // If there was an error while parsing, abort.
     if (DEH_HadError(context))

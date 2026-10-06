@@ -12,7 +12,7 @@
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //  GNU General Public License for more details.
 //
-// DESCRIPTION:  
+// DESCRIPTION:
 //   Ceiling aninmation (lowering, crushing, raising)
 //
 //-----------------------------------------------------------------------------
@@ -49,10 +49,10 @@ arena_t *activeceilings_arena;
 // Passed a ceiling_t structure that contains all the info about the move.
 // see P_SPEC.H for fields. No return value.
 //
-// jff 02/08/98 all cases with labels beginning with gen added to support 
+// jff 02/08/98 all cases with labels beginning with gen added to support
 // generalized line type behaviors.
 //
-static void T_MoveCeiling(ceiling_t* ceiling)
+static void ThinkerMoveCeiling(ceiling_t* ceiling)
 {
   result_e  res;
 
@@ -125,7 +125,7 @@ static void T_MoveCeiling(ceiling_t* ceiling)
         }
       }
       break;
-  
+
     case -1:
       // Ceiling moving down
       res = T_MovePlane
@@ -169,12 +169,12 @@ static void T_MoveCeiling(ceiling_t* ceiling)
           // except generalized ones, reset speed, start back up
           case silentCrushAndRaise:
             S_StartSound((mobj_t *)&ceiling->sector->soundorg,sfx_pstop);
-          case crushAndRaise: 
+          case crushAndRaise:
             ceiling->speed = CEILSPEED;
           case fastCrushAndRaise:
             ceiling->direction = 1;
             break;
-          
+
           // in the case of ceiling mover/changer, change the texture
           // then remove the active ceiling
           case genCeilingChgT:
@@ -208,7 +208,7 @@ static void T_MoveCeiling(ceiling_t* ceiling)
           switch(ceiling->type)
           {
             //jff 02/08/98 slow down slow crushers on obstacle
-            case genCrusher:  
+            case genCrusher:
             case genSilentCrusher:
               if (ceiling->oldspeed < CEILSPEED*3)
                 ceiling->speed = CEILSPEED / 8;
@@ -230,7 +230,7 @@ static void T_MoveCeiling(ceiling_t* ceiling)
 
 void T_MoveCeilingAdapter(mobj_t *mobj)
 {
-    T_MoveCeiling((ceiling_t *)mobj);
+    ThinkerMoveCeiling((ceiling_t *)mobj);
 }
 
 
@@ -266,7 +266,7 @@ int EV_DoCeiling
     default:
       break;
   }
-  
+
   // affects all sectors with the same tag as the linedef
   while ((secnum = P_FindSectorFromLineTag(line,secnum)) >= 0)
   {
@@ -275,7 +275,7 @@ int EV_DoCeiling
     // if ceiling already moving, don't start a second function on it
     if (P_SectorActive(ceiling_special,sec))  //jff 2/22/98
       continue;
-  
+
     // create a new ceiling thinker
     rtn = 1;
     ceiling = arena_alloc(thinkers_arena, ceiling_t);
@@ -284,7 +284,7 @@ int EV_DoCeiling
     ceiling->thinker.function.p1 = T_MoveCeilingAdapter;
     ceiling->sector = sec;
     ceiling->crush = false;
-  
+
     // setup ceiling structure according to type of function
     switch(type)
     {
@@ -330,7 +330,7 @@ int EV_DoCeiling
       default:
         break;
     }
-    
+
     // add the ceiling to the active list
     ceiling->tag = sec->tag;
     ceiling->type = type;
@@ -350,7 +350,7 @@ int EV_DoCeiling
 // The following were all rewritten by Lee Killough
 // to use the new structure which places no limits
 // on active ceilings. It also avoids spending as much
-// time searching for active ceilings. Previously a 
+// time searching for active ceilings. Previously a
 // fixed-size array was used, with NULL indicating
 // empty entries, while now a doubly-linked list
 // is used.
@@ -457,7 +457,7 @@ void P_RemoveActiveCeiling(ceiling_t* ceiling)
 void P_RemoveAllActiveCeilings(void)
 {
   while (activeceilings)
-  {  
+  {
     ceilinglist_t *next = activeceilings->next;
     activeceilings = next;
   }

@@ -148,7 +148,7 @@ int DSDH_ThingTranslate(int thing_number)
         translate = hashmap_init(256, sizeof(int));
     }
 
-    int *index = hashmap_get(translate, thing_number); 
+    int *index = hashmap_get(translate, thing_number);
     if (index)
     {
         return *index;

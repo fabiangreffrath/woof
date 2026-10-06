@@ -41,7 +41,7 @@ typedef enum {
   always   = 0,
   not_dm   = 1,
   not_coop = 2,
-  not_demo = 4, 
+  not_demo = 4,
   not_menu = 8,
   not_deh  = 16,
   beta_only = 32,                  // killough 7/24/98

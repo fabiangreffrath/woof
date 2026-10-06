@@ -119,18 +119,18 @@ set(WOOF_SOURCES
     midiout.c              midiout.h
     mus2mid.c              mus2mid.h
     nano_bsp.c             nano_bsp.h
-    net_client.c           net_client.h
-    net_common.c           net_common.h
-    net_dedicated.c        net_dedicated.h
-                           net_defs.h
-    net_gui.c              net_gui.h
-    net_io.c               net_io.h
-    net_loop.c             net_loop.h
-    net_packet.c           net_packet.h
-    net_query.c            net_query.h
-    net_netlib.c           net_netlib.h
-    net_server.c           net_server.h
-    net_structrw.c         net_structrw.h
+    nw_client.c            nw_client.h
+    nw_common.c            nw_common.h
+    nw_dedicated.c         nw_dedicated.h
+                           nw_defs.h
+    nw_gui.c               nw_gui.h
+    nw_io.c                nw_io.h
+    nw_loop.c              nw_loop.h
+    nw_packet.c            nw_packet.h
+    nw_query.c             nw_query.h
+    nw_sdl.c               nw_sdl.h
+    nw_server.c            nw_server.h
+    nw_structrw.c          nw_structrw.h
                            p_action.h
     p_ambient.c            p_ambient.h
     p_blockmap.c
@@ -227,13 +227,13 @@ endif()
 target_link_libraries(
     woof
     PRIVATE SDL3::SDL3
+            SDL3_net::SDL3_net
             OpenAL::OpenAL
             libebur128::libebur128
             yyjson::yyjson
             pffft::pffft
             miniz::miniz
             spng::spng
-            netlib
             base64
             md5
             sha1
@@ -315,11 +315,11 @@ set(SETUP_SOURCES
                             m_array.h
     m_io.c                  m_io.h
     m_misc.c                m_misc.h
-    net_io.c                net_io.h
-    net_packet.c            net_packet.h
-    net_query.c             net_query.h
-    net_netlib.c            net_netlib.h
-    net_structrw.c          net_structrw.h
+    nw_io.c                 nw_io.h
+    nw_packet.c             nw_packet.h
+    nw_query.c              nw_query.h
+    nw_sdl.c                nw_sdl.h
+    nw_structrw.c           nw_structrw.h
     z_zone.c                z_zone.h
 )
 
@@ -336,9 +336,9 @@ target_include_directories(woof-setup PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 target_link_libraries(
   woof-setup
   PRIVATE SDL3::SDL3
+          SDL3_net::SDL3_net
           textscreen
           setup
-          netlib
 )
 
 if(MSVC)
@@ -364,7 +364,7 @@ if(WIN32)
     if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.21 AND NOT VCPKG_TOOLCHAIN)
         install(
             TARGETS woof woof-setup
-            RUNTIME_DEPENDENCIES 
+            RUNTIME_DEPENDENCIES
                 PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
                 POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
                 DIRECTORIES $<TARGET_FILE_DIR:woof> $ENV{PATH}

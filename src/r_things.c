@@ -134,8 +134,8 @@ void R_InitSpritesRes(void)
 // Local function for R_InitSprites.
 //
 
-static void R_InstallSpriteLump(int lump, unsigned frame,
-                                unsigned rotation, boolean flipped)
+static void InstallSpriteLump(int lump, unsigned frame, unsigned rotation,
+                              boolean flipped)
 {
   if (frame == '^' - 'A')
   {
@@ -252,12 +252,12 @@ void R_InitSpriteDefs(char **namelist)
                     (lump->name[2] ^ spritename[2]) |
                     (lump->name[3] ^ spritename[3])))
                 {
-                  R_InstallSpriteLump(j+firstspritelump,
+                  InstallSpriteLump(j+firstspritelump,
                                       lump->name[4] - 'A',
                                       lump->name[5] - '0',
                                       false);
                   if (lump->name[6])
-                    R_InstallSpriteLump(j+firstspritelump,
+                    InstallSpriteLump(j+firstspritelump,
                                         lump->name[6] - 'A',
                                         lump->name[7] - '0',
                                         true);
@@ -372,7 +372,7 @@ void R_DrawMaskedColumn(column_t *column)
   int64_t topscreen, bottomscreen; // [FG] 64-bit integer math
   fixed_t basetexturemid = dc_texturemid;
   int top = -1;
-  
+
   dc_texheight = 0; // killough 11/98
 
   while (column->topdelta != 0xff)
@@ -427,19 +427,18 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
   fixed_t  frac;
   patch_t  *patch = V_CachePatchNum (vis->patch+firstspritelump, PU_CACHE);
 
-  dc_colormap[0] = vis->colormap[0];
-  dc_colormap[1] = vis->colormap[1];
-  dc_brightmap = vis->brightmap;
-
   // killough 4/11/98: rearrange and handle translucent sprites
   // mixed with translucent/non-translucent 2s normals
 
-  if (!dc_colormap[0])   // NULL colormap = shadow draw
+  if (!vis->colormap[0])   // NULL colormap = shadow draw
   {
     colfunc = R_DrawFuzzColumn;    // killough 3/14/98
   }
   else
   {
+    dc_colormap =
+      R_GetBrightmappedColormap(vis->colormap[0], vis->colormap[1], vis->brightmap);
+
     // [FG] colored blood and gibs
     if (vis->mobjflags_extra & MFX_COLOREDBLOOD)
     {
@@ -509,7 +508,7 @@ inline const lighttable_t *const GetThingTint(const mobj_t *const mo,
 
 boolean flipcorpses = false;
 
-static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
+static void ProjectSprite(mobj_t* thing, int lightlevel_override)
 {
   fixed_t   gzt;               // killough 3/27/98
   fixed_t   tx, txc;
@@ -715,18 +714,20 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
   if (thing->flags & MF_SHADOW)
   {
     // shadow draw
-    vis->colormap[0] = vis->colormap[1] = NULL;
+    vis->colormap[0] = NULL;
   }
   else if (fixedcolormapoffset)
   {
     // fixed map
-    vis->colormap[0] = vis->colormap[1] = thiscolormap + fixedcolormapoffset;
+    vis->colormap[0] = thiscolormap + fixedcolormapoffset;
+    vis->brightmap = nobrightmap;
   }
   else if (thing->frame & FF_FULLBRIGHT)
   {
     // full bright
     // killough 3/20/98
-    vis->colormap[0] = vis->colormap[1] = thiscolormap;
+    vis->colormap[0] = thiscolormap;
+    vis->brightmap = nobrightmap;
   }
   else
   {
@@ -744,6 +745,11 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
 
     vis->colormap[0] = thiscolormap + spritelightoffsets[index];
     vis->colormap[1] = thiscolormap;
+
+    vis->brightmap = thing->state ? R_BrightmapForState(thing->state - states) : nobrightmap;
+
+    if (vis->brightmap == nobrightmap)
+      vis->brightmap = R_BrightmapForSprite(thing->sprite);
   }
 
   // ID24 per-state tranmap
@@ -767,10 +773,6 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
   {
     vis->tranmap = NULL;
   }
-
-  vis->brightmap = thing->state ? R_BrightmapForState(thing->state - states) : nobrightmap;
-  if (vis->brightmap == nobrightmap)
-    vis->brightmap = R_BrightmapForSprite(thing->sprite);
 
   // [Alaux] Lock crosshair on target
   if (STRICTMODE(hud_crosshair_lockon) && thing == crosshair_target)
@@ -810,7 +812,7 @@ void R_AddSprites(sector_t* sec, int lightlevel_override)
   // Handle all things in sector.
 
   for (thing = sec->thinglist; thing; thing = thing->snext)
-    R_ProjectSprite(thing, lightlevel_override);
+    ProjectSprite(thing, lightlevel_override);
 
   if (STRICTMODE(draw_nearby_sprites))
   {
@@ -841,7 +843,7 @@ void R_NearbySprites (void)
     // [FG] sprites in sector have already been projected
     if (sec->validcount != validcount)
     {
-      R_ProjectSprite(thing, (floorlightlevel + ceilinglightlevel) / 2);
+      ProjectSprite(thing, (floorlightlevel + ceilinglightlevel) / 2);
     }
   }
 
@@ -941,25 +943,27 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
   vis->patch = lump;
 
   const lighttable_t * const thiscolormap =
-      GetThingTint(viewplayer->mo, viewplayer->mo->subsector->sector);
+    GetThingTint(viewplayer->mo, viewplayer->mo->subsector->sector);
 
   // killough 7/11/98: beta psprites did not draw shadows
   if ((viewplayer->powers[pw_invisibility] > 4*32
       || viewplayer->powers[pw_invisibility] & 8) && !beta_emulation)
   {
     // shadow draw
-    vis->colormap[0] = vis->colormap[1] = NULL;
+    vis->colormap[0] = NULL;
   }
   else if (fixedcolormapoffset)
   {
     // fixed color
-    vis->colormap[0] = vis->colormap[1] = thiscolormap + fixedcolormapoffset;
+    vis->colormap[0] = thiscolormap + fixedcolormapoffset;
+    vis->brightmap = nobrightmap;
   }
   else if (psp->state->frame & FF_FULLBRIGHT)
   {
     // full bright
     // killough 3/20/98
-    vis->colormap[0] = vis->colormap[1] = thiscolormap;
+    vis->colormap[0] = thiscolormap;
+    vis->brightmap = nobrightmap;
   }
   else
   {
@@ -975,6 +979,8 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
 
     vis->colormap[0] = thiscolormap + spritelightoffsets[MAXLIGHTSCALE - 1];
     vis->colormap[1] = thiscolormap;
+
+    vis->brightmap = R_BrightmapForState(psp->state - states);
   }
 
   // ID24 per-state tranmap
@@ -998,8 +1004,6 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
   {
     vis->tranmap = NULL;
   }
-
-  vis->brightmap = R_BrightmapForState(psp->state - states);
 
   // [crispy] free look
   vis->texturemid += (centery - viewheight/2) * pspriteiscale;
@@ -1304,17 +1308,17 @@ void R_DrawMasked(void)
         drawsegs_xranges[0].items[drawsegs_xranges[0].count].x1 = ds->x1;
         drawsegs_xranges[0].items[drawsegs_xranges[0].count].x2 = ds->x2;
         drawsegs_xranges[0].items[drawsegs_xranges[0].count].user = ds;
-        
+
         // Andrey Budko: ~13% of speed improvement on sunder.wad map10
         if (ds->x1 < centerx)
         {
-          drawsegs_xranges[1].items[drawsegs_xranges[1].count] = 
+          drawsegs_xranges[1].items[drawsegs_xranges[1].count] =
             drawsegs_xranges[0].items[drawsegs_xranges[0].count];
           drawsegs_xranges[1].count++;
         }
         if (ds->x2 >= centerx)
         {
-          drawsegs_xranges[2].items[drawsegs_xranges[2].count] = 
+          drawsegs_xranges[2].items[drawsegs_xranges[2].count] =
             drawsegs_xranges[0].items[drawsegs_xranges[0].count];
           drawsegs_xranges[2].count++;
         }

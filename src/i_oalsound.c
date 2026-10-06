@@ -441,14 +441,13 @@ static void GetAttribs(ALCint **attribs)
 
 void I_OAL_BindSoundVariables(void)
 {
-    BIND_BOOL_GENERAL(snd_hrtf, false,
-        "[OpenAL 3D] Headphones mode");
+    BIND_BOOL_GENERAL(snd_hrtf, false, "[OpenAL 3D] Headphones mode");
     BIND_NUM_SFX(snd_resampler, 1, 0, UL,
-        "Sound resampler (0 = Nearest; 1 = Linear; ...)");
+                 "Sound resampler (0 = Nearest; 1 = Linear; ...)");
     BIND_NUM(snd_absorption, 0, 0, 10,
-        "[OpenAL 3D] Air absorption effect (0 = Off; 10 = Max)");
+             "[OpenAL 3D] Air absorption effect (0 = Off; 10 = Max)");
     BIND_NUM_SFX(snd_doppler, 0, 0, 10,
-        "[OpenAL 3D] Doppler effect (0 = Off; 10 = Max)");
+                 "[OpenAL 3D] Doppler effect (0 = Off; 10 = Max)");
 }
 
 boolean I_OAL_InitSound(int snd_module)
@@ -728,7 +727,7 @@ boolean I_OAL_CacheSound(sfxinfo_t *sfx)
             {
                 // Ignore ambient sounds that are somehow over 32767.99998474
                 // seconds long.
-                sfx->length = 0.0f; 
+                sfx->length = 0.0f;
             }
         }
 
@@ -844,7 +843,7 @@ void I_OAL_MuteSound(void)
     }
 
     alGetListenerf(AL_GAIN, &listener_gain);
-    alListenerf(AL_GAIN, (ALfloat) 0.0f);
+    alListenerf(AL_GAIN, (ALfloat)0.0f);
 }
 
 void I_OAL_UnmuteSound(void)
