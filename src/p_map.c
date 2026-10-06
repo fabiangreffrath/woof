@@ -42,7 +42,6 @@
 #include "p_overunder.h"
 #include "p_setup.h"
 #include "p_spec.h"
-#include "p_tick.h"
 #include "p_user.h"
 #include "r_defs.h"
 #include "r_main.h"
