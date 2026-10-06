@@ -74,7 +74,7 @@ inline static const int AlphaBlendLinear(const lrgb_t *fg, const lrgb_t *bg,
     const double r_blend = (fg->r * fg_alpha) + (bg->r * bg_alpha);
     const double g_blend = (fg->g * fg_alpha) + (bg->g * bg_alpha);
     const double b_blend = (fg->b * fg_alpha) + (bg->b * bg_alpha);
-    return V_GetNearestColorLinear(PAL_BASE, r_blend, g_blend, b_blend);
+    return V_GetNearestColorLinear(PAL_GLOBAL, r_blend, g_blend, b_blend);
 }
 
 //
