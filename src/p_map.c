@@ -2083,21 +2083,20 @@ static boolean crushchange, nofit;
 boolean PIT_ChangeSector(mobj_t *thing)
 {
   mobj_t *mo;
-  const boolean use_overunder = (CRITICAL(overunder) != OVERUNDER_OFF);
+  mobj_t *const above =
+      (CRITICAL(overunder) != OVERUNDER_OFF) ? P_LinkedAbove(thing) : NULL;
 
-  // The links must be checked before the thing is clipped and moves away from
-  // the thing it touches. A monster in contact with the player always dies here,
-  // even if it would technically fit, because it could block the player's way.
-  const boolean killed = (use_overunder && P_CrushOverUnderLink(thing));
-  const boolean rider = (use_overunder && P_IsOverUnderPlayer(thing));
-  boolean fits = P_ThingHeightClip(thing);
+  if (P_ThingHeightClip(thing))
+  {
+    // Carry the thing above along, so that it stays on top of this one.
+    if (above)
+    {
+      above->z = thing->z + thing->height;
+      PIT_ChangeSector(above);
+    }
 
-  // A player who no longer fits crushes the monsters that limit him instead of being blocked.
-  if (use_overunder && !fits && P_CrushOverUnderBlockers(thing))
-    fits = P_ThingHeightClip(thing);
-
-  if (fits && !killed)
     return true; // keep checking
+  }
 
   // crunch bodies to giblets
 
@@ -2132,12 +2131,6 @@ boolean PIT_ChangeSector(mobj_t *thing)
 
   if (!(thing->flags & MF_SHOOTABLE))
     return true;        // assume it is bloody gibs or something
-
-  // The monster takes the squeeze instead of the player and never blocks the mover.
-  if (rider)
-  {
-    return true;
-  }
 
   nofit = true;
 

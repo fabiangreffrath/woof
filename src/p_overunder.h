@@ -35,9 +35,7 @@ boolean P_CanOverUnder(const struct mobj_s *a, const struct mobj_s *b);
 void P_SetOverUnderLinks(struct mobj_s *mo);
 void P_UnlinkOverUnder(struct mobj_s *mo);
 void P_UpdateOverUnder(struct mobj_s *mo);
-boolean P_CrushOverUnderLink(struct mobj_s *thing);
-boolean P_CrushOverUnderBlockers(struct mobj_s *thing);
-boolean P_IsOverUnderPlayer(const struct mobj_s *thing);
+struct mobj_s *P_LinkedAbove(const struct mobj_s *mo);
 boolean P_CheckOverUnderHeight(const struct mobj_s *a, const struct mobj_s *b);
 
 #endif // __P_OVERUNDER__
