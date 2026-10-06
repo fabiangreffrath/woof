@@ -2080,6 +2080,25 @@ static boolean crushchange, nofit;
 // PIT_ChangeSector
 //
 
+// Moves the things above lower along with it, from the bottom to the top.
+static void carry_above(mobj_t *lower, mobj_t *upper)
+{
+  while (upper)
+  {
+    mobj_t *const next = P_LinkedAbove(upper);
+
+    upper->z = lower->z + lower->height;
+
+    if (!ThingHeightClip(upper))
+    {
+      nofit = true;
+    }
+
+    lower = upper;
+    upper = next;
+  }
+}
+
 boolean PIT_ChangeSector(mobj_t *thing)
 {
   mobj_t *mo;
@@ -2088,13 +2107,7 @@ boolean PIT_ChangeSector(mobj_t *thing)
 
   if (ThingHeightClip(thing))
   {
-    // Carry the thing above along, so that it stays on top of this one.
-    if (above)
-    {
-      above->z = thing->z + thing->height;
-      PIT_ChangeSector(above);
-    }
-
+    carry_above(thing, above);
     return true; // keep checking
   }
 
