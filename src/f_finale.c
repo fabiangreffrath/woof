@@ -53,7 +53,8 @@ typedef enum
 {
     FINALE_STAGE_TEXT,
     FINALE_STAGE_ART,
-    FINALE_STAGE_CAST
+    FINALE_STAGE_CAST,
+    FINALE_STAGE_TITLE,
 } finalestage_t;
 
 static finalestage_t finalestage;
@@ -112,6 +113,7 @@ static boolean CastResponder(event_t *ev);
 static void CastDrawer(void);
 static void TextWrite(void);
 static void BunnyScroll(void);
+static void DemonScroll(void);
 static float GetTextSpeed(void);
 
 static int midstage;                 // whether we're in "mid-stage"
@@ -479,6 +481,10 @@ static boolean MapInfoTicker()
                 {
                     S_StartMusic(mus_bunny);
                 }
+                else if (gamemapinfo->finale == EG_DemonScroll)
+                {
+                    // NOP
+                }
                 else if (gamemapinfo->finale == EG_Basic)
                 {
                     mapinfo_finale = false;
@@ -510,9 +516,18 @@ static boolean MapInfoDrawer(void)
             }
             break;
         case FINALE_STAGE_ART:
+            if (gamemapinfo->endpalette[0])
+            {
+                V_SetCustomPalette(gamemapinfo->endpalette);
+            }
+
             if (gamemapinfo->finale == EG_BunnyScroll)
             {
                 BunnyScroll();
+            }
+            else if (gamemapinfo->finale == EG_DemonScroll)
+            {
+                DemonScroll();
             }
             else if (gamemapinfo->endpic[0])
             {
@@ -523,6 +538,10 @@ static boolean MapInfoDrawer(void)
             break;
         case FINALE_STAGE_CAST:
             CastDrawer();
+            break;
+        case FINALE_STAGE_TITLE:
+            V_DrawPatchFullScreen(
+                W_CacheLumpName(W_CheckWidescreenPatch("TITLEPIC"), PU_CACHE));
             break;
     }
 
@@ -575,12 +594,31 @@ void F_StartFinale (void)
   finalecount = 0;
 }
 
+static boolean CustomPaletteExists(void)
+{
+    return gamemapinfo && gamemapinfo->endpalette[0];
+}
+
 boolean F_Responder (event_t *event)
 {
-  if (finalestage == FINALE_STAGE_CAST)
-    return CastResponder(event);
-
-  return false;
+    if (finalestage == FINALE_STAGE_CAST)
+    {
+        return CastResponder(event);
+    }
+    else if (finalestage == FINALE_STAGE_ART)
+    {
+        // If the palette is changed, kick to title instead of opening the menu
+        if (CustomPaletteExists() && event->type == ev_keydown)
+        {
+            finalestage = FINALE_STAGE_TITLE;
+            S_StartSound(NULL, sfx_mnucls);
+            V_ResetPalette();
+            V_DrawPatchFullScreen(
+                W_CacheLumpName(W_CheckWidescreenPatch("TITLEPIC"), PU_CACHE));
+            return true;
+        }
+    }
+    return false;
 }
 
 // Get_TextSpeed() returns the value of the text display speed  // phares
@@ -590,6 +628,12 @@ static float GetTextSpeed(void)
 {
   return midstage ? NEWTEXTSPEED : (midstage=acceleratestage) ?
     acceleratestage=0, NEWTEXTSPEED : TEXTSPEED;
+}
+
+boolean F_ShowCast(void)
+{
+    return (gamemapinfo && gamemapinfo->finale == EG_CastRollCall)
+           || (gamemap == 30);
 }
 
 //
@@ -1233,52 +1277,101 @@ static void BunnyScroll(void)
                V_CachePatchName (name,PU_CACHE));
 }
 
+static void DemonScroll(void)
+{
+    // FIXME: This y value need to be re-initted as 0 every time this sequence
+    // is finished. Otherwise it causes a HOM.
+    static int yval = 0;
+    static int nextscroll = 0;
+
+    if (finalecount < nextscroll)
+    {
+        return;
+    }
+
+    patch_t *patch1 = V_CachePatchName("FINAL1", PU_LEVEL);
+    patch_t *patch2 = V_CachePatchName("FINAL2", PU_LEVEL);
+
+    if (finalecount < 70)
+    {
+        V_DrawPatchFullScreen(patch1);
+        nextscroll = finalecount;
+        return;
+    }
+
+    if (yval < 200)
+    {
+        const int x = DIV_ROUND_CLOSEST(video.unscaledw - SHORT(patch1->width), 2);
+
+        V_FillRect(0, 0, video.unscaledw, SCREENHEIGHT, playpal_global->black);
+
+        V_DrawPatch(x - video.deltaw, yval - SCREENHEIGHT, patch2);
+        V_DrawPatch(x - video.deltaw, yval, patch1);
+
+        if (finalecount >= nextscroll)
+        {
+            yval++;
+            nextscroll = finalecount + 3;
+        }
+    }
+    else
+    {
+        V_DrawPatchFullScreen(patch2);
+    }
+}
 
 //
 // F_Drawer
 //
 void F_Drawer (void)
 {
-  if (MapInfoDrawer())
-  {
-      return;
-  }
-
-  if (finalestage == FINALE_STAGE_CAST)
-  {
-    CastDrawer ();
-    return;
-  }
-
-  if (finalestage == FINALE_STAGE_TEXT)
-    TextWrite ();
-  else
-  {
-    const char* finalelump = NULL;
-    switch (gameepisode)
+    if (MapInfoDrawer())
     {
-      case 1:
-          finalelump =
-              ((gamemode == retail && !pwad_help2) || gamemode == commercial)
-                  ? "CREDIT"
-                  : "HELP2";
-          break;
-      case 2:
-           finalelump = "VICTORY2";
-           break;
-      case 3:
-           BunnyScroll();
-           break;
-      case 4:
-           finalelump = "ENDPIC";
-           break;
+        return;
     }
 
-    if (finalelump)
+    switch (finalestage)
     {
-      V_DrawPatchFullScreen(V_CachePatchName(W_CheckWidescreenPatch(finalelump), PU_CACHE));
+        case FINALE_STAGE_TEXT:
+            TextWrite();
+            break;
+        case FINALE_STAGE_ART:
+            {
+                const char *finalelump = NULL;
+                switch (gameepisode)
+                {
+                    case 1:
+                        finalelump = ((gamemode == retail && !pwad_help2)
+                                      || gamemode == commercial)
+                                         ? "CREDIT"
+                                         : "HELP2";
+                        break;
+                    case 2:
+                        finalelump = "VICTORY2";
+                        break;
+                    case 3:
+                        BunnyScroll();
+                        break;
+                    case 4:
+                        finalelump = "ENDPIC";
+                        break;
+                }
+
+                if (finalelump)
+                {
+                    V_DrawPatchFullScreen(V_CachePatchName(
+                        W_CheckWidescreenPatch(finalelump), PU_CACHE));
+                }
+            }
+            break;
+        case FINALE_STAGE_CAST:
+            CastDrawer();
+            break;
+        case FINALE_STAGE_TITLE:
+            V_DrawPatchFullScreen(
+                W_CacheLumpName(W_CheckWidescreenPatch("TITLEPIC"), PU_CACHE));
+            break;
     }
-  }
 }
 
 //----------------------------------------------------------------------------

@@ -1300,11 +1300,6 @@ boolean G_Responder(event_t* ev)
 	MN_StartControlPanel(), true : false;
     }
 
-  if (gamestate == GS_FINALE && F_Responder(ev))
-  {
-    return true;  // finale ate the event
-  }
-
   if (dclick_use && ev->type == ev_mouseb_down &&
       (M_InputActivated(input_strafe) || M_InputActivated(input_forward)) &&
       ev->data2.i >= 2 && (ev->data2.i % 2) == 0)

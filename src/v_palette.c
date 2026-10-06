@@ -28,8 +28,8 @@
 // Palette stuff
 int gamma2;
 playpal_t playpals[PAL_COUNT];
-playpal_t *playpal_global = NULL;
-playpal_t *playpal_iwad = NULL;
+playpal_t *playpal_global = NULL; // Current palette in use
+playpal_t *playpal_iwad = NULL;   // Specifically IWAD, for use in repaletting
 
 // Taken from Chocolate Doom chocolate-doom/src/i_video.c:L841-867
 // Adapted to use Linear sRGB instead of Gamma sRGB
@@ -134,6 +134,12 @@ static void InitGlobalPlaypal(void)
 void V_ResetPalette(void)
 {
     I_SetPalette(PAL_GLOBAL, PAL_LAYER_BASE);
+}
+
+void V_SetCustomPalette(const char *name)
+{
+    playpal_global = InitPlaypal(PAL_CUSTOM, name, W_CheckNumForName(name));
+    I_SetPalette(PAL_CUSTOM, PAL_LAYER_BASE);
 }
 
 void V_InitPalette(void)
