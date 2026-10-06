@@ -24,7 +24,7 @@
 
 typedef enum palette_e
 {
-    PAL_BASE,
+    PAL_GLOBAL,
     PAL_IWAD,
     PAL_CUSTOM,
     PAL_COUNT,

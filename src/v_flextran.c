@@ -48,7 +48,7 @@ void V_InitFlexTranTable(void)
         {
             for (int b = 0; b < 32; ++b)
             {
-                RGB32k[r][g][b] = V_GetNearestColor(PAL_BASE, MAKECOLOR(r),
+                RGB32k[r][g][b] = V_GetNearestColor(PAL_GLOBAL, MAKECOLOR(r),
                                                     MAKECOLOR(g), MAKECOLOR(b));
             }
         }
