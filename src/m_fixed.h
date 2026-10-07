@@ -20,26 +20,24 @@
 #ifndef __M_FIXED__
 #define __M_FIXED__
 
-#include <limits.h>
-#include <stdint.h> // int64_t
-#include <stdlib.h> // abs()
+#include <stdint.h> // int32_t, int64_t, uint32_t, INT32_MIN, INT32_MAX
 
 //
 // Fixed point, 32bit as 16.16.
 //
 
-typedef int fixed_t;
+typedef int32_t fixed_t;
 
 #define FRACBITS 16
 #define FRACUNIT (1 << FRACBITS)
 #define FRACMASK (FRACUNIT - 1)
 
-inline static int32_t shiftleft32(int32_t x, int shift)
+inline static int32_t shiftleft32(int32_t x, int32_t shift)
 {
     return (int32_t)((uint32_t)x << shift);
 }
 
-inline static int64_t shiftleft64(int64_t x, int shift)
+inline static int64_t shiftleft64(int64_t x, int32_t shift)
 {
     return (int64_t)((uint64_t)x << shift);
 }
@@ -70,7 +68,7 @@ inline static double FixedToDouble(fixed_t x)
 
 inline static fixed_t FixedMul(fixed_t a, fixed_t b)
 {
-    return ((int64_t)a * b) >> FRACBITS;
+    return (fixed_t)(((int64_t)a * b) >> FRACBITS);
 }
 
 inline static int64_t FixedMul64(int64_t a, int64_t b)
@@ -85,19 +83,19 @@ inline static int64_t FixedMul64(int64_t a, int64_t b)
 inline static fixed_t FixedAdd(fixed_t a, fixed_t b)
 {
     // wraparound addition without signed-overflow UB
-    return (fixed_t)((unsigned int)a + (unsigned int)b);
+    return (fixed_t)((uint32_t)a + (uint32_t)b);
 }
 
 inline static fixed_t FixedSub(fixed_t a, fixed_t b)
 {
     // wraparound subtraction without signed-overflow UB
-    return (fixed_t)((unsigned int)a - (unsigned int)b);
+    return (fixed_t)((uint32_t)a - (uint32_t)b);
 }
 
 inline static fixed_t FixedAbs(fixed_t x)
 {
-    // avoid abs(INT_MIN) UB
-    return x < 0 ? (fixed_t)(0u - (unsigned int)x) : x;
+    // avoid abs(INT32_MIN) UB
+    return x < 0 ? (fixed_t)((uint32_t)0 - (uint32_t)x) : x;
 }
 
 //
@@ -120,7 +118,7 @@ inline static fixed_t FixedDiv(fixed_t a, fixed_t b)
 
     if ((abs_a >> 14) >= abs_b)
     {
-        return (a ^ b) < 0 ? INT_MIN : INT_MAX;
+        return (a ^ b) < 0 ? INT32_MIN : INT32_MAX;
     }
 
     return div64_32(shiftleft64(a, FRACBITS), b);
