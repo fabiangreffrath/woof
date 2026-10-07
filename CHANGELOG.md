@@ -28,6 +28,10 @@
   - Added "Cylindrical" sky projection as a third option besides "Vanilla" and "Linear" (from Nugget Doom).
   - Improved performance of brightmapped rendering (thanks @bangstk).
 
+* **Multiplayer:**
+  - Implemented rollback netcode: Processes local inputs instantly and predicts opponent actions, automatically rewinding and correcting the game state if a prediction is incorrect.
+  - Added IPv6 support.
+
 ## Bug Fixes
 
 * Fixed setup desktop action exiting immediately when run from the AppImage
@@ -51,5 +55,4 @@
 * Rearranged default HUD layouts: "Nightdive" and "Crispy" layouts swapped places
 * Renamed MacOS build from "`Woof-<version>-uni.zip`" to "`Woof-<version>-MacOS-universal.zip`"
 * Savegame description and snapshot are now saved outside the compressed keyframe to speed up populating the Load/Save Game menu pages
-* The release artifacts now run on Windows 7 again
-* Add support for IPv6
+* The release artifacts now run on Windows 7 agains
