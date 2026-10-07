@@ -704,9 +704,9 @@ static boolean IteratorCheckThing(mobj_t *thing) // killough 3/26/98: make stati
             return true;
         }
 
-        // Already intersecting, e.g. after a Z movement into the thing. Let the
-        // mover leave, but not move deeper: the distance must not shrink in
-        // both axes.
+        // Already intersecting, e.g. pushed into the thing by a moving sector. Let
+        // the mover leave, but not move deeper: the distance must not shrink in both
+        // axes.
         if (abs(tmthing->x - thing->x) < blockdist
             && abs(tmthing->y - thing->y) < blockdist
             && (abs(tmx - thing->x) >= abs(tmthing->x - thing->x)
