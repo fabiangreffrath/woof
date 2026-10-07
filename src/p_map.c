@@ -39,6 +39,7 @@
 #include "p_map.h"
 #include "p_maputl.h"
 #include "p_mobj.h"
+#include "p_overunder.h"
 #include "p_setup.h"
 #include "p_spec.h"
 #include "p_user.h"
@@ -509,7 +510,7 @@ static boolean ProjectileImmune(mobj_t *target, mobj_t *source)
 }
 
 // [FG] mobj or actual sprite height
-static const inline fixed_t ThingHeight (const mobj_t *const thing, const mobj_t *const cond)
+static inline fixed_t ThingHeight (const mobj_t *const thing, const mobj_t *const cond)
 {
   return (direct_vertical_aiming && cond && cond->player && thing->actualheight > thing->height) ?
         thing->actualheight : thing->height;
@@ -677,6 +678,44 @@ static boolean IteratorCheckThing(mobj_t *thing) // killough 3/26/98: make stati
     return true;
   }
 
+    // Pass over or under the thing if the Z ranges do not overlap.
+    // Its top or bottom then acts as floor or ceiling for the mover.
+    if (P_CanOverUnder(tmthing, thing))
+    {
+        const fixed_t top = thing->z + thing->height;
+
+        if (tmthing->z >= top)
+        {
+            if (top > tmfloorz)
+            {
+                tmfloorz = top;
+                tmbelow = thing;
+            }
+            return true;
+        }
+
+        if (tmthing->z + tmthing->height <= thing->z)
+        {
+            if (thing->z < tmceilingz)
+            {
+                tmceilingz = thing->z;
+                tmabove = thing;
+            }
+            return true;
+        }
+
+        // Already intersecting, e.g. pushed into the thing by a moving sector. Let
+        // the mover leave, but not move deeper: the distance must not shrink in both
+        // axes.
+        if (abs(tmthing->x - thing->x) < blockdist
+            && abs(tmthing->y - thing->y) < blockdist
+            && (abs(tmx - thing->x) >= abs(tmthing->x - thing->x)
+                || abs(tmy - thing->y) >= abs(tmthing->y - thing->y)))
+        {
+            return true;
+        }
+    }
+
   // killough 3/16/98: Allow non-solid moving objects to move through solid
   // ones, by allowing the moving thing (tmthing) to move if it's non-solid,
   // despite another solid thing being in the way.
@@ -771,6 +810,7 @@ boolean P_CheckPosition(mobj_t *thing, fixed_t x, fixed_t y)
 
   tmthing = thing;
   tmflags = thing->flags;
+  tmbelow = tmabove = NULL;
 
   tmx = x;
   tmy = y;
@@ -927,6 +967,7 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, int dropoff)
   thing->floorz = tmfloorz;
   thing->ceilingz = tmceilingz;
   thing->dropoffz = tmdropoffz;      // killough 11/98: keep track of dropoffs
+  P_SetOverUnderLinks(thing);
   thing->x = x;
   thing->y = y;
 
@@ -1104,6 +1145,7 @@ static boolean ThingHeightClip(mobj_t *thing)
   thing->floorz = tmfloorz;
   thing->ceilingz = tmceilingz;
   thing->dropoffz = tmdropoffz;         // killough 11/98: remember dropoffs
+  P_SetOverUnderLinks(thing);
 
   if (onfloor)  // walking monsters rise and fall with the floor
     {
@@ -2037,12 +2079,36 @@ static boolean crushchange, nofit;
 // PIT_ChangeSector
 //
 
+// Moves the things above lower along with it, from the bottom to the top.
+static void carry_above(mobj_t *lower, mobj_t *upper)
+{
+  while (upper)
+  {
+    mobj_t *const next = P_LinkedAbove(upper);
+
+    upper->z = lower->z + lower->height;
+
+    if (!ThingHeightClip(upper))
+    {
+      nofit = true;
+    }
+
+    lower = upper;
+    upper = next;
+  }
+}
+
 boolean PIT_ChangeSector(mobj_t *thing)
 {
   mobj_t *mo;
+  mobj_t *const above =
+      (CRITICAL(overunder) != OVERUNDER_OFF) ? P_LinkedAbove(thing) : NULL;
 
   if (ThingHeightClip(thing))
+  {
+    carry_above(thing, above);
     return true; // keep checking
+  }
 
   // crunch bodies to giblets
 

@@ -84,6 +84,7 @@ extern boolean floatok;
 extern boolean felldown;   // killough 11/98: indicates object pushed off ledge
 extern fixed_t tmfloorz;
 extern fixed_t tmceilingz;
+extern fixed_t tmdropoffz;
 extern struct line_s *ceilingline;
 extern struct line_s *floorline;      // killough 8/23/98
 extern struct mobj_s *linetarget;     // who got hit (or NULL)

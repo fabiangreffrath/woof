@@ -15,6 +15,11 @@
   - The Load/Save Game menus are now organized in tabs, instead of pages.
     The left-most tab of the Load Game menu is for Quick Saves, its first slot is reserved for Auto Save.
     Quick Saves are now immediate and always override the oldest available slot.
+  - Added the "Move Over/Under Monsters" option (Off / Player only / All) to the Compatibility menu.
+    The player, and optionally all monsters, can now pass over or under other solid, shootable things instead of colliding with them at any height.
+    Things standing on other things are carried along by moving sectors.
+    Monsters cannot hit things above or below them in melee if their heights do not overlap.
+    The option is disabled in demos, netgames and strict mode.
 
 * **Rendering:**
   - Made the SDL renderer not be cleared every frame, for improved rendering performance in general.
