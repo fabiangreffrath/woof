@@ -440,12 +440,6 @@ void D_StartNetGame(nw_gamesettings_t *settings,
     }
 
     RB_Init(localplayer, settings->num_players);
-
-    // TODO: Message disabled until we fix new_sync.
-    // if (!new_sync)
-    //{
-    //    printf("Syncing netgames like Vanilla Doom.\n");
-    //}
 }
 
 boolean D_InitNetGame(nw_connect_data_t *connect_data)
@@ -780,7 +774,6 @@ static void TryRunTicsRollback(void)
 
                 RB_PrepareTic(i, &ticdata[i % BACKUPTICS].cmds[localplayer],
                               cmds, ingame);
-                // TODO
                 RB_MaybeSaveKeyframe(i);
 
                 memcpy(local_playeringame, ingame, sizeof(local_playeringame));

@@ -394,7 +394,6 @@ static void (*UpdateLocalView)(void);
 
 void G_UpdateLocalViewFunction(void)
 {
-  // !!! TODO
   if (lowres_turn && fake_longtics)
   {
     UpdateLocalView = UpdateLocalView_FakeLongTics;

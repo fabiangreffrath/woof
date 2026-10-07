@@ -12,11 +12,7 @@
 // GNU General Public License for more details.
 //
 // DESCRIPTION:
-//     Rollback netcode for multiplayer games. The client predicts the
-//     inputs of remote players and runs ahead without waiting for the
-//     server. When the confirmed inputs turn out to differ from the
-//     prediction, the game state is restored from the newest keyframe
-//     and resimulated with the corrected inputs.
+//     Rollback netcode for multiplayer games.
 //
 
 #include <string.h>
