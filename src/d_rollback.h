@@ -31,7 +31,7 @@ extern boolean rollback_enabled;
 
 extern boolean rollback_resim;
 
-void RB_Init(int consoleplayer, int num_players);
+void RB_Init(int consoleplayer);
 void RB_Shutdown(void);
 
 // Record a confirmed set of ticcmds received from the server.

@@ -439,7 +439,7 @@ void D_StartNetGame(nw_gamesettings_t *settings,
         I_Error("invalid ticdup value (%d)", ticdup);
     }
 
-    RB_Init(localplayer, settings->num_players);
+    RB_Init(localplayer);
 }
 
 boolean D_InitNetGame(nw_connect_data_t *connect_data)

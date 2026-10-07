@@ -93,7 +93,7 @@ void RB_Shutdown(void)
     rb_stalled = false;
 }
 
-void RB_Init(int consoleplayer, int num_players)
+void RB_Init(int consoleplayer)
 {
     RB_Shutdown();
 
@@ -125,13 +125,13 @@ void RB_Init(int consoleplayer, int num_players)
 
     if (ticdup != 1)
     {
-        I_Printf(VB_WARNING, "Rollback requires -dup 1, using lockstep instead");
+        I_Printf(VB_WARNING, "Rollback requires -dup 1, using lockstep instead.");
         return;
     }
 
     rollback_enabled = true;
 
-    I_Printf(VB_INFO, "Rollback netcode enabled, predicting up to %d tics",
+    I_Printf(VB_INFO, "Rollback netcode enabled, predicting up to %d tics.",
              RB_MAX_PREDICT);
 }
 
