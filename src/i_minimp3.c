@@ -26,13 +26,13 @@ static mp3dec_ex_t dec;
 
 static boolean stream_looping;
 
-static boolean I_MP3_InitStream(int device)
+static boolean InitStream_MP3(int device)
 {
     return true;
 }
 
-static boolean I_MP3_OpenStream(void *data, ALsizei size, ALenum *format,
-                                ALsizei *freq, ALsizei *frame_size)
+static boolean OpenStream_MP3(void *data, ALsizei size, ALenum *format,
+                              ALsizei *freq, ALsizei *frame_size)
 {
     if (mp3dec_ex_open_buf(&dec, data, size, MP3D_SEEK_TO_SAMPLE))
     {
@@ -53,7 +53,7 @@ static boolean I_MP3_OpenStream(void *data, ALsizei size, ALenum *format,
     return true;
 }
 
-static int I_MP3_FillStream(void *buffer, int buffer_samples)
+static int FillStream_MP3(void *buffer, int buffer_samples)
 {
     size_t amount = dec.info.channels * buffer_samples;
     size_t readed = mp3dec_ex_read(&dec, buffer, amount);
@@ -73,48 +73,47 @@ static int I_MP3_FillStream(void *buffer, int buffer_samples)
     return readed / dec.info.channels;
 }
 
-static void I_MP3_PlayStream(boolean looping)
+static void PlayStream_MP3(boolean looping)
 {
     stream_looping = looping;
     mp3dec_ex_seek(&dec, 0);
 }
 
-static void I_MP3_CloseStream(void)
+static void CloseStream_MP3(void)
 {
     mp3dec_ex_close(&dec);
 }
 
-static void I_MP3_ShutdownStream(void)
+static void ShutdownStream_MP3(void)
 {
     ;
 }
 
-static const char **I_MP3_DeviceList(void)
+static const char **DeviceList_MP3(void)
 {
     return NULL;
 }
 
-static void I_MP3_BindVariables(void)
+static void BindVariables_MP3(void)
 {
     ;
 }
 
-static const char *I_MP3_MusicFormat(void)
+static const char *MusicFormat_MP3(void)
 {
     static char buffer[16];
     M_snprintf(buffer, sizeof(buffer), "MP%d", dec.info.layer);
     return buffer;
 }
 
-stream_module_t stream_mp3_module =
-{
-    I_MP3_InitStream,
-    I_MP3_OpenStream,
-    I_MP3_FillStream,
-    I_MP3_PlayStream,
-    I_MP3_CloseStream,
-    I_MP3_ShutdownStream,
-    I_MP3_DeviceList,
-    I_MP3_BindVariables,
-    I_MP3_MusicFormat,
+stream_module_t stream_mp3_module = {
+    .InitStream = InitStream_MP3,
+    .OpenStream = OpenStream_MP3,
+    .FillStream = FillStream_MP3,
+    .PlayStream = PlayStream_MP3,
+    .CloseStream = CloseStream_MP3,
+    .ShutdownStream = ShutdownStream_MP3,
+    .DeviceList = DeviceList_MP3,
+    .BindVariables = BindVariables_MP3,
+    .MusicFormat = MusicFormat_MP3,
 };

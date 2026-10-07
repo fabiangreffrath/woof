@@ -265,7 +265,7 @@ void P_UnsetThingPosition (mobj_t *thing)
       //
       // If this Thing is being removed entirely, then the calling
       // routine will clear out the nodes in sector_list.
-      
+
       sector_list = thing->touching_sectorlist;
       thing->touching_sectorlist = NULL; //to be restored by P_SetThingPosition
     }
@@ -273,7 +273,7 @@ void P_UnsetThingPosition (mobj_t *thing)
   if (!(thing->flags & MF_NOBLOCKMAP))
     {
       // inert things don't need to be in blockmap
-      
+
       // killough 8/11/98: simpler scheme using pointers-to-pointers for prev
       // pointers, allows head node pointers to be treated like everything else
       //
@@ -739,7 +739,7 @@ boolean P_TraverseIntercepts(traverser_t func, fixed_t maxfrac)
 }
 
 // Intercepts Overrun emulation, from PrBoom-plus.
-// Thanks to Andrey Budko (entryway) for researching this and his 
+// Thanks to Andrey Budko (entryway) for researching this and his
 // implementation of Intercepts Overrun emulation in PrBoom-plus
 // which this is based on.
 
@@ -852,7 +852,7 @@ static void InterceptsOverrun(int num_intercepts, intercept_t *intercept)
     // the values from the intercept structure.
     //
     // Note: the ->d.{thing,line} member should really have its
-    // address translated into the correct address value for 
+    // address translated into the correct address value for
     // Vanilla Doom.
 
     InterceptsMemoryOverrun(location, intercept->frac);
@@ -1164,7 +1164,7 @@ mobj_t *P_RoughTargetSearch(mobj_t *mo, angle_t fov, int distance)
 ===================
 */
 
-static boolean P_SightBlockLinesIterator(int x, int y)
+static boolean SightBlockLinesIterator(int x, int y)
 {
   int offset;
   int32_t *list;
@@ -1220,7 +1220,7 @@ static boolean P_SightBlockLinesIterator(int x, int y)
 ====================
 */
 
-static boolean P_SightTraverseIntercepts(void)
+static boolean SightTraverseIntercepts(void)
 {
   int count;
   fixed_t dist;
@@ -1360,7 +1360,7 @@ boolean P_SightPathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2)
 
   for (count = 0; count < 64; count++)
   {
-    if (!P_SightBlockLinesIterator(mapx, mapy))
+    if (!SightBlockLinesIterator(mapx, mapy))
     {
       return false;  // early out
     }
@@ -1383,8 +1383,8 @@ boolean P_SightPathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2)
       // loop continues), but the other two blocks adjacent to the corner
       // also need to be checked.
 
-      if (!P_SightBlockLinesIterator(mapx + mapxstep, mapy) ||
-          !P_SightBlockLinesIterator(mapx, mapy + mapystep))
+      if (!SightBlockLinesIterator(mapx + mapxstep, mapy) ||
+          !SightBlockLinesIterator(mapx, mapy + mapystep))
       {
         return false;
       }
@@ -1406,7 +1406,7 @@ boolean P_SightPathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2)
 
   }
 
-  return P_SightTraverseIntercepts();
+  return SightTraverseIntercepts();
 }
 
 //----------------------------------------------------------------------------

@@ -273,14 +273,8 @@ static sf_count_t sfvio_tell(void *user_data)
     return mem_ftell((MEMFILE *)user_data);
 }
 
-static SF_VIRTUAL_IO sfvio =
-{
-    sfvio_get_filelen,
-    sfvio_seek,
-    sfvio_read,
-    NULL,
-    sfvio_tell
-};
+static SF_VIRTUAL_IO sfvio = {sfvio_get_filelen, sfvio_seek, sfvio_read, NULL,
+                              sfvio_tell};
 
 static sf_count_t sfx_mix_mono_read_float(SNDFILE *file, float *data,
                                           sf_count_t datalen)
@@ -638,7 +632,7 @@ boolean I_SND_LoadFile(void *data, ALenum *format, byte **wavdata,
     return true;
 }
 
-static boolean I_SND_InitStream(int device)
+static boolean InitStream_SndFile(int device)
 {
     return true;
 }
@@ -648,8 +642,8 @@ static sndfile_t stream;
 static loop_metadata_t loop;
 static boolean stream_looping;
 
-static boolean I_SND_OpenStream(void *data, ALsizei size, ALenum *format,
-                                ALsizei *freq, ALsizei *frame_size)
+static boolean OpenStream_SndFile(void *data, ALsizei size, ALenum *format,
+                                  ALsizei *freq, ALsizei *frame_size)
 {
     MEMFILE *fs;
 
@@ -684,12 +678,12 @@ static boolean I_SND_OpenStream(void *data, ALsizei size, ALenum *format,
     return true;
 }
 
-static void I_SND_PlayStream(boolean looping)
+static void PlayStream_SndFile(boolean looping)
 {
     stream_looping = looping;
 }
 
-static int I_SND_FillStream(void *data, int frames)
+static int FillStream_SndFile(void *data, int frames)
 {
     sf_count_t filled = 0;
     boolean restart = false;
@@ -722,27 +716,27 @@ static int I_SND_FillStream(void *data, int frames)
     return filled;
 }
 
-static void I_SND_CloseStream(void)
+static void CloseStream_SndFile(void)
 {
     CloseFile(&stream);
 }
 
-static void I_SND_ShutdownStream(void)
+static void ShutdownStream_SndFile(void)
 {
     ;
 }
 
-static const char **I_SND_DeviceList(void)
+static const char **DeviceList_SndFile(void)
 {
     return NULL;
 }
 
-static void I_SND_BindVariables(void)
+static void BindVariables_SndFile(void)
 {
     ;
 }
 
-static const char *I_SND_MusicFormat(void)
+static const char *MusicFormat_SndFile(void)
 {
     static SF_FORMAT_INFO format_info;
 
@@ -764,15 +758,14 @@ static const char *I_SND_MusicFormat(void)
     return "Unknown";
 }
 
-stream_module_t stream_snd_module =
-{
-    I_SND_InitStream,
-    I_SND_OpenStream,
-    I_SND_FillStream,
-    I_SND_PlayStream,
-    I_SND_CloseStream,
-    I_SND_ShutdownStream,
-    I_SND_DeviceList,
-    I_SND_BindVariables,
-    I_SND_MusicFormat,
+stream_module_t stream_snd_module = {
+    .InitStream = InitStream_SndFile,
+    .OpenStream = OpenStream_SndFile,
+    .FillStream = FillStream_SndFile,
+    .PlayStream = PlayStream_SndFile,
+    .CloseStream = CloseStream_SndFile,
+    .ShutdownStream = ShutdownStream_SndFile,
+    .DeviceList = DeviceList_SndFile,
+    .BindVariables = BindVariables_SndFile,
+    .MusicFormat = MusicFormat_SndFile,
 };

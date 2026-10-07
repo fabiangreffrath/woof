@@ -107,7 +107,7 @@ static void UpdateFireSky(sky_t *sky)
     }
 }
 
-static void R_InitFireSky(sky_t *sky)
+static void InitFireSky(sky_t *sky)
 {
     int texnum = sky->background.texture;
     const texture_t *tex = textures[texnum];
@@ -307,7 +307,7 @@ static skyindex_t AddLevelsky(int texture, side_t *side)
 
     if (new_sky.type == SkyType_Fire)
     {
-        R_InitFireSky(&new_sky);
+        InitFireSky(&new_sky);
     }
 
     const int skyheight = textureheight[new_sky.background.texture] >> FRACBITS;
@@ -385,7 +385,7 @@ static int CompareSkyColors(const void *a, const void *b)
     return sum_a - sum_b;
 }
 
-static byte R_SkyBlendColor(int tex)
+static byte SkyBlendColor(int tex)
 {
     const int width = texturewidth[tex];
 
@@ -453,7 +453,7 @@ byte R_GetSkyColor(int texturenum)
         target = Z_Malloc(sizeof(skycolor_t), PU_STATIC, 0);
 
         target->texturenum = texturenum;
-        target->color = R_SkyBlendColor(texturenum);
+        target->color = SkyBlendColor(texturenum);
 
         // use head insertion
         target->next = skycolors[key];

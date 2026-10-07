@@ -399,7 +399,7 @@ static const int fuzzoffset[FUZZTABLE] =
     FUZZOFF,-FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,FUZZOFF,FUZZOFF,-FUZZOFF,
     FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,-FUZZOFF,-FUZZOFF,FUZZOFF,
     FUZZOFF,-FUZZOFF,-FUZZOFF,-FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,
-    FUZZOFF,FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,-FUZZOFF,FUZZOFF 
+    FUZZOFF,FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,-FUZZOFF,FUZZOFF
 };
 
 static int fuzzpos = 0;
@@ -974,7 +974,7 @@ void R_DrawTRTLColumn(void)
 }
 
 //
-// R_DrawSpan 
+// R_DrawSpan
 // With DOOM style restrictions on view orientation,
 //  the floors and ceilings consist of horizontal slices
 //  or spans with constant z depth.
@@ -1045,7 +1045,7 @@ void R_InitBufferRes(void)
 }
 
 //
-// R_InitBuffer 
+// R_InitBuffer
 // Creats lookup tables that avoid
 //  multiplies and other hazzles
 //  for getting the framebuffer address
@@ -1150,7 +1150,7 @@ void R_FillBackScreen(void)
 // Copy a screen buffer.
 //
 
-static void R_VideoErase(int x, int y, int w, int h)
+static void VideoErase(int x, int y, int w, int h)
 {
     if (background_buffer == NULL)
     {
@@ -1165,7 +1165,7 @@ static void R_VideoErase(int x, int y, int w, int h)
 // Draws the border around the view
 //  for different size windows?
 //
-// killough 11/98: 
+// killough 11/98:
 // Rewritten to avoid relying on screen wraparound, so that it
 // can scale to hires automatically in R_VideoErase().
 //
@@ -1178,15 +1178,15 @@ void R_DrawViewBorder(void)
     }
 
     // copy top
-    R_VideoErase(0, 0, video.unscaledw, scaledviewy);
+    VideoErase(0, 0, video.unscaledw, scaledviewy);
 
     // copy sides
-    R_VideoErase(0, scaledviewy, scaledviewx, scaledviewheight);
+    VideoErase(0, scaledviewy, scaledviewx, scaledviewheight);
     int side = scaledviewx + scaledviewwidth;
-    R_VideoErase(side, scaledviewy, video.unscaledw - side, scaledviewheight);
+    VideoErase(side, scaledviewy, video.unscaledw - side, scaledviewheight);
 
     // copy bottom
-    R_VideoErase(0, scaledviewy + scaledviewheight, video.unscaledw,
+    VideoErase(0, scaledviewy + scaledviewheight, video.unscaledw,
                  scaledviewy);
 }
 

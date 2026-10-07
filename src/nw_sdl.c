@@ -127,14 +127,14 @@ static nw_addr_t *FindAddress(NET_Address *address, Uint16 address_port)
     new_entry->port = address_port;
     new_entry->nw_addr.refcount = 0;
     new_entry->nw_addr.handle = new_entry;
-    new_entry->nw_addr.module = &netlib_module;
+    new_entry->nw_addr.module = &nw_sdl_module;
 
     addr_table[empty_entry] = new_entry;
 
     return &new_entry->nw_addr;
 }
 
-static void NW_SDL_FreeAddress(nw_addr_t *addr)
+static void FreeAddress(nw_addr_t *addr)
 {
     int i;
 
@@ -180,7 +180,7 @@ static boolean NW_SDL_InitSocket(Uint16 bind_port)
     return true;
 }
 
-static boolean NW_SDL_InitClient(void)
+static boolean InitClient(void)
 {
     int p;
 
@@ -211,7 +211,7 @@ static boolean NW_SDL_InitClient(void)
     return true;
 }
 
-static boolean NW_SDL_InitServer(void)
+static boolean InitServer(void)
 {
     int p;
 
@@ -234,7 +234,7 @@ static boolean NW_SDL_InitServer(void)
     return true;
 }
 
-static void NW_SDL_SendPacket(nw_addr_t *addr, nw_packet_t *packet)
+static void SendPacket(nw_addr_t *addr, nw_packet_t *packet)
 {
     addrpair_t *entry;
     NET_Address *address = NULL;
@@ -273,7 +273,7 @@ static void NW_SDL_SendPacket(nw_addr_t *addr, nw_packet_t *packet)
     }
 }
 
-static boolean NW_SDL_RecvPacket(nw_addr_t **addr, nw_packet_t **packet)
+static boolean RecvPacket(nw_addr_t **addr, nw_packet_t **packet)
 {
     NET_Datagram *dgram;
 
@@ -304,7 +304,7 @@ static boolean NW_SDL_RecvPacket(nw_addr_t **addr, nw_packet_t **packet)
     return true;
 }
 
-static void NW_SDL_AddrToString(nw_addr_t *addr, char *buffer, int buffer_len)
+static void AddrToString(nw_addr_t *addr, char *buffer, int buffer_len)
 {
     addrpair_t *entry;
     const char *address;
@@ -332,7 +332,7 @@ static void NW_SDL_AddrToString(nw_addr_t *addr, char *buffer, int buffer_len)
     }
 }
 
-static nw_addr_t *NW_SDL_ResolveAddress(const char *address)
+static nw_addr_t *ResolveAddress(const char *address)
 {
     NET_Address *nw_address;
     char *addr_hostname;
@@ -370,7 +370,7 @@ static nw_addr_t *NW_SDL_ResolveAddress(const char *address)
     return result;
 }
 
-static void NW_SDL_Shutdown(void)
+static void Shutdown(void)
 {
     if (!initted)
     {
@@ -387,14 +387,14 @@ static void NW_SDL_Shutdown(void)
 
 // Complete module
 
-nw_module_t netlib_module =
+nw_module_t nw_sdl_module =
 {
-    NW_SDL_InitClient,
-    NW_SDL_InitServer,
-    NW_SDL_SendPacket,
-    NW_SDL_RecvPacket,
-    NW_SDL_AddrToString,
-    NW_SDL_FreeAddress,
-    NW_SDL_ResolveAddress,
-    NW_SDL_Shutdown,
+    InitClient,
+    InitServer,
+    SendPacket,
+    RecvPacket,
+    AddrToString,
+    FreeAddress,
+    ResolveAddress,
+    Shutdown,
 };

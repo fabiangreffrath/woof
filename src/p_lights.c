@@ -43,10 +43,10 @@
 // Passed a fireflicker_t structure containing light levels and timing
 // Returns nothing
 //
-static void T_FireFlicker(fireflicker_t *flick)
+static void ThinkerFireFlicker(fireflicker_t *flick)
 {
   int amount;
-  
+
   if (--flick->count)
     return;
 
@@ -62,7 +62,7 @@ static void T_FireFlicker(fireflicker_t *flick)
 
 void T_FireFlickerAdapter(mobj_t *mobj)
 {
-    T_FireFlicker((fireflicker_t *)mobj);
+    ThinkerFireFlicker((fireflicker_t *)mobj);
 }
 
 //
@@ -73,7 +73,7 @@ void T_FireFlickerAdapter(mobj_t *mobj)
 // Passed a lightflash_t structure containing light levels and timing
 // Returns nothing
 //
-static void T_LightFlash(lightflash_t* flash)
+static void ThinkerLightFlash(lightflash_t* flash)
 {
   if (--flash->count)
     return;
@@ -92,7 +92,7 @@ static void T_LightFlash(lightflash_t* flash)
 
 void T_LightFlashAdapter(mobj_t *mobj)
 {
-    T_LightFlash((lightflash_t *)mobj);
+    ThinkerLightFlash((lightflash_t *)mobj);
 }
 
 //
@@ -103,7 +103,7 @@ void T_LightFlashAdapter(mobj_t *mobj)
 // Passed a strobe_t structure containing light levels and timing
 // Returns nothing
 //
-static void T_StrobeFlash(strobe_t *flash)
+static void ThinkerStrobeFlash(strobe_t *flash)
 {
   if (--flash->count)
     return;
@@ -122,7 +122,7 @@ static void T_StrobeFlash(strobe_t *flash)
 
 void T_StrobeFlashAdapter(mobj_t *mobj)
 {
-    T_StrobeFlash((strobe_t *)mobj);
+    ThinkerStrobeFlash((strobe_t *)mobj);
 }
 
 //
@@ -134,7 +134,7 @@ void T_StrobeFlashAdapter(mobj_t *mobj)
 // Returns nothing
 //
 
-static void T_Glow(glow_t *g)
+static void ThinkerGlow(glow_t *g)
 {
   switch(g->direction)
   {
@@ -162,7 +162,7 @@ static void T_Glow(glow_t *g)
 
 void T_GlowAdapter(mobj_t *mobj)
 {
-    T_Glow((glow_t *)mobj);
+    ThinkerGlow((glow_t *)mobj);
 }
 
 //////////////////////////////////////////////////////////
@@ -257,7 +257,7 @@ void P_SpawnStrobeFlash
   flash->thinker.function.p1 = T_StrobeFlashAdapter;
   flash->maxlight = sector->lightlevel;
   flash->minlight = P_FindMinSurroundingLight(sector, sector->lightlevel);
-  
+
   if (flash->minlight == flash->maxlight)
     flash->minlight = 0;
 
@@ -343,7 +343,7 @@ int EV_StartLightStrobing(line_t* line)
 int EV_TurnTagLightsOff(line_t* line)
 {
   int j;
-  
+
   // search sectors for those with same tag as activating line
 
   // killough 10/98: replaced inefficient search with fast search
@@ -393,10 +393,10 @@ int EV_LightTurnOn(line_t *line, int bright)
 	    tbright = temp->lightlevel;
 
       sector->lightlevel = tbright;
-      
-      //jff 5/17/98 unless compatibility optioned 
+
+      //jff 5/17/98 unless compatibility optioned
       //then maximum near ANY tagged sector
-      
+
       if (comp[comp_model])
 	bright = tbright;
     }
@@ -419,7 +419,7 @@ int EV_LightTurnOnPartway(line_t *line, fixed_t level)
 {
   int i;
 
-  if (level < 0)          // clip at extremes 
+  if (level < 0)          // clip at extremes
     level = 0;
   if (level > FRACUNIT)
     level = FRACUNIT;

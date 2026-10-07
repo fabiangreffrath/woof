@@ -25,7 +25,7 @@
 #include "deh_main.h"
 #include "doomstat.h"
 
-static int DEH_BEXHelperStart(deh_context_t *context, char *line)
+static int BEXHelperStart(deh_context_t *context, char *line)
 {
     char s[9];
 
@@ -37,7 +37,7 @@ static int DEH_BEXHelperStart(deh_context_t *context, char *line)
     return 0;
 }
 
-static void DEH_BEXHelperParseLine(deh_context_t *context, char *line, int tag)
+static void BEXHelperParseLine(deh_context_t *context, char *line, int tag)
 {
     char *type, *value;
 
@@ -68,8 +68,8 @@ deh_section_t deh_section_bex_helper =
 {
     "[HELPER]",
     NULL,
-    DEH_BEXHelperStart,
-    DEH_BEXHelperParseLine,
+    BEXHelperStart,
+    BEXHelperParseLine,
     NULL,
     NULL,
 };

@@ -250,7 +250,7 @@ void NetUpdate(void)
     }
 }
 
-static void D_Disconnected(void)
+static void Disconnected(void)
 {
     // In drone mode, the game cannot continue once disconnected.
 
@@ -277,7 +277,7 @@ void D_ReceiveTic(ticcmd_t *ticcmds, boolean *players_mask)
 
     if (ticcmds == NULL || players_mask == NULL)
     {
-        D_Disconnected();
+        Disconnected();
         return;
     }
 
@@ -465,7 +465,7 @@ boolean D_InitNetGame(nw_connect_data_t *connect_data)
     {
         NW_SV_Init();
         NW_SV_AddModule(&nw_loop_server_module);
-        NW_SV_AddModule(&netlib_module);
+        NW_SV_AddModule(&nw_sdl_module);
         NW_SV_RegisterWithMaster();
 
         nw_loop_client_module.InitClient();
@@ -507,8 +507,8 @@ boolean D_InitNetGame(nw_connect_data_t *connect_data)
 
         if (i > 0)
         {
-            netlib_module.InitClient();
-            addr = netlib_module.ResolveAddress(myargv[i + 1]);
+            nw_sdl_module.InitClient();
+            addr = nw_sdl_module.ResolveAddress(myargv[i + 1]);
             NW_ReferenceAddress(addr);
 
             if (addr == NULL)
@@ -579,7 +579,7 @@ void D_QuitNetGame(void)
     RB_Shutdown();
     NW_SV_Shutdown();
     NW_CL_Disconnect();
-    netlib_module.Shutdown();
+    nw_sdl_module.Shutdown();
 }
 
 static int GetLowTic(void)

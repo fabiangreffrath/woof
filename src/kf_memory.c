@@ -215,7 +215,7 @@ static void ArchiveWorld(void)
                 sector->ceilingpic,
                 sector->lightlevel,
                 sector->special, // needed?   yes -- transfer types
-                sector->tag);    // needed?   need them -- killough 
+                sector->tag);    // needed?   need them -- killough
 
         // Woof!
         writep(sector->soundtarget,
@@ -341,7 +341,7 @@ static void ArchivePlayState(keyframe_t *keyframe)
     writex(tmbbox, sizeof(tmbbox), 1);
 
     writep(headsecnode);
-    keyframe->data->msecnodes = M_ArenaCopy(keyframe->data->msecnodes, msecnodes_arena);
+    keyframe->data->msecnodes = M_ArenaCopy(msecnodes_arena);
 
     // p_maputil.h
     write32(opentop,
@@ -391,7 +391,7 @@ static void UnArchivePlayState(const keyframe_t *keyframe)
 
     headsecnode = readp();
     M_ArenaRestore(msecnodes_arena, keyframe->data->msecnodes);
-    
+
     // p_maputil.h
     opentop = read32();
     openbottom = read32();

@@ -159,9 +159,9 @@ static unsigned int master_resolve_time;
 static unsigned int recvwindow_start;
 static nw_client_recv_t recvwindow[BACKUPTICS][NW_MAXPLAYERS];
 
-#define NW_SV_ExpandTicNum(b) NW_ExpandTicNum(recvwindow_start, (b))
+#define ServerExpandTicNum(b) NW_ExpandTicNum(recvwindow_start, (b))
 
-static void NW_SV_DisconnectClient(nw_client_t *client)
+static void ServerDisconnectClient(nw_client_t *client)
 {
     if (client->active)
     {
@@ -180,10 +180,10 @@ static boolean ClientConnected(nw_client_t *client)
 
 // Send a message to be displayed on a client's console
 
-static void NW_SV_SendConsoleMessage(nw_client_t *client, const char *s, ...)
+static void ServerSendConsoleMessage(nw_client_t *client, const char *s, ...)
     PRINTF_ATTR(2, 3);
 
-static void NW_SV_SendConsoleMessage(nw_client_t *client, const char *s, ...)
+static void ServerSendConsoleMessage(nw_client_t *client, const char *s, ...)
 {
     char buf[1024];
     va_list args;
@@ -201,9 +201,9 @@ static void NW_SV_SendConsoleMessage(nw_client_t *client, const char *s, ...)
 
 // Send a message to all clients
 
-static void NW_SV_BroadcastMessage(const char *s, ...) PRINTF_ATTR(1, 2);
+static void ServerBroadcastMessage(const char *s, ...) PRINTF_ATTR(1, 2);
 
-static void NW_SV_BroadcastMessage(const char *s, ...)
+static void ServerBroadcastMessage(const char *s, ...)
 {
     char buf[1024];
     va_list args;
@@ -217,7 +217,7 @@ static void NW_SV_BroadcastMessage(const char *s, ...)
     {
         if (ClientConnected(&clients[i]))
         {
-            NW_SV_SendConsoleMessage(&clients[i], "%s", buf);
+            ServerSendConsoleMessage(&clients[i], "%s", buf);
         }
     }
 
@@ -226,7 +226,7 @@ static void NW_SV_BroadcastMessage(const char *s, ...)
 
 // Assign player numbers to connected clients
 
-static void NW_SV_AssignPlayers(void)
+static void ServerAssignPlayers(void)
 {
     int i;
     int pl;
@@ -258,7 +258,7 @@ static void NW_SV_AssignPlayers(void)
 
 // Returns the number of players currently connected.
 
-static int NW_SV_NumPlayers(void)
+static int ServerNumPlayers(void)
 {
     int i;
     int result;
@@ -278,7 +278,7 @@ static int NW_SV_NumPlayers(void)
 
 // Returns the number of players ready to start the game.
 
-static int NW_SV_NumReadyPlayers(void)
+static int ServerNumReadyPlayers(void)
 {
     int result = 0;
     int i;
@@ -297,7 +297,7 @@ static int NW_SV_NumReadyPlayers(void)
 
 // Returns the maximum number of players that can play.
 
-static int NW_SV_MaxPlayers(void)
+static int ServerMaxPlayers(void)
 {
     int i;
 
@@ -314,7 +314,7 @@ static int NW_SV_MaxPlayers(void)
 
 // Returns the number of drones currently connected.
 
-static int NW_SV_NumDrones(void)
+static int ServerNumDrones(void)
 {
     int i;
     int result;
@@ -334,7 +334,7 @@ static int NW_SV_NumDrones(void)
 
 // returns the number of clients connected
 
-static int NW_SV_NumClients(void)
+static int ServerNumClients(void)
 {
     int count;
     int i;
@@ -354,7 +354,7 @@ static int NW_SV_NumClients(void)
 
 // returns a pointer to the client which controls the server
 
-static nw_client_t *NW_SV_Controller(void)
+static nw_client_t *ServerController(void)
 {
     nw_client_t *best;
     int i;
@@ -403,7 +403,7 @@ static ip_range_t ClientAddressRange(const char *addr)
     return RANGE_PUBLIC;
 }
 
-static void NW_SV_SendWaitingData(nw_client_t *client)
+static void ServerSendWaitingData(nw_client_t *client)
 {
     nw_waitdata_t wait_data;
     nw_packet_t *packet;
@@ -412,14 +412,14 @@ static void NW_SV_SendWaitingData(nw_client_t *client)
     const char *addr;
     int i;
 
-    NW_SV_AssignPlayers();
+    ServerAssignPlayers();
 
-    controller = NW_SV_Controller();
+    controller = ServerController();
 
-    wait_data.num_players = NW_SV_NumPlayers();
-    wait_data.num_drones = NW_SV_NumDrones();
-    wait_data.ready_players = NW_SV_NumReadyPlayers();
-    wait_data.max_players = NW_SV_MaxPlayers();
+    wait_data.num_players = ServerNumPlayers();
+    wait_data.num_drones = ServerNumDrones();
+    wait_data.ready_players = ServerNumReadyPlayers();
+    wait_data.max_players = ServerMaxPlayers();
     wait_data.is_controller = (client == controller);
     wait_data.consoleplayer = client->player_number;
 
@@ -488,7 +488,7 @@ static void NW_SV_SendWaitingData(nw_client_t *client)
 // Find the latest tic which has been acknowledged as received by
 // all clients.
 
-static unsigned int NW_SV_LatestAcknowledged(void)
+static unsigned int ServerLatestAcknowledged(void)
 {
     unsigned int lowtic = UINT_MAX;
     int i;
@@ -510,17 +510,17 @@ static unsigned int NW_SV_LatestAcknowledged(void)
 // Possibly advance the recv window if all connected clients have
 // used the data in the window
 
-static void NW_SV_AdvanceWindow(void)
+static void ServerAdvanceWindow(void)
 {
     unsigned int lowtic;
     int i;
 
-    if (NW_SV_NumPlayers() <= 0)
+    if (ServerNumPlayers() <= 0)
     {
         return;
     }
 
-    lowtic = NW_SV_LatestAcknowledged();
+    lowtic = ServerLatestAcknowledged();
 
     // Advance the recv window until it catches up with lowtic
 
@@ -568,7 +568,7 @@ static void NW_SV_AdvanceWindow(void)
 
 // Given an address, find the corresponding client
 
-static nw_client_t *NW_SV_FindClient(nw_addr_t *addr)
+static nw_client_t *ServerFindClient(nw_addr_t *addr)
 {
     int i;
 
@@ -587,7 +587,7 @@ static nw_client_t *NW_SV_FindClient(nw_addr_t *addr)
 
 // send a rejection packet to a client
 
-static void NW_SV_SendReject(nw_addr_t *addr, const char *msg)
+static void ServerSendReject(nw_addr_t *addr, const char *msg)
 {
     nw_packet_t *packet;
 
@@ -600,8 +600,8 @@ static void NW_SV_SendReject(nw_addr_t *addr, const char *msg)
     NW_FreePacket(packet);
 }
 
-static void NW_SV_InitNewClient(nw_client_t *client, nw_addr_t *addr,
-                                 nw_protocol_t protocol)
+static void ServerInitNewClient(nw_client_t *client, nw_addr_t *addr,
+                                nw_protocol_t protocol)
 {
     client->active = true;
     client->connect_time = I_GetTimeMS();
@@ -626,8 +626,8 @@ static void NW_SV_InitNewClient(nw_client_t *client, nw_addr_t *addr,
 
 // parse a SYN from a client(initiating a connection)
 
-static void NW_SV_ParseSYN(nw_packet_t *packet, nw_client_t *client,
-                            nw_addr_t *addr)
+static void ServerParseSYN(nw_packet_t *packet, nw_client_t *client,
+                           nw_addr_t *addr)
 {
     unsigned int magic;
     nw_connect_data_t data;
@@ -654,7 +654,7 @@ static void NW_SV_ParseSYN(nw_packet_t *packet, nw_client_t *client,
 
         case NW_OLD_MAGIC_NUMBER:
             NW_Log("server: error: client using old magic number: %d", magic);
-            NW_SV_SendReject(
+            ServerSendReject(
                 addr,
                 "You are using an old client version that is not supported by "
                 "this server. This server is running " PROJECT_STRING ".");
@@ -688,7 +688,7 @@ static void NW_SV_ParseSYN(nw_packet_t *packet, nw_client_t *client,
                    "client is: %s. No common compatible protocol could be "
                    "negotiated.",
                    client_version);
-        NW_SV_SendReject(addr, reject_msg);
+        ServerSendReject(addr, reject_msg);
         NW_Log("server: error: no common protocol");
         return;
     }
@@ -725,21 +725,21 @@ static void NW_SV_ParseSYN(nw_packet_t *packet, nw_client_t *client,
     {
         NW_Log("server: error: not in waiting launch state, server_state=%d",
                 server_state);
-        NW_SV_SendReject(addr,
+        ServerSendReject(addr,
                           "Server is not currently accepting connections");
         return;
     }
 
     // Before accepting a new client, check that there is a slot free.
-    NW_SV_AssignPlayers();
-    num_players = NW_SV_NumPlayers();
+    ServerAssignPlayers();
+    num_players = ServerNumPlayers();
 
-    if ((!data.drone && num_players >= NW_SV_MaxPlayers())
-        || NW_SV_NumClients() >= MAXNETNODES)
+    if ((!data.drone && num_players >= ServerMaxPlayers())
+        || ServerNumClients() >= MAXNETNODES)
     {
         NW_Log("server: no more players, num_players=%d, max=%d", num_players,
-                NW_SV_MaxPlayers());
-        NW_SV_SendReject(addr, "Server is full!");
+                ServerMaxPlayers());
+        ServerSendReject(addr, "Server is full!");
         return;
     }
 
@@ -776,7 +776,7 @@ static void NW_SV_ParseSYN(nw_packet_t *packet, nw_client_t *client,
                    sv_gamemission, sv_gamemode, data.gamemission,
                    data.gamemode);
 
-        NW_SV_SendReject(addr, msg);
+        ServerSendReject(addr, msg);
         return;
     }
 
@@ -818,7 +818,7 @@ static void NW_SV_ParseSYN(nw_packet_t *packet, nw_client_t *client,
     }
 
     // Activate, initialize connection
-    NW_SV_InitNewClient(client, addr, protocol);
+    ServerInitNewClient(client, addr, protocol);
 
     // Save the SHA1 checksums and other details.
     memcpy(client->wad_sha1sum, data.wad_sha1sum, sizeof(sha1_digest_t));
@@ -840,7 +840,7 @@ static void NW_SV_ParseSYN(nw_packet_t *packet, nw_client_t *client,
 // Parse a launch packet. This is sent by the key player when the "start"
 // button is pressed, and causes the startup process to continue.
 
-static void NW_SV_ParseLaunch(nw_packet_t *packet, nw_client_t *client)
+static void ServerParseLaunch(nw_packet_t *packet, nw_client_t *client)
 {
     nw_packet_t *launchpacket;
     int num_players;
@@ -850,10 +850,10 @@ static void NW_SV_ParseLaunch(nw_packet_t *packet, nw_client_t *client)
 
     // Only the controller can launch the game.
 
-    if (client != NW_SV_Controller())
+    if (client != ServerController())
     {
         NW_Log("server: error: this client isn't the controller, %p != %p",
-                (void *)client, (void *)NW_SV_Controller());
+                (void *)client, (void *)ServerController());
         return;
     }
 
@@ -868,8 +868,8 @@ static void NW_SV_ParseLaunch(nw_packet_t *packet, nw_client_t *client)
 
     // Forward launch on to all clients.
     NW_Log("server: sending launch to all clients");
-    NW_SV_AssignPlayers();
-    num_players = NW_SV_NumPlayers();
+    ServerAssignPlayers();
+    num_players = ServerNumPlayers();
 
     for (i = 0; i < MAXNETNODES; ++i)
     {
@@ -900,7 +900,7 @@ static void StartGame(void)
 
     // Assign player numbers
 
-    NW_SV_AssignPlayers();
+    ServerAssignPlayers();
 
     // Check if anyone is recording a demo and set lowres_turn if so.
 
@@ -914,7 +914,7 @@ static void StartGame(void)
         }
     }
 
-    sv_settings.num_players = NW_SV_NumPlayers();
+    sv_settings.num_players = ServerNumPlayers();
 
     // Copy player classes:
 
@@ -1001,14 +1001,14 @@ static void SendAllWaitingData(void)
     {
         if (ClientConnected(&clients[i]) && clients[i].ready)
         {
-            NW_SV_SendWaitingData(&clients[i]);
+            ServerSendWaitingData(&clients[i]);
         }
     }
 }
 
 // Parse a game start packet
 
-static void NW_SV_ParseGameStart(nw_packet_t *packet, nw_client_t *client)
+static void ServerParseGameStart(nw_packet_t *packet, nw_client_t *client)
 {
     nw_gamesettings_t settings;
 
@@ -1023,7 +1023,7 @@ static void NW_SV_ParseGameStart(nw_packet_t *packet, nw_client_t *client)
         return;
     }
 
-    if (client == NW_SV_Controller())
+    if (client == ServerController())
     {
         if (!NW_ReadSettings(packet, &settings))
         {
@@ -1056,7 +1056,7 @@ static void NW_SV_ParseGameStart(nw_packet_t *packet, nw_client_t *client)
 
 // Send a resend request to a client
 
-static void NW_SV_SendResendRequest(nw_client_t *client, int start, int end)
+static void ServerSendResendRequest(nw_client_t *client, int start, int end)
 {
     nw_packet_t *packet;
     nw_client_recv_t *recvobj;
@@ -1099,7 +1099,7 @@ static void NW_SV_SendResendRequest(nw_client_t *client, int start, int end)
 
 // Check for expired resend requests
 
-static void NW_SV_CheckResends(nw_client_t *client)
+static void ServerCheckResends(nw_client_t *client)
 {
     int i;
     int player;
@@ -1142,7 +1142,7 @@ static void NW_SV_CheckResends(nw_client_t *client)
                     recvwindow_start + resend_start,
                     recvwindow_start + resend_end);
             //&recvwindow[resend_start][player].resend_time);
-            NW_SV_SendResendRequest(client, recvwindow_start + resend_start,
+            ServerSendResendRequest(client, recvwindow_start + resend_start,
                                      recvwindow_start + resend_end);
 
             resend_start = -1;
@@ -1155,14 +1155,14 @@ static void NW_SV_CheckResends(nw_client_t *client)
                 NW_AddrToString(client->addr), recvwindow_start + resend_start,
                 recvwindow_start + resend_end);
         //&recvwindow[resend_start][player].resend_time);
-        NW_SV_SendResendRequest(client, recvwindow_start + resend_start,
+        ServerSendResendRequest(client, recvwindow_start + resend_start,
                                  recvwindow_start + resend_end);
     }
 }
 
 // Process game data from a client
 
-static void NW_SV_ParseGameData(nw_packet_t *packet, nw_client_t *client)
+static void ServerParseGameData(nw_packet_t *packet, nw_client_t *client)
 {
     nw_client_recv_t *recvobj;
     unsigned int seq;
@@ -1205,8 +1205,8 @@ static void NW_SV_ParseGameData(nw_packet_t *packet, nw_client_t *client)
     nowtime = I_GetTimeMS();
 
     // Expand 8-bit values to the full sequence number
-    ackseq = NW_SV_ExpandTicNum(ackseq);
-    seq = NW_SV_ExpandTicNum(seq);
+    ackseq = ServerExpandTicNum(ackseq);
+    seq = ServerExpandTicNum(seq);
 
     // Sanity checks
 
@@ -1297,12 +1297,12 @@ static void NW_SV_ParseGameData(nw_packet_t *packet, nw_client_t *client)
         NW_Log("server: request resend for %d-%d before %d",
                 recvwindow_start + resend_start,
                 recvwindow_start + resend_end - 1, seq);
-        NW_SV_SendResendRequest(client, recvwindow_start + resend_start,
+        ServerSendResendRequest(client, recvwindow_start + resend_start,
                                  recvwindow_start + resend_end - 1);
     }
 }
 
-static void NW_SV_ParseGameDataACK(nw_packet_t *packet, nw_client_t *client)
+static void ServerParseGameDataACK(nw_packet_t *packet, nw_client_t *client)
 {
     unsigned int ackseq;
 
@@ -1325,7 +1325,7 @@ static void NW_SV_ParseGameDataACK(nw_packet_t *packet, nw_client_t *client)
 
     // Expand 8-bit values to the full sequence number
 
-    ackseq = NW_SV_ExpandTicNum(ackseq);
+    ackseq = ServerExpandTicNum(ackseq);
 
     // Higher acknowledgement point than we already have?
 
@@ -1336,8 +1336,8 @@ static void NW_SV_ParseGameDataACK(nw_packet_t *packet, nw_client_t *client)
     }
 }
 
-static void NW_SV_SendTics(nw_client_t *client, unsigned int start,
-                            unsigned int end)
+static void ServerSendTics(nw_client_t *client, unsigned int start,
+                           unsigned int end)
 {
     nw_packet_t *packet;
     unsigned int i;
@@ -1378,8 +1378,7 @@ static void NW_SV_SendTics(nw_client_t *client, unsigned int start,
 
 // Parse a retransmission request from a client
 
-static void NW_SV_ParseResendRequest(nw_packet_t *packet,
-                                      nw_client_t *client)
+static void ServerParseResendRequest(nw_packet_t *packet, nw_client_t *client)
 {
     unsigned int start, last;
     unsigned int num_tics;
@@ -1421,7 +1420,7 @@ static void NW_SV_ParseResendRequest(nw_packet_t *packet,
 
     // Resend those tics
     NW_Log("server: resending tics %d-%d", start, last);
-    NW_SV_SendTics(client, start, last);
+    ServerSendTics(client, start, last);
 }
 
 // Send a response back to the client
@@ -1442,8 +1441,8 @@ void NW_SV_SendQueryResponse(nw_addr_t *addr)
 
     // Number of players/maximum players
 
-    querydata.num_players = NW_SV_NumPlayers();
-    querydata.max_players = NW_SV_MaxPlayers();
+    querydata.num_players = ServerNumPlayers();
+    querydata.max_players = ServerMaxPlayers();
 
     // Game mode/mission
 
@@ -1477,7 +1476,7 @@ void NW_SV_SendQueryResponse(nw_addr_t *addr)
     NW_FreePacket(reply);
 }
 
-static void NW_SV_ParseHolePunch(nw_packet_t *packet)
+static void ServerParseHolePunch(nw_packet_t *packet)
 {
     const char *addr_string;
     nw_packet_t *sendpacket;
@@ -1505,7 +1504,7 @@ static void NW_SV_ParseHolePunch(nw_packet_t *packet)
     NW_Log("server: sent hole punch to %s", addr_string);
 }
 
-static void NW_SV_MasterPacket(nw_packet_t *packet)
+static void ServerMasterPacket(nw_packet_t *packet)
 {
     unsigned int packet_type;
 
@@ -1527,14 +1526,14 @@ static void NW_SV_MasterPacket(nw_packet_t *packet)
             break;
 
         case NW_MASTER_PACKET_TYPE_NAT_HOLE_PUNCH:
-            NW_SV_ParseHolePunch(packet);
+            ServerParseHolePunch(packet);
             break;
     }
 }
 
 // Process a packet received by the server
 
-static void NW_SV_Packet(nw_packet_t *packet, nw_addr_t *addr)
+static void ServerPacket(nw_packet_t *packet, nw_addr_t *addr)
 {
     nw_client_t *client;
     unsigned int packet_type;
@@ -1543,13 +1542,13 @@ static void NW_SV_Packet(nw_packet_t *packet, nw_addr_t *addr)
 
     if (addr != NULL && addr == master_server)
     {
-        NW_SV_MasterPacket(packet);
+        ServerMasterPacket(packet);
         return;
     }
 
     // Find which client this packet came from
 
-    client = NW_SV_FindClient(addr);
+    client = ServerFindClient(addr);
 
     // Read the packet type
 
@@ -1566,7 +1565,7 @@ static void NW_SV_Packet(nw_packet_t *packet, nw_addr_t *addr)
 
     if (packet_type == NW_PACKET_TYPE_SYN)
     {
-        NW_SV_ParseSYN(packet, client, addr);
+        ServerParseSYN(packet, client, addr);
     }
     else if (packet_type == NW_PACKET_TYPE_QUERY)
     {
@@ -1587,19 +1586,19 @@ static void NW_SV_Packet(nw_packet_t *packet, nw_addr_t *addr)
         switch (packet_type)
         {
             case NW_PACKET_TYPE_GAMESTART:
-                NW_SV_ParseGameStart(packet, client);
+                ServerParseGameStart(packet, client);
                 break;
             case NW_PACKET_TYPE_LAUNCH:
-                NW_SV_ParseLaunch(packet, client);
+                ServerParseLaunch(packet, client);
                 break;
             case NW_PACKET_TYPE_GAMEDATA:
-                NW_SV_ParseGameData(packet, client);
+                ServerParseGameData(packet, client);
                 break;
             case NW_PACKET_TYPE_GAMEDATA_ACK:
-                NW_SV_ParseGameDataACK(packet, client);
+                ServerParseGameDataACK(packet, client);
                 break;
             case NW_PACKET_TYPE_GAMEDATA_RESEND:
-                NW_SV_ParseResendRequest(packet, client);
+                ServerParseResendRequest(packet, client);
                 break;
             default:
                 // unknown packet type
@@ -1609,7 +1608,7 @@ static void NW_SV_Packet(nw_packet_t *packet, nw_addr_t *addr)
     }
 }
 
-static void NW_SV_PumpSendQueue(nw_client_t *client)
+static void ServerPumpSendQueue(nw_client_t *client)
 {
     nw_full_ticcmd_t cmd;
     int recv_index;
@@ -1620,7 +1619,7 @@ static void NW_SV_PumpSendQueue(nw_client_t *client)
     // If a client has not sent any acknowledgments for a while,
     // wait until they catch up.
 
-    if (client->sendseq - NW_SV_LatestAcknowledged() > 40)
+    if (client->sendseq - ServerLatestAcknowledged() > 40)
     {
         return;
     }
@@ -1731,7 +1730,7 @@ static void NW_SV_PumpSendQueue(nw_client_t *client)
 
     NW_Log("server: send tics %d-%d to %s", starttic, endtic,
             NW_AddrToString(client->addr));
-    NW_SV_SendTics(client, starttic, endtic);
+    ServerSendTics(client, starttic, endtic);
 
     ++client->sendseq;
 }
@@ -1776,7 +1775,7 @@ void NW_SV_CheckDeadlock(nw_client_t *client)
 
                 // Found a tic we haven't received.  Send a resend request.
 
-                NW_SV_SendResendRequest(client, recvwindow_start + i,
+                ServerSendResendRequest(client, recvwindow_start + i,
                                          recvwindow_start + i + 5);
 
                 client->last_gamedata_time = nowtime;
@@ -1793,7 +1792,7 @@ void NW_SV_CheckDeadlock(nw_client_t *client)
         {
             NW_Log("server: also resending tics %d-%d to break deadlock",
                     client->acknowledged, client->sendseq - 1);
-            NW_SV_SendTics(client, client->acknowledged, client->sendseq - 1);
+            ServerSendTics(client, client->acknowledged, client->sendseq - 1);
         }
     }
 }
@@ -1801,7 +1800,7 @@ void NW_SV_CheckDeadlock(nw_client_t *client)
 // Called when all players have disconnected.  Return to listening for
 // players to start a new game, and disconnect any drones still connected.
 
-static void NW_SV_GameEnded(void)
+static void ServerGameEnded(void)
 {
     int i;
 
@@ -1812,14 +1811,14 @@ static void NW_SV_GameEnded(void)
     {
         if (clients[i].active)
         {
-            NW_SV_DisconnectClient(&clients[i]);
+            ServerDisconnectClient(&clients[i]);
         }
     }
 }
 
 // Perform any needed action on a client
 
-static void NW_SV_RunClient(nw_client_t *client)
+static void ServerRunClient(nw_client_t *client)
 {
     // Run common code
 
@@ -1830,7 +1829,7 @@ static void NW_SV_RunClient(nw_client_t *client)
     {
         NW_Log("server: client at %s timed out",
                 NW_AddrToString(client->addr));
-        NW_SV_BroadcastMessage("Client '%s' timed out and disconnected",
+        ServerBroadcastMessage("Client '%s' timed out and disconnected",
                                 client->name);
     }
 
@@ -1845,10 +1844,10 @@ static void NW_SV_RunClient(nw_client_t *client)
 
         if (server_state == SERVER_WAITING_START && !client->drone)
         {
-            NW_SV_BroadcastMessage("Game startup aborted because "
+            ServerBroadcastMessage("Game startup aborted because "
                                     "player '%s' disconnected.",
                                     client->name);
-            NW_SV_GameEnded();
+            ServerGameEnded();
         }
 
         free(client->name);
@@ -1859,10 +1858,10 @@ static void NW_SV_RunClient(nw_client_t *client)
         //
         // Disconnect any drones still connected.
 
-        if (NW_SV_NumPlayers() <= 0)
+        if (ServerNumPlayers() <= 0)
         {
             NW_Log("server: no player clients left, game ended");
-            NW_SV_GameEnded();
+            ServerGameEnded();
         }
     }
 
@@ -1882,14 +1881,14 @@ static void NW_SV_RunClient(nw_client_t *client)
         if (client->last_send_time < 0
             || I_GetTimeMS() - client->last_send_time > 1000)
         {
-            NW_SV_SendWaitingData(client);
+            ServerSendWaitingData(client);
             client->last_send_time = I_GetTimeMS();
         }
     }
 
     if (server_state == SERVER_IN_GAME)
     {
-        NW_SV_PumpSendQueue(client);
+        ServerPumpSendQueue(client);
         NW_SV_CheckDeadlock(client);
     }
 }
@@ -1919,7 +1918,7 @@ void NW_SV_Init(void)
         clients[i].active = false;
     }
 
-    NW_SV_AssignPlayers();
+    ServerAssignPlayers();
 
     server_state = SERVER_WAITING_LAUNCH;
     sv_gamemode = indetermined;
@@ -2000,7 +1999,7 @@ void NW_SV_Run(void)
 
     while (NW_RecvPacket(server_context, &addr, &packet))
     {
-        NW_SV_Packet(packet, addr);
+        ServerPacket(packet, addr);
         NW_FreePacket(packet);
         NW_ReleaseAddress(addr);
     }
@@ -2017,7 +2016,7 @@ void NW_SV_Run(void)
     {
         if (clients[i].active)
         {
-            NW_SV_RunClient(&clients[i]);
+            ServerRunClient(&clients[i]);
         }
     }
 
@@ -2031,13 +2030,13 @@ void NW_SV_Run(void)
             break;
 
         case SERVER_IN_GAME:
-            NW_SV_AdvanceWindow();
+            ServerAdvanceWindow();
 
             for (i = 0; i < NW_MAXPLAYERS; ++i)
             {
                 if (sv_players[i] != NULL && ClientConnected(sv_players[i]))
                 {
-                    NW_SV_CheckResends(sv_players[i]);
+                    ServerCheckResends(sv_players[i]);
                 }
             }
             break;
@@ -2063,7 +2062,7 @@ void NW_SV_Shutdown(void)
     {
         if (clients[i].active)
         {
-            NW_SV_DisconnectClient(&clients[i]);
+            ServerDisconnectClient(&clients[i]);
         }
     }
 

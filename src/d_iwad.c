@@ -291,7 +291,7 @@ static const root_path_t steam_paths[] =
 
 // Values installed by other versions (non-GOG.com, non-Steam)
 
-static const root_path_t misc_paths[] = 
+static const root_path_t misc_paths[] =
 {
     // Doom Collector's Edition
     {
@@ -514,7 +514,7 @@ static void AddXdgDirs(void)
     AddIWADPath(env, "/games/doom3bfg/base/wads");
 }
 
-#  if !defined(__MACOSX__)
+#  if !defined(__APPLE__)
 // Steam on Linux allows installing some select Windows games,
 // including the classic Doom series (running DOSBox via Wine).  We
 // could parse *.vdf files to more accurately detect installation
@@ -576,7 +576,7 @@ static void AddSteamDirs(void)
 
     free(steampath);
 }
-#  endif // __MACOSX__
+#  endif // __APPLE__
 #endif   // !_WIN32
 
 //
@@ -629,7 +629,7 @@ void BuildIWADDirList(void)
 
 #else
     AddXdgDirs();
-#  if !defined(__MACOSX__)
+#  if !defined(__APPLE__)
     AddSteamDirs();
 #  endif
 #endif

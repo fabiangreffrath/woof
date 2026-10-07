@@ -148,6 +148,7 @@ set(WOOF_SOURCES
     p_map.c                p_map.h
     p_maputl.c             p_maputl.h
     p_mobj.c               p_mobj.h
+    p_overunder.c          p_overunder.h
     p_plats.c
     p_pspr.c               p_pspr.h
     p_saveg.c              p_saveg.h
@@ -364,7 +365,7 @@ if(WIN32)
     if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.21 AND NOT VCPKG_TOOLCHAIN)
         install(
             TARGETS woof woof-setup
-            RUNTIME_DEPENDENCIES 
+            RUNTIME_DEPENDENCIES
                 PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
                 POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
                 DIRECTORIES $<TARGET_FILE_DIR:woof> $ENV{PATH}

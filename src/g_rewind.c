@@ -77,9 +77,9 @@ static void Push(keyframe_t *keyframe)
         }
     }
 
-    elem_t *newelem = calloc(1, sizeof(*newelem));    
+    elem_t *newelem = calloc(1, sizeof(*newelem));
     newelem->keyframe = keyframe;
-    
+
     if (IsEmpty())
     {
         queue.top = newelem;
@@ -101,7 +101,7 @@ static keyframe_t *Pop(void)
     {
         return NULL;
     }
-    
+
     elem_t* temp = queue.top;
     keyframe_t *keyframe = temp->keyframe;
     queue.top = temp->next;
@@ -133,7 +133,7 @@ void G_SaveAutoKeyframe(void)
     if (!disable_rewind && current_tic % interval_tics == 0)
     {
         int time = I_GetTimeMS();
-        
+
         Push(P_SaveKeyframe(current_tic));
 
         if (rewind_timeout)

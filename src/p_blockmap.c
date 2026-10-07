@@ -78,7 +78,7 @@ static void AddBlockLine(linelist_t **lists, int *count, int *done, int blockno,
     done[blockno] = 1;
 }
 
-static void P_CreateBlockMap(void)
+static void CreateBlockMap(void)
 {
     int xorg, yorg;                 // blockmap origin (lower left)
     int nrows, ncols;               // blockmap dimensions
@@ -414,7 +414,7 @@ static void P_CreateBlockMap(void)
 // Please note: This section of code is not interchangable with TeamTNT's
 // code which attempts to fix the same problem.
 
-static void P_CreateBlockMap(void)
+static void CreateBlockMap(void)
 {
     register int i;
     fixed_t minx = INT_MAX, miny = INT_MAX, maxx = INT_MIN, maxy = INT_MIN;
@@ -620,7 +620,7 @@ static void P_CreateBlockMap(void)
 // Check if there is at least one block in BLOCKMAP
 // which does not have 0 as the first item in the list
 
-static void P_SetSkipBlockStart(void)
+static void SetSkipBlockStart(void)
 {
     int x, y;
 
@@ -722,7 +722,7 @@ static void LoadBlockmap_DoomBlockmap(int lump, int bmap_size)
     bmapwidth = blockmaplump[2];
     bmapheight = blockmaplump[3];
 
-    P_SetSkipBlockStart();
+    SetSkipBlockStart();
 }
 
 static void LoadBlockmap_XBM1(int lump, int bmap_size)
@@ -746,7 +746,7 @@ static void LoadBlockmap_XBM1(int lump, int bmap_size)
 
     Z_Free(data);
 
-    P_SetSkipBlockStart();
+    SetSkipBlockStart();
 }
 
 bmap_format_t P_LoadBlockMap(int lump)
@@ -763,7 +763,7 @@ bmap_format_t P_LoadBlockMap(int lump)
             LoadBlockmap_XBM1(lump, bmap_size);
             break;
         case BMAP_BoomBuilder:
-            P_CreateBlockMap();
+            CreateBlockMap();
             break;
     }
 

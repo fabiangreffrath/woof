@@ -95,7 +95,7 @@ Clone the woof repository:
 
 ```
  git clone https://github.com/fabiangreffrath/woof.git
-``` 
+```
 
 Run the CMake configuration:
 ```
@@ -114,7 +114,7 @@ After successful compilation, the executable will be available in the `build/src
 ## Linux, and Windows with MSYS2
 
 The following build system and libraries need to be installed:
- 
+
  * [CMake](https://cmake.org) (>= 3.15)
  * [SDL3](https://github.com/libsdl-org/SDL) (>= 3.4.0)
  * [SDL3_net](https://github.com/libsdl-org/SDL_net/)
@@ -126,7 +126,7 @@ The following build system and libraries need to be installed:
  * [libxmp](https://github.com/libxmp/libxmp) (optional)
  * [libspng](https://github.com/randy408/libspng) (optional)
  * [discord-rpc](https://github.com/discord/discord-rpc) (optional)
- 
+
 Usually your distribution should have the corresponding packages in its repositories. If "development" ("dev") versions of these libraries are available, make sure to install them.
 
 Once installed, clone the woof repository, run the CMake configuration and build the project:
@@ -144,7 +144,7 @@ After successful compilation, the executable will be available in the `build/src
 
 The canonical homepage for Woof! is <https://github.com/fabiangreffrath/woof>.
 
-Woof! is maintained by [Fabian Greffrath](mailto:fabian@greffXremovethisXrath.com). 
+Woof! is maintained by [Fabian Greffrath](mailto:fabian@greffXremovethisXrath.com).
 
 Please report any bugs, glitches or crashes that you encounter to the GitHub [Issue Tracker](https://github.com/fabiangreffrath/woof/issues).
 
@@ -295,7 +295,7 @@ Copyright:
  © 2025 Zokum.  
 License: [CC BY-SA](https://creativecommons.org/licenses/by-sa/4.0/)
 
-Files: `third-party/libebur128/*`
+Files: `third-party/libebur128/*`  
 Copyright:  
  © 2011 Jan Kokemüller.  
 License: [MIT](https://opensource.org/licenses/MIT)
