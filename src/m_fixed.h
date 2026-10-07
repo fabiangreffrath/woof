@@ -20,7 +20,9 @@
 #ifndef __M_FIXED__
 #define __M_FIXED__
 
+#include <limits.h>
 #include <stdint.h> // int32_t, int64_t, uint32_t, INT32_MIN, INT32_MAX
+#include <stdlib.h>
 
 //
 // Fixed point, 32bit as 16.16.
