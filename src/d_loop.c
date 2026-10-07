@@ -94,13 +94,6 @@ fixed_t offsetms;
 
 static boolean new_sync = true;
 
-typedef enum
-{
-    OLD_SYNC,
-    NEW_SYNC,
-    ROLLBACK_SYNC
-} syncmode_t;
-
 // Current players in the multiplayer game.
 // This is distinct from playeringame[] used by the game code, which may
 // modify playeringame[] when playing back multiplayer demos.
@@ -369,7 +362,7 @@ void D_StartNetGame(nw_gamesettings_t *settings,
     // sync code.
     //
 
-    settings->syncmode = M_ParmExists("-oldsync") ? OLD_SYNC : ROLLBACK_SYNC;
+    settings->new_sync = !M_ParmExists("-oldsync");
 
     //!
     // @category net
@@ -439,17 +432,14 @@ void D_StartNetGame(nw_gamesettings_t *settings,
     // Copy settings to global variables.
 
     ticdup = settings->ticdup;
-    new_sync = (settings->syncmode > OLD_SYNC);
+    new_sync = settings->new_sync;
 
     if (ticdup < 1)
     {
         I_Error("invalid ticdup value (%d)", ticdup);
     }
 
-    if (settings->syncmode == ROLLBACK_SYNC)
-    {
-        RB_Init(localplayer, settings->num_players);
-    }
+    RB_Init(localplayer, settings->num_players);
 
     // TODO: Message disabled until we fix new_sync.
     // if (!new_sync)

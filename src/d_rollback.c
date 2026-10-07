@@ -142,10 +142,24 @@ void RB_Init(int consoleplayer, int num_players)
 static void FreeOldKeyframes(void)
 {
     // A misprediction can only be detected for a tic at or above
-    // rb_recvtic - 1, when its confirmed data arrives. Keep a margin
-    // beyond that and free everything older.
+    // rb_recvtic - 1, when its confirmed data arrives. A pending
+    // rollback targets such a tic, and its keyframe search reaches
+    // RB_KEYFRAME_INTERVAL + RB_MAX_PREDICT + 1 tics below the target.
+    //
+    // The horizon must therefore respect a pending rollback: a burst of
+    // confirmed tics (common right after a packet-loss stall) advances
+    // rb_recvtic in a single frame, and without this the keyframes the
+    // pending rollback is about to use would be freed first, stalling
+    // the rollback and leaving the divergence uncorrected.
 
-    const int oldest = rb_recvtic - RB_MAX_PREDICT - RB_KEYFRAME_INTERVAL - 2;
+    int horizon = rb_recvtic;
+
+    if (rollback_pending >= 0 && rollback_pending < horizon)
+    {
+        horizon = rollback_pending;
+    }
+
+    const int oldest = horizon - RB_MAX_PREDICT - RB_KEYFRAME_INTERVAL - 2;
 
     for (int i = 0; i < BACKUPTICS; ++i)
     {
@@ -203,6 +217,21 @@ void RB_ReceiveTic(int tic, ticcmd_t *ticcmds, boolean *players_mask)
     rb_recvtic = tic + 1;
 
     FreeOldKeyframes();
+}
+
+boolean RB_TicConfirmed(int tic)
+{
+    if (!rollback_enabled)
+    {
+        return true;
+    }
+
+    // RB_ReceiveTic() can only schedule a rollback for the tic it is
+    // confirming right now, that is, for rb_recvtic - 1. Everything
+    // below that has been confirmed and matched the prediction, so its
+    // state is final.
+
+    return tic < rb_recvtic - 1;
 }
 
 boolean RB_CanPredict(void)
@@ -382,7 +411,15 @@ boolean RB_BeginRollback(int *start_tic, int *end_tic)
     if (!keyframe)
     {
         // Nothing to roll back to. Stall until we have caught up with
-        // the confirmed data.
+        // the confirmed data. The divergence at `target` is left
+        // uncorrected, so this must never happen in practice; if it
+        // does, the client is now permanently out of sync with its
+        // peers and a lockstep peer will fail its consistency check.
+
+        I_Printf(VB_WARNING,
+                 "rollback stalled at tic %d: no keyframe in [%d, %d]",
+                 target, target - RB_KEYFRAME_INTERVAL - RB_MAX_PREDICT - 1,
+                 target);
 
         rb_stalled = true;
 

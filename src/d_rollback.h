@@ -38,6 +38,12 @@ void RB_Shutdown(void);
 
 void RB_ReceiveTic(int tic, ticcmd_t *ticcmds, boolean *players_mask);
 
+// True if the state of the given tic can no longer change: it has been
+// confirmed by the server and no rollback can still reach it. Always
+// true when rollback is not in use.
+
+boolean RB_TicConfirmed(int tic);
+
 // Whether inputs may be predicted in the current game state.
 
 boolean RB_CanPredict(void);

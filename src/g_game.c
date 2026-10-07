@@ -3158,12 +3158,22 @@ void G_Ticker(void)
 		  displaymsg("%s is turbo!", DEH_StringColorized(strings_players[i])); // killough 9/29/98
 		}
 
-	      if (netgame && !netdemo && !rollback_enabled && !(gametic%ticdup) )
+	      if (netgame && !netdemo && !(gametic%ticdup) )
 		{
+		  // The record must always be written, including during a
+		  // rollback resim: that is what corrects the checksum we
+		  // will send BACKUPTICS tics from now, and what a lockstep
+		  // peer compares against.
+		  //
+		  // The comparison, however, is only valid on the forward
+		  // (non-resim) run of a confirmed tic.
 		  if (gametic > BACKUPTICS
+		      && !rollback_resim
+		      && RB_TicConfirmed(gametic / ticdup)
 		      && consistancy[i][buf] != cmd->consistancy)
-		    I_Error ("consistency failure (%i should be %i)",
-			     cmd->consistancy, consistancy[i][buf]);
+		    I_Error("Desync: player %i at tic %i (got %i, expected %i)",
+			     i, gametic / ticdup, cmd->consistancy,
+			     consistancy[i][buf]);
 		  if (players[i].mo)
 		    consistancy[i][buf] = players[i].mo->x;
 		  else
