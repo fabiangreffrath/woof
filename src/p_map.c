@@ -2088,7 +2088,7 @@ static void carry_above(mobj_t *lower, mobj_t *upper)
 
     upper->z = lower->z + lower->height;
 
-    if (!ThingHeightClip(upper))
+    if (!P_ThingHeightClip(upper))
     {
       nofit = true;
     }
