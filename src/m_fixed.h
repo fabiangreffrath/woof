@@ -79,6 +79,28 @@ inline static int64_t FixedMul64(int64_t a, int64_t b)
 }
 
 //
+// Fixed Point Addition, Subtraction, Absolute Value
+//
+
+inline static fixed_t FixedAdd(fixed_t a, fixed_t b)
+{
+    // wraparound addition without signed-overflow UB
+    return (fixed_t)((unsigned int)a + (unsigned int)b);
+}
+
+inline static fixed_t FixedSub(fixed_t a, fixed_t b)
+{
+    // wraparound subtraction without signed-overflow UB
+    return (fixed_t)((unsigned int)a - (unsigned int)b);
+}
+
+inline static fixed_t FixedAbs(fixed_t x)
+{
+    // avoid abs(INT_MIN) UB
+    return x < 0 ? (fixed_t)(0u - (unsigned int)x) : x;
+}
+
+//
 // Fixed Point Division
 //
 
@@ -93,52 +115,15 @@ inline static int32_t div64_32(int64_t a, int32_t b)
 
 inline static fixed_t FixedDiv(fixed_t a, fixed_t b)
 {
-    // Get absolute values without triggering UBSan
-    int abs_a, abs_b;
+    const fixed_t abs_a = FixedAbs(a);
+    const fixed_t abs_b = FixedAbs(b);
 
-    // For 'a': handle INT_MIN specially
-    if (a == INT_MIN)
-    {
-        abs_a = INT_MIN; // Matches original abs(INT_MIN) behavior
-    }
-    else
-    {
-        abs_a = abs(a);
-    }
-
-    // For 'b': handle INT_MIN specially
-    if (b == INT_MIN)
-    {
-        abs_b = INT_MIN; // Matches original abs(INT_MIN) behavior
-    }
-    else
-    {
-        abs_b = abs(b);
-    }
-
-    // Original overflow check
     if ((abs_a >> 14) >= abs_b)
     {
         return (a ^ b) < 0 ? INT_MIN : INT_MAX;
     }
 
     return div64_32(shiftleft64(a, FRACBITS), b);
-}
-
-static inline fixed_t FixedAbs(fixed_t x)
-{
-    // avoid abs(INT_MIN) UB
-    return x < 0 ? (fixed_t)(0u - (unsigned int)x) : x;
-}
-
-inline static fixed_t FixedAdd(fixed_t a, fixed_t b)
-{
-    return (fixed_t)((unsigned int)a + (unsigned int)b);
-}
-
-inline static fixed_t FixedSub(fixed_t a, fixed_t b)
-{
-    return (fixed_t)((unsigned int)a - (unsigned int)b);
 }
 
 #endif
