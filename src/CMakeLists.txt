@@ -147,6 +147,7 @@ set(WOOF_SOURCES
     p_map.c                p_map.h
     p_maputl.c             p_maputl.h
     p_mobj.c               p_mobj.h
+    p_overunder.c          p_overunder.h
     p_plats.c
     p_pspr.c               p_pspr.h
     p_saveg.c              p_saveg.h

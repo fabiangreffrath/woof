@@ -263,7 +263,7 @@ boolean OpenFolder(const char *path)
     char *cmd;
     int result;
 
-#if defined(__MACOSX__)
+#if defined(__APPLE__)
     cmd = M_StringJoin("open \"", path, "\"");
 #else
     cmd = M_StringJoin("xdg-open \"", path, "\"");

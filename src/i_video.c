@@ -388,7 +388,7 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
 static boolean ToggleFullScreenKeyShortcut(SDL_Scancode scancode)
 {
     Uint16 flags = (SDL_KMOD_LALT | SDL_KMOD_RALT);
-#if defined(__MACOSX__)
+#if defined(__APPLE__)
     flags |= (SDL_KMOD_LGUI | SDL_KMOD_RGUI);
 #endif
     return (scancode == SDL_SCANCODE_RETURN
