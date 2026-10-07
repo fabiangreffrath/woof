@@ -173,9 +173,7 @@ static boolean NW_SDL_InitSocket(Uint16 bind_port)
         return false;
     }
 
-#ifdef DROP_PACKETS
-    NET_SimulateDatagramPacketLoss(udpsocket, 25);
-#endif
+    //NET_SimulateDatagramPacketLoss(udpsocket, 5);
 
     initted = true;
 

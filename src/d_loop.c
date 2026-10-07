@@ -20,6 +20,7 @@
 
 #include "d_event.h"
 #include "d_loop.h"
+#include "d_rollback.h"
 #include "d_ticcmd.h"
 #include "doomdef.h"
 #include "doomstat.h"
@@ -112,7 +113,7 @@ static int GetAdjustedTime(void)
     // Use the adjustments from nw_client.c only if we are
     // using the new sync mode.
 
-    if (new_sync && nw_client_connected)
+    if (!rollback_enabled && new_sync && nw_client_connected)
     {
         int time_ms;
 
@@ -280,6 +281,13 @@ void D_ReceiveTic(ticcmd_t *ticcmds, boolean *players_mask)
         return;
     }
 
+    if (rollback_enabled)
+    {
+        RB_ReceiveTic(recvtic, ticcmds, players_mask);
+        ++recvtic;
+        return;
+    }
+
     for (i = 0; i < NW_MAXPLAYERS; ++i)
     {
         if (!drone && i == localplayer)
@@ -431,11 +439,7 @@ void D_StartNetGame(nw_gamesettings_t *settings,
         I_Error("invalid ticdup value (%d)", ticdup);
     }
 
-    // TODO: Message disabled until we fix new_sync.
-    // if (!new_sync)
-    //{
-    //    printf("Syncing netgames like Vanilla Doom.\n");
-    //}
+    RB_Init(localplayer);
 }
 
 boolean D_InitNetGame(nw_connect_data_t *connect_data)
@@ -572,6 +576,7 @@ void D_CheckNetPlaybackSkip(void)
 //
 void D_QuitNetGame(void)
 {
+    RB_Shutdown();
     NW_SV_Shutdown();
     NW_CL_Disconnect();
     nw_sdl_module.Shutdown();
@@ -736,6 +741,114 @@ static void SinglePlayerClear(ticcmd_set_t *set)
 
 void RunTic(ticcmd_t *cmds, boolean *ingame);
 
+//
+// Rollback variant of TryRunTics(). The simulation runs ahead of the
+// confirmed data using predicted inputs for remote players. When the
+// confirmed data turns out to differ, the state is restored from the
+// newest keyframe and the tics are resimulated.
+//
+
+static void TryRunTicsRollback(void)
+{
+    int counts;
+
+    // Build local input and pump the network. Received tics may
+    // schedule a rollback.
+
+    NetUpdate();
+
+    // Resolve mispredictions before running any new tics.
+
+    if (RB_NeedsRollback())
+    {
+        int start_tic, end_tic;
+
+        if (RB_BeginRollback(&start_tic, &end_tic))
+        {
+            rollback_resim = true;
+
+            for (int i = start_tic; i < end_tic; ++i)
+            {
+                ticcmd_t cmds[NW_MAXPLAYERS];
+                boolean ingame[NW_MAXPLAYERS];
+
+                RB_PrepareTic(i, &ticdata[i % BACKUPTICS].cmds[localplayer],
+                              cmds, ingame);
+                RB_MaybeSaveKeyframe(i);
+
+                memcpy(local_playeringame, ingame, sizeof(local_playeringame));
+
+                RunTic(cmds, ingame);
+                gametic += ticdup;
+            }
+
+            rollback_resim = false;
+        }
+    }
+
+    // Decide how many tics to run.
+
+    counts = RB_RunLimit() - gametic / ticdup;
+
+    if (counts < 1)
+    {
+        int entertic;
+
+        // [AM] If we've uncapped the framerate and there are no tics
+        //      to run, return early instead of waiting around.
+
+        if (uncapped && screenvisible)
+        {
+            return;
+        }
+
+        // Wait for new tics, but don't stay in here forever - give
+        // the menu a chance to work.
+
+        entertic = I_GetTime() / ticdup;
+
+        while (counts < 1)
+        {
+            NetUpdate();
+
+            counts = RB_RunLimit() - gametic / ticdup;
+
+            if (counts > 0)
+            {
+                break;
+            }
+
+            if (I_GetTime() / ticdup - entertic >= MAX_NETGAME_STALL_TICS)
+            {
+                return;
+            }
+
+            I_Sleep(1);
+        }
+    }
+
+    while (counts--)
+    {
+        const int tic = gametic / ticdup;
+        ticcmd_t cmds[NW_MAXPLAYERS];
+        boolean ingame[NW_MAXPLAYERS];
+
+        RB_PrepareTic(tic, &ticdata[tic % BACKUPTICS].cmds[localplayer],
+                      cmds, ingame);
+        RB_MaybeSaveKeyframe(tic);
+
+        memcpy(local_playeringame, ingame, sizeof(local_playeringame));
+
+        RunTic(cmds, ingame);
+        gametic += ticdup;
+
+        NetUpdate(); // check for new console commands
+    }
+
+    // killough 3/16/98: change consoleplayer to displayplayer
+    S_UpdateSounds(players[displayplayer].mo); // move positional sounds
+}
+
 void TryRunTics(void)
 {
     int i;
@@ -745,6 +858,12 @@ void TryRunTics(void)
     int realtics;
     int availabletics;
     int counts;
+
+    if (rollback_enabled && nw_client_connected && !drone)
+    {
+        TryRunTicsRollback();
+        return;
+    }
 
 // [AM] If we've uncapped the framerate and there are no tics
 //      to run, return early instead of waiting around.

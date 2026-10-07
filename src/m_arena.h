@@ -37,7 +37,8 @@ void M_ArenaClear(arena_t *arena);
 
 typedef struct arena_copy_s arena_copy_t;
 
-arena_copy_t *M_ArenaCopy(const arena_t *arena);
+arena_copy_t *M_ArenaCreateCopy(const arena_t *arena);
+arena_copy_t *M_ArenaCopy(arena_copy_t *copy, const arena_t *arena);
 void M_ArenaRestore(arena_t *arena, const arena_copy_t *copy);
 void M_ArenaFreeCopy(arena_copy_t *copy);
 

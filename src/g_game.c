@@ -31,6 +31,7 @@
 #include "d_iwad.h"
 #include "d_main.h"
 #include "d_player.h"
+#include "d_rollback.h"
 #include "d_ticcmd.h"
 #include "deh_bex_partimes.h"
 #include "deh_main.h"
@@ -394,7 +395,7 @@ static void (*UpdateLocalView)(void);
 
 void G_UpdateLocalViewFunction(void)
 {
-  if (lowres_turn && fake_longtics && (!netgame || solonet))
+  if (lowres_turn && fake_longtics)
   {
     UpdateLocalView = UpdateLocalView_FakeLongTics;
   }
@@ -3110,7 +3111,7 @@ void G_Ticker(void)
     }
   else
     {
-      if (!timingdemo && !paused
+      if (!timingdemo && !paused && !netgame
           && gamestate == GS_LEVEL && gameaction == ga_nothing)
         G_SaveAutoKeyframe();
 
@@ -3159,10 +3160,20 @@ void G_Ticker(void)
 
 	      if (netgame && !netdemo && !(gametic%ticdup) )
 		{
+		  // The record must always be written, including during a
+		  // rollback resim: that is what corrects the checksum we
+		  // will send BACKUPTICS tics from now, and what a lockstep
+		  // peer compares against.
+		  //
+		  // The comparison, however, is only valid on the forward
+		  // (non-resim) run of a confirmed tic.
 		  if (gametic > BACKUPTICS
+		      && !rollback_resim
+		      && RB_TicConfirmed(gametic / ticdup)
 		      && consistancy[i][buf] != cmd->consistancy)
-		    I_Error ("consistency failure (%i should be %i)",
-			     cmd->consistancy, consistancy[i][buf]);
+		    I_Error("Desync: player %i at tic %i (got %i, expected %i)",
+			     i, gametic / ticdup, cmd->consistancy,
+			     consistancy[i][buf]);
 		  if (players[i].mo)
 		    consistancy[i][buf] = players[i].mo->x;
 		  else
@@ -3174,7 +3185,8 @@ void G_Ticker(void)
       if (demoplayback)
         ++playback_tic;
 
-      HU_UpdateCommandHistory(&players[displayplayer].cmd);
+      if (!rollback_resim)
+        HU_UpdateCommandHistory(&players[displayplayer].cmd);
 
       // check for special buttons
       for (i=0; i<MAXPLAYERS; i++)

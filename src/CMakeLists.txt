@@ -12,6 +12,7 @@ set(WOOF_SOURCES
     d_main.c               d_main.h
     d_net.c
                            d_player.h
+    d_rollback.c           d_rollback.h
                            d_think.h
                            d_ticcmd.h
                            doomdata.h

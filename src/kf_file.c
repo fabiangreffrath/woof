@@ -16,8 +16,10 @@
 #include "d_player.h"
 #include "d_think.h"
 #include "doomdata.h"
+#include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
+#include "g_game.h"
 #include "i_printf.h"
 #include "i_system.h"
 #include "info.h"
@@ -2407,6 +2409,15 @@ void P_ArchiveKeyframe(json_mut_doc_t *doc, json_mut_t *root_mut)
     // p_setup.h
     ArchiveBlocklinks(doc, root_mut);
 
+    json_mut_t *playeringame_arr = JS_NewArray(doc);
+    for (int i = 0; i < MAXPLAYERS; ++i)
+    {
+        JS_ArrayAddInt(doc, playeringame_arr, playeringame[i]);
+    }
+    JS_SetArray(doc, root_mut, "playeringame", playeringame_arr);
+    JS_SetInt(doc, root_mut, "bodyqueslot", bodyqueslot);
+    JS_SetInt(doc, root_mut, "bodyquesize", bodyquesize);
+
     // p_spec.h
     ArchivePlayers(doc, root_mut);
     ArchiveThinkers(doc, root_mut);
@@ -2487,6 +2498,19 @@ void P_UnArchiveKeyframe(json_t *root)
     PrepareUnArchiveCeilingList(ceilinglist_arr);
     json_t *platlist_arr = JS_GetObject(root, "platlist");
     PrepareUnArchivePlatList(platlist_arr);
+
+    json_t *playeringame_arr = JS_GetObject(root, "playeringame");
+    if (JS_IsArray(playeringame_arr))
+    {
+        json_arr_iter_t *iter = JS_ArrayIterator(playeringame_arr);
+        for (int i = 0; i < MAXPLAYERS; ++i)
+        {
+            playeringame[i] = JS_GetInteger(JS_ArrayNext(iter));
+        }
+        JS_ArrayIteratorFree(iter);
+    }
+    bodyqueslot = JS_GetIntegerValueDefault(root, "bodyqueslot", bodyqueslot);
+    bodyquesize = JS_GetIntegerValueDefault(root, "bodyquesize", bodyquesize);
 
     UnArchivePlayers(root);
     UnArchiveThinkers(thinkers_obj);
