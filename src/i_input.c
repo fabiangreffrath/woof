@@ -409,7 +409,7 @@ static void DisableGamepadEvents(void)
     SDL_SetEventEnabled(SDL_EVENT_GAMEPAD_TOUCHPAD_MOTION, false);
 }
 
-static void ShutdownGamepad(void)
+static void I_ShutdownGamepad(void)
 {
     I_ShutdownRumble();
     SDL_QuitSubSystem(SDL_INIT_GAMEPAD);
@@ -483,7 +483,7 @@ void I_InitGamepad(void)
 
     I_Printf(VB_INFO, "I_InitGamepad: Initialize gamepad.");
 
-    I_AtExit(ShutdownGamepad, true);
+    I_AtExit(I_ShutdownGamepad, true);
 
     if (joy_device > 0)
     {

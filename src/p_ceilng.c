@@ -52,7 +52,7 @@ arena_t *activeceilings_arena;
 // jff 02/08/98 all cases with labels beginning with gen added to support
 // generalized line type behaviors.
 //
-static void ThinkerMoveCeiling(ceiling_t* ceiling)
+static void T_MoveCeiling(ceiling_t* ceiling)
 {
   result_e  res;
 
@@ -230,7 +230,7 @@ static void ThinkerMoveCeiling(ceiling_t* ceiling)
 
 void T_MoveCeilingAdapter(mobj_t *mobj)
 {
-    ThinkerMoveCeiling((ceiling_t *)mobj);
+    T_MoveCeiling((ceiling_t *)mobj);
 }
 
 

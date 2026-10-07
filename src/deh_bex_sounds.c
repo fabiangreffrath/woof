@@ -56,7 +56,7 @@ static int SoundsGetIndex(const char *key)
     return i;
 }
 
-static int BEXSoundsStart(deh_context_t *context, char *line)
+static int DEH_BEXSoundsStart(deh_context_t *context, char *line)
 {
     char s[9];
 
@@ -68,7 +68,7 @@ static int BEXSoundsStart(deh_context_t *context, char *line)
     return 0;
 }
 
-static void BEXSoundsParseLine(deh_context_t *context, char *line, int tag)
+static void DEH_BEXSoundsParseLine(deh_context_t *context, char *line, int tag)
 {
     char *sound_key, *sound_name;
 
@@ -100,8 +100,8 @@ deh_section_t deh_section_bex_sounds =
 {
     "[SOUNDS]",
     NULL,
-    BEXSoundsStart,
-    BEXSoundsParseLine,
+    DEH_BEXSoundsStart,
+    DEH_BEXSoundsParseLine,
     NULL,
     NULL,
 };

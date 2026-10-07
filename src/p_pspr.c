@@ -85,7 +85,7 @@ void A_Recoil(player_t* player)
 // P_SetPsprite
 //
 
-static void SetPsprite(player_t *player, int position, statenum_t stnum)
+static void P_SetPsprite(player_t *player, int position, statenum_t stnum)
 {
   if (position == ps_weapon)
   {
@@ -160,7 +160,7 @@ void P_SetPspritePtr(player_t *player, pspdef_t *psp, statenum_t stnum)
 // Uses player
 //
 
-static void BringUpWeapon(player_t *player)
+static void P_BringUpWeapon(player_t *player)
 {
   statenum_t newstate;
 
@@ -188,7 +188,7 @@ static void BringUpWeapon(player_t *player)
 
   psp->sxf = psp->syf = 0;
 
-  SetPsprite(player, ps_weapon, newstate);
+  P_SetPsprite(player, ps_weapon, newstate);
 }
 
 // The first set is where the weapon preferences from             // killough,
@@ -205,7 +205,7 @@ int weapon_preferences[2][NUMWEAPONS+1] = {
 // takes each weapon's ammotype and ammopershot into account,
 // instead of blindly assuming both.
 
-static int SwitchWeaponMBF21(player_t *player)
+static int P_SwitchWeaponMBF21(player_t *player)
 {
   int *prefer;
   int currentweapon, newweapon;
@@ -291,7 +291,7 @@ int P_SwitchWeapon(player_t *player)
   // it doesn't impact demo playback (weapon
   // switches are saved in the demo itself)
   if (mbf21)
-    return SwitchWeaponMBF21(player);
+    return P_SwitchWeaponMBF21(player);
 
   // Fix weapon switch logic in vanilla (example: chainsaw with ammo)
   if (demo_compatibility)
@@ -401,7 +401,7 @@ boolean P_CheckAmmo(player_t *player)
     {
       player->pendingweapon = P_SwitchWeapon(player);      // phares
       // Now set appropriate weapon overlay.
-      SetPsprite(player,ps_weapon,weaponinfo[player->readyweapon].downstate);
+      P_SetPsprite(player,ps_weapon,weaponinfo[player->readyweapon].downstate);
     }
 
 #if 0 /* PROBABLY UNSAFE */
@@ -451,7 +451,7 @@ void P_SubtractAmmo(struct player_s *player, int vanilla_amount)
 
 int lastshottic; // killough 3/22/98
 
-static void FireWeapon(player_t *player)
+static void P_FireWeapon(player_t *player)
 {
   statenum_t newstate;
 
@@ -460,7 +460,7 @@ static void FireWeapon(player_t *player)
 
   P_SetMobjState(player->mo, S_PLAY_ATK1);
   newstate = weaponinfo[player->readyweapon].atkstate;
-  SetPsprite(player, ps_weapon, newstate);
+  P_SetPsprite(player, ps_weapon, newstate);
   if (!(weaponinfo[player->readyweapon].flags & WPF_SILENT))
   {
   P_NoiseAlert(player->mo, player->mo);
@@ -475,7 +475,7 @@ static void FireWeapon(player_t *player)
 
 void P_DropWeapon(player_t *player)
 {
-  SetPsprite(player, ps_weapon, weaponinfo[player->readyweapon].downstate);
+  P_SetPsprite(player, ps_weapon, weaponinfo[player->readyweapon].downstate);
 }
 
 //
@@ -483,7 +483,7 @@ void P_DropWeapon(player_t *player)
 // Bob the weapon based on movement speed.
 //
 
-static void ApplyBobbing(int *sx, int *sy, fixed_t bob)
+static void P_ApplyBobbing(int *sx, int *sy, fixed_t bob)
 {
   int angle = (128*leveltime) & FINEMASK;
   *sx = FRACUNIT + FixedMul(bob, finecosine[angle]);
@@ -518,7 +518,7 @@ void A_WeaponReady(mobj_t *mo, player_t *player, pspdef_t *psp)
     {
       // change weapon (pending weapon should already be validated)
       statenum_t newstate = weaponinfo[player->readyweapon].downstate;
-      SetPsprite(player, ps_weapon, newstate);
+      P_SetPsprite(player, ps_weapon, newstate);
       return;
     }
   else
@@ -532,7 +532,7 @@ void A_WeaponReady(mobj_t *mo, player_t *player, pspdef_t *psp)
       if (!player->attackdown || !(weaponinfo[player->readyweapon].flags & WPF_NOAUTOFIRE))
         {
           player->attackdown = true;
-          FireWeapon(player);
+          P_FireWeapon(player);
           return;
         }
     }
@@ -541,7 +541,7 @@ void A_WeaponReady(mobj_t *mo, player_t *player, pspdef_t *psp)
 
   psp->sxf = psp->syf = 0;
 
-  ApplyBobbing(&psp->sx, &psp->sy, player->bob);
+  P_ApplyBobbing(&psp->sx, &psp->sy, player->bob);
 }
 
 //
@@ -561,7 +561,7 @@ void A_ReFire(mobj_t *mo, player_t *player, pspdef_t *psp)
        && player->pendingweapon == wp_nochange && player->health)
     {
       player->refire++;
-      FireWeapon(player);
+      P_FireWeapon(player);
     }
   else
     {
@@ -584,7 +584,7 @@ void A_CheckReload(mobj_t *mo, player_t *player, pspdef_t *psp)
     // reload frames for the weapon here. G_BuildTiccmd will set ->pendingweapon
     // for us later on.
     boom_weapon_state_injection = true;
-    SetPsprite(player, ps_weapon, weaponinfo[player->readyweapon].downstate);
+    P_SetPsprite(player, ps_weapon, weaponinfo[player->readyweapon].downstate);
   }
 }
 
@@ -616,7 +616,7 @@ void A_Lower(mobj_t *mo, player_t *player, pspdef_t *psp)
 
   if (!player->health)
     {      // Player is dead, so keep the weapon off screen.
-      SetPsprite(player,  ps_weapon, S_NULL);
+      P_SetPsprite(player,  ps_weapon, S_NULL);
       return;
     }
 
@@ -626,7 +626,7 @@ void A_Lower(mobj_t *mo, player_t *player, pspdef_t *psp)
     player->readyweapon = player->pendingweapon;
   }
 
-  BringUpWeapon(player);
+  P_BringUpWeapon(player);
 }
 
 //
@@ -651,7 +651,7 @@ void A_Raise(mobj_t *mo, player_t *player, pspdef_t *psp)
 
   newstate = weaponinfo[player->readyweapon].readystate;
 
-  SetPsprite(player, ps_weapon, newstate);
+  P_SetPsprite(player, ps_weapon, newstate);
 }
 
 // Weapons now recoil, amount depending on the weapon.              // phares
@@ -661,9 +661,9 @@ void A_Raise(mobj_t *mo, player_t *player, pspdef_t *psp)
 // muzzle flash, rather than the pressing of the trigger.
 // The BFG delay caused this to be necessary.
 
-static void FireSomething(player_t* player,int adder)
+static void A_FireSomething(player_t* player,int adder)
 {
-  SetPsprite(player, ps_flash,
+  P_SetPsprite(player, ps_flash,
                weaponinfo[player->readyweapon].flashstate+adder);
 
   // killough 3/27/98: prevent recoil in no-clipping mode
@@ -683,7 +683,7 @@ void A_GunFlash(mobj_t *mo, player_t *player, pspdef_t *psp)
 
   P_SetMobjState(player->mo, S_PLAY_ATK2);
 
-  FireSomething(player,0);                                      // phares
+  A_FireSomething(player,0);                                      // phares
 }
 
 //
@@ -924,7 +924,7 @@ void A_FirePlasma(mobj_t *mo, player_t *player, pspdef_t *psp)
   RETURN_IF_NO_PLAYER
 
   P_SubtractAmmo(player, 1);
-  FireSomething(player, P_Random(pr_plasma) & 1);
+  A_FireSomething(player, P_Random(pr_plasma) & 1);
 
   // killough 7/11/98: emulate Doom's beta version, which alternated fireballs
   P_SpawnPlayerMissile(player->mo, beta_emulation ?
@@ -939,7 +939,7 @@ void A_FirePlasma(mobj_t *mo, player_t *player, pspdef_t *psp)
 
 fixed_t bulletslope;
 
-static void BulletSlope(mobj_t *mo)
+static void P_BulletSlope(mobj_t *mo)
 {
   angle_t an = mo->angle;    // see which target is to be aimed at
 
@@ -993,9 +993,9 @@ void A_FirePistol(mobj_t *mo, player_t *player, pspdef_t *psp)
   P_SetMobjState(player->mo, S_PLAY_ATK2);
   P_SubtractAmmo(player, 1);
 
-  FireSomething(player,0);                                      // phares
+  A_FireSomething(player,0);                                      // phares
   A_Recoil(player);
-  BulletSlope(player->mo);
+  P_BulletSlope(player->mo);
   P_GunShot(player->mo, !player->refire);
 }
 
@@ -1014,10 +1014,10 @@ void A_FireShotgun(mobj_t *mo, player_t *player, pspdef_t *psp)
 
   P_SubtractAmmo(player, 1);
 
-  FireSomething(player,0);                                      // phares
+  A_FireSomething(player,0);                                      // phares
   A_Recoil(player);
 
-  BulletSlope(player->mo);
+  P_BulletSlope(player->mo);
 
   for (i=0; i<7; i++)
     P_GunShot(player->mo, false);
@@ -1037,10 +1037,10 @@ void A_FireShotgun2(mobj_t *mo, player_t *player, pspdef_t *psp)
   P_SetMobjState(player->mo, S_PLAY_ATK2);
   P_SubtractAmmo(player, 2);
 
-  FireSomething(player,0);                                      // phares
+  A_FireSomething(player,0);                                      // phares
   A_Recoil(player);
 
-  BulletSlope(player->mo);
+  P_BulletSlope(player->mo);
 
   for (i=0; i<20; i++)
     {
@@ -1080,10 +1080,10 @@ void A_FireCGun(mobj_t *mo, player_t *player, pspdef_t *psp)
   P_SetMobjState(player->mo, S_PLAY_ATK2);
   P_SubtractAmmo(player, 1);
 
-  FireSomething(player,psp->state - &states[S_CHAIN1]);           // phares
+  A_FireSomething(player,psp->state - &states[S_CHAIN1]);           // phares
   A_Recoil(player);
 
-  BulletSlope(player->mo);
+  P_BulletSlope(player->mo);
 
   P_GunShot(player->mo, !player->refire);
 }
@@ -1170,7 +1170,7 @@ void P_SetupPsprites(player_t *player)
 
   // spawn the gun
   player->pendingweapon = player->readyweapon;
-  BringUpWeapon(player);
+  P_BringUpWeapon(player);
 }
 
 //
@@ -1198,7 +1198,7 @@ void P_MovePsprites(player_t *player)
 
   for (i=0; i<NUMPSPRITES; i++, psp++)
     if (psp->state && psp->tics != -1 && !--psp->tics)
-      SetPsprite(player, i, psp->state->nextstate);
+      P_SetPsprite(player, i, psp->state->nextstate);
 
   player->psprites[ps_flash].sx = player->psprites[ps_weapon].sx;
   player->psprites[ps_flash].sy = player->psprites[ps_weapon].sy;
@@ -1238,7 +1238,7 @@ void P_MovePsprites(player_t *player)
       else if (!player->attackdown || center_weapon_strict == WEAPON_BOBBING)
       {
         fixed_t bob = player->bob * weapon_bobbing_pct / 4;
-        ApplyBobbing(&psp->sx2, &psp->sy2, bob);
+        P_ApplyBobbing(&psp->sx2, &psp->sy2, bob);
 
         if (psp->sxf)
         {
@@ -1364,7 +1364,7 @@ void A_WeaponBulletAttack(mobj_t *mo, player_t *player, pspdef_t *psp)
   damagebase = psp->state->args[3];
   damagemod  = psp->state->args[4];
 
-  BulletSlope(player->mo);
+  P_BulletSlope(player->mo);
 
   for (i = 0; i < numbullets; i++)
   {
@@ -1587,7 +1587,7 @@ void A_GunFlashTo(mobj_t *mo, player_t *player, pspdef_t *psp)
   if(!psp->state->args[1])
     P_SetMobjState(player->mo, S_PLAY_ATK2);
 
-  SetPsprite(player, ps_flash, psp->state->args[0]);
+  P_SetPsprite(player, ps_flash, psp->state->args[0]);
 }
 
 //----------------------------------------------------------------------------

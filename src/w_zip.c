@@ -121,8 +121,8 @@ static void AddWadInMem(w_handle_t handle, const char *name, int index,
     }
 }
 
-static boolean AddDir_ZIP(w_handle_t handle, const char *path,
-                      const char *start_marker, const char *end_marker)
+static boolean W_ZIP_AddDir(w_handle_t handle, const char *path,
+                            const char *start_marker, const char *end_marker)
 {
     archive_t *archive = handle.p1.archive;
 
@@ -204,7 +204,7 @@ static int compare_records(const void *a, const void *b)
     return strcasecmp(arg1->filename, arg2->filename);
 }
 
-static w_type_t Open_ZIP(const char *path, w_handle_t *handle)
+static w_type_t W_ZIP_Open(const char *path, w_handle_t *handle)
 {
     mz_zip_archive *zip = calloc(1, sizeof(*zip));
 
@@ -235,7 +235,7 @@ static w_type_t Open_ZIP(const char *path, w_handle_t *handle)
     return W_DIR;
 }
 
-static void Read_ZIP(w_handle_t handle, void *dest, int size)
+static void W_ZIP_Read(w_handle_t handle, void *dest, int size)
 {
     boolean result = mz_zip_reader_extract_to_mem(
         handle.p1.archive->zip, handle.p2.index, dest, size, 0);
@@ -246,7 +246,7 @@ static void Read_ZIP(w_handle_t handle, void *dest, int size)
     }
 }
 
-static void Close_ZIP(void)
+static void W_ZIP_Close(void)
 {
     for (int i = 0; i < array_size(archives); ++i)
     {
@@ -254,9 +254,10 @@ static void Close_ZIP(void)
     }
 }
 
-w_module_t w_zip_module = {
-    .AddDir = AddDir_ZIP,
-    .Open = Open_ZIP,
-    .Read = Read_ZIP,
-    .Close = Close_ZIP,
+w_module_t w_zip_module =
+{
+    W_ZIP_AddDir,
+    W_ZIP_Open,
+    W_ZIP_Read,
+    W_ZIP_Close
 };

@@ -26,7 +26,7 @@
 #include "dsdh_main.h"
 #include "info.h"
 
-static int PointerStart(deh_context_t *context, char *line)
+static int DEH_PointerStart(deh_context_t *context, char *line)
 {
     // FIXME: can the third argument here be something other than "Frame"
     // or are we ok?
@@ -50,7 +50,7 @@ static int PointerStart(deh_context_t *context, char *line)
     return frame_number;
 }
 
-static void PointerParseLine(deh_context_t *context, char *line, int tag)
+static void DEH_PointerParseLine(deh_context_t *context, char *line, int tag)
 {
     if (tag == -1)
     {
@@ -95,8 +95,8 @@ deh_section_t deh_section_pointer =
 {
     "Pointer",
     NULL,
-    PointerStart,
-    PointerParseLine,
+    DEH_PointerStart,
+    DEH_PointerParseLine,
     NULL,
     NULL,
 };

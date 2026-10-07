@@ -69,7 +69,7 @@ static int DivlineSide(fixed_t x, fixed_t y, const divline_t *node)
 //
 // killough 4/19/98: made static, cleaned up
 
-static fixed_t InterceptVector2(const divline_t *v2, const divline_t *v1)
+static fixed_t P_InterceptVector2(const divline_t *v2, const divline_t *v1)
 {
   fixed_t den;
   return (den = FixedMul(v1->dy>>8, v2->dx) - FixedMul(v1->dx>>8, v2->dy)) ?
@@ -84,7 +84,7 @@ static fixed_t InterceptVector2(const divline_t *v2, const divline_t *v1)
 //
 // killough 4/19/98: made static and cleaned up
 
-static boolean CrossSubsector(int num, register los_t *los)
+static boolean P_CrossSubsector(int num, register los_t *los)
 {
   ssline_t *ssline = &sslines[sslines_indexes[num]];
   const ssline_t *ssline_last = &sslines[sslines_indexes[num + 1]];
@@ -172,7 +172,7 @@ static boolean CrossSubsector(int num, register los_t *los)
       if (openbottom >= opentop)
         return false;               // stop
 
-      frac = InterceptVector2(&los->strace, &divl);
+      frac = P_InterceptVector2(&los->strace, &divl);
 
       if (front->floorheight != back->floorheight)
         {
@@ -202,7 +202,7 @@ static boolean CrossSubsector(int num, register los_t *los)
 //
 // killough 4/20/98: rewritten to remove tail recursion, clean up, and optimize
 
-static boolean CrossBSPNode(int bspnum, register los_t *los)
+static boolean P_CrossBSPNode(int bspnum, register los_t *los)
 {
   while (!(bspnum & NF_SUBSECTOR))
     {
@@ -211,12 +211,12 @@ static boolean CrossBSPNode(int bspnum, register los_t *los)
       if (side == DivlineSide(los->t2x, los->t2y, (divline_t *) bsp))
          bspnum = bsp->children[side]; // doesn't touch the other side
       else         // the partition plane is crossed here
-        if (!CrossBSPNode(bsp->children[side], los))
+        if (!P_CrossBSPNode(bsp->children[side], los))
           return 0;  // cross the starting side
         else
           bspnum = bsp->children[side^1];  // cross the ending side
     }
-  return CrossSubsector(bspnum == -1 ? 0 : bspnum & ~NF_SUBSECTOR, los);
+  return P_CrossSubsector(bspnum == -1 ? 0 : bspnum & ~NF_SUBSECTOR, los);
 }
 
 //
@@ -227,7 +227,7 @@ static boolean CrossBSPNode(int bspnum, register los_t *los)
 //
 // killough 4/20/98: cleaned up, made to use new LOS struct
 
-static boolean CheckSight_MBF(mobj_t *t1, mobj_t *t2)
+static boolean P_CheckSight_MBF(mobj_t *t1, mobj_t *t2)
 {
   const sector_t *s1 = t1->subsector->sector;
   const sector_t *s2 = t2->subsector->sector;
@@ -284,15 +284,15 @@ static boolean CheckSight_MBF(mobj_t *t1, mobj_t *t2)
     los.bbox[BOXTOP] = t2->y, los.bbox[BOXBOTTOM] = t1->y;
 
   // the head node is the last node output
-  return CrossBSPNode(numnodes-1, &los);
+  return P_CrossBSPNode(numnodes-1, &los);
 }
 
 boolean checksight12;
-boolean (*P_CheckSight)(mobj_t *t1, mobj_t *t2) = CheckSight_MBF;
+boolean (*P_CheckSight)(mobj_t *t1, mobj_t *t2) = P_CheckSight_MBF;
 
 void P_UpdateCheckSight(void)
 {
-  P_CheckSight = CRITICAL(checksight12) ? P_CheckSight_12 : CheckSight_MBF;
+  P_CheckSight = CRITICAL(checksight12) ? P_CheckSight_12 : P_CheckSight_MBF;
 }
 
 //

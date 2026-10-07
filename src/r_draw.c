@@ -1150,7 +1150,7 @@ void R_FillBackScreen(void)
 // Copy a screen buffer.
 //
 
-static void VideoErase(int x, int y, int w, int h)
+static void R_VideoErase(int x, int y, int w, int h)
 {
     if (background_buffer == NULL)
     {
@@ -1178,15 +1178,15 @@ void R_DrawViewBorder(void)
     }
 
     // copy top
-    VideoErase(0, 0, video.unscaledw, scaledviewy);
+    R_VideoErase(0, 0, video.unscaledw, scaledviewy);
 
     // copy sides
-    VideoErase(0, scaledviewy, scaledviewx, scaledviewheight);
+    R_VideoErase(0, scaledviewy, scaledviewx, scaledviewheight);
     int side = scaledviewx + scaledviewwidth;
-    VideoErase(side, scaledviewy, video.unscaledw - side, scaledviewheight);
+    R_VideoErase(side, scaledviewy, video.unscaledw - side, scaledviewheight);
 
     // copy bottom
-    VideoErase(0, scaledviewy + scaledviewheight, video.unscaledw,
+    R_VideoErase(0, scaledviewy + scaledviewheight, video.unscaledw,
                  scaledviewy);
 }
 

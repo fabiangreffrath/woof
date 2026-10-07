@@ -66,7 +66,7 @@ struct deh_context_s
     long linestart;
 };
 
-static deh_context_t *NewContext(void)
+static deh_context_t *DEH_NewContext(void)
 {
     deh_context_t *context = malloc(sizeof(*context));
 
@@ -93,7 +93,7 @@ deh_context_t *DEH_OpenFile(const char *filename)
         return NULL;
     }
 
-    deh_context_t *context = NewContext();
+    deh_context_t *context = DEH_NewContext();
 
     context->type = DEH_INPUT_FILE;
     context->stream = fstream;
@@ -106,7 +106,7 @@ deh_context_t *DEH_OpenFile(const char *filename)
 deh_context_t *DEH_OpenLump(int lumpnum)
 {
     void *lump = W_CacheLumpNum(lumpnum, PU_STATIC);
-    deh_context_t *context = NewContext();
+    deh_context_t *context = DEH_NewContext();
 
     context->type = DEH_INPUT_LUMP;
     context->lumpnum = lumpnum;

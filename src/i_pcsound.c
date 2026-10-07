@@ -15,9 +15,9 @@
 //    PC speaker interface.
 //
 
+#include <SDL3/SDL.h>
 #include "al.h"
 #include "alext.h"
-#include <SDL3/SDL.h>
 
 #include <string.h>
 
@@ -60,7 +60,8 @@ static uint8_t *current_sound_pos = NULL;
 static unsigned int current_sound_remaining = 0;
 static int current_sound_handle = 0;
 
-static const uint16_t divisors[] = {
+static const uint16_t divisors[] =
+{
     0,    6818, 6628, 6449, 6279, 6087, 5906, 5736, 5575, 5423, 5279, 5120,
     4971, 4830, 4697, 4554, 4435, 4307, 4186, 4058, 3950, 3836, 3728, 3615,
     3519, 3418, 3323, 3224, 3131, 3043, 2960, 2875, 2794, 2711, 2633, 2560,
@@ -343,7 +344,7 @@ static void InitPCSound(void)
     }
 }
 
-static boolean ReinitSound_PCS(void)
+static boolean I_PCS_ReinitSound(void)
 {
     if (!I_OAL_ReinitSound(SND_MODULE_PCS))
     {
@@ -355,7 +356,7 @@ static boolean ReinitSound_PCS(void)
     return true;
 }
 
-static boolean InitSound_PCS(void)
+static boolean I_PCS_InitSound(void)
 {
     if (!I_OAL_InitSound(SND_MODULE_PCS))
     {
@@ -367,7 +368,7 @@ static boolean InitSound_PCS(void)
     return true;
 }
 
-static void ShutdownModule_PCS(void)
+static void I_PCS_ShutdownModule(void)
 {
     int i;
 
@@ -382,14 +383,14 @@ static void ShutdownModule_PCS(void)
     UnregisterCallback();
 }
 
-static void ShutdownSound_PCS(void)
+static void I_PCS_ShutdownSound(void)
 {
-    ShutdownModule_PCS();
+    I_PCS_ShutdownModule();
 
     I_OAL_ShutdownSound();
 }
 
-static boolean CacheSound_PCS(sfxinfo_t *sfx)
+static boolean I_PCS_CacheSound(sfxinfo_t *sfx)
 {
     if (IsDisabledSound(sfx) || IsAmbientSound(sfx))
     {
@@ -399,8 +400,9 @@ static boolean CacheSound_PCS(sfxinfo_t *sfx)
     return (GetLumpNum(sfx) != -1);
 }
 
-static boolean AdjustSoundParams_PCS(const mobj_t *listener,
-                                     const mobj_t *source, sfxparams_t *params)
+static boolean I_PCS_AdjustSoundParams(const mobj_t *listener,
+                                       const mobj_t *source,
+                                       sfxparams_t *params)
 {
     fixed_t adx, ady;
     int approx_dist;
@@ -444,14 +446,14 @@ static boolean AdjustSoundParams_PCS(const mobj_t *listener,
     return (params->volume > 0);
 }
 
-static void UpdateSoundParams_PCS(int channel, const sfxparams_t *params)
+static void I_PCS_UpdateSoundParams(int channel, const sfxparams_t *params)
 {
     // adjust PC Speaker volume
     alSourcef(callback_source, AL_GAIN, (float)snd_SfxVolume / 15);
 }
 
-static boolean StartSound_PCS(int channel, sfxinfo_t *sfx,
-                              const sfxparams_t *params)
+static boolean I_PCS_StartSound(int channel, sfxinfo_t *sfx,
+                                const sfxparams_t *params)
 {
     boolean result;
 
@@ -481,7 +483,7 @@ static boolean StartSound_PCS(int channel, sfxinfo_t *sfx,
     }
 }
 
-static void StopSound_PCS(int channel)
+static void I_PCS_StopSound(int channel)
 {
     SDL_LockMutex(sound_lock);
 
@@ -495,7 +497,7 @@ static void StopSound_PCS(int channel)
     SDL_UnlockMutex(sound_lock);
 }
 
-static boolean SoundIsPlaying_PCS(int channel)
+static boolean I_PCS_SoundIsPlaying(int channel)
 {
     if (channel != current_sound_handle)
     {
@@ -505,26 +507,27 @@ static boolean SoundIsPlaying_PCS(int channel)
     return current_sound_lump != NULL && current_sound_remaining > 0;
 }
 
-const sound_module_t sound_pcs_module = {
-    InitSound_PCS,
-    ReinitSound_PCS,
+const sound_module_t sound_pcs_module =
+{
+    I_PCS_InitSound,
+    I_PCS_ReinitSound,
     I_OAL_AllowReinitSound,
-    CacheSound_PCS,
-    AdjustSoundParams_PCS,
-    UpdateSoundParams_PCS,
+    I_PCS_CacheSound,
+    I_PCS_AdjustSoundParams,
+    I_PCS_UpdateSoundParams,
     NULL,
     NULL,
     NULL,
-    StartSound_PCS,
-    StopSound_PCS,
+    I_PCS_StartSound,
+    I_PCS_StopSound,
     NULL,
     NULL,
     I_OAL_MuteSound,
     I_OAL_UnmuteSound,
-    SoundIsPlaying_PCS,
+    I_PCS_SoundIsPlaying,
     NULL,
-    ShutdownSound_PCS,
-    ShutdownModule_PCS,
+    I_PCS_ShutdownSound,
+    I_PCS_ShutdownModule,
     I_OAL_DeferUpdates,
     I_OAL_ProcessUpdates,
     NULL,
