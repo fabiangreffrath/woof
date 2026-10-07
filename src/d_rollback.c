@@ -75,7 +75,7 @@ static void FreeSlotKeyframe(int slot)
 {
     if (keyframes[slot])
     {
-        P_FreeKeyframe(keyframes[slot]);
+        P_DeleteKeyframe(keyframes[slot]);
         keyframes[slot] = NULL;
     }
 }

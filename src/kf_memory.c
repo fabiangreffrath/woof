@@ -48,10 +48,13 @@ typedef struct keyframe_data_s
     arena_copy_t *msecnodes;
     arena_copy_t *activeceilings;
     arena_copy_t *activeplats;
+    int buffer_size;
 } keyframe_data_t;
 
 static char *buffer, *curr_p;
 static size_t buffer_size;
+
+static keyframe_t **deleted;
 
 inline static void check_buffer(size_t size)
 {
@@ -320,7 +323,7 @@ static void ArchivePlayState(keyframe_t *keyframe)
     // p_tick.h
     writex(&thinkercap, sizeof(thinkercap), 1);
     writex(thinkerclasscap, sizeof(thinker_t), NUMTHCLASS);
-    keyframe->data->thinkers = M_ArenaCopy(thinkers_arena);
+    keyframe->data->thinkers = M_ArenaCopy(keyframe->data->thinkers, thinkers_arena);
 
     // p_map.h
     write32(floatok,
@@ -338,8 +341,8 @@ static void ArchivePlayState(keyframe_t *keyframe)
     writex(tmbbox, sizeof(tmbbox), 1);
 
     writep(headsecnode);
-    keyframe->data->msecnodes = M_ArenaCopy(msecnodes_arena);
-    
+    keyframe->data->msecnodes = M_ArenaCopy(keyframe->data->msecnodes, msecnodes_arena);
+
     // p_maputil.h
     write32(opentop,
             openbottom,
@@ -354,8 +357,10 @@ static void ArchivePlayState(keyframe_t *keyframe)
     // p_spec.h
     writep(activeceilings,
            activeplats);
-    keyframe->data->activeceilings = M_ArenaCopy(activeceilings_arena);
-    keyframe->data->activeplats = M_ArenaCopy(activeplats_arena);
+    keyframe->data->activeceilings = M_ArenaCopy(keyframe->data->activeceilings,
+                                                 activeceilings_arena);
+    keyframe->data->activeplats = M_ArenaCopy(keyframe->data->activeplats,
+                                              activeplats_arena);
 
     // music
     write32(current_musicnum);
@@ -440,11 +445,21 @@ static void UnArchiveAutomap(void)
 
 keyframe_t *P_SaveKeyframe(int tic)
 {
-    keyframe_t *keyframe = calloc(1, sizeof(*keyframe));
-    keyframe->data = calloc(1, sizeof(*keyframe->data));
+    keyframe_t *keyframe;
+    if (array_size(deleted))
+    {
+        keyframe = array_pop(deleted);
+        buffer_size = keyframe->data->buffer_size;
+        buffer = keyframe->data->buffer;
+    }
+    else
+    {
+        keyframe = calloc(1, sizeof(*keyframe));
+        keyframe->data = calloc(1, sizeof(*keyframe->data));
+        buffer_size = KEYFRAME_BUFFER_SIZE;
+        buffer = malloc(buffer_size);
+    }
 
-    buffer_size = KEYFRAME_BUFFER_SIZE;
-    buffer = malloc(buffer_size);
     curr_p = buffer;
 
     write8((gametic - boom_basetic) & 255);
@@ -466,6 +481,7 @@ keyframe_t *P_SaveKeyframe(int tic)
     writep(demo_p);
 
     keyframe->data->buffer = buffer;
+    keyframe->data->buffer_size = buffer_size;
     keyframe->tic = tic;
     keyframe->episode = gameepisode;
     keyframe->map = gamemap;
@@ -509,4 +525,9 @@ void P_FreeKeyframe(keyframe_t *keyframe)
     M_ArenaFreeCopy(data->activeplats);
     free(data);
     free(keyframe);
+}
+
+void P_DeleteKeyframe(keyframe_t *keyframe)
+{
+    array_push(deleted, keyframe);
 }
