@@ -341,7 +341,8 @@ static void ArchivePlayState(keyframe_t *keyframe)
     writex(tmbbox, sizeof(tmbbox), 1);
 
     writep(headsecnode);
-    keyframe->data->msecnodes = M_ArenaCopy(msecnodes_arena);
+    keyframe->data->msecnodes = M_ArenaCopy(keyframe->data->msecnodes,
+                                            msecnodes_arena);
 
     // p_maputil.h
     write32(opentop,
