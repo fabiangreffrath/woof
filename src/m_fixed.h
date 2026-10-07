@@ -131,6 +131,16 @@ static inline fixed_t FixedAbs(fixed_t x)
     return x < 0 ? (fixed_t)(0u - (unsigned int)x) : x;
 }
 
+inline static fixed_t FixedAdd(fixed_t a, fixed_t b)
+{
+    return (fixed_t)((unsigned int)a + (unsigned int)b);
+}
+
+inline static fixed_t FixedSub(fixed_t a, fixed_t b)
+{
+    return (fixed_t)((unsigned int)a - (unsigned int)b);
+}
+
 #endif
 
 //----------------------------------------------------------------------------
