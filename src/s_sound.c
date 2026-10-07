@@ -125,7 +125,7 @@ static void ResetActive(void)
 // Internals.
 //
 
-static void DoStopChannel(int cnum)
+static void StopChannel(int cnum)
 {
     if (channels[cnum].sfxinfo)
     {
@@ -138,11 +138,11 @@ static void DoStopChannel(int cnum)
 }
 
 //
-// EvictChannel
+// S_EvictChannel
 //
 // Stops a sound channel due to zero volume or low priority.
 //
-static void EvictChannel(int cnum)
+static void S_EvictChannel(int cnum)
 {
 #ifdef RANGECHECK
     if (cnum >= snd_channels)
@@ -156,7 +156,7 @@ static void EvictChannel(int cnum)
         P_EvictAmbientSound(channels[cnum].ambient, channels[cnum].handle);
     }
 
-    DoStopChannel(cnum);
+    StopChannel(cnum);
 }
 
 //
@@ -164,7 +164,7 @@ static void EvictChannel(int cnum)
 //
 // Stops a sound channel.
 //
-static void StopChannel(int cnum)
+static void S_StopChannel(int cnum)
 {
 #ifdef RANGECHECK
     if (cnum < 0 || cnum >= snd_channels)
@@ -178,7 +178,7 @@ static void StopChannel(int cnum)
         P_StopAmbientSound(channels[cnum].ambient);
     }
 
-    DoStopChannel(cnum);
+    StopChannel(cnum);
 }
 
 void S_EvictChannels(void)
@@ -199,7 +199,7 @@ void S_EvictChannels(void)
 }
 
 //
-// AdjustSoundParams
+// S_AdjustSoundParams
 //
 // Alters a playing sound's volume and stereo separation to account for
 // the position and angle of the listener relative to the source.
@@ -207,8 +207,8 @@ void S_EvictChannels(void)
 // haleyjd: added channel volume scale value
 // haleyjd: added priority scaling
 //
-static int AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
-                             sfxparams_t *params)
+static int S_AdjustSoundParams(const mobj_t *listener, const mobj_t *source,
+                               sfxparams_t *params)
 {
     return I_AdjustSoundParams(listener, source, params);
 }
@@ -254,20 +254,20 @@ static void LimitChannelsPerSfx(const mobj_t *origin, const sfxinfo_t *sfxinfo,
         else
         {
             // Stop the lowest priority channel.
-            EvictChannel(lpcnum);
+            S_EvictChannel(lpcnum);
             *cnum = lpcnum;
         }
     }
 }
 
 //
-// GetChannel :
+// S_getChannel :
 //
 //   If none available, return -1.  Otherwise channel #.
 //   haleyjd 09/27/06: fixed priority/singularity bugs
 //   Note that a higher priority number means lower priority!
 //
-static int GetChannel(const mobj_t *origin, const sfxinfo_t *sfxinfo,
+static int S_getChannel(const mobj_t *origin, const sfxinfo_t *sfxinfo,
                         int priority, int singularity)
 {
     // channel number to use
@@ -287,7 +287,7 @@ static int GetChannel(const mobj_t *origin, const sfxinfo_t *sfxinfo,
         if (channels[cnum].sfxinfo && channels[cnum].singularity == singularity
             && channels[cnum].origin == origin)
         {
-            StopChannel(cnum);
+            S_StopChannel(cnum);
             break;
         }
     }
@@ -323,7 +323,7 @@ static int GetChannel(const mobj_t *origin, const sfxinfo_t *sfxinfo,
         }
         else
         {
-            EvictChannel(lpcnum); // Otherwise, kick out lowest priority.
+            S_EvictChannel(lpcnum); // Otherwise, kick out lowest priority.
             cnum = lpcnum;
         }
     }
@@ -489,13 +489,13 @@ static boolean StartSoundEx(const mobj_t *origin, int sfx_id,
     // Check to see if it is audible, modify the params
     // killough 3/7/98, 4/25/98: code rearranged slightly
 
-    if (!AdjustSoundParams(players[displayplayer].mo, origin, &params))
+    if (!S_AdjustSoundParams(players[displayplayer].mo, origin, &params))
     {
         return false;
     }
 
     // try to find a channel
-    if ((cnum = GetChannel(origin, sfx, params.priority, singularity)) < 0)
+    if ((cnum = S_getChannel(origin, sfx, params.priority, singularity)) < 0)
     {
         return false;
     }
@@ -700,7 +700,7 @@ void S_StopSound(const mobj_t *origin)
     {
         if (channels[cnum].sfxinfo && channels[cnum].origin == origin)
         {
-            StopChannel(cnum);
+            S_StopChannel(cnum);
             break;
         }
     }
@@ -717,7 +717,7 @@ void S_StopAmbientSounds(void)
     {
         if (channels[cnum].ambient)
         {
-            StopChannel(cnum);
+            S_StopChannel(cnum);
         }
     }
 }
@@ -902,7 +902,7 @@ void S_UpdateSounds(const mobj_t *listener)
                     params.volume_scale = c->volume_scale;
                     params.priority = c->o_priority; // haleyjd 09/27/06: priority
 
-                    if (AdjustSoundParams(listener, c->origin, &params))
+                    if (S_AdjustSoundParams(listener, c->origin, &params))
                     {
                         I_UpdateSoundParams(c->handle, &params);
                         c->priority = params.priority; // haleyjd
@@ -910,7 +910,7 @@ void S_UpdateSounds(const mobj_t *listener)
                     }
                     else
                     {
-                        EvictChannel(cnum);
+                        S_EvictChannel(cnum);
                     }
                 }
 
@@ -919,7 +919,7 @@ void S_UpdateSounds(const mobj_t *listener)
             else if (!I_SoundIsPaused(c->handle))
             {
                 // if channel is allocated but sound has stopped, free it
-                StopChannel(cnum);
+                S_StopChannel(cnum);
             }
         }
     }
@@ -1159,7 +1159,7 @@ void S_Reset(void)
         {
             if (channels[cnum].sfxinfo)
             {
-                StopChannel(cnum);
+                S_StopChannel(cnum);
             }
         }
     }

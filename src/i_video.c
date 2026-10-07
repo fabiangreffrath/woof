@@ -435,7 +435,7 @@ static void AdjustWindowSize(void)
     old_h = actualheight;
 }
 
-static void ToggleFullScreen(void)
+static void I_ToggleFullScreen(void)
 {
     if (fullscreen)
     {
@@ -558,7 +558,7 @@ static void ProcessEvent(SDL_Event *ev)
     }
 }
 
-static void GetEvent(void)
+static void I_GetEvent(void)
 {
     #define NUM_PEEP 32
     static SDL_Event sdlevents[NUM_PEEP];
@@ -631,7 +631,7 @@ static void UpdateMouseMenu(void)
 //
 void I_StartTic(void)
 {
-    GetEvent();
+    I_GetEvent();
 
     if (menuactive)
     {
@@ -846,10 +846,10 @@ void I_DynamicResolution(void)
     ResetLogicalSize();
 }
 
-static void DrawDiskIcon(), RestoreDiskBackground();
+static void I_DrawDiskIcon(), I_RestoreDiskBackground();
 static unsigned int disk_to_draw, disk_to_restore;
 
-static void ResetTargetRefresh(void);
+static void I_ResetTargetRefresh(void);
 
 void I_FinishUpdate(void)
 {
@@ -860,7 +860,7 @@ void I_FinishUpdate(void)
 
     if (toggle_fullscreen)
     {
-        ToggleFullScreen();
+        I_ToggleFullScreen();
         toggle_fullscreen = false;
     }
 
@@ -886,7 +886,7 @@ void I_FinishUpdate(void)
         }
     }
 
-    DrawDiskIcon();
+    I_DrawDiskIcon();
 
     UpdateRender();
 
@@ -897,7 +897,7 @@ void I_FinishUpdate(void)
 
     SDL_RenderPresent(renderer);
 
-    RestoreDiskBackground();
+    I_RestoreDiskBackground();
 
     if (use_limiter)
     {
@@ -930,7 +930,7 @@ void I_FinishUpdate(void)
     if (setrefreshneeded)
     {
         setrefreshneeded = false;
-        ResetTargetRefresh();
+        I_ResetTargetRefresh();
     }
 }
 
@@ -950,7 +950,7 @@ void I_ReadScreen(pixel_t *dst)
 static pixel_t *diskflash, *old_data;
 static vrect_t disk;
 
-static void InitDiskFlash(void)
+static void I_InitDiskFlash(void)
 {
     disk.x = 0;
     disk.y = 0;
@@ -982,7 +982,7 @@ void I_BeginRead(unsigned int bytes)
     disk_to_draw += bytes;
 }
 
-static void DrawDiskIcon(void)
+static void I_DrawDiskIcon(void)
 {
     if (!disk_icon || PLAYBACK_SKIP)
     {
@@ -1009,7 +1009,7 @@ void I_EndRead(void)
     // [FG] posponed to next tic
 }
 
-static void RestoreDiskBackground(void)
+static void I_RestoreDiskBackground(void)
 {
     if (!disk_icon || PLAYBACK_SKIP)
     {
@@ -1224,7 +1224,7 @@ static void ResetResolution(int height)
 
     AM_ResetScreenSize();
 
-    InitDiskFlash();
+    I_InitDiskFlash();
 
     I_Printf(VB_DEBUG, "ResetResolution: %dx%d (%s)", video.width, video.height,
              widescreen_strings[widescreen]);
@@ -1278,7 +1278,7 @@ static void UpdateUncapped(void)
     }
 }
 
-static void ResetTargetRefresh(void)
+static void I_ResetTargetRefresh(void)
 {
     UpdateUncapped();
 
@@ -1312,7 +1312,7 @@ static void ResetTargetRefresh(void)
     I_ResetDRS();
 }
 
-static void ResetInvalidDisplayIndex(void)
+static void I_ResetInvalidDisplayIndex(void)
 {
     // Check that video_display corresponds to a display that really exists,
     // and if it doesn't, reset it.
@@ -1329,11 +1329,11 @@ static void ResetInvalidDisplayIndex(void)
 // killough 11/98: New routine, for setting hires and page flipping
 //
 
-static void InitVideoParms(void)
+static void I_InitVideoParms(void)
 {
     int p, tmp_scalefactor;
 
-    ResetInvalidDisplayIndex();
+    I_ResetInvalidDisplayIndex();
     const SDL_DisplayMode *mode = SDL_GetCurrentDisplayMode(video_display_id);
     if (!mode)
     {
@@ -1382,7 +1382,7 @@ static void InitVideoParms(void)
 
     widescreen = default_widescreen;
     grabmouse = default_grabmouse;
-    ResetTargetRefresh();
+    I_ResetTargetRefresh();
 
     if (M_CheckParm("-grabmouse"))
     {
@@ -1467,7 +1467,7 @@ static void InitVideoParms(void)
     MN_UpdateDynamicResolutionItem();
 }
 
-static void InitGraphicsMode(void)
+static void I_InitGraphicsMode(void)
 {
     SDL_WindowFlags flags = 0;
 
@@ -1680,8 +1680,8 @@ void I_InitGraphics(void)
 
     I_AtExit(I_ShutdownGraphics, true);
 
-    InitVideoParms();
-    InitGraphicsMode(); // killough 10/98
+    I_InitVideoParms();
+    I_InitGraphicsMode(); // killough 10/98
     ResetResolution(GetCurrentVideoHeight());
     I_UpdateHudAnchoring();
     CreateVideoBuffer();

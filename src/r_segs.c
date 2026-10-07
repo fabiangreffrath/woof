@@ -122,7 +122,7 @@ static void CalculateLighting(const lighttable_t * const thiscolormap,
     }
 }
 
-static const int32_t SideLightLevel(const side_t *side)
+static const int32_t R_SideLightLevel(const side_t *side)
 {
     return (side->flags & SF_ABS_LIGHT) ? side->light
                                         : side->light + rw_lightlevel;
@@ -132,7 +132,7 @@ static void SideLightLevel_Top(const side_t *side)
 {
     const int32_t light = (side->flags & SF_ABS_LIGHT_TOP)
                         ? side->light_top
-                        : side->light_top + SideLightLevel(side);
+                        : side->light_top + R_SideLightLevel(side);
     SetLight(light);
 }
 
@@ -140,7 +140,7 @@ static void SideLightLevel_Mid(const side_t *side)
 {
     const int32_t light = (side->flags & SF_ABS_LIGHT_MID)
                         ? side->light_mid
-                        : side->light_mid + SideLightLevel(side);
+                        : side->light_mid + R_SideLightLevel(side);
     SetLight(light);
 }
 
@@ -148,7 +148,7 @@ static void SideLightLevel_Bottom(const side_t *side)
 {
     const int32_t light = (side->flags & SF_ABS_LIGHT_BOTTOM)
                         ? side->light_bottom
-                        : side->light_bottom + SideLightLevel(side);
+                        : side->light_bottom + R_SideLightLevel(side);
     SetLight(light);
 }
 
@@ -343,7 +343,7 @@ static const struct
     { 128 * FRACUNIT,  9}
 };
 
-static void FixWiggle(sector_t *sector)
+void R_FixWiggle (sector_t *sector)
 {
     static int lastheight = 0;
     int height = (sector->interpceilingheight - sector->interpfloorheight) >> FRACBITS;
@@ -379,7 +379,7 @@ static void FixWiggle(sector_t *sector)
 
 static boolean didsolidcol; // True if at least one column was marked solid
 
-static void RenderSegLoop(const lighttable_t * const thiscolormap)
+static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
 {
   fixed_t  texturecolumn = 0;   // shut up compiler warning
 
@@ -549,7 +549,7 @@ static void RenderSegLoop(const lighttable_t * const thiscolormap)
 // below function is ripped from Crispy
 // WiggleFix: move R_ScaleFromGlobalAngle function to r_segs.c,
 // above R_StoreWallRange
-static fixed_t ScaleFromGlobalAngle (angle_t visangle)
+static fixed_t R_ScaleFromGlobalAngle (angle_t visangle)
 {
     angle_t anglea = ANG90 + (visangle - viewangle);
     angle_t angleb = ANG90 + (visangle - rw_normalangle);
@@ -637,7 +637,7 @@ void R_StoreWallRange(const int start, const int stop)
 
   // WiggleFix: add this line, in r_segs.c:R_StoreWallRange,
   // right before calls to R_ScaleFromGlobalAngle
-  FixWiggle(frontsector);
+  R_FixWiggle(frontsector);
 
   // killough 1/6/98, 2/1/98: remove limit on openings
   // killough 8/1/98: Replaced code with a static limit
@@ -645,11 +645,11 @@ void R_StoreWallRange(const int start, const int stop)
 
   // calculate scale at both ends and step
   ds_p->scale1 = rw_scale =
-    ScaleFromGlobalAngle (viewangle + xtoviewangle[start]);
+    R_ScaleFromGlobalAngle (viewangle + xtoviewangle[start]);
 
   if (stop > start)
     {
-      ds_p->scale2 = ScaleFromGlobalAngle (viewangle + xtoviewangle[stop]);
+      ds_p->scale2 = R_ScaleFromGlobalAngle (viewangle + xtoviewangle[stop]);
       ds_p->scalestep = rw_scalestep = (ds_p->scale2-rw_scale) / (stop-start);
     }
   else
@@ -933,7 +933,7 @@ void R_StoreWallRange(const int start, const int stop)
 
   didsolidcol = false;
 
-  RenderSegLoop(GetSideTint(sidedef, sidedef->sector));
+  R_RenderSegLoop(GetSideTint(sidedef, sidedef->sector));
 
   // cph - if a column was made solid by this wall, we _must_ save full clipping
   // info

@@ -122,7 +122,7 @@ void DEH_SetBannerGameDescription(void)
 // [crispy] support INCLUDE NOTEXT directive in BEX files
 boolean bex_notext = false;
 
-static int TextStart(deh_context_t *context, char *line)
+static int DEH_TextStart(deh_context_t *context, char *line)
 {
     int from_len, to_len;
 
@@ -171,7 +171,7 @@ static int TextStart(deh_context_t *context, char *line)
     return 0;
 }
 
-static void TextParseLine(deh_context_t *context, char *line, int tag)
+static void DEH_TextParseLine(deh_context_t *context, char *line, int tag)
 {
     // This is only reached if the previous "to" text length was wrong and
     // left the reader mid-line. Push back a newline so the main loop sees
@@ -185,8 +185,8 @@ deh_section_t deh_section_text =
 {
     "Text",
     NULL,
-    TextStart,
-    TextParseLine,
+    DEH_TextStart,
+    DEH_TextParseLine,
     NULL,
     NULL,
 };

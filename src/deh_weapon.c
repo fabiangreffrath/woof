@@ -73,7 +73,7 @@ DEH_END_MAPPING
 #define SILENTLY_IGNORE_WEAPON_PROP(str) \
     (!strcasecmp(str, "Decal") || !strcasecmp(str, "Ammo use") || !strcasecmp(str, "Min ammo"))
 
-static int WeaponStart(deh_context_t *context, char *line)
+static int DEH_WeaponStart(deh_context_t *context, char *line)
 {
     int weapon_number = -1;
 
@@ -92,7 +92,7 @@ static int WeaponStart(deh_context_t *context, char *line)
     return weapon_number;
 }
 
-static void WeaponParseLine(deh_context_t *context, char *line, int tag)
+static void DEH_WeaponParseLine(deh_context_t *context, char *line, int tag)
 {
     if (tag == -1)
     {
@@ -128,7 +128,7 @@ static void WeaponParseLine(deh_context_t *context, char *line, int tag)
     DEH_SetMapping(context, &weapon_mapping, weapon, variable_name, ivalue, value);
 }
 
-static void WeaponSHA1Sum(sha1_context_t *context)
+static void DEH_WeaponSHA1Sum(sha1_context_t *context)
 {
     for (int i = 0; i < NUMWEAPONS; ++i)
     {
@@ -140,8 +140,8 @@ deh_section_t deh_section_weapon =
 {
     "Weapon",
     NULL,
-    WeaponStart,
-    WeaponParseLine,
+    DEH_WeaponStart,
+    DEH_WeaponParseLine,
     NULL,
-    WeaponSHA1Sum,
+    DEH_WeaponSHA1Sum,
 };

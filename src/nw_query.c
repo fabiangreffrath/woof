@@ -167,7 +167,7 @@ boolean NW_Query_CheckAddedToMaster(boolean *result)
 
 // Send a query to the master server.
 
-static void SendMasterQuery(nw_addr_t *addr)
+static void NW_Query_SendMasterQuery(nw_addr_t *addr)
 {
     nw_packet_t *packet;
 
@@ -256,7 +256,7 @@ static void FreeTargets(void)
 
 // Transmit a query packet
 
-static void SendQuery(nw_addr_t *addr)
+static void NW_Query_SendQuery(nw_addr_t *addr)
 {
     nw_packet_t *request;
 
@@ -275,8 +275,9 @@ static void SendQuery(nw_addr_t *addr)
     NW_FreePacket(request);
 }
 
-static void ParseResponse(nw_addr_t *addr, nw_packet_t *packet,
-                          nw_query_callback_t callback, void *user_data)
+static void NW_Query_ParseResponse(nw_addr_t *addr, nw_packet_t *packet,
+                                    nw_query_callback_t callback,
+                                    void *user_data)
 {
     unsigned int packet_type;
     nw_querydata_t querydata;
@@ -346,7 +347,7 @@ static void ParseResponse(nw_addr_t *addr, nw_packet_t *packet,
 
 // Parse a response packet from the master server.
 
-static void ParseMasterResponse(nw_addr_t *master_addr,
+static void NW_Query_ParseMasterResponse(nw_addr_t *master_addr,
                                           nw_packet_t *packet)
 {
     unsigned int packet_type;
@@ -391,8 +392,9 @@ static void ParseMasterResponse(nw_addr_t *master_addr,
     target->state = QUERY_TARGET_RESPONDED;
 }
 
-static void ParsePacket(nw_addr_t *addr, nw_packet_t *packet,
-                        nw_query_callback_t callback, void *user_data)
+static void NW_Query_ParsePacket(nw_addr_t *addr, nw_packet_t *packet,
+                                  nw_query_callback_t callback,
+                                  void *user_data)
 {
     query_target_t *target;
 
@@ -402,22 +404,23 @@ static void ParsePacket(nw_addr_t *addr, nw_packet_t *packet,
 
     if (target != NULL && target->type == QUERY_TARGET_MASTER)
     {
-        ParseMasterResponse(addr, packet);
+        NW_Query_ParseMasterResponse(addr, packet);
     }
     else
     {
-        ParseResponse(addr, packet, callback, user_data);
+        NW_Query_ParseResponse(addr, packet, callback, user_data);
     }
 }
 
-static void GetResponse(nw_query_callback_t callback, void *user_data)
+static void NW_Query_GetResponse(nw_query_callback_t callback,
+                                  void *user_data)
 {
     nw_addr_t *addr;
     nw_packet_t *packet;
 
     if (NW_RecvPacket(query_context, &addr, &packet))
     {
-        ParsePacket(addr, packet, callback, user_data);
+        NW_Query_ParsePacket(addr, packet, callback, user_data);
         NW_ReleaseAddress(addr);
         NW_FreePacket(packet);
     }
@@ -463,15 +466,15 @@ static void SendOneQuery(void)
     switch (targets[i].type)
     {
         case QUERY_TARGET_SERVER:
-            SendQuery(targets[i].addr);
+            NW_Query_SendQuery(targets[i].addr);
             break;
 
         case QUERY_TARGET_BROADCAST:
-            SendQuery(NULL);
+            NW_Query_SendQuery(NULL);
             break;
 
         case QUERY_TARGET_MASTER:
-            SendMasterQuery(targets[i].addr);
+            NW_Query_SendMasterQuery(targets[i].addr);
             break;
     }
 
@@ -552,14 +555,14 @@ int NW_Query_Poll(nw_query_callback_t callback, void *user_data)
 
     // Check for a response
 
-    GetResponse(callback, user_data);
+    NW_Query_GetResponse(callback, user_data);
 
     return !AllTargetsDone();
 }
 
 // Stop the query loop
 
-static void ExitLoop(void)
+static void NW_Query_ExitLoop(void)
 {
     query_loop_running = false;
 }
@@ -567,7 +570,7 @@ static void ExitLoop(void)
 // Loop waiting for responses.
 // The specified callback is invoked when a new server responds.
 
-static void QueryLoop(nw_query_callback_t callback, void *user_data)
+static void NW_Query_QueryLoop(nw_query_callback_t callback, void *user_data)
 {
     query_loop_running = true;
 
@@ -597,10 +600,10 @@ void NW_Query_Init(void)
 
 // Callback that exits the query loop when the first server is found.
 
-static void ExitCallback(nw_addr_t *addr, nw_querydata_t *data,
-                         unsigned int ping_time, void *user_data)
+static void NW_Query_ExitCallback(nw_addr_t *addr, nw_querydata_t *data,
+                                   unsigned int ping_time, void *user_data)
 {
-    ExitLoop();
+    NW_Query_ExitLoop();
 }
 
 // Search the targets list and find a target that has responded.
@@ -755,8 +758,8 @@ static void PrintHeader(void)
 
 // Callback function that just prints information in a table.
 
-static void QueryPrintCallback(nw_addr_t *addr, nw_querydata_t *data,
-                               unsigned int ping_time, void *user_data)
+static void NW_QueryPrintCallback(nw_addr_t *addr, nw_querydata_t *data,
+                                   unsigned int ping_time, void *user_data)
 {
     // If this is the first server, print the header.
 
@@ -789,7 +792,7 @@ void NW_LANQuery(void)
     {
         I_Printf(VB_INFO, "Searching for servers on local LAN ...");
 
-        QueryLoop(QueryPrintCallback, NULL);
+        NW_Query_QueryLoop(NW_QueryPrintCallback, NULL);
 
         I_Printf(VB_INFO, "%i server(s) found.", GetNumResponses());
         FreeTargets();
@@ -802,7 +805,7 @@ void NW_MasterQuery(void)
     {
         I_Printf(VB_INFO, "Searching for servers on Internet ...");
 
-        QueryLoop(QueryPrintCallback, NULL);
+        NW_Query_QueryLoop(NW_QueryPrintCallback, NULL);
 
         I_Printf(VB_INFO, "%i server(s) found.", GetNumResponses());
         FreeTargets();
@@ -831,13 +834,13 @@ void NW_QueryAddress(const char *addr_str)
 
     // Run query loop.
 
-    QueryLoop(ExitCallback, NULL);
+    NW_Query_QueryLoop(NW_Query_ExitCallback, NULL);
 
     // Check if the target responded.
 
     if (target->state == QUERY_TARGET_RESPONDED)
     {
-        QueryPrintCallback(addr, &target->data, target->ping_time, NULL);
+        NW_QueryPrintCallback(addr, &target->data, target->ping_time, NULL);
         NW_ReleaseAddress(addr);
         FreeTargets();
     }
@@ -862,7 +865,7 @@ nw_addr_t *NW_FindLANServer(void)
 
     // Run the query loop, and stop at the first target found.
 
-    QueryLoop(ExitCallback, NULL);
+    NW_Query_QueryLoop(NW_Query_ExitCallback, NULL);
 
     responder = FindFirstResponder();
 

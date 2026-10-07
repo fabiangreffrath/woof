@@ -336,7 +336,7 @@ boolean DEH_CheckSafeState(statenum_t state)
     return true;
 }
 
-static int BEXPointerStart(deh_context_t *context, char *line)
+static int DEH_BEXPointerStart(deh_context_t *context, char *line)
 {
     char s[10];
 
@@ -348,7 +348,7 @@ static int BEXPointerStart(deh_context_t *context, char *line)
     return 0;
 }
 
-static void BEXPointerParseLine(deh_context_t *context, char *line, int tag)
+static void DEH_BEXPointerParseLine(deh_context_t *context, char *line, int tag)
 {
     // parse "FRAME nn = mnemonic", where
     // variable_name = "FRAME nn" and value = "mnemonic"
@@ -395,8 +395,8 @@ deh_section_t deh_section_bex_codepointers =
 {
     "[CODEPTR]",
     NULL,
-    BEXPointerStart,
-    BEXPointerParseLine,
+    DEH_BEXPointerStart,
+    DEH_BEXPointerParseLine,
     NULL,
     NULL,
 };

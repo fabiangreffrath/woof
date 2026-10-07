@@ -314,7 +314,7 @@ static void CalcMaxProjectSlope(int fov)
 //
 // killough 5/2/98: reformatted
 
-static void InitTextureMapping(void)
+static void R_InitTextureMapping(void)
 {
   register int i,x;
   fixed_t slopefrac;
@@ -476,7 +476,7 @@ int R_GetLightIndex(fixed_t scale)
 
 static fixed_t viewpitch;
 
-static void SetupFreelook(void)
+static void R_SetupFreelook(void)
 {
   fixed_t dy;
   int i;
@@ -584,9 +584,9 @@ void R_ExecuteSetViewSize (void)
 
   R_InitBuffer();       // killough 11/98
 
-  InitTextureMapping();
+  R_InitTextureMapping();
 
-  SetupFreelook();
+  R_SetupFreelook();
 
   // psprite scales
   pspritescale = FixedDiv(viewwidth_nonwide, SCREENWIDTH);       // killough 11/98
@@ -770,7 +770,7 @@ void R_SetupFrame (player_t *player)
   if (pitch != viewpitch)
   {
     viewpitch = pitch;
-    SetupFreelook();
+    R_SetupFreelook();
   }
 
   // 3-screen display mode.
@@ -828,7 +828,7 @@ void R_SetupFrame (player_t *player)
 
 int rendered_visplanes, rendered_segs, rendered_vissprites, rendered_voxels;
 
-static void ClearStats(void)
+static void R_ClearStats(void)
 {
   rendered_visplanes = 0;
   rendered_segs = 0;
@@ -844,7 +844,7 @@ int autodetect_hom = 0;       // killough 2/7/98: HOM autodetection flag
 //
 void R_RenderPlayerView (player_t* player)
 {
-  ClearStats();
+  R_ClearStats();
 
   R_SetupFrame (player);
 

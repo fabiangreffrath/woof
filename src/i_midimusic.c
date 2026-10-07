@@ -1238,7 +1238,7 @@ static void InitEMIDI(void)
     }
 }
 
-static boolean DoRegisterSong(void)
+static boolean RegisterSong(void)
 {
     if (IsMid(song.lump_data, song.lump_length))
     {
@@ -1319,7 +1319,7 @@ static int PlayerThread(void *unused)
         switch (midi_state)
         {
             case STATE_STARTUP:
-                if (!DoRegisterSong())
+                if (!RegisterSong())
                 {
                     midi_state = STATE_STOPPED;
                     break;
@@ -1387,7 +1387,7 @@ static void GetDevices(void)
     }
 }
 
-static boolean InitMusic(int device)
+static boolean I_MID_InitMusic(int device)
 {
     GetDevices();
 
@@ -1440,7 +1440,7 @@ static void UpdateVolumeFactor(int volume)
     volume_factor = volume / 15.0f * MIDI_DB_TO_GAIN(midi_gain);
 }
 
-static void SetMusicVolume(int volume)
+static void I_MID_SetMusicVolume(int volume)
 {
     if (!SDL_GetAtomicInt(&player_thread_running))
     {
@@ -1454,7 +1454,7 @@ static void SetMusicVolume(int volume)
     SDL_UnlockMutex(music_lock);
 }
 
-static void StopSong(void *handle)
+static void I_MID_StopSong(void *handle)
 {
     if (!music_initialized || !SDL_GetAtomicInt(&player_thread_running))
     {
@@ -1469,7 +1469,7 @@ static void StopSong(void *handle)
     SendNotesSoundOff();
 }
 
-static void PlaySong(void *handle, boolean looping)
+static void I_MID_PlaySong(void *handle, boolean looping)
 {
     if (!music_initialized)
     {
@@ -1483,7 +1483,7 @@ static void PlaySong(void *handle, boolean looping)
     player_thread_handle = SDL_CreateThread(PlayerThread, NULL, NULL);
 }
 
-static void PauseSong(void *handle)
+static void I_MID_PauseSong(void *handle)
 {
     if (!music_initialized)
     {
@@ -1496,7 +1496,7 @@ static void PauseSong(void *handle)
     SDL_UnlockMutex(music_lock);
 }
 
-static void ResumeSong(void *handle)
+static void I_MID_ResumeSong(void *handle)
 {
     if (!music_initialized)
     {
@@ -1514,7 +1514,7 @@ static void ResumeSong(void *handle)
 
 static const char *music_format = "Unknown";
 
-static void *RegisterSong(void *data, int len)
+static void *I_MID_RegisterSong(void *data, int len)
 {
     if (!music_initialized)
     {
@@ -1540,7 +1540,7 @@ static void *RegisterSong(void *data, int len)
     return (void *)1;
 }
 
-static void UnRegisterSong(void *handle)
+static void I_MID_UnRegisterSong(void *handle)
 {
     if (!music_initialized)
     {
@@ -1574,15 +1574,15 @@ static void UnRegisterSong(void *handle)
     song.rpg_loop = false;
 }
 
-static void ShutdownMusic(void)
+static void I_MID_ShutdownMusic(void)
 {
     if (!music_initialized)
     {
         return;
     }
 
-    StopSong(NULL);
-    UnRegisterSong(NULL);
+    I_MID_StopSong(NULL);
+    I_MID_UnRegisterSong(NULL);
 
     ResetDevice();
 
@@ -1591,24 +1591,24 @@ static void ShutdownMusic(void)
     music_initialized = false;
 }
 
-static const char **DeviceList(void)
+static const char **I_MID_DeviceList(void)
 {
     GetDevices();
 
     return midi_devices;
 }
 
-static midiplayertype_t MidiPlayerType(void)
+static midiplayertype_t I_MID_MidiPlayerType(void)
 {
     return midiplayer_native;
 }
 
-static const char *MusicFormat(void)
+static const char *I_MID_MusicFormat(void)
 {
     return music_format;
 }
 
-static void BindVariables(void)
+static void I_MID_BindVariables(void)
 {
     BIND_NUM(midi_complevel, COMP_STANDARD, 0, COMP_NUM - 1,
         "[Native MIDI] Compatibility level (0 = Vanilla; 1 = Standard; 2 = Full)");
@@ -1625,17 +1625,17 @@ static void BindVariables(void)
 
 music_module_t music_mid_module =
 {
-    InitMusic,
-    ShutdownMusic,
-    SetMusicVolume,
-    PauseSong,
-    ResumeSong,
-    RegisterSong,
-    PlaySong,
-    StopSong,
-    UnRegisterSong,
-    DeviceList,
-    BindVariables,
-    MidiPlayerType,
-    MusicFormat,
+    I_MID_InitMusic,
+    I_MID_ShutdownMusic,
+    I_MID_SetMusicVolume,
+    I_MID_PauseSong,
+    I_MID_ResumeSong,
+    I_MID_RegisterSong,
+    I_MID_PlaySong,
+    I_MID_StopSong,
+    I_MID_UnRegisterSong,
+    I_MID_DeviceList,
+    I_MID_BindVariables,
+    I_MID_MidiPlayerType,
+    I_MID_MusicFormat,
 };

@@ -50,7 +50,7 @@
 // jff 02/08/98 all cases with labels beginning with gen added to support
 // generalized line type behaviors.
 
-static void ThinkerVerticalDoor(vldoor_t *door)
+static void T_VerticalDoor(vldoor_t *door)
 {
   result_e  res;
 
@@ -239,7 +239,7 @@ static void ThinkerVerticalDoor(vldoor_t *door)
 
 void T_VerticalDoorAdapter(mobj_t *mobj)
 {
-    ThinkerVerticalDoor((vldoor_t *)mobj);
+    T_VerticalDoor((vldoor_t *)mobj);
 }
 
 ///////////////////////////////////////////////////////////////

@@ -179,9 +179,9 @@ void R_InitVisplanesRes(void)
 // BASIC PRIMITIVE
 //
 
-static void MapPlane(int y, int x1, int x2,
-                     const lighttable_t *const thiscolormap,
-                     const byte *const brightmap)
+static void R_MapPlane(int y, int x1, int x2,
+                       const lighttable_t * const thiscolormap,
+                       const byte *const brightmap)
 {
   fixed_t distance;
   int dx;
@@ -275,7 +275,7 @@ void R_ClearPlanes(void)
 
 // New function, by Lee Killough
 
-static visplane_t *NewVisplane(unsigned hash)
+static visplane_t *new_visplane(unsigned hash)
 {
   visplane_t *check = freetail;
   if (!check)
@@ -297,7 +297,7 @@ static visplane_t *NewVisplane(unsigned hash)
 visplane_t *R_DupPlane(const visplane_t *pl, int start, int stop)
 {
     unsigned hash = visplane_hash(pl->picnum, pl->lightlevel, pl->height, pl->tint);
-    visplane_t *new_pl = NewVisplane(hash);
+    visplane_t *new_pl = new_visplane(hash);
 
     new_pl->height = pl->height;
     new_pl->picnum = pl->picnum;
@@ -355,7 +355,7 @@ visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
         tint == check->tint)
       return check;
 
-  check = NewVisplane(hash);         // killough
+  check = new_visplane(hash);         // killough
 
   check->height = height;
   check->picnum = picnum;
@@ -405,15 +405,15 @@ visplane_t *R_CheckPlane(visplane_t *pl, int start, int stop)
 //
 
 // [FG] 32-bit integer math
-static void MakeSpans(int x, unsigned int t1, unsigned int b1,
+static void R_MakeSpans(int x, unsigned int t1, unsigned int b1,
                         unsigned int t2, unsigned int b2,
                         const lighttable_t * const colormap,
                         const byte *const brightmap)
 {
   for (; t1 < t2 && t1 <= b1; t1++)
-    MapPlane(t1, spanstart[t1], x-1, colormap, brightmap);
+    R_MapPlane(t1, spanstart[t1], x-1, colormap, brightmap);
   for (; b1 > b2 && b1 >= t1; b1--)
-    MapPlane(b1, spanstart[b1] ,x-1, colormap, brightmap);
+    R_MapPlane(b1, spanstart[b1] ,x-1, colormap, brightmap);
   while (t2 < t1 && t2 <= b2)
     spanstart[t2++] = x;
   while (b2 > b1 && b2 >= t2)
@@ -551,7 +551,7 @@ static void DrawSkyDef(visplane_t *pl, sky_t *sky)
 
 // New function, by Lee Killough
 
-static void DoDrawPlane(visplane_t *pl)
+static void do_draw_plane(visplane_t *pl)
 {
     if (pl->minx > pl->maxx)
     {
@@ -640,7 +640,7 @@ static void DoDrawPlane(visplane_t *pl)
 
     for (int x = pl->minx; x <= stop; x++)
     {
-        MakeSpans(x, pl->top[x - 1], pl->bottom[x - 1], pl->top[x],
+        R_MakeSpans(x, pl->top[x - 1], pl->bottom[x - 1], pl->top[x],
                     pl->bottom[x], thiscolormap, brightmap);
     }
 
@@ -662,7 +662,7 @@ void R_DrawPlanes (void)
   for (i=0;i<MAXVISPLANES;i++)
     for (pl=visplanes[i]; pl; pl=pl->next)
     {
-      DoDrawPlane(pl);
+      do_draw_plane(pl);
       rendered_visplanes++;
     }
 }

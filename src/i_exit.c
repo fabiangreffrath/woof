@@ -87,7 +87,7 @@ void I_AtSignal(atexit_func_t func)
     atsignal_funcs = entry;
 }
 
-static void SignalHandler(int sig)
+static void I_SignalHandler(int sig)
 {
     signal(sig, SIG_DFL);
 
@@ -108,6 +108,6 @@ void I_Signal(void)
 
     for (int i = 0; i < arrlen(sigs); i++)
     {
-        signal(sigs[i], SignalHandler);
+        signal(sigs[i], I_SignalHandler);
     }
 }

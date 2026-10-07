@@ -337,7 +337,7 @@ static const char joyb_names[NUM_GAMEPAD_BUTTONS][JOYB_LEN] = {
     [GAMEPAD_RIGHT_STICK_RIGHT]    = "rsright",
 };
 
-static void UpdateConfirmCancel(boolean swap_confirm);
+static void M_UpdateConfirmCancel(boolean swap_confirm);
 
 void M_UpdatePlatform(joy_platform_t platform)
 {
@@ -362,7 +362,7 @@ void M_UpdatePlatform(joy_platform_t platform)
             break;
     }
 
-    UpdateConfirmCancel(swap_confirm);
+    M_UpdateConfirmCancel(swap_confirm);
 
     for (int i = 0; i < arrlen(joyb_names); i++)
     {
@@ -552,7 +552,7 @@ boolean M_IsMouseWheel(int mouseb)
     return mouseb >= MOUSE_BUTTON_WHEELUP && mouseb <= MOUSE_BUTTON_WHEELRIGHT;
 }
 
-static void UpdateConfirmCancel(boolean swap_confirm)
+static void M_UpdateConfirmCancel(boolean swap_confirm)
 {
     if (swap_confirm)
     {
@@ -627,7 +627,7 @@ void M_InputPredefined(void)
     };
     InputSet(input_menu_clear, clear, arrlen(clear));
 
-    UpdateConfirmCancel(false);
+    M_UpdateConfirmCancel(false);
 
     M_InputAddKey(input_help, KEY_F1);
     M_InputAddKey(input_escape, KEY_ESCAPE);

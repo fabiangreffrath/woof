@@ -179,7 +179,7 @@ static void UpdateInterval(ambient_t *ambient)
     }
 }
 
-static void ThinkerAmbientSound(ambient_t *ambient)
+static void T_AmbientSound(ambient_t *ambient)
 {
     if (nosfxparm || !snd_ambient)
     {
@@ -201,7 +201,7 @@ static void ThinkerAmbientSound(ambient_t *ambient)
 
 void T_AmbientSoundAdapter(mobj_t *mobj)
 {
-    ThinkerAmbientSound((ambient_t *)mobj);
+    T_AmbientSound((ambient_t *)mobj);
 }
 
 void P_AddAmbientSoundThinker(mobj_t *mobj)

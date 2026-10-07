@@ -56,7 +56,7 @@ static int SpritesGetIndex(const char *key)
     return i;
 }
 
-static int BEXSpritesStart(deh_context_t *context, char *line)
+static int DEH_BEXSpritesStart(deh_context_t *context, char *line)
 {
     char s[10];
 
@@ -68,7 +68,7 @@ static int BEXSpritesStart(deh_context_t *context, char *line)
     return 0;
 }
 
-static void BEXSpritesParseLine(deh_context_t *context, char *line, int tag)
+static void DEH_BEXSpritesParseLine(deh_context_t *context, char *line, int tag)
 {
     char *sprite_key, *sprite_name;
 
@@ -100,8 +100,8 @@ deh_section_t deh_section_bex_sprites =
 {
     "[SPRITES]",
     NULL,
-    BEXSpritesStart,
-    BEXSpritesParseLine,
+    DEH_BEXSpritesStart,
+    DEH_BEXSpritesParseLine,
     NULL,
     NULL,
 };

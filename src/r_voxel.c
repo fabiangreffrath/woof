@@ -76,7 +76,7 @@ enum VoxelFace
 };
 
 
-static void CreateRemapTable (byte * p, byte * table)
+static void VX_CreateRemapTable (byte * p, byte * table)
 {
 	for (int c = 0 ; c < PLAYPAL_SIZE ; c++)
 	{
@@ -89,7 +89,7 @@ static void CreateRemapTable (byte * p, byte * table)
 }
 
 
-static void RemapSlabColors (struct Voxel * v, int x, int y, byte * table)
+static void VX_RemapSlabColors (struct Voxel * v, int x, int y, byte * table)
 {
 	int A = v->offsets[y     * v->x_size + x];
 	int B = v->offsets[(y+1) * v->x_size + x];
@@ -118,7 +118,7 @@ static void RemapSlabColors (struct Voxel * v, int x, int y, byte * table)
 }
 
 
-static struct Voxel * Decode (byte * p, int length)
+static struct Voxel * VX_Decode (byte * p, int length)
 {
 	// too short?
 	if (length < 40 + 768)
@@ -193,7 +193,7 @@ static struct Voxel * Decode (byte * p, int length)
 	// handle palette: create a mapping table
 	byte remap_table[256];
 
-	CreateRemapTable (orig_p + (length - 768), remap_table);
+	VX_CreateRemapTable (orig_p + (length - 768), remap_table);
 
 	// remap colors...
 	for (x = 0 ; x < v->x_size ; x++)
@@ -201,7 +201,7 @@ static struct Voxel * Decode (byte * p, int length)
 		int y;
 		for (y = 0 ; y < v->y_size ; y++)
 		{
-			RemapSlabColors (v, x, y, remap_table);
+			VX_RemapSlabColors (v, x, y, remap_table);
 		}
 	}
 
@@ -209,7 +209,7 @@ static struct Voxel * Decode (byte * p, int length)
 }
 
 
-static boolean Load (int spr, int frame)
+static boolean VX_Load (int spr, int frame)
 {
 	char frame_ch = 'A' + frame;
 
@@ -231,7 +231,7 @@ static boolean Load (int spr, int frame)
 	int len   = W_LumpLength(lumpnum);
 
 	// Note: this may return NULL
-	struct Voxel * v = Decode (buf, len);
+	struct Voxel * v = VX_Decode (buf, len);
 
 	if (v != NULL)
 		voxels_found = true;
@@ -265,7 +265,7 @@ void VX_Init (void)
 	{
 		for (frame = 0 ; frame < MAX_FRAMES ; frame++)
 		{
-			if (! Load (spr, frame))
+			if (! VX_Load (spr, frame))
 				break;
 		}
 	}
@@ -327,7 +327,7 @@ static int num_visvoxels;
 
 vissprite_t * R_NewVisSprite (void);
 
-static int NewVisVoxel (void)
+static int VX_NewVisVoxel (void)
 {
 	static int size;
 
@@ -349,7 +349,7 @@ void VX_ClearVoxels (void)
 }
 
 
-static int RotateModeForThing (mobj_t * thing)
+static int VX_RotateModeForThing (mobj_t * thing)
 {
 	// these four spherical items *must* face directly at the camera,
 	// otherwise they look very weird.
@@ -396,7 +396,7 @@ static int RotateModeForThing (mobj_t * thing)
 }
 
 
-static angle_t GetItemRotationAngle (void)
+static angle_t VX_GetItemRotationAngle (void)
 {
 	static int oldgametic = -1;
 	static angle_t oldangle, newangle;
@@ -418,8 +418,9 @@ static angle_t GetItemRotationAngle (void)
 	}
 }
 
-static boolean CheckFrustum(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2,
-                            fixed_t x3, fixed_t y3, fixed_t x4, fixed_t y4)
+
+static boolean VX_CheckFrustum (fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2,
+                         fixed_t x3, fixed_t y3, fixed_t x4, fixed_t y4)
 {
 	// completely behind the viewplane?
 	if (y1 < VX_MINZ && y2 < VX_MINZ && y3 < VX_MINZ && y4 < VX_MINZ)
@@ -540,7 +541,7 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 		xscale = FixedDiv (projection, ty);
 	}
 
-	switch (RotateModeForThing (thing))
+	switch (VX_RotateModeForThing (thing))
 	{
 		case 1:
 			angle = viewangle + ANG180;
@@ -551,7 +552,7 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 			break;
 
 		case 3:
-			angle = GetItemRotationAngle ();
+			angle = VX_GetItemRotationAngle ();
 			break;
 	}
 
@@ -582,7 +583,7 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 	fixed_t BR_y = BL_y + (xs * s);
 
 	// is it outside the view frustum?
-	if (! CheckFrustum (TL_x, TL_y, BL_x, BL_y, BR_x, BR_y, TR_x, TR_y))
+	if (! VX_CheckFrustum (TL_x, TL_y, BL_x, BL_y, BR_x, BR_y, TR_x, TR_y))
 		return true;
 
 	// compute minimum and maximum X coord
@@ -622,7 +623,7 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 		return true;
 
 	// create the VisVoxel...
-	int voxel_index = NewVisVoxel ();
+	int voxel_index = VX_NewVisVoxel ();
 	struct VisVoxel * vv = &visvoxels[voxel_index];
 
 	vv->model  = v;
@@ -716,7 +717,7 @@ static fixed_t  vx_eye_x;
 static fixed_t  vx_eye_y;
 
 
-static void DrawColumn (vissprite_t * spr, int x, int y)
+static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 {
 	struct VisVoxel * vv = &visvoxels[spr->voxel_index];
 	struct Voxel    * v  = vv->model;
@@ -955,13 +956,13 @@ static void DrawColumn (vissprite_t * spr, int x, int y)
 }
 
 
-static void RecursiveDraw (vissprite_t * spr, int x, int y, int w, int h)
+static void VX_RecursiveDraw (vissprite_t * spr, int x, int y, int w, int h)
 {
 loop:
 	// reached a single column?
 	if (w == 1 && h == 1)
 	{
-		DrawColumn (spr, x, y);
+		VX_DrawColumn (spr, x, y);
 		return;
 	}
 
@@ -973,12 +974,12 @@ loop:
 	{
 		if (vx_eye_x < ((x * 2 + w) << (FRACBITS-1)))
 		{
-			RecursiveDraw (spr, x + w / 2, y, (w+1) / 2, h);
+			VX_RecursiveDraw (spr, x + w / 2, y, (w+1) / 2, h);
 			w = w / 2;
 		}
 		else
 		{
-			RecursiveDraw (spr, x, y, w / 2, h);
+			VX_RecursiveDraw (spr, x, y, w / 2, h);
 			x += w / 2;
 			w = (w+1) / 2;
 		}
@@ -987,12 +988,12 @@ loop:
 	{
 		if (vx_eye_y < ((y * 2 + h) << (FRACBITS-1)))
 		{
-			RecursiveDraw (spr, x, y + h / 2, w, (h+1) / 2);
+			VX_RecursiveDraw (spr, x, y + h / 2, w, (h+1) / 2);
 			h = h / 2;
 		}
 		else
 		{
-			RecursiveDraw (spr, x, y, w, h / 2);
+			VX_RecursiveDraw (spr, x, y, w, h / 2);
 			y += h / 2;
 			h = (h+1) / 2;
 		}
@@ -1065,5 +1066,5 @@ void VX_DrawVoxel (vissprite_t * spr)
 	vx_eye_x = v->x_pivot + FixedMul (delta_x, c) + FixedMul (delta_y, s);
 	vx_eye_y = v->y_pivot + FixedMul (delta_x, s) - FixedMul (delta_y, c);
 
-	RecursiveDraw (spr, 0, 0, v->x_size, v->y_size);
+	VX_RecursiveDraw (spr, 0, 0, v->x_size, v->y_size);
 }
