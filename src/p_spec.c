@@ -2977,9 +2977,9 @@ static void ThinkerScroll(scroll_t *s)
 
   if (s->control != -1)
     {   // compute scroll amounts based on a sector's height changes
-      fixed_t height = sectors[s->control].floorheight +
-        sectors[s->control].ceilingheight;
-      fixed_t delta = height - s->last_height;
+      const fixed_t height = FixedAdd(sectors[s->control].floorheight,
+                                      sectors[s->control].ceilingheight);
+      const fixed_t delta = FixedSub(height, s->last_height);
       s->last_height = height;
       dx = FixedMul(dx, delta);
       dy = FixedMul(dy, delta);

@@ -43,6 +43,7 @@
 * Fixed demo desync by menu-pausing during the intermission screen
 * Fixed DEHACKED-related crashes caused by calling player sprite actions as thinker functions (e.g. Blues Brothers 2023)
 * Fixed mouse hit boxes for savegame entries in the Load Game / Save Game menus
+* Fixed some occurances of undefined behavior in the code that led to demo desyncs caused by compiler optimizations
 * Fixed SDL3 MacOSX compile directive. (CMD+Enter for fullscreen, Linux Steam folder search, 'Woof! Setup' help URL)
 
 ## Miscellaneous
