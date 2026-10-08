@@ -2797,7 +2797,7 @@ void A_MonsterProjectile(mobj_t *actor)
 void A_MonsterBulletAttack(mobj_t *actor)
 {
   int hspread, vspread, numbullets, damagebase, damagemod;
-  int aimslope, i, damage, angle, slope;
+  int aimslope, i, damage, slope;
 
   if (!mbf21 || !actor->target)
     return;
@@ -2816,7 +2816,8 @@ void A_MonsterBulletAttack(mobj_t *actor)
   for (i = 0; i < numbullets; i++)
   {
     damage = (P_Random(pr_mbf21) % damagemod + 1) * damagebase;
-    angle = (int)actor->angle + P_RandomHitscanAngle(pr_mbf21, hspread);
+    const angle_t angle = actor->angle
+                          + (angle_t)P_RandomHitscanAngle(pr_mbf21, hspread);
     slope = aimslope + P_RandomHitscanSlope(pr_mbf21, vspread);
 
     P_LineAttack(actor, angle, MISSILERANGE, slope, damage);
