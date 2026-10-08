@@ -145,8 +145,8 @@ int R_PointOnSide_Classic(fixed_t x, fixed_t y, node_t *node)
 
     // Workaround for optimization bug in clang
     // fixes desync in competn/doom/fp2-3655.lmp and in dmnsns.wad dmn01m909.lmp
-    x = (fixed_t)((unsigned int)x - (unsigned int)node->x);
-    y = (fixed_t)((unsigned int)y - (unsigned int)node->y);
+    x = FixedSub(x, node->x);
+    y = FixedSub(y, node->y);
 
     // Try to quickly decide by looking at sign bits.
     if ((node->dy ^ node->dx ^ x ^ y) < 0)
@@ -169,8 +169,8 @@ int R_PointOnSide_Precise(fixed_t x, fixed_t y, node_t *node)
         return y <= node->y ? node->dx < 0 : node->dx > 0;
     }
 
-    x = (fixed_t)((unsigned int)x - (unsigned int)node->x);
-    y = (fixed_t)((unsigned int)y - (unsigned int)node->y);
+    x = FixedSub(x, node->x);
+    y = FixedSub(y, node->y);
 
     // Try to quickly decide by looking at sign bits.
     if ((node->dy ^ node->dx ^ x ^ y) < 0)
@@ -186,8 +186,8 @@ int R_PointOnSegSide(fixed_t x, fixed_t y, seg_t *line)
 {
   fixed_t lx = line->v1->x;
   fixed_t ly = line->v1->y;
-  const fixed_t ldx = (fixed_t)((unsigned int)line->v2->x - (unsigned int)lx);
-  const fixed_t ldy = (fixed_t)((unsigned int)line->v2->y - (unsigned int)ly);
+  const fixed_t ldx = FixedSub(line->v2->x, lx);
+  const fixed_t ldy = FixedSub(line->v2->y, ly);
 
   if (!ldx)
     return x <= lx ? ldy > 0 : ldy < 0;
@@ -195,8 +195,8 @@ int R_PointOnSegSide(fixed_t x, fixed_t y, seg_t *line)
   if (!ldy)
     return y <= ly ? ldx < 0 : ldx > 0;
 
-  x = (fixed_t)((unsigned int)x - (unsigned int)lx);
-  y = (fixed_t)((unsigned int)y - (unsigned int)ly);
+  x = FixedSub(x, lx);
+  y = FixedSub(y, ly);
 
   // Try to quickly decide by looking at sign bits.
   if ((ldy ^ ldx ^ x ^ y) < 0)
@@ -219,32 +219,32 @@ int R_PointOnSegSide(fixed_t x, fixed_t y, seg_t *line)
 
 angle_t R_PointToAngle(fixed_t x, fixed_t y)
 {
-  return (y -= viewy, (x -= viewx) || y) ?
+  return (y = FixedSub(y, viewy), (x = FixedSub(x, viewx)) || y) ?
     x >= 0 ?
       y >= 0 ?
         (x > y) ? tantoangle[SlopeDiv(y,x)] :                      // octant 0
                 ANG90-1-tantoangle[SlopeDiv(x,y)] :                // octant 1
-        x > (y = -y) ? 0-tantoangle[SlopeDiv(y,x)] :               // octant 8
+        x > (y = FixedNeg(y)) ? 0-tantoangle[SlopeDiv(y,x)] :      // octant 8
                        ANG270+tantoangle[SlopeDiv(x,y)] :          // octant 7
-      y >= 0 ? (x = -x) > y ? ANG180-1-tantoangle[SlopeDiv(y,x)] : // octant 3
+      y >= 0 ? (x = FixedNeg(x)) > y ? ANG180-1-tantoangle[SlopeDiv(y,x)] : // octant 3
                             ANG90 + tantoangle[SlopeDiv(x,y)] :    // octant 2
-        (x = -x) > (y = -y) ? ANG180+tantoangle[ SlopeDiv(y,x)] :  // octant 4
+        (x = FixedNeg(x)) > (y = FixedNeg(y)) ? ANG180+tantoangle[ SlopeDiv(y,x)] :  // octant 4
                               ANG270-1-tantoangle[SlopeDiv(x,y)] : // octant 5
     0;
 }
 
 angle_t R_PointToAngle2(fixed_t viewx, fixed_t viewy, fixed_t x, fixed_t y)
 {
-  return (y -= viewy, (x -= viewx) || y) ?
+  return (y = FixedSub(y, viewy), (x = FixedSub(x, viewx)) || y) ?
     x >= 0 ?
       y >= 0 ?
         (x > y) ? tantoangle[SlopeDiv(y,x)] :                      // octant 0
                 ANG90-1-tantoangle[SlopeDiv(x,y)] :                // octant 1
-        x > (y = -y) ? 0-tantoangle[SlopeDiv(y,x)] :               // octant 8
+        x > (y = FixedNeg(y)) ? 0-tantoangle[SlopeDiv(y,x)] :      // octant 8
                        ANG270+tantoangle[SlopeDiv(x,y)] :          // octant 7
-      y >= 0 ? (x = -x) > y ? ANG180-1-tantoangle[SlopeDiv(y,x)] : // octant 3
+      y >= 0 ? (x = FixedNeg(x)) > y ? ANG180-1-tantoangle[SlopeDiv(y,x)] : // octant 3
                             ANG90 + tantoangle[SlopeDiv(x,y)] :    // octant 2
-        (x = -x) > (y = -y) ? ANG180+tantoangle[ SlopeDiv(y,x)] :  // octant 4
+        (x = FixedNeg(x)) > (y = FixedNeg(y)) ? ANG180+tantoangle[ SlopeDiv(y,x)] :  // octant 4
                               ANG270-1-tantoangle[SlopeDiv(x,y)] : // octant 5
     0;
 }
@@ -259,23 +259,23 @@ angle_t R_PointToAngleCrispy(fixed_t x, fixed_t y)
   int64_t x_viewx = (int64_t)x - viewx;
 
   // [FG] the worst that could happen is e.g. INT_MIN-INT_MAX = 2*INT_MIN
-  if (x_viewx <= INT_MIN || x_viewx > INT_MAX || y_viewy <= INT_MIN || y_viewy > INT_MAX)
+  if (x_viewx <= INT32_MIN || x_viewx > INT32_MAX || y_viewy <= INT32_MIN || y_viewy > INT32_MAX)
   {
     // [FG] preserving the angle by halfing the distance in both directions
-    x = (int)(x_viewx / 2 + viewx);
-    y = (int)(y_viewy / 2 + viewy);
+    x = (fixed_t)(x_viewx / 2 + viewx);
+    y = (fixed_t)(y_viewy / 2 + viewy);
   }
 
-  return (y -= viewy, (x -= viewx) || y) ?
+  return (y = FixedSub(y, viewy), (x = FixedSub(x, viewx)) || y) ?
     x >= 0 ?
       y >= 0 ?
         (x > y) ? tantoangle[SlopeDivCrispy(y,x)] :                      // octant 0
                 ANG90-1-tantoangle[SlopeDivCrispy(x,y)] :                // octant 1
-        x > (y = -y) ? 0-tantoangle[SlopeDivCrispy(y,x)] :               // octant 8
+        x > (y = FixedNeg(y)) ? 0-tantoangle[SlopeDivCrispy(y,x)] :      // octant 8
                        ANG270+tantoangle[SlopeDivCrispy(x,y)] :          // octant 7
-      y >= 0 ? (x = -x) > y ? ANG180-1-tantoangle[SlopeDivCrispy(y,x)] : // octant 3
+      y >= 0 ? (x = FixedNeg(x)) > y ? ANG180-1-tantoangle[SlopeDivCrispy(y,x)] : // octant 3
                             ANG90 + tantoangle[SlopeDivCrispy(x,y)] :    // octant 2
-        (x = -x) > (y = -y) ? ANG180+tantoangle[SlopeDivCrispy(y,x)] :  // octant 4
+        (x = FixedNeg(x)) > (y = FixedNeg(y)) ? ANG180+tantoangle[SlopeDivCrispy(y,x)] :  // octant 4
                               ANG270-1-tantoangle[SlopeDivCrispy(x,y)] : // octant 5
     0;
 }
