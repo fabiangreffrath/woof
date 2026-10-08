@@ -204,6 +204,52 @@ int R_PointOnSegSide(fixed_t x, fixed_t y, seg_t *line)
   return (int64_t) y * ldx >= (int64_t) x * ldy;
 }
 
+// Fold the view-relative vector into the first octant and look up its angle.
+static inline angle_t PointToAngle(fixed_t x, fixed_t y,
+                                   int (*slope_div)(unsigned, unsigned))
+{
+    if (x == 0 && y == 0)
+    {
+        return 0;
+    }
+
+    if (x >= 0)
+    {
+        if (y >= 0)
+        {
+            if (x > y)
+            {
+                return tantoangle[slope_div(y, x)]; // octant 0
+            }
+            return ANG90 - 1 - tantoangle[slope_div(x, y)]; // octant 1
+        }
+
+        y = FixedNeg(y);
+        if (x > y)
+        {
+            return 0 - tantoangle[slope_div(y, x)]; // octant 8
+        }
+        return ANG270 + tantoangle[slope_div(x, y)]; // octant 7
+    }
+
+    x = FixedNeg(x);
+    if (y >= 0)
+    {
+        if (x > y)
+        {
+            return ANG180 - 1 - tantoangle[slope_div(y, x)]; // octant 3
+        }
+        return ANG90 + tantoangle[slope_div(x, y)]; // octant 2
+    }
+
+    y = FixedNeg(y);
+    if (x > y)
+    {
+        return ANG180 + tantoangle[slope_div(y, x)]; // octant 4
+    }
+    return ANG270 - 1 - tantoangle[slope_div(x, y)]; // octant 5
+}
+
 //
 // R_PointToAngle
 // To get a global angle from cartesian coordinates,
@@ -224,49 +270,7 @@ angle_t R_PointToAngle(fixed_t x, fixed_t y)
 
 angle_t R_PointToAngle2(fixed_t viewx, fixed_t viewy, fixed_t x, fixed_t y)
 {
-    x = FixedSub(x, viewx);
-    y = FixedSub(y, viewy);
-
-    if (x == 0 && y == 0)
-    {
-        return 0;
-    }
-
-    if (x >= 0)
-    {
-        if (y >= 0)
-        {
-            if (x > y)
-            {
-                return tantoangle[SlopeDiv(y, x)]; // octant 0
-            }
-            return ANG90 - 1 - tantoangle[SlopeDiv(x, y)]; // octant 1
-        }
-
-        y = FixedNeg(y);
-        if (x > y)
-        {
-            return 0 - tantoangle[SlopeDiv(y, x)]; // octant 8
-        }
-        return ANG270 + tantoangle[SlopeDiv(x, y)]; // octant 7
-    }
-
-    x = FixedNeg(x);
-    if (y >= 0)
-    {
-        if (x > y)
-        {
-            return ANG180 - 1 - tantoangle[SlopeDiv(y, x)]; // octant 3
-        }
-        return ANG90 + tantoangle[SlopeDiv(x, y)]; // octant 2
-    }
-
-    y = FixedNeg(y);
-    if (x > y)
-    {
-        return ANG180 + tantoangle[SlopeDiv(y, x)]; // octant 4
-    }
-    return ANG270 - 1 - tantoangle[SlopeDiv(x, y)]; // octant 5
+    return PointToAngle(FixedSub(x, viewx), FixedSub(y, viewy), SlopeDiv);
 }
 
 // [FG] overflow-safe R_PointToAngle() flavor,
@@ -275,61 +279,19 @@ angle_t R_PointToAngle2(fixed_t viewx, fixed_t viewy, fixed_t x, fixed_t y)
 angle_t R_PointToAngleCrispy(fixed_t x, fixed_t y)
 {
     // [FG] fix overflows for very long distances
-    const int64_t y_viewy = (int64_t)y - viewy;
-    const int64_t x_viewx = (int64_t)x - viewx;
+    int64_t y_viewy = (int64_t)y - viewy;
+    int64_t x_viewx = (int64_t)x - viewx;
 
     // [FG] the worst that could happen is e.g. INT_MIN-INT_MAX = 2*INT_MIN
     if (x_viewx <= INT32_MIN || x_viewx > INT32_MAX || y_viewy <= INT32_MIN
         || y_viewy > INT32_MAX)
     {
         // [FG] preserving the angle by halfing the distance in both directions
-        x = (fixed_t)(x_viewx / 2 + viewx);
-        y = (fixed_t)(y_viewy / 2 + viewy);
+        x_viewx /= 2;
+        y_viewy /= 2;
     }
 
-    x = FixedSub(x, viewx);
-    y = FixedSub(y, viewy);
-
-    if (x == 0 && y == 0)
-    {
-        return 0;
-    }
-
-    if (x >= 0)
-    {
-        if (y >= 0)
-        {
-            if (x > y)
-            {
-                return tantoangle[SlopeDivCrispy(y, x)]; // octant 0
-            }
-            return ANG90 - 1 - tantoangle[SlopeDivCrispy(x, y)]; // octant 1
-        }
-
-        y = FixedNeg(y);
-        if (x > y)
-        {
-            return 0 - tantoangle[SlopeDivCrispy(y, x)]; // octant 8
-        }
-        return ANG270 + tantoangle[SlopeDivCrispy(x, y)]; // octant 7
-    }
-
-    x = FixedNeg(x);
-    if (y >= 0)
-    {
-        if (x > y)
-        {
-            return ANG180 - 1 - tantoangle[SlopeDivCrispy(y, x)]; // octant 3
-        }
-        return ANG90 + tantoangle[SlopeDivCrispy(x, y)]; // octant 2
-    }
-
-    y = FixedNeg(y);
-    if (x > y)
-    {
-        return ANG180 + tantoangle[SlopeDivCrispy(y, x)]; // octant 4
-    }
-    return ANG270 - 1 - tantoangle[SlopeDivCrispy(x, y)]; // octant 5
+    return PointToAngle((fixed_t)x_viewx, (fixed_t)y_viewy, SlopeDivCrispy);
 }
 
 // WiggleFix: move R_ScaleFromGlobalAngle to r_segs.c,
