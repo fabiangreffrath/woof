@@ -114,9 +114,9 @@ static anim_t *lastanim, *anims;      // new structure w/o limits -- killough
 static size_t maxanims;
 
 // killough 3/7/98: Initialize generalized scrolling
-static void SpawnScrollers(void);
-static void SpawnFriction(void);    // phares 3/16/98
-static void SpawnPushers(void);     // phares 3/20/98
+static void P_SpawnScrollers(void);
+static void P_SpawnFriction(void);    // phares 3/16/98
+static void P_SpawnPushers(void);     // phares 3/20/98
 
 //
 // P_InitPicAnims
@@ -743,7 +743,7 @@ int P_FindLineFromLineTag(const line_t *line, int start)
 }
 
 // Hash the sector tags across the sectors and linedefs.
-static void InitTagLists(void)
+static void P_InitTagLists(void)
 {
   register int i;
 
@@ -2373,7 +2373,7 @@ int disable_nuke;  // killough 12/98: nukage disabling cheat
 // Changed to ignore sector types the engine does not recognize
 //
 
-static void SecretRevealed(player_t *player)
+static void P_SecretRevealed(player_t *player)
 {
   if (hud_secret_message && player == &players[consoleplayer])
   {
@@ -2414,7 +2414,7 @@ void P_PlayerInSpecialSector (player_t *player)
           player->secretcount++;
           sector->special = 0;
 
-          SecretRevealed(player);
+          P_SecretRevealed(player);
 	}
       else
 	if (!disable_nuke)  // killough 12/98: nukage disabling cheat
@@ -2539,7 +2539,7 @@ void P_PlayerInSpecialSector (player_t *player)
           sector->special &= ~SECRET_MASK;
           if (sector->special<32) // if all extended bits clear,
             sector->special=0;    // sector is not special anymore
-          SecretRevealed(player);
+          P_SecretRevealed(player);
         }
 
       // phares 3/19/98:
@@ -2877,15 +2877,15 @@ void P_SpawnSpecials (void)
   // P_InitTagLists() must be called before P_FindSectorFromLineTag()
   // or P_FindLineFromLineTag() can be called.
 
-  InitTagLists();   // killough 1/30/98: Create xref tables for tags
+  P_InitTagLists();   // killough 1/30/98: Create xref tables for tags
 
-  SpawnScrollers(); // killough 3/7/98: Add generalized scrollers
+  P_SpawnScrollers(); // killough 3/7/98: Add generalized scrollers
 
   if (!demo_compatibility)
   {
-  SpawnFriction();  // phares 3/12/98: New friction model using linedefs
+  P_SpawnFriction();  // phares 3/12/98: New friction model using linedefs
 
-  SpawnPushers();   // phares 3/20/98: New pusher model using linedefs
+  P_SpawnPushers();   // phares 3/20/98: New pusher model using linedefs
   }
 
   for (i=0; i<numlines; i++)
@@ -2971,15 +2971,15 @@ void P_SpawnSpecials (void)
 // This is the main scrolling code
 // killough 3/7/98
 
-static void ThinkerScroll(scroll_t *s)
+static void T_Scroll(scroll_t *s)
 {
   fixed_t dx = s->dx, dy = s->dy;
 
   if (s->control != -1)
     {   // compute scroll amounts based on a sector's height changes
-      fixed_t height = sectors[s->control].floorheight +
-        sectors[s->control].ceilingheight;
-      fixed_t delta = height - s->last_height;
+      const fixed_t height = FixedAdd(sectors[s->control].floorheight,
+                                      sectors[s->control].ceilingheight);
+      const fixed_t delta = FixedSub(height, s->last_height);
       s->last_height = height;
       dx = FixedMul(dx, delta);
       dy = FixedMul(dy, delta);
@@ -2988,8 +2988,8 @@ static void ThinkerScroll(scroll_t *s)
   // killough 3/14/98: Add acceleration
   if (s->accel)
     {
-      s->vdx = dx += s->vdx;
-      s->vdy = dy += s->vdy;
+      s->vdx = dx = FixedAdd(dx, s->vdx);
+      s->vdy = dy = FixedAdd(dy, s->vdy);
     }
 
   if (!(dx | dy))                   // no-op if both (x,y) offsets 0
@@ -3011,8 +3011,8 @@ static void ThinkerScroll(scroll_t *s)
           side->oldrowoffset = side->rowoffset;
           side->oldgametic = gametic;
         }
-        dirty_side(side)->textureoffset += dx;
-        side->rowoffset += dy;
+        dirty_side(side)->textureoffset = FixedAdd(side->textureoffset, dx);
+        side->rowoffset = FixedAdd(side->rowoffset, dy);
         break;
 
     case sc_floor:                  // killough 3/7/98: Scroll floor texture
@@ -3023,8 +3023,8 @@ static void ThinkerScroll(scroll_t *s)
           sec->old_floor_yoffs = sec->floor_yoffs;
           sec->old_floor_offs_gametic = gametic;
         }
-        sec->floor_xoffs += dx;
-        sec->floor_yoffs += dy;
+        sec->floor_xoffs = FixedAdd(sec->floor_xoffs, dx);
+        sec->floor_yoffs = FixedAdd(sec->floor_yoffs, dy);
         break;
 
     case sc_ceiling:               // killough 3/7/98: Scroll ceiling texture
@@ -3035,8 +3035,8 @@ static void ThinkerScroll(scroll_t *s)
           sec->old_ceiling_yoffs = sec->ceiling_yoffs;
           sec->old_ceil_offs_gametic = gametic;
         }
-        sec->ceiling_xoffs += dx;
-        sec->ceiling_yoffs += dy;
+        sec->ceiling_xoffs = FixedAdd(sec->ceiling_xoffs, dx);
+        sec->ceiling_yoffs = FixedAdd(sec->ceiling_yoffs, dy);
         break;
 
     case sc_carry:
@@ -3060,7 +3060,8 @@ static void ThinkerScroll(scroll_t *s)
             (!(thing->flags & MF_NOGRAVITY || thing->z > height) ||
              thing->z < waterheight))
           {
-	  thing->momx += dx, thing->momy += dy;
+	  thing->momx = FixedAdd(thing->momx, dx);
+	  thing->momy = FixedAdd(thing->momy, dy);
 	  thing->intflags |= MIF_SCROLLING;
           }
       break;
@@ -3071,30 +3072,30 @@ static void ThinkerScroll(scroll_t *s)
     // UDMF extensions
     case sc_side_top:
       side = sides + s->affectee;
-      dirty_side(side)->offsetx_top += dx;
-      side->offsety_top += dy;
+      dirty_side(side)->offsetx_top = FixedAdd(side->offsetx_top, dx);
+      side->offsety_top = FixedAdd(side->offsety_top, dy);
       break;
 
     case sc_side_mid:
       side = sides + s->affectee;
-      dirty_side(side)->offsetx_mid += dx;
-      side->offsety_mid += dy;
+      dirty_side(side)->offsetx_mid = FixedAdd(side->offsetx_mid, dx);
+      side->offsety_mid = FixedAdd(side->offsety_mid, dy);
       break;
 
     case sc_side_bottom:
       side = sides + s->affectee;
-      dirty_side(side)->offsetx_bottom += dx;
-      side->offsety_bottom += dy;
+      dirty_side(side)->offsetx_bottom = FixedAdd(side->offsetx_bottom, dx);
+      side->offsety_bottom = FixedAdd(side->offsety_bottom, dy);
       break;
     }
 }
 
 void T_ScrollAdapter(mobj_t *mobj)
 {
-    ThinkerScroll((scroll_t *)mobj);
+    T_Scroll((scroll_t *)mobj);
 }
 
-static void ThinkerScrollFloorParam(scroll_t *s)
+static void T_ParamScrollFloor(scroll_t *s)
 {
   if (!(s->dx | s->dy))
     return;
@@ -3153,7 +3154,7 @@ static void ThinkerScrollFloorParam(scroll_t *s)
   }
 }
 
-static void ThinkerScrollCeilingParam(scroll_t *s)
+static void T_ParamScrollCeiling(scroll_t *s)
 {
   if (!(s->dx | s->dy))
     return;
@@ -3211,12 +3212,12 @@ static void ThinkerScrollCeilingParam(scroll_t *s)
 
 void T_ParamScrollFloorAdapter(mobj_t *mobj)
 {
-    ThinkerScrollFloorParam((scroll_t *)mobj);
+    T_ParamScrollFloor((scroll_t *)mobj);
 }
 
 void T_ParamScrollCeilingAdapter(mobj_t *mobj)
 {
-    ThinkerScrollCeilingParam((scroll_t *)mobj);
+    T_ParamScrollCeiling((scroll_t *)mobj);
 }
 
 //
@@ -3281,7 +3282,7 @@ void Add_ParamSectorScroller(scroller_t type, int32_t affectee,
 // killough 10/98:
 // fix scrolling aliasing problems, caused by long linedefs causing overflowing
 
-static void AddWallScroller(int64_t dx, int64_t dy, const line_t *l,
+static void Add_WallScroller(int64_t dx, int64_t dy, const line_t *l,
                              int control, int accel)
 {
   fixed_t x = abs(l->dx), y = abs(l->dy), d;
@@ -3330,7 +3331,7 @@ void Add_EESectorScroller(int32_t type, int32_t affectee, boolean isCeiling, dou
 }
 
 // Initialize the scrollers
-static void SpawnScrollers(void)
+static void P_SpawnScrollers(void)
 {
   int i;
   line_t *l = lines;
@@ -3410,7 +3411,7 @@ static void SpawnScrollers(void)
         case 254:
           for (s=-1; (s = P_FindLineFromLineTag(l,s)) >= 0;)
             if (s != i)
-              AddWallScroller(dx, dy, lines+s, control, accel);
+              Add_WallScroller(dx, dy, lines+s, control, accel);
           break;
 
         case 255:    // killough 3/2/98: scroll according to sidedef offsets
@@ -3490,7 +3491,7 @@ static void SpawnScrollers(void)
 // Add_Friction adds a new friction thinker to the list of active thinkers.
 //
 
-static void AddFriction(int friction, int movefactor, int affectee)
+static void Add_Friction(int friction, int movefactor, int affectee)
 {
     friction_t *f = arena_alloc(thinkers_arena, friction_t);
 
@@ -3610,7 +3611,7 @@ void T_FrictionAdapter(mobj_t *mobj)
 //
 // Initialize the sectors where friction is increased or decreased
 
-static void SpawnFriction(void)
+static void P_SpawnFriction(void)
 {
   int i;
   line_t *l = lines;
@@ -3655,7 +3656,7 @@ static void SpawnFriction(void)
 
             // Boom's friction code for demo compatibility
             if (!demo_compatibility && demo_version < DV_MBF)
-              AddFriction(friction,movefactor,s);
+              Add_Friction(friction,movefactor,s);
 
             sectors[s].friction = friction;
             sectors[s].movefactor = movefactor;
@@ -3718,8 +3719,8 @@ static void SpawnFriction(void)
 //
 // Add a push thinker to the thinker list
 
-static void AddPusher(int type, int x_mag, int y_mag, mobj_t *source,
-                      int affectee)
+static void Add_Pusher(int type, int x_mag, int y_mag,
+                       mobj_t *source, int affectee)
 {
   pusher_t *p = arena_alloc(thinkers_arena, pusher_t);
 
@@ -3804,7 +3805,7 @@ boolean PIT_PushThing(mobj_t* thing)
 // the effect.
 //
 
-static void ThinkerPusher(pusher_t *p)
+static void T_Pusher(pusher_t *p)
 {
   sector_t *sec;
   mobj_t   *thing;
@@ -3928,7 +3929,7 @@ static void ThinkerPusher(pusher_t *p)
 
 void T_PusherAdapter(mobj_t *mobj)
 {
-    ThinkerPusher((pusher_t *)mobj);
+    T_Pusher((pusher_t *)mobj);
 }
 
 /////////////////////////////
@@ -3963,7 +3964,7 @@ mobj_t* P_GetPushThing(int s)
 // Initialize the sectors where pushers are present
 //
 
-static void SpawnPushers(void)
+static void P_SpawnPushers(void)
 {
   int i;
   line_t *l = lines;
@@ -3975,18 +3976,18 @@ static void SpawnPushers(void)
       {
       case 224: // wind
         for (s = -1; (s = P_FindSectorFromLineTag(l,s)) >= 0 ; )
-          AddPusher(p_wind,l->dx,l->dy,NULL,s);
+          Add_Pusher(p_wind,l->dx,l->dy,NULL,s);
         break;
       case 225: // current
         for (s = -1; (s = P_FindSectorFromLineTag(l,s)) >= 0 ; )
-          AddPusher(p_current,l->dx,l->dy,NULL,s);
+          Add_Pusher(p_current,l->dx,l->dy,NULL,s);
         break;
       case 226: // push/pull
         for (s = -1; (s = P_FindSectorFromLineTag(l,s)) >= 0 ; )
           {
             thing = P_GetPushThing(s);
             if (thing) // No MT_P* means no effect
-              AddPusher(p_push,l->dx,l->dy,thing,s);
+              Add_Pusher(p_push,l->dx,l->dy,thing,s);
           }
         break;
       }

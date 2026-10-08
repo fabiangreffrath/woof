@@ -70,7 +70,7 @@ static int interp_method;
 static byte *lump;
 static int lumplen;
 
-static void *sfopen(const char *path)
+static void *FL_sfopen(const char *path)
 {
     MEMFILE *instream;
 
@@ -79,7 +79,7 @@ static void *sfopen(const char *path)
     return instream;
 }
 
-static int sfread(void *buf, fluid_int_t count, void *handle)
+static int FL_sfread(void *buf, fluid_int_t count, void *handle)
 {
     if (mem_fread(buf, sizeof(byte), count, (MEMFILE *)handle) == count)
     {
@@ -88,7 +88,7 @@ static int sfread(void *buf, fluid_int_t count, void *handle)
     return FLUID_FAILED;
 }
 
-static int sfseek(void *handle, fluid_long_long_t offset, int origin)
+static int FL_sfseek(void *handle, fluid_long_long_t offset, int origin)
 {
     if (mem_fseek((MEMFILE *)handle, offset, origin) >= 0)
     {
@@ -97,14 +97,14 @@ static int sfseek(void *handle, fluid_long_long_t offset, int origin)
     return FLUID_FAILED;
 }
 
-static int sfclose(void *handle)
+static int FL_sfclose(void *handle)
 {
     mem_fclose((MEMFILE *)handle);
     Z_ChangeTag(lump, PU_CACHE);
     return FLUID_OK;
 }
 
-static fluid_long_long_t sftell(void *handle)
+static fluid_long_long_t FL_sftell(void *handle)
 {
     return mem_ftell((MEMFILE *)handle);
 }
@@ -247,26 +247,26 @@ static void FreeSynthAndSettings(void)
     }
 }
 
-static void LogError(int level, const char *message, void *data)
+static void I_FL_Log_Error(int level, const char *message, void *data)
 {
     I_Printf(VB_ERROR, "FluidSynth: \"%s\"", message);
 }
 
-static void LogDebug(int level, const char *message, void *data)
+static void I_FL_Log_Debug(int level, const char *message, void *data)
 {
     I_Printf(VB_DEBUG, "FluidSynth: \"%s\"", message);
 }
 
-static boolean InitStream_Fluid(int device)
+static boolean I_FL_InitStream(int device)
 {
     int sf_id;
     int lumpnum;
 
-    fluid_set_log_function(FLUID_PANIC, LogError, NULL);
-    fluid_set_log_function(FLUID_ERR, LogError, NULL);
-    fluid_set_log_function(FLUID_WARN, LogDebug, NULL);
-    fluid_set_log_function(FLUID_INFO, NULL, NULL);
-    fluid_set_log_function(FLUID_DBG, NULL, NULL);
+    fluid_set_log_function(FLUID_PANIC, I_FL_Log_Error, NULL);
+    fluid_set_log_function(FLUID_ERR,   I_FL_Log_Error, NULL);
+    fluid_set_log_function(FLUID_WARN,  I_FL_Log_Debug, NULL);
+    fluid_set_log_function(FLUID_INFO,  NULL,           NULL);
+    fluid_set_log_function(FLUID_DBG,   NULL,           NULL);
 
     settings = new_fluid_settings();
 
@@ -322,8 +322,8 @@ static boolean InitStream_Fluid(int device)
         lumplen = W_LumpLength(lumpnum);
 
         sfloader = new_fluid_defsfloader(settings);
-        fluid_sfloader_set_callbacks(sfloader, sfopen, sfread, sfseek, sftell,
-                                     sfclose);
+        fluid_sfloader_set_callbacks(sfloader, FL_sfopen, FL_sfread, FL_sfseek,
+                                     FL_sftell, FL_sfclose);
         fluid_synth_add_sfloader(synth, sfloader);
         sf_id = fluid_synth_sfload(synth, "", true);
     }
@@ -356,8 +356,8 @@ static boolean InitStream_Fluid(int device)
 
 static const char *music_format = "Unknown";
 
-static boolean OpenStream_Fluid(void *data, ALsizei size, ALenum *format,
-                                ALsizei *freq, ALsizei *frame_size)
+static boolean I_FL_OpenStream(void *data, ALsizei size, ALenum *format,
+                               ALsizei *freq, ALsizei *frame_size)
 {
     if (!IsMid(data, size) && !IsMus(data, size))
     {
@@ -421,7 +421,7 @@ static boolean OpenStream_Fluid(void *data, ALsizei size, ALenum *format,
     return true;
 }
 
-static int FillStream_Fluid(void *buffer, int buffer_samples)
+static int I_FL_FillStream(void *buffer, int buffer_samples)
 {
     int result;
 
@@ -436,7 +436,7 @@ static int FillStream_Fluid(void *buffer, int buffer_samples)
     return buffer_samples;
 }
 
-static void PlayStream_Fluid(boolean looping)
+static void I_FL_PlayStream(boolean looping)
 {
     if (!player)
     {
@@ -448,7 +448,7 @@ static void PlayStream_Fluid(boolean looping)
     fluid_player_play(player);
 }
 
-static void CloseStream_Fluid(void)
+static void I_FL_CloseStream(void)
 {
     if (!player || !synth)
     {
@@ -464,14 +464,14 @@ static void CloseStream_Fluid(void)
     player = NULL;
 }
 
-static void ShutdownStream_Fluid(void)
+static void I_FL_ShutdownStream(void)
 {
     FreeSynthAndSettings();
 }
 
 #define NAME_MAX_LENGTH 25
 
-static const char **DeviceList_Fluid(void)
+static const char **I_FL_DeviceList(void)
 {
     static const char **devices = NULL;
 
@@ -502,7 +502,7 @@ static const char **DeviceList_Fluid(void)
     return devices;
 }
 
-static void BindVariables_Fluid(void)
+static void I_FL_BindVariables(void)
 {
     M_BindStr("soundfont_dirs", &soundfont_dirs, "", wad_no,
         "[FluidSynth] Soundfont directories");
@@ -535,19 +535,20 @@ static void BindVariables_Fluid(void)
         "MS GS Wavetable Synth (0 = Off; 1 = Drums; 2 = All)");
 }
 
-static const char *MusicFormat_Fluid(void)
+static const char *I_FL_MusicFormat(void)
 {
     return music_format;
 }
 
-stream_module_t stream_fl_module = {
-    .InitStream = InitStream_Fluid,
-    .OpenStream = OpenStream_Fluid,
-    .FillStream = FillStream_Fluid,
-    .PlayStream = PlayStream_Fluid,
-    .CloseStream = CloseStream_Fluid,
-    .ShutdownStream = ShutdownStream_Fluid,
-    .DeviceList = DeviceList_Fluid,
-    .BindVariables = BindVariables_Fluid,
-    .MusicFormat = MusicFormat_Fluid,
+stream_module_t stream_fl_module =
+{
+    I_FL_InitStream,
+    I_FL_OpenStream,
+    I_FL_FillStream,
+    I_FL_PlayStream,
+    I_FL_CloseStream,
+    I_FL_ShutdownStream,
+    I_FL_DeviceList,
+    I_FL_BindVariables,
+    I_FL_MusicFormat,
 };

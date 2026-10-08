@@ -213,7 +213,7 @@ static block_t *CopyBlocks(const block_t *from)
     return to;
 }
 
-arena_copy_t *M_ArenaCopy(const arena_t *arena)
+arena_copy_t *M_ArenaCreateCopy(const arena_t *arena)
 {
     arena_copy_t *copy = calloc(1, sizeof(*copy));
 
@@ -223,6 +223,35 @@ arena_copy_t *M_ArenaCopy(const arena_t *arena)
     memcpy(copy->buffer, arena->buffer, size);
 
     copy->deleted = CopyBlocks(arena->deleted);
+    copy->hashmap = M_HashMapCopy(arena->hashmap);
+
+    return copy;
+}
+
+arena_copy_t *M_ArenaCopy(arena_copy_t *copy, const arena_t *arena)
+{
+    if (!copy)
+    {
+        return M_ArenaCreateCopy(arena);
+    }
+
+    ptrdiff_t size = arena->beg - arena->buffer;
+    if (copy->size < size)
+    {
+        copy->size = size;
+        copy->buffer = I_Realloc(copy->buffer, copy->size);
+    }
+    memcpy(copy->buffer, arena->buffer, size);
+
+    if (copy->deleted)
+    {
+        array_free(copy->deleted);
+    }
+    copy->deleted = CopyBlocks(arena->deleted);
+    if (copy->hashmap)
+    {
+        hashmap_free(copy->hashmap);
+    }
     copy->hashmap = M_HashMapCopy(arena->hashmap);
 
     return copy;

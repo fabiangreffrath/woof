@@ -63,7 +63,7 @@ uint64_t I_GetTimeUS(void)
 
 int time_scale = 100;
 
-static uint64_t GetPerfCounterScaled(void)
+static uint64_t GetPerfCounter_Scaled(void)
 {
     uint64_t counter;
 
@@ -77,7 +77,7 @@ static uint64_t GetPerfCounterScaled(void)
     return counter - basecounter_scaled;
 }
 
-static uint32_t GetTimeMilliSecondScaled(void)
+static uint32_t GetTimeMS_Scaled(void)
 {
     uint64_t counter;
 
@@ -96,72 +96,72 @@ int I_GetTime_RealTime(void)
     return MSToTic(I_GetTimeMS());
 }
 
-static int GetTimeScaled(void)
+static int I_GetTime_Scaled(void)
 {
-    return MSToTic(GetTimeMilliSecondScaled());
+    return MSToTic(GetTimeMS_Scaled());
 }
 
 static int fasttic;
 
-static int GetTimeFastDemo(void)
+static int I_GetTime_FastDemo(void)
 {
     return fasttic++;
 }
 
-int (*I_GetTime)() = GetTimeScaled;
+int (*I_GetTime)() = I_GetTime_Scaled;
 
-static int GetFracTimeScaled(void)
+static int I_GetFracTime_Scaled(void)
 {
-    return GetTimeMilliSecondScaled() * TICRATE % 1000 * FRACUNIT / 1000;
+    return GetTimeMS_Scaled() * TICRATE % 1000 * FRACUNIT / 1000;
 }
 
 // During a fast demo, no time elapses in between ticks
 
-static int GetFracTimeFastDemo(void)
+static int I_GetFracTime_FastDemo(void)
 {
     return 0;
 }
 
-int (*I_GetFracTime)(void) = GetFracTimeScaled;
+int (*I_GetFracTime)(void) = I_GetFracTime_Scaled;
 
 void I_InitTimer(void)
 {
     basefreq = SDL_GetPerformanceFrequency();
 
-    I_GetTime = GetTimeScaled;
-    I_GetFracTime = GetFracTimeScaled;
+    I_GetTime = I_GetTime_Scaled;
+    I_GetFracTime = I_GetFracTime_Scaled;
 }
 
 void I_SetTimeScale(int scale)
 {
     uint64_t counter;
 
-    counter = GetPerfCounterScaled();
+    counter = GetPerfCounter_Scaled();
 
     time_scale = scale;
 
-    basecounter_scaled += (GetPerfCounterScaled() - counter);
+    basecounter_scaled += (GetPerfCounter_Scaled() - counter);
 }
 
 void I_SetFastdemoTimer(boolean on)
 {
     if (on)
     {
-        fasttic = GetTimeScaled();
+        fasttic = I_GetTime_Scaled();
 
-        I_GetTime = GetTimeFastDemo;
-        I_GetFracTime = GetFracTimeFastDemo;
+        I_GetTime = I_GetTime_FastDemo;
+        I_GetFracTime = I_GetFracTime_FastDemo;
     }
-    else if (I_GetTime == GetTimeFastDemo)
+    else if (I_GetTime == I_GetTime_FastDemo)
     {
         uint64_t counter;
 
-        counter = TicToCounter(GetTimeFastDemo());
+        counter = TicToCounter(I_GetTime_FastDemo());
 
-        basecounter_scaled += (GetPerfCounterScaled() - counter);
+        basecounter_scaled += (GetPerfCounter_Scaled() - counter);
 
-        I_GetTime = GetTimeScaled;
-        I_GetFracTime = GetFracTimeScaled;
+        I_GetTime = I_GetTime_Scaled;
+        I_GetFracTime = I_GetFracTime_Scaled;
     }
 }
 

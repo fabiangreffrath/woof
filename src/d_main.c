@@ -263,7 +263,7 @@ void D_Display (void)
   if (gamestate != wipegamestate)
     {
       wipe = true;
-      Wipe_StartScreen(0, 0, video.width, video.height);
+      wipe_StartScreen(0, 0, video.width, video.height);
     }
 
   if (!wipe)
@@ -349,7 +349,7 @@ void D_Display (void)
     ST_Drawer();
 
   if (wi_overlay)
-    WI_DrawOverlayStats();
+    WI_drawOverlayStats();
 
   // draw pause pic
   if (paused)
@@ -367,7 +367,7 @@ void D_Display (void)
     }
 
   // menus go directly to the screen
-  MN_Drawer();          // menu is drawn even on top of everything
+  M_Drawer();          // menu is drawn even on top of everything
   NetUpdate();         // send out any new accumulation
 
   if (demobar && demoplayback)
@@ -381,7 +381,7 @@ void D_Display (void)
     }
 
   // wipe update
-  Wipe_EndScreen(0, 0, video.width, video.height);
+  wipe_EndScreen(0, 0, video.width, video.height);
 
   wipestart = I_GetTime () - 1;
 
@@ -392,9 +392,9 @@ void D_Display (void)
 
       fractionaltic = I_GetFracTime();
 
-      done = Wipe_ScreenWipe(0, 0, video.width, video.height, tics);
+      done = wipe_ScreenWipe(0, 0, video.width, video.height, tics);
       wipestart = nowtime;
-      MN_Drawer();                   // menu is drawn even on top of wipes
+      M_Drawer();                   // menu is drawn even on top of wipes
       I_FinishUpdate();             // page flip or blit buffer
     }
   while (!done);
@@ -1442,7 +1442,7 @@ boolean quit_prompt;
 boolean quit_sound;
 static endoom_t show_endoom;
 
-static void ShowEndDoom(void)
+static void D_ShowEndDoom(void)
 {
   int lumpnum = W_CheckNumForName("ENDOOM");
   byte *endoom = W_CacheLumpNum(lumpnum, PU_STATIC);
@@ -1473,11 +1473,11 @@ boolean D_AllowEndDoom(void)
   return true;
 }
 
-static void EndDoom(void)
+static void D_EndDoom(void)
 {
   if (D_AllowEndDoom())
   {
-    ShowEndDoom();
+    D_ShowEndDoom();
   }
 }
 
@@ -2470,7 +2470,7 @@ void D_DoomMain(void)
 
   if (!demorecording)
   {
-    I_AtExitPrio(EndDoom, false, "D_EndDoom", exit_priority_last);
+    I_AtExitPrio(D_EndDoom, false, "D_EndDoom", exit_priority_last);
   }
 
   TryRunTics();

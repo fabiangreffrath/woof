@@ -82,25 +82,25 @@ static nw_packet_t *QueuePop(packet_queue_t *queue)
 //
 //-----------------------------------------------------------------------------
 
-static boolean ClientInitClient(void)
+static boolean NW_CL_InitClient(void)
 {
     QueueInit(&client_queue);
 
     return true;
 }
 
-static boolean ClientInitServer(void)
+static boolean NW_CL_InitServer(void)
 {
     I_Error("attempted to initialize client pipe end as a server!");
     return false;
 }
 
-static void ClientSendPacket(nw_addr_t *addr, nw_packet_t *packet)
+static void NW_CL_SendPacket(nw_addr_t *addr, nw_packet_t *packet)
 {
     QueuePush(&server_queue, NW_PacketDup(packet));
 }
 
-static boolean ClientRecvPacket(nw_addr_t **addr, nw_packet_t **packet)
+static boolean NW_CL_RecvPacket(nw_addr_t **addr, nw_packet_t **packet)
 {
     nw_packet_t *popped;
 
@@ -118,16 +118,16 @@ static boolean ClientRecvPacket(nw_addr_t **addr, nw_packet_t **packet)
     return false;
 }
 
-static void ClientAddrToString(nw_addr_t *addr, char *buffer, int buffer_len)
+static void NW_CL_AddrToString(nw_addr_t *addr, char *buffer, int buffer_len)
 {
     M_snprintf(buffer, buffer_len, "local server");
 }
 
-static void ClientFreeAddress(nw_addr_t *addr)
+static void NW_CL_FreeAddress(nw_addr_t *addr)
 {
 }
 
-static nw_addr_t *ClientResolveAddress(const char *address)
+static nw_addr_t *NW_CL_ResolveAddress(const char *address)
 {
     if (address == NULL)
     {
@@ -143,13 +143,13 @@ static nw_addr_t *ClientResolveAddress(const char *address)
 
 nw_module_t nw_loop_client_module =
 {
-    ClientInitClient,
-    ClientInitServer,
-    ClientSendPacket,
-    ClientRecvPacket,
-    ClientAddrToString,
-    ClientFreeAddress,
-    ClientResolveAddress,
+    NW_CL_InitClient,
+    NW_CL_InitServer,
+    NW_CL_SendPacket,
+    NW_CL_RecvPacket,
+    NW_CL_AddrToString,
+    NW_CL_FreeAddress,
+    NW_CL_ResolveAddress,
 };
 
 //-----------------------------------------------------------------------------
@@ -158,25 +158,25 @@ nw_module_t nw_loop_client_module =
 //
 //-----------------------------------------------------------------------------
 
-static boolean ServerInitClient(void)
+static boolean NW_SV_InitClient(void)
 {
     I_Error("attempted to initialize server pipe end as a client!");
     return false;
 }
 
-static boolean ServerInitServer(void)
+static boolean NW_SV_InitServer(void)
 {
     QueueInit(&server_queue);
 
     return true;
 }
 
-static void ServerSendPacket(nw_addr_t *addr, nw_packet_t *packet)
+static void NW_SV_SendPacket(nw_addr_t *addr, nw_packet_t *packet)
 {
     QueuePush(&client_queue, NW_PacketDup(packet));
 }
 
-static boolean ServerRecvPacket(nw_addr_t **addr, nw_packet_t **packet)
+static boolean NW_SV_RecvPacket(nw_addr_t **addr, nw_packet_t **packet)
 {
     nw_packet_t *popped;
 
@@ -194,16 +194,16 @@ static boolean ServerRecvPacket(nw_addr_t **addr, nw_packet_t **packet)
     return false;
 }
 
-static void ServerAddrToString(nw_addr_t *addr, char *buffer, int buffer_len)
+static void NW_SV_AddrToString(nw_addr_t *addr, char *buffer, int buffer_len)
 {
     M_snprintf(buffer, buffer_len, "local client");
 }
 
-static void ServerFreeAddress(nw_addr_t *addr)
+static void NW_SV_FreeAddress(nw_addr_t *addr)
 {
 }
 
-static nw_addr_t *ServerResolveAddress(const char *address)
+static nw_addr_t *NW_SV_ResolveAddress(const char *address)
 {
     if (address == NULL)
     {
@@ -218,11 +218,11 @@ static nw_addr_t *ServerResolveAddress(const char *address)
 
 nw_module_t nw_loop_server_module =
 {
-    ServerInitClient,
-    ServerInitServer,
-    ServerSendPacket,
-    ServerRecvPacket,
-    ServerAddrToString,
-    ServerFreeAddress,
-    ServerResolveAddress,
+    NW_SV_InitClient,
+    NW_SV_InitServer,
+    NW_SV_SendPacket,
+    NW_SV_RecvPacket,
+    NW_SV_AddrToString,
+    NW_SV_FreeAddress,
+    NW_SV_ResolveAddress,
 };

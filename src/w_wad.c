@@ -232,8 +232,8 @@ static int IsMarker(const char *marker, const char *name)
 
 // killough 4/17/98: add namespace tags
 
-static void CoalesceMarkedResource(const char *start_marker,
-                                   const char *end_marker, int namespace)
+static void W_CoalesceMarkedResource(const char *start_marker,
+                                     const char *end_marker, int namespace)
 {
   lumpinfo_t *marked = malloc(sizeof(*marked) * numlumps);
   size_t i, num_marked = 0, num_unmarked = 0;
@@ -455,13 +455,13 @@ void W_InitMultipleFiles(void)
   {
     if (subdirs[i].namespace != ns_global)
     {
-      CoalesceMarkedResource(subdirs[i].start_marker, subdirs[i].end_marker,
-                             subdirs[i].namespace);
+      W_CoalesceMarkedResource(subdirs[i].start_marker, subdirs[i].end_marker,
+                               subdirs[i].namespace);
     }
   }
 
   // [Woof!] namespace to avoid conflicts with high-resolution textures
-  CoalesceMarkedResource("HI_START", "HI_END", ns_hires);
+  W_CoalesceMarkedResource("HI_START", "HI_END", ns_hires);
 
   // set up caching
   lumpcache = Z_Calloc(numlumps, sizeof(*lumpcache), PU_STATIC, 0); // killough

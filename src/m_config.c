@@ -167,7 +167,7 @@ static char *defaultfile;
 static boolean defaults_loaded = false; // killough 10/98
 
 // killough 11/98: hash function for name lookup
-static unsigned DefaultHash(const char *name)
+static unsigned default_hash(const char *name)
 {
     unsigned hash = 0;
     while (*name)
@@ -187,14 +187,14 @@ default_t *M_LookupDefault(const char *name)
     {
         for (hash_init = 1, dp = defaults; dp->name; dp++)
         {
-            unsigned h = DefaultHash(dp->name);
+            unsigned h = default_hash(dp->name);
             dp->next = defaults[h].first;
             defaults[h].first = dp;
         }
     }
 
     // Look up name in hash table
-    for (dp = defaults[DefaultHash(name)].first;
+    for (dp = defaults[default_hash(name)].first;
          dp && strcasecmp(name, dp->name); dp = dp->next)
         ;
 

@@ -58,7 +58,7 @@ static void PrintError(int e)
     I_Printf(VB_DEBUG, "XMP: %s", msg);
 }
 
-static boolean InitStream_XMP(int device)
+static boolean I_XMP_InitStream(int device)
 {
     if (context)
     {
@@ -76,8 +76,8 @@ static boolean InitStream_XMP(int device)
     return true;
 }
 
-static boolean OpenStream_XMP(void *data, ALsizei size, ALenum *format,
-                              ALsizei *freq, ALsizei *frame_size)
+static boolean I_XMP_OpenStream(void *data, ALsizei size, ALenum *format,
+                                ALsizei *freq, ALsizei *frame_size)
 {
     if (!context)
     {
@@ -98,7 +98,7 @@ static boolean OpenStream_XMP(void *data, ALsizei size, ALenum *format,
     return true;
 }
 
-static int FillStream_XMP(void *buffer, int buffer_samples)
+static int I_XMP_FillStream(void *buffer, int buffer_samples)
 {
     int ret = xmp_play_buffer(context, buffer, buffer_samples * 4,
                               stream_looping ? 0 : 1);
@@ -119,7 +119,7 @@ static int FillStream_XMP(void *buffer, int buffer_samples)
     return buffer_samples;
 }
 
-static void PlayStream_XMP(boolean looping)
+static void I_XMP_PlayStream(boolean looping)
 {
     if (!context)
     {
@@ -131,7 +131,7 @@ static void PlayStream_XMP(boolean looping)
     xmp_set_player(context, XMP_PLAYER_VOLUME, 100);
 }
 
-static void CloseStream_XMP(void)
+static void I_XMP_CloseStream(void)
 {
     if (!context)
     {
@@ -143,7 +143,7 @@ static void CloseStream_XMP(void)
     xmp_release_module(context);
 }
 
-static void ShutdownStream_XMP(void)
+static void I_XMP_ShutdownStream(void)
 {
     if (!context)
     {
@@ -154,17 +154,17 @@ static void ShutdownStream_XMP(void)
     context = NULL;
 }
 
-static const char **DeviceList_XMP(void)
+static const char **I_XMP_DeviceList(void)
 {
     return NULL;
 }
 
-static void BindVariables_XMP(void)
+static void I_XMP_BindVariables(void)
 {
     ;
 }
 
-static const char *MusicFormat_XMP(void)
+static const char *I_XMP_MusicFormat(void)
 {
     if (!context)
     {
@@ -176,14 +176,15 @@ static const char *MusicFormat_XMP(void)
     return info.mod->type;
 }
 
-stream_module_t stream_xmp_module = {
-    .InitStream = InitStream_XMP,
-    .OpenStream = OpenStream_XMP,
-    .FillStream = FillStream_XMP,
-    .PlayStream = PlayStream_XMP,
-    .CloseStream = CloseStream_XMP,
-    .ShutdownStream = ShutdownStream_XMP,
-    .DeviceList = DeviceList_XMP,
-    .BindVariables = BindVariables_XMP,
-    .MusicFormat = MusicFormat_XMP,
+stream_module_t stream_xmp_module =
+{
+    I_XMP_InitStream,
+    I_XMP_OpenStream,
+    I_XMP_FillStream,
+    I_XMP_PlayStream,
+    I_XMP_CloseStream,
+    I_XMP_ShutdownStream,
+    I_XMP_DeviceList,
+    I_XMP_BindVariables,
+    I_XMP_MusicFormat,
 };

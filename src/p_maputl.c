@@ -46,8 +46,8 @@ fixed_t P_AproxDistance(fixed_t dx, fixed_t dy)
   dx = FixedAbs(dx);
   dy = FixedAbs(dy);
   if (dx < dy)
-    return dx+dy-(dx>>1);
-  return dx+dy-(dy>>1);
+    return FixedSub(FixedAdd(dx, dy), dx >> 1);
+  return FixedSub(FixedAdd(dx, dy), dy >> 1);
 }
 
 //
@@ -60,8 +60,8 @@ int (*P_PointOnLineSide)(fixed_t x, fixed_t y, line_t *line) = P_PointOnLineSide
 
 int P_PointOnLineSide_Classic(fixed_t x, fixed_t y, line_t *line)
 {
-  const fixed_t dx = (fixed_t)((unsigned int)x - (unsigned int)line->v1->x);
-  const fixed_t dy = (fixed_t)((unsigned int)y - (unsigned int)line->v1->y);
+  const fixed_t dx = FixedSub(x, line->v1->x);
+  const fixed_t dy = FixedSub(y, line->v1->y);
   return
     !line->dx ? x <= line->v1->x ? line->dy > 0 : line->dy < 0 :
     !line->dy ? y <= line->v1->y ? line->dx < 0 : line->dx > 0 :
@@ -120,8 +120,8 @@ int (*P_PointOnDivlineSide)(fixed_t x, fixed_t y, divline_t *line) = P_PointOnDi
 
 int P_PointOnDivlineSide_Classic(fixed_t x, fixed_t y, divline_t *line)
 {
-  const fixed_t dx = (fixed_t)((unsigned int)x - (unsigned int)line->x);
-  const fixed_t dy = (fixed_t)((unsigned int)y - (unsigned int)line->y);
+  const fixed_t dx = FixedSub(x, line->x);
+  const fixed_t dy = FixedSub(y, line->y);
   return
     !line->dx ? x <= line->x ? line->dy > 0 : line->dy < 0 :
     !line->dy ? y <= line->y ? line->dx < 0 : line->dx > 0 :
@@ -131,8 +131,8 @@ int P_PointOnDivlineSide_Classic(fixed_t x, fixed_t y, divline_t *line)
 
 int P_PointOnDivlineSide_Precise(fixed_t x, fixed_t y, divline_t *line)
 {
-  const fixed_t dx = (fixed_t)((unsigned int)x - (unsigned int)line->x);
-  const fixed_t dy = (fixed_t)((unsigned int)y - (unsigned int)line->y);
+  const fixed_t dx = FixedSub(x, line->x);
+  const fixed_t dy = FixedSub(y, line->y);
   return
     !line->dx ? x <= line->x ? line->dy > 0 : line->dy < 0 :
     !line->dy ? y <= line->y ? line->dx < 0 : line->dx > 0 :
@@ -1164,7 +1164,7 @@ mobj_t *P_RoughTargetSearch(mobj_t *mo, angle_t fov, int distance)
 ===================
 */
 
-static boolean SightBlockLinesIterator(int x, int y)
+static boolean P_SightBlockLinesIterator(int x, int y)
 {
   int offset;
   int32_t *list;
@@ -1220,7 +1220,7 @@ static boolean SightBlockLinesIterator(int x, int y)
 ====================
 */
 
-static boolean SightTraverseIntercepts(void)
+static boolean P_SightTraverseIntercepts(void)
 {
   int count;
   fixed_t dist;
@@ -1360,7 +1360,7 @@ boolean P_SightPathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2)
 
   for (count = 0; count < 64; count++)
   {
-    if (!SightBlockLinesIterator(mapx, mapy))
+    if (!P_SightBlockLinesIterator(mapx, mapy))
     {
       return false;  // early out
     }
@@ -1383,8 +1383,8 @@ boolean P_SightPathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2)
       // loop continues), but the other two blocks adjacent to the corner
       // also need to be checked.
 
-      if (!SightBlockLinesIterator(mapx + mapxstep, mapy) ||
-          !SightBlockLinesIterator(mapx, mapy + mapystep))
+      if (!P_SightBlockLinesIterator(mapx + mapxstep, mapy) ||
+          !P_SightBlockLinesIterator(mapx, mapy + mapystep))
       {
         return false;
       }
@@ -1406,7 +1406,7 @@ boolean P_SightPathTraverse(fixed_t x1, fixed_t y1, fixed_t x2, fixed_t y2)
 
   }
 
-  return SightTraverseIntercepts();
+  return P_SightTraverseIntercepts();
 }
 
 //----------------------------------------------------------------------------

@@ -47,7 +47,7 @@ static int *offset;
 #define AMP2  2
 #define SPEED 32
 
-static void InitDistortedFlats()
+static void R_InitDistortedFlats()
 {
     int i;
 
@@ -94,7 +94,7 @@ byte *R_DistortedFlat(int flatnum)
 
     if (!offsets)
     {
-        InitDistortedFlats();
+        R_InitDistortedFlats();
     }
 
     if (swirltic != leveltime)

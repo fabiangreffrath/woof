@@ -542,7 +542,7 @@ static boolean HandleExtendedObituary(char *mnemonic, char *string)
     return found;
 }
 
-static int BEXStringsStart(deh_context_t *context, char *line)
+static int DEH_BEXStringsStart(deh_context_t *context, char *line)
 {
     char s[10];
 
@@ -554,7 +554,7 @@ static int BEXStringsStart(deh_context_t *context, char *line)
     return 0;
 }
 
-static void BEXStringsParseLine(deh_context_t *context, char *line, int tag)
+static void DEH_BEXStringsParseLine(deh_context_t *context, char *line, int tag)
 {
     char *variable_name, *value;
 
@@ -585,8 +585,8 @@ deh_section_t deh_section_bex_strings =
 {
     "[STRINGS]",
     NULL,
-    BEXStringsStart,
-    BEXStringsParseLine,
+    DEH_BEXStringsStart,
+    DEH_BEXStringsParseLine,
     NULL,
     NULL,
 };
