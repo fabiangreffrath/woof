@@ -1,5 +1,6 @@
 //
 // Copyright(C) 2023 by Ryan Krafnick
+// Copyright(C) 2026 soppyMann
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -12,7 +13,8 @@
 // GNU General Public License for more details.
 //
 // DESCRIPTION:
-//	DSDA Skill Info
+//	Parses and initializes skill definitions.
+//  Adapted from DSDA-Doom.
 //
 
 #ifndef G_SKILLINFO_H
