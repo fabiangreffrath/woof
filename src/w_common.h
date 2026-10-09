@@ -32,6 +32,9 @@ typedef struct
     boolean is_map;           // files are single-level map WADs (maps/)
 } w_dir_spec_t;
 
+extern const w_dir_spec_t w_subdirs[];
+extern const int w_subdirs_len;
+
 typedef struct w_module_s
 {
     boolean (*AddDir)(w_handle_t handle, const char *base);
@@ -46,6 +49,10 @@ extern w_module_t w_file_module;
 void W_AddMarker(const char *name);
 
 void W_ConvertSlashes(char *path);
+
+void W_Filter(w_module_t *module, w_handle_t handle);
+
+void W_FilterAutoload(w_module_t *module, w_handle_t handle);
 
 // [ZDoom PK3] sprite frames containing the '\' character (e.g. VILE\1)
 // are named with a caret in archives (e.g. VILE^1.png).

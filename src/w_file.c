@@ -24,7 +24,7 @@
 #include "m_array.h"
 #include "m_misc.h"
 #include "m_swap.h"
-#include "w_internal.h"
+#include "w_common.h"
 #include "w_wad.h"
 
 // [ZDoom PK3] Recursively enumerate the base directory: sub-directories

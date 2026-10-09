@@ -18,8 +18,8 @@
 #include "i_printf.h"
 #include "m_array.h"
 #include "m_misc.h"
+#include "w_common.h"
 #include "w_wad.h"
-#include "w_internal.h"
 
 #include "miniz.h"
 

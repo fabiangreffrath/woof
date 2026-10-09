@@ -192,7 +192,7 @@ set(WOOF_SOURCES
     v_trans.c              v_trans.h
     v_video.c              v_video.h
     w_wad.c                w_wad.h
-                           w_internal.h
+    w_common.c             w_common.h
     w_file.c
     w_zip.c
     wi_stuff.c             wi_stuff.h
