@@ -495,7 +495,7 @@ void G_PrepMouseTiccmd(void)
     mousex = 0.0f;
   }
 
-  if (mousey && STRICTMODE(freelook))
+  if (mousey && MI_Freeaim())
   {
     localview.rawpitch += G_CalcMousePitch(mousey);
     basecmd.pitch = G_CarryPitch(localview.rawpitch);
@@ -519,7 +519,7 @@ void G_PrepGamepadTiccmd(void)
       axes[AXIS_TURN] = 0.0f;
     }
 
-    if (axes[AXIS_LOOK] && STRICTMODE(freelook))
+    if (axes[AXIS_LOOK] && MI_Freeaim())
     {
       localview.rawpitch -= G_CalcGamepadPitch();
       basecmd.pitch = G_CarryPitch(localview.rawpitch);
@@ -741,7 +741,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
     side += G_CarrySide(mouseside);
   }
 
-  if (mousey && !STRICTMODE(freelook) && !novert)
+  if (mousey && !novert && !MI_Freeaim())
   {
     const double mousevert = G_CalcMouseVert(mousey);
     forward += G_CarryVert(mousevert);

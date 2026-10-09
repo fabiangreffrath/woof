@@ -255,6 +255,37 @@ static void ParseLumpName(scanner_t *s, char *buffer)
     M_StringToUpper(buffer);
 }
 
+// Parses an advanced player movement option
+
+static MI_PlayerMovement_t ParsePlayerMovement(scanner_t *s)
+{
+    MI_PlayerMovement_t pm = PM_Unset;
+
+    SC_MustGetToken(s, TK_Identifier);
+    const char *keyword = SC_GetString(s);
+
+    if (!strcasecmp(keyword, "disallow"))
+    {
+        pm = PM_Disallow;
+    }
+    else if (!strcasecmp(keyword, "allow"))
+    {
+        pm = PM_Allow;
+    }
+    else if (!strcasecmp(keyword, "require"))
+    {
+        pm = PM_Require;
+    }
+
+    if (pm == PM_Unset)
+    {
+        SC_Error(s, "Expected 'disallow', 'allow' or 'require', got %s",
+                 keyword);
+    }
+
+    return pm;
+}
+
 // Parses a standard property that is already known
 // These do not get stored in the property list
 // but in dedicated struct member variables.
@@ -364,6 +395,34 @@ static void ParseStandardProperty(scanner_t *s, MI_Entry_t *mape)
     else if (!strcasecmp(prop, "music"))
     {
         ParseLumpName(s, mape->music);
+    }
+    else if (!strcasecmp(prop, "jumping"))
+    {
+        mape->jumping = ParsePlayerMovement(s);
+        if (mape->jumping == PM_Require)
+        {
+            I_Printf(VB_WARNING,
+                     "Parsing UMAPINFO found a 'jumping = "
+                     "require' entry, but jumping is not "
+                     "supported, map %s may not work correctly.",
+                     mape->lumpname);
+        }
+    }
+    else if (!strcasecmp(prop, "crouching"))
+    {
+        mape->crouching = ParsePlayerMovement(s);
+        if (mape->crouching == PM_Require)
+        {
+            I_Printf(VB_WARNING,
+                     "Parsing UMAPINFO found a 'crouching = "
+                     "require' entry, but crouching is not "
+                     "supported, map %s may not work correctly.",
+                     mape->lumpname);
+        }
+    }
+    else if (!strcasecmp(prop, "freeaim"))
+    {
+        mape->freeaim = ParsePlayerMovement(s);
     }
     else if (!strcasecmp(prop, "endpic"))
     {
@@ -802,7 +861,7 @@ boolean MI_PreviousMap(int *episode, int *map)
         while ((gamemap = (gamemap + 99) % 100) != cur_map)
         {
             int next_episode = -1;
-            int next_map = - 1;
+            int next_map = -1;
             gamemapinfo = MI_MapEntry(gameepisode, gamemap);
             MI_NextMap(&next_episode, &next_map);
 
@@ -1046,6 +1105,33 @@ void MI_ChangeMusic(void)
     }
 
     S_ChangeMusic(mnum, true);
+}
+
+// Playsim
+boolean MI_Jumping(void)
+{
+    return false;
+}
+
+boolean MI_Crouching(void)
+{
+    return false;
+}
+
+boolean MI_Freeaim(void)
+{
+    if (!CRITICAL(freelook))
+    {
+        return false;
+    }
+
+    if (!gamemapinfo)
+    {
+        return false;
+    }
+
+    return (gamemapinfo->freeaim != PM_Disallow && freelook)
+           || (gamemapinfo->freeaim == PM_Require);
 }
 
 // Death action
