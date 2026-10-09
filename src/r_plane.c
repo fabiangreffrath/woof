@@ -47,7 +47,6 @@
 #include "i_thread.h"
 #include "i_video.h"
 #include "m_fixed.h"
-#include "r_bmaps.h" // [crispy] R_BrightmapForTexName()
 #include "r_data.h"
 #include "r_defs.h"
 #include "r_draw.h"
@@ -245,8 +244,7 @@ void R_InitVisplanesRes(void)
 //
 
 static void R_MapPlane(int y, int x1, int x2,
-                       const lighttable_t * const thiscolormap,
-                       const byte *const brightmap)
+                       const lighttable_t * const thiscolormap)
 {
   fixed_t distance;
   int dx;
@@ -305,7 +303,7 @@ static void R_MapPlane(int y, int x1, int x2,
     const lighttable_t *const colormap =
         thiscolormap + planezlightoffset[index];
 
-    ds_colormap = R_GetBrightmappedColormap(colormap, thiscolormap, brightmap);
+    ds_colormap = colormap;
   }
 
   ds_y = y;
@@ -490,13 +488,12 @@ visplane_t *R_CheckPlane(visplane_t *pl, int start, int stop)
 // [FG] 32-bit integer math
 static void R_MakeSpans(int x, unsigned int t1, unsigned int b1,
                         unsigned int t2, unsigned int b2,
-                        const lighttable_t * const colormap,
-                        const byte *const brightmap)
+                        const lighttable_t * const colormap)
 {
   for (; t1 < t2 && t1 <= b1; t1++)
-    R_MapPlane(t1, spanstart[t1], x-1, colormap, brightmap);
+    R_MapPlane(t1, spanstart[t1], x-1, colormap);
   for (; b1 > b2 && b1 >= t1; b1--)
-    R_MapPlane(b1, spanstart[b1] ,x-1, colormap, brightmap);
+    R_MapPlane(b1, spanstart[b1] ,x-1, colormap);
   while (t2 < t1 && t2 <= b2)
     spanstart[t2++] = x;
   while (b2 > b1 && b2 >= t2)
@@ -647,8 +644,6 @@ static void do_draw_plane(visplane_t *pl)
 
     boolean swirling = false;
 
-    const byte *brightmap;
-
     if (pl->picnum != NO_TEXTURE)
     {
         // sky flat
@@ -674,19 +669,16 @@ static void do_draw_plane(visplane_t *pl)
         if (swirling)
         {
             ds_source = R_DistortedFlat(firstflat + pl->picnum);
-            brightmap = R_BrightmapForFlatNum(pl->picnum);
         }
         else
         {
             ds_source = V_CacheFlatNum(firstflat + flattranslation[pl->picnum],
                                        PU_STATIC);
-            brightmap = R_BrightmapForFlatNum(flattranslation[pl->picnum]);
         }
     }
     else
     {
         ds_source = R_MissingFlat();
-        brightmap = nobrightmap;
     }
 
     xoffs = pl->xoffs; // killough 2/28/98: Add offsets
@@ -728,7 +720,7 @@ static void do_draw_plane(visplane_t *pl)
     for (int x = pl->minx; x <= stop; x++)
     {
         R_MakeSpans(x, pl->top[x - 1], pl->bottom[x - 1], pl->top[x],
-                    pl->bottom[x], thiscolormap, brightmap);
+                    pl->bottom[x], thiscolormap);
     }
 
     // [MT] flats are pinned PU_STATIC (pre-cached in R_InitFlats), so there

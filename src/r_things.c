@@ -35,7 +35,6 @@
 #include "m_swap.h"
 #include "p_mobj.h"
 #include "p_pspr.h"
-#include "r_bmaps.h" // [crispy] R_BrightmapForTexName()
 #include "r_bsp.h"
 #include "r_draw.h"
 #include "r_main.h"
@@ -455,8 +454,7 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
   }
   else
   {
-    dc_colormap =
-      R_GetBrightmappedColormap(vis->colormap[0], vis->colormap[1], vis->brightmap);
+    dc_colormap = vis->colormap[0];
 
     // [FG] colored blood and gibs
     if (vis->mobjflags_extra & MFX_COLOREDBLOOD)
@@ -749,14 +747,12 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
   {
     // fixed map
     vis->colormap[0] = thiscolormap + fixedcolormapoffset;
-    vis->brightmap = nobrightmap;
   }
   else if (thing->frame & FF_FULLBRIGHT)
   {
     // full bright
     // killough 3/20/98
     vis->colormap[0] = thiscolormap;
-    vis->brightmap = nobrightmap;
   }
   else
   {
@@ -774,11 +770,6 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
 
     vis->colormap[0] = thiscolormap + spritelightoffsets[index];
     vis->colormap[1] = thiscolormap;
-
-    vis->brightmap = thing->state ? R_BrightmapForState(thing->state - states) : nobrightmap;
-
-    if (vis->brightmap == nobrightmap)
-      vis->brightmap = R_BrightmapForSprite(thing->sprite);
   }
 
   // ID24 per-state tranmap
@@ -1003,14 +994,12 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
   {
     // fixed color
     vis->colormap[0] = thiscolormap + fixedcolormapoffset;
-    vis->brightmap = nobrightmap;
   }
   else if (psp->state->frame & FF_FULLBRIGHT)
   {
     // full bright
     // killough 3/20/98
     vis->colormap[0] = thiscolormap;
-    vis->brightmap = nobrightmap;
   }
   else
   {
@@ -1026,8 +1015,6 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
 
     vis->colormap[0] = thiscolormap + spritelightoffsets[MAXLIGHTSCALE - 1];
     vis->colormap[1] = thiscolormap;
-
-    vis->brightmap = R_BrightmapForState(psp->state - states);
   }
 
   // ID24 per-state tranmap

@@ -27,7 +27,6 @@
 #include "m_misc.h"
 #include "mn_menu.h"
 #include "p_mobj.h"
-#include "r_bmaps.h"
 #include "r_defs.h"
 #include "r_draw.h"
 #include "r_main.h"
@@ -672,12 +671,10 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 	else if (fixedcolormapoffset)
 	{
 		vis->colormap[0] = thiscolormap + fixedcolormapoffset;
-		vis->brightmap = nobrightmap;
 	}
 	else if (thing->frame & FF_FULLBRIGHT)
 	{
 		vis->colormap[0] = thiscolormap;
-		vis->brightmap = nobrightmap;
 	}
 	else
 	{
@@ -695,8 +692,6 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 
 		vis->colormap[0] = thiscolormap + spritelightoffsets[index];
 		vis->colormap[1] = thiscolormap;
-
-		vis->brightmap = R_BrightmapForSprite(thing->sprite);
 	}
 
 	// ID24 per-state tranmap
@@ -831,8 +826,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 	int linesize = video.height;
 	pixel_t * dest = I_VideoBuffer + (viewwindowx * linesize) + viewwindowy;
 
-	const lighttable_t *const colormap =
-		R_GetBrightmappedColormap(spr->colormap[0], spr->colormap[1], spr->brightmap);
+	const lighttable_t *const colormap = spr->colormap[0];
 
 	// iterate over screen columns
 	fixed_t ux = ((Ax - 1) | FRACMASK) + 1;

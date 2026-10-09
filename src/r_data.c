@@ -32,14 +32,12 @@
 #include "i_system.h"
 #include "i_video.h"
 #include "info.h"
-#include "m_argv.h"
 #include "m_array.h"
 #include "m_fixed.h"
 #include "m_misc.h"
 #include "m_swap.h"
 #include "p_mobj.h"
 #include "p_tick.h"
-#include "r_bmaps.h" // [crispy] R_BrightmapForTexName()
 #include "r_defs.h"
 #include "r_main.h"
 #include "r_sky.h"
@@ -48,8 +46,6 @@
 #include "r_tranmap.h"
 #include "v_trans.h"
 #include "v_patch.h"
-#include "v_srgb.h"
-#include "v_video.h" // cr_dark, cr_shaded
 #include "w_wad.h"
 #include "z_zone.h"
 
@@ -124,11 +120,6 @@ byte      **texturecomposite2;
 int       *flattranslation;             // for global animation
 int       *flatterrain;
 int       *texturetranslation;
-
-// [crispy] brightmaps
-const byte **texturebrightmap,
-           **actualtexturebrightmap,
-           **notexturebrightmap;
 
 // Really complex printing shit...
 static void M_ProgressBarStart(const int item_count, const char *msg)
@@ -568,11 +559,6 @@ byte *R_GetColumnMasked(int tex, int col)
   return texturecomposite[tex] + ofs;
 }
 
-void R_ToggleTextureBrightmaps(void)
-{
-  texturebrightmap = use_brightmaps ? actualtexturebrightmap : notexturebrightmap;
-}
-
 //
 // R_InitTextures
 // Initializes the texture list
@@ -581,10 +567,6 @@ void R_ToggleTextureBrightmaps(void)
 
 static inline void RegisterTexture(texture_t *texture, int i)
 {
-    // [crispy] initialize brightmaps
-    actualtexturebrightmap[i] = R_BrightmapForTexName(texture->name);
-    notexturebrightmap[i] = nobrightmap;
-
     // killough 4/9/98: make column offsets 32-bit;
     // clean up malloc-ing to use sizeof
     // killough 12/98: fix sizeofs
@@ -730,12 +712,6 @@ void R_InitTextures (void)
     Z_Malloc(numtextures*sizeof*texturewidth, PU_STATIC, 0);
   textureheight = Z_Malloc(numtextures*sizeof*textureheight, PU_STATIC, 0);
 
-  actualtexturebrightmap =
-    Z_Malloc (numtextures * sizeof(*actualtexturebrightmap), PU_STATIC, 0);
-
-  notexturebrightmap =
-    Z_Malloc (numtextures * sizeof(*notexturebrightmap), PU_STATIC, 0);
-
   // Complex printing shit factored out
   M_ProgressBarStart(numtextures, __func__);
 
@@ -874,8 +850,6 @@ void R_InitTextures (void)
       textures[i]->next = textures[j]->index;   // Prepend to chain
       textures[j]->index = i;
     }
-
-  R_ToggleTextureBrightmaps();
 }
 
 //
@@ -1046,7 +1020,6 @@ void R_InitData(void)
   // mistaken as patches and by R_InitFlatBrightmaps() to set brightmaps for
   // flats.
   R_InitFlats();
-  W_ProcessInWads("BRGHTMPS", R_ParseBrightmaps, PROCESS_PWAD);
   R_InitTextures();
   R_InitSpriteLumps();
   R_InitTranMap();                      // killough 2/21/98, 3/6/98

@@ -41,7 +41,6 @@
 #include "r_defs.h"
 #include "r_draw.h"
 #include "r_main.h"
-#include "r_bmaps.h"
 #include "r_plane.h"
 #include "r_sky.h"
 #include "r_state.h"
@@ -1220,8 +1219,6 @@ void R_BindRenderVariables(void)
   BIND_BOOL_GENERAL(r_swirl, false, "Swirling animated flats");
   M_BindBool("voxels_rendering", &default_voxels_rendering, &voxels_rendering,
              true, ss_none, wad_no, "Allow voxel models");
-  BIND_BOOL_GENERAL(brightmaps, false,
-    "Brightmaps for textures and sprites");
   BIND_NUM_GENERAL(invul_mode, INVUL_MBF, INVUL_VANILLA, INVUL_GRAY,
     "Invulnerability effect (0 = Vanilla; 1 = MBF; 2 = Gray)");
   BIND_BOOL(flashing_hom, true, "Enable flashing of the HOM indicator");

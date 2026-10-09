@@ -28,7 +28,6 @@
 #include "i_system.h"
 #include "i_thread.h"
 #include "m_fixed.h"
-#include "r_bmaps.h" // [crispy] brightmaps
 #include "r_bsp.h"
 #include "r_data.h"
 #include "r_defs.h"
@@ -110,8 +109,7 @@ static void SetLight(const int32_t lightlevel)
 }
 
 static void CalculateLighting(const lighttable_t * const thiscolormap,
-                              const fixed_t scale,
-                              const byte *const brightmap)
+                              const fixed_t scale)
 {
     if (fixedcolormapoffset)
     {
@@ -123,7 +121,7 @@ static void CalculateLighting(const lighttable_t * const thiscolormap,
         const lighttable_t *const colormap =
             thiscolormap + walllightoffset[R_GetLightIndex(scale)];
 
-        dc_colormap = R_GetBrightmappedColormap(colormap, thiscolormap, brightmap);
+        dc_colormap = colormap;
     }
 }
 
@@ -228,15 +226,13 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
 
   dc_texturemid += side->interprowoffset + side->offsety_mid;
 
-  const byte *const brightmap = texturebrightmap[texnum];
-
   // draw the columns
   for (dc_x = x1 ; dc_x <= x2 ; dc_x++, spryscale += rw_scalestep)
     if (maskedtexturecol[dc_x] != INT_MAX) // [FG] 32-bit integer math
       {
         fixed_t column = maskedtexturecol[dc_x] + FixedToInt(side->offsetx_mid);
         // killough 11/98:
-        CalculateLighting(thiscolormap, spryscale, brightmap);
+        CalculateLighting(thiscolormap, spryscale);
 
         // killough 3/2/98:
         //
@@ -455,10 +451,8 @@ static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
           dc_source = R_GetColumn(midtexture, texturecolumn + FixedToInt(curline->sidedef->offsetx_mid));
           dc_texheight = textureheight[midtexture]>>FRACBITS; // killough
 
-          const byte *const brightmap = texturebrightmap[midtexture];
-
           SideLightLevel_Mid(curline->sidedef);
-          CalculateLighting(thiscolormap, rw_scale, brightmap);
+          CalculateLighting(thiscolormap, rw_scale);
 
           colfunc ();
 
@@ -485,10 +479,8 @@ static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
                   dc_source = R_GetColumn(toptexture, texturecolumn + FixedToInt(curline->sidedef->offsetx_top));
                   dc_texheight = textureheight[toptexture]>>FRACBITS;//killough
 
-                  const byte *const brightmap = texturebrightmap[toptexture];
-
                   SideLightLevel_Top(curline->sidedef);
-                  CalculateLighting(thiscolormap, rw_scale, brightmap);
+                  CalculateLighting(thiscolormap, rw_scale);
 
                   colfunc ();
 
@@ -518,10 +510,8 @@ static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
                   dc_source = R_GetColumn(bottomtexture, texturecolumn + FixedToInt(curline->sidedef->offsetx_bottom));
                   dc_texheight = textureheight[bottomtexture]>>FRACBITS; // killough
 
-                  const byte *const brightmap = texturebrightmap[bottomtexture];
-
                   SideLightLevel_Bottom(curline->sidedef);
-                  CalculateLighting(thiscolormap, rw_scale, brightmap);
+                  CalculateLighting(thiscolormap, rw_scale);
 
                   colfunc ();
 
