@@ -130,10 +130,6 @@ typedef struct rendercontext_s
     uint64_t timetaken;
 } rendercontext_t;
 
-// number of parallel render contexts; 1 disables multithreaded rendering
-extern int num_render_contexts;
-extern boolean render_loadbalancing;
-
 // TLS context currently being rendered by this thread.
 extern THREADLOCAL rendercontext_t *r_context;
 // per-thread sprite dedup stamp: validcount * MAX_RENDER_CONTEXTS + index

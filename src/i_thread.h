@@ -22,9 +22,9 @@
 // the simple POD/pointer variables used by the renderer.
 //
 #if defined(_MSC_VER)
-#define THREADLOCAL __declspec(thread)
+  #define THREADLOCAL __declspec(thread)
 #else
-#define THREADLOCAL _Thread_local
+  #define THREADLOCAL _Thread_local
 #endif
 
 typedef struct SDL_Thread *thread_t;

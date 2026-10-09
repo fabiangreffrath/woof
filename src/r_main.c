@@ -901,8 +901,8 @@ int autodetect_hom = 0;       // killough 2/7/98: HOM autodetection flag
 //    context draws its own slice.
 //
 
-int num_render_contexts = 0;      // 0 = auto: one per logical CPU core
-boolean render_loadbalancing = true;
+static int num_render_contexts = 0;      // 0 = auto: one per logical CPU core
+static boolean render_loadbalancing = true;
 
 THREADLOCAL rendercontext_t *r_context = NULL;
 THREADLOCAL unsigned int r_validstamp = 0;
@@ -1023,7 +1023,7 @@ void R_RenderViewContext(rendercontext_t *context)
 
     r_context = context;
     // wraparound-safe: only equality is ever tested against this stamp
-    r_validstamp = (unsigned)validcount * MAX_RENDER_CONTEXTS + context->index;
+    r_validstamp = (uint32_t)validcount * MAX_RENDER_CONTEXTS + context->index;
 
     // per-frame stats (rendered_vissprites/rendered_voxels are set by the
     // Clear functions below, matching the original R_ClearStats semantics)
