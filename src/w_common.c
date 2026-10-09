@@ -21,7 +21,7 @@
 // [ZDoom PK3] sub-directories of a PK3 archive or folder that assign
 // files to the WAD namespaces.
 // https://zdoom.org/wiki/Using_ZIPs_as_WAD_replacement
-const w_dir_spec_t w_subdirs[] =
+static const w_dir_spec_t subdirs[] =
 {
     // [Woof!] decorations, normally found between AC_START and AC_END
     {"actors",    "AC_START",  "AC_END",   ns_actors,    false},
@@ -39,9 +39,7 @@ const w_dir_spec_t w_subdirs[] =
     {"voxels",    "VX_START",  "VX_END",   ns_voxels,    false},
 };
 
-const int w_subdirs_len = arrlen(w_subdirs);
-
-static struct
+static const struct
 {
     const char *dir;
     GameMode_t mode;
@@ -88,15 +86,28 @@ const w_dir_spec_t *W_LookupDirSpec(const char *name)
     const char *sep = strchr(name, '/');
     size_t length = sep ? (size_t)(sep - name) : strlen(name);
 
-    for (int i = 0; i < arrlen(w_subdirs); ++i)
+    for (int i = 0; i < arrlen(subdirs); ++i)
     {
-        if (strlen(w_subdirs[i].dir) == length
-            && !strncasecmp(name, w_subdirs[i].dir, length))
+        if (strlen(subdirs[i].dir) == length
+            && !strncasecmp(name, subdirs[i].dir, length))
         {
-            return &w_subdirs[i];
+            return &subdirs[i];
         }
     }
     return NULL;
+}
+
+void W_CoalesceAllResources(void)
+{
+    for (int i = 0; i < arrlen(subdirs); ++i)
+    {
+        if (subdirs[i].namespace != ns_global)
+        {
+            W_CoalesceMarkedResource(subdirs[i].start_marker,
+                                     subdirs[i].end_marker,
+                                     subdirs[i].namespace);
+        }
+    }
 }
 
 static const w_dir_spec_t *cur_spec; // reserved directory of the current run

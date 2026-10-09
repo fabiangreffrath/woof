@@ -32,8 +32,9 @@ typedef struct
     boolean is_map;           // files are single-level map WADs (maps/)
 } w_dir_spec_t;
 
-extern const w_dir_spec_t w_subdirs[];
-extern const int w_subdirs_len;
+void W_CoalesceMarkedResource(const char *start_marker, const char *end_marker,
+                              int namespace);
+void W_CoalesceAllResources(void);
 
 typedef struct w_module_s
 {
