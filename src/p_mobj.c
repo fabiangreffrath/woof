@@ -723,7 +723,7 @@ void P_NightmareRespawn(mobj_t* mobj)
 
   mo = P_SpawnMobj (x,y,z, mobj->type);
   mo->spawnpoint = mobj->spawnpoint;
-  mo->angle = ANG45 * (mthing->angle/45);
+  mo->angle = (angle_t)ANG45 * (mthing->angle/45);
 
   if (mthing->options & MTF_AMBUSH)
     mo->flags |= MF_AMBUSH;
@@ -1126,7 +1126,7 @@ void P_RespawnSpecials (void)
 
   mo = P_SpawnMobj(x,y,z, i);
   mo->spawnpoint = *mthing;
-  mo->angle = ANG45 * (mthing->angle/45);
+  mo->angle = (angle_t)ANG45 * (mthing->angle/45);
 
   // pull it from the queue
 
@@ -1167,7 +1167,7 @@ void P_SpawnPlayer (mapthing_t* mthing)
   if (mthing->type > 1)
     mobj->flags |= (mthing->type-1)<<MF_TRANSSHIFT;
 
-  mobj->angle      = ANG45 * (mthing->angle/45);
+  mobj->angle      = (angle_t)ANG45 * (mthing->angle/45);
   mobj->player     = p;
   mobj->health     = p->health;
 
