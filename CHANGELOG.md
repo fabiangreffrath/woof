@@ -22,7 +22,6 @@
     The option is disabled in demos, netgames and strict mode.
 
 * **Rendering:**
-  - Made the SDL renderer not be cleared every frame, for improved rendering performance in general.
   - Improved palettization of PNG graphics, and general color approximation in the engine.
   - Implemented transposed rendering for improved rendering performance in general.
   - Added "Cylindrical" sky projection as a third option besides "Vanilla" and "Linear" (from Nugget Doom).

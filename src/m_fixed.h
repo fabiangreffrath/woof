@@ -79,7 +79,7 @@ inline static int64_t FixedMul64(int64_t a, int64_t b)
 }
 
 //
-// Fixed Point Addition, Subtraction, Absolute Value
+// Fixed Point Addition, Subtraction, Negation, Absolute Value
 //
 
 inline static fixed_t FixedAdd(fixed_t a, fixed_t b)
@@ -94,10 +94,16 @@ inline static fixed_t FixedSub(fixed_t a, fixed_t b)
     return (fixed_t)((uint32_t)a - (uint32_t)b);
 }
 
+inline static fixed_t FixedNeg(fixed_t x)
+{
+    // avoid -INT32_MIN UB
+    return FixedSub(0, x);
+}
+
 inline static fixed_t FixedAbs(fixed_t x)
 {
     // avoid abs(INT32_MIN) UB
-    return x < 0 ? (fixed_t)((uint32_t)0 - (uint32_t)x) : x;
+    return x < 0 ? FixedNeg(x) : x;
 }
 
 //

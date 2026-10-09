@@ -1069,8 +1069,7 @@ WI_drawNum
   neg = n < 0;    // killough 11/98: move up to here, for /= 10 division below
   if (neg)
   {
-    // Cast needed to avoid UB. Fixes gcc optimization bug.
-    n = -(unsigned int)n;
+    n = FixedNeg(n);
   }
 
   if (digits < 0)

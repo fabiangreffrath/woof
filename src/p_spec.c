@@ -2988,8 +2988,8 @@ static void T_Scroll(scroll_t *s)
   // killough 3/14/98: Add acceleration
   if (s->accel)
     {
-      s->vdx = dx += s->vdx;
-      s->vdy = dy += s->vdy;
+      s->vdx = dx = FixedAdd(dx, s->vdx);
+      s->vdy = dy = FixedAdd(dy, s->vdy);
     }
 
   if (!(dx | dy))                   // no-op if both (x,y) offsets 0
@@ -3011,8 +3011,8 @@ static void T_Scroll(scroll_t *s)
           side->oldrowoffset = side->rowoffset;
           side->oldgametic = gametic;
         }
-        dirty_side(side)->textureoffset += dx;
-        side->rowoffset += dy;
+        dirty_side(side)->textureoffset = FixedAdd(side->textureoffset, dx);
+        side->rowoffset = FixedAdd(side->rowoffset, dy);
         break;
 
     case sc_floor:                  // killough 3/7/98: Scroll floor texture
@@ -3023,8 +3023,8 @@ static void T_Scroll(scroll_t *s)
           sec->old_floor_yoffs = sec->floor_yoffs;
           sec->old_floor_offs_gametic = gametic;
         }
-        sec->floor_xoffs += dx;
-        sec->floor_yoffs += dy;
+        sec->floor_xoffs = FixedAdd(sec->floor_xoffs, dx);
+        sec->floor_yoffs = FixedAdd(sec->floor_yoffs, dy);
         break;
 
     case sc_ceiling:               // killough 3/7/98: Scroll ceiling texture
@@ -3035,8 +3035,8 @@ static void T_Scroll(scroll_t *s)
           sec->old_ceiling_yoffs = sec->ceiling_yoffs;
           sec->old_ceil_offs_gametic = gametic;
         }
-        sec->ceiling_xoffs += dx;
-        sec->ceiling_yoffs += dy;
+        sec->ceiling_xoffs = FixedAdd(sec->ceiling_xoffs, dx);
+        sec->ceiling_yoffs = FixedAdd(sec->ceiling_yoffs, dy);
         break;
 
     case sc_carry:
@@ -3060,7 +3060,8 @@ static void T_Scroll(scroll_t *s)
             (!(thing->flags & MF_NOGRAVITY || thing->z > height) ||
              thing->z < waterheight))
           {
-	  thing->momx += dx, thing->momy += dy;
+	  thing->momx = FixedAdd(thing->momx, dx);
+	  thing->momy = FixedAdd(thing->momy, dy);
 	  thing->intflags |= MIF_SCROLLING;
           }
       break;
@@ -3071,20 +3072,20 @@ static void T_Scroll(scroll_t *s)
     // UDMF extensions
     case sc_side_top:
       side = sides + s->affectee;
-      dirty_side(side)->offsetx_top += dx;
-      side->offsety_top += dy;
+      dirty_side(side)->offsetx_top = FixedAdd(side->offsetx_top, dx);
+      side->offsety_top = FixedAdd(side->offsety_top, dy);
       break;
 
     case sc_side_mid:
       side = sides + s->affectee;
-      dirty_side(side)->offsetx_mid += dx;
-      side->offsety_mid += dy;
+      dirty_side(side)->offsetx_mid = FixedAdd(side->offsetx_mid, dx);
+      side->offsety_mid = FixedAdd(side->offsety_mid, dy);
       break;
 
     case sc_side_bottom:
       side = sides + s->affectee;
-      dirty_side(side)->offsetx_bottom += dx;
-      side->offsety_bottom += dy;
+      dirty_side(side)->offsetx_bottom = FixedAdd(side->offsetx_bottom, dx);
+      side->offsety_bottom = FixedAdd(side->offsety_bottom, dy);
       break;
     }
 }

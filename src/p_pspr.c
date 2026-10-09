@@ -1353,7 +1353,7 @@ void A_WeaponBulletAttack(mobj_t *mo, player_t *player, pspdef_t *psp)
   RETURN_IF_NO_PLAYER
 
   int hspread, vspread, numbullets, damagebase, damagemod;
-  int i, damage, angle, slope;
+  int i, damage, slope;
 
   if (!mbf21 || !psp->state)
     return;
@@ -1369,7 +1369,8 @@ void A_WeaponBulletAttack(mobj_t *mo, player_t *player, pspdef_t *psp)
   for (i = 0; i < numbullets; i++)
   {
     damage = (P_Random(pr_mbf21) % damagemod + 1) * damagebase;
-    angle = (int)player->mo->angle + P_RandomHitscanAngle(pr_mbf21, hspread);
+    const angle_t angle = player->mo->angle
+                          + (angle_t)P_RandomHitscanAngle(pr_mbf21, hspread);
     slope = bulletslope + P_RandomHitscanSlope(pr_mbf21, vspread);
 
     P_LineAttack(player->mo, angle, MISSILERANGE, slope, damage);
