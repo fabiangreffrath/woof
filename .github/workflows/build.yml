@@ -182,7 +182,9 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: ${{ github.workspace }}/vcpkg_cache
-          key: vcpkg-${{ matrix.config.triplet }}
+          key: vcpkg-${{ runner.os }}-${{ runner.arch }}-${{ matrix.config.triplet }}-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json', 'overlay-ports/**') }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-${{ runner.arch }}-${{ matrix.config.triplet }}-
 
       - name: Configure
         run: >-
@@ -218,7 +220,8 @@ jobs:
         run: gh cache delete --repo ${{ github.repository }} ${{ steps.cache-vcpkg.outputs.cache-primary-key }}
 
       - name: Save vcpkg cache
-        if: matrix.config.type == 'vcpkg'
+        # skipped for fork PRs to avoid permission errors
+        if: matrix.config.type == 'vcpkg' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
         uses: actions/cache/save@v6
         with:
           path: ${{ github.workspace }}/vcpkg_cache
