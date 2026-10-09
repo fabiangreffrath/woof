@@ -27,6 +27,7 @@
 #include "deh_misc.h"
 #include "doomdef.h"
 #include "doomstat.h"
+#include "g_skillinfo.h"
 #include "i_system.h"
 #include "info.h"
 #include "m_fixed.h"
@@ -106,9 +107,8 @@ boolean P_GiveAmmo(player_t *player, ammotype_t ammo, int num)
   else
     num = clipammo[ammo]/2;
 
-  // give double ammo in trainer mode, you'll need in nightmare
-  if (gameskill == sk_baby || gameskill == sk_nightmare || doubleammo)
-    num <<= 1;
+  if (skill_info.ammo_factor)
+    num = FixedMul(num, skill_info.ammo_factor);
 
   oldammo = player->ammo[ammo];
   player->ammo[ammo] += num;
@@ -807,8 +807,8 @@ void P_DamageMobjBy(mobj_t *target,mobj_t *inflictor, mobj_t *source, int damage
     target->momx = target->momy = target->momz = 0;
 
   player = target->player;
-  if (player && (gameskill == sk_baby || halfplayerdamage))
-    damage >>= 1;   // take half damage in trainer mode
+  if (player && skill_info.damage_factor)
+    damage = FixedMul(damage, skill_info.damage_factor);
 
   // Some close combat weapons should not
   // inflict thrust and push the victim out of reach,

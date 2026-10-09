@@ -28,6 +28,7 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "g_game.h"
+#include "g_skillinfo.h"
 #include "hu_crosshair.h"
 #include "i_gamepad.h"
 #include "i_gyro.h"
@@ -3515,25 +3516,19 @@ void MN_DrawGeneral(void)
     }
 }
 
-static boolean csmenu_skill;
+int csmenu_skill;
 
-static struct
-{
-    boolean fastparm;
-    boolean respawnparm;
-    boolean nomonsters;
-    boolean coopspawns;
-    boolean pistolstart;
-    boolean halfplayerdamage;
-    boolean doubleammo;
-    boolean aggromonsters;
-    int helperdogs;
-} csmenu;
+csmenu_t csmenu;
 
 const char *skill_strings[] = {
     "I'm too young to die", "Hey, not too rough", "Hurt me plenty",
     "Ultra-Violence", "NIGHTMARE!",
 };
+
+void M_InitCustomSkill(void)
+{
+    csmenu_skill = sk_medium;
+}
 
 static void CsBarkSound(void)
 {
@@ -3547,17 +3542,9 @@ static void SelectSkillLevel(void);
 
 static void StartGame(void)
 {
-    clfastparm = csmenu.fastparm;
-    clrespawnparm = csmenu.respawnparm;
-    clnomonsters = csmenu.nomonsters;
-    clcoopspawns = csmenu.coopspawns;
-    clpistolstart = csmenu.pistolstart;
-    cshalfplayerdamage = csmenu.halfplayerdamage;
-    csdoubleammo = csmenu.doubleammo;
-    csaggromonsters = csmenu.aggromonsters;
-    cshelperdogs = csmenu.helperdogs;
+    G_UpdateCustomSkill(num_og_skills);
 
-    M_ChooseSkill(csmenu_skill);
+    M_ChooseSkill(num_og_skills);
     setup_active = false;
 }
 
@@ -3589,8 +3576,6 @@ static setup_menu_t customskill_settings1[] = {
 
 static void SelectSkillLevel(void)
 {
-    memset(&csmenu, 0, sizeof(csmenu));
-
     switch (csmenu_skill)
     {
         case sk_baby:
@@ -3627,7 +3612,6 @@ void MN_CustomSkill(void)
     current_tabs = NULL;
     SetupMenu();
 
-    csmenu_skill = default_skill - 1;
     SelectSkillLevel();
 }
 
