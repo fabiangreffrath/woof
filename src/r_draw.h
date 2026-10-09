@@ -21,19 +21,24 @@
 #define __R_DRAW__
 
 #include "doomtype.h"
+#include "i_thread.h"
 #include "m_fixed.h"
 
-extern const lighttable_t *dc_colormap;
-extern int      dc_x;
-extern int      dc_yl;
-extern int      dc_yh;
-extern fixed_t  dc_iscale;
-extern fixed_t  dc_texturemid;
-extern int      dc_texheight;    // killough
-extern byte     dc_skycolor;
+// [MT] The column/span drawer state below is the hot per-pixel state of the
+// renderer. It is thread-local so that every render context can draw its own
+// columns concurrently with zero synchronization.
+
+extern THREADLOCAL const lighttable_t *dc_colormap;
+extern THREADLOCAL int      dc_x;
+extern THREADLOCAL int      dc_yl;
+extern THREADLOCAL int      dc_yh;
+extern THREADLOCAL fixed_t  dc_iscale;
+extern THREADLOCAL fixed_t  dc_texturemid;
+extern THREADLOCAL int      dc_texheight;    // killough
+extern THREADLOCAL byte     dc_skycolor;
 
 // first pixel in a column
-extern byte     *dc_source;
+extern THREADLOCAL byte     *dc_source;
 
 // The span blitting interface.
 // Hook in assembler or system specific BLT here.
@@ -67,20 +72,20 @@ void R_DrawSkyColumnMasked(void);
 void R_DrawTranslatedColumn(void);
 void R_DrawTRTLColumn(void);
 
-extern const lighttable_t *ds_colormap;
+extern THREADLOCAL const lighttable_t *ds_colormap;
 
-extern int     ds_y;
-extern int     ds_x1;
-extern int     ds_x2;
-extern uint32_t ds_xfrac;
-extern uint32_t ds_yfrac;
-extern uint32_t ds_xstep;
-extern uint32_t ds_ystep;
+extern THREADLOCAL int     ds_y;
+extern THREADLOCAL int     ds_x1;
+extern THREADLOCAL int     ds_x2;
+extern THREADLOCAL uint32_t ds_xfrac;
+extern THREADLOCAL uint32_t ds_yfrac;
+extern THREADLOCAL uint32_t ds_xstep;
+extern THREADLOCAL uint32_t ds_ystep;
 
 // start of a 64*64 tile image
-extern byte *ds_source;
+extern THREADLOCAL byte *ds_source;
 extern byte *translationtables;
-extern byte *dc_translation;
+extern THREADLOCAL byte *dc_translation;
 
 // Span blitting for rows, floor/ceiling. No Spectre effect needed.
 void R_DrawSpan(void);

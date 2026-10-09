@@ -22,6 +22,7 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "i_system.h"
+#include "i_thread.h"
 #include "m_fixed.h"
 #include "r_defs.h"
 #include "tables.h"
@@ -41,7 +42,9 @@ boolean r_swirl;
 #define SEQUENCE     256
 
 static int *offsets = NULL;
-static int *offset;
+// [MT] the current frame offset pointer advances per leveltime while
+// rendering in parallel contexts.
+static THREADLOCAL int *offset;
 
 #define AMP   2
 #define AMP2  2
@@ -88,9 +91,12 @@ static void R_InitDistortedFlats()
 
 byte *R_DistortedFlat(int flatnum)
 {
-    static int swirltic = -1;
-    static int swirlflat = -1;
-    static byte distortedflat[FLATSIZE];
+    // [MT] per-thread swirl cache: several contexts may distort different
+    // flats at the same time, and the result buffer is read by the span
+    // drawer right after this returns.
+    static THREADLOCAL int swirltic = -1;
+    static THREADLOCAL int swirlflat = -1;
+    static THREADLOCAL byte distortedflat[FLATSIZE];
 
     if (!offsets)
     {
@@ -117,14 +123,14 @@ byte *R_DistortedFlat(int flatnum)
         char *normalflat;
         int i;
 
+        // [MT] flats are pre-cached PU_STATIC; no Z_ChangeTag() afterwards -
+        // this runs on render worker threads.
         normalflat = V_CacheFlatNum(flatnum, PU_STATIC);
 
         for (i = 0; i < FLATSIZE; i++)
         {
             distortedflat[i] = normalflat[offset[i]];
         }
-
-        Z_ChangeTag(normalflat, PU_CACHE);
 
         swirlflat = flatnum;
     }

@@ -21,6 +21,7 @@
 #define __R_THINGS__
 
 #include "doomtype.h"
+#include "i_thread.h"
 #include "m_fixed.h"
 #include "p_mobj.h"
 #include "r_defs.h"
@@ -32,11 +33,12 @@ extern int *negonearray;         // killough 2/8/98:
 extern int *screenheightarray;   // change to MAX_*
 
 // Vars for R_DrawMaskedColumn
+// [MT] mutated while drawing sprites/masked segs in parallel contexts.
 
-extern int   *mfloorclip; // [FG] 32-bit integer math
-extern int   *mceilingclip; // [FG] 32-bit integer math
-extern fixed_t spryscale;
-extern int64_t sprtopscreen; // [FG] 64-bit integer math
+extern THREADLOCAL int   *mfloorclip; // [FG] 32-bit integer math
+extern THREADLOCAL int   *mceilingclip; // [FG] 32-bit integer math
+extern THREADLOCAL fixed_t spryscale;
+extern THREADLOCAL int64_t sprtopscreen; // [FG] 64-bit integer math
 extern fixed_t pspritescale;
 extern fixed_t pspriteiscale;
 

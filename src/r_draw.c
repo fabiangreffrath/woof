@@ -25,6 +25,7 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "i_system.h"
+#include "i_thread.h"
 #include "i_video.h"
 #include "m_fixed.h"
 #include "r_bsp.h"
@@ -69,15 +70,16 @@ static pixel_t *background_buffer = NULL;
 // Source is the top of the column to scale.
 //
 
-const lighttable_t *dc_colormap;
-int dc_x;
-int dc_yl;
-int dc_yh;
-fixed_t dc_iscale;
-fixed_t dc_texturemid;
-int dc_texheight; // killough
-byte *dc_source;  // first pixel in a column (possibly virtual)
-byte dc_skycolor;
+// [MT] thread-local drawer state, see r_draw.h.
+THREADLOCAL const lighttable_t *dc_colormap;
+THREADLOCAL int dc_x;
+THREADLOCAL int dc_yl;
+THREADLOCAL int dc_yh;
+THREADLOCAL fixed_t dc_iscale;
+THREADLOCAL fixed_t dc_texturemid;
+THREADLOCAL int dc_texheight; // killough
+THREADLOCAL byte *dc_source;  // first pixel in a column (possibly virtual)
+THREADLOCAL byte dc_skycolor;
 
 //
 // A column is a vertical slice/span from a wall texture that,
@@ -402,13 +404,21 @@ static const int fuzzoffset[FUZZTABLE] =
     FUZZOFF,FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,-FUZZOFF,FUZZOFF
 };
 
-static int fuzzpos = 0;
+// [MT] fuzzpos is thread-local: every render context animates its own fuzz
+// position, there is no shared counter to synchronize. All threads restart
+// from fuzzpos_tic at the beginning of the frame (R_SetFuzzPosDraw), which
+// keeps the crispy 35Hz fuzz animation behavior.
+static THREADLOCAL int fuzzpos = 0;
 
 // [crispy] draw fuzz effect independent of rendering frame rate
 static int fuzzpos_tic;
 
 void R_SetFuzzPosTic(void)
 {
+    // [MT] fuzzpos is thread-local; this runs on the main thread and sees
+    // the main thread's copy (context 0's fuzz position after the last
+    // frame). Good enough to keep the tic-rate animation going when no
+    // spectre columns were drawn.
     // [crispy] prevent the animation from remaining static
     if (fuzzpos == fuzzpos_tic)
     {
@@ -419,6 +429,8 @@ void R_SetFuzzPosTic(void)
 
 void R_SetFuzzPosDraw(void)
 {
+    // [MT] called once per render context: every thread restarts its fuzz
+    // animation from the shared tic position.
     fuzzpos = fuzzpos_tic;
 }
 
@@ -509,6 +521,12 @@ static void DrawFuzzColumnOriginal(void)
 
 static int fuzzblocksize;
 
+// [MT] note for multithreaded rendering: blocky/refraction fuzz writes a
+// fuzzblocksize-wide block of columns starting at dc_x. Only the column
+// where dc_x % fuzzblocksize == 0 does the drawing, so every output pixel
+// is still written by exactly one render context (the one owning the
+// block's first column), even though the block reaches into neighbouring
+// contexts' columns.
 static void DrawFuzzColumnBlocky(void)
 {
     boolean cutoff = false;
@@ -788,7 +806,8 @@ void R_SetFuzzColumnMode(void)
 //  identical sprites, kinda brightened up.
 //
 
-byte *dc_translation, *translationtables;
+THREADLOCAL byte *dc_translation;
+byte *translationtables;
 
 void R_DrawTranslatedColumn(void)
 {
@@ -986,19 +1005,19 @@ void R_DrawTRTLColumn(void)
 //  and the inner loop has to step in texture space u and v.
 //
 
-int ds_y;
-int ds_x1;
-int ds_x2;
+THREADLOCAL int ds_y;
+THREADLOCAL int ds_x1;
+THREADLOCAL int ds_x2;
 
-const lighttable_t *ds_colormap;
+THREADLOCAL const lighttable_t *ds_colormap;
 
-uint32_t ds_xfrac;
-uint32_t ds_yfrac;
-uint32_t ds_xstep;
-uint32_t ds_ystep;
+THREADLOCAL uint32_t ds_xfrac;
+THREADLOCAL uint32_t ds_yfrac;
+THREADLOCAL uint32_t ds_xstep;
+THREADLOCAL uint32_t ds_ystep;
 
 // start of a 64*64 tile image
-byte *ds_source;
+THREADLOCAL byte *ds_source;
 
 void R_DrawSpan(void)
 {
@@ -1041,7 +1060,7 @@ void R_InitBufferRes(void)
 {
     rowofs = Z_Malloc(video.height * sizeof(*rowofs), PU_RENDERER, NULL);
     xlookup = Z_Malloc(video.width * sizeof(*xlookup), PU_RENDERER, NULL);
-    solidcol = Z_Calloc(video.width, sizeof(*solidcol), PU_RENDERER, NULL);
+    // [MT] solidcol moved to r_bsp.c as a per-thread buffer.
 }
 
 //

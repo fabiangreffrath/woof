@@ -44,6 +44,7 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "i_system.h"
+#include "i_thread.h"
 #include "i_video.h"
 #include "m_fixed.h"
 #include "r_bmaps.h" // [crispy] R_BrightmapForTexName()
@@ -65,10 +66,13 @@
 
 #define MAXVISPLANES 128    /* must be a power of 2 */
 
-static visplane_t *visplanes[MAXVISPLANES];   // killough
-static visplane_t *freetail;                  // killough
-static visplane_t **freehead = &freetail;     // killough
-visplane_t *floorplane, *ceilingplane;
+// [MT] The whole visplane state is thread-local: each render context
+// collects planes for its own column slab during BSP traversal and draws
+// them right after, so visplanes never cross thread boundaries.
+static THREADLOCAL visplane_t *visplanes[MAXVISPLANES];   // killough
+static THREADLOCAL visplane_t *freetail;                  // killough
+static THREADLOCAL visplane_t **freehead;                 // killough
+THREADLOCAL visplane_t *floorplane, *ceilingplane;
 
 // killough -- hash function for visplanes
 // Empirically verified to be fairly uniform:
@@ -79,37 +83,38 @@ visplane_t *floorplane, *ceilingplane;
 
 // killough 8/1/98: set static number of openings to be large enough
 // (a static limit is okay in this case and avoids difficulties in r_segs.c)
-int maxopenings;
-int *openings, *lastopening; // [FG] 32-bit integer math
+// [MT] per-thread, malloc-backed (workers must not touch the zone allocator).
+THREADLOCAL int maxopenings;
+THREADLOCAL int *openings, *lastopening; // [FG] 32-bit integer math
 
 // Clip values are the solid pixel bounding the range.
 //  floorclip starts out SCREENHEIGHT
 //  ceilingclip starts out -1
 
-int *floorclip = NULL, *ceilingclip = NULL; // [FG] 32-bit integer math
+THREADLOCAL int *floorclip = NULL, *ceilingclip = NULL; // [FG] 32-bit integer math
 
 // spanstart holds the start of a plane span; initialized to 0 at start
 
-static int *spanstart = NULL;                // killough 2/8/98
+static THREADLOCAL int *spanstart = NULL;                // killough 2/8/98
 
 //
 // texture mapping
 //
 
-static fixed_t planeheight;
+static THREADLOCAL fixed_t planeheight;
 
 // killough 2/8/98: make variables static
 
-static fixed_t *cachedheight = NULL;
-static fixed_t *cacheddistance = NULL;
-static fixed_t *cachedxstep = NULL;
-static fixed_t *cachedystep = NULL;
-static fixed_t *cachedrotation = NULL;
-static fixed_t xoffs,yoffs;    // killough 2/28/98: flat offsets
-static angle_t rotation;
+static THREADLOCAL fixed_t *cachedheight = NULL;
+static THREADLOCAL fixed_t *cacheddistance = NULL;
+static THREADLOCAL fixed_t *cachedxstep = NULL;
+static THREADLOCAL fixed_t *cachedystep = NULL;
+static THREADLOCAL fixed_t *cachedrotation = NULL;
+static THREADLOCAL fixed_t xoffs,yoffs;    // killough 2/28/98: flat offsets
+static THREADLOCAL angle_t rotation;
 
-static fixed_t angle_sin, angle_cos;
-static fixed_t viewx_trans, viewy_trans;
+static THREADLOCAL fixed_t angle_sin, angle_cos;
+static THREADLOCAL fixed_t viewx_trans, viewy_trans;
 
 fixed_t *yslope = NULL;
 
@@ -120,6 +125,73 @@ static angle_t *xtoskyangle;
 // Hexen-style foreground sky rendering
 // uses the 0-index for transparency
 static byte *skytran;
+
+// [MT] per-thread plane buffers, (re)allocated when the video size changes.
+static THREADLOCAL int plane_buffers_width = 0;
+static THREADLOCAL int plane_buffers_height = 0;
+// [MT] visplane top/bottom arrays are allocated for this width.
+static THREADLOCAL int visplane_width = 0;
+
+static void R_FreeVisplanes(void)
+{
+  for (int i = 0; i < MAXVISPLANES; i++)
+  {
+    visplane_t *pl = visplanes[i];
+    while (pl)
+    {
+      visplane_t *next = pl->next;
+      free(pl);
+      pl = next;
+    }
+    visplanes[i] = NULL;
+  }
+
+  visplane_t *pl = freetail;
+  while (pl)
+  {
+    visplane_t *next = pl->next;
+    free(pl);
+    pl = next;
+  }
+  freetail = NULL;
+  freehead = &freetail;
+}
+
+static void R_AllocPlaneBuffers(void)
+{
+  if (plane_buffers_width == video.width
+      && plane_buffers_height == video.height)
+  {
+    return;
+  }
+
+  plane_buffers_width = video.width;
+  plane_buffers_height = video.height;
+
+  floorclip = I_Realloc(floorclip, video.width * sizeof(*floorclip));
+  ceilingclip = I_Realloc(ceilingclip, video.width * sizeof(*ceilingclip));
+  spanstart = I_Realloc(spanstart, video.height * sizeof(*spanstart));
+
+  cachedheight = I_Realloc(cachedheight, video.height * sizeof(*cachedheight));
+  cacheddistance = I_Realloc(cacheddistance, video.height * sizeof(*cacheddistance));
+  cachedxstep = I_Realloc(cachedxstep, video.height * sizeof(*cachedxstep));
+  cachedystep = I_Realloc(cachedystep, video.height * sizeof(*cachedystep));
+  cachedrotation = I_Realloc(cachedrotation, video.height * sizeof(*cachedrotation));
+
+  maxopenings = video.width * video.height;
+  openings = I_Realloc(openings, maxopenings * sizeof(*openings));
+
+  // match the old Z_Calloc(): zero the fresh memory. cachedheight is also
+  // memset every frame in R_ClearPlanes(), but the companion caches are read
+  // on a cache hit and must start at zero like before.
+  memset(spanstart, 0, video.height * sizeof(*spanstart));
+  memset(cachedheight, 0, video.height * sizeof(*cachedheight));
+  memset(cacheddistance, 0, video.height * sizeof(*cacheddistance));
+  memset(cachedxstep, 0, video.height * sizeof(*cachedxstep));
+  memset(cachedystep, 0, video.height * sizeof(*cachedystep));
+  memset(cachedrotation, 0, video.height * sizeof(*cachedrotation));
+  memset(openings, 0, maxopenings * sizeof(*openings));
+}
 
 //
 // R_InitPlanes
@@ -134,20 +206,11 @@ void R_InitPlanes (void)
 
 void R_InitPlanesRes(void)
 {
-  floorclip = Z_Calloc(video.width, sizeof(*floorclip), PU_RENDERER, NULL);
-  ceilingclip = Z_Calloc(video.width, sizeof(*ceilingclip), PU_RENDERER, NULL);
-  spanstart = Z_Calloc(video.height, sizeof(*spanstart), PU_RENDERER, NULL);
-
-  cachedheight = Z_Calloc(video.height, sizeof(*cachedheight), PU_RENDERER, NULL);
-  cacheddistance = Z_Calloc(video.height, sizeof(*cacheddistance), PU_RENDERER, NULL);
-  cachedxstep = Z_Calloc(video.height, sizeof(*cachedxstep), PU_RENDERER, NULL);
-  cachedystep = Z_Calloc(video.height, sizeof(*cachedystep), PU_RENDERER, NULL);
-  cachedrotation = Z_Calloc(video.height, sizeof(*cachedrotation), PU_RENDERER, NULL);
-
+  // [MT] floorclip/ceilingclip/spanstart/cached*/openings moved to per-thread
+  // buffers, lazily allocated in R_AllocPlaneBuffers(). Only yslope stays
+  // shared: it is rebuilt by R_SetupFreelook() on the main thread before the
+  // render contexts are dispatched, then only read.
   yslope = Z_Calloc(video.height, sizeof(*yslope), PU_RENDERER, NULL);
-
-  maxopenings = video.width * video.height;
-  openings = Z_Calloc(maxopenings, sizeof(*openings), PU_RENDERER, NULL);
 
   R_InitPlanes();
 }
@@ -156,8 +219,10 @@ void R_InitVisplanesRes(void)
 {
   int i;
 
-  freetail = NULL;
-  freehead = &freetail;
+  // [MT] resets the calling (main) thread's visplane pool. Worker threads
+  // keep their own pools; they are recycled every frame in R_ClearPlanes()
+  // and rebuilt if the video width changes.
+  R_FreeVisplanes();
 
   for (i = 0; i < MAXVISPLANES; i++)
   {
@@ -259,8 +324,25 @@ void R_ClearPlanes(void)
 {
   int i;
 
+  // [MT] per-thread buffers, sized to the current video mode.
+  R_AllocPlaneBuffers();
+
+  if (visplane_width != video.width)
+  {
+    // visplane top/bottom arrays are sized by video.width; recycle the pool
+    // when the resolution changes.
+    R_FreeVisplanes();
+    visplane_width = video.width;
+  }
+
+  if (!freehead)
+  {
+    freehead = &freetail;
+  }
+
   // opening / clipping determination
-  for (i=0 ; i<viewwidth ; i++)
+  // [MT] only this context's columns; outside of them no spans are drawn.
+  for (i = r_context->startcol; i < r_context->endcol; i++)
     floorclip[i] = viewheight, ceilingclip[i] = -1;
 
   for (i=0;i<MAXVISPLANES;i++)    // new code -- killough
@@ -281,7 +363,8 @@ static visplane_t *new_visplane(unsigned hash)
   if (!check)
   {
     const int size = sizeof(*check) + (video.width * 2) * sizeof(*check->top);
-    check = Z_Calloc(1, size, PU_VALLOC, NULL);
+    // [MT] plain calloc: worker threads must not use the zone allocator.
+    check = calloc(1, size);
     check->bottom = &check->top[video.width + 2];
   }
   else
@@ -456,6 +539,10 @@ static void DrawSkyTex(visplane_t *pl, sky_t *sky, skytex_t *skytex)
     // sidedef-defined skies are stretched here
     if (side && !sky->vertically_scrolling)
     {
+        // [MT] the sky_t fields written in this block are shared between
+        // render contexts, but every context computes and stores the same
+        // values (deterministic on the frame's inputs), so the concurrent
+        // stores are benign - same approach as Rum and Raisin Doom.
         // If the sky is scrolled vertically for at least one tic,
         // we mark it as vertically-scrolling permanently
         if (sky->texturemid_tic != leveltime)
@@ -644,10 +731,9 @@ static void do_draw_plane(visplane_t *pl)
                     pl->bottom[x], thiscolormap, brightmap);
     }
 
-    if (!swirling)
-    {
-        Z_ChangeTag(ds_source, PU_CACHE);
-    }
+    // [MT] flats are pinned PU_STATIC (pre-cached in R_InitFlats), so there
+    // is no Z_ChangeTag() here anymore - worker threads must not touch the
+    // zone allocator while rendering.
 }
 
 //
@@ -663,7 +749,7 @@ void R_DrawPlanes (void)
     for (pl=visplanes[i]; pl; pl=pl->next)
     {
       do_draw_plane(pl);
-      rendered_visplanes++;
+      r_context->rendered_visplanes++; // [MT] per-context stat
     }
 }
 

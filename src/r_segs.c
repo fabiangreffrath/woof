@@ -26,6 +26,7 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "i_system.h"
+#include "i_thread.h"
 #include "m_fixed.h"
 #include "r_bmaps.h" // [crispy] brightmaps
 #include "r_bsp.h"
@@ -46,45 +47,49 @@
 
 // killough 1/6/98: replaced globals with statics where appropriate
 
-// True if any of the segs textures might be visible.
-boolean  segtextured;
-boolean  markfloor;      // False if the back side is the same plane.
-boolean  markceiling;
-static boolean  maskedtexture;
-static int      toptexture;
-static int      bottomtexture;
-static int      midtexture;
+// [MT] All seg-rendering state is thread-local: every render context
+// executes R_StoreWallRange()/R_RenderSegLoop() for its own column slab in
+// parallel.
 
-angle_t         rw_normalangle; // angle to line origin
-int             rw_angle1;
-fixed_t         rw_distance;
+// True if any of the segs textures might be visible.
+THREADLOCAL boolean  segtextured;
+THREADLOCAL boolean  markfloor;      // False if the back side is the same plane.
+THREADLOCAL boolean  markceiling;
+static THREADLOCAL boolean  maskedtexture;
+static THREADLOCAL int      toptexture;
+static THREADLOCAL int      bottomtexture;
+static THREADLOCAL int      midtexture;
+
+THREADLOCAL angle_t         rw_normalangle; // angle to line origin
+THREADLOCAL int             rw_angle1;
+THREADLOCAL fixed_t         rw_distance;
 
 //
 // regular wall
 //
-int      rw_x;
-int      rw_stopx;
-static angle_t  rw_centerangle;
-static int32_t  rw_lightlevel;
-static fixed_t  rw_offset;
-static fixed_t  rw_scale;
-static fixed_t  rw_scalestep;
-static fixed_t  rw_midtexturemid;
-static fixed_t  rw_toptexturemid;
-static fixed_t  rw_bottomtexturemid;
-static int      worldtop;
-static int      worldbottom;
-static int      worldhigh;
-static int      worldlow;
-static int64_t  pixhigh; // [FG] 64-bit integer math
-static int64_t  pixlow; // [FG] 64-bit integer math
-static fixed_t  pixhighstep;
-static fixed_t  pixlowstep;
-static int64_t  topfrac; // [FG] 64-bit integer math
-static fixed_t  topstep;
-static int64_t  bottomfrac; // [FG] 64-bit integer math
-static fixed_t  bottomstep;
-static int    *maskedtexturecol; // [FG] 32-bit integer math
+THREADLOCAL int      rw_x;
+THREADLOCAL int      rw_stopx;
+static THREADLOCAL angle_t  rw_centerangle;
+static THREADLOCAL int32_t  rw_lightlevel;
+static THREADLOCAL fixed_t  rw_offset;
+static THREADLOCAL fixed_t  rw_scale;
+static THREADLOCAL fixed_t  rw_scalestep;
+static THREADLOCAL fixed_t  rw_midtexturemid;
+static THREADLOCAL fixed_t  rw_toptexturemid;
+static THREADLOCAL fixed_t  rw_bottomtexturemid;
+static THREADLOCAL int      worldtop;
+static THREADLOCAL int      worldbottom;
+static THREADLOCAL int      worldhigh;
+static THREADLOCAL int      worldlow;
+static THREADLOCAL int64_t  pixhigh; // [FG] 64-bit integer math
+static THREADLOCAL int64_t  pixlow; // [FG] 64-bit integer math
+static THREADLOCAL fixed_t  pixhighstep;
+static THREADLOCAL fixed_t  pixlowstep;
+static THREADLOCAL int64_t  topfrac; // [FG] 64-bit integer math
+static THREADLOCAL fixed_t  topstep;
+static THREADLOCAL int64_t  bottomfrac; // [FG] 64-bit integer math
+static THREADLOCAL fixed_t  bottomstep;
+static THREADLOCAL int    *maskedtexturecol; // [FG] 32-bit integer math
 
 //
 // UDMF extensions, adapted from DSDA
@@ -323,10 +328,10 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
 //   possibly, creating a noticable performance penalty.
 //
 
-static int max_rwscale = 64 * FRACUNIT;
-static int heightbits  = HEIGHTBITS;
-static int heightunit  = HEIGHTUNIT;
-static int invhgtbits  = 4;
+static THREADLOCAL int max_rwscale = 64 * FRACUNIT;
+static THREADLOCAL int heightbits  = HEIGHTBITS;
+static THREADLOCAL int heightunit  = HEIGHTUNIT;
+static THREADLOCAL int invhgtbits  = 4;
 
 static const struct
 {
@@ -345,7 +350,10 @@ static const struct
 
 void R_FixWiggle (sector_t *sector)
 {
-    static int lastheight = 0;
+    // [MT] per-thread cache; sector->cachedheight/scaleindex writes below are
+    // deterministic (same value computed by every thread), like in
+    // Rum and Raisin Doom's per-context WiggleFix.
+    static THREADLOCAL int lastheight = 0;
     int height = (sector->interpceilingheight - sector->interpfloorheight) >> FRACBITS;
 
     // disallow negative heights. using 1 forces cache initialization
@@ -377,13 +385,13 @@ void R_FixWiggle (sector_t *sector)
     }
 }
 
-static boolean didsolidcol; // True if at least one column was marked solid
+static THREADLOCAL boolean didsolidcol; // True if at least one column was marked solid
 
 static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
 {
   fixed_t  texturecolumn = 0;   // shut up compiler warning
 
-  rendered_segs++;
+  r_context->rendered_segs++; // [MT] per-context stat
 
   for ( ; rw_x < rw_stopx ; rw_x++)
     {
@@ -588,7 +596,8 @@ void R_StoreWallRange(const int start, const int stop)
   if (!drawsegs || ds_p == drawsegs+maxdrawsegs) // killough 1/98 -- fix 2s line HOM
     {
       unsigned newmax = maxdrawsegs ? maxdrawsegs*2 : 128; // killough
-      drawsegs = Z_Realloc(drawsegs,newmax*sizeof(*drawsegs),PU_STATIC,0);
+      // [MT] plain realloc: worker threads must not use the zone allocator.
+      drawsegs = I_Realloc(drawsegs, newmax * sizeof(*drawsegs));
       ds_p = drawsegs+maxdrawsegs;
       maxdrawsegs = newmax;
     }

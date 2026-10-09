@@ -20,7 +20,10 @@
 #ifndef __R_MAIN__
 #define __R_MAIN__
 
+#include <stdint.h>
+
 #include "doomtype.h"
+#include "i_thread.h"
 #include "m_fixed.h"
 #include "tables.h"
 
@@ -76,8 +79,10 @@ extern int numcolormaps;    // killough 4/4/98: dynamic number of maps
 
 extern int       ** scalelightoffset;
 extern int       ** zlightoffset;
-extern int const *  planezlightoffset;
-extern int const *  walllightoffset;
+// [MT] set while drawing walls / planes inside a render context, so both are
+// per-thread.
+extern THREADLOCAL int const *  planezlightoffset;
+extern THREADLOCAL int const *  walllightoffset;
 
 // killough 3/20/98, 4/4/98: end dynamic colormaps
 
@@ -94,7 +99,44 @@ extern int fixedcolormapoffset;
 // Function pointer to switch refresh/drawing functions.
 //
 
-extern void (*colfunc)(void);
+// [MT] colfunc switches constantly while drawing (walls, skies, translucency,
+// fuzz), so each render thread keeps its own copy.
+extern THREADLOCAL void (*colfunc)(void);
+
+//
+// Multithreaded rendering.
+//
+
+#define MAX_RENDER_CONTEXTS 16
+
+typedef struct rendercontext_s
+{
+    int index;        // context index, 0 is the main render thread
+    int startcol;     // view-relative column range [startcol, endcol)
+    int endcol;
+
+    // per-frame stats, written by the owning thread, summed after the flush
+    int rendered_visplanes;
+    int rendered_segs;
+    int rendered_vissprites;
+    int rendered_voxels;
+
+    // microseconds taken last frame, used by the load balancer
+    uint64_t timetaken;
+} rendercontext_t;
+
+// number of parallel render contexts; 1 disables multithreaded rendering
+extern int num_render_contexts;
+extern boolean render_loadbalancing;
+
+// TLS context currently being rendered by this thread.
+extern THREADLOCAL rendercontext_t *r_context;
+// per-thread sprite dedup stamp: validcount * MAX_RENDER_CONTEXTS + index
+extern THREADLOCAL unsigned int r_validstamp;
+
+void R_InitRenderThreads(void);
+void R_ShutdownRenderThreads(void);
+void R_RenderViewContext(rendercontext_t *context);
 
 //
 // Utility functions.

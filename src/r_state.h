@@ -21,6 +21,7 @@
 #define __R_STATE__
 
 // Need data structure definitions.
+#include "i_thread.h"
 #include "r_defs.h"
 
 struct player_s;
@@ -118,20 +119,22 @@ extern angle_t          clipangle;
 extern angle_t          vx_clipangle;
 extern int              viewangletox[FINEANGLES/2];
 extern angle_t          *xtoviewangle;  // killough 2/8/98
-extern fixed_t          rw_distance;
-extern angle_t          rw_normalangle;
+// [MT] mutated while rendering segs in parallel render contexts.
+extern THREADLOCAL fixed_t          rw_distance;
+extern THREADLOCAL angle_t          rw_normalangle;
 
 // [FG] linear horizontal sky scrolling
 extern angle_t          *linearskyangle;
 
 // angle to line origin
-extern int              rw_angle1;
+extern THREADLOCAL int              rw_angle1;
 
 // Segs count?
 extern int              sscount;
 
-extern visplane_t       *floorplane;
-extern visplane_t       *ceilingplane;
+// [MT] set per subsector during parallel BSP traversal.
+extern THREADLOCAL visplane_t       *floorplane;
+extern THREADLOCAL visplane_t       *ceilingplane;
 
 #endif
 

@@ -253,13 +253,16 @@ static void R_GenerateComposite(int texnum)
 
   if (!block)
   {
-    block = Z_Malloc(texturecompositesize[texnum], PU_LEVEL,
+    // [MT] PU_STATIC: composites are generated once at startup (see
+    // R_InitTextures) and must survive Z_FreeTag(PU_LEVEL) at level start,
+    // so render workers never have to regenerate them.
+    block = Z_Malloc(texturecompositesize[texnum], PU_STATIC,
                      (void **) &texturecomposite[texnum]);
   }
   // [FG] memory block for opaque textures
   if (!block2)
   {
-    block2 = Z_Malloc(texture->width * texture->height, PU_LEVEL,
+    block2 = Z_Malloc(texture->width * texture->height, PU_STATIC,
                       (void **) &texturecomposite2[texnum]);
   }
   // [FG] initialize composite background to palette index 0 (usually black)
@@ -846,6 +849,12 @@ void R_InitTextures (void)
   if (errors)
     I_Error("\n\n%d errors.", errors);
 
+  // [MT] Pre-generate every texture composite at startup, so that the
+  // render workers never call R_GenerateComposite (and with it the zone
+  // allocator / WAD loader) while rendering in parallel.
+  for (i=0 ; i<numtextures ; i++)
+    R_GenerateComposite(i);
+
   // Create translation table for global animation.
   // killough 4/9/98: make column offsets 32-bit;
   // clean up malloc-ing to use sizeof
@@ -895,6 +904,11 @@ void R_InitFlats(void)
     flattranslation[i] = i;
     flatterrain[i] = 0; // terrain_solid
   }
+
+  // [MT] Pre-cache all flats for the multithreaded renderer: drawing a
+  // visplane in a worker thread must not hit the zone allocator.
+  for (i=0 ; i<numflats ; i++)
+    V_CacheFlatNum(firstflat + i, PU_STATIC);
 }
 
 //
@@ -926,7 +940,9 @@ void R_InitSpriteLumps(void)
     {
       M_ProgressBarMove(i); // killough
 
-      patch = V_CachePatchNum(firstspritelump+i, PU_CACHE);
+      // [MT] PU_STATIC: sprite patches stay resident so that render workers
+      // never call into the zone allocator while drawing in parallel.
+      patch = V_CachePatchNum(firstspritelump+i, PU_STATIC);
       spritewidth[i] = IntToFixed(SHORT(patch->width));
       spriteoffset[i] = IntToFixed(SHORT(patch->leftoffset));
       spritetopoffset[i] = IntToFixed(SHORT(patch->topoffset));
@@ -1065,7 +1081,10 @@ byte *R_MissingFlat(void)
         const byte c1 = xlat[CR_PURPLE].table[playpal_global->white];
         const byte c2 = playpal_global->black;
 
-        buffer = Z_Malloc(FLATSIZE, PU_LEVEL, (void **)&buffer);
+        // [MT] PU_STATIC and pre-warmed in R_Init(): render workers must not
+        // allocate from the zone (PU_LEVEL blocks also die at level start,
+        // which would recreate the buffer mid-render).
+        buffer = Z_Malloc(FLATSIZE, PU_STATIC, NULL);
 
         for (int i = 0; i < FLATSIZE; i++)
         {
@@ -1152,7 +1171,7 @@ void R_PrecacheLevel(void)
 
   for (i = numflats; --i >= 0; )
     if (hitlist[i])
-      V_CacheFlatNum(firstflat + i, PU_CACHE);
+      V_CacheFlatNum(firstflat + i, PU_STATIC); // [MT] pinned for render workers
 
   // Precache textures.
 
@@ -1182,7 +1201,7 @@ void R_PrecacheLevel(void)
         texture_t *texture = textures[i];
         int j = texture->patchcount;
         while (--j >= 0)
-          V_CachePatchNum(texture->patches[j].patch, PU_CACHE);
+          V_CachePatchNum(texture->patches[j].patch, PU_STATIC); // [MT]
       }
 
   // Precache sprites.
@@ -1204,7 +1223,7 @@ void R_PrecacheLevel(void)
             short *sflump = sprites[i].spriteframes[j].lump;
             int k = 7;
             do
-              V_CachePatchNum(firstspritelump + sflump[k], PU_CACHE);
+              V_CachePatchNum(firstspritelump + sflump[k], PU_STATIC); // [MT]
             while (--k >= 0);
           }
       }

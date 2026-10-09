@@ -29,6 +29,7 @@
 #include "hu_crosshair.h" // [Alaux] Lock crosshair on target
 #include "i_printf.h"
 #include "i_system.h"
+#include "i_thread.h"
 #include "i_video.h"
 #include "info.h"
 #include "m_swap.h"
@@ -88,15 +89,19 @@ typedef struct drawsegs_xrange_s
 } drawsegs_xrange_t;
 
 #define DS_RANGES_COUNT 3
-static drawsegs_xrange_t drawsegs_xranges[DS_RANGES_COUNT];
+// [MT] sprite clipping state is mutated while drawing, so everything from
+// here on is thread-local - each render context sorts and draws its own
+// vissprites against its own drawsegs.
+static THREADLOCAL drawsegs_xrange_t drawsegs_xranges[DS_RANGES_COUNT];
 
-static drawseg_xrange_item_t *drawsegs_xrange;
-static unsigned int drawsegs_xrange_size = 0;
-static int drawsegs_xrange_count = 0;
+static THREADLOCAL drawseg_xrange_item_t *drawsegs_xrange;
+static THREADLOCAL unsigned int drawsegs_xrange_size = 0;
+static THREADLOCAL int drawsegs_xrange_count = 0;
 
 // [FG] 32-bit integer math
-static int *clipbot = NULL; // killough 2/8/98: // dropoff overflow
-static int *cliptop = NULL; // change to MAX_*  // dropoff overflow
+static THREADLOCAL int *clipbot = NULL; // killough 2/8/98: // dropoff overflow
+static THREADLOCAL int *cliptop = NULL; // change to MAX_*  // dropoff overflow
+static THREADLOCAL int clip_width = 0;
 
 // constant arrays
 //  used for psprite clipping and initializing clipping
@@ -125,8 +130,8 @@ void R_InitSpritesRes(void)
   negonearray = Z_Calloc(video.width, sizeof(*negonearray), PU_RENDERER, NULL);
   screenheightarray = Z_Calloc(video.width, sizeof(*screenheightarray), PU_RENDERER, NULL);
 
-  clipbot = Z_Calloc(2 * video.width, sizeof(*clipbot), PU_RENDERER, NULL);
-  cliptop = clipbot + video.width;
+  // [MT] clipbot/cliptop moved to per-thread buffers, lazily allocated in
+  // R_ClearSprites().
 }
 
 //
@@ -309,13 +314,15 @@ void R_InitSpriteDefs(char **namelist)
 // GAME FUNCTIONS
 //
 
-static vissprite_t *vissprites, **vissprite_ptrs;  // killough
-static size_t num_vissprite, num_vissprite_alloc, num_vissprite_ptrs;
+static THREADLOCAL vissprite_t *vissprites;   // killough
+static THREADLOCAL vissprite_t **vissprite_ptrs;
+static THREADLOCAL size_t num_vissprite, num_vissprite_alloc, num_vissprite_ptrs;
 
 #define M_ARRAY_INIT_CAPACITY 128
 #include "m_array.h"
 
-static mobj_t **nearby_sprites = NULL;
+// [MT] each render thread collects its own nearby sprites during traversal.
+static THREADLOCAL mobj_t **nearby_sprites = NULL;
 
 //
 // R_InitSprites
@@ -337,7 +344,15 @@ void R_InitSprites(char **namelist)
 
 void R_ClearSprites (void)
 {
-  rendered_vissprites = num_vissprite;
+  // [MT] per-thread sprite clip buffers, sized to the current video width.
+  if (clip_width != video.width)
+  {
+    clipbot = I_Realloc(clipbot, 2 * video.width * sizeof(*clipbot));
+    cliptop = clipbot + video.width;
+    clip_width = video.width;
+  }
+
+  r_context->rendered_vissprites = num_vissprite; // [MT] per-context stat
   num_vissprite = 0;            // killough
 }
 
@@ -350,7 +365,8 @@ vissprite_t *R_NewVisSprite(void)
   if (num_vissprite >= num_vissprite_alloc)             // killough
     {
       num_vissprite_alloc = num_vissprite_alloc ? num_vissprite_alloc*2 : 128;
-      vissprites = Z_Realloc(vissprites,num_vissprite_alloc*sizeof(*vissprites),PU_STATIC,0);
+      // [MT] plain realloc: worker threads must not use the zone allocator.
+      vissprites = I_Realloc(vissprites, num_vissprite_alloc * sizeof(*vissprites));
     }
  return vissprites + num_vissprite++;
 }
@@ -362,10 +378,10 @@ vissprite_t *R_NewVisSprite(void)
 //  in posts/runs of opaque pixels.
 //
 
-int   *mfloorclip; // [FG] 32-bit integer math
-int   *mceilingclip; // [FG] 32-bit integer math
-fixed_t spryscale;
-int64_t sprtopscreen; // [FG] 64-bit integer math
+THREADLOCAL int   *mfloorclip; // [FG] 32-bit integer math
+THREADLOCAL int   *mceilingclip; // [FG] 32-bit integer math
+THREADLOCAL fixed_t spryscale;
+THREADLOCAL int64_t sprtopscreen; // [FG] 64-bit integer math
 
 void R_DrawMaskedColumn(column_t *column)
 {
@@ -425,7 +441,10 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
   column_t *column;
   int      texturecolumn;
   fixed_t  frac;
-  patch_t  *patch = V_CachePatchNum (vis->patch+firstspritelump, PU_CACHE);
+  // [MT] PU_STATIC: all sprite lumps are pre-cached at startup
+  // (R_InitSpriteLumps), so this is a lock-free zone read during parallel
+  // rendering.
+  patch_t  *patch = V_CachePatchNum(vis->patch+firstspritelump, PU_STATIC);
 
   // killough 4/11/98: rearrange and handle translucent sprites
   // mixed with translucent/non-translucent 2s normals
@@ -644,6 +663,16 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
   if (x2 < vx1)
     return;
 
+  // [MT] Clip the sprite to this render context's column slab. Adjacent
+  // contexts project the same mobj independently and each draws only its
+  // own slice, so sprites crossing a slab boundary come out seamless.
+  const int cx1 = MAX(vx1, r_context->startcol);
+  int cx2 = (x2 >= viewwidth) ? viewwidth - 1 : x2;
+  cx2 = MIN(cx2, r_context->endcol - 1);
+
+  if (cx2 < cx1)
+    return;
+
   gzt = interpz + spritetopoffset[lump];
 
   // killough 4/9/98: clip things which are out of view due to height
@@ -688,8 +717,8 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
   vis->gz = interpz;
   vis->gzt = gzt;                          // killough 3/27/98
   vis->texturemid = gzt - viewz;
-  vis->x1 = vx1;
-  vis->x2 = x2 >= viewwidth ? viewwidth-1 : x2;
+  vis->x1 = cx1;
+  vis->x2 = cx2;
   iscale = FixedDiv(FRACUNIT, xscale);
   vis->color = thing->bloodcolor;
 
@@ -775,7 +804,10 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
   }
 
   // [Alaux] Lock crosshair on target
-  if (STRICTMODE(hud_crosshair_lockon) && thing == crosshair_target)
+  // [MT] only the context owning the center column may touch the shared
+  // crosshair state while rendering in parallel.
+  if (STRICTMODE(hud_crosshair_lockon) && thing == crosshair_target
+      && centerx >= r_context->startcol && centerx < r_context->endcol)
   {
     int x = (centerxfrac + FixedMul(txc, xscale)) >> FRACBITS;
     int y = (centeryfrac + FixedMul(viewz - interpz - crosshair_target->actualheight / 2, xscale)) >> FRACBITS;
@@ -803,11 +835,14 @@ void R_AddSprites(sector_t* sec, int lightlevel_override)
   //  subsectors during BSP building.
   // Thus we check whether its already added.
 
-  if (sec->validcount == validcount)
+  // [MT] per-context stamp (see rendervalidcount in r_defs.h): every render
+  // context adds the sector's things once for itself. The gameplay code keeps
+  // using sec->validcount/validcount untouched.
+  if (sec->rendervalidcount == r_validstamp)
     return;
 
   // Well, now it will be done.
-  sec->validcount = validcount;
+  sec->rendervalidcount = r_validstamp;
 
   // Handle all things in sector.
 
@@ -821,7 +856,7 @@ void R_AddSprites(sector_t* sec, int lightlevel_override)
       thing = n->m_thing;
 
       // [FG] sprites in sector have already been projected
-      if (thing->subsector->sector->validcount != validcount)
+      if (thing->subsector->sector->rendervalidcount != r_validstamp)
       {
         array_push(nearby_sprites, thing);
       }
@@ -841,7 +876,7 @@ void R_NearbySprites (void)
     R_FakeFlat(sec, &tempsec, &floorlightlevel, &ceilinglightlevel, false);
 
     // [FG] sprites in sector have already been projected
-    if (sec->validcount != validcount)
+    if (sec->rendervalidcount != r_validstamp) // [MT]
     {
       R_ProjectSprite(thing, (floorlightlevel + ceilinglightlevel) / 2);
     }
@@ -912,6 +947,17 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
   if (x2 < 0)
     return;
 
+  // [MT] Clip the weapon psprite to this render context's column slab; each
+  // context draws its own slice. ox1 keeps the unclipped left edge for the
+  // startfrac adjustment below.
+  const int ox1 = x1;
+  if (x1 < r_context->startcol)
+    x1 = r_context->startcol;
+  if (x2 >= r_context->endcol)
+    x2 = r_context->endcol - 1;
+  if (x2 < x1)
+    return;
+
   // store information in a vissprite
   vis = &avis;
   vis->mobjflags = 0;
@@ -937,8 +983,9 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
       vis->startfrac = 0;
     }
 
-  if (vis->x1 > x1)
-    vis->startfrac += vis->xiscale*(vis->x1-x1);
+  // [MT] adjust against the unclipped left edge (ox1)
+  if (vis->x1 > ox1)
+    vis->startfrac += vis->xiscale*(vis->x1-ox1);
 
   vis->patch = lump;
 
@@ -1037,7 +1084,10 @@ void R_DrawPlayerSprites(void)
   mceilingclip = negonearray;
 
   // display crosshair
-  if (hud_crosshair)
+  // [MT] the crosshair is drawn by the context that owns the center column,
+  // so it appears exactly once across all parallel slabs.
+  if (hud_crosshair && centerx >= r_context->startcol
+      && centerx < r_context->endcol)
     HU_DrawCrosshair();
 
   // add all active psprites
@@ -1105,9 +1155,10 @@ void R_SortVisSprites (void)
 
       if (num_vissprite_ptrs < num_vissprite*2)
         {
-          Z_Free(vissprite_ptrs);  // better than realloc -- no preserving needed
-          vissprite_ptrs = Z_Malloc((num_vissprite_ptrs = num_vissprite_alloc*2)
-                                  * sizeof *vissprite_ptrs, PU_STATIC, 0);
+          // [MT] plain realloc: worker threads must not use the zone allocator.
+          vissprite_ptrs = I_Realloc(vissprite_ptrs,
+                                     (num_vissprite_ptrs = num_vissprite_alloc*2)
+                                     * sizeof *vissprite_ptrs);
         }
 
       // Sprites of equal distance need to be sorted in inverse order.
@@ -1295,10 +1346,10 @@ void R_DrawMasked(void)
       drawsegs_xrange_size = 2 * maxdrawsegs;
       for(i = 0; i < DS_RANGES_COUNT; i++)
       {
-        drawsegs_xranges[i].items = Z_Realloc(
+        // [MT] plain realloc: worker threads must not use the zone allocator.
+        drawsegs_xranges[i].items = I_Realloc(
           drawsegs_xranges[i].items,
-          drawsegs_xrange_size * sizeof(drawsegs_xranges[i].items[0]),
-          PU_STATIC, 0);
+          drawsegs_xrange_size * sizeof(drawsegs_xranges[i].items[0]));
       }
     }
     for (ds = ds_p; ds-- > drawsegs;)
