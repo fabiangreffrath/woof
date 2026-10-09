@@ -37,6 +37,7 @@
 //-----------------------------------------------------------------------------
 
 #include <limits.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -92,27 +93,15 @@ THREADLOCAL int *openings, *lastopening; // [FG] 32-bit integer math
 
 THREADLOCAL int *floorclip = NULL, *ceilingclip = NULL; // [FG] 32-bit integer math
 
-// spanstart holds the start of a plane span; initialized to 0 at start
-
-static THREADLOCAL int *spanstart = NULL;                // killough 2/8/98
-
 //
 // texture mapping
 //
 
 static THREADLOCAL fixed_t planeheight;
 
-// killough 2/8/98: make variables static
-
-static THREADLOCAL fixed_t *cachedheight = NULL;
-static THREADLOCAL fixed_t *cacheddistance = NULL;
-static THREADLOCAL fixed_t *cachedxstep = NULL;
-static THREADLOCAL fixed_t *cachedystep = NULL;
-static THREADLOCAL fixed_t *cachedrotation = NULL;
 static THREADLOCAL fixed_t xoffs,yoffs;    // killough 2/28/98: flat offsets
 static THREADLOCAL angle_t rotation;
 
-static THREADLOCAL fixed_t angle_sin, angle_cos;
 static THREADLOCAL fixed_t viewx_trans, viewy_trans;
 
 fixed_t *yslope = NULL;
@@ -130,6 +119,26 @@ static THREADLOCAL int plane_buffers_width = 0;
 static THREADLOCAL int plane_buffers_height = 0;
 // [MT] visplane top/bottom arrays are allocated for this width.
 static THREADLOCAL int visplane_width = 0;
+
+//
+// Per-row raster cache. Replaces both the span machinery (spanstart/cached*)
+// and R_MapPlane's per-span recomputation: distance and light colormap are
+// computed once per output row for a plane, then the per-column rasteriser
+// resamples perspective-correctly from them.
+//
+typedef struct planerow_s
+{
+  fixed_t distance;
+  const lighttable_t *colormap;
+} planerow_t;
+
+static THREADLOCAL planerow_t *planeraster = NULL;
+
+// Perspective-correct resampling stride: the exact texture position is
+// recomputed every planeleap rows and stepped linearly in between
+// (R&R's Span_PolyRaster_Log2_* selection).
+static THREADLOCAL int planeleap;
+static THREADLOCAL int planeleaplog2;
 
 static void R_FreeVisplanes(void)
 {
@@ -169,27 +178,31 @@ static void R_AllocPlaneBuffers(void)
 
   floorclip = I_Realloc(floorclip, video.width * sizeof(*floorclip));
   ceilingclip = I_Realloc(ceilingclip, video.width * sizeof(*ceilingclip));
-  spanstart = I_Realloc(spanstart, video.height * sizeof(*spanstart));
 
-  cachedheight = I_Realloc(cachedheight, video.height * sizeof(*cachedheight));
-  cacheddistance = I_Realloc(cacheddistance, video.height * sizeof(*cacheddistance));
-  cachedxstep = I_Realloc(cachedxstep, video.height * sizeof(*cachedxstep));
-  cachedystep = I_Realloc(cachedystep, video.height * sizeof(*cachedystep));
-  cachedrotation = I_Realloc(cachedrotation, video.height * sizeof(*cachedrotation));
+  planeraster = I_Realloc(planeraster, video.height * sizeof(*planeraster));
 
   maxopenings = video.width * video.height;
   openings = I_Realloc(openings, maxopenings * sizeof(*openings));
 
-  // match the old Z_Calloc(): zero the fresh memory. cachedheight is also
-  // memset every frame in R_ClearPlanes(), but the companion caches are read
-  // on a cache hit and must start at zero like before.
-  memset(spanstart, 0, video.height * sizeof(*spanstart));
-  memset(cachedheight, 0, video.height * sizeof(*cachedheight));
-  memset(cacheddistance, 0, video.height * sizeof(*cacheddistance));
-  memset(cachedxstep, 0, video.height * sizeof(*cachedxstep));
-  memset(cachedystep, 0, video.height * sizeof(*cachedystep));
-  memset(cachedrotation, 0, video.height * sizeof(*cachedrotation));
   memset(openings, 0, maxopenings * sizeof(*openings));
+
+  // R&R spantype selection: clamp(round(log2(height * 0.02)), 2..4),
+  // written out with integer thresholds (2^2.5*50 ~= 283, 2^3.5*50 ~= 566).
+  if (video.height < 283)
+  {
+    planeleap = 4;
+    planeleaplog2 = 2;
+  }
+  else if (video.height < 566)
+  {
+    planeleap = 8;
+    planeleaplog2 = 3;
+  }
+  else
+  {
+    planeleap = 16;
+    planeleaplog2 = 4;
+  }
 }
 
 //
@@ -230,88 +243,119 @@ void R_InitVisplanesRes(void)
 }
 
 //
-// R_MapPlane
+// R_PreparePlaneRows
 //
-// Uses global vars:
-//  planeheight
-//  ds_source
-//  viewx
-//  viewy
-//  xoffs
-//  yoffs
-//
-// BASIC PRIMITIVE
+// Once per plane: cache the distance and light colormap for every output
+// row. Replaces the cachedheight/cacheddistance/cachedxstep/cachedystep
+// row caches of the old R_MapPlane(). Same light selection as R_MapPlane
+// used (zlight table, fixed colormap override).
 //
 
-static void R_MapPlane(int y, int x1, int x2,
-                       const lighttable_t * const thiscolormap)
+static void R_PreparePlaneRows(const lighttable_t *const thiscolormap)
 {
-  fixed_t distance;
-  int dx;
-  fixed_t dy;
-
-#ifdef RANGECHECK
-  if (x2 < x1 || x1<0 || x2>=viewwidth || (unsigned)y>viewheight)
-    I_Error ("%i, %i at %i",x1,x2,y);
-#endif
-
-  // [FG] calculate flat coordinates relative to screen center
-  //
-  // SoM: because centery is an actual row of pixels (and it isn't really the
-  // center row because there are an even number of rows) some corrections need
-  // to be made depending on where the row lies relative to the centery row.
-  if (centery == y)
-    return;
-  else if (y < centery)
-    dy = (abs(centery - y) << FRACBITS) - FRACUNIT / 2;
-  else
-    dy = (abs(centery - y) << FRACBITS) + FRACUNIT / 2;
-
-  // plane math updated for accounting flat rotation, thanks to Odamex
-  if (planeheight != cachedheight[y] || rotation != cachedrotation[y])
+    for (int y = 0; y < viewheight; y++)
     {
-      cachedheight[y] = planeheight;
-      cachedrotation[y] = rotation;
-      distance = cacheddistance[y] = FixedMul(planeheight, yslope[y]);
-      // [FG] avoid right-shifting in FixedMul() followed by left-shifting in FixedDiv()
-      ds_xstep = cachedxstep[y] = (fixed_t)((int64_t)angle_sin * planeheight / dy);
-      ds_ystep = cachedystep[y] = (fixed_t)((int64_t)angle_cos * planeheight / dy);
+        planerow_t *row = &planeraster[y];
+        row->distance = FixedMul(planeheight, yslope[y]);
+
+        if (fixedcolormapoffset)
+        {
+            row->colormap = thiscolormap + fixedcolormapoffset;
+        }
+        else
+        {
+            int index = row->distance >> LIGHTZSHIFT;
+            index = MIN(index, MAXLIGHTZ - 1);
+            row->colormap = thiscolormap + planezlightoffset[index];
+        }
     }
-  else
-    {
-      distance = cacheddistance[y];
-      ds_xstep = cachedxstep[y];
-      ds_ystep = cachedystep[y];
-    }
-
-  dx = x1 - centerx;
-
-  // killough 2/28/98: Add offsets
-  ds_xfrac = viewx_trans + FixedMul(angle_cos, distance) + dx * ds_xstep;
-  ds_yfrac = viewy_trans - FixedMul(angle_sin, distance) + dx * ds_ystep;
-
-  // ID24 per-sector colormaps
-  if (fixedcolormapoffset)
-  {
-    ds_colormap = thiscolormap + fixedcolormapoffset;
-  }
-  else
-  {
-    unsigned index = distance >> LIGHTZSHIFT;
-    index = MIN(index, MAXLIGHTZ - 1);
-
-    const lighttable_t *const colormap =
-        thiscolormap + planezlightoffset[index];
-
-    ds_colormap = colormap;
-  }
-
-  ds_y = y;
-  ds_x1 = x1;
-  ds_x2 = x2;
-
-  R_DrawSpan();
 }
+
+//
+// R_RasterPlaneColumn
+//
+// Perspective-correct flat rendering for one screen column. Port of Rum and
+// Raisin Doom's R_RasteriseColumnImpl (r_raster.cpp) to 16.16 fixed point and
+// Doom's row-major flats. The exact world position of a row is recovered from
+// the cached row distance every `planeleap` rows, and stepped linearly between
+// recomputations, so the interpolation error is bounded by the leap and
+// self-corrects. This replaces the whole span pipeline (R_MakeSpans +
+// R_MapPlane + R_DrawSpan): with the transposed framebuffer the visplane
+// columns ARE the scanlines.
+//
+
+// flat spot: y*64 + x from 6 integer bits of each frac - the same trick
+// R_DrawSpan used (SoM).
+#define PLANESPOT(xf, yf) ((((yf) >> 10) & 0xFC0) | (((xf) >> 16) & 0x3F))
+
+static void R_RasterPlaneColumn(const byte *source, int x, int top, int bottom)
+{
+    int count = bottom - top;
+    pixel_t *dest = xlookup[x] + rowofs[top]; // rows are contiguous (transposed)
+    int row = top;
+
+    const fixed_t scaledist = distscale[x];
+    const angle_t angle = viewangle + rotation + xtoviewangle[x];
+    const fixed_t anglecos = finecosine[angle >> ANGLETOFINESHIFT];
+    const fixed_t anglesin = finesine[angle >> ANGLETOFINESHIFT];
+
+    fixed_t distance = planeraster[row].distance;
+    fixed_t length = FixedMul(distance, scaledist);
+    fixed_t xfrac = viewx_trans + FixedMul(anglecos, length);
+    fixed_t yfrac = viewy_trans - FixedMul(anglesin, length);
+
+    while (count >= planeleap)
+    {
+        const int nextrow = row + planeleap;
+        distance = planeraster[nextrow].distance;
+        length = FixedMul(distance, scaledist);
+        const fixed_t nextxfrac = viewx_trans + FixedMul(anglecos, length);
+        const fixed_t nextyfrac = viewy_trans - FixedMul(anglesin, length);
+
+        const fixed_t xstep = (nextxfrac - xfrac) >> planeleaplog2;
+        const fixed_t ystep = (nextyfrac - yfrac) >> planeleaplog2;
+
+        for (int i = 0; i < planeleap; i++)
+        {
+            *dest++ =
+                planeraster[row].colormap[source[PLANESPOT(xfrac, yfrac)]];
+            row++;
+            xfrac += xstep;
+            yfrac += ystep;
+        }
+
+        // snap to the exact endpoint: interpolation error does not accumulate
+        xfrac = nextxfrac;
+        yfrac = nextyfrac;
+
+        count -= planeleap;
+    }
+
+    if (count >= 0)
+    {
+        const int nextrow = row + count;
+        distance = planeraster[nextrow].distance;
+        length = FixedMul(distance, scaledist);
+        const fixed_t nextxfrac = viewx_trans + FixedMul(anglecos, length);
+        const fixed_t nextyfrac = viewy_trans - FixedMul(anglesin, length);
+
+        count++;
+
+        const fixed_t xstep = (nextxfrac - xfrac) / count;
+        const fixed_t ystep = (nextyfrac - yfrac) / count;
+
+        do
+        {
+            *dest++ =
+                planeraster[row].colormap[source[PLANESPOT(xfrac, yfrac)]];
+            row++;
+            xfrac += xstep;
+            yfrac += ystep;
+        } while (row <= nextrow);
+    }
+}
+
+#undef PLANESPOT
 
 //
 // R_ClearPlanes
@@ -349,8 +393,7 @@ void R_ClearPlanes(void)
 
   lastopening = openings;
 
-  // texture calculation
-  memset(cachedheight, 0, viewheight * sizeof(*cachedheight));
+  // texture calculation happens per row in R_PreparePlaneRows() now.
 }
 
 // New function, by Lee Killough
@@ -479,25 +522,6 @@ visplane_t *R_CheckPlane(visplane_t *pl, int start, int stop)
     pl = R_DupPlane(pl, start, stop);
 
   return pl;
-}
-
-//
-// R_MakeSpans
-//
-
-// [FG] 32-bit integer math
-static void R_MakeSpans(int x, unsigned int t1, unsigned int b1,
-                        unsigned int t2, unsigned int b2,
-                        const lighttable_t * const colormap)
-{
-  for (; t1 < t2 && t1 <= b1; t1++)
-    R_MapPlane(t1, spanstart[t1], x-1, colormap);
-  for (; b1 > b2 && b1 >= t1; b1--)
-    R_MapPlane(b1, spanstart[b1] ,x-1, colormap);
-  while (t2 < t1 && t2 <= b2)
-    spanstart[t2++] = x;
-  while (b2 > b1 && b2 >= t2)
-    spanstart[b2--] = x;
 }
 
 static void DrawSkyTex(visplane_t *pl, sky_t *sky, skytex_t *skytex)
@@ -637,12 +661,12 @@ static void DrawSkyDef(visplane_t *pl, sky_t *sky)
 
 static void do_draw_plane(visplane_t *pl)
 {
+    const byte *source = NULL;
+
     if (pl->minx > pl->maxx)
     {
         return;
     }
-
-    boolean swirling = false;
 
     if (pl->picnum != NO_TEXTURE)
     {
@@ -663,22 +687,20 @@ static void do_draw_plane(visplane_t *pl)
 
         // regular flat
 
-        swirling = (flattranslation[pl->picnum] == -1);
-
         // [crispy] add support for SMMU swirling flats
-        if (swirling)
+        if (flattranslation[pl->picnum] == -1)
         {
-            ds_source = R_DistortedFlat(firstflat + pl->picnum);
+            source = R_DistortedFlat(firstflat + pl->picnum);
         }
         else
         {
-            ds_source = V_CacheFlatNum(firstflat + flattranslation[pl->picnum],
-                                       PU_STATIC);
+            source = V_CacheFlatNum(firstflat + flattranslation[pl->picnum],
+                                    PU_STATIC);
         }
     }
     else
     {
-        ds_source = R_MissingFlat();
+        source = R_MissingFlat();
     }
 
     xoffs = pl->xoffs; // killough 2/28/98: Add offsets
@@ -686,9 +708,6 @@ static void do_draw_plane(visplane_t *pl)
     rotation = pl->rotation;
 
     // plane math updated for accounting flat rotation, thanks to Odamex
-    angle_sin = finesine[(viewangle + rotation) >> ANGLETOFINESHIFT];
-    angle_cos = finecosine[(viewangle + rotation) >> ANGLETOFINESHIFT];
-
     if (pl->rotation == 0)
     {
         viewx_trans = xoffs + viewx;
@@ -705,9 +724,6 @@ static void do_draw_plane(visplane_t *pl)
 
     planeheight = abs(pl->height - viewz);
 
-    const int stop = pl->maxx + 1;
-    pl->top[pl->minx - 1] = pl->top[stop] = USHRT_MAX;
-
     int light = (pl->lightlevel >> LIGHTSEGSHIFT) + extralight;
     light = CLAMP(light, 0, LIGHTLEVELS - 1);
 
@@ -717,15 +733,18 @@ static void do_draw_plane(visplane_t *pl)
                                             ? colormaps[pl->tint]
                                             : fullcolormap;
 
-    for (int x = pl->minx; x <= stop; x++)
-    {
-        R_MakeSpans(x, pl->top[x - 1], pl->bottom[x - 1], pl->top[x],
-                    pl->bottom[x], thiscolormap);
-    }
+    // [R&R] once per plane: per-row distance and light cache.
+    R_PreparePlaneRows(thiscolormap);
 
-    // [MT] flats are pinned PU_STATIC (pre-cached in R_InitFlats), so there
-    // is no Z_ChangeTag() here anymore - worker threads must not touch the
-    // zone allocator while rendering.
+    // [R&R] per-column perspective-correct rasterisation - the span
+    // generation pass (R_MakeSpans over pl->top/pl->bottom) is gone.
+    for (int x = pl->minx; x <= pl->maxx; x++)
+    {
+        if (pl->top[x] != USHRT_MAX && pl->top[x] <= pl->bottom[x])
+        {
+            R_RasterPlaneColumn(source, x, pl->top[x], pl->bottom[x]);
+        }
+    }
 }
 
 //

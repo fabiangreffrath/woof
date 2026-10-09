@@ -40,6 +40,11 @@ extern THREADLOCAL byte     dc_skycolor;
 // first pixel in a column
 extern THREADLOCAL byte     *dc_source;
 
+// [MT] transposed-buffer column/row lookup tables (r_draw.c, rebuilt by
+// R_InitBuffer on the main thread, read-only during parallel rendering).
+extern pixel_t **xlookup;
+extern int *rowofs;
+
 // The span blitting interface.
 // Hook in assembler or system specific BLT here.
 
@@ -72,23 +77,8 @@ void R_DrawSkyColumnMasked(void);
 void R_DrawTranslatedColumn(void);
 void R_DrawTRTLColumn(void);
 
-extern THREADLOCAL const lighttable_t *ds_colormap;
-
-extern THREADLOCAL int     ds_y;
-extern THREADLOCAL int     ds_x1;
-extern THREADLOCAL int     ds_x2;
-extern THREADLOCAL uint32_t ds_xfrac;
-extern THREADLOCAL uint32_t ds_yfrac;
-extern THREADLOCAL uint32_t ds_xstep;
-extern THREADLOCAL uint32_t ds_ystep;
-
-// start of a 64*64 tile image
-extern THREADLOCAL byte *ds_source;
 extern byte *translationtables;
 extern THREADLOCAL byte *dc_translation;
-
-// Span blitting for rows, floor/ceiling. No Spectre effect needed.
-void R_DrawSpan(void);
 
 void R_InitBuffer(void);
 

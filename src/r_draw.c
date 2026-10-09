@@ -56,8 +56,11 @@ int viewwidth;
 int viewheight;
 int viewwindowx;
 int viewwindowy;
-static pixel_t **xlookup = NULL;
-static int *rowofs = NULL;
+// [MT] shared between r_draw.c and r_plane.c (flat rasteriser destination
+// addressing). Rebuilt by R_InitBuffer() on the main thread, read-only
+// during rendering.
+pixel_t **xlookup = NULL;
+int *rowofs = NULL;
 static int linesize; // killough 11/98
 
 // Backing buffer containing the bezel drawn around the screen and surrounding
@@ -990,70 +993,6 @@ void R_DrawTRTLColumn(void)
     }
 
     #undef SRCPIXEL
-}
-
-//
-// R_DrawSpan
-// With DOOM style restrictions on view orientation,
-//  the floors and ceilings consist of horizontal slices
-//  or spans with constant z depth.
-// However, rotation around the world z axis is possible,
-//  thus this mapping, while simpler and faster than
-//  perspective correct texture mapping, has to traverse
-//  the texture at an angle in all but a few cases.
-// In consequence, flats are not stored by column (like walls),
-//  and the inner loop has to step in texture space u and v.
-//
-
-THREADLOCAL int ds_y;
-THREADLOCAL int ds_x1;
-THREADLOCAL int ds_x2;
-
-THREADLOCAL const lighttable_t *ds_colormap;
-
-THREADLOCAL uint32_t ds_xfrac;
-THREADLOCAL uint32_t ds_yfrac;
-THREADLOCAL uint32_t ds_xstep;
-THREADLOCAL uint32_t ds_ystep;
-
-// start of a 64*64 tile image
-THREADLOCAL byte *ds_source;
-
-void R_DrawSpan(void)
-{
-    int count = ds_x2 - ds_x1 + 1;
-    pixel_t *dest = xlookup[ds_x1] + rowofs[ds_y];
-    const byte *const source = ds_source;
-    const lighttable_t *const colormap = ds_colormap;
-
-    // SoM: we only need 6 bits for the integer part (0 thru 63) so the rest
-    // can be used for the fraction part. This allows calculation of the memory
-    // address in the texture with two shifts, an OR and one AND.
-    unsigned int       xf = ds_xfrac << 10, yf = ds_yfrac << 10;
-    const unsigned int xs = ds_xstep << 10, ys = ds_ystep << 10;
-
-    #define XSHIFT (32 - 6)
-    #define YSHIFT (32 - 6 - 6)
-    #define YMASK  (63 * 64) // 0x0FC0
-
-    byte src;
-
-    UNROLL_LOOP_BY(4)
-    while (count--)
-    {
-        // SoM: Why didn't I see this earlier? the spot variable is a waste now
-        // because we don't have the uber complicated math to calculate it now,
-        // so that was a memory write we didn't need!
-        src = source[((yf >> YSHIFT) & YMASK) | (xf >> XSHIFT)];
-        *dest = colormap[src];
-        dest += linesize;
-        xf += xs;
-        yf += ys;
-    }
-
-    #undef YSHIFT
-    #undef YMASK
-    #undef XSHIFT
 }
 
 void R_InitBufferRes(void)

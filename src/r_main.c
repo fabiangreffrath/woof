@@ -112,6 +112,10 @@ lighttable_t **colormaps;
 
 int       ** scalelightoffset;
 int       ** zlightoffset;
+
+// [R&R] per-column distance correction for the flat rasteriser.
+fixed_t *distscale = NULL;
+static int distscale_size = 0;
 // [MT] both point into the tables above but are selected while drawing,
 // so they are thread-local like the rest of the drawer state.
 THREADLOCAL int const  * planezlightoffset;
@@ -603,6 +607,23 @@ void R_ExecuteSetViewSize (void)
   R_InitBuffer();       // killough 11/98
 
   R_InitTextureMapping();
+
+  // [R&R] distscale table for the per-column flat rasteriser.
+  if (distscale_size != viewwidth)
+  {
+    free(distscale);
+    distscale = malloc(viewwidth * sizeof(*distscale));
+    distscale_size = viewwidth;
+  }
+  for (i = 0; i < viewwidth; i++)
+  {
+    fixed_t cosadj = finecosine[xtoviewangle[i] >> ANGLETOFINESHIFT];
+    if (cosadj < 0)
+      cosadj = -cosadj;
+    if (!cosadj) // extreme FOV guard; R&R has the same division
+      cosadj = 1;
+    distscale[i] = FixedDiv(FRACUNIT, cosadj);
+  }
 
   R_SetupFreelook();
 
