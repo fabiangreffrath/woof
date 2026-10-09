@@ -295,6 +295,67 @@ static const w_dir_spec_t subdirs[] =
     {"voxels",    "VX_START",  "VX_END",   ns_voxels,    false},
 };
 
+// [ZDoom PK3] The file list of an archive or folder is sorted, so all
+// files of one directory are consecutive. Loading a base directory is a
+// single pass that assigns files to the reserved directories on the fly.
+
+const w_dir_spec_t *W_LookupDirSpec(const char *name)
+{
+    const char *sep = strchr(name, '/');
+    size_t length = sep ? (size_t)(sep - name) : strlen(name);
+
+    for (int i = 0; i < arrlen(subdirs); ++i)
+    {
+        if (strlen(subdirs[i].dir) == length
+            && !strncasecmp(name, subdirs[i].dir, length))
+        {
+            return &subdirs[i];
+        }
+    }
+    return NULL;
+}
+
+static const w_dir_spec_t *cur_spec; // reserved directory of the current run
+static boolean run_lumps;            // lumps added to the current run
+
+static void CloseDirRun(void)
+{
+    if (cur_spec && run_lumps && cur_spec->end_marker)
+    {
+        W_AddMarker(cur_spec->end_marker);
+    }
+    cur_spec = NULL;
+    run_lumps = false;
+}
+
+const w_dir_spec_t *W_DirSpecOfFile(const char *relpath)
+{
+    const w_dir_spec_t *spec =
+        strchr(relpath, '/') ? W_LookupDirSpec(relpath) : NULL;
+
+    if (spec != cur_spec)
+    {
+        CloseDirRun();
+        cur_spec = spec;
+    }
+
+    return spec;
+}
+
+void W_BeginDirLump(const w_dir_spec_t *spec)
+{
+    if (spec && spec->start_marker && !run_lumps)
+    {
+        W_AddMarker(spec->start_marker);
+    }
+    run_lumps = true;
+}
+
+void W_FlushDirRun(void)
+{
+    CloseDirRun();
+}
+
 static struct
 {
     const char *dir;
@@ -317,28 +378,9 @@ static w_module_t *modules[] =
     &w_file_module,
 };
 
-
 static void AddDirs(w_module_t *module, w_handle_t handle, const char *base)
 {
-    // The base directory itself is loaded into the global namespace.
-    if (!module->AddDir(handle, base, NULL))
-    {
-        return;
-    }
-
-    for (int i = 0; i < arrlen(subdirs); ++i)
-    {
-        if (base[0] == '.')
-        {
-            module->AddDir(handle, subdirs[i].dir, &subdirs[i]);
-        }
-        else
-        {
-            char *s = M_StringJoin(base, DIR_SEPARATOR_S, subdirs[i].dir);
-            module->AddDir(handle, s, &subdirs[i]);
-            free(s);
-        }
-    }
+    module->AddDir(handle, base);
 }
 
 static void Filter(w_module_t *module, w_handle_t handle)

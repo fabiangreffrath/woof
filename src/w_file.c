@@ -27,12 +27,13 @@
 #include "w_internal.h"
 #include "w_wad.h"
 
-// [ZDoom PK3] sub-directories of reserved directories are scanned
-// automatically, so enumerate a directory tree recursively.
+// [ZDoom PK3] Recursively enumerate the base directory: sub-directories
+// of reserved directories are scanned automatically, other top-level
+// directories are ignored.
 typedef struct
 {
     char **files;
-    boolean recursive;
+    size_t baselen; // length of the base directory path
 } enum_args_t;
 
 static SDL_EnumerationResult EnumerateDirectory(void *userdata,
@@ -44,7 +45,10 @@ static SDL_EnumerationResult EnumerateDirectory(void *userdata,
 
     if (M_DirExists(path))
     {
-        if (args->recursive)
+        const char *rel = path + args->baselen; // "/sprites" or "/sprites/w"
+
+        if (strchr(rel + 1, '/')          // inside a reserved directory
+            || W_LookupDirSpec(rel + 1))  // reserved directory itself
         {
             SDL_EnumerateDirectory(path, EnumerateDirectory, args);
         }
@@ -65,23 +69,14 @@ static int compare_filenames(const void *a, const void *b)
 
 static FILE **descriptors = NULL;
 
-static boolean W_FILE_AddDir(w_handle_t handle, const char *path,
-                             const w_dir_spec_t *spec)
+// [ZDoom PK3] Load a base directory in a single pass over the sorted
+// file list, assigning files to the reserved directories on the fly.
+static boolean W_FILE_AddDir(w_handle_t handle, const char *base)
 {
-    int startlump = numlumps;
+    boolean is_root = (base[0] == '.');
 
-    boolean is_root = (path[0] == '.');
-
-    char *dir;
-
-    if (is_root)
-    {
-        dir = M_StringDuplicate(handle.base_path);
-    }
-    else
-    {
-        dir = M_StringJoin(handle.base_path, DIR_SEPARATOR_S, path);
-    }
+    char *dir = is_root ? M_StringDuplicate(handle.base_path)
+                        : M_StringJoin(handle.base_path, DIR_SEPARATOR_S, base);
 
     if (!M_DirExists(dir))
     {
@@ -89,7 +84,9 @@ static boolean W_FILE_AddDir(w_handle_t handle, const char *path,
         return false;
     }
 
-    enum_args_t args = {.files = NULL, .recursive = (spec != NULL)};
+    size_t baselen = strlen(dir);
+
+    enum_args_t args = {.files = NULL, .baselen = baselen};
 
     SDL_EnumerateDirectory(dir, EnumerateDirectory, &args);
     free(dir);
@@ -98,52 +95,63 @@ static boolean W_FILE_AddDir(w_handle_t handle, const char *path,
 
     qsort(files, array_size(files), sizeof(*files), compare_filenames);
 
-    char **wads = NULL; // WADs in the root directory, loaded last
+    char **wads = NULL; // WADs in the base directory, loaded last
 
     for (int i = 0; i < array_size(files); ++i)
     {
         const char *filename = files[i];
 
+        // [ZDoom PK3] file path relative to the base directory, with
+        // '/' separators
+        char *relpath = M_StringDuplicate(filename + baselen + 1);
+        W_ConvertSlashes(relpath);
+
+        const w_dir_spec_t *spec = W_DirSpecOfFile(relpath);
+
+        if (!spec && strchr(relpath, '/'))
+        {
+            free(relpath); // file in a non-reserved directory
+            continue;
+        }
+
         if (spec && spec->is_map)
         {
             // [ZDoom PK3] maps/ contains single-level WADs, named
             // after the level they hold
-            if (!M_StringCaseEndsWith(filename, ".wad"))
+            if (M_StringCaseEndsWith(filename, ".wad"))
             {
-                continue;
+                byte *data;
+                int length = M_ReadFile(filename, &data);
+
+                if (length <= 0 || data == NULL)
+                {
+                    I_Printf(VB_WARNING, "Error reading %s", filename);
+                }
+                else
+                {
+                    char map_name[9] = {0};
+                    W_ExtractFileBase(filename, map_name);
+
+                    // The WAD image is intentionally not freed: added
+                    // lumps point into it.
+                    W_AddWadFromMemory(M_BaseName(filename), data,
+                                       (size_t)length, map_name);
+                }
             }
-
-            byte *data;
-            int length = M_ReadFile(filename, &data);
-
-            if (length <= 0 || data == NULL)
-            {
-                I_Printf(VB_WARNING, "Error reading %s", filename);
-                continue;
-            }
-
-            char map_name[9] = {0};
-            W_ExtractFileBase(filename, map_name);
-
-            // The WAD image is intentionally not freed: added lumps point
-            // into it.
-            W_AddWadFromMemory(M_BaseName(filename), data, (size_t)length,
-                               map_name);
+            free(relpath);
             continue;
         }
 
-        if (M_StringCaseEndsWith(filename, ".wad"))
+        if (!spec && M_StringCaseEndsWith(filename, ".wad"))
         {
-            // [ZDoom PK3] WADs in the root directory are added to the
+            // [ZDoom PK3] WADs in the base directory are added to the
             // lump directory after all other files
             array_push(wads, M_StringDuplicate(filename));
+            free(relpath);
             continue;
         }
 
-        if (startlump == numlumps && spec && spec->start_marker)
-        {
-            W_AddMarker(spec->start_marker);
-        }
+        W_BeginDirLump(spec);
 
         FILE *descriptor = M_fopen(filename, "rb");
         if (descriptor == NULL)
@@ -171,11 +179,8 @@ static boolean W_FILE_AddDir(w_handle_t handle, const char *path,
         array_push(descriptors, descriptor);
 
         // [ZDoom PK3] full path name for long name lookups, relative
-        // to the loaded directory, with '/' separators
-        char *longname =
-            M_StringDuplicate(filename + strlen(handle.base_path) + 1);
-        W_ConvertSlashes(longname);
-        item.longname = longname;
+        // to the base directory
+        item.longname = relpath;
 
         array_push(lumpinfo, item);
         numlumps++;
@@ -187,10 +192,7 @@ static boolean W_FILE_AddDir(w_handle_t handle, const char *path,
     }
     array_free(files);
 
-    if (numlumps > startlump && spec && spec->end_marker)
-    {
-        W_AddMarker(spec->end_marker);
-    }
+    W_FlushDirRun();
 
     for (int i = 0; i < array_size(wads); ++i)
     {
@@ -199,8 +201,8 @@ static boolean W_FILE_AddDir(w_handle_t handle, const char *path,
 
         if (length > 0 && data != NULL)
         {
-            // The WAD image is intentionally not freed: added lumps point
-            // into it.
+            // The WAD image is intentionally not freed: added lumps
+            // point into it.
             W_AddWadFromMemory(M_BaseName(wads[i]), data, (size_t)length,
                                NULL);
         }

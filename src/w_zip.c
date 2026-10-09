@@ -67,36 +67,22 @@ static void AddWad(w_handle_t handle, int index, boolean is_map)
                        is_map ? map_name : NULL);
 }
 
-// Matches the directory of an archive entry against a reserved directory.
-// Sub-directories of reserved directories are scanned recursively.
-static boolean PathInDir(const char *path, const char *dir, boolean recursive)
-{
-    size_t length = strlen(dir);
-
-    if (!strncasecmp(path, dir, length)
-        && (path[length] == '\0' || (recursive && path[length] == '/')))
-    {
-        return true;
-    }
-
-    return false;
-}
-
-static boolean W_ZIP_AddDir(w_handle_t handle, const char *path,
-                             const w_dir_spec_t *spec)
+// [ZDoom PK3] Load a base directory in a single pass over the sorted
+// archive directory, assigning files to the reserved directories on the
+// fly: all entries of one directory are consecutive.
+static boolean W_ZIP_AddDir(w_handle_t handle, const char *base)
 {
     archive_t *archive = handle.archive;
 
     mz_zip_archive *zip = archive->zip;
 
-    boolean is_root = (path[0] == '.');
-
-    char *dir = M_StringDuplicate(path);
+    char *dir = M_StringDuplicate(base);
     W_ConvertSlashes(dir);
 
-    int startlump = numlumps;
+    boolean is_root = (dir[0] == '.');
+    size_t dirlen = strlen(dir);
 
-    int *wads = NULL; // WADs in the archive root, loaded last
+    int *wads = NULL; // WADs in the base directory, loaded last
 
     for (int i = 0; i < mz_zip_reader_get_num_files(zip); ++i)
     {
@@ -113,14 +99,23 @@ static boolean W_ZIP_AddDir(w_handle_t handle, const char *path,
         char *name = M_StringDuplicate(record.filename);
         W_ConvertSlashes(name);
 
-        char *recdir = M_DirName(name);
-
-        boolean match = PathInDir(recdir, dir, spec != NULL);
-        free(recdir);
-
-        if (!match)
+        // Entries outside the base directory belong to other AddDir
+        // passes (other base directories of the same archive).
+        if (!is_root
+            && (strncasecmp(name, dir, dirlen) || name[dirlen] != '/'))
         {
             free(name);
+            continue;
+        }
+
+        // [ZDoom PK3] file path relative to the base directory
+        const char *relpath = is_root ? name : name + dirlen + 1;
+
+        const w_dir_spec_t *spec = W_DirSpecOfFile(relpath);
+
+        if (!spec && strchr(relpath, '/'))
+        {
+            free(name); // file in a non-reserved directory
             continue;
         }
 
@@ -128,29 +123,24 @@ static boolean W_ZIP_AddDir(w_handle_t handle, const char *path,
         {
             // [ZDoom PK3] maps/ contains single-level WADs, named
             // after the level they hold
-            if (!M_StringCaseEndsWith(record.filename, ".wad"))
+            if (M_StringCaseEndsWith(record.filename, ".wad"))
             {
-                free(name);
-                continue;
+                AddWad(handle, record.index, true);
             }
             free(name);
-            AddWad(handle, record.index, true);
             continue;
         }
 
-        if (is_root && M_StringCaseEndsWith(record.filename, ".wad"))
+        if (!spec && M_StringCaseEndsWith(record.filename, ".wad"))
         {
-            // [ZDoom PK3] WADs in the archive root are added to the
+            // [ZDoom PK3] WADs in the base directory are added to the
             // lump directory after all other files
             array_push(wads, record.index);
             free(name);
             continue;
         }
 
-        if (startlump == numlumps && spec && spec->start_marker)
-        {
-            W_AddMarker(spec->start_marker);
-        }
+        W_BeginDirLump(spec);
 
         lumpinfo_t item = {0};
 
@@ -163,13 +153,15 @@ static boolean W_ZIP_AddDir(w_handle_t handle, const char *path,
 
         item.size = stat.m_uncomp_size;
 
+        // [ZDoom PK3] full path name for long name lookups, relative
+        // to the base directory
+        item.longname = M_StringDuplicate(relpath);
+
         item.module = &w_zip_module;
         w_handle_t local_handle = {.archive = archive,
                                    .index = record.index,
                                    .priority = handle.priority};
         item.handle = local_handle;
-        // [ZDoom PK3] full path name for long name lookups
-        item.longname = M_StringDuplicate(name);
 
         array_push(lumpinfo, item);
         numlumps++;
@@ -177,10 +169,7 @@ static boolean W_ZIP_AddDir(w_handle_t handle, const char *path,
         free(name);
     }
 
-    if (numlumps > startlump && spec && spec->end_marker)
-    {
-        W_AddMarker(spec->end_marker);
-    }
+    W_FlushDirRun();
 
     for (int i = 0; i < array_size(wads); ++i)
     {
