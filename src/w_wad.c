@@ -378,11 +378,6 @@ static w_module_t *modules[] =
     &w_file_module,
 };
 
-static void AddDirs(w_module_t *module, w_handle_t handle, const char *base)
-{
-    module->AddDir(handle, base);
-}
-
 static void Filter(w_module_t *module, w_handle_t handle)
 {
     char *dir = NULL;
@@ -406,11 +401,11 @@ static void Filter(w_module_t *module, w_handle_t handle)
         if (*p == '.')
         {
             *p = '\0';
-            AddDirs(module, handle, dir);
+            module->AddDir(handle, dir);
             *p = '.';
         }
     }
-    AddDirs(module, handle, dir);
+    module->AddDir(handle, dir);
 
     free(dir);
 }
@@ -419,41 +414,41 @@ static void FilterAutoload(w_module_t *module, w_handle_t handle)
 {
     if (gamemission < pack_chex)
     {
-        AddDirs(module, handle, "filter" DIR_SEPARATOR_S "doom-all");
+        module->AddDir(handle, "filter" DIR_SEPARATOR_S "doom-all");
     }
     if (gamemission == pack_chex || gamemission == pack_chex3v)
     {
-        AddDirs(module, handle, "filter" DIR_SEPARATOR_S "chex-all");
+        module->AddDir(handle, "filter" DIR_SEPARATOR_S "chex-all");
     }
     if (gamemission == doom)
     {
-        AddDirs(module, handle, "filter" DIR_SEPARATOR_S "doom1-all");
+        module->AddDir(handle, "filter" DIR_SEPARATOR_S "doom1-all");
     }
     else if (gamemission >= doom2 && gamemission <= pack_plut)
     {
-        AddDirs(module, handle, "filter" DIR_SEPARATOR_S "doom2-all");
+        module->AddDir(handle, "filter" DIR_SEPARATOR_S "doom2-all");
     }
     else if (gamemission == pack_freedoom)
     {
-        AddDirs(module, handle, "filter" DIR_SEPARATOR_S "freedoom-all");
+        module->AddDir(handle, "filter" DIR_SEPARATOR_S "freedoom-all");
         if (gamemode == commercial)
         {
-            AddDirs(module, handle, "filter" DIR_SEPARATOR_S "freedoom2-all");
+            module->AddDir(handle, "filter" DIR_SEPARATOR_S "freedoom2-all");
         }
         else
         {
-            AddDirs(module, handle, "filter" DIR_SEPARATOR_S "freedoom1-all");
+            module->AddDir(handle, "filter" DIR_SEPARATOR_S "freedoom1-all");
         }
     }
     else if (gamemission == pack_rekkr)
     {
-        AddDirs(module, handle, "filter" DIR_SEPARATOR_S "rekkr-all");
+        module->AddDir(handle, "filter" DIR_SEPARATOR_S "rekkr-all");
     }
 
     for (int i = 0; i < array_size(wadfiles); ++i)
     {
         char *dir = M_StringJoin("filter", DIR_SEPARATOR_S, M_BaseName(wadfiles[i]));
-        AddDirs(module, handle, dir);
+        module->AddDir(handle, dir);
         free(dir);
     }
 }
@@ -465,7 +460,7 @@ boolean W_AddPath(const char *path)
     w_handle_t handle = {0};
     handle.priority = priority++;
 
-    w_module_t *active_module = NULL;
+    w_module_t *module = NULL;
 
     for (int i = 0; i < arrlen(modules); ++i)
     {
@@ -477,21 +472,21 @@ boolean W_AddPath(const char *path)
         }
         else if (result == W_DIR)
         {
-            active_module = modules[i];
+            module = modules[i];
             break;
         }
     }
 
-    if (!active_module)
+    if (!module)
     {
         return false;
     }
 
-    AddDirs(active_module, handle, ".");
+    module->AddDir(handle, ".");
 
-    Filter(active_module, handle);
+    Filter(module, handle);
 
-    FilterAutoload(active_module, handle);
+    FilterAutoload(module, handle);
 
     return true;
 }
@@ -698,7 +693,7 @@ boolean W_InitBaseFile(const char *path)
 
     if (result == W_DIR)
     {
-        AddDirs(&w_zip_module, base_handle, ".");
+        w_zip_module.AddDir(base_handle, ".");
         FilterAutoload(&w_zip_module, base_handle);
         return true;
     }
@@ -709,7 +704,7 @@ boolean W_InitBaseFile(const char *path)
 void W_AddBaseDir(const char *path)
 {
     char *base = M_StringJoin("filter", DIR_SEPARATOR_S, path);
-    AddDirs(&w_zip_module, base_handle, base);
+    w_zip_module.AddDir(base_handle, base);
     free(base);
 }
 
