@@ -1241,7 +1241,7 @@ static void M_AddLooseFiles(void)
 static void AutoLoadWADs(const char *path)
 {
     glob_t * glob = I_StartMultiGlob(path, GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
-                                     "*.wad", "*.zip", "*.pk3");
+                                     "*.wad", "*.zip", "*.pk3", ".lmp");
     for (;;)
     {
         const char *filename = I_NextGlob(glob);
@@ -1256,57 +1256,6 @@ static void AutoLoadWADs(const char *path)
         }
     }
     I_EndGlob(glob);
-
-    W_AddPath(path);
-}
-
-static void LoadIWadBase(void)
-{
-    GameMode_t local_gamemode;
-    GameMission_t local_gamemission;
-    D_GetModeAndMissionByIWADName(M_BaseName(wadfiles[0]), &local_gamemode,
-                                  &local_gamemission);
-
-    if (local_gamemission == none
-        || (local_gamemode == indetermined && local_gamemission != doom))
-    {
-        return;
-    }
-
-    if (local_gamemission < pack_chex)
-    {
-        W_AddBaseDir("doom-all");
-    }
-    if (local_gamemission == pack_chex || local_gamemission == pack_chex3v)
-    {
-        W_AddBaseDir("chex-all");
-    }
-    if (local_gamemission == doom)
-    {
-        W_AddBaseDir("doom1-all");
-    }
-    else if (local_gamemission >= doom2 && local_gamemission <= pack_plut)
-    {
-        W_AddBaseDir("doom2-all");
-    }
-    else if (local_gamemission == pack_freedoom)
-    {
-        W_AddBaseDir("freedoom-all");
-        if (local_gamemode == commercial)
-        {
-            W_AddBaseDir("freedoom2-all");
-        }
-        else
-        {
-            W_AddBaseDir("freedoom1-all");
-        }
-    }
-    else if (local_gamemission == pack_rekkr)
-    {
-        W_AddBaseDir("rekkr-all");
-    }
-
-    W_AddBaseDir(M_BaseName(wadfiles[0]));
 }
 
 static void AutoloadIWadDir(void (*AutoLoadFunc)(const char *path))
@@ -1673,14 +1622,14 @@ void D_DoomMain(void)
 
   I_Printf(VB_INFO, "W_Init: Init WADfiles.");
 
-  LoadBaseFile();
-
   IdentifyVersion();
 
   // [FG] emulate a specific version of Doom
   InitGameVersion();
 
   DSDH_Init();
+
+  LoadBaseFile();
 
   modifiedgame = false;
 
@@ -1834,7 +1783,6 @@ void D_DoomMain(void)
 
   // add wad files from autoload IWAD directories before wads from -file parameter
 
-  LoadIWadBase();
   PrepareAutoloadPaths();
   AutoloadIWadDir(AutoLoadWADs);
 

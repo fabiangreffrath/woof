@@ -136,47 +136,6 @@ int W_CheckNumForLongName(const char *name)
     return lumpnum ? *lumpnum : -1;
 }
 
-// [ZDoom PK3] sub-directories of a PK3 archive or folder that assign
-// files to the WAD namespaces.
-// https://zdoom.org/wiki/Using_ZIPs_as_WAD_replacement
-static const w_dir_spec_t subdirs[] =
-{
-    // [Woof!] decorations, normally found between AC_START and AC_END
-    {"actors",    "AC_START",  "AC_END",   ns_actors,    false},
-    {"colormaps", "C_START",   "C_END",    ns_colormaps, false},
-    // [Boom] flats, normally found between F_START and F_END
-    {"flats",     "F_START",   "F_END",    ns_flats,     false},
-    {"graphics",  NULL,        NULL,       ns_global,    false},
-    {"hires",     "HI_START",  "HI_END",   ns_hires,     false},
-    {"maps",      NULL,        NULL,       ns_global,    true },
-    {"music",     NULL,        NULL,       ns_global,    false},
-    {"patches",   NULL,        NULL,       ns_global,    false},
-    {"sounds",    NULL,        NULL,       ns_global,    false},
-    {"sprites",   "S_START",   "S_END",    ns_sprites,   false},
-    {"textures",  "TX_START",  "TX_END",   ns_textures,  false},
-    {"voxels",    "VX_START",  "VX_END",   ns_voxels,    false},
-};
-
-static struct
-{
-    const char *dir;
-    GameMode_t mode;
-    GameMission_t mission;
-} filters[] = {
-    {"doom.id.doom1",            shareware,    doom     },
-    {"doom.id.doom1.registered", registered,   doom     },
-    {"doom.id.doom1.ultimate",   retail,       doom     },
-    {"doom.id.doom2.commercial", commercial,   doom2    },
-    {"doom.id.doom2.plutonia",   commercial,   pack_plut},
-    {"doom.id.doom2.tnt",        commercial,   pack_tnt },
-};
-
-static w_module_t *modules[] =
-{
-    &w_zip_module,
-    &w_file_module,
-};
-
 // Map data lumps that may follow a level marker lump.
 static boolean IsMapLumpName(const char *name)
 {
@@ -315,6 +274,50 @@ void W_AddWadFromMemory(const char *name, const void *data, size_t data_size,
     }
 }
 
+// [ZDoom PK3] sub-directories of a PK3 archive or folder that assign
+// files to the WAD namespaces.
+// https://zdoom.org/wiki/Using_ZIPs_as_WAD_replacement
+static const w_dir_spec_t subdirs[] =
+{
+    // [Woof!] decorations, normally found between AC_START and AC_END
+    {"actors",    "AC_START",  "AC_END",   ns_actors,    false},
+    {"colormaps", "C_START",   "C_END",    ns_colormaps, false},
+    // [Boom] flats, normally found between F_START and F_END
+    {"flats",     "F_START",   "F_END",    ns_flats,     false},
+    {"graphics",  NULL,        NULL,       ns_global,    false},
+    {"hires",     "HI_START",  "HI_END",   ns_hires,     false},
+    {"maps",      NULL,        NULL,       ns_global,    true },
+    {"music",     NULL,        NULL,       ns_global,    false},
+    {"patches",   NULL,        NULL,       ns_global,    false},
+    {"sounds",    NULL,        NULL,       ns_global,    false},
+    {"sprites",   "S_START",   "S_END",    ns_sprites,   false},
+    {"textures",  "TX_START",  "TX_END",   ns_textures,  false},
+    {"voxels",    "VX_START",  "VX_END",   ns_voxels,    false},
+};
+
+static struct
+{
+    const char *dir;
+    GameMode_t mode;
+    GameMission_t mission;
+} filters[] = {
+    {"doom.id.doom1",            shareware,    doom     },
+    {"doom.id.doom1.registered", registered,   doom     },
+    {"doom.id.doom1.ultimate",   retail,       doom     },
+    {"doom.id.doom2.commercial", commercial,   doom2    },
+    {"doom.id.doom2.plutonia",   commercial,   pack_plut},
+    {"doom.id.doom2.tnt",        commercial,   pack_tnt },
+    {"chex.chex1",               retail,       pack_chex},
+    {"rekkr",                    retail,       pack_rekkr}
+};
+
+static w_module_t *modules[] =
+{
+    &w_zip_module,
+    &w_file_module,
+};
+
+
 static void AddDirs(w_module_t *module, w_handle_t handle, const char *base)
 {
     // The base directory itself is loaded into the global namespace.
@@ -335,6 +338,81 @@ static void AddDirs(w_module_t *module, w_handle_t handle, const char *base)
             module->AddDir(handle, s, &subdirs[i]);
             free(s);
         }
+    }
+}
+
+static void Filter(w_module_t *module, w_handle_t handle)
+{
+    char *dir = NULL;
+
+    for (int i = 0; i < arrlen(filters); ++i)
+    {
+        if (filters[i].mode == gamemode && filters[i].mission == gamemission)
+        {
+            dir = M_StringJoin("filter", DIR_SEPARATOR_S, filters[i].dir);
+            break;
+        }
+    }
+
+    if (!dir)
+    {
+        return;
+    }
+
+    for (char *p = dir; *p; ++p)
+    {
+        if (*p == '.')
+        {
+            *p = '\0';
+            AddDirs(module, handle, dir);
+            *p = '.';
+        }
+    }
+    AddDirs(module, handle, dir);
+
+    free(dir);
+}
+
+static void FilterAutoload(w_module_t *module, w_handle_t handle)
+{
+    if (gamemission < pack_chex)
+    {
+        AddDirs(module, handle, "filter" DIR_SEPARATOR_S "doom-all");
+    }
+    if (gamemission == pack_chex || gamemission == pack_chex3v)
+    {
+        AddDirs(module, handle, "filter" DIR_SEPARATOR_S "chex-all");
+    }
+    if (gamemission == doom)
+    {
+        AddDirs(module, handle, "filter" DIR_SEPARATOR_S "doom1-all");
+    }
+    else if (gamemission >= doom2 && gamemission <= pack_plut)
+    {
+        AddDirs(module, handle, "filter" DIR_SEPARATOR_S "doom2-all");
+    }
+    else if (gamemission == pack_freedoom)
+    {
+        AddDirs(module, handle, "filter" DIR_SEPARATOR_S "freedoom-all");
+        if (gamemode == commercial)
+        {
+            AddDirs(module, handle, "filter" DIR_SEPARATOR_S "freedoom2-all");
+        }
+        else
+        {
+            AddDirs(module, handle, "filter" DIR_SEPARATOR_S "freedoom1-all");
+        }
+    }
+    else if (gamemission == pack_rekkr)
+    {
+        AddDirs(module, handle, "filter" DIR_SEPARATOR_S "rekkr-all");
+    }
+
+    for (int i = 0; i < array_size(wadfiles); ++i)
+    {
+        char *dir = M_StringJoin("filter", DIR_SEPARATOR_S, M_BaseName(wadfiles[i]));
+        AddDirs(module, handle, dir);
+        free(dir);
     }
 }
 
@@ -369,34 +447,9 @@ boolean W_AddPath(const char *path)
 
     AddDirs(active_module, handle, ".");
 
-    char *dir = NULL;
+    Filter(active_module, handle);
 
-    for (int i = 0; i < arrlen(filters); ++i)
-    {
-        if (filters[i].mode == gamemode && filters[i].mission == gamemission)
-        {
-            dir = M_StringJoin("filter", DIR_SEPARATOR_S, filters[i].dir);
-            break;
-        }
-    }
-
-    if (!dir)
-    {
-        return true;
-    }
-
-    for (char *p = dir; *p; ++p)
-    {
-        if (*p == '.')
-        {
-            *p = '\0';
-            AddDirs(active_module, handle, dir);
-            *p = '.';
-        }
-    }
-    AddDirs(active_module, handle, dir);
-
-    free(dir);
+    FilterAutoload(active_module, handle);
 
     return true;
 }
@@ -603,7 +656,8 @@ boolean W_InitBaseFile(const char *path)
 
     if (result == W_DIR)
     {
-        AddDirs(&w_zip_module, base_handle, "all-all");
+        AddDirs(&w_zip_module, base_handle, ".");
+        FilterAutoload(&w_zip_module, base_handle);
         return true;
     }
 
@@ -612,7 +666,9 @@ boolean W_InitBaseFile(const char *path)
 
 void W_AddBaseDir(const char *path)
 {
-    AddDirs(&w_zip_module, base_handle, path);
+    char *base = M_StringJoin("filter", DIR_SEPARATOR_S, path);
+    AddDirs(&w_zip_module, base_handle, base);
+    free(base);
 }
 
 void W_InitMultipleFiles(void)
