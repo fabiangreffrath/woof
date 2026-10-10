@@ -21,15 +21,14 @@
 #include <string.h>
 
 #include "config.h"
-#include "doomdef.h"
-#include "doomstat.h"
 #include "doomtype.h"
 #include "i_printf.h"
 #include "i_system.h"
 #include "m_array.h"
+#include "m_hashmap.h"
 #include "m_misc.h"
+#include "w_common.h"
 #include "w_wad.h"
-#include "w_internal.h"
 #include "z_zone.h"
 
 //
@@ -77,82 +76,46 @@ void W_AddMarker(const char *name)
     numlumps++;
 }
 
-boolean W_SkipFile(const char *filename)
-{
-    static const char *ext[] = { ".wad", ".zip", ".pk3", ".deh", ".exe",
-                                 ".bat" };
+// [ZDoom PK3] map of full path names (e.g. "music/d_runnin.ogg") to
+// lump indices, for files loaded from a PK3 archive or a folder.
+static hashmap_t *longname_map;
 
-    for (int i = 0; i < arrlen(ext); ++i)
+static void HashLongName(const int lumpnum)
+{
+    if (!longname_map)
     {
-        if (M_StringCaseEndsWith(filename, ext[i]))
-        {
-            return true;
-        }
+        longname_map = hashmap_init_str(64, sizeof(int));
     }
-    return false;
+
+    char *key = M_StringDuplicate(lumpinfo[lumpnum].longname);
+    M_StringToLower(key);
+
+    hashmap_put_str(longname_map, key, &lumpnum);
+
+    free(key);
 }
 
-static struct
+int W_CheckNumForLongName(const char *name)
 {
-    const char *dir;
-    const char *start_marker;
-    const char *end_marker;
-    namespace_t namespace;
-} subdirs[] = {
-    {"music",     NULL,       NULL,     ns_global   },
-    {"graphics",  NULL,       NULL,     ns_global   },
-    {"actors",    "AC_START", "AC_END", ns_actors   },
-    {"sounds",    NULL,       NULL,     ns_global   },
-    {"textures",  "TX_START", "TX_END", ns_textures },
-    {"sprites",   "S_START",  "S_END",  ns_sprites  },
-    {"flats",     "F_START",  "F_END",  ns_flats    },
-    {"colormaps", "C_START",  "C_END",  ns_colormaps},
-    {"voxels",    "VX_START", "VX_END", ns_voxels   },
-};
+    if (!longname_map)
+    {
+        return -1;
+    }
 
-static struct
-{
-    const char *dir;
-    GameMode_t mode;
-    GameMission_t mission;
-} filters[] = {
-    {"doom.id.doom1",            shareware,    doom     },
-    {"doom.id.doom1.registered", registered,   doom     },
-    {"doom.id.doom1.ultimate",   retail,       doom     },
-    {"doom.id.doom2.commercial", commercial,   doom2    },
-    {"doom.id.doom2.plutonia",   commercial,   pack_plut},
-    {"doom.id.doom2.tnt",        commercial,   pack_tnt },
-};
+    char *key = M_StringDuplicate(name);
+    M_StringToLower(key);
+
+    int *lumpnum = hashmap_get_str(longname_map, key);
+
+    free(key);
+    return lumpnum ? *lumpnum : -1;
+}
 
 static w_module_t *modules[] =
 {
     &w_zip_module,
     &w_file_module,
 };
-
-static void AddDirs(w_module_t *module, w_handle_t handle, const char *base)
-{
-    if (!module->AddDir(handle, base, NULL, NULL))
-    {
-        return;
-    }
-
-    for (int i = 0; i < arrlen(subdirs); ++i)
-    {
-        if (base[0] == '.')
-        {
-            module->AddDir(handle, subdirs[i].dir, subdirs[i].start_marker,
-                           subdirs[i].end_marker);
-        }
-        else
-        {
-            char *s = M_StringJoin(base, DIR_SEPARATOR_S, subdirs[i].dir);
-            module->AddDir(handle, s, subdirs[i].start_marker,
-                           subdirs[i].end_marker);
-            free(s);
-        }
-    }
-}
 
 boolean W_AddPath(const char *path)
 {
@@ -161,7 +124,7 @@ boolean W_AddPath(const char *path)
     w_handle_t handle = {0};
     handle.priority = priority++;
 
-    w_module_t *active_module = NULL;
+    w_module_t *module = NULL;
 
     for (int i = 0; i < arrlen(modules); ++i)
     {
@@ -173,46 +136,21 @@ boolean W_AddPath(const char *path)
         }
         else if (result == W_DIR)
         {
-            active_module = modules[i];
+            module = modules[i];
             break;
         }
     }
 
-    if (!active_module)
+    if (!module)
     {
         return false;
     }
 
-    AddDirs(active_module, handle, ".");
+    module->AddDir(handle, ".");
 
-    char *dir = NULL;
+    W_Filter(module, handle);
 
-    for (int i = 0; i < arrlen(filters); ++i)
-    {
-        if (filters[i].mode == gamemode && filters[i].mission == gamemission)
-        {
-            dir = M_StringJoin("filter", DIR_SEPARATOR_S, filters[i].dir);
-            break;
-        }
-    }
-
-    if (!dir)
-    {
-        return true;
-    }
-
-    for (char *p = dir; *p; ++p)
-    {
-        if (*p == '.')
-        {
-            *p = '\0';
-            AddDirs(active_module, handle, dir);
-            *p = '.';
-        }
-    }
-    AddDirs(active_module, handle, dir);
-
-    free(dir);
+    W_FilterAutoload(module, handle);
 
     return true;
 }
@@ -232,10 +170,10 @@ static int IsMarker(const char *marker, const char *name)
 
 // killough 4/17/98: add namespace tags
 
-static void W_CoalesceMarkedResource(const char *start_marker,
-                                     const char *end_marker, int namespace)
+void W_CoalesceMarkedResource(const char *start_marker, const char *end_marker,
+                              int namespace)
 {
-  lumpinfo_t *marked = malloc(sizeof(*marked) * numlumps);
+  lumpinfo_t *marked = calloc(numlumps, sizeof(*marked));
   size_t i, num_marked = 0, num_unmarked = 0;
   int is_marked = 0, mark_end = 0;
   lumpinfo_t *lump = lumpinfo;
@@ -283,9 +221,13 @@ static void W_CoalesceMarkedResource(const char *start_marker,
 
   if (mark_end)                                   // add end marker
     {
-      lumpinfo[numlumps].size = 0;  // killough 3/20/98: force size to be 0
-      lumpinfo[numlumps].namespace = ns_global;   // killough 4/17/98
-      M_CopyLumpName(lumpinfo[numlumps++].name, end_marker);
+      // Zero the whole lump: the stale slot it reuses may hold garbage
+      // (e.g. a longname pointer from an earlier lump), which would
+      // otherwise be picked up by the longname map.
+      lumpinfo_t marker = {0};
+      marker.namespace = ns_global;   // killough 4/17/98
+      M_CopyLumpName(marker.name, end_marker);
+      lumpinfo[numlumps++] = marker;
     }
 }
 
@@ -388,19 +330,6 @@ int W_GetNumForName (const char* name)     // killough -- const added
   return i;
 }
 
-// [Nyan] Widescreen patches
-const char *W_CheckWidescreenPatch(const char *lump_main)
-{
-  static char lump_wide[9] = "W_";
-  strncpy(&lump_wide[2], lump_main, 6);
-
-  if (W_CheckNumForName(lump_wide) >= 0)
-  {
-    return lump_wide;
-  }
-  return lump_main;
-}
-
 //
 // W_InitMultipleFiles
 // Pass a null terminated list of files to use.
@@ -428,7 +357,8 @@ boolean W_InitBaseFile(const char *path)
 
     if (result == W_DIR)
     {
-        AddDirs(&w_zip_module, base_handle, "all-all");
+        w_zip_module.AddDir(base_handle, ".");
+        W_FilterAutoload(&w_zip_module, base_handle);
         return true;
     }
 
@@ -437,7 +367,9 @@ boolean W_InitBaseFile(const char *path)
 
 void W_AddBaseDir(const char *path)
 {
-    AddDirs(&w_zip_module, base_handle, path);
+    char *base = M_StringJoin("filter", DIR_SEPARATOR_S, path);
+    w_zip_module.AddDir(base_handle, base);
+    free(base);
 }
 
 void W_InitMultipleFiles(void)
@@ -451,17 +383,7 @@ void W_InitMultipleFiles(void)
   // killough 4/4/98: add colormap markers
   // killough 4/17/98: Add namespace tags to each entry
 
-  for (int i = 0; i < arrlen(subdirs); ++i)
-  {
-    if (subdirs[i].namespace != ns_global)
-    {
-      W_CoalesceMarkedResource(subdirs[i].start_marker, subdirs[i].end_marker,
-                               subdirs[i].namespace);
-    }
-  }
-
-  // [Woof!] namespace to avoid conflicts with high-resolution textures
-  W_CoalesceMarkedResource("HI_START", "HI_END", ns_hires);
+  W_CoalesceAllResources();
 
   // set up caching
   lumpcache = Z_Calloc(numlumps, sizeof(*lumpcache), PU_STATIC, 0); // killough
@@ -471,6 +393,14 @@ void W_InitMultipleFiles(void)
 
   // killough 1/31/98: initialize lump hash table
   W_InitLumpHash();
+
+  for (int i = 0; i < numlumps; ++i)
+  {
+    if (lumpinfo[i].longname)
+    {
+        HashLongName(i);
+    }
+  }
 }
 
 //
@@ -570,54 +500,79 @@ void *W_CacheLumpNum(int lump, pu_tag tag)
 // W_CacheLumpName macroized in w_wad.h -- killough
 
 // [FG] name of the WAD file that contains the lump
-const char *W_WadNameForLump (const int lump)
+const char *W_WadNameForLump(const int lump)
 {
-  if (!W_LumpExists(lump))
-    return "invalid";
-  else
-  {
-    const char *wad_file = lumpinfo[lump].wad_file;
-
-    if (wad_file)
-      return M_BaseName(wad_file);
+    if (!W_LumpExists(lump))
+    {
+        return "invalid";
+    }
     else
-      return "lump";
-  }
+    {
+        const char *wad_file = lumpinfo[lump].wad_file;
+
+        if (wad_file)
+        {
+            return M_BaseName(wad_file);
+        }
+        else
+        {
+            return "lump";
+        }
+    }
 }
 
 boolean W_LumpExists(const int lump)
 {
-  return 0 <= lump && lump < numlumps;
+    return 0 <= lump && lump < numlumps;
 }
 
-boolean W_IsIWADLump (const int lump)
+boolean W_IsIWADLump(const int lump)
 {
-	return W_LumpExists(lump) && lumpinfo[lump].wad_file == wadfiles[0];
+    return W_LumpExists(lump) && lumpinfo[lump].wad_file == wadfiles[0];
 }
 
 // check if lump is from WAD
-boolean W_IsWADLump (const int lump)
+boolean W_IsWADLump(const int lump)
 {
-	return W_LumpExists(lump) && lumpinfo[lump].wad_file;
+    return W_LumpExists(lump) && lumpinfo[lump].wad_file;
 }
 
 boolean W_LumpExistsWithName(int lump, char *name)
 {
-  if (!W_LumpExists(lump))
-    return false;
+    if (!W_LumpExists(lump))
+    {
+        return false;
+    }
 
-  if (name && strncasecmp(lumpinfo[lump].name, name, 8))
-    return false;
+    if (name && strncasecmp(lumpinfo[lump].name, name, 8))
+    {
+        return false;
+    }
 
-  return true;
+    return true;
 }
 
 int W_LumpLengthWithName(int lump, char *name)
 {
-  if (!W_LumpExistsWithName(lump, name))
-    return 0;
+    if (!W_LumpExistsWithName(lump, name))
+    {
+        return 0;
+    }
 
-  return LumpLength(lump);
+    return LumpLength(lump);
+}
+
+// [Nyan] Widescreen patches
+const char *W_CheckWidescreenPatch(const char *lump_main)
+{
+    static char lump_wide[9] = "W_";
+    strncpy(&lump_wide[2], lump_main, 6);
+
+    if (W_CheckNumForName(lump_wide) >= 0)
+    {
+        return lump_wide;
+    }
+    return lump_main;
 }
 
 // killough 10/98: support .deh from wads

@@ -12,14 +12,14 @@
 // GNU General Public License for more details.
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "doomtype.h"
 #include "i_printf.h"
 #include "m_array.h"
 #include "m_misc.h"
-#include "m_swap.h"
+#include "w_common.h"
 #include "w_wad.h"
-#include "w_internal.h"
 
 #include "miniz.h"
 
@@ -35,105 +35,54 @@ struct archive_s
     record_t *directory;
 };
 
-static archive_t *archives;
+static archive_t **archives;
 
-static void ConvertSlashes(char *path)
+static void AddWad(w_handle_t handle, int index, boolean is_map)
 {
-    for (char *p = path; *p; ++p)
+    mz_zip_archive *zip = handle.archive->zip;
+
+    mz_zip_archive_file_stat stat;
+    if (!mz_zip_reader_file_stat(zip, index, &stat))
     {
-        if (*p == '\\')
-        {
-            *p = '/';
-        }
+        I_Error("mz_zip_reader_file_stat failed");
     }
-}
 
-static void AddWadInMem(w_handle_t handle, const char *name, int index,
-                        size_t data_size)
-{
-    I_Printf(VB_INFO, " - adding %s", name);
+    byte *data = malloc(stat.m_uncomp_size);
 
-    mz_zip_archive *zip = handle.p1.archive->zip;
-
-    byte *data = malloc(data_size);
-
-    if (!mz_zip_reader_extract_to_mem(zip, index, data, data_size, 0))
+    if (!data || !mz_zip_reader_extract_to_mem(zip, index, data, stat.m_uncomp_size, 0))
     {
         I_Error("mz_zip_reader_extract_to_mem failed");
     }
 
-    wadinfo_t header;
+    char map_name[9] = {0};
 
-    if (sizeof(header) > data_size)
+    if (is_map)
     {
-        I_Error("Error reading header from %s", name);
+        // [ZDoom PK3] the WAD file name determines the map name
+        W_ExtractFileBase(stat.m_filename, map_name);
     }
 
-    memcpy(&header, data, sizeof(header));
-
-    if (strncmp(header.identification, "IWAD", 4)
-        && strncmp(header.identification, "PWAD", 4))
-    {
-        I_Error("Wad file %s doesn't have IWAD or PWAD id", name);
-    }
-
-    header.numlumps = LONG(header.numlumps);
-    if (header.numlumps == 0)
-    {
-        I_Printf(VB_WARNING, "Wad file %s is empty", name);
-        free(data);
-        return;
-    }
-
-    header.infotableofs = LONG(header.infotableofs);
-    if (header.infotableofs + header.numlumps * sizeof(filelump_t) > data_size)
-    {
-        I_Printf(VB_WARNING, "Error seeking offset from %s", name);
-        free(data);
-        return;
-    }
-
-    filelump_t *fileinfo = (filelump_t *)(data + header.infotableofs);
-
-    const char *wadname = M_StringDuplicate(name);
-    array_push(wadfiles, wadname);
-
-    numlumps += header.numlumps;
-
-    for (int i = 0; i < header.numlumps; i++)
-    {
-        lumpinfo_t item = {0};
-        M_CopyLumpName(item.name, fileinfo[i].name);
-        int size = LONG(fileinfo[i].size);
-        int position = LONG(fileinfo[i].filepos);
-        if (position + size > data_size)
-        {
-            I_Error("Error reading lump %d from %s", i, wadname);
-        }
-        item.size = size;
-        item.data = data + position;
-
-        item.handle = handle;
-
-        // [FG] WAD file that contains the lump
-        item.wad_file = wadname;
-        array_push(lumpinfo, item);
-    }
+    // The WAD image is intentionally not freed: added lumps point into it.
+    W_AddWadFromMemory(M_BaseName(stat.m_filename), data, stat.m_uncomp_size,
+                       is_map ? map_name : NULL);
 }
 
-static boolean W_ZIP_AddDir(w_handle_t handle, const char *path,
-                            const char *start_marker, const char *end_marker)
+// [ZDoom PK3] Load a base directory in a single pass over the sorted
+// archive directory, assigning files to the reserved directories on the
+// fly: all entries of one directory are consecutive.
+static boolean W_ZIP_AddDir(w_handle_t handle, const char *base)
 {
-    archive_t *archive = handle.p1.archive;
+    archive_t *archive = handle.archive;
 
     mz_zip_archive *zip = archive->zip;
 
-    boolean is_root = (path[0] == '.');
+    char *dir = M_StringDuplicate(base);
+    W_ConvertSlashes(dir);
 
-    char *dir = M_StringDuplicate(path);
-    ConvertSlashes(dir);
+    boolean is_root = (dir[0] == '.');
+    size_t dirlen = strlen(dir);
 
-    int startlump = numlumps;
+    int *wads = NULL; // WADs in the base directory, loaded last
 
     for (int i = 0; i < mz_zip_reader_get_num_files(zip); ++i)
     {
@@ -147,50 +96,86 @@ static boolean W_ZIP_AddDir(w_handle_t handle, const char *path,
             continue;
         }
 
-        char *name = M_DirName(record.filename);
-        if (strcasecmp(name, dir))
+        char *name = M_StringDuplicate(record.filename);
+        W_ConvertSlashes(name);
+
+        // Entries outside the base directory belong to other AddDir
+        // passes (other base directories of the same archive).
+        if (!is_root
+            && (strncasecmp(name, dir, dirlen) || name[dirlen] != '/'))
         {
             free(name);
             continue;
         }
-        free(name);
 
-        if (is_root && M_StringCaseEndsWith(record.filename, ".wad"))
+        // [ZDoom PK3] file path relative to the base directory
+        const char *relpath = is_root ? name : name + dirlen + 1;
+
+        const w_dir_spec_t *spec = W_DirSpecOfFile(relpath);
+
+        if (!spec && strchr(relpath, '/'))
         {
-            AddWadInMem(handle, M_BaseName(record.filename), record.index,
-                        stat.m_uncomp_size);
+            free(name); // file in a non-reserved directory
             continue;
         }
 
-        if (W_SkipFile(record.filename))
+        if (spec && spec->is_map)
         {
+            // [ZDoom PK3] maps/ contains single-level WADs, named
+            // after the level they hold
+            if (M_StringCaseEndsWith(record.filename, ".wad"))
+            {
+                AddWad(handle, record.index, true);
+            }
+            free(name);
             continue;
         }
 
-        if (startlump == numlumps && start_marker)
+        if (!spec && M_StringCaseEndsWith(record.filename, ".wad"))
         {
-            W_AddMarker(start_marker);
+            // [ZDoom PK3] WADs in the base directory are added to the
+            // lump directory after all other files
+            array_push(wads, record.index);
+            free(name);
+            continue;
         }
+
+        W_BeginDirLump(spec);
 
         lumpinfo_t item = {0};
 
         W_ExtractFileBase(stat.m_filename, item.name);
+
+        if (spec && spec->namespace == ns_sprites)
+        {
+            W_ConvertSpriteName(item.name);
+        }
+
         item.size = stat.m_uncomp_size;
 
+        // [ZDoom PK3] full path name for long name lookups, relative
+        // to the base directory
+        item.longname = M_StringDuplicate(relpath);
+
         item.module = &w_zip_module;
-        w_handle_t local_handle = {.p1.archive = archive,
-                                   .p2.index = record.index,
+        w_handle_t local_handle = {.archive = archive,
+                                   .index = record.index,
                                    .priority = handle.priority};
         item.handle = local_handle;
 
         array_push(lumpinfo, item);
         numlumps++;
+
+        free(name);
     }
 
-    if (numlumps > startlump && end_marker)
+    W_FlushDirRun();
+
+    for (int i = 0; i < array_size(wads); ++i)
     {
-        W_AddMarker(end_marker);
+        AddWad(handle, wads[i], false);
     }
+    array_free(wads);
 
     free(dir);
     return true;
@@ -228,9 +213,12 @@ static w_type_t W_ZIP_Open(const char *path, w_handle_t *handle)
 
     I_Printf(VB_INFO, " adding %s", path);
 
-    archive_t archive = {zip, directory};
+    archive_t *archive = malloc(sizeof(*archive));
+    archive->zip = zip;
+    archive->directory = directory;
+
     array_push(archives, archive);
-    handle->p1.archive = array_end(archives) - 1;
+    handle->archive = archive;
 
     return W_DIR;
 }
@@ -238,7 +226,7 @@ static w_type_t W_ZIP_Open(const char *path, w_handle_t *handle)
 static void W_ZIP_Read(w_handle_t handle, void *dest, int size)
 {
     boolean result = mz_zip_reader_extract_to_mem(
-        handle.p1.archive->zip, handle.p2.index, dest, size, 0);
+        handle.archive->zip, handle.index, dest, size, 0);
 
     if (!result)
     {
@@ -250,7 +238,7 @@ static void W_ZIP_Close(void)
 {
     for (int i = 0; i < array_size(archives); ++i)
     {
-        mz_zip_reader_end(archives[i].zip);
+        mz_zip_reader_end(archives[i]->zip);
     }
 }
 

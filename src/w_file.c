@@ -13,59 +13,145 @@
 
 #include <fcntl.h>
 #include <errno.h>
+#include <string.h>
+
+#include <SDL3/SDL.h>
 
 #include "doomtype.h"
-#include "i_glob.h"
 #include "i_printf.h"
 #include "i_system.h"
 #include "m_io.h"
 #include "m_array.h"
 #include "m_misc.h"
 #include "m_swap.h"
-#include "w_internal.h"
+#include "w_common.h"
 #include "w_wad.h"
 
-static boolean W_FILE_AddDir(w_handle_t handle, const char *path,
-                             const char *start_marker, const char *end_marker)
+// [ZDoom PK3] Recursively enumerate the base directory: sub-directories
+// of reserved directories are scanned automatically, other top-level
+// directories are ignored.
+typedef struct
 {
-    int startlump = numlumps;
+    char **files;
+    size_t baselen; // length of the base directory path
+} enum_args_t;
 
-    glob_t *glob;
+static SDL_EnumerationResult EnumerateDirectory(void *userdata,
+                                                const char *dirname,
+                                                const char *fname)
+{
+    enum_args_t *args = userdata;
+    char *path = M_StringJoin(dirname, fname);
 
-    if (path[0] == '.')
+    if (M_DirExists(path))
     {
-        glob = I_StartGlob(handle.p1.base_path, "*.*",
-                           GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED);
+        const char *rel = path + args->baselen; // "/sprites" or "/sprites/w"
+
+        if (strchr(rel + 1, '/')          // inside a reserved directory
+            || W_LookupDirSpec(rel + 1))  // reserved directory itself
+        {
+            SDL_EnumerateDirectory(path, EnumerateDirectory, args);
+        }
+        free(path);
     }
     else
     {
-        char *s = M_StringJoin(handle.p1.base_path, DIR_SEPARATOR_S, path);
-        glob = I_StartGlob(s, "*.*", GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED);
-        free(s);
+        array_push(args->files, path);
     }
 
-    if (!glob)
+    return SDL_ENUM_CONTINUE;
+}
+
+static int compare_filenames(const void *a, const void *b)
+{
+    return strcasecmp(*(const char **)a, *(const char **)b);
+}
+
+static FILE **descriptors = NULL;
+
+// [ZDoom PK3] Load a base directory in a single pass over the sorted
+// file list, assigning files to the reserved directories on the fly.
+static boolean W_FILE_AddDir(w_handle_t handle, const char *base)
+{
+    boolean is_root = (base[0] == '.');
+
+    char *dir = is_root ? M_StringDuplicate(handle.base_path)
+                        : M_StringJoin(handle.base_path, DIR_SEPARATOR_S, base);
+
+    if (!M_DirExists(dir))
     {
+        free(dir);
         return false;
     }
 
-    while (true)
-    {
-        const char *filename = I_NextGlob(glob);
-        if (filename == NULL)
-        {
-            break;
-        }
+    size_t baselen = strlen(dir);
 
-        if (W_SkipFile(filename))
+    enum_args_t args = {.files = NULL, .baselen = baselen};
+
+    SDL_EnumerateDirectory(dir, EnumerateDirectory, &args);
+    free(dir);
+
+    char **files = args.files;
+
+    qsort(files, array_size(files), sizeof(*files), compare_filenames);
+
+    char **wads = NULL; // WADs in the base directory, loaded last
+
+    for (int i = 0; i < array_size(files); ++i)
+    {
+        const char *filename = files[i];
+
+        // [ZDoom PK3] file path relative to the base directory, with
+        // '/' separators
+        char *relpath = M_StringDuplicate(filename + baselen + 1);
+        W_ConvertSlashes(relpath);
+
+        const w_dir_spec_t *spec = W_DirSpecOfFile(relpath);
+
+        if (!spec && strchr(relpath, '/'))
         {
+            free(relpath); // file in a non-reserved directory
             continue;
         }
 
-        if (startlump == numlumps && start_marker)
+        if (spec && spec->is_map)
         {
-            W_AddMarker(start_marker);
+            // [ZDoom PK3] maps/ contains single-level WADs, named
+            // after the level they hold
+            if (M_StringCaseEndsWith(filename, ".wad"))
+            {
+                byte *data;
+                int length = M_ReadFile(filename, &data);
+
+                if (length <= 0 || data == NULL)
+                {
+                    I_Printf(VB_WARNING, "Error reading %s", filename);
+                }
+                else
+                {
+                    char map_name[9] = {0};
+                    W_ExtractFileBase(filename, map_name);
+
+                    // The WAD image is intentionally not freed: added
+                    // lumps point into it.
+                    W_AddWadFromMemory(M_BaseName(filename), data,
+                                       (size_t)length, map_name);
+                }
+            }
+            free(relpath);
+            continue;
         }
+
+        if (!spec && M_StringCaseEndsWith(filename, ".wad"))
+        {
+            // [ZDoom PK3] WADs in the base directory are added to the
+            // lump directory after all other files
+            array_push(wads, M_StringDuplicate(filename));
+            free(relpath);
+            continue;
+        }
+
+        W_BeginDirLump(spec);
 
         FILE *descriptor = M_fopen(filename, "rb");
         if (descriptor == NULL)
@@ -77,34 +163,65 @@ static boolean W_FILE_AddDir(w_handle_t handle, const char *path,
 
         lumpinfo_t item = {0};
         W_ExtractFileBase(filename, item.name);
+
+        if (spec && spec->namespace == ns_sprites)
+        {
+            W_ConvertSpriteName(item.name);
+        }
+
         item.size = M_FileLength(filename);
 
         item.module = &w_file_module;
-        w_handle_t local_handle = {.p1.descriptor = descriptor,
+        w_handle_t local_handle = {.descriptor = descriptor,
                                    .priority = handle.priority};
         item.handle = local_handle;
+
+        array_push(descriptors, descriptor);
+
+        // [ZDoom PK3] full path name for long name lookups, relative
+        // to the base directory
+        item.longname = relpath;
 
         array_push(lumpinfo, item);
         numlumps++;
     }
 
-    I_EndGlob(glob);
-
-    if (numlumps > startlump && end_marker)
+    for (int i = 0; i < array_size(files); ++i)
     {
-        W_AddMarker(end_marker);
+        free(files[i]);
     }
+    array_free(files);
+
+    W_FlushDirRun();
+
+    for (int i = 0; i < array_size(wads); ++i)
+    {
+        byte *data;
+        int length = M_ReadFile(wads[i], &data);
+
+        if (length > 0 && data != NULL)
+        {
+            // The WAD image is intentionally not freed: added lumps
+            // point into it.
+            W_AddWadFromMemory(M_BaseName(wads[i]), data, (size_t)length,
+                               NULL);
+        }
+        else
+        {
+            I_Printf(VB_WARNING, "Error reading %s", wads[i]);
+        }
+        free(wads[i]);
+    }
+    array_free(wads);
 
     return true;
 }
-
-static FILE **descriptors = NULL;
 
 static w_type_t W_FILE_Open(const char *path, w_handle_t *handle)
 {
     if (M_DirExists(path))
     {
-        handle->p1.base_path = M_StringDuplicate(path);
+        handle->base_path = M_StringDuplicate(path);
         return W_DIR;
     }
 
@@ -116,7 +233,7 @@ static w_type_t W_FILE_Open(const char *path, w_handle_t *handle)
 
     I_Printf(VB_INFO, " adding %s", path); // killough 8/8/98
 
-    w_handle_t local_handle = {.p1.descriptor = descriptor,
+    w_handle_t local_handle = {.descriptor = descriptor,
                                .priority = handle->priority};
 
     // open the file and add to directory
@@ -202,7 +319,7 @@ static w_type_t W_FILE_Open(const char *path, w_handle_t *handle)
         item.size = LONG(fileinfo[i].size);
 
         item.module = &w_file_module;
-        local_handle.p2.position = LONG(fileinfo[i].filepos);
+        local_handle.position = LONG(fileinfo[i].filepos);
         item.handle = local_handle;
 
         // [FG] WAD file that contains the lump
@@ -216,8 +333,8 @@ static w_type_t W_FILE_Open(const char *path, w_handle_t *handle)
 
 static void W_FILE_Read(w_handle_t handle, void *dest, int size)
 {
-    fseek(handle.p1.descriptor, handle.p2.position, SEEK_SET);
-    int bytesread = fread(dest, 1, size, handle.p1.descriptor);
+    fseek(handle.descriptor, handle.position, SEEK_SET);
+    int bytesread = fread(dest, 1, size, handle.descriptor);
     if (bytesread < size)
     {
         I_Error("only read %d of %d", bytesread, size);
