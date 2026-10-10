@@ -50,7 +50,7 @@ static THREADLOCAL int *offset;
 #define AMP2  2
 #define SPEED 32
 
-static void R_InitDistortedFlats()
+void R_InitDistortedFlats(void)
 {
     int i;
 

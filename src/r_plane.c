@@ -214,6 +214,9 @@ void R_InitPlanes (void)
   // [Nugget] Sky projection
   xtoskyangle = (sky_projection == SKYPROJ_LINEAR) ? linearskyangle : xtoviewangle;
   skytran = W_CacheLumpName("SKYTRAN", PU_STATIC);
+
+  // [MT] build the swirl tables single-threaded at startup (4 MB).
+  R_InitDistortedFlats();
 }
 
 void R_InitPlanesRes(void)
