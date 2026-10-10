@@ -404,6 +404,11 @@ static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
             {
               ceilingplane->top[rw_x] = top;
               ceilingplane->bottom[rw_x] = bottom;
+              // covered row range for the rasteriser
+              if (top < ceilingplane->miny)
+                ceilingplane->miny = top;
+              if (bottom > ceilingplane->maxy)
+                ceilingplane->maxy = bottom;
             }
         }
 
@@ -420,6 +425,11 @@ static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
             {
               floorplane->top[rw_x] = top;
               floorplane->bottom[rw_x] = bottom;
+              // covered row range for the rasteriser
+              if (top < floorplane->miny)
+                floorplane->miny = top;
+              if (bottom > floorplane->maxy)
+                floorplane->maxy = bottom;
             }
         }
 

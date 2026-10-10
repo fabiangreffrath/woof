@@ -134,6 +134,9 @@ typedef struct planerow_s
 
 static THREADLOCAL planerow_t *planeraster = NULL;
 
+static THREADLOCAL fixed_t *planecolcos = NULL;
+static THREADLOCAL fixed_t *planecolsin = NULL;
+
 // Perspective-correct resampling stride: the exact texture position is
 // recomputed every planeleap rows and stepped linearly in between
 // (R&R's Span_PolyRaster_Log2_* selection).
@@ -180,6 +183,9 @@ static void R_AllocPlaneBuffers(void)
   ceilingclip = I_Realloc(ceilingclip, video.width * sizeof(*ceilingclip));
 
   planeraster = I_Realloc(planeraster, video.height * sizeof(*planeraster));
+
+  planecolcos = I_Realloc(planecolcos, video.width * sizeof(*planecolcos));
+  planecolsin = I_Realloc(planecolsin, video.width * sizeof(*planecolsin));
 
   maxopenings = video.width * video.height;
   openings = I_Realloc(openings, maxopenings * sizeof(*openings));
@@ -254,18 +260,22 @@ void R_InitVisplanesRes(void)
 // used (zlight table, fixed colormap override).
 //
 
-static void R_PreparePlaneRows(const lighttable_t *const thiscolormap)
+static void R_PreparePlaneRows(const lighttable_t *const thiscolormap,
+                               int miny, int maxy)
 {
-    for (int y = 0; y < viewheight; y++)
+    for (int y = miny; y <= maxy; y++)
     {
         planerow_t *row = &planeraster[y];
-        row->distance = FixedMul(planeheight, yslope[y]);
+        fixed_t dist = FixedMul(planeheight, yslope[y]);
+
         // 16.16 overflow guard. Near-horizon rows of a tall plane (large
         // yslope * large planeheight) exceed INT32_MAX and wrap negative.
         if (dist < 0 || dist > ((MAXLIGHTZ - 1) << LIGHTZSHIFT))
         {
             dist = (MAXLIGHTZ - 1) << LIGHTZSHIFT;
         }
+
+        row->distance = dist;
 
         if (fixedcolormapoffset)
         {
@@ -304,9 +314,20 @@ static void R_RasterPlaneColumn(const byte *source, int x, int top, int bottom)
     int row = top;
 
     const fixed_t scaledist = distscale[x];
-    const angle_t angle = viewangle + rotation + xtoviewangle[x];
-    const fixed_t anglecos = finecosine[angle >> ANGLETOFINESHIFT];
-    const fixed_t anglesin = finesine[angle >> ANGLETOFINESHIFT];
+
+    fixed_t anglecos, anglesin;
+    if (!rotation)
+    {
+        // common case: read the per-frame cache filled by R_ClearPlanes()
+        anglecos = planecolcos[x];
+        anglesin = planecolsin[x];
+    }
+    else
+    {
+        const angle_t angle = viewangle + rotation + xtoviewangle[x];
+        anglecos = finecosine[angle >> ANGLETOFINESHIFT];
+        anglesin = finesine[angle >> ANGLETOFINESHIFT];
+    }
 
     fixed_t distance = planeraster[row].distance;
     fixed_t length = FixedMul(distance, scaledist);
@@ -340,27 +361,19 @@ static void R_RasterPlaneColumn(const byte *source, int x, int top, int bottom)
         count -= planeleap;
     }
 
-    if (count >= 0)
+    // Remainder rows (fewer than planeleap): sample each row exactly from the
+    // distance cache instead of dividing the delta - no integer division in
+    // the hot path, and the result is a touch more accurate than a linear
+    // tail.
+    while (row <= bottom)
     {
-        const int nextrow = row + count;
-        distance = planeraster[nextrow].distance;
+        distance = planeraster[row].distance;
         length = FixedMul(distance, scaledist);
-        const fixed_t nextxfrac = viewx_trans + FixedMul(anglecos, length);
-        const fixed_t nextyfrac = viewy_trans - FixedMul(anglesin, length);
+        xfrac = viewx_trans + FixedMul(anglecos, length);
+        yfrac = viewy_trans - FixedMul(anglesin, length);
 
-        count++;
-
-        const fixed_t xstep = (nextxfrac - xfrac) / count;
-        const fixed_t ystep = (nextyfrac - yfrac) / count;
-
-        do
-        {
-            *dest++ =
-                planeraster[row].colormap[source[PLANESPOT(xfrac, yfrac)]];
-            row++;
-            xfrac += xstep;
-            yfrac += ystep;
-        } while (row <= nextrow);
+        *dest++ = planeraster[row].colormap[source[PLANESPOT(xfrac, yfrac)]];
+        row++;
     }
 }
 
@@ -394,7 +407,15 @@ void R_ClearPlanes(void)
   // opening / clipping determination
   // [MT] only this context's columns; outside of them no spans are drawn.
   for (i = r_context->startcol; i < r_context->endcol; i++)
+  {
     floorclip[i] = viewheight, ceilingclip[i] = -1;
+
+    // Per-frame trig cache for the flat rasteriser (non-rotated planes read
+    // these instead of hitting finecosine/finesine per plane).
+    const angle_t angle = viewangle + xtoviewangle[i];
+    planecolcos[i] = finecosine[angle >> ANGLETOFINESHIFT];
+    planecolsin[i] = finesine[angle >> ANGLETOFINESHIFT];
+  }
 
   for (i=0;i<MAXVISPLANES;i++)    // new code -- killough
     for (*freehead = visplanes[i], visplanes[i] = NULL; *freehead; )
@@ -440,6 +461,8 @@ visplane_t *R_DupPlane(const visplane_t *pl, int start, int stop)
     new_pl->rotation = pl->rotation;
     new_pl->minx = start;
     new_pl->maxx = stop;
+    new_pl->miny = viewheight; // no rows covered yet
+    new_pl->maxy = -1;
     new_pl->tint = pl->tint;
     memset(new_pl->top, UCHAR_MAX, video.width * sizeof(*new_pl->top));
 
@@ -495,6 +518,8 @@ visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
   check->lightlevel = lightlevel;
   check->minx = viewwidth;            // Was SCREENWIDTH -- killough 11/98
   check->maxx = -1;
+  check->miny = viewheight;           // no rows covered yet
+  check->maxy = -1;
   check->xoffs = xoffs;               // killough 2/28/98: Save offsets
   check->yoffs = yoffs;
   check->rotation = rotation;
@@ -733,6 +758,12 @@ static void do_draw_plane(visplane_t *pl)
 
     planeheight = abs(pl->height - viewz);
 
+    // No rows were marked for this plane.
+    if (pl->maxy < 0)
+    {
+        return;
+    }
+
     int light = (pl->lightlevel >> LIGHTSEGSHIFT) + extralight;
     light = CLAMP(light, 0, LIGHTLEVELS - 1);
 
@@ -742,8 +773,9 @@ static void do_draw_plane(visplane_t *pl)
                                             ? colormaps[pl->tint]
                                             : fullcolormap;
 
-    // [R&R] once per plane: per-row distance and light cache.
-    R_PreparePlaneRows(thiscolormap);
+    // [R&R] once per plane: per-row distance and light cache, limited to the
+    // rows this plane actually covers (maintained in R_RenderSegLoop).
+    R_PreparePlaneRows(thiscolormap, pl->miny, pl->maxy);
 
     // [R&R] per-column perspective-correct rasterisation - the span
     // generation pass (R_MakeSpans over pl->top/pl->bottom) is gone.
@@ -751,7 +783,10 @@ static void do_draw_plane(visplane_t *pl)
     {
         if (pl->top[x] != USHRT_MAX && pl->top[x] <= pl->bottom[x])
         {
-            R_RasterPlaneColumn(source, x, pl->top[x], pl->bottom[x]);
+            const int top = pl->top[x];
+            const int bottom = pl->bottom[x];
+
+            R_RasterPlaneColumn(source, x, top, bottom);
         }
     }
 }

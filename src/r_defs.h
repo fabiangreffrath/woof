@@ -527,6 +527,9 @@ typedef struct visplane_s
 {
   struct visplane_s *next;        // Next visplane in hash chain -- killough
   int picnum, lightlevel, minx, maxx;
+  // Covered row range, maintained where top/bottom are written, lets the flat
+  // rasteriser prepare only the rows the plane actually covers.
+  int miny, maxy;
   fixed_t height;
   fixed_t xoffs, yoffs;         // killough 2/28/98: Support scrolling flats
   angle_t rotation;
