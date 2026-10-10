@@ -880,7 +880,7 @@ static void *DecompressZDBSP(map_t *map, byte **data, int32_t *length)
     return output;
 }
 
-static void P_LoadSegs_XNOD(map_t *map, byte *data)
+static void LoadSegs_XNOD(map_t *map, byte *data)
 {
     for (size_t i = 0; i < numsegs; i++)
     {
@@ -952,7 +952,7 @@ static void P_LoadSegs_XNOD(map_t *map, byte *data)
     }
 }
 
-static void P_LoadSegs_XGL(map_t *map, byte *data)
+static void LoadSegs_XGL(map_t *map, byte *data)
 {
     const mapseg_xgln_t *mln = (const mapseg_xgln_t *)data;
     const mapseg_xgl2_t *ml2 = (const mapseg_xgl2_t *)data;
@@ -1194,6 +1194,7 @@ void P_LoadBSPTree_ZDBSP(map_t *map)
     data += numsubsectors * sizeof(mapsubsector_xnod_t);
 
     // 3. Load segs
+
     CheckOverflowZDBSP(&len, sizeof(numSegs));
     memcpy(&value, data, sizeof(numSegs));
     numSegs = ULONG(value);
@@ -1213,18 +1214,18 @@ void P_LoadBSPTree_ZDBSP(map_t *map)
     {
         case 0:
             CheckOverflowZDBSP(&len, numsegs * sizeof(mapseg_xnod_t));
-            P_LoadSegs_XNOD(map, data);
+            LoadSegs_XNOD(map, data);
             data += numsegs * sizeof(mapseg_xnod_t);
             break;
         case 1:
             CheckOverflowZDBSP(&len, numsegs * sizeof(mapseg_xgln_t));
-            P_LoadSegs_XGL(map, data);
+            LoadSegs_XGL(map, data);
             data += numsegs * sizeof(mapseg_xgln_t);
             break;
         case 2:
         case 3:
             CheckOverflowZDBSP(&len, numsegs * sizeof(mapseg_xgl2_t));
-            P_LoadSegs_XGL(map, data);
+            LoadSegs_XGL(map, data);
             data += numsegs * sizeof(mapseg_xgl2_t);
             break;
         default:
@@ -1233,6 +1234,7 @@ void P_LoadBSPTree_ZDBSP(map_t *map)
     }
 
     // 4. Load nodes
+
     CheckOverflowZDBSP(&len, sizeof(numNodes));
     memcpy(&value, data, sizeof(numNodes));
     numNodes = ULONG(value);

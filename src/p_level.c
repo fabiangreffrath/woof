@@ -87,20 +87,20 @@ typedef struct PACKED_PREFIX
 
 //-----------------------------------------------------------------------------
 
-void P_DegenMobjThinker(mobj_t *mobj)
+void P_DegenMobjThinker(mobj_t *const mobj)
 {
     (void)mobj;
     I_Error("This function should never get called.");
 }
 
-static void AddLineToSector(sector_t *s, line_t *l)
+static void AddLineToSector(sector_t *const s, line_t *const l)
 {
     M_AddToBox(s->blockbox, l->v1->x, l->v1->y);
     M_AddToBox(s->blockbox, l->v2->x, l->v2->y);
     *s->lines++ = l;
 }
 
-static size_t GroupLines(map_t *map)
+static size_t GroupLines(map_t *const map)
 {
     size_t total = 0;
     line_t **linebuffer;
@@ -200,40 +200,43 @@ static size_t GroupLines(map_t *map)
     return total;
 }
 
-static void SectorInit(sector_t *const sec)
+static void SectorInitProperties(sector_t *const s)
 {
-    sec->nextsec = -1; // jff 2/26/98 add fields to support locking out
-    sec->prevsec = -1; // stair retriggering until build completes
+    s->nextsec = -1; // jff 2/26/98 add fields to support locking out
+    s->prevsec = -1; // stair retriggering until build completes
 
-    sec->heightsec = -1;       // sector used to get floor and ceiling height
-    sec->floorlightsec = -1;   // sector used to get floor lighting
-    sec->ceilinglightsec = -1; // sector used to get ceiling lighting:
+    s->heightsec = -1;       // sector used to get floor and ceiling height
+    s->floorlightsec = -1;   // sector used to get floor lighting
+    s->ceilinglightsec = -1; // sector used to get ceiling lighting:
 
-    sec->tint = sec->tintfloor = sec->tintceiling = -1;
+    s->tint = s->tintfloor = s->tintceiling = -1;
 
     // killough 8/28/98: initialize all sectors to normal friction first
-    sec->friction = ORIG_FRICTION;
-    sec->movefactor = ORIG_FRICTION_FACTOR;
+    s->friction = ORIG_FRICTION;
+    s->movefactor = ORIG_FRICTION_FACTOR;
+}
 
+static void SectorInitInterpolation(sector_t *const s)
+{
     // killough 3/7/98:
     // floor and ceiling flats offsets
-    sec->old_floor_xoffs = sec->interp_floor_xoffs = sec->floor_xoffs;
-    sec->old_floor_yoffs = sec->interp_floor_yoffs = sec->floor_yoffs;
-    sec->old_ceiling_xoffs = sec->interp_ceiling_xoffs = sec->ceiling_xoffs;
-    sec->old_ceiling_yoffs = sec->interp_ceiling_yoffs = sec->ceiling_yoffs;
+    s->old_floor_xoffs = s->interp_floor_xoffs = s->floor_xoffs;
+    s->old_floor_yoffs = s->interp_floor_yoffs = s->floor_yoffs;
+    s->old_ceiling_xoffs = s->interp_ceiling_xoffs = s->ceiling_xoffs;
+    s->old_ceiling_yoffs = s->interp_ceiling_yoffs = s->ceiling_yoffs;
 
     // [AM] Sector interpolation.  Even if we're
     //      not running uncapped, the renderer still
     //      uses this data.
-    sec->oldfloorheight = sec->interpfloorheight = sec->floorheight;
-    sec->oldceilingheight = sec->interpceilingheight = sec->ceilingheight;
+    s->oldfloorheight = s->interpfloorheight = s->floorheight;
+    s->oldceilingheight = s->interpceilingheight = s->ceilingheight;
 
     // [FG] inhibit sector interpolation during the 0th gametic
-    sec->oldceilgametic = sec->oldfloorgametic = -1;
-    sec->old_ceil_offs_gametic = sec->old_floor_offs_gametic = -1;
+    s->oldceilgametic = s->oldfloorgametic = -1;
+    s->old_ceil_offs_gametic = s->old_floor_offs_gametic = -1;
 }
 
-static void LinedefInit(line_t *const l)
+static void LinedefCalculateProperties(line_t *const l)
 {
     const vertex_t v1 = *l->v1;
     const vertex_t v2 = *l->v2;
@@ -328,16 +331,20 @@ static void LinedefInit(line_t *const l)
     }
 }
 
-static void SidedefInit(side_t *const s)
+static void SidedefInitProperties(side_t *const s)
 {
     s->tint = -1;
+}
+
+static void SidedefInitInterpolation(side_t *const s)
+{
     // [crispy] smooth texture scrolling
     s->oldtextureoffset = s->interptextureoffset = s->textureoffset;
     s->oldrowoffset = s->interprowoffset = s->rowoffset;
     s->oldgametic = -1;
 }
 
-static void ProcessLinedefSpecial(line_t *l)
+static void ProcessLinedefSpecial(line_t *const l)
 {
     // killough 4/11/98: handle special types
     // killough 4/11/98: translucent 2s textures
@@ -363,6 +370,19 @@ static void ProcessLinedefSpecial(line_t *l)
                 }
             }
         }
+    }
+}
+
+static void PostProcessLineDefs(map_t *map)
+{
+    for (size_t i = 0; i < numlines; i++)
+    {
+        line_t *l = &lines[i];
+        // Andrey Budko: Can't be NO_INDEX here
+        l->frontsector = sides[l->sidenum[0]].sector;
+        l->backsector =
+            (l->sidenum[1] != NO_INDEX) ? sides[l->sidenum[1]].sector : NULL;
+        ProcessLinedefSpecial(l);
     }
 }
 
@@ -536,18 +556,21 @@ static void LoadSectors_Doom(map_t *map)
 
     for (size_t i = 0; i < numsectors; i++)
     {
-        sector_t *ss = &sectors[i];
+        sector_t *s = &sectors[i];
         mapsector_t *ms = &data[i];
 
-        ss->floorheight = IntToFixed(SHORT(ms->floorheight));
-        ss->ceilingheight = IntToFixed(SHORT(ms->ceilingheight));
-        ss->floorpic = R_FlatNumForName(ms->floorpic);
-        ss->ceilingpic = R_FlatNumForName(ms->ceilingpic);
-        ss->lightlevel = SHORT(ms->lightlevel);
-        ss->special = SHORT(ms->special);
-        ss->oldspecial = SHORT(ms->special);
-        ss->tag = SHORT(ms->tag);
-        SectorInit(ss);
+        SectorInitProperties(s);
+
+        s->floorheight = IntToFixed(SHORT(ms->floorheight));
+        s->ceilingheight = IntToFixed(SHORT(ms->ceilingheight));
+        s->floorpic = R_FlatNumForName(ms->floorpic);
+        s->ceilingpic = R_FlatNumForName(ms->ceilingpic);
+        s->lightlevel = SHORT(ms->lightlevel);
+        s->special = SHORT(ms->special);
+        s->oldspecial = SHORT(ms->special);
+        s->tag = SHORT(ms->tag);
+
+        SectorInitInterpolation(s);
     }
 
     Z_Free(data);
@@ -584,7 +607,7 @@ static void LoadLineDefs_Doom(map_t *map)
         FIX_NO_INDEX(l->sidenum[0]);
         FIX_NO_INDEX(l->sidenum[1]);
 
-        LinedefInit(l);
+        LinedefCalculateProperties(l);
     }
     Z_Free(data);
 }
@@ -598,40 +621,26 @@ static void LoadSideDefs_Doom(map_t *map)
         side_t *s = &sides[i];
         mapsidedef_t *ms = &data[i];
 
+        SidedefInitProperties(s);
         s->textureoffset = IntToFixed(SHORT(ms->textureoffset));
         s->rowoffset = IntToFixed(SHORT(ms->rowoffset));
         s->sector = &sectors[SHORT(ms->sector)];
+        SidedefInitInterpolation(s);
 
         /* cph 2006/09/30 - catch out-of-range sector numbers; use sector 0
          * instead */
         uint16_t sec = SHORT(ms->sector);
         if (sec >= numsectors)
         {
-            I_Printf(VB_DEBUG,
-                     "LoadSideDefs_Doom: sidedef %zu has out-of-range sector "
-                     "num %u\n",
-                     i, sec);
+            I_Printf(VB_DEBUG, "%s: sidedef %zu has out-of-range sector num %u",
+                     __func__, i, sec);
             sec = 0;
         }
         s->sector = &sectors[sec];
 
-        SidedefInit(s);
         ProcessSideDefs(s, ms->bottomtexture, ms->midtexture, ms->toptexture);
     }
     Z_Free(data);
-}
-
-static void PostProcessLineDefs_Doom(map_t *map)
-{
-    for (size_t i = 0; i < numlines; i++)
-    {
-        line_t *l = &lines[i];
-        // Andrey Budko: Can't be NO_INDEX here
-        l->frontsector = sides[l->sidenum[0]].sector;
-        l->backsector =
-            (l->sidenum[1] != NO_INDEX) ? sides[l->sidenum[1]].sector : NULL;
-        ProcessLinedefSpecial(l);
-    }
 }
 
 void P_LoadThings_Doom(map_t *map)
@@ -702,6 +711,8 @@ static void LoadSectors_UDMF(map_t *map)
         sector_t *s = &sectors[i];
         UDMF_Sector_t *us = &map->udmf_sectors[i];
 
+        SectorInitProperties(s);
+
         s->floorheight = IntToFixed(us->heightfloor);
         s->ceilingheight = IntToFixed(us->heightceiling);
         s->floorpic = R_FlatNumForName(us->texturefloor);
@@ -722,7 +733,7 @@ static void LoadSectors_UDMF(map_t *map)
         s->ceiling_xoffs = DoubleToFixed(us->xpanningceiling);
         s->ceiling_yoffs = DoubleToFixed(us->ypanningceiling);
 
-        SectorInit(&sectors[i]);
+        SectorInitInterpolation(s);
 
         s->colormap = R_ColormapNumForName(us->colormap);
         s->tint = R_ColormapNumForName(us->tint);
@@ -827,7 +838,7 @@ static void LoadLineDefs_UDMF(map_t *map)
             l->tranmap = W_CacheLumpNum(lump, PU_CACHE);
         }
 
-        LinedefInit(l);
+        LinedefCalculateProperties(l);
     }
 }
 
@@ -838,6 +849,7 @@ static void LoadSideDefs_UDMF(map_t *map)
         side_t *s = &sides[i];
         UDMF_Sidedef_t *us = &map->udmf_sidedefs[i];
 
+        SidedefInitProperties(s);
         if (us->sector_id >= numsectors)
         {
             I_Error("sidedef %zu's sector index is out of range", i);
@@ -852,8 +864,7 @@ static void LoadSideDefs_UDMF(map_t *map)
         s->offsety_mid = DoubleToFixed(us->offsety_mid);
         s->offsetx_bottom = DoubleToFixed(us->offsetx_bottom);
         s->offsety_bottom = DoubleToFixed(us->offsety_bottom);
-
-        SidedefInit(s);
+        SidedefInitInterpolation(s);
 
         s->flags = us->flags;
         s->light = us->light;
@@ -890,19 +901,6 @@ static void LoadSideDefs_UDMF(map_t *map)
 
         ProcessSideDefs(s, us->texturebottom, us->texturemiddle,
                         us->texturetop);
-    }
-}
-
-static void PostProcessLineDefs_UDMF(map_t *map)
-{
-    for (size_t i = 0; i < numlines; i++)
-    {
-        line_t *l = &lines[i];
-        // Andrey Budko: Can't be NO_INDEX here
-        l->frontsector = sides[l->sidenum[0]].sector;
-        l->backsector =
-            (l->sidenum[1] != NO_INDEX) ? sides[l->sidenum[1]].sector : NULL;
-        ProcessLinedefSpecial(l);
     }
 }
 
@@ -1045,10 +1043,10 @@ void P_LoadMap_Doom(map_t *map)
     // note: most of this ordering is important
     LoadVertexes_Doom(map);
     LoadSectors_Doom(map);
-    AllocateSideDefs_Doom(map);    // <- This needs Sectors
-    LoadLineDefs_Doom(map);        // <- this needs allocated Sides
-    LoadSideDefs_Doom(map);        // <- this needs Lines
-    PostProcessLineDefs_Doom(map); // <- this needs Sides
+    AllocateSideDefs_Doom(map); // <- This needs Sectors
+    LoadLineDefs_Doom(map);     // <- this needs allocated Sides
+    LoadSideDefs_Doom(map);     // <- this needs Lines
+    PostProcessLineDefs(map);   // <- this needs Sides
 
     map->bmap_format = P_LoadBlockMap(map);
 
@@ -1104,10 +1102,10 @@ void P_LoadMap_UDMF(map_t *map)
     // note: most of this ordering is important
     LoadVertexes_UDMF(map);
     LoadSectors_UDMF(map);
-    AllocateSideDefs_UDMF(map);    // <- This needs Sectors
-    LoadLineDefs_UDMF(map);        // <- this needs allocated Sides
-    LoadSideDefs_UDMF(map);        // <- this needs Lines
-    PostProcessLineDefs_UDMF(map); // <- this needs Sides
+    AllocateSideDefs_UDMF(map); // <- This needs Sectors
+    LoadLineDefs_UDMF(map);     // <- this needs allocated Sides
+    LoadSideDefs_UDMF(map);     // <- this needs Lines
+    PostProcessLineDefs(map);   // <- this needs Sides
 
     map->bmap_format = P_LoadBlockMap(map);
     P_LoadBSPTree_ZDBSP(map);

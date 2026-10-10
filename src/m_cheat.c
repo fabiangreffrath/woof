@@ -814,7 +814,7 @@ static void cheat_spechits(void)
   boolean origcards[NUMCARDS];
 
   // [crispy] temporarily give all keys
-  for (size_t i = 0; i < NUMCARDS; i++)
+  for (i = 0; i < NUMCARDS; i++)
   {
     origcards[i] = plyr->cards[i];
     plyr->cards[i] = true;
@@ -822,14 +822,11 @@ static void cheat_spechits(void)
 
   P_MapStart();
 
-  for (size_t i = 0; i < numlines; i++)
+  for (i = 0; i < numlines; i++)
   {
-    line_t *l = &lines[i];
-    side_t *s = (l->sidenum[1] != NO_INDEX) ? &sides[l->sidenum[1]] : NULL;
-
-    if (l->special)
+    if (lines[i].special)
     {
-      switch (l->special)
+      switch (lines[i].special)
         // [crispy] do not trigger level exit switches/lines
         case 11:
         case 51:
@@ -864,22 +861,24 @@ static void cheat_spechits(void)
         }
 
       // do not trigger any ID24 actions
-      if (l->special >= 2048 && l->special <= 2098)
+      if (lines[i].special >= 2048 && lines[i].special <= 2098)
       {
         continue;
       }
 
       // [crispy] special without tag --> DR linedef type
       // do not change door direction if it is already moving
-      if (l->args[0] == 0 && s
-          && (s->sector->floordata || s->sector->ceilingdata))
+     if (lines[i].args[0] == 0 &&
+          lines[i].sidenum[1] != NO_INDEX &&
+         (sides[lines[i].sidenum[1]].sector->floordata ||
+          sides[lines[i].sidenum[1]].sector->ceilingdata))
       {
-          continue;
+        continue;
       }
 
-      P_CrossSpecialLine(l, 0, plyr->mo, false);
-      P_ShootSpecialLine(plyr->mo, l, 0);
-      P_UseSpecialLine(plyr->mo, l, 0, false);
+      P_CrossSpecialLine(&lines[i], 0, plyr->mo, false);
+      P_ShootSpecialLine(plyr->mo, &lines[i], 0);
+      P_UseSpecialLine(plyr->mo, &lines[i], 0, false);
 
       speciallines++;
     }
