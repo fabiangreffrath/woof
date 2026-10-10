@@ -1070,13 +1070,6 @@ void R_DrawPlayerSprites(void)
   mfloorclip = screenheightarray;
   mceilingclip = negonearray;
 
-  // display crosshair
-  // [MT] the crosshair is drawn by the context that owns the center column,
-  // so it appears exactly once across all parallel slabs.
-  if (hud_crosshair && centerx >= r_context->startcol
-      && centerx < r_context->endcol)
-    HU_DrawCrosshair();
-
   // add all active psprites
   for (i=0, psp=viewplayer->psprites; i<NUMPSPRITES; i++,psp++)
     if (psp->state)
