@@ -304,6 +304,8 @@ if(WOOF_STRICT)
     target_compile_definitions(woof PRIVATE MBF_STRICT)
 endif()
 
+target_compile_definitions(woof PRIVATE "THREADLOCAL=${WOOF_THREAD_LOCAL}")
+
 # Setup tool
 set(SETUP_SOURCES
     d_iwad.c                d_iwad.h

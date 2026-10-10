@@ -16,17 +16,6 @@
 
 #include <stdint.h>
 
-//
-// Thread-local storage. _Thread_local is the C11 spelling; MSVC's C compiler
-// does not implement it, but __declspec(thread) has identical semantics for
-// the simple POD/pointer variables used by the renderer.
-//
-#if defined(_MSC_VER)
-  #define THREADLOCAL __declspec(thread)
-#else
-  #define THREADLOCAL _Thread_local
-#endif
-
 typedef struct SDL_Thread thread_t;
 typedef int (*threadfunc_t)(void *data);
 
