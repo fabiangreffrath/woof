@@ -11,6 +11,7 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
+#include "doomdef.h"
 #include "doomstat.h"
 #include "i_printf.h"
 #include "m_array.h"
@@ -23,10 +24,8 @@
 // https://zdoom.org/wiki/Using_ZIPs_as_WAD_replacement
 static const w_dir_spec_t subdirs[] =
 {
-    // [Woof!] decorations, normally found between AC_START and AC_END
     {"actors",    "AC_START",  "AC_END",   ns_actors,    false},
     {"colormaps", "C_START",   "C_END",    ns_colormaps, false},
-    // [Boom] flats, normally found between F_START and F_END
     {"flats",     "F_START",   "F_END",    ns_flats,     false},
     {"graphics",  NULL,        NULL,       ns_global,    false},
     {"hires",     "HI_START",  "HI_END",   ns_hires,     false},
@@ -51,7 +50,10 @@ static const struct
     {"doom.id.doom2.commercial", commercial,   doom2    },
     {"doom.id.doom2.plutonia",   commercial,   pack_plut},
     {"doom.id.doom2.tnt",        commercial,   pack_tnt },
+    {"doom.freedoom.phase1",     retail,       pack_freedoom},
+    {"doom.freedoom.phase2",     commercial,   pack_freedoom},
     {"chex.chex1",               retail,       pack_chex},
+    {"hacx.hacx1",               commercial,   pack_hacx},
     {"rekkr",                    retail,       pack_rekkr}
 };
 
@@ -188,10 +190,12 @@ void W_FilterAutoload(w_module_t *module, w_handle_t handle)
     if (gamemission < pack_chex)
     {
         module->AddDir(handle, "filter" DIR_SEPARATOR_S "doom-all");
+        module->AddDir(handle, "filter" DIR_SEPARATOR_S "game-doom");
     }
     if (gamemission == pack_chex || gamemission == pack_chex3v)
     {
         module->AddDir(handle, "filter" DIR_SEPARATOR_S "chex-all");
+        module->AddDir(handle, "filter" DIR_SEPARATOR_S "game-chex");
     }
     if (gamemission == doom)
     {
