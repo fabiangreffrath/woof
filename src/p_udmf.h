@@ -54,7 +54,7 @@ typedef struct UDMF_Linedef_s
     int32_t v1_id, v2_id;
     int32_t special;
     int32_t args[5];
-    int32_t sidefront, sideback;
+    int32_t sidefront_id, sideback_id;
     int32_t flags;
 
     // Extensions

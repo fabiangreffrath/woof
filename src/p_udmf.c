@@ -261,7 +261,7 @@ static void ParseVertex(scanner_t *s, map_t *map)
 static void ParseLinedef(scanner_t *s, map_t *map)
 {
     UDMF_Linedef_t line = {0};
-    line.sideback = -1;
+    line.sideback_id = -1;
     M_CopyLumpName(line.tranmap, "-");
     line.alpha = 1.0;
 
@@ -310,11 +310,11 @@ static void ParseLinedef(scanner_t *s, map_t *map)
         }
         else if (BASE_PROP(sidefront))
         {
-            line.sidefront = ScanInt(s);
+            line.sidefront_id = ScanInt(s);
         }
         else if (BASE_PROP(sideback))
         {
-            line.sideback = ScanInt(s);
+            line.sideback_id = ScanInt(s);
         }
         else if (BASE_PROP(blocking))
         {
