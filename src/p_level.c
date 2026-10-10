@@ -675,11 +675,11 @@ void P_LoadThings_Doom(map_t *map)
         mt.health = FRACUNIT;
         mt.tint = NO_INDEX;
 
-        // clnag-format off
+        // clang-format off
         if (mt.options & MTF_EASY)   mt.options |= MTF_SKILL1 | MTF_SKILL2;
         if (mt.options & MTF_NORMAL) mt.options |= MTF_SKILL3;
         if (mt.options & MTF_HARD)   mt.options |= MTF_SKILL4 | MTF_SKILL5;
-        // clnag-format on
+        // clang-format on
 
         ProcessMapThing(&mt);
     }
