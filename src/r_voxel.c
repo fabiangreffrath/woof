@@ -19,13 +19,14 @@
 #include "doomtype.h"
 #include "hu_crosshair.h"
 #include "i_printf.h"
+#include "i_system.h"
+#include "i_thread.h"
 #include "i_video.h"
 #include "info.h"
 #include "m_fixed.h"
 #include "m_misc.h"
 #include "mn_menu.h"
 #include "p_mobj.h"
-#include "r_bmaps.h"
 #include "r_defs.h"
 #include "r_draw.h"
 #include "r_main.h"
@@ -322,20 +323,21 @@ struct VisVoxel
 	fixed_t  c, s;
 };
 
-static struct VisVoxel * visvoxels;
-static int num_visvoxels;
+static THREADLOCAL struct VisVoxel * visvoxels;
+static THREADLOCAL int num_visvoxels;
 
 vissprite_t * R_NewVisSprite (void);
 
 static int VX_NewVisVoxel (void)
 {
-	static int size;
+	// [MT] per-thread voxel list grown with realloc (no zone allocator in
+	// render workers).
+	static THREADLOCAL int size;
 
 	if (num_visvoxels >= size)
 	{
 		size = (size ? size * 2 : 128);
-		visvoxels = Z_Realloc (visvoxels, size * sizeof(*visvoxels),
-				       PU_STATIC, 0);
+		visvoxels = I_Realloc (visvoxels, size * sizeof(*visvoxels));
 	}
 
 	return num_visvoxels++;
@@ -344,7 +346,7 @@ static int VX_NewVisVoxel (void)
 
 void VX_ClearVoxels (void)
 {
-	rendered_voxels = num_visvoxels;
+	r_context->rendered_voxels = num_visvoxels; // [MT] per-context stat
 	num_visvoxels = 0;
 }
 
@@ -398,8 +400,9 @@ static int VX_RotateModeForThing (mobj_t * thing)
 
 static angle_t VX_GetItemRotationAngle (void)
 {
-	static int oldgametic = -1;
-	static angle_t oldangle, newangle;
+	// [MT] per-thread cache; every thread computes identical values.
+	static THREADLOCAL int oldgametic = -1;
+	static THREADLOCAL angle_t oldangle, newangle;
 
 	if (oldgametic < gametic)
 	{
@@ -618,6 +621,11 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 	if (x1 < 0)           x1 = 0;
 	if (x2 > viewwidth-1) x2 = viewwidth-1;
 
+	// [MT] clip to this render context's column slab; adjacent contexts
+	// project the same voxel independently and draw their own slices.
+	if (x1 < r_context->startcol) x1 = r_context->startcol;
+	if (x2 > r_context->endcol-1) x2 = r_context->endcol-1;
+
 	// fully clipped?
 	if (x1 > x2)
 		return true;
@@ -663,12 +671,10 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 	else if (fixedcolormapoffset)
 	{
 		vis->colormap[0] = thiscolormap + fixedcolormapoffset;
-		vis->brightmap = nobrightmap;
 	}
 	else if (thing->frame & FF_FULLBRIGHT)
 	{
 		vis->colormap[0] = thiscolormap;
-		vis->brightmap = nobrightmap;
 	}
 	else
 	{
@@ -686,8 +692,6 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 
 		vis->colormap[0] = thiscolormap + spritelightoffsets[index];
 		vis->colormap[1] = thiscolormap;
-
-		vis->brightmap = R_BrightmapForSprite(thing->sprite);
 	}
 
 	// ID24 per-state tranmap
@@ -697,7 +701,10 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 	vis->color = thing->bloodcolor;
 
 	// [Alaux] Lock crosshair on target
-	if (STRICTMODE(hud_crosshair_lockon) && thing == crosshair_target)
+	// [MT] only the context owning the center column may touch the shared
+	// crosshair state while rendering in parallel.
+	if (STRICTMODE(hud_crosshair_lockon) && thing == crosshair_target
+	    && centerx >= r_context->startcol && centerx < r_context->endcol)
 	{
 		int x = (centerxfrac + FixedMul(tx, xscale)) >> FRACBITS;
 		int y = (centeryfrac + FixedMul(viewz - gz - crosshair_target->actualheight / 2, xscale)) >> FRACBITS;
@@ -713,8 +720,9 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 //------------------------------------------------------------------------
 
 // camera position in model space
-static fixed_t  vx_eye_x;
-static fixed_t  vx_eye_y;
+// [MT] written while drawing voxels in parallel render contexts.
+static THREADLOCAL fixed_t  vx_eye_x;
+static THREADLOCAL fixed_t  vx_eye_y;
 
 
 static void VX_DrawColumn (vissprite_t * spr, int x, int y)
@@ -818,8 +826,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 	int linesize = video.height;
 	pixel_t * dest = I_VideoBuffer + (viewwindowx * linesize) + viewwindowy;
 
-	const lighttable_t *const colormap =
-		R_GetBrightmappedColormap(spr->colormap[0], spr->colormap[1], spr->brightmap);
+	const lighttable_t *const colormap = spr->colormap[0];
 
 	// iterate over screen columns
 	fixed_t ux = ((Ax - 1) | FRACMASK) + 1;
@@ -1026,7 +1033,8 @@ void VX_DrawVoxel (vissprite_t * spr)
 		const byte * trans = translationtables - 256 +
 			( (spr->mobjflags & MF_TRANSLATION) >> (MF_TRANSSHIFT-8) );
 
-		static byte new_colormap[256];
+		// [MT] per-thread scratch colormap
+		static THREADLOCAL byte new_colormap[256];
 
 		for (int i = 0 ; i < PLAYPAL_SIZE ; i++)
 			new_colormap[i] = spr->colormap[0][trans[i]];
@@ -1036,10 +1044,11 @@ void VX_DrawVoxel (vissprite_t * spr)
 
 	if ((spr->mobjflags_extra & MFX_COLOREDBLOOD) && (spr->colormap[0] != NULL))
 	{
-		static const byte * prev_trans = NULL, * prev_map = NULL;
+		// [MT] per-thread cache and scratch colormap
+		static THREADLOCAL const byte * prev_trans = NULL, * prev_map = NULL;
 		const byte * trans = xlat[spr->color].lump, * map = spr->colormap[0];
 
-		static byte new_colormap[256];
+		static THREADLOCAL byte new_colormap[256];
 
 		if (prev_trans != trans || prev_map != map)
 		{

@@ -47,7 +47,6 @@
 #include "mn_font.h"
 #include "mn_menu.h"
 #include "p_mobj.h"
-#include "r_bmaps.h"
 #include "r_data.h"
 #include "r_defs.h"
 #include "r_draw.h"
@@ -3354,9 +3353,6 @@ static setup_menu_t gen_settings5[] = {
     MI_GAP,
 
     {"Voxels", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC, {"voxels_rendering"}},
-
-    {"Brightmaps", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC, {"brightmaps"},
-     .action = R_ToggleBrightmaps},
 
     {"Stretch Short Skies", S_ONOFF, OFF_CNTR_X, M_SPC, {"stretchsky"},
      .action = R_UpdateStretchSkies},

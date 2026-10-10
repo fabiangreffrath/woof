@@ -21,11 +21,14 @@
 //
 
 #include "doomtype.h"
+#include "i_thread.h"
 
 #ifndef __R_TRANMAP__
 #define __R_TRANMAP__
 
-extern const byte *tranmap;
+// [MT] tranmap switches per draw (2s linedefs, ID24 sprites, sky foreground),
+// so it is thread-local like the other drawer state.
+extern THREADLOCAL const byte *tranmap;
 extern const byte *main_tranmap;
 extern const byte *main_addimap;
 

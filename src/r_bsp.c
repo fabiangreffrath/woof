@@ -24,6 +24,7 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "i_system.h"
+#include "i_thread.h"
 #include "i_video.h" // [FG] uncapped
 #include "m_bbox.h"
 #include "m_fixed.h"
@@ -37,19 +38,23 @@
 #include "tables.h"
 #include "v_video.h"
 
-seg_t     *curline;
-side_t    *sidedef;
-line_t    *linedef;
-sector_t  *frontsector;
-sector_t  *backsector;
-drawseg_t *ds_p;
+// [MT] Everything below that is mutated during BSP traversal is
+// thread-local, so each render context traverses independently.
+THREADLOCAL seg_t     *curline;
+THREADLOCAL side_t    *sidedef;
+THREADLOCAL line_t    *linedef;
+THREADLOCAL sector_t  *frontsector;
+THREADLOCAL sector_t  *backsector;
+THREADLOCAL drawseg_t *ds_p;
 
 // killough 4/7/98: indicates doors closed wrt automap bugfix:
-int      doorclosed;
+THREADLOCAL int      doorclosed;
 
 // killough: New code which removes 2s linedef limit
-drawseg_t *drawsegs;
-unsigned  maxdrawsegs;
+// [MT] per-thread, grown with realloc (not the zone allocator - worker
+// threads must not touch it).
+THREADLOCAL drawseg_t *drawsegs;
+THREADLOCAL unsigned  maxdrawsegs;
 // drawseg_t drawsegs[MAXDRAWSEGS];       // old code -- killough
 
 //
@@ -96,7 +101,9 @@ typedef struct {
 // Replaces the old R_Clip*WallSegment functions. It draws bits of walls in those
 // columns which aren't solid, and updates the solidcol[] array appropriately
 
-byte *solidcol = NULL;
+// [MT] per-thread column coverage map, lazily allocated to video.width.
+THREADLOCAL byte *solidcol = NULL;
+static THREADLOCAL int solidcol_size = 0;
 
 static void R_ClipWallSegment(int first, int last, boolean solid)
 {
@@ -135,7 +142,21 @@ static void R_ClipWallSegment(int first, int last, boolean solid)
 
 void R_ClearClipSegs (void)
 {
+  if (solidcol_size != video.width)
+  {
+    solidcol = I_Realloc(solidcol, video.width * sizeof(*solidcol));
+    solidcol_size = video.width;
+  }
+
   memset(solidcol, 0, video.width);
+
+  // [MT] Columns outside this render context's range are marked solid, so
+  // R_ClipWallSegment()/R_CheckBBox() reject any geometry that does not
+  // overlap the context. This is what keeps the parallel slabs independent.
+  if (r_context->startcol > 0)
+    memset(solidcol, 1, r_context->startcol);
+  if (r_context->endcol < video.width)
+    memset(solidcol + r_context->endcol, 1, video.width - r_context->endcol);
 }
 
 // killough 1/18/98 -- This function is used to fix the automap bug which
@@ -312,6 +333,11 @@ sector_t *R_FakeFlat(sector_t *sec, sector_t *tempsec,
 }
 
 // [AM] Interpolate the passed sector, if prudent.
+// [MT] Called lazily from render workers, so several threads may store into
+// the same sector's interp* fields concurrently. The stored values are a
+// deterministic function of shared read-only state (gametic, old/current
+// heights), so every thread writes the same value - benign race, same
+// approach as Rum and Raisin Doom.
 static void R_MaybeInterpolateSector(sector_t* sector)
 {
     if (uncapped)
@@ -372,6 +398,7 @@ static void R_MaybeInterpolateSector(sector_t* sector)
     }
 }
 
+// [MT] same benign deterministic race as R_MaybeInterpolateSector().
 static void R_MaybeInterpolateTextureOffsets(side_t *side)
 {
     if (uncapped && side->oldgametic == gametic - 1)
@@ -400,7 +427,9 @@ static void R_AddLine (seg_t *line)
   angle_t  angle2;
   angle_t  span;
   angle_t  tspan;
-  static sector_t tempsec;     // killough 3/8/98: ceiling/water hack
+  // killough 3/8/98: ceiling/water hack
+  // [MT] was static; each render thread needs its own scratch sector.
+  static THREADLOCAL sector_t tempsec;
 
   curline = line;
 

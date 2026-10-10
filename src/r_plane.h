@@ -20,6 +20,7 @@
 #ifndef __R_PLANE__
 #define __R_PLANE__
 
+#include "i_thread.h"
 #include "m_fixed.h"
 #include "r_defs.h"
 #include "tables.h"
@@ -30,10 +31,11 @@ struct visplane_s;
 #define PL_SKYFLAT (0x80000000)
 
 // Visplane related.
-extern int maxopenings;
-extern int *openings, *lastopening; // [FG] 32-bit integer math
+// [MT] per-thread: each render context collects and draws its own visplanes.
+extern THREADLOCAL int maxopenings;
+extern THREADLOCAL int *openings, *lastopening; // [FG] 32-bit integer math
 
-extern int *floorclip, *ceilingclip; // [FG] 32-bit integer math
+extern THREADLOCAL int *floorclip, *ceilingclip; // [FG] 32-bit integer math
 extern fixed_t *yslope;
 
 void R_InitPlanes(void);

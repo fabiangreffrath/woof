@@ -89,6 +89,7 @@ set(WOOF_SOURCES
                            i_sndfile.h
     i_sound.c              i_sound.h
     i_system.c             i_system.h
+    i_thread.c             i_thread.h
     i_timer.c              i_timer.h
     i_video.c              i_video.h
     info.c                 info.h
@@ -160,7 +161,6 @@ set(WOOF_SOURCES
     p_tick.c               p_tick.h
     p_udmf.c               p_udmf.h
     p_user.c               p_user.h
-    r_bmaps.c              r_bmaps.h
     r_bsp.c                r_bsp.h
     r_data.c               r_data.h
                            r_defs.h
@@ -303,6 +303,8 @@ endif()
 if(WOOF_STRICT)
     target_compile_definitions(woof PRIVATE MBF_STRICT)
 endif()
+
+target_compile_definitions(woof PRIVATE "THREADLOCAL=${WOOF_THREAD_LOCAL}")
 
 # Setup tool
 set(SETUP_SOURCES

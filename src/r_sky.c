@@ -169,6 +169,14 @@ void R_InitSkyMap(void)
     }
 
     R_UpdateStretchSkies();
+
+    // [MT] Pre-compute sky blend colors single-threaded at level setup.
+    // R_GetSkyColor() allocates lazily on first use; doing that inside a
+    // render worker would hit the zone allocator in parallel.
+    array_foreach(sky, levelskies)
+    {
+        R_GetSkyColor(sky->background.texture);
+    }
 }
 
 void R_UpdateSkies(void)

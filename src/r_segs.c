@@ -26,8 +26,8 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "i_system.h"
+#include "i_thread.h"
 #include "m_fixed.h"
-#include "r_bmaps.h" // [crispy] brightmaps
 #include "r_bsp.h"
 #include "r_data.h"
 #include "r_defs.h"
@@ -46,45 +46,49 @@
 
 // killough 1/6/98: replaced globals with statics where appropriate
 
-// True if any of the segs textures might be visible.
-boolean  segtextured;
-boolean  markfloor;      // False if the back side is the same plane.
-boolean  markceiling;
-static boolean  maskedtexture;
-static int      toptexture;
-static int      bottomtexture;
-static int      midtexture;
+// [MT] All seg-rendering state is thread-local: every render context
+// executes R_StoreWallRange()/R_RenderSegLoop() for its own column slab in
+// parallel.
 
-angle_t         rw_normalangle; // angle to line origin
-int             rw_angle1;
-fixed_t         rw_distance;
+// True if any of the segs textures might be visible.
+THREADLOCAL boolean  segtextured;
+THREADLOCAL boolean  markfloor;      // False if the back side is the same plane.
+THREADLOCAL boolean  markceiling;
+static THREADLOCAL boolean  maskedtexture;
+static THREADLOCAL int      toptexture;
+static THREADLOCAL int      bottomtexture;
+static THREADLOCAL int      midtexture;
+
+THREADLOCAL angle_t         rw_normalangle; // angle to line origin
+THREADLOCAL int             rw_angle1;
+THREADLOCAL fixed_t         rw_distance;
 
 //
 // regular wall
 //
-int      rw_x;
-int      rw_stopx;
-static angle_t  rw_centerangle;
-static int32_t  rw_lightlevel;
-static fixed_t  rw_offset;
-static fixed_t  rw_scale;
-static fixed_t  rw_scalestep;
-static fixed_t  rw_midtexturemid;
-static fixed_t  rw_toptexturemid;
-static fixed_t  rw_bottomtexturemid;
-static int      worldtop;
-static int      worldbottom;
-static int      worldhigh;
-static int      worldlow;
-static int64_t  pixhigh; // [FG] 64-bit integer math
-static int64_t  pixlow; // [FG] 64-bit integer math
-static fixed_t  pixhighstep;
-static fixed_t  pixlowstep;
-static int64_t  topfrac; // [FG] 64-bit integer math
-static fixed_t  topstep;
-static int64_t  bottomfrac; // [FG] 64-bit integer math
-static fixed_t  bottomstep;
-static int    *maskedtexturecol; // [FG] 32-bit integer math
+THREADLOCAL int      rw_x;
+THREADLOCAL int      rw_stopx;
+static THREADLOCAL angle_t  rw_centerangle;
+static THREADLOCAL int32_t  rw_lightlevel;
+static THREADLOCAL fixed_t  rw_offset;
+static THREADLOCAL fixed_t  rw_scale;
+static THREADLOCAL fixed_t  rw_scalestep;
+static THREADLOCAL fixed_t  rw_midtexturemid;
+static THREADLOCAL fixed_t  rw_toptexturemid;
+static THREADLOCAL fixed_t  rw_bottomtexturemid;
+static THREADLOCAL int      worldtop;
+static THREADLOCAL int      worldbottom;
+static THREADLOCAL int      worldhigh;
+static THREADLOCAL int      worldlow;
+static THREADLOCAL int64_t  pixhigh; // [FG] 64-bit integer math
+static THREADLOCAL int64_t  pixlow; // [FG] 64-bit integer math
+static THREADLOCAL fixed_t  pixhighstep;
+static THREADLOCAL fixed_t  pixlowstep;
+static THREADLOCAL int64_t  topfrac; // [FG] 64-bit integer math
+static THREADLOCAL fixed_t  topstep;
+static THREADLOCAL int64_t  bottomfrac; // [FG] 64-bit integer math
+static THREADLOCAL fixed_t  bottomstep;
+static THREADLOCAL int    *maskedtexturecol; // [FG] 32-bit integer math
 
 //
 // UDMF extensions, adapted from DSDA
@@ -105,8 +109,7 @@ static void SetLight(const int32_t lightlevel)
 }
 
 static void CalculateLighting(const lighttable_t * const thiscolormap,
-                              const fixed_t scale,
-                              const byte *const brightmap)
+                              const fixed_t scale)
 {
     if (fixedcolormapoffset)
     {
@@ -118,7 +121,7 @@ static void CalculateLighting(const lighttable_t * const thiscolormap,
         const lighttable_t *const colormap =
             thiscolormap + walllightoffset[R_GetLightIndex(scale)];
 
-        dc_colormap = R_GetBrightmappedColormap(colormap, thiscolormap, brightmap);
+        dc_colormap = colormap;
     }
 }
 
@@ -223,15 +226,13 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
 
   dc_texturemid += side->interprowoffset + side->offsety_mid;
 
-  const byte *const brightmap = texturebrightmap[texnum];
-
   // draw the columns
   for (dc_x = x1 ; dc_x <= x2 ; dc_x++, spryscale += rw_scalestep)
     if (maskedtexturecol[dc_x] != INT_MAX) // [FG] 32-bit integer math
       {
         fixed_t column = maskedtexturecol[dc_x] + FixedToInt(side->offsetx_mid);
         // killough 11/98:
-        CalculateLighting(thiscolormap, spryscale, brightmap);
+        CalculateLighting(thiscolormap, spryscale);
 
         // killough 3/2/98:
         //
@@ -323,10 +324,10 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
 //   possibly, creating a noticable performance penalty.
 //
 
-static int max_rwscale = 64 * FRACUNIT;
-static int heightbits  = HEIGHTBITS;
-static int heightunit  = HEIGHTUNIT;
-static int invhgtbits  = 4;
+static THREADLOCAL int max_rwscale = 64 * FRACUNIT;
+static THREADLOCAL int heightbits  = HEIGHTBITS;
+static THREADLOCAL int heightunit  = HEIGHTUNIT;
+static THREADLOCAL int invhgtbits  = 4;
 
 static const struct
 {
@@ -345,7 +346,8 @@ static const struct
 
 void R_FixWiggle (sector_t *sector)
 {
-    static int lastheight = 0;
+    // [MT] fully per-thread cache, no shared-state writes.
+    static THREADLOCAL int lastheight = 0;
     int height = (sector->interpceilingheight - sector->interpfloorheight) >> FRACBITS;
 
     // disallow negative heights. using 1 forces cache initialization
@@ -357,33 +359,28 @@ void R_FixWiggle (sector_t *sector)
     {
         lastheight = height;
 
-        // initialize, or handle moving sector
-        if (height != sector->cachedheight)
-        {
-            sector->cachedheight = height;
-            sector->scaleindex = 0;
-            height >>= 7;
+        int scaleindex = 0;
+        int h = height >> 7;
 
-            // calculate adjustment
-            while (height >>= 1)
-                sector->scaleindex++;
-        }
+        // calculate adjustment
+        while (h >>= 1)
+            scaleindex++;
 
         // fine-tune renderer for this wall
-        max_rwscale = scale_values[sector->scaleindex].clamp;
-        heightbits  = scale_values[sector->scaleindex].heightbits;
+        max_rwscale = scale_values[scaleindex].clamp;
+        heightbits  = scale_values[scaleindex].heightbits;
         heightunit  = (1 << heightbits);
         invhgtbits  = FRACBITS - heightbits;
     }
 }
 
-static boolean didsolidcol; // True if at least one column was marked solid
+static THREADLOCAL boolean didsolidcol; // True if at least one column was marked solid
 
 static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
 {
   fixed_t  texturecolumn = 0;   // shut up compiler warning
 
-  rendered_segs++;
+  r_context->rendered_segs++; // [MT] per-context stat
 
   for ( ; rw_x < rw_stopx ; rw_x++)
     {
@@ -407,6 +404,11 @@ static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
             {
               ceilingplane->top[rw_x] = top;
               ceilingplane->bottom[rw_x] = bottom;
+              // covered row range for the rasteriser
+              if (top < ceilingplane->miny)
+                ceilingplane->miny = top;
+              if (bottom > ceilingplane->maxy)
+                ceilingplane->maxy = bottom;
             }
         }
 
@@ -423,6 +425,11 @@ static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
             {
               floorplane->top[rw_x] = top;
               floorplane->bottom[rw_x] = bottom;
+              // covered row range for the rasteriser
+              if (top < floorplane->miny)
+                floorplane->miny = top;
+              if (bottom > floorplane->maxy)
+                floorplane->maxy = bottom;
             }
         }
 
@@ -447,10 +454,8 @@ static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
           dc_source = R_GetColumn(midtexture, texturecolumn + FixedToInt(curline->sidedef->offsetx_mid));
           dc_texheight = textureheight[midtexture]>>FRACBITS; // killough
 
-          const byte *const brightmap = texturebrightmap[midtexture];
-
           SideLightLevel_Mid(curline->sidedef);
-          CalculateLighting(thiscolormap, rw_scale, brightmap);
+          CalculateLighting(thiscolormap, rw_scale);
 
           colfunc ();
 
@@ -477,10 +482,8 @@ static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
                   dc_source = R_GetColumn(toptexture, texturecolumn + FixedToInt(curline->sidedef->offsetx_top));
                   dc_texheight = textureheight[toptexture]>>FRACBITS;//killough
 
-                  const byte *const brightmap = texturebrightmap[toptexture];
-
                   SideLightLevel_Top(curline->sidedef);
-                  CalculateLighting(thiscolormap, rw_scale, brightmap);
+                  CalculateLighting(thiscolormap, rw_scale);
 
                   colfunc ();
 
@@ -510,10 +513,8 @@ static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
                   dc_source = R_GetColumn(bottomtexture, texturecolumn + FixedToInt(curline->sidedef->offsetx_bottom));
                   dc_texheight = textureheight[bottomtexture]>>FRACBITS; // killough
 
-                  const byte *const brightmap = texturebrightmap[bottomtexture];
-
                   SideLightLevel_Bottom(curline->sidedef);
-                  CalculateLighting(thiscolormap, rw_scale, brightmap);
+                  CalculateLighting(thiscolormap, rw_scale);
 
                   colfunc ();
 
@@ -588,7 +589,8 @@ void R_StoreWallRange(const int start, const int stop)
   if (!drawsegs || ds_p == drawsegs+maxdrawsegs) // killough 1/98 -- fix 2s line HOM
     {
       unsigned newmax = maxdrawsegs ? maxdrawsegs*2 : 128; // killough
-      drawsegs = Z_Realloc(drawsegs,newmax*sizeof(*drawsegs),PU_STATIC,0);
+      // [MT] plain realloc: worker threads must not use the zone allocator.
+      drawsegs = I_Realloc(drawsegs, newmax * sizeof(*drawsegs));
       ds_p = drawsegs+maxdrawsegs;
       maxdrawsegs = newmax;
     }
