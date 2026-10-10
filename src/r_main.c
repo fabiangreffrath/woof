@@ -918,9 +918,9 @@ static int ActiveContexts(void)
 //
 // R_RenderLoadBalance
 //
-// Adapted from Rum and Raisin Doom: each context's last frame time becomes a
-// share of the view width; contexts that took longer than their fair share
-// shrink by up to a quarter of the ideal share, faster ones grow.
+// Each context's last frame time becomes a share of the view width; contexts
+// that took longer than their fair share shrink by up to a quarter of the
+// ideal share, faster ones grow.
 //
 
 static void R_EvenContextSplit(int contexts)

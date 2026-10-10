@@ -408,9 +408,7 @@ static const int fuzzoffset[FUZZTABLE] =
 };
 
 // [MT] fuzzpos is thread-local: every render context animates its own fuzz
-// position, there is no shared counter to synchronize. All threads restart
-// from fuzzpos_tic at the beginning of the frame (R_SetFuzzPosDraw), which
-// keeps the crispy 35Hz fuzz animation behavior.
+// position, there is no shared counter to synchronize.
 static THREADLOCAL int fuzzpos = 0;
 
 // [crispy] draw fuzz effect independent of rendering frame rate
@@ -418,10 +416,6 @@ static int fuzzpos_tic;
 
 void R_SetFuzzPosTic(void)
 {
-    // [MT] fuzzpos is thread-local; this runs on the main thread and sees
-    // the main thread's copy (context 0's fuzz position after the last
-    // frame). Good enough to keep the tic-rate animation going when no
-    // spectre columns were drawn.
     // [crispy] prevent the animation from remaining static
     if (fuzzpos == fuzzpos_tic)
     {

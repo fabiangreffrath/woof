@@ -346,9 +346,7 @@ static const struct
 
 void R_FixWiggle (sector_t *sector)
 {
-    // [MT] per-thread cache; sector->cachedheight/scaleindex writes below are
-    // deterministic (same value computed by every thread), like in
-    // Rum and Raisin Doom's per-context WiggleFix.
+    // [MT] fully per-thread cache, no shared-state writes.
     static THREADLOCAL int lastheight = 0;
     int height = (sector->interpceilingheight - sector->interpfloorheight) >> FRACBITS;
 
@@ -361,21 +359,16 @@ void R_FixWiggle (sector_t *sector)
     {
         lastheight = height;
 
-        // initialize, or handle moving sector
-        if (height != sector->cachedheight)
-        {
-            sector->cachedheight = height;
-            sector->scaleindex = 0;
-            height >>= 7;
+        int scaleindex = 0;
+        int h = height >> 7;
 
-            // calculate adjustment
-            while (height >>= 1)
-                sector->scaleindex++;
-        }
+        // calculate adjustment
+        while (h >>= 1)
+            scaleindex++;
 
         // fine-tune renderer for this wall
-        max_rwscale = scale_values[sector->scaleindex].clamp;
-        heightbits  = scale_values[sector->scaleindex].heightbits;
+        max_rwscale = scale_values[scaleindex].clamp;
+        heightbits  = scale_values[scaleindex].heightbits;
         heightunit  = (1 << heightbits);
         invhgtbits  = FRACBITS - heightbits;
     }
