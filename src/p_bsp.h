@@ -21,21 +21,21 @@
 #ifndef __P_BSP__
 #define __P_BSP__
 
-#include "doomdata.h"
+#include "p_level.h"
 
 struct vertex_s;
 
-extern void P_InitSubsectorLines(void);
-extern void P_CheckBSPFormat_Binary(map_t *map);
-extern void P_CheckBSPFormat_UDMF(map_t *map);
-extern int P_GetOffset(struct vertex_s *v1, struct vertex_s *v2);
+void P_InitSubsectorLines(void);
+void P_CheckBSPFormat_Binary(map_t *map);
+void P_CheckBSPFormat_UDMF(map_t *map);
+int P_GetOffset(struct vertex_s *v1, struct vertex_s *v2);
 
-extern void P_LoadSegs(int lump);
-extern void P_LoadSubsectors(int lump);
-extern void P_LoadNodes(int lump);
-extern void P_LoadSegs_DeePBSPV4(int lump);
-extern void P_LoadSubsectors_DeePBSPV4(int lump);
-extern void P_LoadNodes_DeePBSPV4(int lump);
-extern void P_LoadBSPTree_ZDBSP(int lump, bsp_format_t format);
+void P_LoadSegs(map_t *map);
+void P_LoadSubsectors(map_t *map);
+void P_LoadNodes(map_t *map);
+void P_LoadSegs_DeePBSPV4(map_t *map);
+void P_LoadSubsectors_DeePBSPV4(map_t *map);
+void P_LoadNodes_DeePBSPV4(map_t *map);
+void P_LoadBSPTree_ZDBSP(map_t *map);
 
 #endif

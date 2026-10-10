@@ -31,7 +31,6 @@
 #include "d_loop.h"
 #include "d_player.h"
 #include "d_rollback.h"
-#include "doomdata.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "g_input.h"

@@ -24,7 +24,6 @@
 #include "d_items.h"
 #include "d_player.h"
 #include "d_think.h"
-#include "doomdata.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"

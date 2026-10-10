@@ -15,7 +15,6 @@ set(WOOF_SOURCES
     d_rollback.c           d_rollback.h
                            d_think.h
                            d_ticcmd.h
-                           doomdata.h
                            doomdef.h
     doomstat.c             doomstat.h
                            doomtype.h
@@ -162,6 +161,7 @@ set(WOOF_SOURCES
     p_inter.c              p_inter.h
     p_jump.c               p_jump.h
                            p_keyframe.h
+    p_level.c              p_level.h
     p_lights.c
     p_map.c                p_map.h
     p_maputl.c             p_maputl.h
