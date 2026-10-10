@@ -27,7 +27,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "doomdata.h"
 #include "doomtype.h"
 #include "m_arena.h"
 #include "m_bbox.h"

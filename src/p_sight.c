@@ -17,7 +17,6 @@
 //
 //-----------------------------------------------------------------------------
 
-#include "doomdata.h"
 #include "doomstat.h"
 #include "doomtype.h"
 #include "i_system.h"
@@ -153,7 +152,7 @@ static boolean CrossSubsector(int num, register los_t *los)
       // missed back side on two-sided lines.
       if (demo_compatibility && !back)
       {
-        back = GetSectorAtNullAddress();
+        back = P_GetSectorAtNullAddress();
       }
 
       // no wall to block sight with?

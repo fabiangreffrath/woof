@@ -15,24 +15,18 @@
 //  GNU General Public License for more details.
 //
 
-#include "doomdata.h"
 #include "doomtype.h"
 #include "m_arena.h"
 #include "m_argv.h"
 #include "m_fixed.h"
 #include "m_swap.h"
+#include "p_level.h"
 #include "p_mobj.h"
 #include "p_setup.h"
 #include "r_state.h"
 #include "w_wad.h"
 #include "z_zone.h"
 #include <limits.h>
-
-const char *bmap_format_names[] = {
-    "",
-    "+XBM1",
-    "+BoomBlockmap",
-};
 
 #ifndef MBF_STRICT
 
@@ -693,10 +687,10 @@ static bmap_format_t CheckBlockmapFormat(int lump, int lump_size)
 // killough 3/30/98: Rewritten to remove blockmap limit
 //
 
-static void LoadBlockmap_DoomBlockmap(int lump, int bmap_size)
+static void LoadBlockmap_DoomBlockmap(map_t *map, size_t bmap_size)
 {
-    short *wadblockmaplump = W_CacheLumpNum(lump, PU_STATIC);
-    int count = bmap_size / sizeof(uint16_t);
+    short *wadblockmaplump = W_CacheLumpNum(map->blockmap, PU_STATIC);
+    size_t count = bmap_size / sizeof(uint16_t);
     blockmaplump = Z_Malloc(sizeof(*blockmaplump) * count, PU_LEVEL, 0);
 
     // killough 3/1/98: Expand wad blockmap into larger internal one,
@@ -709,10 +703,10 @@ static void LoadBlockmap_DoomBlockmap(int lump, int bmap_size)
     blockmaplump[2] = (int32_t)(SHORT(wadblockmaplump[2])) & FRACMASK;
     blockmaplump[3] = (int32_t)(SHORT(wadblockmaplump[3])) & FRACMASK;
 
-    for (int i = 4; i < count; i++)
+    for (size_t i = 4; i < count; i++)
     {
-        short t = SHORT(wadblockmaplump[i]); // killough 3/1/98
-        blockmaplump[i] = t == -1 ? -1l : (int32_t)t & FRACMASK;
+        uint16_t t = SHORT(wadblockmaplump[i]); // killough 3/1/98
+        blockmaplump[i] = (t == NO_INDEX_SHORT) ? -1l : (int32_t)t & FRACMASK;
     }
 
     Z_Free(wadblockmaplump);
@@ -725,9 +719,9 @@ static void LoadBlockmap_DoomBlockmap(int lump, int bmap_size)
     SetSkipBlockStart();
 }
 
-static void LoadBlockmap_XBM1(int lump, int bmap_size)
+static void LoadBlockmap_XBM1(map_t *map, size_t bmap_size)
 {
-    int32_t *data = W_CacheLumpNum(lump, PU_STATIC);
+    int32_t *data = W_CacheLumpNum(map->blockmap, PU_STATIC);
     int count = (bmap_size - 8) / sizeof(uint32_t);
     blockmaplump = Z_Malloc(sizeof(*blockmaplump) * count, PU_LEVEL, 0);
 
@@ -749,18 +743,18 @@ static void LoadBlockmap_XBM1(int lump, int bmap_size)
     SetSkipBlockStart();
 }
 
-bmap_format_t P_LoadBlockMap(int lump)
+bmap_format_t P_LoadBlockMap(map_t *map)
 {
-    int bmap_size = W_LumpLengthWithName(lump, "BLOCKMAP");
-    bmap_format_t format = CheckBlockmapFormat(lump, bmap_size);
+    size_t bmap_size = W_LumpLengthWithName(map->blockmap, "BLOCKMAP");
+    bmap_format_t format = CheckBlockmapFormat(map->blockmap, bmap_size);
 
     switch (format)
     {
         case BMAP_DoomBlockmap:
-            LoadBlockmap_DoomBlockmap(lump, bmap_size);
+            LoadBlockmap_DoomBlockmap(map, bmap_size);
             break;
         case BMAP_XBM1:
-            LoadBlockmap_XBM1(lump, bmap_size);
+            LoadBlockmap_XBM1(map, bmap_size);
             break;
         case BMAP_BoomBuilder:
             CreateBlockMap();

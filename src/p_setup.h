@@ -24,11 +24,9 @@
 #include "doomtype.h"
 #include "info.h"
 #include "m_fixed.h"
-#include "r_defs.h"
+#include "p_level.h"
 
 extern statenum_t *seenstate_tab;
-
-extern map_t map;
 
 void P_SetupLevel(int episode, int map, skill_t skill, boolean from_savegame);
 void P_Init(void);               // Called by startup code.
@@ -47,20 +45,11 @@ extern int blocklinks_size;
 
 extern boolean skipblstart; // MaxW: Skip initial blocklist short
 
-struct sector_s *GetSectorAtNullAddress(void);
+struct sector_s *P_GetSectorAtNullAddress(void);
 void P_DegenMobjThinker(struct mobj_s *mobj);
 void P_SegLengths(void);
 
-
-bmap_format_t P_LoadBlockMap(int lump);
-
-int P_GroupLines(void);
-int P_LoadReject(int lumpnum, int totallines);
-
-void P_SectorInit(sector_t * const sector);
-void P_SidedefInit(side_t * const sidedef);
-void P_LinedefInit(line_t * const linedef);
-void P_ProcessSideDefs(side_t *side, int i, char *bottomtexture, char *midtexture, char *toptexture);
+bmap_format_t P_LoadBlockMap(map_t *map);
 
 #endif
 

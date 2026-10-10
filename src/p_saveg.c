@@ -23,7 +23,6 @@
 #include "d_player.h"
 #include "d_think.h"
 #include "d_ticcmd.h"
-#include "doomdata.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "i_system.h"

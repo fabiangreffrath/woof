@@ -15,8 +15,13 @@
 //  DSDA Compatibility
 //
 
-#include "doomdata.h"
+#ifndef __G_COMPATIILITY_H__
+#define __G_COMPATIILITY_H__
+
+#include "p_level.h"
 
 void G_ParseCompDatabase(void);
 
 void G_ApplyLevelCompatibility(map_t* map);
+
+#endif // __G_COMPATIILITY_H__

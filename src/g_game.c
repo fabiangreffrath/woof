@@ -36,7 +36,6 @@
 #include "deh_main.h"
 #include "deh_strings.h"
 #include "deh_misc.h"
-#include "doomdata.h"
 #include "doomdef.h"
 #include "doomkeys.h"
 #include "doomstat.h"

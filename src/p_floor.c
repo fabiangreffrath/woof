@@ -21,7 +21,6 @@
 #include <limits.h>
 
 #include "d_think.h"
-#include "doomdata.h"
 #include "doomstat.h"
 #include "doomtype.h"
 #include "i_printf.h"

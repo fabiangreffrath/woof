@@ -22,7 +22,6 @@
 
 // Some more or less basic data types
 // we depend on.
-#include "doomdata.h"
 #include "m_fixed.h"
 #include "tables.h"
 
@@ -44,6 +43,9 @@ struct mobj_s;
 
 #define NO_TEXTURE (-1)
 #define FLATSIZE (64 * 64)
+
+// Indicate a leaf.
+#define NF_SUBSECTOR   0x80000000
 
 //
 // INTERNAL MAP TYPES
@@ -211,7 +213,7 @@ typedef struct side_s
   short midtexture;
   sector_t* sector;      // Sector the SideDef is facing.
   int32_t tint;          // colormap-based tinting
-  sidedef_flags_t flags;
+  int32_t flags;
   int32_t topindex;
   int32_t bottomindex;
   int32_t midindex;
@@ -377,7 +379,7 @@ typedef struct ssline_s
 typedef struct subsector_s
 {
   sector_t *sector;
-  int numlines, firstline; // [FG] extended nodes
+  uint32_t numlines, firstline; // [FG] extended nodes
 } subsector_t;
 
 //
@@ -388,7 +390,7 @@ typedef struct node_s
   fixed_t  x,  y, dx, dy;        // Partition line.
   fixed_t bbox[2][4];            // Bounding box for each child.
   // [FG] extended nodes
-  int children[2];    // If NF_SUBSECTOR its a subsector.
+  uint32_t children[2];    // If NF_SUBSECTOR its a subsector.
 } node_t;
 
 // posts are runs of non masked source pixels

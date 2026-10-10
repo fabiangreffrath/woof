@@ -20,7 +20,6 @@
 #include "d_player.h"
 #include "d_think.h"
 #include "deh_strings.h"
-#include "doomdata.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "i_printf.h"

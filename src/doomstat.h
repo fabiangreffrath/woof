@@ -27,10 +27,10 @@
 
 // We need the playr data structure as well.
 #include "d_player.h"
-#include "doomdata.h"
 #include "doomdef.h"
 #include "doomtype.h"
 #include "f_wipe.h"
+#include "p_level.h"
 
 struct MI_Entry_s;
 

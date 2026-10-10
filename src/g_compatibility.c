@@ -17,7 +17,6 @@
 
 #include <string.h>
 
-#include "doomdata.h"
 #include "doomstat.h"
 #include "doomtype.h"
 #include "g_game.h"

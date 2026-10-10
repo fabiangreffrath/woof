@@ -68,28 +68,28 @@ extern int numspritelumps;
 //
 extern spritedef_t      *sprites;
 
-extern int              numvertexes;
+extern uint32_t         numvertexes;
 extern vertex_t         *vertexes;
 
-extern int              numsegs;
+extern uint32_t         numsegs;
 extern seg_t            *segs;
 
-extern int              numsectors;
+extern uint32_t         numsectors;
 extern sector_t         *sectors;
 
-extern int              numsubsectors;
+extern uint32_t         numsubsectors;
 extern subsector_t      *subsectors;
 
-extern int              numnodes;
+extern uint32_t         numnodes;
 extern node_t           *nodes;
 
-extern int              numlines;
+extern uint32_t         numlines;
 extern line_t           *lines;
 
-extern int              numsides;
+extern uint32_t         numsides;
 extern side_t           *sides;
 
-extern int              *sslines_indexes;
+extern uint32_t         *sslines_indexes;
 extern ssline_t         *sslines;
 
 extern struct arena_s   *world_arena;

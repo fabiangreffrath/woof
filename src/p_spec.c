@@ -31,7 +31,6 @@
 
 #include "d_player.h"
 #include "deh_strings.h"
-#include "doomdata.h"
 #include "doomstat.h"
 #include "g_game.h"
 #include "hu_obituary.h"
@@ -725,7 +724,7 @@ sector_t *P_FindModelCeilingSector(fixed_t ceildestheight, int secnum)
 int P_FindSectorFromLineTag(const line_t *line, int start)
 {
   start = start >= 0 ? sectors[start].nexttag :
-    sectors[(unsigned) line->args[0] % (unsigned) numsectors].firsttag;
+    sectors[(unsigned) line->args[0] % numsectors].firsttag;
   while (start >= 0 && sectors[start].tag != line->args[0])
     start = sectors[start].nexttag;
   return start;
@@ -736,7 +735,7 @@ int P_FindSectorFromLineTag(const line_t *line, int start)
 int P_FindLineFromLineTag(const line_t *line, int start)
 {
   start = start >= 0 ? lines[start].nexttag :
-    lines[(unsigned) line->args[0] % (unsigned) numlines].firsttag;
+    lines[(unsigned) line->args[0] % numlines].firsttag;
   while (start >= 0 && lines[start].id != line->args[0])
     start = lines[start].nexttag;
   return start;
@@ -752,7 +751,7 @@ static void InitTagLists(void)
 
   for (i=numsectors; --i>=0; )        // Proceed from last to first sector
     {                                 // so that lower sectors appear first
-      int j = (unsigned) sectors[i].tag % (unsigned) numsectors; // Hash func
+      int j = (unsigned) sectors[i].tag % numsectors; // Hash func
       sectors[i].nexttag = sectors[j].firsttag;   // Prepend sector to chain
       sectors[j].firsttag = i;
     }
@@ -764,7 +763,7 @@ static void InitTagLists(void)
 
   for (i=numlines; --i>=0; )        // Proceed from last to first linedef
     {                               // so that lower linedefs appear first
-      int j = (unsigned) lines[i].id % (unsigned) numlines; // Hash func
+      int j = (unsigned) lines[i].id % numlines; // Hash func
       lines[i].nexttag = lines[j].firsttag;   // Prepend linedef to chain
       lines[j].firsttag = i;
     }

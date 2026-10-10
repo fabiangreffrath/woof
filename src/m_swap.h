@@ -34,10 +34,12 @@
 // These are deliberately cast to signed values; this is the behaviour
 // of the macros in the original source and some code relies on it.
 
-#define SHORT(x)  ((signed short) SDL_Swap16LE(x))
-#define LONG(x)   ((signed int) SDL_Swap32LE(x))
+#define USHORT(x) ((uint16_t) SDL_Swap16LE(x))
+#define ULONG(x)  ((uint32_t) SDL_Swap32LE(x))
+#define SHORT(x)  ((int16_t)  SDL_Swap16LE(x))
+#define LONG(x)   ((int32_t)  SDL_Swap32LE(x))
 
-#define SWAP_BE32(x) ((signed int) SDL_Swap32BE(x))
+#define SWAP_BE32(x) ((int32_t) SDL_Swap32BE(x))
 
 #endif
 

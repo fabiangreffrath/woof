@@ -23,7 +23,6 @@
 #include <limits.h>
 #include <stdlib.h>
 
-#include "doomdata.h"
 #include "doomstat.h"
 #include "i_printf.h"
 #include "m_bbox.h"

@@ -43,6 +43,9 @@ typedef byte pixel_t;
 
 typedef byte lighttable_t;
 
+// Undefined / not found / unset / etc
+#define NO_INDEX ((unsigned int)-1)
+
 // [FG] common definitions from Chocolate Doom
 
 // #define macros to provide functions missing in Windows.
