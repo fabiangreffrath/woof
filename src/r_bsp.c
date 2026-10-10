@@ -20,7 +20,7 @@
 #include <string.h>
 
 #include "d_player.h"
-#include "doomdata.h"
+#include "p_level.h"
 #include "doomstat.h"
 #include "doomtype.h"
 #include "i_system.h"
