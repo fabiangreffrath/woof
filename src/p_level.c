@@ -361,12 +361,12 @@ static void ProcessLinedefSpecial(line_t *const l)
         }
         else
         {
-            for (size_t j = 0; j < numlines; j++)
+            for (size_t i = 0; i < numlines; i++)
             {
-                if (lines[j].id == l->args[0])
+                if (lines[i].id == l->args[0])
                 {
                     // if tag!=0, affect all matching linedefs
-                    lines[j].tranmap = tranmap;
+                    lines[i].tranmap = tranmap;
                 }
             }
         }
@@ -450,7 +450,7 @@ static int32_t GetTranmapOrTexture(int32_t *out, const char *texture_name)
 // killough 4/4/98: allow sidedef texture names to be overloaded
 // killough 4/11/98: refined to allow colormaps to work as wall
 // textures if invalid as colormaps but valid as textures.
-static void ProcessSideDefs(side_t *s, char *bottom, char *mid, char *top)
+static void ProcessSideDefs(side_t *s, char *b, char *m, char *t)
 {
     // clang-format off
     sector_t *sec = s->sector;
@@ -460,42 +460,42 @@ static void ProcessSideDefs(side_t *s, char *bottom, char *mid, char *top)
         case 2063: case 2064: case 2065: case 2066: case 2067: case 2068:
         case 2087: case 2088: case 2089: case 2090: case 2091: case 2092:
         case 2093: case 2094: case 2095: case 2096: case 2097: case 2098:
-            s->toptexture = GetMusicOrTexture(&s->topindex, top);
-            s->midtexture = R_TextureNumForName(mid);
-            s->bottomtexture = GetMusicOrTexture(&s->bottomindex, bottom);
+            s->toptexture = GetMusicOrTexture(&s->topindex, t);
+            s->midtexture = R_TextureNumForName(m);
+            s->bottomtexture = GetMusicOrTexture(&s->bottomindex, b);
             break;
 
         case 2076: case 2077: case 2078: case 2079: case 2080: case 2081:
-            s->toptexture = GetColormapOrTexture(&s->topindex, top);
-            s->midtexture = R_TextureNumForName(mid);
-            s->bottomtexture = GetColormapOrTexture(&s->bottomindex, bottom);
+            s->toptexture = GetColormapOrTexture(&s->topindex, t);
+            s->midtexture = R_TextureNumForName(m);
+            s->bottomtexture = GetColormapOrTexture(&s->bottomindex, b);
             break;
 
         case 2075:
-            s->toptexture = GetColormapOrTexture(&s->topindex, top);
-            s->midtexture = R_TextureNumForName(mid);
-            s->bottomtexture = R_TextureNumForName(bottom);
+            s->toptexture = GetColormapOrTexture(&s->topindex, t);
+            s->midtexture = R_TextureNumForName(m);
+            s->bottomtexture = R_TextureNumForName(b);
             break;
 
         // variable colormap via 242 linedef
         case 242:
-            s->toptexture = GetColormapOrTexture(&sec->topmap, top);
-            s->midtexture = GetColormapOrTexture(&sec->midmap, mid);
-            s->bottomtexture = GetColormapOrTexture(&sec->bottommap, bottom);
+            s->toptexture = GetColormapOrTexture(&sec->topmap, t);
+            s->midtexture = GetColormapOrTexture(&sec->midmap, m);
+            s->bottomtexture = GetColormapOrTexture(&sec->bottommap, b);
             break;
 
         // killough 4/11/98: apply translucency to 2s normal texture
         case 260:
-            s->toptexture = R_TextureNumForName(top);
-            s->midtexture = GetTranmapOrTexture(&s->midindex, mid);
-            s->bottomtexture = R_TextureNumForName(bottom);
+            s->toptexture = R_TextureNumForName(t);
+            s->midtexture = GetTranmapOrTexture(&s->midindex, m);
+            s->bottomtexture = R_TextureNumForName(b);
             break;
 
         // normal cases
         default:
-            s->toptexture = R_TextureNumForName(top);
-            s->midtexture = R_TextureNumForName(mid);
-            s->bottomtexture = R_TextureNumForName(bottom);
+            s->toptexture = R_TextureNumForName(t);
+            s->midtexture = R_TextureNumForName(m);
+            s->bottomtexture = R_TextureNumForName(b);
             break;
     }
     // clang-format on
@@ -535,14 +535,14 @@ static void LoadVertexes_Doom(map_t *map)
 
     for (size_t i = 0; i < numvertexes; i++)
     {
-        vertex_t *vv = &vertexes[i];
+        vertex_t *v = &vertexes[i];
         mapvertex_t *mv = &data[i];
 
         int16_t x = SHORT(mv->x);
         int16_t y = SHORT(mv->y);
 
-        vv->r_x = vv->x = IntToFixed(x);
-        vv->r_y = vv->y = IntToFixed(y);
+        v->r_x = v->x = IntToFixed(x);
+        v->r_y = v->y = IntToFixed(y);
     }
 
     Z_Free(data);
@@ -591,18 +591,30 @@ static void LoadLineDefs_Doom(map_t *map)
     for (size_t i = 0; i < numlines; i++)
     {
         line_t *l = &lines[i];
-        maplinedef_t *mld = &data[i];
+        maplinedef_t *ml = &data[i];
 
         // [FG] extended nodes
-        l->flags = USHORT(mld->flags);
-        l->special = SHORT(mld->special);
-        l->id = SHORT(mld->tag);
+        l->flags = USHORT(ml->flags);
+        l->special = SHORT(ml->special);
+        l->id = SHORT(ml->tag);
         l->args[0] = l->id; // UDMF spec
-        l->v1 = &vertexes[USHORT(mld->v1)];
-        l->v2 = &vertexes[USHORT(mld->v2)];
 
-        l->sidenum[0] = USHORT(mld->sidenum[0]);
-        l->sidenum[1] = USHORT(mld->sidenum[1]);
+        uint16_t v1 = USHORT(ml->v1);
+        uint16_t v2 = USHORT(ml->v2);
+        if (v1 >= numvertexes)
+        {
+            I_Error("linedef %zu's vertex 1 index is out of range", i);
+        }
+        l->v1 = &vertexes[v1];
+
+        if (v2 >= numvertexes)
+        {
+            I_Error("linedef %zu's vertex 2 index is out of range", i);
+        }
+        l->v2 = &vertexes[v2];
+
+        l->sidenum[0] = USHORT(ml->sidenum[0]);
+        l->sidenum[1] = USHORT(ml->sidenum[1]);
 
         FIX_NO_INDEX(l->sidenum[0]);
         FIX_NO_INDEX(l->sidenum[1]);
@@ -663,20 +675,11 @@ void P_LoadThings_Doom(map_t *map)
         mt.health = FRACUNIT;
         mt.tint = NO_INDEX;
 
-        if (mt.options & MTF_EASY)
-        {
-            mt.options |= MTF_SKILL1 | MTF_SKILL2;
-        }
-
-        if (mt.options & MTF_NORMAL)
-        {
-            mt.options |= MTF_SKILL3;
-        }
-
-        if (mt.options & MTF_HARD)
-        {
-            mt.options |= MTF_SKILL4 | MTF_SKILL5;
-        }
+        // clnag-format off
+        if (mt.options & MTF_EASY)   mt.options |= MTF_SKILL1 | MTF_SKILL2;
+        if (mt.options & MTF_NORMAL) mt.options |= MTF_SKILL3;
+        if (mt.options & MTF_HARD)   mt.options |= MTF_SKILL4 | MTF_SKILL5;
+        // clnag-format on
 
         ProcessMapThing(&mt);
     }
@@ -796,17 +799,8 @@ static void LoadLineDefs_UDMF(map_t *map)
         }
         l->v2 = &vertexes[ul->v2_id];
 
-        if (ul->sidefront >= numsides)
-        {
-            I_Error("linedef %zu's frontside index is out of range", i);
-        }
-        l->sidenum[0] = ul->sidefront;
-
-        if (ul->sideback >= numsides)
-        {
-            I_Error("linedef %zu's backside index is out of range", i);
-        }
-        l->sidenum[1] = ul->sideback;
+        l->sidenum[0] = ul->sidefront_id;
+        l->sidenum[1] = ul->sideback_id;
 
         l->flags = ul->flags;
         l->special = ul->special;
