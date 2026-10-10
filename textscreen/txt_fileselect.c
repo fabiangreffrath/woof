@@ -333,7 +333,7 @@ char *TXT_SelectFile(const char *window_title, const char **extensions)
     return result;
 }
 
-#elif defined(__MACOSX__)
+#elif defined(__APPLE__)
 
 // Mac OS X code. Popping up a dialog requires Objective C/Cocoa
 // but we can get away with using AppleScript which avoids adding
@@ -834,4 +834,3 @@ txt_fileselect_t *TXT_NewFileSelector(char **variable, int size,
 
     return fileselect;
 }
-

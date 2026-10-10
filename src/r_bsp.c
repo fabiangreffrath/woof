@@ -98,7 +98,7 @@ typedef struct {
 
 byte *solidcol = NULL;
 
-static void ClipWallSegment(int first, int last, boolean solid)
+static void R_ClipWallSegment(int first, int last, boolean solid)
 {
   byte *p;
   while (first < last)
@@ -312,7 +312,7 @@ sector_t *R_FakeFlat(sector_t *sec, sector_t *tempsec,
 }
 
 // [AM] Interpolate the passed sector, if prudent.
-static void MaybeInterpolateSector(sector_t* sector)
+static void R_MaybeInterpolateSector(sector_t* sector)
 {
     if (uncapped)
     {
@@ -372,7 +372,7 @@ static void MaybeInterpolateSector(sector_t* sector)
     }
 }
 
-static void MaybeInterpolateTextureOffsets(side_t *side)
+static void R_MaybeInterpolateTextureOffsets(side_t *side)
 {
     if (uncapped && side->oldgametic == gametic - 1)
     {
@@ -392,7 +392,7 @@ static void MaybeInterpolateTextureOffsets(side_t *side)
 // and adds any visible pieces to the line list.
 //
 
-static void AddLine(seg_t *line)
+static void R_AddLine (seg_t *line)
 {
   int      x1;
   int      x2;
@@ -456,7 +456,7 @@ static void AddLine(seg_t *line)
   if (x1 >= x2)       // killough 1/31/98 -- change == to >= for robustness
     return;
 
-  MaybeInterpolateTextureOffsets(line->sidedef);
+  R_MaybeInterpolateTextureOffsets(line->sidedef);
 
   backsector = line->backsector;
 
@@ -467,11 +467,11 @@ static void AddLine(seg_t *line)
   // [AM] Interpolate sector movement before
   //      running clipping tests.  Frontsector
   //      should already be interpolated.
-  MaybeInterpolateSector(backsector);
+  R_MaybeInterpolateSector(backsector);
 
   if (backsector->heightsec != -1)
   {
-    MaybeInterpolateSector(&sectors[backsector->heightsec]);
+    R_MaybeInterpolateSector(&sectors[backsector->heightsec]);
   }
 
   // killough 3/8/98, 4/4/98: hack for invisible ceilings / deep water
@@ -525,11 +525,11 @@ static void AddLine(seg_t *line)
     return;
 
 clippass:
-  ClipWallSegment(x1, x2, false);
+  R_ClipWallSegment(x1, x2, false);
   return;
 
 clipsolid:
-  ClipWallSegment(x1, x2, true);
+  R_ClipWallSegment(x1, x2, true);
 }
 
 //
@@ -554,7 +554,7 @@ static const int checkcoord[12][4] = // killough -- static const
   {2,1,3,0}
 };
 
-static boolean CheckBoundingBox(fixed_t *bspcoord) // killough 1/28/98: static
+static boolean R_CheckBBox(fixed_t *bspcoord) // killough 1/28/98: static
 {
   int     boxpos, boxx, boxy;
   fixed_t x1, x2, y1, y2;
@@ -635,7 +635,7 @@ static boolean CheckBoundingBox(fixed_t *bspcoord) // killough 1/28/98: static
 //
 // killough 1/31/98 -- made static, polished
 
-static void DoSubsector(int num)
+static void R_Subsector(int num)
 {
   int         count;
   seg_t       *line;
@@ -656,11 +656,11 @@ static void DoSubsector(int num)
 
   // [AM] Interpolate sector movement.  Usually only needed
   //      when you're standing inside the sector.
-  MaybeInterpolateSector(frontsector);
+  R_MaybeInterpolateSector(frontsector);
 
   if (frontsector->heightsec != -1)
   {
-    MaybeInterpolateSector(&sectors[frontsector->heightsec]);
+    R_MaybeInterpolateSector(&sectors[frontsector->heightsec]);
   }
 
   // killough 3/8/98, 4/4/98: Deep water / fake ceiling effect
@@ -718,7 +718,7 @@ static void DoSubsector(int num)
   while (count--)
   {
     if (line->linedef)
-      AddLine(line);
+      R_AddLine(line);
     line++;
   }
 }
@@ -746,12 +746,12 @@ void R_RenderBSPNode(int bspnum)
 
       // Possibly divide back space.
 
-      if (!CheckBoundingBox(bsp->bbox[side^=1]))
+      if (!R_CheckBBox(bsp->bbox[side^=1]))
         return;
 
       bspnum = bsp->children[side];
     }
-  DoSubsector(bspnum == -1 ? 0 : bspnum & ~NF_SUBSECTOR);
+  R_Subsector(bspnum == -1 ? 0 : bspnum & ~NF_SUBSECTOR);
 }
 
 //----------------------------------------------------------------------------

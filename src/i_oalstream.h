@@ -24,16 +24,16 @@
 
 typedef struct
 {
-    boolean (*InitStream)(int device);
-    boolean (*OpenStream)(void *data, ALsizei size, ALenum *format,
+    boolean (*I_InitStream)(int device);
+    boolean (*I_OpenStream)(void *data, ALsizei size, ALenum *format,
                             ALsizei *freq, ALsizei *frame_size);
-    int (*FillStream)(void *data, int frames);
-    void (*PlayStream)(boolean looping);
-    void (*CloseStream)(void);
-    void (*ShutdownStream)(void);
-    const char **(*DeviceList)(void);
+    int (*I_FillStream)(void *data, int frames);
+    void (*I_PlayStream)(boolean looping);
+    void (*I_CloseStream)(void);
+    void (*I_ShutdownStream)(void);
+    const char **(*I_DeviceList)(void);
     void (*BindVariables)(void);
-    const char *(*MusicFormat)(void);
+    const char *(*I_MusicFormat)(void);
 } stream_module_t;
 
 extern stream_module_t stream_opl_module;

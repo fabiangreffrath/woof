@@ -1158,7 +1158,7 @@ static void InitCheats(void)
     }
 }
 
-static int FindCheats(char key)
+static int M_FindCheats(char key)
 {
     int rc = 0, matchedbefore = 0;
     cheat_sequence_t *cht;
@@ -1276,7 +1276,7 @@ boolean M_CheatResponder(event_t *ev)
         return false;
     }
 
-    if (ev->type == ev_keydown && FindCheats(ev->data2.i))
+    if (ev->type == ev_keydown && M_FindCheats(ev->data2.i))
     {
         return true;
     }

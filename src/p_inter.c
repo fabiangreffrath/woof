@@ -60,7 +60,7 @@ int clipammo[NUMAMMO] = { 10,  4,  20,  1};
 //
 
 // mbf21: take into account new weapon autoswitch flags
-static boolean GiveAmmoAutoSwitch(player_t *player, ammotype_t ammo, int oldammo)
+static boolean P_GiveAmmoAutoSwitch(player_t *player, ammotype_t ammo, int oldammo)
 {
   int i;
 
@@ -117,7 +117,7 @@ boolean P_GiveAmmo(player_t *player, ammotype_t ammo, int num)
     player->ammo[ammo] = player->maxammo[ammo];
 
   if (mbf21)
-    return GiveAmmoAutoSwitch(player, ammo, oldammo);
+    return P_GiveAmmoAutoSwitch(player, ammo, oldammo);
 
   // If non zero ammo, don't change up weapons, player was lower on purpose.
   if (oldammo)
@@ -647,7 +647,7 @@ static void WatchKill(player_t* player, mobj_t* target)
   }
 }
 
-static void KillMobj(mobj_t *source, mobj_t *inflictor, mobj_t *target, method_t mod)
+static void P_KillMobj(mobj_t *source, mobj_t *inflictor, mobj_t *target, method_t mod)
 {
   mobjtype_t item;
   mobj_t     *mo;
@@ -784,7 +784,7 @@ static void KillMobj(mobj_t *source, mobj_t *inflictor, mobj_t *target, method_t
 //
 
 // mbf21: dehacked infighting groups
-static boolean InfightingImmune(mobj_t *target, mobj_t *source)
+static boolean P_InfightingImmune(mobj_t *target, mobj_t *source)
 {
   return // not default behaviour, and same group
     mobjinfo[target->type].infighting_group != IG_DEFAULT &&
@@ -912,7 +912,7 @@ void P_DamageMobjBy(mobj_t *target,mobj_t *inflictor, mobj_t *source, int damage
   else
   if (target->health <= 0)
     {
-      KillMobj(source, inflictor, target, mod);
+      P_KillMobj(source, inflictor, target, mod);
       return;
     }
 
@@ -951,7 +951,7 @@ void P_DamageMobjBy(mobj_t *target,mobj_t *inflictor, mobj_t *source, int damage
       (!target->threshold || target->flags2 & MF2_NOTHRESHOLD) &&
       ((source->flags ^ target->flags) & MF_FRIEND ||
        monster_infighting || demo_version < DV_MBF) &&
-      !InfightingImmune(target, source))
+      !P_InfightingImmune(target, source))
     {
       // if not intent on another player, chase after this one
       //

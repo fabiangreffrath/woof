@@ -85,7 +85,7 @@ void P_ClearMemory_UDMF(map_t *map)
 //
 
 // Retrieve plain integer
-inline static int ScanInteger(scanner_t *s)
+inline static int UDMF_ScanInt(scanner_t *s)
 {
     int x = 0;
     SC_MustGetToken(s, '=');
@@ -95,7 +95,7 @@ inline static int ScanInteger(scanner_t *s)
 }
 
 // Retrieve plain double
-inline static double ScanDouble(scanner_t *s)
+inline static double UDMF_ScanDouble(scanner_t *s)
 {
     double x = 0;
     SC_MustGetToken(s, '=');
@@ -105,7 +105,7 @@ inline static double ScanDouble(scanner_t *s)
 }
 
 // Sets provided flag on, if true
-inline static int ScanFlag(scanner_t *s, int f)
+inline static int UDMF_ScanFlag(scanner_t *s, int f)
 {
     int x = 0;
     SC_MustGetToken(s, '=');
@@ -119,7 +119,7 @@ inline static int ScanFlag(scanner_t *s, int f)
 }
 
 // Retrieve plain string
-inline static void ScanLumpName(scanner_t *s, char *x)
+inline static void UDMF_ScanLumpName(scanner_t *s, char *x)
 {
     SC_MustGetToken(s, '=');
     SC_MustGetToken(s, TK_StringConst);
@@ -134,7 +134,7 @@ inline static void ScanLumpName(scanner_t *s, char *x)
 #define PROP(keyword, flags) ((udmf_flags & (flags)) && !strcasecmp(prop, #keyword))
 
 // Parse specific string properties
-inline static int32_t ScanSectorScroll(scanner_t *s)
+inline static int32_t UDMF_ScanSectorScroll(scanner_t *s)
 {
     int32_t mode = 0;
     SC_MustGetToken(s, '=');
@@ -158,7 +158,7 @@ inline static int32_t ScanSectorScroll(scanner_t *s)
 }
 
 // Skip unknown keyword
-static inline void SkipScan(scanner_t *s)
+static inline void UDMF_SkipScan(scanner_t *s)
 {
     if (SC_CheckToken(s, '='))
     {
@@ -195,7 +195,7 @@ static inline void SkipScan(scanner_t *s)
 }
 
 // UDMF namespace
-static void ParseNamespace(scanner_t *s)
+static void UDMF_ParseNamespace(scanner_t *s)
 {
     SC_MustGetToken(s, '=');
     SC_MustGetToken(s, TK_StringConst);
@@ -227,7 +227,7 @@ static void ParseNamespace(scanner_t *s)
 // UDMF vertex pasring
 //
 
-static void ParseVertex(scanner_t *s, map_t *map)
+static void UDMF_ParseVertex(scanner_t *s, map_t *map)
 {
     UDMF_Vertex_t vertex = {0};
 
@@ -239,15 +239,15 @@ static void ParseVertex(scanner_t *s, map_t *map)
         M_StringToLower((char *)prop);
         if (BASE_PROP(x))
         {
-            vertex.x = ScanDouble(s);
+            vertex.x = UDMF_ScanDouble(s);
         }
         else if (BASE_PROP(y))
         {
-            vertex.y = ScanDouble(s);
+            vertex.y = UDMF_ScanDouble(s);
         }
         else
         {
-            SkipScan(s);
+            UDMF_SkipScan(s);
         }
     }
 
@@ -258,7 +258,7 @@ static void ParseVertex(scanner_t *s, map_t *map)
 // UDMF linedef loading
 //
 
-static void ParseLinedef(scanner_t *s, map_t *map)
+static void UDMF_ParseLinedef(scanner_t *s, map_t *map)
 {
     UDMF_Linedef_t line = {0};
     line.sideback = -1;
@@ -273,116 +273,116 @@ static void ParseLinedef(scanner_t *s, map_t *map)
         M_StringToLower((char *)prop);
         if (BASE_PROP(v1))
         {
-            line.v1_id = ScanInteger(s);
+            line.v1_id = UDMF_ScanInt(s);
         }
         else if (BASE_PROP(v2))
         {
-            line.v2_id = ScanInteger(s);
+            line.v2_id = UDMF_ScanInt(s);
         }
         else if (BASE_PROP(special))
         {
-            line.special = ScanInteger(s);
+            line.special = UDMF_ScanInt(s);
         }
         else if (BASE_PROP(id))
         {
-            line.id = ScanInteger(s);
+            line.id = UDMF_ScanInt(s);
         }
         else if (BASE_PROP(arg0))
         {
             // Tag -> id/arg0 split means arg0 is always enabled
-            line.args[0] = ScanInteger(s);
+            line.args[0] = UDMF_ScanInt(s);
         }
         else if (PROP(arg1, UDMF_LINE_PARAM))
         {
-            line.args[1] = ScanInteger(s);
+            line.args[1] = UDMF_ScanInt(s);
         }
         else if (PROP(arg2, UDMF_LINE_PARAM))
         {
-            line.args[2] = ScanInteger(s);
+            line.args[2] = UDMF_ScanInt(s);
         }
         else if (PROP(arg3, UDMF_LINE_PARAM))
         {
-            line.args[3] = ScanInteger(s);
+            line.args[3] = UDMF_ScanInt(s);
         }
         else if (PROP(arg4, UDMF_LINE_PARAM))
         {
-            line.args[4] = ScanInteger(s);
+            line.args[4] = UDMF_ScanInt(s);
         }
         else if (BASE_PROP(sidefront))
         {
-            line.sidefront = ScanInteger(s);
+            line.sidefront = UDMF_ScanInt(s);
         }
         else if (BASE_PROP(sideback))
         {
-            line.sideback = ScanInteger(s);
+            line.sideback = UDMF_ScanInt(s);
         }
         else if (BASE_PROP(blocking))
         {
-            line.flags |= ScanFlag(s, ML_BLOCKING);
+            line.flags |= UDMF_ScanFlag(s, ML_BLOCKING);
         }
         else if (BASE_PROP(blockmonsters))
         {
-            line.flags |= ScanFlag(s, ML_BLOCKMONSTERS);
+            line.flags |= UDMF_ScanFlag(s, ML_BLOCKMONSTERS);
         }
         else if (BASE_PROP(twosided))
         {
-            line.flags |= ScanFlag(s, ML_TWOSIDED);
+            line.flags |= UDMF_ScanFlag(s, ML_TWOSIDED);
         }
         else if (BASE_PROP(dontpegtop))
         {
-            line.flags |= ScanFlag(s, ML_DONTPEGTOP);
+            line.flags |= UDMF_ScanFlag(s, ML_DONTPEGTOP);
         }
         else if (BASE_PROP(dontpegbottom))
         {
-            line.flags |= ScanFlag(s, ML_DONTPEGBOTTOM);
+            line.flags |= UDMF_ScanFlag(s, ML_DONTPEGBOTTOM);
         }
         else if (BASE_PROP(secret))
         {
-            line.flags |= ScanFlag(s, ML_SECRET);
+            line.flags |= UDMF_ScanFlag(s, ML_SECRET);
         }
         else if (BASE_PROP(blocksound))
         {
-            line.flags |= ScanFlag(s, ML_SOUNDBLOCK);
+            line.flags |= UDMF_ScanFlag(s, ML_SOUNDBLOCK);
         }
         else if (BASE_PROP(dontdraw))
         {
-            line.flags |= ScanFlag(s, ML_DONTDRAW);
+            line.flags |= UDMF_ScanFlag(s, ML_DONTDRAW);
         }
         else if (BASE_PROP(mapped))
         {
-            line.flags |= ScanFlag(s, ML_MAPPED);
+            line.flags |= UDMF_ScanFlag(s, ML_MAPPED);
         }
         else if (PROP(passuse, UDMF_LINE_PASSUSE))
         {
-            line.flags |= ScanFlag(s, ML_PASSUSE);
+            line.flags |= UDMF_ScanFlag(s, ML_PASSUSE);
         }
         else if (PROP(blocklandmonsters, UDMF_LINE_BLOCK))
         {
-            line.flags |= ScanFlag(s, ML_BLOCKLANDMONSTERS);
+            line.flags |= UDMF_ScanFlag(s, ML_BLOCKLANDMONSTERS);
         }
         else if (PROP(blockplayers, UDMF_LINE_BLOCK))
         {
-            line.flags |= ScanFlag(s, ML_BLOCKPLAYERS);
+            line.flags |= UDMF_ScanFlag(s, ML_BLOCKPLAYERS);
         }
         else if (PROP(midtex3d, UDMF_LINE_3DMIDTEX))
         {
-            line.flags |= ScanFlag(s, ML_3DMIDTEX);
+            line.flags |= UDMF_ScanFlag(s, ML_3DMIDTEX);
         }
         else if (PROP(alpha, UDMF_LINE_ALPHA))
         {
-            line.alpha = ScanDouble(s);
+            line.alpha = UDMF_ScanDouble(s);
         }
         else if (PROP(tranmap, UDMF_LINE_TRANMAP))
         {
-            ScanLumpName(s, line.tranmap);
+            UDMF_ScanLumpName(s, line.tranmap);
         }
         else if (PROP(automapstyle, UDMF_LINE_STYLE))
         {
-            line.amls = ScanInteger(s);
+            line.amls = UDMF_ScanInt(s);
         }
         else
         {
-            SkipScan(s);
+            UDMF_SkipScan(s);
         }
     }
     array_push(map->udmf_linedefs, line);
@@ -392,7 +392,7 @@ static void ParseLinedef(scanner_t *s, map_t *map)
 // UDMF sidedef parsing
 //
 
-static void ParseSidedef(scanner_t *s, map_t *map)
+static void UDMF_ParseSidedef(scanner_t *s, map_t *map)
 {
     UDMF_Sidedef_t side = {0};
     M_CopyLumpName(side.texturetop, "-");
@@ -408,131 +408,131 @@ static void ParseSidedef(scanner_t *s, map_t *map)
         M_StringToLower((char *)prop);
         if (BASE_PROP(offsetx))
         {
-            side.offsetx = ScanInteger(s);
+            side.offsetx = UDMF_ScanInt(s);
         }
         else if (BASE_PROP(offsety))
         {
-            side.offsety = ScanInteger(s);
+            side.offsety = UDMF_ScanInt(s);
         }
         else if (BASE_PROP(sector))
         {
-            side.sector_id = ScanInteger(s);
+            side.sector_id = UDMF_ScanInt(s);
         }
         else if (BASE_PROP(texturetop))
         {
-            ScanLumpName(s, side.texturetop);
+            UDMF_ScanLumpName(s, side.texturetop);
         }
         else if (BASE_PROP(texturemiddle))
         {
-            ScanLumpName(s, side.texturemiddle);
+            UDMF_ScanLumpName(s, side.texturemiddle);
         }
         else if (BASE_PROP(texturebottom))
         {
-            ScanLumpName(s, side.texturebottom);
+            UDMF_ScanLumpName(s, side.texturebottom);
         }
         else if (PROP(light, UDMF_SIDE_LIGHT))
         {
-            side.light = ScanInteger(s);
+            side.light = UDMF_ScanInt(s);
         }
         else if (PROP(light_top, UDMF_SIDE_LIGHT))
         {
-            side.light_top = ScanInteger(s);
+            side.light_top = UDMF_ScanInt(s);
         }
         else if (PROP(light_mid, UDMF_SIDE_LIGHT))
         {
-            side.light_mid = ScanInteger(s);
+            side.light_mid = UDMF_ScanInt(s);
         }
         else if (PROP(light_bottom, UDMF_SIDE_LIGHT))
         {
-            side.light_bottom = ScanInteger(s);
+            side.light_bottom = UDMF_ScanInt(s);
         }
         else if (PROP(lightabsolute, UDMF_SIDE_LIGHT))
         {
-            side.flags |= ScanFlag(s, SF_ABS_LIGHT);
+            side.flags |= UDMF_ScanFlag(s, SF_ABS_LIGHT);
         }
         else if (PROP(lightabsolute_top, UDMF_SIDE_LIGHT))
         {
-            side.flags |= ScanFlag(s, SF_ABS_LIGHT_TOP);
+            side.flags |= UDMF_ScanFlag(s, SF_ABS_LIGHT_TOP);
         }
         else if (PROP(lightabsolute_mid, UDMF_SIDE_LIGHT))
         {
-            side.flags |= ScanFlag(s, SF_ABS_LIGHT_MID);
+            side.flags |= UDMF_ScanFlag(s, SF_ABS_LIGHT_MID);
         }
         else if (PROP(lightabsolute_bottom, UDMF_SIDE_LIGHT))
         {
-            side.flags |= ScanFlag(s, SF_ABS_LIGHT_BOTTOM);
+            side.flags |= UDMF_ScanFlag(s, SF_ABS_LIGHT_BOTTOM);
         }
         else if (PROP(nofakecontrast, UDMF_SIDE_LIGHT))
         {
-            side.flags |= ScanFlag(s, SF_NO_FAKE_CONTRAST);
+            side.flags |= UDMF_ScanFlag(s, SF_NO_FAKE_CONTRAST);
         }
         else if (PROP(smoothlighting, UDMF_SIDE_LIGHT))
         {
-            side.flags |= ScanFlag(s, SF_SMOOTH_CONTRAST);
+            side.flags |= UDMF_ScanFlag(s, SF_SMOOTH_CONTRAST);
         }
         else if (PROP(offsetx_top, UDMF_SIDE_OFFSET))
         {
-            side.offsetx_top = ScanDouble(s);
+            side.offsetx_top = UDMF_ScanDouble(s);
         }
         else if (PROP(offsety_top, UDMF_SIDE_OFFSET))
         {
-            side.offsety_top = ScanDouble(s);
+            side.offsety_top = UDMF_ScanDouble(s);
         }
         else if (PROP(offsetx_mid, UDMF_SIDE_OFFSET))
         {
-            side.offsetx_mid = ScanDouble(s);
+            side.offsetx_mid = UDMF_ScanDouble(s);
         }
         else if (PROP(offsety_mid, UDMF_SIDE_OFFSET))
         {
-            side.offsety_mid = ScanDouble(s);
+            side.offsety_mid = UDMF_ScanDouble(s);
         }
         else if (PROP(offsetx_bottom, UDMF_SIDE_OFFSET))
         {
-            side.offsetx_bottom = ScanDouble(s);
+            side.offsetx_bottom = UDMF_ScanDouble(s);
         }
         else if (PROP(offsety_bottom, UDMF_SIDE_OFFSET))
         {
-            side.offsety_bottom = ScanDouble(s);
+            side.offsety_bottom = UDMF_ScanDouble(s);
         }
         else if (PROP(xscroll, UDMF_SIDE_SCROLL))
         {
-            side.xscroll = ScanInteger(s);
+            side.xscroll = UDMF_ScanInt(s);
         }
         else if (PROP(yscroll, UDMF_SIDE_SCROLL))
         {
-            side.yscroll = ScanInteger(s);
+            side.yscroll = UDMF_ScanInt(s);
         }
         else if (PROP(xscrolltop, UDMF_SIDE_SCROLL))
         {
-            side.xscrolltop = ScanDouble(s);
+            side.xscrolltop = UDMF_ScanDouble(s);
         }
         else if (PROP(yscrolltop, UDMF_SIDE_SCROLL))
         {
-            side.yscrolltop = ScanDouble(s);
+            side.yscrolltop = UDMF_ScanDouble(s);
         }
         else if (PROP(xscrollmid, UDMF_SIDE_SCROLL))
         {
-            side.xscrollmid = ScanDouble(s);
+            side.xscrollmid = UDMF_ScanDouble(s);
         }
         else if (PROP(yscrollmid, UDMF_SIDE_SCROLL))
         {
-            side.yscrollmid = ScanDouble(s);
+            side.yscrollmid = UDMF_ScanDouble(s);
         }
         else if (PROP(xscrollbottom, UDMF_SIDE_SCROLL))
         {
-            side.xscrollbottom = ScanDouble(s);
+            side.xscrollbottom = UDMF_ScanDouble(s);
         }
         else if (PROP(yscrollbottom, UDMF_SIDE_SCROLL))
         {
-            side.yscrollbottom = ScanDouble(s);
+            side.yscrollbottom = UDMF_ScanDouble(s);
         }
         else if (PROP(tint, UDMF_SIDE_TINT))
         {
-            ScanLumpName(s, side.tint);
+            UDMF_ScanLumpName(s, side.tint);
         }
         else
         {
-            SkipScan(s);
+            UDMF_SkipScan(s);
         }
     }
 
@@ -543,7 +543,7 @@ static void ParseSidedef(scanner_t *s, map_t *map)
 // UDMF sector parsing
 //
 
-static void ParseSector(scanner_t *s, map_t *map)
+static void UDMF_ParseSector(scanner_t *s, map_t *map)
 {
     UDMF_Sector_t sector = {0};
     sector.lightlevel = 160;
@@ -558,139 +558,139 @@ static void ParseSector(scanner_t *s, map_t *map)
         M_StringToLower((char *)prop);
         if (BASE_PROP(heightfloor))
         {
-            sector.heightfloor = ScanInteger(s);
+            sector.heightfloor = UDMF_ScanInt(s);
         }
         else if (BASE_PROP(heightceiling))
         {
-            sector.heightceiling = ScanInteger(s);
+            sector.heightceiling = UDMF_ScanInt(s);
         }
         else if (BASE_PROP(texturefloor))
         {
-            ScanLumpName(s, sector.texturefloor);
+            UDMF_ScanLumpName(s, sector.texturefloor);
         }
         else if (BASE_PROP(textureceiling))
         {
-            ScanLumpName(s, sector.textureceiling);
+            UDMF_ScanLumpName(s, sector.textureceiling);
         }
         else if (BASE_PROP(lightlevel))
         {
-            sector.lightlevel = ScanInteger(s);
+            sector.lightlevel = UDMF_ScanInt(s);
         }
         else if (BASE_PROP(special))
         {
-            sector.special = ScanInteger(s);
+            sector.special = UDMF_ScanInt(s);
         }
         else if (BASE_PROP(id))
         {
-            sector.tag = ScanInteger(s);
+            sector.tag = UDMF_ScanInt(s);
         }
         else if (PROP(rotationfloor, UDMF_SEC_ANGLE))
         {
-            sector.rotationfloor = ScanDouble(s);
+            sector.rotationfloor = UDMF_ScanDouble(s);
         }
         else if (PROP(rotationceiling, UDMF_SEC_ANGLE))
         {
-            sector.rotationceiling = ScanDouble(s);
+            sector.rotationceiling = UDMF_ScanDouble(s);
         }
         else if (PROP(xpanningfloor, UDMF_SEC_OFFSET))
         {
-            sector.xpanningfloor = ScanDouble(s);
+            sector.xpanningfloor = UDMF_ScanDouble(s);
         }
         else if (PROP(ypanningfloor, UDMF_SEC_OFFSET))
         {
-            sector.ypanningfloor = ScanDouble(s);
+            sector.ypanningfloor = UDMF_ScanDouble(s);
         }
         else if (PROP(xpanningceiling, UDMF_SEC_OFFSET))
         {
-            sector.xpanningceiling = ScanDouble(s);
+            sector.xpanningceiling = UDMF_ScanDouble(s);
         }
         else if (PROP(ypanningceiling, UDMF_SEC_OFFSET))
         {
-            sector.ypanningceiling = ScanDouble(s);
+            sector.ypanningceiling = UDMF_ScanDouble(s);
         }
         else if (PROP(scroll_floor_x, UDMF_SEC_EE_SCROLL))
         {
-            sector.scroll_floor_x = ScanDouble(s);
+            sector.scroll_floor_x = UDMF_ScanDouble(s);
         }
         else if (PROP(scroll_floor_, UDMF_SEC_EE_SCROLL))
         {
-            sector.scroll_floor_y = ScanDouble(s);
+            sector.scroll_floor_y = UDMF_ScanDouble(s);
         }
         else if (PROP(scroll_floor_type, UDMF_SEC_EE_SCROLL))
         {
-            sector.scroll_floor_type = ScanSectorScroll(s);
+            sector.scroll_floor_type = UDMF_ScanSectorScroll(s);
         }
         else if (PROP(scroll_ceil_x, UDMF_SEC_EE_SCROLL))
         {
-            sector.scroll_ceil_x = ScanDouble(s);
+            sector.scroll_ceil_x = UDMF_ScanDouble(s);
         }
         else if (PROP(scroll_ceil_y, UDMF_SEC_EE_SCROLL))
         {
-            sector.scroll_ceil_y = ScanDouble(s);
+            sector.scroll_ceil_y = UDMF_ScanDouble(s);
         }
         else if (PROP(scroll_ceil_type, UDMF_SEC_EE_SCROLL))
         {
-            sector.scroll_ceil_type = ScanSectorScroll(s);
+            sector.scroll_ceil_type = UDMF_ScanSectorScroll(s);
         }
         else if (PROP(xscrollfloor, UDMF_SEC_SCROLL))
         {
-            sector.xscrollfloor = ScanDouble(s);
+            sector.xscrollfloor = UDMF_ScanDouble(s);
         }
         else if (PROP(yscrollfloor, UDMF_SEC_SCROLL))
         {
-            sector.yscrollfloor = ScanDouble(s);
+            sector.yscrollfloor = UDMF_ScanDouble(s);
         }
         else if (PROP(xscrollceiling, UDMF_SEC_SCROLL))
         {
-            sector.xscrollceiling = ScanDouble(s);
+            sector.xscrollceiling = UDMF_ScanDouble(s);
         }
         else if (PROP(yscrollceiling, UDMF_SEC_SCROLL))
         {
-            sector.yscrollceiling = ScanDouble(s);
+            sector.yscrollceiling = UDMF_ScanDouble(s);
         }
         else if (PROP(scrollfloormode, UDMF_SEC_SCROLL))
         {
-            sector.scrollfloormode = ScanInteger(s);
+            sector.scrollfloormode = UDMF_ScanInt(s);
         }
         else if (PROP(scrollceilingmode, UDMF_SEC_SCROLL))
         {
-            sector.scrollceilingmode = ScanInteger(s);
+            sector.scrollceilingmode = UDMF_ScanInt(s);
         }
         else if (PROP(lightfloor, UDMF_SEC_LIGHT))
         {
-            sector.lightfloor = ScanInteger(s);
+            sector.lightfloor = UDMF_ScanInt(s);
         }
         else if (PROP(lightceiling, UDMF_SEC_LIGHT))
         {
-            sector.lightceiling = ScanInteger(s);
+            sector.lightceiling = UDMF_ScanInt(s);
         }
         else if (PROP(lightfloorabsolute, UDMF_SEC_LIGHT))
         {
-            sector.flags |= ScanFlag(s, SECF_ABS_LIGHT_FLOOR);
+            sector.flags |= UDMF_ScanFlag(s, SECF_ABS_LIGHT_FLOOR);
         }
         else if (PROP(lightceilingabsolute, UDMF_SEC_LIGHT))
         {
-            sector.flags |= ScanFlag(s, SECF_ABS_LIGHT_CEIL);
+            sector.flags |= UDMF_ScanFlag(s, SECF_ABS_LIGHT_CEIL);
         }
         else if (PROP(colormap, UDMF_SEC_COLORMAP))
         {
-            ScanLumpName(s, sector.colormap);
+            UDMF_ScanLumpName(s, sector.colormap);
         }
         else if (PROP(tint, UDMF_SEC_TINT))
         {
-            ScanLumpName(s, sector.tint);
+            UDMF_ScanLumpName(s, sector.tint);
         }
         else if (PROP(tintfloor, UDMF_SEC_TINT))
         {
-            ScanLumpName(s, sector.tintfloor);
+            UDMF_ScanLumpName(s, sector.tintfloor);
         }
         else if (PROP(tintceiling, UDMF_SEC_TINT))
         {
-            ScanLumpName(s, sector.tintceiling);
+            UDMF_ScanLumpName(s, sector.tintceiling);
         }
         else
         {
-            SkipScan(s);
+            UDMF_SkipScan(s);
         }
     }
 
@@ -701,7 +701,7 @@ static void ParseSector(scanner_t *s, map_t *map)
 // UDMF thing loading
 //
 
-static void ParseThing(scanner_t *s, map_t *map)
+static void UDMF_ParseThing(scanner_t *s, map_t *map)
 {
     UDMF_Thing_t thing = {0};
     thing.options |= MTF_NOTSINGLE | MTF_NOTCOOP | MTF_NOTDM;
@@ -717,111 +717,111 @@ static void ParseThing(scanner_t *s, map_t *map)
         M_StringToLower((char *)prop);
         if (BASE_PROP(type))
         {
-            thing.type = ScanInteger(s);
+            thing.type = UDMF_ScanInt(s);
         }
         else if (PROP(id, UDMF_THING_PARAM))
         {
-            thing.tid = ScanInteger(s);
+            thing.tid = UDMF_ScanInt(s);
         }
         else if (BASE_PROP(x))
         {
-            thing.x = ScanDouble(s);
+            thing.x = UDMF_ScanDouble(s);
         }
         else if (BASE_PROP(y))
         {
-            thing.y = ScanDouble(s);
+            thing.y = UDMF_ScanDouble(s);
         }
         else if (BASE_PROP(height))
         {
-            thing.height = ScanDouble(s);
+            thing.height = UDMF_ScanDouble(s);
         }
         else if (BASE_PROP(angle))
         {
-            thing.angle = ScanInteger(s);
+            thing.angle = UDMF_ScanInt(s);
         }
         else if (BASE_PROP(skill1))
         {
-            thing.options |= ScanFlag(s, MTF_SKILL1);
+            thing.options |= UDMF_ScanFlag(s, MTF_SKILL1);
         }
         else if (BASE_PROP(skill2))
         {
-            thing.options |= ScanFlag(s, MTF_SKILL2);
+            thing.options |= UDMF_ScanFlag(s, MTF_SKILL2);
         }
         else if (BASE_PROP(skill3))
         {
-            thing.options |= ScanFlag(s, MTF_SKILL3);
+            thing.options |= UDMF_ScanFlag(s, MTF_SKILL3);
         }
         else if (BASE_PROP(skill4))
         {
-            thing.options |= ScanFlag(s, MTF_SKILL4);
+            thing.options |= UDMF_ScanFlag(s, MTF_SKILL4);
         }
         else if (BASE_PROP(skill5))
         {
-            thing.options |= ScanFlag(s, MTF_SKILL5);
+            thing.options |= UDMF_ScanFlag(s, MTF_SKILL5);
         }
         else if (BASE_PROP(ambush))
         {
-            thing.options |= ScanFlag(s, MTF_AMBUSH);
+            thing.options |= UDMF_ScanFlag(s, MTF_AMBUSH);
         }
         else if (BASE_PROP(single))
         {
-            thing.options &= ~ScanFlag(s, MTF_NOTSINGLE);
+            thing.options &= ~UDMF_ScanFlag(s, MTF_NOTSINGLE);
         }
         else if (BASE_PROP(dm))
         {
-            thing.options &= ~ScanFlag(s, MTF_NOTDM);
+            thing.options &= ~UDMF_ScanFlag(s, MTF_NOTDM);
         }
         else if (BASE_PROP(coop))
         {
-            thing.options &= ~ScanFlag(s, MTF_NOTCOOP);
+            thing.options &= ~UDMF_ScanFlag(s, MTF_NOTCOOP);
         }
         else if (PROP(friend, UDMF_THING_FRIEND))
         {
-            thing.options |= ScanFlag(s, MTF_FRIEND);
+            thing.options |= UDMF_ScanFlag(s, MTF_FRIEND);
         }
         else if (PROP(special, UDMF_THING_SPECIAL))
         {
-            thing.special = ScanInteger(s);
+            thing.special = UDMF_ScanInt(s);
         }
         else if (PROP(arg0, UDMF_THING_SPECIAL | UDMF_THING_PARAM))
         {
-            thing.args[0] = ScanInteger(s);
+            thing.args[0] = UDMF_ScanInt(s);
         }
         else if (PROP(arg1, UDMF_THING_PARAM))
         {
-            thing.args[1] = ScanInteger(s);
+            thing.args[1] = UDMF_ScanInt(s);
         }
         else if (PROP(arg2, UDMF_THING_PARAM))
         {
-            thing.args[2] = ScanInteger(s);
+            thing.args[2] = UDMF_ScanInt(s);
         }
         else if (PROP(arg3, UDMF_THING_PARAM))
         {
-            thing.args[3] = ScanInteger(s);
+            thing.args[3] = UDMF_ScanInt(s);
         }
         else if (PROP(arg4, UDMF_THING_PARAM))
         {
-            thing.args[4] = ScanInteger(s);
+            thing.args[4] = UDMF_ScanInt(s);
         }
         else if (PROP(arg4, UDMF_THING_HEALTH))
         {
-            thing.health = ScanDouble(s);
+            thing.health = UDMF_ScanDouble(s);
         }
         else if (PROP(alpha, UDMF_THING_ALPHA))
         {
-            thing.alpha = ScanDouble(s);
+            thing.alpha = UDMF_ScanDouble(s);
         }
         else if (PROP(tranmap, UDMF_THING_TRANMAP))
         {
-            ScanLumpName(s, thing.tranmap);
+            UDMF_ScanLumpName(s, thing.tranmap);
         }
         else if (PROP(tint, UDMF_THING_TINT))
         {
-            ScanLumpName(s, thing.tint);
+            UDMF_ScanLumpName(s, thing.tint);
         }
         else
         {
-            SkipScan(s);
+            UDMF_SkipScan(s);
         }
     }
 
@@ -845,31 +845,31 @@ void P_ParseTextMap(map_t *map)
 
         if (!strcasecmp(toplevel, "namespace"))
         {
-            ParseNamespace(s);
+            UDMF_ParseNamespace(s);
         }
         else if (!strcasecmp(toplevel, "vertex"))
         {
-            ParseVertex(s, map);
+            UDMF_ParseVertex(s, map);
         }
         else if (!strcasecmp(toplevel, "linedef"))
         {
-            ParseLinedef(s, map);
+            UDMF_ParseLinedef(s, map);
         }
         else if (!strcasecmp(toplevel, "sidedef"))
         {
-            ParseSidedef(s, map);
+            UDMF_ParseSidedef(s, map);
         }
         else if (!strcasecmp(toplevel, "sector"))
         {
-            ParseSector(s, map);
+            UDMF_ParseSector(s, map);
         }
         else if (!strcasecmp(toplevel, "thing"))
         {
-            ParseThing(s, map);
+            UDMF_ParseThing(s, map);
         }
         else
         {
-            SkipScan(s);
+            UDMF_SkipScan(s);
         }
     }
 

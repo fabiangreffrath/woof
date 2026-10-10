@@ -161,7 +161,7 @@ unsigned int nw_local_is_freedoom;
 
 // Called when we become disconnected from the server
 
-static void ClientDisconnected(void)
+static void NW_CL_Disconnected(void)
 {
     D_ReceiveTic(NULL, NULL);
 }
@@ -215,8 +215,8 @@ static void UpdateClockSync(unsigned int seq, unsigned int remote_latency)
 // the d_net.c structures (netcmds/nettics) and save the new ticcmd
 // back into recvwindow_cmd_base.
 
-static void ClientExpandFullTiccmd(nw_full_ticcmd_t *cmd, unsigned int seq,
-                                   ticcmd_t *ticcmds)
+static void NW_CL_ExpandFullTiccmd(nw_full_ticcmd_t *cmd, unsigned int seq,
+                                    ticcmd_t *ticcmds)
 {
     int i;
 
@@ -249,7 +249,7 @@ static void ClientExpandFullTiccmd(nw_full_ticcmd_t *cmd, unsigned int seq,
 
 // Advance the receive window
 
-static void ClientAdvanceWindow(void)
+static void NW_CL_AdvanceWindow(void)
 {
     ticcmd_t ticcmds[NW_MAXPLAYERS];
 
@@ -257,7 +257,7 @@ static void ClientAdvanceWindow(void)
     {
         // Expand tic diff data into d_net.c structures
 
-        ClientExpandFullTiccmd(&recvwindow[0].cmd, recvwindow_start, ticcmds);
+        NW_CL_ExpandFullTiccmd(&recvwindow[0].cmd, recvwindow_start, ticcmds);
         D_ReceiveTic(ticcmds, recvwindow[0].cmd.playeringame);
 
         // Advance the window
@@ -274,7 +274,7 @@ static void ClientAdvanceWindow(void)
 
 // Shut down the client code, etc.  Invoked after a disconnect.
 
-static void ClientShutdown(void)
+static void NW_CL_Shutdown(void)
 {
     if (nw_client_connected)
     {
@@ -307,7 +307,7 @@ void NW_CL_StartGame(nw_gamesettings_t *settings)
     NW_WriteSettings(packet, settings);
 }
 
-static void ClientSendGameDataACK(void)
+static void NW_CL_SendGameDataACK(void)
 {
     nw_packet_t *packet;
 
@@ -323,7 +323,7 @@ static void ClientSendGameDataACK(void)
     need_to_acknowledge = false;
 }
 
-static void ClientSendTics(int start, int end)
+static void NW_CL_SendTics(int start, int end)
 {
     nw_packet_t *packet;
     int i;
@@ -412,12 +412,12 @@ void NW_CL_SendTiccmd(ticcmd_t *ticcmd, int maketic)
 
     NW_Log("client: generated tic %d, sending %d-%d", maketic, starttic,
             endtic);
-    ClientSendTics(starttic, endtic);
+    NW_CL_SendTics(starttic, endtic);
 }
 
 // Parse a SYN packet received back from the server indicating a successful
 // connection attempt.
-static void ClientParseSYN(nw_packet_t *packet)
+static void NW_CL_ParseSYN(nw_packet_t *packet)
 {
     nw_protocol_t protocol;
     char *server_version;
@@ -470,7 +470,7 @@ static void SetRejectReason(const char *s)
     }
 }
 
-static void ClientParseReject(nw_packet_t *packet)
+static void NW_CL_ParseReject(nw_packet_t *packet)
 {
     char *msg;
 
@@ -490,7 +490,7 @@ static void ClientParseReject(nw_packet_t *packet)
 
 // data received while we are waiting for the game to start
 
-static void ClientParseWaitingData(nw_packet_t *packet)
+static void NW_CL_ParseWaitingData(nw_packet_t *packet)
 {
     nw_waitdata_t wait_data;
 
@@ -522,7 +522,7 @@ static void ClientParseWaitingData(nw_packet_t *packet)
     nw_client_received_wait_data = true;
 }
 
-static void ClientParseLaunch(nw_packet_t *packet)
+static void NW_CL_ParseLaunch(nw_packet_t *packet)
 {
     unsigned int num_players;
 
@@ -550,7 +550,7 @@ static void ClientParseLaunch(nw_packet_t *packet)
     NW_Log("client: now waiting for game start");
 }
 
-static void ClientParseGameStart(nw_packet_t *packet)
+static void NW_CL_ParseGameStart(nw_packet_t *packet)
 {
     NW_Log("client: processing game start packet");
 
@@ -600,7 +600,7 @@ static void ClientParseGameStart(nw_packet_t *packet)
     memset(&send_queue, 0x00, sizeof(send_queue));
 }
 
-static void ClientSendResendRequest(int start, int end)
+static void NW_CL_SendResendRequest(int start, int end)
 {
     nw_packet_t *packet;
     unsigned int nowtime;
@@ -636,7 +636,7 @@ static void ClientSendResendRequest(int start, int end)
 
 // Check for expired resend requests
 
-static void ClientCheckResends(void)
+static void NW_CL_CheckResends(void)
 {
     int i;
     int resend_start, resend_end;
@@ -691,8 +691,8 @@ static void ClientCheckResends(void)
                     recvwindow_start + resend_start,
                     recvwindow_start + resend_end,
                     recvwindow[resend_start].resend_time);
-            ClientSendResendRequest(recvwindow_start + resend_start,
-                                    recvwindow_start + resend_end);
+            NW_CL_SendResendRequest(recvwindow_start + resend_start,
+                                     recvwindow_start + resend_end);
             resend_start = -1;
         }
     }
@@ -702,8 +702,8 @@ static void ClientCheckResends(void)
         NW_Log("client: resend request timed out for %d-%d (%d)",
                 recvwindow_start + resend_start, recvwindow_start + resend_end,
                 recvwindow[resend_start].resend_time);
-        ClientSendResendRequest(recvwindow_start + resend_start,
-                                recvwindow_start + resend_end);
+        NW_CL_SendResendRequest(recvwindow_start + resend_start,
+                                 recvwindow_start + resend_end);
     }
 
     // We have received some data from the server and not acknowledged
@@ -714,14 +714,14 @@ static void ClientCheckResends(void)
     {
         NW_Log("client: no game data received since %d: triggering ack",
                 gamedata_recv_time);
-        ClientSendGameDataACK();
+        NW_CL_SendGameDataACK();
     }
 }
 
 // Parsing of NW_PACKET_TYPE_GAMEDATA packets
 // (packets containing the actual ticcmd data)
 
-static void ClientParseGameData(nw_packet_t *packet)
+static void NW_CL_ParseGameData(nw_packet_t *packet)
 {
     nw_server_recv_t *recvobj;
     unsigned int seq, num_tics;
@@ -843,14 +843,14 @@ static void ClientParseGameData(nw_packet_t *packet)
         NW_Log("client: request resend for %d-%d before %d",
                 recvwindow_start + resend_start,
                 recvwindow_start + resend_end - 1, seq);
-        ClientSendResendRequest(recvwindow_start + resend_start,
-                                recvwindow_start + resend_end - 1);
+        NW_CL_SendResendRequest(recvwindow_start + resend_start,
+                                 recvwindow_start + resend_end - 1);
     }
 }
 
 // Parse a resend request from the server due to a dropped packet
 
-static void ClientParseResendRequest(nw_packet_t *packet)
+static void NW_CL_ParseResendRequest(nw_packet_t *packet)
 {
     static unsigned int start;
     static unsigned int end;
@@ -897,7 +897,7 @@ static void ClientParseResendRequest(nw_packet_t *packet)
     if (start <= end)
     {
         NW_Log("client: resending %d-%d", start, end);
-        ClientSendTics(start, end);
+        NW_CL_SendTics(start, end);
     }
     else
     {
@@ -907,7 +907,7 @@ static void ClientParseResendRequest(nw_packet_t *packet)
 
 // Console message that the server wants the client to print
 
-static void ClientParseConsoleMessage(nw_packet_t *packet)
+static void NW_CL_ParseConsoleMessage(nw_packet_t *packet)
 {
     char *msg;
 
@@ -923,7 +923,7 @@ static void ClientParseConsoleMessage(nw_packet_t *packet)
 
 // parse a received packet
 
-static void ClientParsePacket(nw_packet_t *packet)
+static void NW_CL_ParsePacket(nw_packet_t *packet)
 {
     unsigned int packet_type;
 
@@ -945,35 +945,35 @@ static void ClientParsePacket(nw_packet_t *packet)
         switch (packet_type)
         {
             case NW_PACKET_TYPE_SYN:
-                ClientParseSYN(packet);
+                NW_CL_ParseSYN(packet);
                 break;
 
             case NW_PACKET_TYPE_REJECTED:
-                ClientParseReject(packet);
+                NW_CL_ParseReject(packet);
                 break;
 
             case NW_PACKET_TYPE_WAITING_DATA:
-                ClientParseWaitingData(packet);
+                NW_CL_ParseWaitingData(packet);
                 break;
 
             case NW_PACKET_TYPE_LAUNCH:
-                ClientParseLaunch(packet);
+                NW_CL_ParseLaunch(packet);
                 break;
 
             case NW_PACKET_TYPE_GAMESTART:
-                ClientParseGameStart(packet);
+                NW_CL_ParseGameStart(packet);
                 break;
 
             case NW_PACKET_TYPE_GAMEDATA:
-                ClientParseGameData(packet);
+                NW_CL_ParseGameData(packet);
                 break;
 
             case NW_PACKET_TYPE_GAMEDATA_RESEND:
-                ClientParseResendRequest(packet);
+                NW_CL_ParseResendRequest(packet);
                 break;
 
             case NW_PACKET_TYPE_CONSOLE_MESSAGE:
-                ClientParseConsoleMessage(packet);
+                NW_CL_ParseConsoleMessage(packet);
                 break;
 
             default:
@@ -1001,7 +1001,7 @@ void NW_CL_Run(void)
 
         if (addr == server_addr)
         {
-            ClientParsePacket(packet);
+            NW_CL_ParsePacket(packet);
         }
 
         NW_FreePacket(packet);
@@ -1015,9 +1015,9 @@ void NW_CL_Run(void)
     if (client_connection.state == NW_CONN_STATE_DISCONNECTED
         || client_connection.state == NW_CONN_STATE_DISCONNECTED_SLEEP)
     {
-        ClientDisconnected();
+        NW_CL_Disconnected();
 
-        ClientShutdown();
+        NW_CL_Shutdown();
     }
 
     nw_waiting_for_launch = client_connection.state == NW_CONN_STATE_CONNECTED
@@ -1027,15 +1027,15 @@ void NW_CL_Run(void)
     {
         // Possibly advance the receive window
 
-        ClientAdvanceWindow();
+        NW_CL_AdvanceWindow();
 
         // Check if our resend requests have timed out
 
-        ClientCheckResends();
+        NW_CL_CheckResends();
     }
 }
 
-static void ClientSendSYN(nw_connect_data_t *data)
+static void NW_CL_SendSYN(nw_connect_data_t *data)
 {
     nw_packet_t *packet;
 
@@ -1096,7 +1096,7 @@ boolean NW_CL_Connect(nw_addr_t *addr, nw_connect_data_t *data)
         // Send a SYN packet every second.
         if (nowtime - last_send_time > 1000 || last_send_time < 0)
         {
-            ClientSendSYN(data);
+            NW_CL_SendSYN(data);
             last_send_time = nowtime;
         }
 
@@ -1138,7 +1138,7 @@ boolean NW_CL_Connect(nw_addr_t *addr, nw_connect_data_t *data)
     {
         // failed to connect
         NW_Log("client: failed to connect");
-        ClientShutdown();
+        NW_CL_Shutdown();
 
         return false;
     }
@@ -1198,7 +1198,7 @@ void NW_CL_Disconnect(void)
 
     // Finished sending disconnect packets, etc.
     NW_Log("client: disconnect complete");
-    ClientShutdown();
+    NW_CL_Shutdown();
 }
 
 void NW_CL_Init(void)

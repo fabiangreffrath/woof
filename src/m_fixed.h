@@ -21,25 +21,25 @@
 #define __M_FIXED__
 
 #include <limits.h>
-#include <stdint.h> // int64_t
-#include <stdlib.h> // abs()
+#include <stdint.h> // int32_t, int64_t, uint32_t, INT32_MIN, INT32_MAX
+#include <stdlib.h>
 
 //
 // Fixed point, 32bit as 16.16.
 //
 
-typedef int fixed_t;
+typedef int32_t fixed_t;
 
 #define FRACBITS 16
 #define FRACUNIT (1 << FRACBITS)
 #define FRACMASK (FRACUNIT - 1)
 
-inline static int32_t shiftleft32(int32_t x, int shift)
+inline static int32_t shiftleft32(int32_t x, int32_t shift)
 {
     return (int32_t)((uint32_t)x << shift);
 }
 
-inline static int64_t shiftleft64(int64_t x, int shift)
+inline static int64_t shiftleft64(int64_t x, int32_t shift)
 {
     return (int64_t)((uint64_t)x << shift);
 }
@@ -70,12 +70,40 @@ inline static double FixedToDouble(fixed_t x)
 
 inline static fixed_t FixedMul(fixed_t a, fixed_t b)
 {
-    return ((int64_t)a * b) >> FRACBITS;
+    return (fixed_t)(((int64_t)a * b) >> FRACBITS);
 }
 
 inline static int64_t FixedMul64(int64_t a, int64_t b)
 {
     return (a * b) >> FRACBITS;
+}
+
+//
+// Fixed Point Addition, Subtraction, Negation, Absolute Value
+//
+
+inline static fixed_t FixedAdd(fixed_t a, fixed_t b)
+{
+    // wraparound addition without signed-overflow UB
+    return (fixed_t)((uint32_t)a + (uint32_t)b);
+}
+
+inline static fixed_t FixedSub(fixed_t a, fixed_t b)
+{
+    // wraparound subtraction without signed-overflow UB
+    return (fixed_t)((uint32_t)a - (uint32_t)b);
+}
+
+inline static fixed_t FixedNeg(fixed_t x)
+{
+    // avoid -INT32_MIN UB
+    return FixedSub(0, x);
+}
+
+inline static fixed_t FixedAbs(fixed_t x)
+{
+    // avoid abs(INT32_MIN) UB
+    return x < 0 ? FixedNeg(x) : x;
 }
 
 //
@@ -93,42 +121,15 @@ inline static int32_t div64_32(int64_t a, int32_t b)
 
 inline static fixed_t FixedDiv(fixed_t a, fixed_t b)
 {
-    // Get absolute values without triggering UBSan
-    int abs_a, abs_b;
+    const fixed_t abs_a = FixedAbs(a);
+    const fixed_t abs_b = FixedAbs(b);
 
-    // For 'a': handle INT_MIN specially
-    if (a == INT_MIN)
-    {
-        abs_a = INT_MIN; // Matches original abs(INT_MIN) behavior
-    }
-    else
-    {
-        abs_a = abs(a);
-    }
-
-    // For 'b': handle INT_MIN specially
-    if (b == INT_MIN)
-    {
-        abs_b = INT_MIN; // Matches original abs(INT_MIN) behavior
-    }
-    else
-    {
-        abs_b = abs(b);
-    }
-
-    // Original overflow check
     if ((abs_a >> 14) >= abs_b)
     {
-        return (a ^ b) < 0 ? INT_MIN : INT_MAX;
+        return (a ^ b) < 0 ? INT32_MIN : INT32_MAX;
     }
 
     return div64_32(shiftleft64(a, FRACBITS), b);
-}
-
-static inline fixed_t FixedAbs(fixed_t x)
-{
-    // avoid abs(INT_MIN) UB
-    return x < 0 ? (fixed_t)(0u - (unsigned int)x) : x;
 }
 
 #endif

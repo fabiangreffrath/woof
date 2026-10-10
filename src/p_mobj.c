@@ -31,6 +31,7 @@
 #include "p_ambient.h"
 #include "p_inter.h"
 #include "p_map.h"
+#include "p_overunder.h"
 #include "p_maputl.h"
 #include "p_mobj.h"
 #include "p_pspr.h"
@@ -443,7 +444,7 @@ void P_XYMovement (mobj_t* mo)
 //
 // Attempt vertical movement.
 
-static void DoZMovement(mobj_t* mo)
+static void P_ZMovement (mobj_t* mo)
 {
   // killough 7/11/98:
   // BFG fireballs bounced on floors and ceilings in Pre-Beta Doom
@@ -722,7 +723,7 @@ void P_NightmareRespawn(mobj_t* mobj)
 
   mo = P_SpawnMobj (x,y,z, mobj->type);
   mo->spawnpoint = mobj->spawnpoint;
-  mo->angle = ANG45 * (mthing->angle/45);
+  mo->angle = (angle_t)ANG45 * (mthing->angle/45);
 
   if (mthing->options & MTF_AMBUSH)
     mo->flags |= MF_AMBUSH;
@@ -738,7 +739,7 @@ void P_NightmareRespawn(mobj_t* mobj)
 }
 
 // [crispy] support MUSINFO lump (dynamic music changing)
-static inline void ThinkerMusInfo(mobj_t *thing)
+static inline void MusInfoThinker (mobj_t *thing)
 {
   if (musinfo.mapthing != thing &&
       thing->subsector->sector == players[displayplayer].mo->subsector->sector)
@@ -758,7 +759,7 @@ void P_MobjThinker (mobj_t* mobj)
   // [crispy] support MUSINFO lump (dynamic music changing)
   if (mobj->type == MT_MUSICSOURCE)
   {
-      ThinkerMusInfo(mobj);
+      MusInfoThinker(mobj);
       return;
   }
   // [FG] suppress interpolation of player missiles for the first tic
@@ -781,6 +782,11 @@ void P_MobjThinker (mobj_t* mobj)
       mobj->oldangle = mobj->angle;
   }
 
+    if (mobj->below_thing || mobj->above_thing)
+    {
+        P_UpdateOverUnder(mobj);
+    }
+
   // killough 11/98:
   // removed old code which looked at target references
   // (we use pointer reference counting now)
@@ -796,7 +802,7 @@ void P_MobjThinker (mobj_t* mobj)
 
   if (mobj->z != mobj->floorz || mobj->momz)
     {
-      DoZMovement(mobj);
+      P_ZMovement(mobj);
       if (mobj->thinker.function.p1 == P_RemoveMobjThinkerDelayed) // killough
 	return;       // mobj was removed
     }
@@ -1018,6 +1024,8 @@ void P_RemoveMobj (mobj_t *mobj)
       P_SetTarget(&mobj->lastenemy, NULL);
     }
 
+  P_UnlinkOverUnder(mobj);
+
   // free block
 
   P_RemoveMobjThinker(mobj);
@@ -1118,7 +1126,7 @@ void P_RespawnSpecials (void)
 
   mo = P_SpawnMobj(x,y,z, i);
   mo->spawnpoint = *mthing;
-  mo->angle = ANG45 * (mthing->angle/45);
+  mo->angle = (angle_t)ANG45 * (mthing->angle/45);
 
   // pull it from the queue
 
@@ -1159,7 +1167,7 @@ void P_SpawnPlayer (mapthing_t* mthing)
   if (mthing->type > 1)
     mobj->flags |= (mthing->type-1)<<MF_TRANSSHIFT;
 
-  mobj->angle      = ANG45 * (mthing->angle/45);
+  mobj->angle      = (angle_t)ANG45 * (mthing->angle/45);
   mobj->player     = p;
   mobj->health     = p->health;
 

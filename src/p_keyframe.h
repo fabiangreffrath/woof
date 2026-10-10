@@ -26,6 +26,7 @@ typedef struct
 
 keyframe_t *P_SaveKeyframe(int tic);
 void P_LoadKeyframe(const keyframe_t *keyframe);
+void P_DeleteKeyframe(keyframe_t *keyframe);
 void P_FreeKeyframe(keyframe_t *keyframe);
 
 void P_ArchiveKeyframe(json_mut_doc_t *doc, json_mut_t *root_mut);

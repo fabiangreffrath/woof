@@ -144,8 +144,8 @@ int R_PointOnSide_Classic(fixed_t x, fixed_t y, node_t *node)
 
     // Workaround for optimization bug in clang
     // fixes desync in competn/doom/fp2-3655.lmp and in dmnsns.wad dmn01m909.lmp
-    x = (fixed_t)((unsigned int)x - (unsigned int)node->x);
-    y = (fixed_t)((unsigned int)y - (unsigned int)node->y);
+    x = FixedSub(x, node->x);
+    y = FixedSub(y, node->y);
 
     // Try to quickly decide by looking at sign bits.
     if ((node->dy ^ node->dx ^ x ^ y) < 0)
@@ -168,8 +168,8 @@ int R_PointOnSide_Precise(fixed_t x, fixed_t y, node_t *node)
         return y <= node->y ? node->dx < 0 : node->dx > 0;
     }
 
-    x = (fixed_t)((unsigned int)x - (unsigned int)node->x);
-    y = (fixed_t)((unsigned int)y - (unsigned int)node->y);
+    x = FixedSub(x, node->x);
+    y = FixedSub(y, node->y);
 
     // Try to quickly decide by looking at sign bits.
     if ((node->dy ^ node->dx ^ x ^ y) < 0)
@@ -185,8 +185,8 @@ int R_PointOnSegSide(fixed_t x, fixed_t y, seg_t *line)
 {
   fixed_t lx = line->v1->x;
   fixed_t ly = line->v1->y;
-  const fixed_t ldx = (fixed_t)((unsigned int)line->v2->x - (unsigned int)lx);
-  const fixed_t ldy = (fixed_t)((unsigned int)line->v2->y - (unsigned int)ly);
+  const fixed_t ldx = FixedSub(line->v2->x, lx);
+  const fixed_t ldy = FixedSub(line->v2->y, ly);
 
   if (!ldx)
     return x <= lx ? ldy > 0 : ldy < 0;
@@ -194,13 +194,59 @@ int R_PointOnSegSide(fixed_t x, fixed_t y, seg_t *line)
   if (!ldy)
     return y <= ly ? ldx < 0 : ldx > 0;
 
-  x = (fixed_t)((unsigned int)x - (unsigned int)lx);
-  y = (fixed_t)((unsigned int)y - (unsigned int)ly);
+  x = FixedSub(x, lx);
+  y = FixedSub(y, ly);
 
   // Try to quickly decide by looking at sign bits.
   if ((ldy ^ ldx ^ x ^ y) < 0)
     return (ldy ^ x) < 0;          // (left is negative)
   return (int64_t) y * ldx >= (int64_t) x * ldy;
+}
+
+// Fold the view-relative vector into the first octant and look up its angle.
+static inline angle_t PointToAngle(fixed_t x, fixed_t y,
+                                   int (*slope_div)(unsigned, unsigned))
+{
+    if (x == 0 && y == 0)
+    {
+        return 0;
+    }
+
+    if (x >= 0)
+    {
+        if (y >= 0)
+        {
+            if (x > y)
+            {
+                return tantoangle[slope_div(y, x)]; // octant 0
+            }
+            return ANG90 - 1 - tantoangle[slope_div(x, y)]; // octant 1
+        }
+
+        y = FixedNeg(y);
+        if (x > y)
+        {
+            return 0 - tantoangle[slope_div(y, x)]; // octant 8
+        }
+        return ANG270 + tantoangle[slope_div(x, y)]; // octant 7
+    }
+
+    x = FixedNeg(x);
+    if (y >= 0)
+    {
+        if (x > y)
+        {
+            return ANG180 - 1 - tantoangle[slope_div(y, x)]; // octant 3
+        }
+        return ANG90 + tantoangle[slope_div(x, y)]; // octant 2
+    }
+
+    y = FixedNeg(y);
+    if (x > y)
+    {
+        return ANG180 + tantoangle[slope_div(y, x)]; // octant 4
+    }
+    return ANG270 - 1 - tantoangle[slope_div(x, y)]; // octant 5
 }
 
 //
@@ -218,34 +264,12 @@ int R_PointOnSegSide(fixed_t x, fixed_t y, seg_t *line)
 
 angle_t R_PointToAngle(fixed_t x, fixed_t y)
 {
-  return (y -= viewy, (x -= viewx) || y) ?
-    x >= 0 ?
-      y >= 0 ?
-        (x > y) ? tantoangle[SlopeDiv(y,x)] :                      // octant 0
-                ANG90-1-tantoangle[SlopeDiv(x,y)] :                // octant 1
-        x > (y = -y) ? 0-tantoangle[SlopeDiv(y,x)] :               // octant 8
-                       ANG270+tantoangle[SlopeDiv(x,y)] :          // octant 7
-      y >= 0 ? (x = -x) > y ? ANG180-1-tantoangle[SlopeDiv(y,x)] : // octant 3
-                            ANG90 + tantoangle[SlopeDiv(x,y)] :    // octant 2
-        (x = -x) > (y = -y) ? ANG180+tantoangle[ SlopeDiv(y,x)] :  // octant 4
-                              ANG270-1-tantoangle[SlopeDiv(x,y)] : // octant 5
-    0;
+    return R_PointToAngle2(viewx, viewy, x, y);
 }
 
 angle_t R_PointToAngle2(fixed_t viewx, fixed_t viewy, fixed_t x, fixed_t y)
 {
-  return (y -= viewy, (x -= viewx) || y) ?
-    x >= 0 ?
-      y >= 0 ?
-        (x > y) ? tantoangle[SlopeDiv(y,x)] :                      // octant 0
-                ANG90-1-tantoangle[SlopeDiv(x,y)] :                // octant 1
-        x > (y = -y) ? 0-tantoangle[SlopeDiv(y,x)] :               // octant 8
-                       ANG270+tantoangle[SlopeDiv(x,y)] :          // octant 7
-      y >= 0 ? (x = -x) > y ? ANG180-1-tantoangle[SlopeDiv(y,x)] : // octant 3
-                            ANG90 + tantoangle[SlopeDiv(x,y)] :    // octant 2
-        (x = -x) > (y = -y) ? ANG180+tantoangle[ SlopeDiv(y,x)] :  // octant 4
-                              ANG270-1-tantoangle[SlopeDiv(x,y)] : // octant 5
-    0;
+    return PointToAngle(FixedSub(x, viewx), FixedSub(y, viewy), SlopeDiv);
 }
 
 // [FG] overflow-safe R_PointToAngle() flavor,
@@ -253,30 +277,20 @@ angle_t R_PointToAngle2(fixed_t viewx, fixed_t viewy, fixed_t x, fixed_t y)
 
 angle_t R_PointToAngleCrispy(fixed_t x, fixed_t y)
 {
-  // [FG] fix overflows for very long distances
-  int64_t y_viewy = (int64_t)y - viewy;
-  int64_t x_viewx = (int64_t)x - viewx;
+    // [FG] fix overflows for very long distances
+    int64_t y_viewy = (int64_t)y - viewy;
+    int64_t x_viewx = (int64_t)x - viewx;
 
-  // [FG] the worst that could happen is e.g. INT_MIN-INT_MAX = 2*INT_MIN
-  if (x_viewx <= INT_MIN || x_viewx > INT_MAX || y_viewy <= INT_MIN || y_viewy > INT_MAX)
-  {
-    // [FG] preserving the angle by halfing the distance in both directions
-    x = (int)(x_viewx / 2 + viewx);
-    y = (int)(y_viewy / 2 + viewy);
-  }
+    // [FG] the worst that could happen is e.g. INT_MIN-INT_MAX = 2*INT_MIN
+    if (x_viewx <= INT32_MIN || x_viewx > INT32_MAX || y_viewy <= INT32_MIN
+        || y_viewy > INT32_MAX)
+    {
+        // [FG] preserving the angle by halfing the distance in both directions
+        x_viewx /= 2;
+        y_viewy /= 2;
+    }
 
-  return (y -= viewy, (x -= viewx) || y) ?
-    x >= 0 ?
-      y >= 0 ?
-        (x > y) ? tantoangle[SlopeDivCrispy(y,x)] :                      // octant 0
-                ANG90-1-tantoangle[SlopeDivCrispy(x,y)] :                // octant 1
-        x > (y = -y) ? 0-tantoangle[SlopeDivCrispy(y,x)] :               // octant 8
-                       ANG270+tantoangle[SlopeDivCrispy(x,y)] :          // octant 7
-      y >= 0 ? (x = -x) > y ? ANG180-1-tantoangle[SlopeDivCrispy(y,x)] : // octant 3
-                            ANG90 + tantoangle[SlopeDivCrispy(x,y)] :    // octant 2
-        (x = -x) > (y = -y) ? ANG180+tantoangle[SlopeDivCrispy(y,x)] :  // octant 4
-                              ANG270-1-tantoangle[SlopeDivCrispy(x,y)] : // octant 5
-    0;
+    return PointToAngle((fixed_t)x_viewx, (fixed_t)y_viewy, SlopeDivCrispy);
 }
 
 // WiggleFix: move R_ScaleFromGlobalAngle to r_segs.c,
@@ -313,7 +327,7 @@ static void CalcMaxProjectSlope(int fov)
 //
 // killough 5/2/98: reformatted
 
-static void InitTextureMapping(void)
+static void R_InitTextureMapping(void)
 {
   register int i,x;
   fixed_t slopefrac;
@@ -475,7 +489,7 @@ int R_GetLightIndex(fixed_t scale)
 
 static fixed_t viewpitch;
 
-static void SetupFreelook(void)
+static void R_SetupFreelook(void)
 {
   fixed_t dy;
   int i;
@@ -583,9 +597,9 @@ void R_ExecuteSetViewSize (void)
 
   R_InitBuffer();       // killough 11/98
 
-  InitTextureMapping();
+  R_InitTextureMapping();
 
-  SetupFreelook();
+  R_SetupFreelook();
 
   // psprite scales
   pspritescale = FixedDiv(viewwidth_nonwide, SCREENWIDTH);       // killough 11/98
@@ -769,7 +783,7 @@ void R_SetupFrame (player_t *player)
   if (pitch != viewpitch)
   {
     viewpitch = pitch;
-    SetupFreelook();
+    R_SetupFreelook();
   }
 
   // 3-screen display mode.
@@ -827,7 +841,7 @@ void R_SetupFrame (player_t *player)
 
 int rendered_visplanes, rendered_segs, rendered_vissprites, rendered_voxels;
 
-static void ClearStats(void)
+static void R_ClearStats(void)
 {
   rendered_visplanes = 0;
   rendered_segs = 0;
@@ -843,7 +857,7 @@ int autodetect_hom = 0;       // killough 2/7/98: HOM autodetection flag
 //
 void R_RenderPlayerView (player_t* player)
 {
-  ClearStats();
+  R_ClearStats();
 
   R_SetupFrame (player);
 

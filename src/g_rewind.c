@@ -71,7 +71,7 @@ static void Push(keyframe_t *keyframe)
                 // Queue becomes empty after removal
                 queue.top = NULL;
             }
-            P_FreeKeyframe(oldtail->keyframe);
+            P_DeleteKeyframe(oldtail->keyframe);
             free(oldtail);
             --queue.count;
         }
@@ -185,7 +185,7 @@ void G_LoadAutoKeyframe(void)
         keyframe_t* skipped = Pop();
         if (skipped)
         {
-            P_FreeKeyframe(skipped);
+            P_DeleteKeyframe(skipped);
         }
     }
 
@@ -206,7 +206,7 @@ void G_LoadAutoKeyframe(void)
         }
         else
         {
-            P_FreeKeyframe(keyframe);
+            P_DeleteKeyframe(keyframe);
         }
 
         G_ClearInput();
@@ -225,7 +225,7 @@ static void FreeKeyframeQueue(void)
     {
         elem_t* temp = current;
         current = current->next;
-        P_FreeKeyframe(temp->keyframe);
+        P_DeleteKeyframe(temp->keyframe);
         free(temp);
     }
     memset(&queue, 0, sizeof(queue));

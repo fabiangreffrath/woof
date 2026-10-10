@@ -10,6 +10,10 @@ on:
     paths-ignore: ['**.md']
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 env:
   VCPKG_BINARY_SOURCES: "clear;files,${{ github.workspace }}/vcpkg_cache,readwrite"
 
@@ -50,7 +54,9 @@ jobs:
             type: vcpkg
             triplet: x64-linux-release
             artifact-name: AppImage
-            artifact-path: build/*.AppImage
+            artifact-path: |-
+              build/*.AppImage
+              build/*.zsync
             extra-options: >-
               -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
               -DVCPKG_TARGET_TRIPLET=x64-linux-release
@@ -182,7 +188,9 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: ${{ github.workspace }}/vcpkg_cache
-          key: vcpkg-${{ matrix.config.triplet }}
+          key: vcpkg-${{ runner.os }}-${{ runner.arch }}-${{ matrix.config.triplet }}-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json', 'overlay-ports/**') }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-${{ runner.arch }}-${{ matrix.config.triplet }}-
 
       - name: Configure
         run: >-
@@ -212,13 +220,15 @@ jobs:
 
       - name: Delete old vcpkg cache
         continue-on-error: true
-        if: matrix.config.type == 'vcpkg' && steps.cache-vcpkg.outputs.cache-hit
+        if: matrix.config.type == 'vcpkg' && github.event_name == 'push' && github.ref == 'refs/heads/master' && steps.cache-vcpkg.outputs.cache-hit
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh cache delete --repo ${{ github.repository }} ${{ steps.cache-vcpkg.outputs.cache-primary-key }}
 
       - name: Save vcpkg cache
-        if: matrix.config.type == 'vcpkg'
+        # pull requests are restore-only: an entry saved from a PR is scoped to
+        # refs/pull/N/merge and is invisible to master and to other pull requests
+        if: matrix.config.type == 'vcpkg' && github.event_name == 'push' && github.ref == 'refs/heads/master'
         uses: actions/cache/save@v6
         with:
           path: ${{ github.workspace }}/vcpkg_cache
@@ -229,7 +239,7 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: demotest/extract
-          key: demotest
+          key: demotest-${{ hashFiles('demotest/config.toml') }}
 
       - name: Test
         run: |
@@ -237,11 +247,11 @@ jobs:
           python demotest --jobs 4 --port ../build/src/woof
 
       - name: Save demotest cache
-        if: steps.cache-demotest.outputs.cache-hit != 'true'
+        if: steps.cache-demotest.outputs.cache-hit != 'true' && github.event_name == 'push' && github.ref == 'refs/heads/master'
         uses: actions/cache/save@v6
         with:
           path: demotest/extract
-          key: demotest
+          key: demotest-${{ hashFiles('demotest/config.toml') }}
 
       - name: Universal Package (macOS)
         if: matrix.config.name == 'macOS uni (vcpkg)'
@@ -265,23 +275,26 @@ jobs:
           name: ${{ matrix.config.artifact-name }}
           path: ${{ matrix.config.artifact-path }}
 
+  release:
+    name: Release
+    needs: build
+    if: contains(github.ref, 'tags')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v7
+        with:
+          path: artifacts
+
       - name: Extract Version Number
-        if: matrix.config.type == 'vcpkg' && contains(github.ref, 'tags')
-        shell: bash
         run: echo "VERSION=${GITHUB_REF##*_}" >> $GITHUB_ENV
 
       - name: Release
-        if: matrix.config.type == 'vcpkg' && contains(github.ref, 'tags')
         uses: ncipollo/release-action@v1
         with:
           name: Woof! ${{ env.VERSION }}
           bodyFile: CHANGELOG.md
           allowUpdates: true
-          artifacts: ${{ matrix.config.artifact-path }}
-
-      - name: Release (zsync)
-        if: runner.os == 'Linux' && matrix.config.type == 'vcpkg' && contains(github.ref, 'tags')
-        uses: ncipollo/release-action@v1
-        with:
-          allowUpdates: true
-          artifacts: build/*.zsync
+          artifacts: artifacts/AppImage/*,artifacts/Win-64/*,artifacts/Win-32/*,artifacts/MacOS-universal/*

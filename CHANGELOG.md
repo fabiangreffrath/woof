@@ -15,13 +15,21 @@
   - The Load/Save Game menus are now organized in tabs, instead of pages.
     The left-most tab of the Load Game menu is for Quick Saves, its first slot is reserved for Auto Save.
     Quick Saves are now immediate and always override the oldest available slot.
+  - Added the "Move Over/Under Monsters" option (Off / Player only / All) to the Compatibility menu.
+    The player, and optionally all monsters, can now pass over or under other solid, shootable things instead of colliding with them at any height.
+    Things standing on other things are carried along by moving sectors.
+    Monsters cannot hit things above or below them in melee if their heights do not overlap.
+    The option is disabled in demos, netgames and strict mode.
 
 * **Rendering:**
-  - Made the SDL renderer not be cleared every frame, for improved rendering performance in general.
   - Improved palettization of PNG graphics, and general color approximation in the engine.
   - Implemented transposed rendering for improved rendering performance in general.
   - Added "Cylindrical" sky projection as a third option besides "Vanilla" and "Linear" (from Nugget Doom).
   - Improved performance of brightmapped rendering (thanks @bangstk).
+
+* **Multiplayer:**
+  - Implemented rollback netcode: Processes local inputs instantly and predicts opponent actions, automatically rewinding and correcting the game state if a prediction is incorrect.
+  - Added IPv6 support.
 
 ## Bug Fixes
 
@@ -38,11 +46,12 @@
 * Fixed demo desync by menu-pausing during the intermission screen
 * Fixed DEHACKED-related crashes caused by calling player sprite actions as thinker functions (e.g. Blues Brothers 2023)
 * Fixed mouse hit boxes for savegame entries in the Load Game / Save Game menus
+* Fixed some occurances of undefined behavior in the code that led to demo desyncs caused by compiler optimizations
+* Fixed SDL3 MacOSX compile directive. (CMD+Enter for fullscreen, Linux Steam folder search, 'Woof! Setup' help URL)
 
 ## Miscellaneous
 
 * Rearranged default HUD layouts: "Nightdive" and "Crispy" layouts swapped places
 * Renamed MacOS build from "`Woof-<version>-uni.zip`" to "`Woof-<version>-MacOS-universal.zip`"
 * Savegame description and snapshot are now saved outside the compressed keyframe to speed up populating the Load/Save Game menu pages
-* The release artifacts now run on Windows 7 again
-* Add support for IPv6
+* The release artifacts now run on Windows 7 agains
