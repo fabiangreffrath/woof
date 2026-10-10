@@ -15,12 +15,12 @@
 
 #include <SDL3/SDL.h>
 
-thread_t I_ThreadCreate(threadfunc_t runfunc, void *userdata)
+thread_t *I_ThreadCreate(threadfunc_t runfunc, void *userdata)
 {
     return SDL_CreateThread(runfunc, NULL, userdata);
 }
 
-void I_ThreadDestroy(thread_t thread)
+void I_ThreadDestroy(thread_t *thread)
 {
     if (thread)
     {
@@ -28,7 +28,7 @@ void I_ThreadDestroy(thread_t thread)
     }
 }
 
-void I_ThreadJoin(thread_t thread)
+void I_ThreadJoin(thread_t *thread)
 {
     SDL_WaitThread(thread, NULL);
 }
@@ -44,7 +44,7 @@ void I_Yield(void)
     SDL_Delay(0);
 }
 
-semaphore_t I_SemaphoreCreate(int32_t initialcount)
+semaphore_t *I_SemaphoreCreate(int32_t initialcount)
 {
     // SDL_CreateSemaphore takes a Uint32 initial value.  A negative
     // initial count is clamped to 0.
@@ -52,36 +52,36 @@ semaphore_t I_SemaphoreCreate(int32_t initialcount)
     return SDL_CreateSemaphore(init);
 }
 
-void I_SemaphoreAcquire(semaphore_t sem)
+void I_SemaphoreAcquire(semaphore_t *sem)
 {
     // SDL_WaitSemaphore suspends the calling thread until the semaphore has
     // a positive value, then atomically decrements it.
     SDL_WaitSemaphore(sem);
 }
 
-void I_SemaphoreRelease(semaphore_t sem)
+void I_SemaphoreRelease(semaphore_t *sem)
 {
     // SDL_SignalSemaphore atomically increments the semaphore and wakes a
     // waiter.
     SDL_SignalSemaphore(sem);
 }
 
-atomicval_t I_AtomicLoad(atomic_t atomic)
+atomicval_t I_AtomicLoad(atomic_t *atomic)
 {
     return SDL_GetAtomicInt(atomic);
 }
 
-atomicval_t I_AtomicExchange(atomic_t atomic, atomicval_t val)
+atomicval_t I_AtomicExchange(atomic_t *atomic, atomicval_t val)
 {
     return SDL_SetAtomicInt(atomic, val);
 }
 
-atomicval_t I_AtomicIncrement(atomic_t atomic, atomicval_t val)
+atomicval_t I_AtomicIncrement(atomic_t *atomic, atomicval_t val)
 {
     return SDL_AddAtomicInt(atomic, val);
 }
 
-atomicval_t I_AtomicDecrement(atomic_t atomic, atomicval_t val)
+atomicval_t I_AtomicDecrement(atomic_t *atomic, atomicval_t val)
 {
     return SDL_AddAtomicInt(atomic, -val);
 }
@@ -110,12 +110,12 @@ typedef struct job_s
 typedef struct jobthread_s
 {
     job_t queue[JOB_QUEUE_SIZE];
-    SDL_AtomicInt writepos;   // next slot the producer will claim
-    SDL_AtomicInt committed;  // one past the last published slot
-    SDL_AtomicInt readpos;    // next slot the worker will consume
-    SDL_AtomicInt terminate;
-    semaphore_t jobsem;       // posted once per queued job
-    thread_t thread;
+    atomic_t writepos;   // next slot the producer will claim
+    atomic_t committed;  // one past the last published slot
+    atomic_t readpos;    // next slot the worker will consume
+    atomic_t terminate;
+    semaphore_t *jobsem; // posted once per queued job
+    thread_t *thread;
     int index;
 } jobthread_t;
 
@@ -124,7 +124,7 @@ static int numjobthreads;   // threads created
 static int numactivejobs;   // round-robin window (I_JobsSetActive)
 static int nextjobthread;
 
-static semaphore_t donesem; // worker posts once per completed job
+static semaphore_t *donesem; // worker posts once per completed job
 static int pendingjobs;     // jobs submitted since last flush (main thread)
 
 static int JobThreadRun(void *data)
@@ -172,10 +172,10 @@ void I_JobsInit(int numthreads)
     {
         jobthread_t *worker = &jobpool[i];
         worker->index = i;
-        SDL_SetAtomicInt(&worker->writepos, 0);
-        SDL_SetAtomicInt(&worker->committed, 0);
-        SDL_SetAtomicInt(&worker->readpos, 0);
-        SDL_SetAtomicInt(&worker->terminate, 0);
+        I_AtomicExchange(&worker->writepos, 0);
+        I_AtomicExchange(&worker->committed, 0);
+        I_AtomicExchange(&worker->readpos, 0);
+        I_AtomicExchange(&worker->terminate, 0);
         worker->jobsem = I_SemaphoreCreate(0);
         worker->thread = I_ThreadCreate(JobThreadRun, worker);
     }
@@ -197,7 +197,7 @@ void I_JobsShutdown(void)
 
     for (int i = 0; i < numjobthreads; i++)
     {
-        SDL_SetAtomicInt(&jobpool[i].terminate, 1);
+        I_AtomicExchange(&jobpool[i].terminate, 1);
         I_SemaphoreRelease(jobpool[i].jobsem);
     }
 
@@ -234,7 +234,7 @@ void I_JobsAdd(jobfunc_t func, void *userdata)
     const int pos = I_AtomicIncrement(&worker->writepos, 1);
     worker->queue[pos & JOB_QUEUE_MASK].func = func;
     worker->queue[pos & JOB_QUEUE_MASK].userdata = userdata;
-    SDL_SetAtomicInt(&worker->committed, pos + 1);
+    I_AtomicExchange(&worker->committed, pos + 1);
 
     pendingjobs++;
     I_SemaphoreRelease(worker->jobsem);

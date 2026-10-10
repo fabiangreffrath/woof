@@ -27,37 +27,37 @@
   #define THREADLOCAL _Thread_local
 #endif
 
-typedef struct SDL_Thread *thread_t;
+typedef struct SDL_Thread thread_t;
 typedef int (*threadfunc_t)(void *data);
 
-thread_t I_ThreadCreate(threadfunc_t runfunc, void *userdata);
+thread_t *I_ThreadCreate(threadfunc_t runfunc, void *userdata);
 
-void I_ThreadDestroy(thread_t thread);
+void I_ThreadDestroy(thread_t *thread);
 
-void I_ThreadJoin(thread_t thread);
+void I_ThreadJoin(thread_t *thread);
 
 int I_ThreadGetHardwareCount(void);
 
 void I_Yield(void);
 
-typedef struct SDL_Semaphore *semaphore_t;
+typedef struct SDL_Semaphore semaphore_t;
 
-semaphore_t I_SemaphoreCreate(int32_t initialcount);
+semaphore_t *I_SemaphoreCreate(int32_t initialcount);
 
-void I_SemaphoreAcquire(semaphore_t sem);
+void I_SemaphoreAcquire(semaphore_t *sem);
 
-void I_SemaphoreRelease(semaphore_t sem);
+void I_SemaphoreRelease(semaphore_t *sem);
 
-typedef struct SDL_AtomicInt *atomic_t;
+typedef struct SDL_AtomicInt atomic_t;
 typedef int atomicval_t;
 
-atomicval_t I_AtomicLoad(atomic_t atomic);
+atomicval_t I_AtomicLoad(atomic_t *atomic);
 
-atomicval_t I_AtomicExchange(atomic_t atomic, atomicval_t val);
+atomicval_t I_AtomicExchange(atomic_t *atomic, atomicval_t val);
 
-atomicval_t I_AtomicIncrement(atomic_t atomic, atomicval_t val);
+atomicval_t I_AtomicIncrement(atomic_t *atomic, atomicval_t val);
 
-atomicval_t I_AtomicDecrement(atomic_t atomic, atomicval_t val);
+atomicval_t I_AtomicDecrement(atomic_t *atomic, atomicval_t val);
 
 //
 // Job system for the multithreaded renderer.
