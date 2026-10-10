@@ -257,6 +257,12 @@ static void R_PreparePlaneRows(const lighttable_t *const thiscolormap)
     {
         planerow_t *row = &planeraster[y];
         row->distance = FixedMul(planeheight, yslope[y]);
+        // 16.16 overflow guard. Near-horizon rows of a tall plane (large
+        // yslope * large planeheight) exceed INT32_MAX and wrap negative.
+        if (dist < 0 || dist > ((MAXLIGHTZ - 1) << LIGHTZSHIFT))
+        {
+            dist = (MAXLIGHTZ - 1) << LIGHTZSHIFT;
+        }
 
         if (fixedcolormapoffset)
         {
