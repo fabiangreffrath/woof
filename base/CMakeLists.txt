@@ -220,6 +220,7 @@ set(BASE_SOURCES
     all-all/dmxopl.op2
     all-all/sbardef.json
     all-all/sbhuddef.json
+    all-all/skilldef.json
     all-all/skytran.lmp
     all-all/switches.lmp
 
