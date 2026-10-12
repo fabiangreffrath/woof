@@ -51,8 +51,6 @@
 #include "v_trans.h"
 #include "z_zone.h"
 
-#define STEP_HEIGHT (24 * FRACUNIT)
-
 static mobj_t    *tmthing;
 static int       tmflags;
 static fixed_t   tmx;

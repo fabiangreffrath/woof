@@ -41,6 +41,8 @@ struct sector_s;
 // is larger, but we do not have any moving sectors nearby
 #define MAXRADIUS       (32*FRACUNIT)
 
+#define STEP_HEIGHT (24*FRACUNIT)
+
 #define CROSSHAIR_AIM 1
 
 // killough 3/15/98: add fourth argument to P_TryMove
