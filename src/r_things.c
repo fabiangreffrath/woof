@@ -344,7 +344,7 @@ void R_InitSprites(char **namelist)
 void R_ClearSprites (void)
 {
   // [MT] per-thread sprite clip buffers, sized to the current video width.
-  if (clip_width != video.width)
+  if (clip_width < video.width)
   {
     clipbot = I_Realloc(clipbot, 2 * video.width * sizeof(*clipbot));
     cliptop = clipbot + video.width;

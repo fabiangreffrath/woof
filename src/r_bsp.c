@@ -24,7 +24,6 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "i_system.h"
-#include "i_thread.h"
 #include "i_video.h" // [FG] uncapped
 #include "m_bbox.h"
 #include "m_fixed.h"
@@ -142,7 +141,7 @@ static void R_ClipWallSegment(int first, int last, boolean solid)
 
 void R_ClearClipSegs (void)
 {
-  if (solidcol_size != video.width)
+  if (solidcol_size < video.width)
   {
     solidcol = I_Realloc(solidcol, video.width * sizeof(*solidcol));
     solidcol_size = video.width;

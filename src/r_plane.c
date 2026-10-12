@@ -170,8 +170,8 @@ static void R_FreeVisplanes(void)
 
 static void R_AllocPlaneBuffers(void)
 {
-  if (plane_buffers_width == video.width
-      && plane_buffers_height == video.height)
+  if (plane_buffers_width >= video.width
+      && plane_buffers_height >= video.height)
   {
     return;
   }
@@ -384,7 +384,7 @@ void R_ClearPlanes(void)
   // [MT] per-thread buffers, sized to the current video mode.
   R_AllocPlaneBuffers();
 
-  if (visplane_width != video.width)
+  if (visplane_width < video.width)
   {
     // visplane top/bottom arrays are sized by video.width; recycle the pool
     // when the resolution changes.
