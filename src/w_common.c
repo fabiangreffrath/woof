@@ -189,42 +189,42 @@ void W_FilterAutoload(w_module_t *module, w_handle_t handle)
 {
     if (gamemission < pack_chex)
     {
-        module->AddDir(handle, "filter" DIR_SEPARATOR_S "doom-all");
+        module->AddDir(handle, "autoload" DIR_SEPARATOR_S "doom-all");
         module->AddDir(handle, "filter" DIR_SEPARATOR_S "game-doom");
     }
     if (gamemission == pack_chex || gamemission == pack_chex3v)
     {
-        module->AddDir(handle, "filter" DIR_SEPARATOR_S "chex-all");
+        module->AddDir(handle, "autoload" DIR_SEPARATOR_S "chex-all");
         module->AddDir(handle, "filter" DIR_SEPARATOR_S "game-chex");
     }
     if (gamemission == doom)
     {
-        module->AddDir(handle, "filter" DIR_SEPARATOR_S "doom1-all");
+        module->AddDir(handle, "autoload" DIR_SEPARATOR_S "doom1-all");
     }
     else if (gamemission >= doom2 && gamemission <= pack_plut)
     {
-        module->AddDir(handle, "filter" DIR_SEPARATOR_S "doom2-all");
+        module->AddDir(handle, "autoload" DIR_SEPARATOR_S "doom2-all");
     }
     else if (gamemission == pack_freedoom)
     {
-        module->AddDir(handle, "filter" DIR_SEPARATOR_S "freedoom-all");
+        module->AddDir(handle, "autoload" DIR_SEPARATOR_S "freedoom-all");
         if (gamemode == commercial)
         {
-            module->AddDir(handle, "filter" DIR_SEPARATOR_S "freedoom2-all");
+            module->AddDir(handle, "autoload" DIR_SEPARATOR_S "freedoom2-all");
         }
         else
         {
-            module->AddDir(handle, "filter" DIR_SEPARATOR_S "freedoom1-all");
+            module->AddDir(handle, "autoload" DIR_SEPARATOR_S "freedoom1-all");
         }
     }
     else if (gamemission == pack_rekkr)
     {
-        module->AddDir(handle, "filter" DIR_SEPARATOR_S "rekkr-all");
+        module->AddDir(handle, "autoload" DIR_SEPARATOR_S "rekkr-all");
     }
 
     for (int i = 0; i < array_size(wadfiles); ++i)
     {
-        char *dir = M_StringJoin("filter", DIR_SEPARATOR_S, M_BaseName(wadfiles[i]));
+        char *dir = M_StringJoin("autoload", DIR_SEPARATOR_S, M_BaseName(wadfiles[i]));
         module->AddDir(handle, dir);
         free(dir);
     }

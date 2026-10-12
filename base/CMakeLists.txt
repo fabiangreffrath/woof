@@ -224,33 +224,33 @@ set(BASE_SOURCES
     skytran.lmp
     switches.lmp
 
-    filter/betalevl.wad/umapinfo.lmp
+    autoload/betalevl.wad/umapinfo.lmp
 
-    filter/chex.wad/brghtmps.lmp
-    filter/chex.wad/umapinfo.lmp
+    autoload/chex.wad/brghtmps.lmp
+    autoload/chex.wad/umapinfo.lmp
 
-    filter/chex2.wad/brghtmps.lmp
-    filter/chex2.wad/dehacked.lmp
+    autoload/chex2.wad/brghtmps.lmp
+    autoload/chex2.wad/dehacked.lmp
 
-    filter/chex-all/brghtmps.lmp
+    autoload/chex-all/brghtmps.lmp
 
-    filter/doom-all/brghtmps.lmp
+    autoload/doom-all/brghtmps.lmp
 
-    filter/e1m4b.wad/dehacked.lmp
-    filter/e1m8b.wad/dehacked.lmp
+    autoload/e1m4b.wad/dehacked.lmp
+    autoload/e1m8b.wad/dehacked.lmp
 
-    filter/hacx.wad/brghtmps.lmp
-    filter/hacx.wad/dehacked.lmp
+    autoload/hacx.wad/brghtmps.lmp
+    autoload/hacx.wad/dehacked.lmp
 
-    filter/id1.wad/dehacked.lmp
-    filter/id1.wad/smflam0.png
-    filter/id1.wad/smflam1.png
-    filter/id1.wad/smheat0.png
-    filter/id1.wad/smheat1.png
+    autoload/id1.wad/dehacked.lmp
+    autoload/id1.wad/smflam0.png
+    autoload/id1.wad/smflam1.png
+    autoload/id1.wad/smheat0.png
+    autoload/id1.wad/smheat1.png
 
-    filter/rekkr-all/dehacked.lmp
+    autoload/rekkr-all/dehacked.lmp
 
-    filter/tnt.wad/brghtmps.lmp)
+    autoload/tnt.wad/brghtmps.lmp)
 
 add_custom_command(OUTPUT "${BASE_PK3_PATH}"
     COMMAND ${CMAKE_COMMAND} -E tar cf "${BASE_PK3_PATH}" --format=zip ${BASE_SOURCES}
