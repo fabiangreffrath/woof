@@ -37,16 +37,16 @@ void I_SemaphoreAcquire(semaphore_t *sem);
 
 void I_SemaphoreRelease(semaphore_t *sem);
 
-typedef struct SDL_AtomicInt atomic_t;
+typedef struct { int value; } atomicint_t;
 typedef int atomicval_t;
 
-atomicval_t I_AtomicLoad(atomic_t *atomic);
+atomicval_t I_AtomicLoad(atomicint_t *atomic);
 
-atomicval_t I_AtomicExchange(atomic_t *atomic, atomicval_t val);
+atomicval_t I_AtomicExchange(atomicint_t *atomic, atomicval_t val);
 
-atomicval_t I_AtomicIncrement(atomic_t *atomic, atomicval_t val);
+atomicval_t I_AtomicIncrement(atomicint_t *atomic, atomicval_t val);
 
-atomicval_t I_AtomicDecrement(atomic_t *atomic, atomicval_t val);
+atomicval_t I_AtomicDecrement(atomicint_t *atomic, atomicval_t val);
 
 //
 // Job system for the multithreaded renderer.

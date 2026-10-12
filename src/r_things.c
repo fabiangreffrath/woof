@@ -829,11 +829,13 @@ void R_AddSprites(sector_t* sec, int lightlevel_override)
   // [MT] per-context stamp (see rendervalidcount in r_defs.h): every render
   // context adds the sector's things once for itself. The gameplay code keeps
   // using sec->validcount/validcount untouched.
-  if (sec->rendervalidcount == r_validstamp)
+  if (I_AtomicLoad(&sec->rendervalidcount) == r_validstamp)
     return;
 
-  // Well, now it will be done.
-  sec->rendervalidcount = r_validstamp;
+  // Well, now it will be done. Use atomic exchange to avoid TSan data race
+  // on the write; multiple contexts process the same sector (each for its
+  // own column slab), so whichever stamp wins is benign.
+  I_AtomicExchange(&sec->rendervalidcount, r_validstamp);
 
   // Handle all things in sector.
 
@@ -847,7 +849,7 @@ void R_AddSprites(sector_t* sec, int lightlevel_override)
       thing = n->m_thing;
 
       // [FG] sprites in sector have already been projected
-      if (thing->subsector->sector->rendervalidcount != r_validstamp)
+      if (I_AtomicLoad(&thing->subsector->sector->rendervalidcount) != r_validstamp)
       {
         array_push(nearby_sprites, thing);
       }
@@ -867,7 +869,7 @@ void R_NearbySprites (void)
     R_FakeFlat(sec, &tempsec, &floorlightlevel, &ceilinglightlevel, false);
 
     // [FG] sprites in sector have already been projected
-    if (sec->rendervalidcount != r_validstamp) // [MT]
+    if (I_AtomicLoad(&sec->rendervalidcount) != r_validstamp) // [MT]
     {
       R_ProjectSprite(thing, (floorlightlevel + ceilinglightlevel) / 2);
     }

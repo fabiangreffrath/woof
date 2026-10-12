@@ -17,7 +17,7 @@
 
 thread_t *I_ThreadCreate(threadfunc_t runfunc, void *userdata)
 {
-    return SDL_CreateThread(runfunc, NULL, userdata);
+    return SDL_CreateThread(runfunc, "woof", userdata);
 }
 
 void I_ThreadDestroy(thread_t *thread)
@@ -66,24 +66,24 @@ void I_SemaphoreRelease(semaphore_t *sem)
     SDL_SignalSemaphore(sem);
 }
 
-atomicval_t I_AtomicLoad(atomic_t *atomic)
+atomicval_t I_AtomicLoad(atomicint_t *atomic)
 {
-    return SDL_GetAtomicInt(atomic);
+    return SDL_GetAtomicInt((SDL_AtomicInt *)atomic);
 }
 
-atomicval_t I_AtomicExchange(atomic_t *atomic, atomicval_t val)
+atomicval_t I_AtomicExchange(atomicint_t *atomic, atomicval_t val)
 {
-    return SDL_SetAtomicInt(atomic, val);
+    return SDL_SetAtomicInt((SDL_AtomicInt *)atomic, val);
 }
 
-atomicval_t I_AtomicIncrement(atomic_t *atomic, atomicval_t val)
+atomicval_t I_AtomicIncrement(atomicint_t *atomic, atomicval_t val)
 {
-    return SDL_AddAtomicInt(atomic, val);
+    return SDL_AddAtomicInt((SDL_AtomicInt *)atomic, val);
 }
 
-atomicval_t I_AtomicDecrement(atomic_t *atomic, atomicval_t val)
+atomicval_t I_AtomicDecrement(atomicint_t *atomic, atomicval_t val)
 {
-    return SDL_AddAtomicInt(atomic, -val);
+    return SDL_AddAtomicInt((SDL_AtomicInt *)atomic, -val);
 }
 
 //
@@ -110,10 +110,10 @@ typedef struct job_s
 typedef struct jobthread_s
 {
     job_t queue[JOB_QUEUE_SIZE];
-    atomic_t writepos;   // next slot the producer will claim
-    atomic_t committed;  // one past the last published slot
-    atomic_t readpos;    // next slot the worker will consume
-    atomic_t terminate;
+    atomicint_t writepos;   // next slot the producer will claim
+    atomicint_t committed;  // one past the last published slot
+    atomicint_t readpos;    // next slot the worker will consume
+    atomicint_t terminate;
     semaphore_t *jobsem; // posted once per queued job
     thread_t *thread;
     int index;

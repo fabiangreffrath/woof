@@ -337,7 +337,7 @@ sector_t *R_FakeFlat(sector_t *sec, sector_t *tempsec,
 // deterministic function of shared read-only state (gametic, old/current
 // heights), so every thread writes the same value - benign race, same
 // approach as Rum and Raisin Doom.
-static void R_MaybeInterpolateSector(sector_t* sector)
+NOSANITIZE_THREAD static void R_MaybeInterpolateSector(sector_t* sector)
 {
     if (uncapped)
     {
@@ -398,7 +398,7 @@ static void R_MaybeInterpolateSector(sector_t* sector)
 }
 
 // [MT] same benign deterministic race as R_MaybeInterpolateSector().
-static void R_MaybeInterpolateTextureOffsets(side_t *side)
+NOSANITIZE_THREAD static void R_MaybeInterpolateTextureOffsets(side_t *side)
 {
     if (uncapped && side->oldgametic == gametic - 1)
     {

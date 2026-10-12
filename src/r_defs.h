@@ -23,6 +23,7 @@
 // Some more or less basic data types
 // we depend on.
 #include "doomdata.h"
+#include "i_thread.h"
 #include "m_fixed.h"
 #include "tables.h"
 
@@ -94,7 +95,7 @@ typedef struct sector_s
   // [MT] per-render-thread sprite-dedup stamp, see R_AddSprites(). Separate
   // from validcount because each parallel render context needs its own stamp
   // while the gameplay code keeps using validcount.
-  int rendervalidcount;
+  atomicint_t rendervalidcount;
   struct mobj_s *thinglist; // list of mobjs in sector
 
   // TODO: convert from special, Eternity-style
