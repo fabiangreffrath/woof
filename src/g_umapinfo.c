@@ -1126,13 +1126,13 @@ boolean MI_Freeaim(void)
         return false;
     }
 
-    if (!gamemapinfo)
+    if (gamemapinfo)
     {
-        return false;
+        return (gamemapinfo->freeaim != PM_Disallow && freelook)
+               || (gamemapinfo->freeaim == PM_Require);
     }
 
-    return (gamemapinfo->freeaim != PM_Disallow && freelook)
-           || (gamemapinfo->freeaim == PM_Require);
+    return true;
 }
 
 // Death action
