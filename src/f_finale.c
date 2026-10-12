@@ -601,6 +601,12 @@ static boolean CustomPaletteExists(void)
     return gamemapinfo && gamemapinfo->endpalette[0];
 }
 
+static boolean AnyKeyPressed(event_t *e)
+{
+    return e->type == ev_keydown || e->type == ev_joyb_down
+           || e->type == ev_mouseb_down;
+}
+
 boolean F_Responder (event_t *event)
 {
     if (finalestage == FINALE_STAGE_CAST)
@@ -610,7 +616,7 @@ boolean F_Responder (event_t *event)
     else if (finalestage == FINALE_STAGE_ART)
     {
         // If the palette is changed, kick to title instead of opening the menu
-        if (CustomPaletteExists() && event->type == ev_keydown)
+        if (CustomPaletteExists() && AnyKeyPressed(event))
         {
             finalestage = FINALE_STAGE_TITLE;
             S_StartSound(NULL, sfx_mnucls);
