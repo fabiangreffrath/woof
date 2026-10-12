@@ -220,6 +220,7 @@ set(BASE_SOURCES
     dmxopl.op2
     sbardef.json
     sbhuddef.json
+    skilldef.json
     skytran.lmp
     switches.lmp
 
