@@ -416,12 +416,10 @@ static int fuzzpos_tic;
 
 void R_SetFuzzPosTic(void)
 {
-    // [crispy] prevent the animation from remaining static
-    if (fuzzpos == fuzzpos_tic)
-    {
-        fuzzpos = (fuzzpos + 1) % FUZZTABLE;
-    }
-    fuzzpos_tic = fuzzpos;
+    // [MT] advance the shared position exactly once per tic, independent of how
+    // much any render context consumed. Every context restarts from
+    // fuzzpos_tic each frame, so all slabs animate in lockstep.
+    fuzzpos_tic = (fuzzpos_tic + 1) % FUZZTABLE;
 }
 
 void R_SetFuzzPosDraw(void)
@@ -518,17 +516,16 @@ static void DrawFuzzColumnOriginal(void)
 
 static int fuzzblocksize;
 
-// [MT] note for multithreaded rendering: blocky/refraction fuzz writes a
-// fuzzblocksize-wide block of columns starting at dc_x. Only the column
-// where dc_x % fuzzblocksize == 0 does the drawing, so every output pixel
-// is still written by exactly one render context (the one owning the
-// block's first column), even though the block reaches into neighbouring
-// contexts' columns.
+// [MT] blocky/refraction fuzz writes a fuzzblocksize-wide block of columns
+// starting at dc_x. Blocks are aligned to the owning render context's slab
+// start and clipped to its end, so a block never reaches into a neighbouring
+// context's columns and every output pixel is written by exactly one render
+// context.
 static void DrawFuzzColumnBlocky(void)
 {
     boolean cutoff = false;
 
-    if (dc_x % fuzzblocksize)
+    if ((dc_x - r_context->startcol) % fuzzblocksize)
     {
         return;
     }
@@ -564,7 +561,7 @@ static void DrawFuzzColumnBlocky(void)
 
     int lines = fuzzblocksize - (dc_yl % fuzzblocksize);
 
-    const int fuzzblockwidth = MIN(fuzzblocksize, video.width - dc_x);
+    const int fuzzblockwidth = MIN(fuzzblocksize, r_context->endcol - dc_x);
 
     do
     {
@@ -636,7 +633,7 @@ static void DrawFuzzColumnRefraction(void)
 {
     boolean cutoff = false;
 
-    if (dc_x % fuzzblocksize)
+    if ((dc_x - r_context->startcol) % fuzzblocksize)
     {
         return;
     }
@@ -672,7 +669,7 @@ static void DrawFuzzColumnRefraction(void)
 
     int lines = fuzzblocksize - (dc_yl % fuzzblocksize);
 
-    const int fuzzblockwidth = MIN(fuzzblocksize, video.width - dc_x);
+    const int fuzzblockwidth = MIN(fuzzblocksize, r_context->endcol - dc_x);
 
     int dark = FUZZDARK;
     int offset = 0;
