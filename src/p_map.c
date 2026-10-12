@@ -684,7 +684,9 @@ static boolean PIT_CheckThing(mobj_t *thing) // killough 3/26/98: make static
     {
         const fixed_t top = thing->z + thing->height;
 
-        if (tmthing->z >= top)
+        // The mover is above the thing, or a player can step up onto it.
+        if (tmthing->z >= top
+            || (tmthing->player && top - tmthing->z <= 24 * FRACUNIT))
         {
             if (top > tmfloorz)
             {
