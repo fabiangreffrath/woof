@@ -940,18 +940,23 @@ static void R_EvenContextSplit(int contexts)
 static void R_RenderLoadBalance(int contexts)
 {
     const double idealpercentage = 1.0 / contexts;
-    double lastframetime = 0;
+    double total_smoothed_time = 0;
     double timepercentages[MAX_RENDER_CONTEXTS];
     double widthpercentages[MAX_RENDER_CONTEXTS];
     int overbudgetcount = 0;
     int underbudgetcount = 0;
 
+    // Update exponentially smoothed time: 90% old + 10% new
+    // This prevents slab boundaries from jumping every frame.
     for (int i = 0; i < contexts; i++)
     {
-        lastframetime += rendercontexts[i].timetaken;
+        rendercontexts[i].smoothed_time =
+            0.9 * rendercontexts[i].smoothed_time +
+            0.1 * (double)rendercontexts[i].timetaken;
+        total_smoothed_time += rendercontexts[i].smoothed_time;
     }
 
-    if (lastframetime <= 0)
+    if (total_smoothed_time <= 0)
     {
         R_EvenContextSplit(contexts);
         return;
@@ -959,7 +964,7 @@ static void R_RenderLoadBalance(int contexts)
 
     for (int i = 0; i < contexts; i++)
     {
-        timepercentages[i] = rendercontexts[i].timetaken / lastframetime;
+        timepercentages[i] = rendercontexts[i].smoothed_time / total_smoothed_time;
         if (timepercentages[i] > idealpercentage)
             overbudgetcount++;
         else
@@ -985,7 +990,19 @@ static void R_RenderLoadBalance(int contexts)
         const double growamount = timepercentages[i] > idealpercentage
                                       ? -removeamount
                                       : addamount;
-        widthpercentages[i] = oldwidthpercentage + growamount;
+
+        // Hysteresis: only adjust if imbalance exceeds 10% of ideal share.
+        // This prevents slab boundaries from jittering due to timing noise.
+        const double imbalance = fabs(timepercentages[i] - idealpercentage);
+        const double hysteresis_threshold = idealpercentage * 0.10;
+        if (imbalance > hysteresis_threshold)
+        {
+            widthpercentages[i] = oldwidthpercentage + growamount;
+        }
+        else
+        {
+            widthpercentages[i] = oldwidthpercentage;
+        }
     }
 
     int currstart = 0;
@@ -1208,6 +1225,7 @@ void R_InitRenderThreads(void)
   {
     rendercontexts[i].index = i;
     rendercontexts[i].timetaken = 1;
+    rendercontexts[i].smoothed_time = 1.0;
   }
 
   // Context 0 always renders on the calling thread, so the pool only needs

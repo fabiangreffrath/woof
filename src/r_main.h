@@ -128,6 +128,9 @@ typedef struct rendercontext_s
 
     // microseconds taken last frame, used by the load balancer
     uint64_t timetaken;
+
+    // exponentially smoothed frame time for stable load balancing
+    double smoothed_time;
 } rendercontext_t;
 
 // TLS context currently being rendered by this thread.
