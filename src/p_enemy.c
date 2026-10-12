@@ -636,10 +636,10 @@ static boolean PIT_AvoidDropoff(line_t *line)
       // The monster must contact one of the two floors,
       // and the other must be a tall dropoff (more than 24).
 
-      if (back == floorz && front < floorz - FRACUNIT*24)
+      if (back == floorz && front < floorz - STEP_HEIGHT)
 	angle = R_PointToAngle2(0,0,line->dx,line->dy);   // front side dropoff
       else
-	if (front == floorz && back < floorz - FRACUNIT*24)
+	if (front == floorz && back < floorz - STEP_HEIGHT)
 	  angle = R_PointToAngle2(line->dx,line->dy,0,0); // back side dropoff
 	else
 	  return true;
@@ -699,7 +699,7 @@ static void P_NewChaseDir(mobj_t *actor)
 
   if (demo_version >= DV_MBF)
   {
-    if (actor->floorz - actor->dropoffz > FRACUNIT*24 &&
+    if (actor->floorz - actor->dropoffz > STEP_HEIGHT &&
 	actor->z <= actor->floorz && !(actor->flags & (MF_DROPOFF|MF_FLOAT)) &&
 	!comp[comp_dropoff] && P_AvoidDropoff(actor)) // Move away from dropoff
       {
