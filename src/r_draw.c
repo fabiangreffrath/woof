@@ -76,6 +76,7 @@ static pixel_t *background_buffer = NULL;
 // [MT] thread-local drawer state, see r_draw.h.
 THREADLOCAL const lighttable_t *dc_colormap;
 THREADLOCAL int dc_x;
+THREADLOCAL int dc_x1;
 THREADLOCAL int dc_yl;
 THREADLOCAL int dc_yh;
 THREADLOCAL fixed_t dc_iscale;
@@ -407,8 +408,9 @@ static const int fuzzoffset[FUZZTABLE] =
     FUZZOFF,FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,-FUZZOFF,FUZZOFF
 };
 
-// [MT] fuzzpos is thread-local: every render context animates its own fuzz
-// position, there is no shared counter to synchronize.
+// [MT] fuzzpos is thread-local scratch: every fuzz column/block seeds it
+// from fuzzpos_tic and its absolute screen position, so the pattern does
+// not depend on how the view is split into render context slabs.
 static THREADLOCAL int fuzzpos = 0;
 
 // [crispy] draw fuzz effect independent of rendering frame rate
@@ -424,8 +426,8 @@ void R_SetFuzzPosTic(void)
 
 void R_SetFuzzPosDraw(void)
 {
-    // [MT] called once per render context: every thread restarts its fuzz
-    // animation from the shared tic position.
+    // [MT] the fuzz drawers reseed fuzzpos per column/block from
+    // fuzzpos_tic; this just gives the render context a defined start.
     fuzzpos = fuzzpos_tic;
 }
 
@@ -469,6 +471,10 @@ static void DrawFuzzColumnOriginal(void)
         I_Error("%i to %i at %i", dc_yl, dc_yh, dc_x);
     }
 #endif
+
+    // [MT] seed the animation from the absolute position so the pattern is
+    // identical for any slab split; 7 and 13 are coprime to FUZZTABLE.
+    fuzzpos = (fuzzpos_tic + dc_x * 7 + dc_yl * 13) % FUZZTABLE;
 
     // Keep till detailshift bug in blocky mode fixed,
     //  or blocky mode removed.
@@ -516,16 +522,21 @@ static void DrawFuzzColumnOriginal(void)
 
 static int fuzzblocksize;
 
-// [MT] blocky/refraction fuzz writes a fuzzblocksize-wide block of columns
-// starting at dc_x. Blocks are aligned to the owning render context's slab
-// start and clipped to its end, so a block never reaches into a neighbouring
-// context's columns and every output pixel is written by exactly one render
-// context.
+// [MT] blocky/refraction fuzz writes fuzzblocksize-wide blocks on a global
+// column grid (dc_x % fuzzblocksize), so the pattern does not depend on how
+// the view is split into slabs. A block is written by the context that owns
+// its first column, clipped to that context's endcol; if the block straddles
+// a slab border, the next context finishes it from its own first column
+// (dc_x1).
 static void DrawFuzzColumnBlocky(void)
 {
     boolean cutoff = false;
 
-    if ((dc_x - r_context->startcol) % fuzzblocksize)
+    const int blockstart = dc_x - dc_x % fuzzblocksize;
+
+    // Draw if this column owns the block, or if it is the first column of
+    // the sprite slice and the block began to its left.
+    if (dc_x % fuzzblocksize && dc_x != dc_x1)
     {
         return;
     }
@@ -561,7 +572,13 @@ static void DrawFuzzColumnBlocky(void)
 
     int lines = fuzzblocksize - (dc_yl % fuzzblocksize);
 
-    const int fuzzblockwidth = MIN(fuzzblocksize, r_context->endcol - dc_x);
+    const int fuzzblockwidth =
+        MIN(blockstart + fuzzblocksize, r_context->endcol) - dc_x;
+
+    // [MT] seed the animation from the absolute block position (the same
+    // seed for both halves of a block split by a slab border) and the row
+    // where this call starts; see DrawFuzzColumnOriginal.
+    fuzzpos = (fuzzpos_tic + (blockstart / fuzzblocksize) * 7 + dc_yl * 13) % FUZZTABLE;
 
     do
     {
@@ -633,7 +650,10 @@ static void DrawFuzzColumnRefraction(void)
 {
     boolean cutoff = false;
 
-    if ((dc_x - r_context->startcol) % fuzzblocksize)
+    const int blockstart = dc_x - dc_x % fuzzblocksize;
+
+    // same ownership rule as DrawFuzzColumnBlocky above
+    if (dc_x % fuzzblocksize && dc_x != dc_x1)
     {
         return;
     }
@@ -669,7 +689,10 @@ static void DrawFuzzColumnRefraction(void)
 
     int lines = fuzzblocksize - (dc_yl % fuzzblocksize);
 
-    const int fuzzblockwidth = MIN(fuzzblocksize, r_context->endcol - dc_x);
+    const int fuzzblockwidth = MIN(blockstart + fuzzblocksize, r_context->endcol) - dc_x;
+
+    // [MT] seed the animation as in DrawFuzzColumnBlocky above.
+    fuzzpos = (fuzzpos_tic + (blockstart / fuzzblocksize) * 7 + dc_yl * 13) % FUZZTABLE;
 
     int dark = FUZZDARK;
     int offset = 0;

@@ -828,6 +828,10 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 
 	const lighttable_t *const colormap = spr->colormap[0];
 
+	// [MT] first column of this (slab-clipped) voxel slice; the fuzz
+	// drawers use it for shadow voxels.
+	dc_x1 = spr->x1;
+
 	// iterate over screen columns
 	fixed_t ux = ((Ax - 1) | FRACMASK) + 1;
 

@@ -440,6 +440,10 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
   column_t *column;
   int      texturecolumn;
   fixed_t  frac;
+
+  // [MT] first column of this (slab-clipped) slice; the fuzz drawers use
+  // it to finish blocks that began to its left.
+  dc_x1 = vis->x1;
   // [MT] PU_STATIC: all sprite lumps are pre-cached at startup
   // (R_InitSpriteLumps), so this is a lock-free zone read during parallel
   // rendering.

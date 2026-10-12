@@ -30,6 +30,9 @@
 
 extern THREADLOCAL const lighttable_t *dc_colormap;
 extern THREADLOCAL int      dc_x;
+// [MT] first (leftmost) column of the sprite/voxel slice currently being
+// drawn, after clipping to the render context's slab.
+extern THREADLOCAL int      dc_x1;
 extern THREADLOCAL int      dc_yl;
 extern THREADLOCAL int      dc_yh;
 extern THREADLOCAL fixed_t  dc_iscale;
