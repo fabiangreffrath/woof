@@ -535,9 +535,15 @@ typedef struct visplane_s
   fixed_t xoffs, yoffs;         // killough 2/28/98: Support scrolling flats
   angle_t rotation;
   int tint; // ID24 per-sector colormap
+  // [MT] top/bottom cover only the owning render context's slab
+  // [startcol, endcol) instead of the whole screen width. They are
+  // pre-shifted so that indexing by absolute view column still works;
+  // buffer is allocated grow-only and both pointers are rebased in
+  // new_visplane().
+  int allocwidth;
+  unsigned short *buffer;
+  unsigned short *top;
   unsigned short *bottom;
-  unsigned short pad1;          // leave pads for [minx-1]/[maxx+1]
-  unsigned short top[3];
 } visplane_t;
 
 #endif

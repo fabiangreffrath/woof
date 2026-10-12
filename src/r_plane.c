@@ -117,8 +117,6 @@ static byte *skytran;
 // [MT] per-thread plane buffers, (re)allocated when the video size changes.
 static THREADLOCAL int plane_buffers_width = 0;
 static THREADLOCAL int plane_buffers_height = 0;
-// [MT] visplane top/bottom arrays are allocated for this width.
-static THREADLOCAL int visplane_width = 0;
 
 //
 // Per-row raster cache. Replaces both the span machinery (spanstart/cached*)
@@ -151,6 +149,7 @@ static void R_FreeVisplanes(void)
     while (pl)
     {
       visplane_t *next = pl->next;
+      free(pl->buffer);
       free(pl);
       pl = next;
     }
@@ -161,6 +160,7 @@ static void R_FreeVisplanes(void)
   while (pl)
   {
     visplane_t *next = pl->next;
+    free(pl->buffer);
     free(pl);
     pl = next;
   }
@@ -241,8 +241,9 @@ void R_InitVisplanesRes(void)
   int i;
 
   // [MT] resets the calling (main) thread's visplane pool. Worker threads
-  // keep their own pools; they are recycled every frame in R_ClearPlanes()
-  // and rebuilt if the video width changes.
+  // keep their own pools; planes are recycled every frame in
+  // R_ClearPlanes() and their top/bottom buffers grow on demand in
+  // new_visplane() when the context's slab widens.
   R_FreeVisplanes();
 
   for (i = 0; i < MAXVISPLANES; i++)
@@ -384,14 +385,6 @@ void R_ClearPlanes(void)
   // [MT] per-thread buffers, sized to the current video mode.
   R_AllocPlaneBuffers();
 
-  if (visplane_width < video.width)
-  {
-    // visplane top/bottom arrays are sized by video.width; recycle the pool
-    // when the resolution changes.
-    R_FreeVisplanes();
-    visplane_width = video.width;
-  }
-
   if (!freehead)
   {
     freehead = &freetail;
@@ -423,17 +416,35 @@ void R_ClearPlanes(void)
 
 static visplane_t *new_visplane(unsigned hash)
 {
+  const int startcol = r_context->startcol;
+  const int width = MAX(r_context->endcol - startcol, 1);
+
   visplane_t *check = freetail;
   if (!check)
   {
-    const int size = sizeof(*check) + (video.width * 2) * sizeof(*check->top);
-    // [MT] plain calloc: worker threads must not use the zone allocator.
-    check = calloc(1, size);
-    check->bottom = &check->top[video.width + 2];
+    // [MT] plain malloc: worker threads must not use the zone allocator.
+    check = malloc(sizeof(*check));
+    check->buffer = NULL;
+    check->allocwidth = 0;
   }
   else
     if (!(freetail = freetail->next))
       freehead = &freetail;
+
+  // [MT] top/bottom cover only this context's slab instead of the whole
+  // screen width. The buffer is grow-only: it is enlarged when a wider slab
+  // needs it and reused as-is when the slab shrinks again, so the pool
+  // never has to be torn down when the load balancer moves slab borders.
+  if (check->allocwidth < width)
+  {
+    check->buffer =
+      I_Realloc(check->buffer, 2 * width * sizeof(*check->buffer));
+    check->allocwidth = width;
+  }
+
+  check->top = check->buffer - startcol;
+  check->bottom = check->buffer + width - startcol;
+
   check->next = visplanes[hash];
   visplanes[hash] = check;
   return check;
@@ -457,8 +468,9 @@ visplane_t *R_DupPlane(const visplane_t *pl, int start, int stop)
     new_pl->miny = viewheight; // no rows covered yet
     new_pl->maxy = -1;
     new_pl->tint = pl->tint;
-    memset(new_pl->top, UCHAR_MAX, video.width * sizeof(*new_pl->top));
-
+    // [MT] only the context's slab is ever marked or scanned.
+    memset(new_pl->buffer, UCHAR_MAX,
+           (r_context->endcol - r_context->startcol) * sizeof(*new_pl->buffer));
     return new_pl;
 }
 
@@ -518,7 +530,9 @@ visplane_t *R_FindPlane(fixed_t height, int picnum, int lightlevel,
   check->rotation = rotation;
   check->tint = tint;
 
-  memset(check->top, UCHAR_MAX, video.width * sizeof(*check->top));
+  // [MT] only the context's slab is ever marked or scanned.
+  memset(check->buffer, UCHAR_MAX,
+         (r_context->endcol - r_context->startcol) * sizeof(*check->buffer));
 
   return check;
 }
