@@ -1005,6 +1005,23 @@ static void R_RenderLoadBalance(int contexts)
         }
     }
 
+    double totalpercentage = 0.0;
+    for (int i = 0; i < contexts; i++)
+    {
+        totalpercentage += widthpercentages[i];
+    }
+
+    if (totalpercentage <= 0.0)
+    {
+        R_EvenContextSplit(contexts);
+        return;
+    }
+
+    for (int i = 0; i < contexts; i++)
+    {
+        widthpercentages[i] /= totalpercentage;
+    }
+
     int currstart = 0;
     int desiredwidth = 0;
     for (int i = 0; i < contexts; i++)
@@ -1016,7 +1033,7 @@ static void R_RenderLoadBalance(int contexts)
             return;
         }
 
-        rendercontexts[i].startcol = MAX(currstart, 0);
+        rendercontexts[i].startcol = currstart;
         currstart += desiredwidth;
         rendercontexts[i].endcol = MIN(currstart, viewwidth);
     }
