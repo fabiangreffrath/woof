@@ -207,19 +207,18 @@ void D_PostEvent(event_t *ev)
 
 void D_ProcessEvents(void)
 {
-    while (eventtail != eventhead)
+    for (; eventtail != eventhead; eventtail = (eventtail+1) & (MAXEVENTS-1))
     {
-        eventtail = (eventtail + 1) % MAXEVENTS;
         event_t *ev = &events[eventtail];
         M_InputTrackEvent(ev);
 
-        // Menu used event?
-        if (M_Responder(ev))
+        // Finale ate event?
+        if (gamestate == GS_FINALE && !F_ShowCast() && F_Responder(ev))
         {
             continue;
         }
-        // Finale ate event?
-        else if (gamestate == GS_FINALE && F_Responder(ev))
+        // Menu used event?
+        else if (M_Responder(ev))
         {
             continue;
         }
