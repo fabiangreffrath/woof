@@ -1,3 +1,4 @@
+#ifndef _WIN32 // Unused on Windows
 static int setup_icon_w = 128;
 static int setup_icon_h = 128;
 
@@ -2734,3 +2735,4 @@ static const unsigned int setup_icon_data[] = {
     0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
     0x00000000, 0x00000000, 0x00000000, 0x00000000, 
 };
+#endif
