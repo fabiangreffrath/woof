@@ -1232,7 +1232,7 @@ static void M_AddLooseFiles(void)
 static void AutoLoadWADs(const char *path)
 {
     glob_t * glob = I_StartMultiGlob(path, GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
-                                     "*.wad", "*.zip", "*.pk3", ".lmp");
+                                     "*.wad", "*.zip", "*.pk3", "*.lmp");
     for (;;)
     {
         const char *filename = I_NextGlob(glob);
