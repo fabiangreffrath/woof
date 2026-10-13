@@ -1439,6 +1439,7 @@ static setup_menu_t keys_settings1[] = {
     {"Strafe Left",  S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_strafeleft},
     {"Strafe Right", S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_straferight},
     {"Use",          S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_use},
+    {"Jump",         S_INPUT | S_STRICT, KB_X, M_SPC, {0}, m_scrn, input_jump},
     {"Run",          S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_speed},
     {"Strafe",       S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_strafe},
     {"Turn Left",    S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_turnleft},

@@ -351,6 +351,10 @@ void P_XYMovement (mobj_t* mo)
   if (mo->flags & (MF_MISSILE | MF_SKULLFLY) || mo->z > mo->floorz)
     return;
 
+  // Skip ground friction on the tic a jump starts, so the speed carries into the air.
+  if (player && player->mo == mo && player->cmd.jump && mo->momz > 0)
+    return;
+
   // killough 8/11/98: add bouncers
   // killough 9/15/98: add objects falling off ledges
   // killough 11/98: only include bouncers hanging off ledges
