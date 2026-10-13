@@ -109,7 +109,7 @@ jobs:
     steps:
       - name: Developer Command Prompt (MSVC)
         if: runner.os == 'Windows' && matrix.config.type == 'vcpkg'
-        uses: ilammy/msvc-dev-cmd@v1
+        uses: TheMrMilchmann/setup-msvc-dev@v4
         with:
           arch: ${{ matrix.config.arch }}
 
