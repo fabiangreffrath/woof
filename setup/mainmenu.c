@@ -107,6 +107,9 @@ void MainMenu(void)
 
 static void SetIcon(void)
 {
+// On Windows, let the system itself set the application icon.
+// This fixes incorrect icon display in Task Manager.
+#ifndef _WIN32
     SDL_Surface *surface = SDL_CreateSurfaceFrom(
         setup_icon_w, setup_icon_h,
         SDL_GetPixelFormatForMasks(32, 0xffu << 24, 0xffu << 16, 0xffu << 8,
@@ -115,6 +118,7 @@ static void SetIcon(void)
 
     SDL_SetWindowIcon(TXT_SDLWindow, surface);
     SDL_DestroySurface(surface);
+#endif
 }
 
 static void SetWindowTitle(void)
