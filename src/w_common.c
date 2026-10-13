@@ -222,12 +222,9 @@ void W_FilterAutoload(w_module_t *module, w_handle_t handle)
         module->AddDir(handle, "autoload" DIR_SEPARATOR_S "rekkr-all");
     }
 
-    for (int i = 0; i < array_size(wadfiles); ++i)
-    {
-        char *dir = M_StringJoin("autoload", DIR_SEPARATOR_S, M_BaseName(wadfiles[i]));
-        module->AddDir(handle, dir);
-        free(dir);
-    }
+    char *path = M_StringJoin("autoload", DIR_SEPARATOR_S, wadfiles[0]);
+    module->AddDir(handle, path);
+    free(path);
 }
 
 // Map data lumps that may follow a level marker lump.

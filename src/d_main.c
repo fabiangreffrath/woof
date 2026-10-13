@@ -1241,7 +1241,7 @@ static void AutoLoadWADs(const char *path)
             break;
         }
 
-        if (!W_AddPath(filename))
+        if (!W_OpenFile(filename))
         {
             I_Error("Failed to load %s", filename);
         }
@@ -1320,14 +1320,6 @@ static void AutoloadIWadDir(void (*AutoLoadFunc)(const char *path))
         dir = GetAutoloadDir(autoload_paths[j], M_BaseName(wadfiles[0]), true);
         AutoLoadFunc(dir);
         free(dir);
-    }
-}
-
-static void LoadPWadBase(void)
-{
-    for (int i = 1; i < array_size(wadfiles); ++i)
-    {
-        W_AddBaseDir(wadfiles[i]);
     }
 }
 
@@ -1613,14 +1605,14 @@ void D_DoomMain(void)
 
   I_Printf(VB_INFO, "W_Init: Init WADfiles.");
 
+  LoadBaseFile();
+
   IdentifyVersion();
 
   // [FG] emulate a specific version of Doom
   InitGameVersion();
 
   DSDH_Init();
-
-  LoadBaseFile();
 
   modifiedgame = false;
 
@@ -1774,6 +1766,7 @@ void D_DoomMain(void)
 
   // add wad files from autoload IWAD directories before wads from -file parameter
 
+  W_AutoloadBaseIWAD();
   PrepareAutoloadPaths();
   AutoloadIWadDir(AutoLoadWADs);
 
@@ -1808,7 +1801,7 @@ void D_DoomMain(void)
 
   // add wad files from autoload PWAD directories
 
-  LoadPWadBase();
+  W_AutoloadBasePWAD();
   AutoloadPWadDir(AutoLoadWADs);
 
   // get skill / episode / map from parms

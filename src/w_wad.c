@@ -117,10 +117,22 @@ static w_module_t *modules[] =
     &w_file_module,
 };
 
+static int priority;
+
+boolean W_OpenFile(const char *path)
+{
+    w_handle_t handle = {0};
+    handle.priority = priority++;
+
+    if (w_file_module.Open(path, &handle) == W_FILE)
+    {
+        return true;
+    }
+    return false;
+}
+
 boolean W_AddPath(const char *path)
 {
-    static int priority;
-
     w_handle_t handle = {0};
     handle.priority = priority++;
 
@@ -358,18 +370,23 @@ boolean W_InitBaseFile(const char *path)
     if (result == W_DIR)
     {
         w_zip_module.AddDir(base_handle, ".");
-        W_FilterAutoload(&w_zip_module, base_handle);
         return true;
     }
 
     return false;
 }
 
-void W_AddBaseDir(const char *path)
+void W_AutoloadBaseIWAD(void)
 {
-    char *base = M_StringJoin("filter", DIR_SEPARATOR_S, path);
-    w_zip_module.AddDir(base_handle, base);
-    free(base);
+    W_FilterAutoload(&w_zip_module, base_handle);
+}
+
+void W_AutoloadBasePWAD(void)
+{
+    for (int i = 1; i < array_size(wadfiles); ++i)
+    {
+        w_zip_module.AddDir(base_handle, M_BaseName(wadfiles[i]));
+    }
 }
 
 void W_InitMultipleFiles(void)

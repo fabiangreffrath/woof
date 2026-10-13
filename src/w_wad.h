@@ -120,8 +120,12 @@ extern void       **lumpcache;
 extern const char **wadfiles;
 
 boolean W_InitBaseFile(const char *path);
-void W_AddBaseDir(const char *path);
+void W_AutoloadBaseIWAD(void);
+void W_AutoloadBasePWAD(void);
+
 boolean W_AddPath(const char *path);
+
+boolean W_OpenFile(const char *path);
 
 typedef enum
 {
