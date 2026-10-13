@@ -3861,6 +3861,10 @@ static int M_GetKeyString(int c, int offset)
         {
             c = '>';
         }
+        else if (c == '`') // probably means the '`' or '~' (tilde) key?
+        {
+            c = '\'';
+        }
         menu_buffer[offset++] = c; // Just insert the ascii key
         menu_buffer[offset] = 0;
     }
