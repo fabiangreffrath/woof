@@ -96,14 +96,19 @@ inline static fixed_t FixedSub(fixed_t a, fixed_t b)
 
 inline static fixed_t FixedNeg(fixed_t x)
 {
-    // avoid -INT32_MIN UB
-    return FixedSub(0, x);
+    // Two's complement negation: invert all bits and add 1 (~x + 1).
+    // Casting to uint32_t prevents signed overflow UB if x == INT_MIN.
+    return (fixed_t)(~((uint32_t)x) + 1u);
 }
 
 inline static fixed_t FixedAbs(fixed_t x)
 {
-    // avoid abs(INT32_MIN) UB
-    return x < 0 ? FixedNeg(x) : x;
+    uint32_t mask = (uint32_t)(x >> 31); 
+
+    // Conditional inversion and addition: (u ^ mask) - mask
+    //    If negative: (u ^ 0xFFFFFFFF) - 0xFFFFFFFF => (~u) + 1  (Negation)
+    //    If positive: (u ^ 0) - 0                   => u         (No change)
+    return (fixed_t)((((uint32_t)x) ^ mask) - mask);
 }
 
 //
