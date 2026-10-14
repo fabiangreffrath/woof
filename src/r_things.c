@@ -876,7 +876,11 @@ void R_NearbySprites (void)
     R_FakeFlat(sec, &tempsec, &floorlightlevel, &ceilinglightlevel, false);
 
     // [FG] sprites in sector have already been projected
-    if (I_AtomicLoad(&sec->rendervalidcount) != r_validstamp) // [MT]
+    // [MT] the same mobj can be pushed from several touching sectors while its
+    // own sector stays unvisited, so the sector stamp alone does not dedup it;
+    // also check the per-context mobj flag that R_ProjectSprite sets.
+    if (I_AtomicLoad(&sec->rendervalidcount) != r_validstamp
+        && !thing->rendered[r_context->index]) // [MT]
     {
       R_ProjectSprite(thing, (floorlightlevel + ceilinglightlevel) / 2);
     }
