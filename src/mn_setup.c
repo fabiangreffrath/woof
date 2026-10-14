@@ -2692,10 +2692,6 @@ static setup_menu_t music_settings1[] = {
     {"Auto Gain", S_ONOFF, CNTR_X, M_SPC, {"auto_gain"},
       .action = ResetAutoGain},
 
-    {"Native MIDI Reset Type", S_CHOICE | S_ACTION, CNTR_X, M_SPC,
-      {"midi_reset_type"}, .strings_id = str_native_midi_reset_type,
-      .action = SetMidiPlayer},
-
     MI_GAP,
 
 #if defined (HAVE_FLUIDSYNTH)
@@ -2719,6 +2715,12 @@ static setup_menu_t music_settings1[] = {
 
     {"OPL3 Reverse Stereo", S_ONOFF, CNTR_X, M_SPC,
      {"opl_stereo_correct"}, .action = SetMidiPlayerOpl},
+
+    MI_GAP,
+
+    {"Native MIDI Reset Type", S_CHOICE | S_ACTION, CNTR_X, M_SPC,
+      {"midi_reset_type"}, .strings_id = str_native_midi_reset_type,
+      .action = SetMidiPlayer},
 
     MI_END
 };
