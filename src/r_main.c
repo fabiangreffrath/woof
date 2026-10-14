@@ -907,6 +907,10 @@ static boolean render_loadbalancing = true;
 THREADLOCAL rendercontext_t *r_context = NULL;
 THREADLOCAL unsigned int r_validstamp = 0;
 
+// [MT] scratch allocator index for this thread: 0 = main thread,
+// 1..numjobthreads = worker threads. Workers set this in R_RenderContextJob.
+THREADLOCAL int r_worker_scratch_index = 0;
+
 static rendercontext_t rendercontexts[MAX_RENDER_CONTEXTS];
 
 // number of contexts usable this frame (pool size is fixed at init)
@@ -941,7 +945,9 @@ static void R_RenderLoadBalance(int contexts)
 {
     const double idealpercentage = 1.0 / contexts;
     double total_smoothed_time = 0;
+    double total_smoothed_sprites = 0;
     double timepercentages[MAX_RENDER_CONTEXTS];
+    double loadpercentages[MAX_RENDER_CONTEXTS];
     double widthpercentages[MAX_RENDER_CONTEXTS];
     int overbudgetcount = 0;
     int underbudgetcount = 0;
@@ -954,6 +960,12 @@ static void R_RenderLoadBalance(int contexts)
             0.9 * rendercontexts[i].smoothed_time +
             0.1 * (double)rendercontexts[i].timetaken;
         total_smoothed_time += rendercontexts[i].smoothed_time;
+
+        // Same EMA over the last frame's vissprite count.
+        rendercontexts[i].smoothed_sprites =
+            0.9 * rendercontexts[i].smoothed_sprites +
+            0.1 * (double)rendercontexts[i].rendered_vissprites;
+        total_smoothed_sprites += rendercontexts[i].smoothed_sprites;
     }
 
     if (total_smoothed_time <= 0)
@@ -965,7 +977,21 @@ static void R_RenderLoadBalance(int contexts)
     for (int i = 0; i < contexts; i++)
     {
         timepercentages[i] = rendercontexts[i].smoothed_time / total_smoothed_time;
-        if (timepercentages[i] > idealpercentage)
+
+        // [MT] blend the sprite share into the load estimate: time still
+        // dominates (it measures all of the slab's work), the sprite count
+        // is a leading indicator of rasterization hot spots. Both shares
+        // sum to 1, so the blend does too.
+        loadpercentages[i] = timepercentages[i];
+        if (total_smoothed_sprites > 0)
+        {
+            loadpercentages[i] =
+                0.75 * timepercentages[i] +
+                0.25 * (rendercontexts[i].smoothed_sprites
+                        / total_smoothed_sprites);
+        }
+
+        if (loadpercentages[i] > idealpercentage)
             overbudgetcount++;
         else
             underbudgetcount++;
@@ -987,13 +1013,13 @@ static void R_RenderLoadBalance(int contexts)
             (double)(rendercontexts[i].endcol - rendercontexts[i].startcol)
             / viewwidth;
 
-        const double growamount = timepercentages[i] > idealpercentage
+        const double growamount = loadpercentages[i] > idealpercentage
                                       ? -removeamount
                                       : addamount;
 
         // Hysteresis: only adjust if imbalance exceeds 10% of ideal share.
         // This prevents slab boundaries from jittering due to timing noise.
-        const double imbalance = fabs(timepercentages[i] - idealpercentage);
+        const double imbalance = fabs(loadpercentages[i] - idealpercentage);
         const double hysteresis_threshold = idealpercentage * 0.10;
         if (imbalance > hysteresis_threshold)
         {
@@ -1101,7 +1127,16 @@ void R_RenderViewContext(rendercontext_t *context)
 // Job wrapper: userdata is the owning render context.
 static void R_RenderContextJob(void *userdata)
 {
-    R_RenderViewContext((rendercontext_t *)userdata);
+    rendercontext_t *context = (rendercontext_t *)userdata;
+    // If the job system ever runs this inline on the calling thread, the
+    // scratch index must be restored afterwards.
+    const int saved_scratch_index = r_worker_scratch_index;
+
+    r_worker_scratch_index = context->index;
+    I_FrameScratchReset();
+    R_RenderViewContext(context);
+
+    r_worker_scratch_index = saved_scratch_index;
 }
 
 static void R_AggregateStats(int contexts)
@@ -1120,6 +1155,8 @@ static void R_AggregateStats(int contexts)
 //
 void R_RenderPlayerView (player_t* player)
 {
+  I_FrameScratchReset();
+
   R_ClearStats();
 
   R_SetupFrame (player);
@@ -1243,16 +1280,22 @@ void R_InitRenderThreads(void)
     rendercontexts[i].index = i;
     rendercontexts[i].timetaken = 1;
     rendercontexts[i].smoothed_time = 1.0;
+    rendercontexts[i].smoothed_sprites = 0.0;
   }
 
   // Context 0 always renders on the calling thread, so the pool only needs
   // num_render_contexts - 1 workers.
   I_JobsInit(num_render_contexts - 1);
+
+  // Frame scratch allocator: per-thread bump arena for small fixed-size
+  // per-frame buffers (currently the sprite clip buffers).
+  I_FrameScratchInit(1024 * 1024);
   I_AtExit(R_ShutdownRenderThreads, true);
 }
 
 void R_ShutdownRenderThreads(void)
 {
+  I_FrameScratchShutdown();
   I_JobsShutdown();
 }
 

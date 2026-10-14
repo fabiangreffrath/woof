@@ -14,6 +14,11 @@
 #include "i_thread.h"
 
 #include <SDL3/SDL.h>
+#include <stdlib.h>
+#include <stdint.h>
+
+#include "doomtype.h"
+#include "i_system.h"
 
 thread_t *I_ThreadCreate(threadfunc_t runfunc, void *userdata)
 {
@@ -266,7 +271,107 @@ void I_JobsSetActive(int numactive)
     }
 }
 
+//
+// Frame scratch allocator
+// Each thread (main + workers) gets its own bump-pointer arena.
+// All allocations are freed at once by I_FrameScratchReset() at frame start.
+//
+static struct {
+    byte *base;
+    int size;
+    int offset;
+} framescratch[MAX_JOB_THREADS + 1];  // +1 for main thread
+
+static int framescratch_initialized = 0;
+
 int I_JobsNumThreads(void)
 {
     return numjobthreads;
+}
+
+void I_FrameScratchInit(int bytes_per_thread)
+{
+    if (framescratch_initialized)
+    {
+        return;
+    }
+
+    // Main thread is index 0, workers are 1..numjobthreads
+    const int total_threads = numjobthreads + 1;
+
+    for (int i = 0; i < total_threads; i++)
+    {
+        framescratch[i].base = malloc(bytes_per_thread);
+        if (!framescratch[i].base)
+        {
+            I_Error("Failed to allocate %d bytes for thread %d", bytes_per_thread, i);
+        }
+        framescratch[i].size = bytes_per_thread;
+        framescratch[i].offset = 0;
+    }
+
+    framescratch_initialized = 1;
+}
+
+void I_FrameScratchShutdown(void)
+{
+    if (!framescratch_initialized)
+    {
+        return;
+    }
+
+    const int total_threads = numjobthreads + 1;
+
+    for (int i = 0; i < total_threads; i++)
+    {
+        free(framescratch[i].base);
+        framescratch[i].base = NULL;
+        framescratch[i].size = 0;
+        framescratch[i].offset = 0;
+    }
+
+    framescratch_initialized = 0;
+}
+
+// Called by main thread at start of frame, and by each worker at start of its job
+void I_FrameScratchReset(void)
+{
+    // Main thread always has index 0
+    // Workers get their index from thread-local storage
+    extern THREADLOCAL int r_worker_scratch_index;
+    int idx = r_worker_scratch_index;
+
+    if (idx < 0 || idx > numjobthreads)
+    {
+        idx = 0; // fallback to main thread
+    }
+
+    framescratch[idx].offset = 0;
+}
+
+// Aligned allocation from current thread's frame scratch
+void *I_FrameScratchAlloc(int bytes, int align)
+{
+    extern THREADLOCAL int r_worker_scratch_index;
+    int idx = r_worker_scratch_index;
+
+    if (idx < 0 || idx > numjobthreads)
+    {
+        idx = 0;
+    }
+
+    byte *ptr = framescratch[idx].base + framescratch[idx].offset;
+
+    // Align up
+    uintptr_t aligned = ((uintptr_t)ptr + align - 1) & ~(align - 1);
+    int needed = (aligned - (uintptr_t)framescratch[idx].base) + bytes;
+
+    if (needed > framescratch[idx].size)
+    {
+        I_Error("Thread %d scratch exhausted (%d/%d)", idx, needed,
+                framescratch[idx].size);
+    }
+
+    framescratch[idx].offset = needed;
+    return (void *)aligned;
 }

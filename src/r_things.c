@@ -100,7 +100,6 @@ static THREADLOCAL int drawsegs_xrange_count = 0;
 // [FG] 32-bit integer math
 static THREADLOCAL int *clipbot = NULL; // killough 2/8/98: // dropoff overflow
 static THREADLOCAL int *cliptop = NULL; // change to MAX_*  // dropoff overflow
-static THREADLOCAL int clip_width = 0;
 
 // constant arrays
 //  used for psprite clipping and initializing clipping
@@ -343,16 +342,17 @@ void R_InitSprites(char **namelist)
 
 void R_ClearSprites (void)
 {
-  // [MT] per-thread sprite clip buffers, sized to the current video width.
-  if (clip_width < video.width)
-  {
-    clipbot = I_Realloc(clipbot, 2 * video.width * sizeof(*clipbot));
-    cliptop = clipbot + video.width;
-    clip_width = video.width;
-  }
+  // [MT] per-frame clip buffers from the frame scratch allocator: no
+  // reallocs, freed wholesale at the next frame start.
+  clipbot = I_FrameScratchAlloc(2 * video.width * sizeof(*clipbot), 16);
+  cliptop = clipbot + video.width;
 
   r_context->rendered_vissprites = num_vissprite; // [MT] per-context stat
   num_vissprite = 0;            // killough
+  // [MT] vissprites/vissprite_ptrs/drawsegs_xranges live in grow-only
+  // malloc pools (see R_NewVisSprite etc.): the high-water allocation
+  // survives frames, so a busy scene allocates nothing per frame, and the
+  // scratch arena never pays for the doubling steps.
 }
 
 //

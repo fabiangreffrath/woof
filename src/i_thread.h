@@ -77,4 +77,17 @@ void I_JobsSetActive(int numactive);
 
 int I_JobsNumThreads(void);
 
+//
+// Frame scratch allocator (per-thread bump pointer)
+// All allocations are freed at once by I_FrameScratchReset() at frame start.
+// Workers must call I_FrameScratchReset() before starting their frame work.
+//
+void I_FrameScratchInit(int bytes_per_thread);
+
+void I_FrameScratchShutdown(void);
+
+void I_FrameScratchReset(void);
+
+void *I_FrameScratchAlloc(int bytes, int align);
+
 #endif
