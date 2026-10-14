@@ -20,6 +20,7 @@
     Things standing on other things are carried along by moving sectors.
     Monsters cannot hit things above or below them in melee if their heights do not overlap.
     The option is disabled in demos, netgames and strict mode.
+  - Add "Native MIDI Reset Type" to General->Audio->Music menu.
 
 * **Rendering:**
   - Improved palettization of PNG graphics, and general color approximation in the engine.
