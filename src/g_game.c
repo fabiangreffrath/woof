@@ -605,11 +605,11 @@ static void AdjustWeaponSelection(int *newweapon)
 // Returns true only on the tic the jump key goes down, so holding it never repeats.
 static boolean JumpPressed(void)
 {
-    static boolean wasdown = false;
+    static boolean was_down = false;
     const boolean down = M_InputGameActive(input_jump);
-    const boolean pressed = down && !wasdown;
+    const boolean pressed = down && !was_down;
 
-    wasdown = down;
+    was_down = down;
     return pressed;
 }
 
@@ -804,7 +804,9 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   // Jumping is not part of the demo format, so it must never be active in
   // demos or netgames.
   if (CRITICAL(JumpPressed()))
+  {
     cmd->jump = 1;
+  }
 
   // Toggle between the top 2 favorite weapons.                   // phares
   // If not currently aiming one of these, switch to              // phares
