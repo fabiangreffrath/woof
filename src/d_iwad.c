@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 
 #include "d_iwad.h"
 #include "i_system.h"
@@ -28,28 +29,32 @@
 #include "m_io.h"
 #include "m_misc.h"
 
+// "doom.wad" may be retail or registered
+// "doomu.wad" alias to allow retail wad to coexist with registered in the same folder
 static const iwad_t iwads[] = {
-    {"doom2.wad",     doom2,         commercial,   "DOOM II: Hell on Earth"         },
-    {"plutonia.wad",  pack_plut,     commercial,   "Final DOOM: Plutonia Experiment"},
-    {"tnt.wad",       pack_tnt,      commercial,   "Final DOOM: TNT - Evilution"    },
-    // "doom.wad" may be retail or registered
-    {"doom.wad",      doom,          indetermined, "DOOM"                           },
-    {"doom.wad",      doom,          registered,   "DOOM Registered"                },
-    {"doom.wad",      doom,          retail,       "The Ultimate DOOM"              },
-    // "doomu.wad" alias to allow retail wad to coexist with registered in the same folder
-    {"doomu.wad",     doom,          retail,       "The Ultimate DOOM"              },
-    {"doom1.wad",     doom,          shareware,    "DOOM Shareware"                 },
-    {"doom2f.wad",    doom2,         commercial,   "DOOM II: L'Enfer sur Terre"     },
-    {"freedoom2.wad", pack_freedoom, commercial,   "Freedoom: Phase 2"              },
-    {"freedoom1.wad", pack_freedoom, retail,       "Freedoom: Phase 1"              },
-    {"freedm.wad",    pack_freedoom, commercial,   "FreeDM"                         },
-    {"chex.wad",      pack_chex,     retail,       "Chex Quest"                     },
-    {"chex3v.wad",    pack_chex3v,   retail,       "Chex Quest 3: Vanilla Edition"  },
-    {"chex3d2.wad",   pack_chex3v,   commercial,   "Chex Quest 3: Modding Edition"  },
-    {"hacx.wad",      pack_hacx,     commercial,   "HACX: Twitch n' Kill"           },
-    {"rekkrsa.wad",   pack_rekkr,    retail,       "REKKR"                          },
-    {"rekkrsl.wad",   pack_rekkr,    retail,       "REKKR: Sunken Land"             },
+    // clang-format off
+    {"doom2.wad",     doom2,         commercial,   "DOOM II: Hell on Earth",          "doom.id.doom2.commercial"       },
+    {"plutonia.wad",  pack_plut,     commercial,   "Final DOOM: Plutonia Experiment", "doom.id.doom2.plutonia"         },
+    {"tnt.wad",       pack_tnt,      commercial,   "Final DOOM: TNT - Evilution",     "doom.id.doom2.tnt"              },
+    {"doom.wad",      doom,          indetermined, "DOOM",                            "doom.id.doom1"                  },
+    {"doom.wad",      doom,          registered,   "DOOM Registered",                 "doom.id.doom1.registered"       },
+    {"doom.wad",      doom,          retail,       "The Ultimate DOOM",               "doom.id.doom1.ultimate"         },
+    {"doomu.wad",     doom,          retail,       "The Ultimate DOOM",               "doom.id.doom1.ultimate"         },
+    {"doom1.wad",     doom,          shareware,    "DOOM Shareware",                  "doom.id.doom1.shareware"        },
+    {"doom2f.wad",    doom2,         commercial,   "DOOM II: L'Enfer sur Terre",      "doom.id.doom2.commercial.french"},
+    {"freedoom2.wad", pack_freedoom, commercial,   "Freedoom: Phase 2",               "doom.freedoom.phase1"           },
+    {"freedoom1.wad", pack_freedoom, retail,       "Freedoom: Phase 1",               "doom.freedoom.phase2"           },
+    {"freedm.wad",    pack_freedoom, commercial,   "FreeDM",                          "doom.freedoom.freedm"           },
+    {"chex.wad",      pack_chex,     retail,       "Chex Quest",                      "chex.chex1"                     },
+    {"chex3v.wad",    pack_chex3v,   retail,       "Chex Quest 3: Vanilla Edition",   NULL                             },
+    {"chex3d2.wad",   pack_chex3v,   commercial,   "Chex Quest 3: Modding Edition",   NULL                             },
+    {"hacx.wad",      pack_hacx,     commercial,   "HACX: Twitch n' Kill",            "hacx.hacx1"                     },
+    {"rekkr.wad",     pack_rekkr,    retail,       "REKKR",                           "rekkr.rekkr"                    },
+    {"rekkrsl.wad",   pack_rekkr,    retail,       "REKKR: Sunken Land",              "rekkr.rekkrsl"                  },
+    // clang-format on
 };
+
+const char *iwad_filter = NULL;
 
 static const char *const gamemode_str[] = {
     "Shareware mode",
@@ -897,8 +902,47 @@ const char *D_GetIWADDescription(const char *name, GameMode_t mode,
         if (!strcasecmp(name, iwads[i].name) && mode == iwads[i].mode
             && mission == iwads[i].mission)
         {
+            iwad_filter = iwads[i].filter;
             return iwads[i].description;
         }
     }
     return gamemode_str[mode];
+}
+
+// [ZDoom PK3]
+// Gets set in `D_GetIWADDescription` in `IdentifyVersion`
+// before base or autoload directory files are loaded
+const char *D_GetIwadFilter(void)
+{
+    return iwad_filter;
+}
+
+// [ZDoom PK3]
+// I this case, "game" refers to the simplified list of GameVersion_t
+// Since we don't really use GameVersion_t in higher complevels, we
+// need to check against GameMission_t for now.
+const char *D_GetGameFilter(GameMission_t mission)
+{
+    const char *filter = NULL;
+
+    switch (mission)
+    {
+        case doom:
+        case doom2:
+        case pack_tnt:
+        case pack_plut:
+        case pack_hacx:
+        case pack_rekkr:
+        case pack_chex3v:
+        case pack_freedoom:
+        case none:
+            filter = "game-doom";
+            break;
+        case pack_chex:
+            // Only original CQ1 and CQ2 (and CQ3 proper), but not CQ3VE
+            filter = "game-chex";
+            break;
+    }
+
+    return filter;
 }

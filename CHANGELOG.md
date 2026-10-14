@@ -6,6 +6,13 @@
   - Color translation tables from PWADs are extended but never overridden.
   - Leave some more space in the HUD menu for the layout description.
   - Add support for optional chaingun sound, via `DSCHGUN`.
+  - Improved support for using PK3 files via `-file`, better matching ZDoom PK3.
+    The `autoload/` directory can now be used within PK3 files -- with the exception of `all-all/`, as it is not needed.
+    Improved support for ZDoom-style `filter/` IWAD folders -- added `filter/game-doom/` and `filter/game-chex/`.
+    Maps can now be loaded from WAD files within the `maps/` subdirectory.
+    The `filter/` subdirectories are loaded first, before `autoload/` subdirectories.
+    The subdirectories `colormaps/`, `flats/`, `sprites/`, `textures/`, `voxels/`, will map to their own `_START`/`_END` lump markers.
+    The subdirectories `graphics/`, `maps/`, `music/`, `patches/`, `sounds/`, will map to the global lump list.
 
 * **Quality of Life:**
   - Player view no longer abruptly jolts when running across very shallow floor height changes

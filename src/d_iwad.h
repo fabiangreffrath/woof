@@ -27,6 +27,7 @@ typedef struct
     GameMission_t mission;
     GameMode_t mode;
     const char *description;
+    const char *filter;
 } iwad_t;
 
 const char *D_DoomExeDir(void); // killough 2/16/98: path to executable's dir
@@ -42,5 +43,7 @@ void D_GetModeAndMissionByIWADName(const char *name, GameMode_t *mode,
                                    GameMission_t *mission);
 const char *D_GetIWADDescription(const char *name, GameMode_t mode,
                                  GameMission_t mission);
+const char *D_GetIwadFilter(void);
+const char *D_GetGameFilter(GameMission_t mission);
 
 #endif

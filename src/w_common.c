@@ -11,6 +11,7 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
+#include "d_iwad.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "i_printf.h"
@@ -36,25 +37,6 @@ static const w_dir_spec_t subdirs[] =
     {"sprites",   "S_START",   "S_END",    ns_sprites,   false},
     {"textures",  "TX_START",  "TX_END",   ns_textures,  false},
     {"voxels",    "VX_START",  "VX_END",   ns_voxels,    false},
-};
-
-static const struct
-{
-    const char *dir;
-    GameMode_t mode;
-    GameMission_t mission;
-} filters[] = {
-    {"doom.id.doom1",            shareware,    doom     },
-    {"doom.id.doom1.registered", registered,   doom     },
-    {"doom.id.doom1.ultimate",   retail,       doom     },
-    {"doom.id.doom2.commercial", commercial,   doom2    },
-    {"doom.id.doom2.plutonia",   commercial,   pack_plut},
-    {"doom.id.doom2.tnt",        commercial,   pack_tnt },
-    {"doom.freedoom.phase1",     retail,       pack_freedoom},
-    {"doom.freedoom.phase2",     commercial,   pack_freedoom},
-    {"chex.chex1",               retail,       pack_chex},
-    {"hacx.hacx1",               commercial,   pack_hacx},
-    {"rekkr",                    retail,       pack_rekkr}
 };
 
 void W_ConvertSlashes(char *path)
@@ -155,21 +137,17 @@ void W_FlushDirRun(void)
 
 void W_Filter(w_module_t *module, w_handle_t handle)
 {
-    char *dir = NULL;
+    const char *game_filter = D_GetGameFilter(gamemission);
+    const char *game_dir = M_StringJoin("filter", DIR_SEPARATOR_S, game_filter);
+    module->AddDir(handle, game_dir);
 
-    for (int i = 0; i < arrlen(filters); ++i)
-    {
-        if (filters[i].mode == gamemode && filters[i].mission == gamemission)
-        {
-            dir = M_StringJoin("filter", DIR_SEPARATOR_S, filters[i].dir);
-            break;
-        }
-    }
-
-    if (!dir)
+    const char *iwad_filter = D_GetIwadFilter();
+    if (!iwad_filter)
     {
         return;
     }
+
+    char *dir = M_StringJoin("filter", DIR_SEPARATOR_S, iwad_filter);
 
     for (char *p = dir; *p; ++p)
     {
@@ -185,17 +163,15 @@ void W_Filter(w_module_t *module, w_handle_t handle)
     free(dir);
 }
 
-void W_FilterAutoload(w_module_t *module, w_handle_t handle)
+void W_AutoloadIWAD(w_module_t *module, w_handle_t handle)
 {
     if (gamemission < pack_chex)
     {
         module->AddDir(handle, "autoload" DIR_SEPARATOR_S "doom-all");
-        module->AddDir(handle, "filter" DIR_SEPARATOR_S "game-doom");
     }
     if (gamemission == pack_chex || gamemission == pack_chex3v)
     {
         module->AddDir(handle, "autoload" DIR_SEPARATOR_S "chex-all");
-        module->AddDir(handle, "filter" DIR_SEPARATOR_S "game-chex");
     }
     if (gamemission == doom)
     {
