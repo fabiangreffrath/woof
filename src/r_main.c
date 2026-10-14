@@ -930,6 +930,12 @@ static rendercontext_t rendercontexts[MAX_RENDER_CONTEXTS];
 // number of contexts usable this frame (pool size is fixed at init)
 static int ActiveContexts(void)
 {
+    // Disable when resolution is low
+    if (video.height < SCREENHEIGHT * 3)
+    {
+        return 1;
+    }
+
     return CLAMP(num_render_contexts, 1, I_JobsNumThreads() + 1);
 }
 
