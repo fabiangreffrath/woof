@@ -112,8 +112,6 @@ extern THREADLOCAL void (*colfunc)(void);
 // Multithreaded rendering.
 //
 
-#define MAX_RENDER_CONTEXTS 16
-
 typedef struct rendercontext_s
 {
     int index;        // context index, 0 is the main render thread

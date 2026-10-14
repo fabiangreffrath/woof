@@ -414,10 +414,9 @@ typedef struct mobj_s
     // [FG] height of the sprite in pixels
     int actualheight;
 
-    // [MT] Per-render-context sprite deduplication: true if this mobj has
-    // already been projected during the current BSP traversal for the given
-    // context.
-    uint32_t rendered;
+    // [MT] Per-render-context sprite deduplication: nonzero if this mobj has
+    // already been projected during the current frame for the given context.
+    uint8_t rendered[MAX_RENDER_CONTEXTS];
 } mobj_t;
 
 // External declarations (fomerly in p_local.h) -- killough 5/2/98

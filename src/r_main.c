@@ -24,6 +24,7 @@
 #include <limits.h>
 #include <math.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "d_loop.h"
 #include "d_player.h"
@@ -548,7 +549,7 @@ static void R_ClearMobjRenderedJob(void *userdata)
         if (th->function.p1 == P_MobjThinker)
         {
             mobj_t *mobj = (mobj_t *)th;
-            mobj->rendered = 0;
+            memset(mobj->rendered, 0, sizeof(mobj->rendered));
         }
     }
 }

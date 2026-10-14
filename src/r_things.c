@@ -700,7 +700,7 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
         return;
     }
 
-  SET_BIT(thing->rendered, r_context->index);
+  thing->rendered[r_context->index] = 1;
 
   // store information in a vissprite
   vis = R_NewVisSprite ();
@@ -845,7 +845,7 @@ void R_AddSprites(sector_t* sec, int lightlevel_override)
 
   for (thing = sec->thinglist; thing; thing = thing->snext)
   {
-    if (!CHECK_BIT(thing->rendered, r_context->index))
+    if (!thing->rendered[r_context->index])
       R_ProjectSprite(thing, lightlevel_override);
   }
 
