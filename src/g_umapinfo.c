@@ -1120,7 +1120,7 @@ boolean MI_Crouching(void)
 
 boolean MI_Freeaim(void)
 {
-    if (!CRITICAL(freelook))
+    if (!STRICTMODE(freelook))
     {
         return false;
     }
@@ -1810,7 +1810,7 @@ MI_ShowNext_t MI_ShowNextLoc(void)
         }
         else
         {
-            return WI_ShowNextLoc | WI_ShowNextEpisodal;
+            return WI_ShowNextLocEpisodal;
         }
     }
 
