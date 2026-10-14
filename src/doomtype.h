@@ -184,6 +184,12 @@ inline static double clamp(double x, double min, double max)
   #define PACKED_SUFFIX
 #endif
 
+// Macros for managing bit flags by index (0-based)
+#define SET_BIT(var, idx)    ((var) |=  (1u << (idx)))
+#define CLEAR_BIT(var, idx)  ((var) &= ~(1u << (idx)))
+#define TOGGLE_BIT(var, idx) ((var) ^=  (1u << (idx)))
+#define CHECK_BIT(var, idx)  (!!((var) & (1u << (idx))))
+
 #endif
 
 //----------------------------------------------------------------------------

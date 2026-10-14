@@ -36,6 +36,7 @@
 #include "i_video.h"
 #include "p_mobj.h"
 #include "p_pspr.h"
+#include "p_tick.h"
 #include "r_bsp.h"
 #include "r_data.h"
 #include "r_defs.h"
@@ -537,6 +538,19 @@ void R_SetViewSize(int blocks)
 {
   setsizeneeded = true;
   setblocks = MIN(blocks, 11);
+}
+
+static void R_ClearMobjRenderedJob(void *userdata)
+{
+    (void)userdata;
+    for (thinker_t *th = thinkercap.next; th != &thinkercap; th = th->next)
+    {
+        if (th->function.p1 == P_MobjThinker)
+        {
+            mobj_t *mobj = (mobj_t *)th;
+            mobj->rendered = 0;
+        }
+    }
 }
 
 //
@@ -1237,6 +1251,8 @@ void R_RenderPlayerView (player_t* player)
   NetUpdate ();
 
   const int contexts = ActiveContexts();
+
+  R_ClearMobjRenderedJob(NULL);
 
   if (contexts > 1)
   {

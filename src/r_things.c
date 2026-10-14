@@ -350,9 +350,7 @@ void R_ClearSprites (void)
   r_context->rendered_vissprites = num_vissprite; // [MT] per-context stat
   num_vissprite = 0;            // killough
   // [MT] vissprites/vissprite_ptrs/drawsegs_xranges live in grow-only
-  // malloc pools (see R_NewVisSprite etc.): the high-water allocation
-  // survives frames, so a busy scene allocates nothing per frame, and the
-  // scratch arena never pays for the doubling steps.
+  // malloc pools.
 }
 
 //
@@ -702,6 +700,8 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
         return;
     }
 
+  SET_BIT(thing->rendered, r_context->index);
+
   // store information in a vissprite
   vis = R_NewVisSprite ();
 
@@ -844,7 +844,10 @@ void R_AddSprites(sector_t* sec, int lightlevel_override)
   // Handle all things in sector.
 
   for (thing = sec->thinglist; thing; thing = thing->snext)
-    R_ProjectSprite(thing, lightlevel_override);
+  {
+    if (!CHECK_BIT(thing->rendered, r_context->index))
+      R_ProjectSprite(thing, lightlevel_override);
+  }
 
   if (STRICTMODE(draw_nearby_sprites))
   {
