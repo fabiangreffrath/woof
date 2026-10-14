@@ -366,6 +366,7 @@ enum
 
     str_resolution_scale,
     str_midi_player,
+    str_native_midi_reset_type,
 
     str_gamma,
     str_sound_module,
@@ -2682,10 +2683,18 @@ static void ResetAutoGain(void)
     UpdateGainItems();
 }
 
+static const char *native_midi_reset_strings[] = {
+    "No SysEx", "GM", "GS", "XG"
+};
+
 static setup_menu_t music_settings1[] = {
 
     {"Auto Gain", S_ONOFF, CNTR_X, M_SPC, {"auto_gain"},
       .action = ResetAutoGain},
+
+    {"Native MIDI Reset Type", S_CHOICE | S_ACTION, CNTR_X, M_SPC,
+      {"midi_reset_type"}, .strings_id = str_native_midi_reset_type,
+      .action = SetMidiPlayer},
 
     MI_GAP,
 
@@ -5063,6 +5072,7 @@ static const char **selectstrings[] = {
     [str_weapon_slots] = NULL,
     [str_resolution_scale] = NULL,
     [str_midi_player] = NULL,
+    [str_native_midi_reset_type] = native_midi_reset_strings,
     [str_gamma] = gamma_strings,
     [str_sound_module] = sound_module_strings,
     [str_extra_music] = extra_music_strings,
