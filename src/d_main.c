@@ -1232,7 +1232,7 @@ static void M_AddLooseFiles(void)
 static void AutoLoadWADs(const char *path)
 {
     glob_t * glob = I_StartMultiGlob(path, GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
-                                     "*.wad", "*.zip", "*.pk3");
+                                     "*.wad", "*.zip", "*.pk3", "*.lmp");
     for (;;)
     {
         const char *filename = I_NextGlob(glob);
@@ -1241,63 +1241,12 @@ static void AutoLoadWADs(const char *path)
             break;
         }
 
-        if (!W_AddPath(filename))
+        if (!W_OpenFile(filename))
         {
             I_Error("Failed to load %s", filename);
         }
     }
     I_EndGlob(glob);
-
-    W_AddPath(path);
-}
-
-static void LoadIWadBase(void)
-{
-    GameMode_t local_gamemode;
-    GameMission_t local_gamemission;
-    D_GetModeAndMissionByIWADName(M_BaseName(wadfiles[0]), &local_gamemode,
-                                  &local_gamemission);
-
-    if (local_gamemission == none
-        || (local_gamemode == indetermined && local_gamemission != doom))
-    {
-        return;
-    }
-
-    if (local_gamemission < pack_chex)
-    {
-        W_AddBaseDir("doom-all");
-    }
-    if (local_gamemission == pack_chex || local_gamemission == pack_chex3v)
-    {
-        W_AddBaseDir("chex-all");
-    }
-    if (local_gamemission == doom)
-    {
-        W_AddBaseDir("doom1-all");
-    }
-    else if (local_gamemission >= doom2 && local_gamemission <= pack_plut)
-    {
-        W_AddBaseDir("doom2-all");
-    }
-    else if (local_gamemission == pack_freedoom)
-    {
-        W_AddBaseDir("freedoom-all");
-        if (local_gamemode == commercial)
-        {
-            W_AddBaseDir("freedoom2-all");
-        }
-        else
-        {
-            W_AddBaseDir("freedoom1-all");
-        }
-    }
-    else if (local_gamemission == pack_rekkr)
-    {
-        W_AddBaseDir("rekkr-all");
-    }
-
-    W_AddBaseDir(M_BaseName(wadfiles[0]));
 }
 
 static void AutoloadIWadDir(void (*AutoLoadFunc)(const char *path))
@@ -1371,14 +1320,6 @@ static void AutoloadIWadDir(void (*AutoLoadFunc)(const char *path))
         dir = GetAutoloadDir(autoload_paths[j], M_BaseName(wadfiles[0]), true);
         AutoLoadFunc(dir);
         free(dir);
-    }
-}
-
-static void LoadPWadBase(void)
-{
-    for (int i = 1; i < array_size(wadfiles); ++i)
-    {
-        W_AddBaseDir(wadfiles[i]);
     }
 }
 
@@ -1825,7 +1766,7 @@ void D_DoomMain(void)
 
   // add wad files from autoload IWAD directories before wads from -file parameter
 
-  LoadIWadBase();
+  W_AutoloadBaseIWAD();
   PrepareAutoloadPaths();
   AutoloadIWadDir(AutoLoadWADs);
 
@@ -1860,7 +1801,7 @@ void D_DoomMain(void)
 
   // add wad files from autoload PWAD directories
 
-  LoadPWadBase();
+  W_AutoloadBasePWAD();
   AutoloadPWadDir(AutoLoadWADs);
 
   // get skill / episode / map from parms
