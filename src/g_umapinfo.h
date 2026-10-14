@@ -100,6 +100,8 @@ typedef enum MI_ShowNext_e
     WI_ShowNextLoc      = (1u << 0),
     WI_ShowNextDone     = (1u << 1),
     WI_ShowNextEpisodal = (1u << 2),
+
+    WI_ShowNextLocEpisodal = WI_ShowNextLoc | WI_ShowNextEpisodal,
 } MI_ShowNext_t;
 
 typedef enum MI_Completion_e
