@@ -20,6 +20,8 @@
 #ifndef __R_BMAPS__
 #define __R_BMAPS__
 
+#if 0
+
 #include "doomtype.h"
 
 extern const byte *nobrightmap;
@@ -45,5 +47,7 @@ const lighttable_t *R_GetBrightmappedColormap(
 );
 
 extern const byte **texturebrightmap;
+
+#endif
 
 #endif
