@@ -1199,11 +1199,20 @@ static void WI_unloadData(void)
 
   wi_inited = false;
 
-  if (wiminus)
-  Z_ChangeTag(wiminus, PU_CACHE);
+  if (!ST_NumberfontInUse(num, percent, wiminus))
+  {
+    if (wiminus)
+    {
+      Z_ChangeTag(wiminus, PU_CACHE);
+    }
 
-  for (i=0 ; i<10 ; i++)
-    Z_ChangeTag(num[i], PU_CACHE);
+    for (i = 0; i < 10; i++)
+    {
+      Z_ChangeTag(num[i], PU_CACHE);
+    }
+
+    Z_ChangeTag(percent, PU_CACHE);
+  }
 
   if (gamemode == commercial)
     {
@@ -1235,7 +1244,6 @@ static void WI_unloadData(void)
 
   //  Z_Free(lnames);    // killough 4/26/98: this free is too early!!!
 
-  Z_ChangeTag(percent, PU_CACHE);
   Z_ChangeTag(colon, PU_CACHE);
   Z_ChangeTag(finished, PU_CACHE);
   Z_ChangeTag(entering, PU_CACHE);

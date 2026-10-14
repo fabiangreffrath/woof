@@ -578,6 +578,33 @@ hudfont_t *LoadSTCFN(void)
     return font;
 }
 
+boolean ST_NumberfontInUse(patch_t **numbers, patch_t *percent, patch_t *minus)
+{
+    numberfont_t *font;
+    array_foreach(font, numberfonts)
+    {
+        for (int num = 0; num < 10; ++num)
+        {
+            if (font->numbers[num] && font->numbers[num] == numbers[num])
+            {
+                return true;
+            }
+        }
+
+        if (font->percent && font->percent == percent)
+        {
+            return true;
+        }
+
+        if (font->minus && minus && font->minus == minus)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 static boolean ParseStatusBar(json_t *json, statusbar_t *out)
 {
     json_t *height = JS_GetObject(json, "height");

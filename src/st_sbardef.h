@@ -401,5 +401,6 @@ typedef struct
 sbardef_t *ST_ParseSbarDef(void);
 
 hudfont_t *LoadSTCFN(void);
+boolean ST_NumberfontInUse(patch_t **numbers, patch_t *percent, patch_t *minus);
 
 #endif
