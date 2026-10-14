@@ -51,6 +51,7 @@
 * Fixed SDL3 MacOSX compile directive. (CMD+Enter for fullscreen, Linux Steam folder search, 'Woof! Setup' help URL)
 * Custom skill options no longer stay active on standard skills.
 * The `Enemies` > `Helper Dogs` menu option now works again.
+* Check if the `WI` number font is still in use before freeing its glyphs in WI_unloadData().
 
 ## Miscellaneous
 
