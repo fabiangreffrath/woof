@@ -59,7 +59,7 @@ If you turn the [Doom logo upside down](https://www.reddit.com/r/Doom/comments/8
  * Ambient sounds using SNDINFO and DoomEdNums 14001 to 14064.
  * In-game music changing using MUSINFO and DoomEdNums 14101 to 14164.
  * UMAPINFO support, compliant to Rev 2.2 of the [spec](https://github.com/kraflab/umapinfo).
- * MBF21 compatibility level, compliant to Rev 1.4 of the [spec](https://github.com/kraflab/mbf21).
+ * MBF21 compatibility level, compliant to Rev 1.5 of the [spec](https://github.com/doom-cross-port-collab/mbf21).
  * Support for PNG graphics.
  * SMMU-style swirling animated flats.
 

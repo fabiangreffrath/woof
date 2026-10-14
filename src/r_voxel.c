@@ -674,10 +674,11 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 	{
 		// diminished light
 
-		int lightnum = (demo_version >= DV_MBF)
-		             ? (lightlevel_override >> LIGHTSEGSHIFT)
-		             : (thing->subsector->sector->lightlevel >> LIGHTSEGSHIFT);
+		int lightnum = comp[comp_thingsectorlight]
+						? lightlevel_override
+						: thing->subsector->sector->lightlevel;
 
+		lightnum >>= LIGHTSEGSHIFT;
 		lightnum += extralight;
 		lightnum = CLAMP(lightnum, 0, LIGHTLEVELS - 1);
 

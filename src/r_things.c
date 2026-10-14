@@ -495,10 +495,8 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
 inline const lighttable_t *const GetThingTint(const mobj_t *const mo,
                                               const sector_t *const s)
 {
-  const int32_t tint = (mo->tint >= 0)         ? mo->tint
-                     : (s->floorlightsec >= 0) ? sectors[s->floorlightsec].tint
-                                               : s->tint;
-  return (tint >= 0) ? colormaps[tint] : fullcolormap;
+    const int32_t tint = (mo->tint >= 0) ? mo->tint : s->tint;
+    return (tint >= 0) ? colormaps[tint] : fullcolormap;
 }
 
 //
@@ -733,10 +731,11 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
   {
     // diminished light
 
-    int lightnum = (demo_version >= DV_MBF)
-                 ? (lightlevel_override >> LIGHTSEGSHIFT)
-                 : (thing->subsector->sector->lightlevel >> LIGHTSEGSHIFT);
+    int lightnum = comp[comp_thingsectorlight]
+                 ? lightlevel_override
+                 : thing->subsector->sector->lightlevel;
 
+    lightnum >>= LIGHTSEGSHIFT;
     lightnum += extralight;
     lightnum = CLAMP(lightnum, 0, LIGHTLEVELS - 1);
 
@@ -968,10 +967,11 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
   else
   {
     // local light
-    int lightnum = (demo_version >= DV_MBF)
-                 ? (lightlevel_override >> LIGHTSEGSHIFT)
-                 : (viewplayer->mo->subsector->sector->lightlevel >> LIGHTSEGSHIFT);
+    int lightnum = comp[comp_thingsectorlight]
+                 ? lightlevel_override
+                 : viewplayer->mo->subsector->sector->lightlevel;
 
+    lightnum >>= LIGHTSEGSHIFT;
     lightnum += extralight;
     lightnum = CLAMP(lightnum, 0, LIGHTLEVELS - 1);
 
