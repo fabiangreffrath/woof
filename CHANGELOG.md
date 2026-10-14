@@ -20,6 +20,7 @@
     Things standing on other things are carried along by moving sectors.
     Monsters cannot hit things above or below them in melee if their heights do not overlap.
     The option is disabled in demos, netgames and strict mode.
+  - Add "Native MIDI Reset Type" to General->Audio->Music menu.
 
 * **Rendering:**
   - Improved palettization of PNG graphics, and general color approximation in the engine.
@@ -48,6 +49,8 @@
 * Fixed mouse hit boxes for savegame entries in the Load Game / Save Game menus
 * Fixed some occurances of undefined behavior in the code that led to demo desyncs caused by compiler optimizations
 * Fixed SDL3 MacOSX compile directive. (CMD+Enter for fullscreen, Linux Steam folder search, 'Woof! Setup' help URL)
+* Custom skill options no longer stay active on standard skills.
+* The `Enemies` > `Helper Dogs` menu option now works again.
 
 ## Miscellaneous
 

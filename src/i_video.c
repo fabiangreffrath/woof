@@ -1122,6 +1122,9 @@ boolean I_WritePNGfile(char *filename)
 
 void I_InitWindowIcon(void)
 {
+// On Windows, let the system itself set the application icon.
+// This fixes incorrect icon display in Task Manager.
+#ifndef _WIN32
     SDL_Surface *surface = SDL_CreateSurfaceFrom(
         icon_w, icon_h,
         SDL_GetPixelFormatForMasks(32, 0xffu << 24, 0xffu << 16, 0xffu << 8,
@@ -1130,6 +1133,7 @@ void I_InitWindowIcon(void)
 
     SDL_SetWindowIcon(screen, surface);
     SDL_DestroySurface(surface);
+#endif
 }
 
 static void SetWindowPosition(void)

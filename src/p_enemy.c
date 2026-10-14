@@ -29,6 +29,7 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "g_game.h"
+#include "g_skillinfo.h"
 #include "g_umapinfo.h"
 #include "hu_obituary.h"
 #include "i_printf.h"
@@ -635,10 +636,10 @@ static boolean PIT_AvoidDropoff(line_t *line)
       // The monster must contact one of the two floors,
       // and the other must be a tall dropoff (more than 24).
 
-      if (back == floorz && front < floorz - FRACUNIT*24)
+      if (back == floorz && front < floorz - STEP_HEIGHT)
 	angle = R_PointToAngle2(0,0,line->dx,line->dy);   // front side dropoff
       else
-	if (front == floorz && back < floorz - FRACUNIT*24)
+	if (front == floorz && back < floorz - STEP_HEIGHT)
 	  angle = R_PointToAngle2(line->dx,line->dy,0,0); // back side dropoff
 	else
 	  return true;
@@ -698,7 +699,7 @@ static void P_NewChaseDir(mobj_t *actor)
 
   if (demo_version >= DV_MBF)
   {
-    if (actor->floorz - actor->dropoffz > FRACUNIT*24 &&
+    if (actor->floorz - actor->dropoffz > STEP_HEIGHT &&
 	actor->z <= actor->floorz && !(actor->flags & (MF_DROPOFF|MF_FLOAT)) &&
 	!comp[comp_dropoff] && P_AvoidDropoff(actor)) // Move away from dropoff
       {
@@ -1198,7 +1199,7 @@ void A_Chase(mobj_t *actor)
   if (actor->flags & MF_JUSTATTACKED)
     {
       actor->flags &= ~MF_JUSTATTACKED;
-      if (gameskill != sk_nightmare && !fastparm)
+      if (!(skill_info.flags & SI_FAST_MONSTERS))
         P_NewChaseDir(actor);
       return;
     }
@@ -1216,7 +1217,7 @@ void A_Chase(mobj_t *actor)
 
   // check for missile attack
   if (actor->info->missilestate)
-    if (!actor->movecount || gameskill >= sk_nightmare || fastparm)
+    if (!actor->movecount || skill_info.flags & SI_FAST_MONSTERS)
       if (P_CheckMissileRange(actor))
         {
           P_SetMobjState(actor, actor->info->missilestate);
@@ -2429,7 +2430,7 @@ void A_BrainSpit(mobj_t *mo)
     return;
 
   brain.easy ^= 1;          // killough 3/26/98: use brain struct
-  if (gameskill <= sk_easy && !brain.easy)
+  if (skill_info.flags & SI_EASY_BOSS_BRAIN && !brain.easy)
     return;
 
   // shoot a cube at current target

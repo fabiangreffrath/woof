@@ -1,0 +1,20 @@
+metadata { type "declarate" version "1.0.0" }
+
+#include "actors/archvile.txt"
+#include "actors/baby.txt"
+#include "actors/brain.txt"
+#include "actors/bruiser.txt"
+#include "actors/caco.txt"
+#include "actors/cyber.txt"
+#include "actors/demon.txt"
+#include "actors/doomimp.txt"
+#include "actors/fatso.txt"
+#include "actors/keen.txt"
+#include "actors/lostsoul.txt"
+#include "actors/painelem.txt"
+#include "actors/possess.txt"
+#include "actors/revenant.txt"
+#include "actors/spider.txt"
+
+#include "actors/doomdeco.txt"
+#include "actors/doommisc.txt"

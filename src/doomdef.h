@@ -125,16 +125,6 @@ typedef enum mapthing_options_e {
   MTF_SKILL5 = (1u << 20),
 } mapthing_options_t;
 
-typedef enum {
-  sk_default=-2,
-  sk_none=-1, //jff 3/24/98 create unpicked skill setting
-  sk_baby=0,
-  sk_easy,
-  sk_medium,
-  sk_hard,
-  sk_nightmare
-} skill_t;
-
 //
 // Key cards.
 //

@@ -171,6 +171,8 @@ static void ParseActor(scanner_t *sc)
     hashmap_put_str(actors, actor.name, &actor);
 }
 
+static void Open(int lumpnum, const char *name);
+
 static void ParseDeclarate(scanner_t *sc)
 {
     while (SC_TokensLeft(sc))
@@ -184,13 +186,13 @@ static void ParseDeclarate(scanner_t *sc)
             int lumpnum = (W_CheckNumForName)(lump, ns_actors);
             if (lumpnum < 0)
             {
-                lumpnum = W_CheckNumForName(lump);
+                lumpnum = W_CheckNumForLongName(lump);
+                if (lumpnum < 0)
+                {
+                    SC_Error(sc, "Lump '%s' is not found.", lump);
+                }
             }
-            if (lumpnum < 0)
-            {
-                SC_Error(sc, "Lump '%s' is not found.", lump);
-            }
-            DECL_Parse(lumpnum);
+            Open(lumpnum, lump);
         }
         else
         {
@@ -223,13 +225,17 @@ void DECL_Install(void)
     DECL_ResolveMobjInfoStatePointers();
 }
 
+static void Open(int lumpnum, const char *longname)
+{
+    scanner_t *sc = SC_OpenOptions("declarate", (version_t){1, 0, 0}, longname,
+                      W_CacheLumpNum(lumpnum, PU_CACHE), W_LumpLength(lumpnum));
+    ParseDeclarate(sc);
+    SC_Close(sc);
+}
+
 void DECL_Parse(int lumpnum)
 {
     char lumpname[9] = {0};
     M_CopyLumpName(lumpname, lumpinfo[lumpnum].name);
-    scanner_t *sc = SC_OpenOptions("declarate", (version_t){1, 0, 0}, lumpname,
-                                   W_CacheLumpNum(lumpnum, PU_CACHE),
-                                   W_LumpLength(lumpnum));
-    ParseDeclarate(sc);
-    SC_Close(sc);
+    Open(lumpnum, lumpname);
 }

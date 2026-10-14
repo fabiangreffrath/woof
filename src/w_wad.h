@@ -78,13 +78,13 @@ typedef struct
         archive_t *archive;
         const char *base_path;
         FILE *descriptor;
-    } p1;
+    };
 
     union
     {
         int position;
         int index;
-    } p2;
+    };
 
     int priority;
 } w_handle_t;
@@ -109,6 +109,8 @@ typedef struct
 
   // [FG] WAD file that contains the lump
   const char *wad_file;
+
+  const char *longname;
 } lumpinfo_t;
 
 extern lumpinfo_t *lumpinfo;
@@ -118,8 +120,12 @@ extern void       **lumpcache;
 extern const char **wadfiles;
 
 boolean W_InitBaseFile(const char *path);
-void W_AddBaseDir(const char *path);
+void W_AutoloadBaseIWAD(void);
+void W_AutoloadBasePWAD(void);
+
 boolean W_AddPath(const char *path);
+
+boolean W_OpenFile(const char *path);
 
 typedef enum
 {
@@ -138,6 +144,8 @@ void W_InitMultipleFiles(void);
 
 #define W_CheckNumForName(name) (W_CheckNumForName)(name, ns_global)
 int     (W_CheckNumForName)(const char* name, int);   // killough 4/17/98
+
+int     W_CheckNumForLongName(const char* name);
 int     W_GetNumForName (const char* name);
 int     W_LumpLength (int lump);
 void    W_ReadLump (int lump, void *dest);

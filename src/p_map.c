@@ -684,7 +684,9 @@ static boolean PIT_CheckThing(mobj_t *thing) // killough 3/26/98: make static
     {
         const fixed_t top = thing->z + thing->height;
 
-        if (tmthing->z >= top)
+        // The mover is above the thing, or a player can step up onto it.
+        if (tmthing->z >= top
+            || (tmthing->player && top - tmthing->z <= STEP_HEIGHT))
         {
             if (top > tmfloorz)
             {
@@ -908,7 +910,7 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, int dropoff)
 	   tmceilingz - thing->z < thing->height) ||
 	  // too big a step up
 	  (!(thing->flags & MF_TELEPORT) &&
-	   tmfloorz - thing->z > 24*FRACUNIT))
+	   tmfloorz - thing->z > STEP_HEIGHT))
 	return tmunstuck
 	  && !(ceilingline && untouched(ceilingline))
 	  && !(  floorline && untouched(  floorline));
@@ -927,7 +929,7 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, int dropoff)
 	if (comp[comp_dropoff] || ledgeblock)
 	  {
 	    if ((ledgeblock || !dropoff) &&
-		tmfloorz - tmdropoffz > 24*FRACUNIT)
+		tmfloorz - tmdropoffz > STEP_HEIGHT)
 	      return false;                      // don't stand over a dropoff
 	  }
 	else
@@ -936,14 +938,14 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, int dropoff)
 			    !thing->target || thing->target->z >tmdropoffz)))
 	    {
 	      if (!monkeys || demo_version < DV_MBF ?
-		  tmfloorz - tmdropoffz > 24*FRACUNIT :
-		  thing->floorz  - tmfloorz > 24*FRACUNIT ||
-		  thing->dropoffz - tmdropoffz > 24*FRACUNIT)
+		  tmfloorz - tmdropoffz > STEP_HEIGHT :
+		  thing->floorz  - tmfloorz > STEP_HEIGHT ||
+		  thing->dropoffz - tmdropoffz > STEP_HEIGHT)
 		return false;
 	    }
 	  else  // dropoff allowed -- check for whether it fell more than 24
 	    felldown = !(thing->flags & MF_NOGRAVITY) &&
-	      thing->z - tmfloorz > 24*FRACUNIT;
+	      thing->z - tmfloorz > STEP_HEIGHT;
       }
 
       if (thing->flags & MF_BOUNCES &&    // killough 8/13/98
@@ -1326,7 +1328,7 @@ static boolean PTR_SlideTraverse(intercept_t *in)
   if (opentop - slidemo->z < slidemo->height)
     goto isblocking;  // mobj is too high
 
-  if (openbottom - slidemo->z > 24*FRACUNIT )
+  if (openbottom - slidemo->z > STEP_HEIGHT )
     goto isblocking;  // too big a step up
 
   // this line doesn't block movement
@@ -1829,7 +1831,7 @@ static boolean PTR_NoWayTraverse(intercept_t *in)
     !(ld->flags & ML_BLOCKING ||                  // Always blocking
       (P_LineOpening(ld),                         // Find openings
        openrange <= 0 ||                          // No opening
-       openbottom > usething->z+24*FRACUNIT ||    // Too high it blocks
+       openbottom > usething->z+STEP_HEIGHT ||    // Too high it blocks
        opentop < usething->z+usething->height));  // Too low it blocks
 }
 
