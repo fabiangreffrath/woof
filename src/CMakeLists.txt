@@ -163,6 +163,7 @@ set(WOOF_SOURCES
     p_udmf.c               p_udmf.h
     p_user.c               p_user.h
     r_bsp.c                r_bsp.h
+    r_common.c             r_common.h
     r_data.c               r_data.h
                            r_defs.h
     r_draw.c               r_draw.h

@@ -120,21 +120,21 @@ extern angle_t          vx_clipangle;
 extern int              viewangletox[FINEANGLES/2];
 extern angle_t          *xtoviewangle;  // killough 2/8/98
 // [MT] mutated while rendering segs in parallel render contexts.
-extern THREADLOCAL fixed_t          rw_distance;
-extern THREADLOCAL angle_t          rw_normalangle;
+extern THREADLOCAL fixed_t rw_distance;
+extern THREADLOCAL angle_t rw_normalangle;
 
 // [FG] linear horizontal sky scrolling
 extern angle_t          *linearskyangle;
 
 // angle to line origin
-extern THREADLOCAL int              rw_angle1;
+extern THREADLOCAL int  rw_angle1;
 
 // Segs count?
 extern int              sscount;
 
 // [MT] set per subsector during parallel BSP traversal.
-extern THREADLOCAL visplane_t       *floorplane;
-extern THREADLOCAL visplane_t       *ceilingplane;
+extern THREADLOCAL visplane_t *floorplane;
+extern THREADLOCAL visplane_t *ceilingplane;
 
 #endif
 

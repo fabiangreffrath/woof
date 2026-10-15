@@ -23,9 +23,9 @@
 // Some more or less basic data types
 // we depend on.
 #include "doomdata.h"
-#include "i_thread.h"
 #include "m_fixed.h"
 #include "tables.h"
+#include "r_common.h"
 
 // We rely on the thinker data struct
 // to handle sound origins in sectors.

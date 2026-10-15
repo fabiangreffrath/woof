@@ -21,7 +21,6 @@
 //
 
 #include "doomtype.h"
-#include "i_thread.h"
 
 #ifndef __R_TRANMAP__
 #define __R_TRANMAP__

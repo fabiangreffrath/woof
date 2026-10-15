@@ -143,72 +143,72 @@ static THREADLOCAL int planeleaplog2;
 
 static void R_FreeVisplanes(void)
 {
-  for (int i = 0; i < MAXVISPLANES; i++)
-  {
-    visplane_t *pl = visplanes[i];
+    for (int i = 0; i < MAXVISPLANES; i++)
+    {
+        visplane_t *pl = visplanes[i];
+        while (pl)
+        {
+            visplane_t *next = pl->next;
+            free(pl->buffer);
+            free(pl);
+            pl = next;
+        }
+        visplanes[i] = NULL;
+    }
+
+    visplane_t *pl = freetail;
     while (pl)
     {
-      visplane_t *next = pl->next;
-      free(pl->buffer);
-      free(pl);
-      pl = next;
+        visplane_t *next = pl->next;
+        free(pl->buffer);
+        free(pl);
+        pl = next;
     }
-    visplanes[i] = NULL;
-  }
-
-  visplane_t *pl = freetail;
-  while (pl)
-  {
-    visplane_t *next = pl->next;
-    free(pl->buffer);
-    free(pl);
-    pl = next;
-  }
-  freetail = NULL;
-  freehead = &freetail;
+    freetail = NULL;
+    freehead = &freetail;
 }
 
 static void R_AllocPlaneBuffers(void)
 {
-  if (plane_buffers_width >= video.width
-      && plane_buffers_height >= video.height)
-  {
-    return;
-  }
+    if (plane_buffers_width >= video.width
+        && plane_buffers_height >= video.height)
+    {
+        return;
+    }
 
-  plane_buffers_width = video.width;
-  plane_buffers_height = video.height;
+    plane_buffers_width = video.width;
+    plane_buffers_height = video.height;
 
-  floorclip = I_Realloc(floorclip, video.width * sizeof(*floorclip));
-  ceilingclip = I_Realloc(ceilingclip, video.width * sizeof(*ceilingclip));
+    floorclip = I_Realloc(floorclip, video.width * sizeof(*floorclip));
+    ceilingclip = I_Realloc(ceilingclip, video.width * sizeof(*ceilingclip));
 
-  planeraster = I_Realloc(planeraster, video.height * sizeof(*planeraster));
+    planeraster = I_Realloc(planeraster, video.height * sizeof(*planeraster));
 
-  planecolcos = I_Realloc(planecolcos, video.width * sizeof(*planecolcos));
-  planecolsin = I_Realloc(planecolsin, video.width * sizeof(*planecolsin));
+    planecolcos = I_Realloc(planecolcos, video.width * sizeof(*planecolcos));
+    planecolsin = I_Realloc(planecolsin, video.width * sizeof(*planecolsin));
 
-  maxopenings = video.width * video.height;
-  openings = I_Realloc(openings, maxopenings * sizeof(*openings));
+    maxopenings = video.width * video.height;
+    openings = I_Realloc(openings, maxopenings * sizeof(*openings));
 
-  memset(openings, 0, maxopenings * sizeof(*openings));
+    memset(openings, 0, maxopenings * sizeof(*openings));
 
-  // R&R spantype selection: clamp(round(log2(height * 0.02)), 2..4),
-  // written out with integer thresholds (2^2.5*50 ~= 283, 2^3.5*50 ~= 566).
-  if (video.height < 283)
-  {
-    planeleap = 4;
-    planeleaplog2 = 2;
-  }
-  else if (video.height < 566)
-  {
-    planeleap = 8;
-    planeleaplog2 = 3;
-  }
-  else
-  {
-    planeleap = 16;
-    planeleaplog2 = 4;
-  }
+    // R&R spantype selection: clamp(round(log2(height * 0.02)), 2..4),
+    // written out with integer thresholds (2^2.5*50 ~= 283, 2^3.5*50 ~= 566).
+    if (video.height < 283)
+    {
+        planeleap = 4;
+        planeleaplog2 = 2;
+    }
+    else if (video.height < 566)
+    {
+        planeleap = 8;
+        planeleaplog2 = 3;
+    }
+    else
+    {
+        planeleap = 16;
+        planeleaplog2 = 4;
+    }
 }
 
 //

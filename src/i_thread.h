@@ -19,7 +19,7 @@
 typedef struct SDL_Thread thread_t;
 typedef int (*threadfunc_t)(void *data);
 
-thread_t *I_ThreadCreate(threadfunc_t runfunc, void *userdata);
+thread_t *I_ThreadCreate(threadfunc_t runfunc, const char *name, void *userdata);
 
 void I_ThreadDestroy(thread_t *thread);
 
@@ -38,56 +38,13 @@ void I_SemaphoreAcquire(semaphore_t *sem);
 void I_SemaphoreRelease(semaphore_t *sem);
 
 typedef struct { int value; } atomicint_t;
-typedef int atomicval_t;
 
-atomicval_t I_AtomicLoad(atomicint_t *atomic);
+int I_AtomicLoad(atomicint_t *atomic);
 
-atomicval_t I_AtomicExchange(atomicint_t *atomic, atomicval_t val);
+int I_AtomicExchange(atomicint_t *atomic, int val);
 
-atomicval_t I_AtomicIncrement(atomicint_t *atomic, atomicval_t val);
+int I_AtomicIncrement(atomicint_t *atomic, int val);
 
-atomicval_t I_AtomicDecrement(atomicint_t *atomic, atomicval_t val);
-
-//
-// Job system for the multithreaded renderer.
-//
-// A pool of persistent worker threads, each with its own job queue. Jobs are
-// { function pointer, userdata } pairs. I_JobsAdd() dispatches round-robin
-// over the active workers (or runs the job inline when no workers are
-// active), I_JobsFlush() blocks until every submitted job has finished.
-// Workers sleep on semaphores between jobs - no spin waiting.
-//
-// All calls must be made from the same (main) thread.
-//
-
-typedef void (*jobfunc_t)(void *userdata);
-
-void I_JobsInit(int numthreads);
-
-void I_JobsShutdown(void);
-
-void I_JobsAdd(jobfunc_t func, void *userdata);
-
-void I_JobsFlush(void);
-
-// Restrict dispatch to the first numactive workers; 0 makes I_JobsAdd()
-// run jobs inline. Already queued jobs still execute and are drained by
-// I_JobsFlush().
-void I_JobsSetActive(int numactive);
-
-int I_JobsNumThreads(void);
-
-//
-// Frame scratch allocator (per-thread bump pointer)
-// All allocations are freed at once by I_FrameScratchReset() at frame start.
-// Workers must call I_FrameScratchReset() before starting their frame work.
-//
-void I_FrameScratchInit(int bytes_per_thread);
-
-void I_FrameScratchShutdown(void);
-
-void I_FrameScratchReset(void);
-
-void *I_FrameScratchAlloc(int bytes, int align);
+int I_AtomicDecrement(atomicint_t *atomic, int val);
 
 #endif

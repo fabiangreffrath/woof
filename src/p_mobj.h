@@ -38,6 +38,8 @@
 // Needs precompiled tables/data structures.
 #include "info.h"
 
+#include "r_common.h"
+
 //
 // NOTES: mobj_t
 //

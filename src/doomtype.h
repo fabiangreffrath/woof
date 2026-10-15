@@ -37,9 +37,6 @@ typedef uint8_t byte;
 
 typedef byte pixel_t;
 
-// [MT] Maximum number of parallel render contexts (column slabs).
-#define MAX_RENDER_CONTEXTS 16
-
 // This could be wider for >8 bit display. Indeed, true color support is
 // posibble precalculating 24bpp lightmap/colormap LUT. from darkening PLAYPAL
 // to all black. Could use even more than 32 levels.

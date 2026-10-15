@@ -20,10 +20,7 @@
 #ifndef __R_MAIN__
 #define __R_MAIN__
 
-#include <stdint.h>
-
 #include "doomtype.h"
-#include "i_thread.h"
 #include "m_fixed.h"
 #include "tables.h"
 
@@ -112,7 +109,7 @@ extern THREADLOCAL void (*colfunc)(void);
 // Multithreaded rendering.
 //
 
-typedef struct rendercontext_s
+typedef struct
 {
     int index;        // context index, 0 is the main render thread
     int startcol;     // view-relative column range [startcol, endcol)

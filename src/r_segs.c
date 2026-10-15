@@ -26,7 +26,6 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "i_system.h"
-#include "i_thread.h"
 #include "m_fixed.h"
 #include "r_bsp.h"
 #include "r_data.h"
@@ -39,8 +38,6 @@
 #include "r_things.h"
 #include "tables.h"
 #include "v_video.h"
-#include "w_wad.h"
-#include "z_zone.h"
 
 // OPTIMIZE: closed two sided lines as single sided
 
@@ -51,9 +48,9 @@
 // parallel.
 
 // True if any of the segs textures might be visible.
-THREADLOCAL boolean  segtextured;
-THREADLOCAL boolean  markfloor;      // False if the back side is the same plane.
-THREADLOCAL boolean  markceiling;
+THREADLOCAL boolean         segtextured;
+THREADLOCAL boolean         markfloor;      // False if the back side is the same plane.
+THREADLOCAL boolean         markceiling;
 static THREADLOCAL boolean  maskedtexture;
 static THREADLOCAL int      toptexture;
 static THREADLOCAL int      bottomtexture;
@@ -88,7 +85,7 @@ static THREADLOCAL int64_t  topfrac; // [FG] 64-bit integer math
 static THREADLOCAL fixed_t  topstep;
 static THREADLOCAL int64_t  bottomfrac; // [FG] 64-bit integer math
 static THREADLOCAL fixed_t  bottomstep;
-static THREADLOCAL int    *maskedtexturecol; // [FG] 32-bit integer math
+static THREADLOCAL int      *maskedtexturecol; // [FG] 32-bit integer math
 
 //
 // UDMF extensions, adapted from DSDA
@@ -344,15 +341,18 @@ static const struct
     { 128 * FRACUNIT,  9}
 };
 
-void R_FixWiggle (sector_t *sector)
+void R_FixWiggle(sector_t *sector)
 {
     // [MT] fully per-thread cache, no shared-state writes.
     static THREADLOCAL int lastheight = 0;
-    int height = (sector->interpceilingheight - sector->interpfloorheight) >> FRACBITS;
+    int height =
+        (sector->interpceilingheight - sector->interpfloorheight) >> FRACBITS;
 
     // disallow negative heights. using 1 forces cache initialization
     if (height < 1)
+    {
         height = 1;
+    }
 
     // early out?
     if (height != lastheight)
@@ -364,13 +364,15 @@ void R_FixWiggle (sector_t *sector)
 
         // calculate adjustment
         while (h >>= 1)
+        {
             scaleindex++;
+        }
 
         // fine-tune renderer for this wall
         max_rwscale = scale_values[scaleindex].clamp;
-        heightbits  = scale_values[scaleindex].heightbits;
-        heightunit  = (1 << heightbits);
-        invhgtbits  = FRACBITS - heightbits;
+        heightbits = scale_values[scaleindex].heightbits;
+        heightunit = (1 << heightbits);
+        invhgtbits = FRACBITS - heightbits;
     }
 }
 

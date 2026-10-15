@@ -357,7 +357,7 @@ void R_ClearSprites (void)
 {
   // [MT] per-frame clip buffers from the frame scratch allocator: no
   // reallocs, freed wholesale at the next frame start.
-  clipbot = I_FrameScratchAlloc(2 * video.width * sizeof(*clipbot), 16);
+  clipbot = R_FrameScratchAlloc(2 * video.width * sizeof(*clipbot), 16);
   cliptop = clipbot + video.width;
 
   r_context->rendered_vissprites = num_vissprite; // [MT] per-context stat
@@ -884,7 +884,7 @@ void R_TrackRenderedThing(mobj_t *thing)
     if (rendered_things_count >= rendered_things_alloc)
     {
         int new_alloc = rendered_things_alloc ? rendered_things_alloc * 2 : 1024;
-        mobj_t **new_array = I_FrameScratchAlloc(new_alloc * sizeof(*new_array), 16);
+        mobj_t **new_array = R_FrameScratchAlloc(new_alloc * sizeof(*new_array), 16);
         if (rendered_things)
         {
             memcpy(new_array, rendered_things,

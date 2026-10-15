@@ -24,7 +24,6 @@
 #include <limits.h>
 #include <math.h>
 #include <stdint.h>
-#include <string.h>
 
 #include "d_loop.h"
 #include "d_player.h"
@@ -43,6 +42,7 @@
 #include "r_defs.h"
 #include "r_draw.h"
 #include "r_main.h"
+#include "r_common.h"
 #include "r_plane.h"
 #include "r_sky.h"
 #include "r_state.h"
@@ -120,8 +120,8 @@ fixed_t *distscale = NULL;
 static int distscale_size = 0;
 // [MT] both point into the tables above but are selected while drawing,
 // so they are thread-local like the rest of the drawer state.
-THREADLOCAL int const  * planezlightoffset;
-THREADLOCAL int const  * walllightoffset;
+THREADLOCAL int const *planezlightoffset;
+THREADLOCAL int const *walllightoffset;
 
 // killough 3/20/98, 4/4/98: end dynamic colormaps
 
@@ -923,7 +923,7 @@ static int ActiveContexts(void)
         return 1;
     }
 
-    return CLAMP(num_render_contexts, 1, I_JobsNumThreads() + 1);
+    return CLAMP(num_render_contexts, 1, R_JobsNumThreads() + 1);
 }
 
 //
@@ -964,14 +964,14 @@ static void R_RenderLoadBalance(int contexts)
     for (int i = 0; i < contexts; i++)
     {
         rendercontexts[i].smoothed_time =
-            0.9 * rendercontexts[i].smoothed_time +
-            0.1 * (double)rendercontexts[i].timetaken;
+            0.9 * rendercontexts[i].smoothed_time
+            + 0.1 * (double)rendercontexts[i].timetaken;
         total_smoothed_time += rendercontexts[i].smoothed_time;
 
         // Same EMA over the last frame's vissprite count.
         rendercontexts[i].smoothed_sprites =
-            0.9 * rendercontexts[i].smoothed_sprites +
-            0.1 * (double)rendercontexts[i].rendered_vissprites;
+            0.9 * rendercontexts[i].smoothed_sprites
+            + 0.1 * (double)rendercontexts[i].rendered_vissprites;
         total_smoothed_sprites += rendercontexts[i].smoothed_sprites;
     }
 
@@ -983,7 +983,8 @@ static void R_RenderLoadBalance(int contexts)
 
     for (int i = 0; i < contexts; i++)
     {
-        timepercentages[i] = rendercontexts[i].smoothed_time / total_smoothed_time;
+        timepercentages[i] =
+            rendercontexts[i].smoothed_time / total_smoothed_time;
 
         // [MT] blend the sprite share into the load estimate: time still
         // dominates (it measures all of the slab's work), the sprite count
@@ -992,16 +993,19 @@ static void R_RenderLoadBalance(int contexts)
         loadpercentages[i] = timepercentages[i];
         if (total_smoothed_sprites > 0)
         {
-            loadpercentages[i] =
-                0.75 * timepercentages[i] +
-                0.25 * (rendercontexts[i].smoothed_sprites
-                        / total_smoothed_sprites);
+            loadpercentages[i] = 0.75 * timepercentages[i]
+                                 + 0.25 * (rendercontexts[i].smoothed_sprites
+                                          / total_smoothed_sprites);
         }
 
         if (loadpercentages[i] > idealpercentage)
+        {
             overbudgetcount++;
+        }
         else
+        {
             underbudgetcount++;
+        }
     }
 
     // shift up to a quarter of the ideal share from slow to fast contexts
@@ -1010,9 +1014,13 @@ static void R_RenderLoadBalance(int contexts)
     double addamount = totalshuffle - removeamount;
 
     if (overbudgetcount)
+    {
         removeamount /= overbudgetcount;
+    }
     if (underbudgetcount)
+    {
         addamount /= underbudgetcount;
+    }
 
     for (int i = 0; i < contexts; i++)
     {
@@ -1020,9 +1028,8 @@ static void R_RenderLoadBalance(int contexts)
             (double)(rendercontexts[i].endcol - rendercontexts[i].startcol)
             / viewwidth;
 
-        const double growamount = loadpercentages[i] > idealpercentage
-                                      ? -removeamount
-                                      : addamount;
+        const double growamount =
+            loadpercentages[i] > idealpercentage ? -removeamount : addamount;
 
         // Hysteresis: only adjust if imbalance exceeds 10% of ideal share.
         // This prevents slab boundaries from jittering due to timing noise.
@@ -1141,7 +1148,7 @@ static void R_RenderContextJob(void *userdata)
     const int saved_scratch_index = r_worker_scratch_index;
 
     r_worker_scratch_index = context->index;
-    I_FrameScratchReset();
+    R_FrameScratchReset();
     R_RenderViewContext(context);
 
     r_worker_scratch_index = saved_scratch_index;
@@ -1163,7 +1170,7 @@ static void R_AggregateStats(int contexts)
 //
 void R_RenderPlayerView (player_t* player)
 {
-  I_FrameScratchReset();
+  R_FrameScratchReset();
 
   R_ClearStats();
 
@@ -1256,10 +1263,10 @@ void R_RenderPlayerView (player_t* player)
     // Contexts 1..N-1 go to the worker threads, context 0 renders inline on
     // the calling thread, then everything is flushed.
     for (int i = 1; i < contexts; i++)
-      I_JobsAdd(R_RenderContextJob, &rendercontexts[i]);
+      R_JobsAdd(R_RenderContextJob, &rendercontexts[i]);
 
     R_RenderViewContext(&rendercontexts[0]);
-    I_JobsFlush();
+    R_JobsFlush();
   }
   else
   {
@@ -1280,38 +1287,41 @@ void R_RenderPlayerView (player_t* player)
 
 void R_InitRenderThreads(void)
 {
-  if (num_render_contexts <= 0 || num_render_contexts > MAX_RENDER_CONTEXTS)
-    num_render_contexts = CLAMP(I_ThreadGetHardwareCount(), 1, MAX_RENDER_CONTEXTS);
+    if (num_render_contexts <= 0 || num_render_contexts > MAX_RENDER_CONTEXTS)
+    {
+        num_render_contexts =
+            CLAMP(I_ThreadGetHardwareCount(), 1, MAX_RENDER_CONTEXTS);
+    }
 
-  for (int i = 0; i < MAX_RENDER_CONTEXTS; i++)
-  {
-    rendercontexts[i].index = i;
-    rendercontexts[i].timetaken = 1;
-    rendercontexts[i].smoothed_time = 1.0;
-    rendercontexts[i].smoothed_sprites = 0.0;
-  }
+    for (int i = 0; i < MAX_RENDER_CONTEXTS; i++)
+    {
+        rendercontexts[i].index = i;
+        rendercontexts[i].timetaken = 1;
+        rendercontexts[i].smoothed_time = 1.0;
+        rendercontexts[i].smoothed_sprites = 0.0;
+    }
 
-  // Context 0 always renders on the calling thread, so the pool only needs
-  // num_render_contexts - 1 workers.
-  I_JobsInit(num_render_contexts - 1);
+    // Context 0 always renders on the calling thread, so the pool only needs
+    // num_render_contexts - 1 workers.
+    R_JobsInit(num_render_contexts - 1);
 
-  // Frame scratch allocator: per-thread bump arena for small fixed-size
-  // per-frame.
-  I_FrameScratchInit(1024 * 1024);
-  I_AtExit(R_ShutdownRenderThreads, true);
+    // Frame scratch allocator: per-thread bump arena for small fixed-size
+    // per-frame.
+    R_FrameScratchInit(1024 * 1024);
+    I_AtExit(R_ShutdownRenderThreads, true);
 }
 
 void R_ShutdownRenderThreads(void)
 {
-  I_FrameScratchShutdown();
-  I_JobsShutdown();
+    R_FrameScratchShutdown();
+    R_JobsShutdown();
 }
 
 void R_InitAnyRes(void)
 {
-  R_InitSpritesRes();
-  R_InitBufferRes();
-  R_InitPlanesRes();
+    R_InitSpritesRes();
+    R_InitBufferRes();
+    R_InitPlanesRes();
 }
 
 void R_BindRenderVariables(void)
