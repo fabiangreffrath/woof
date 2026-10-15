@@ -402,9 +402,8 @@ static void ParseStandardProperty(scanner_t *s, MI_Entry_t *mape)
         if (mape->jumping == PM_Require)
         {
             I_Printf(VB_WARNING,
-                     "Parsing UMAPINFO found a 'jumping = "
-                     "require' entry, but jumping is not "
-                     "supported, map %s may not work correctly.",
+                     "UMAPINFO: found 'jumping = required' on map %s, but "
+                     "jumping is not supported",
                      mape->lumpname);
         }
     }
@@ -414,9 +413,8 @@ static void ParseStandardProperty(scanner_t *s, MI_Entry_t *mape)
         if (mape->crouching == PM_Require)
         {
             I_Printf(VB_WARNING,
-                     "Parsing UMAPINFO found a 'crouching = "
-                     "require' entry, but crouching is not "
-                     "supported, map %s may not work correctly.",
+                     "UMAPINFO: found 'crouching = required' on map %s, but "
+                     "crouching is not supported",
                      mape->lumpname);
         }
     }
