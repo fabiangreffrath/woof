@@ -59,7 +59,8 @@ jobs:
             --std=c11 \
             --project="${{ github.workspace }}/build/compile_commands.json" \
             -i"${{ github.workspace }}/third-party" \
-            -D__GNUC__
+            -D__GNUC__ \
+            -D"NORETURN=[[noreturn]]"
 
       - name: Run Clang-Tidy
         if: ${{ matrix.name == 'Clang-Tidy' }}
