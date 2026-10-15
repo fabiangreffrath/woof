@@ -158,43 +158,48 @@ inline static void RemoveThinker(thinker_t *thinker)
 
     // haleyjd 6/17/08: remove from threaded list now
     (thinker->cnext->cprev = thinker->cprev)->cnext = thinker->cnext;
-
-    arena_free(thinkers_arena, thinker);
 }
 
 void P_RemoveMobjThinkerDelayed(mobj_t *mobj)
 {
     RemoveThinker(&mobj->thinker);
+    arena_free(thinkers_arena, mobj, mobj_t);
 }
 
 void P_RemoveCeilingThinkerDelayed(mobj_t *mobj)
 {
     RemoveThinker(&mobj->thinker);
+    arena_free(thinkers_arena, mobj, ceiling_t);
 }
 
 void P_RemoveDoorThinkerDelayed(mobj_t *mobj)
 {
     RemoveThinker(&mobj->thinker);
+    arena_free(thinkers_arena, mobj, vldoor_t);
 }
 
 void P_RemoveFloorThinkerDelayed(mobj_t *mobj)
 {
     RemoveThinker(&mobj->thinker);
+    arena_free(thinkers_arena, mobj, floormove_t);
 }
 
 void P_RemoveElevatorThinkerDelayed(mobj_t *mobj)
 {
     RemoveThinker(&mobj->thinker);
+    arena_free(thinkers_arena, mobj, elevator_t);
 }
 
 void P_RemovePlatThinkerDelayed(mobj_t *mobj)
 {
     RemoveThinker(&mobj->thinker);
+    arena_free(thinkers_arena, mobj, plat_t);
 }
 
 void P_RemoveAmbientThinkerDelayed(mobj_t *mobj)
 {
     RemoveThinker(&mobj->thinker);
+    arena_free(thinkers_arena, mobj, ambient_t);
 }
 
 //
