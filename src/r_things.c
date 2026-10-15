@@ -328,6 +328,13 @@ static THREADLOCAL mobj_t **rendered_things = NULL;
 static THREADLOCAL int rendered_things_count ;
 static THREADLOCAL int rendered_things_alloc;
 
+// [MT] per-context list of sectors visited during sprite collection, for
+// fast clearing of sector->rendervalidcount[] without iterating all sectors.
+// Frame scratch allocation like rendered_things; cleared at frame end.
+static THREADLOCAL sector_t **visited_sectors = NULL;
+static THREADLOCAL int visited_sectors_count;
+static THREADLOCAL int visited_sectors_alloc;
+
 //
 // R_InitSprites
 // Called at program start.
@@ -837,16 +844,15 @@ void R_AddSprites(sector_t* sec, int lightlevel_override)
   //  subsectors during BSP building.
   // Thus we check whether its already added.
 
-  // [MT] per-context stamp (see rendervalidcount in r_defs.h): every render
+  // [MT] per-context flag (see rendervalidcount in r_defs.h): every render
   // context adds the sector's things once for itself. The gameplay code keeps
   // using sec->validcount/validcount untouched.
-  if (I_AtomicLoad(&sec->rendervalidcount) == r_validstamp)
+  if (sec->rendervalidcount[r_context->index])
     return;
 
-  // Well, now it will be done. Use atomic exchange to avoid TSan data race
-  // on the write; multiple contexts process the same sector (each for its
-  // own column slab), so whichever stamp wins is benign.
-  I_AtomicExchange(&sec->rendervalidcount, r_validstamp);
+  // Well, now it will be done.
+  sec->rendervalidcount[r_context->index] = 1;
+  R_TrackVisitedSector(sec);
 
   // Handle all things in sector.
 
@@ -863,7 +869,7 @@ void R_AddSprites(sector_t* sec, int lightlevel_override)
       thing = n->m_thing;
 
       // [FG] sprites in sector have already been projected
-      if (I_AtomicLoad(&thing->subsector->sector->rendervalidcount) != r_validstamp)
+      if (!thing->subsector->sector->rendervalidcount[r_context->index])
       {
         array_push(nearby_sprites, thing);
       }
@@ -877,7 +883,7 @@ void R_TrackRenderedThing(mobj_t *thing)
 {
     if (rendered_things_count >= rendered_things_alloc)
     {
-        int new_alloc = rendered_things_alloc ? rendered_things_alloc * 2 : 128;
+        int new_alloc = rendered_things_alloc ? rendered_things_alloc * 2 : 1024;
         mobj_t **new_array = I_FrameScratchAlloc(new_alloc * sizeof(*new_array), 16);
         if (rendered_things)
         {
@@ -890,15 +896,38 @@ void R_TrackRenderedThing(mobj_t *thing)
     rendered_things[rendered_things_count++] = thing;
 }
 
+// Track a visited sector for fast clearing of sector->rendervalidcount[].
+void R_TrackVisitedSector(sector_t *sec)
+{
+    if (visited_sectors_count >= visited_sectors_alloc)
+    {
+        int new_alloc = visited_sectors_alloc ? visited_sectors_alloc * 2 : 512;
+        sector_t **new_array =  I_Realloc(visited_sectors, new_alloc * sizeof(*new_array));
+        visited_sectors = new_array;
+        visited_sectors_alloc = new_alloc;
+    }
+    visited_sectors[visited_sectors_count++] = sec;
+}
+
+// Clear sector->rendervalidcount[] for all tracked sectors in this context.
+void R_ClearVisitedSectors(void)
+{
+    for (int i = 0; i < visited_sectors_count; i++)
+    {
+        visited_sectors[i]->rendervalidcount[r_context->index] = 0;
+    }
+    visited_sectors_count = 0;
+}
+
 // Clear mobj->rendered[] for all tracked mobjs in this context.
 // Called after R_NearbySprites() but before automap early-return.
 void R_ClearTrackedRendered(void)
 {
-  for (int i = 0; i < rendered_things_count; i++)
-  {
-    rendered_things[i]->rendered[r_context->index] = 0;
-  }
-  rendered_things_count = 0;
+    for (int i = 0; i < rendered_things_count; i++)
+    {
+        rendered_things[i]->rendered[r_context->index] = 0;
+    }
+    rendered_things_count = 0;
 }
 
 void R_NearbySprites (void)
@@ -914,9 +943,9 @@ void R_NearbySprites (void)
 
     // [FG] sprites in sector have already been projected
     // [MT] the same mobj can be pushed from several touching sectors while its
-    // own sector stays unvisited, so the sector stamp alone does not dedup it;
+    // own sector stays unvisited, so the sector flag alone does not dedup it;
     // also check the per-context mobj flag that R_ProjectSprite sets.
-    if (I_AtomicLoad(&sec->rendervalidcount) != r_validstamp
+    if (!sec->rendervalidcount[r_context->index]
         && !thing->rendered[r_context->index]) // [MT]
     {
       R_ProjectSprite(thing, (floorlightlevel + ceilinglightlevel) / 2);

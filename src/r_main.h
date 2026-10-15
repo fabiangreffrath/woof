@@ -137,8 +137,6 @@ typedef struct rendercontext_s
 
 // TLS context currently being rendered by this thread.
 extern THREADLOCAL rendercontext_t *r_context;
-// per-thread sprite dedup stamp: validcount * MAX_RENDER_CONTEXTS + index
-extern THREADLOCAL unsigned int r_validstamp;
 
 void R_InitRenderThreads(void);
 void R_ShutdownRenderThreads(void);

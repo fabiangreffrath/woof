@@ -907,7 +907,6 @@ static int num_render_contexts = 0;      // 0 = auto: one per logical CPU core
 static boolean render_loadbalancing = true;
 
 THREADLOCAL rendercontext_t *r_context = NULL;
-THREADLOCAL unsigned int r_validstamp = 0;
 
 // [MT] scratch allocator index for this thread: 0 = main thread,
 // 1..numjobthreads = worker threads. Workers set this in R_RenderContextJob.
@@ -1090,8 +1089,6 @@ void R_RenderViewContext(rendercontext_t *context)
     const uint64_t starttime = I_GetTimeUS();
 
     r_context = context;
-    // wraparound-safe: only equality is ever tested against this stamp
-    r_validstamp = (uint32_t)validcount * MAX_RENDER_CONTEXTS + context->index;
 
     // per-frame stats (rendered_vissprites/rendered_voxels are set by the
     // Clear functions below, matching the original R_ClearStats semantics)
@@ -1119,6 +1116,7 @@ void R_RenderViewContext(rendercontext_t *context)
     R_NearbySprites();
 
     R_ClearTrackedRendered();
+    R_ClearVisitedSectors();
 
     // [FG] update automap while playing: planes and sprites are skipped.
     if (automap_on)
