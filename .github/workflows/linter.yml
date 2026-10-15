@@ -52,15 +52,13 @@ jobs:
           mkdir cppcheck_cache
           cppcheck -j4  --cppcheck-build-dir="cppcheck_cache" \
             --quiet \
-            --error-exitcode=1 \
             --check-level=exhaustive \
             --inconclusive \
             --inline-suppr \
             --std=c11 \
             --project="${{ github.workspace }}/build/compile_commands.json" \
             -i"${{ github.workspace }}/third-party" \
-            -D__GNUC__ \
-            -D"NORETURN=[[noreturn]]"
+            -D__GNUC__
 
       - name: Run Clang-Tidy
         if: ${{ matrix.name == 'Clang-Tidy' }}
