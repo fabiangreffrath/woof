@@ -61,6 +61,12 @@ void R_InitSpritesRes(void);
 
 void R_NearbySprites(void);
 
+// Track a rendered mobj for fast clearing of mobj->rendered[] without iterating all thinkers.
+void R_TrackRenderedThing(mobj_t *thing);
+
+// Clear mobj->rendered[] for all tracked mobjs in this context.
+void R_ClearTrackedRendered(void);
+
 extern const lighttable_t * const GetThingTint(const mobj_t *const mo,
                                                const sector_t *const sector);
 

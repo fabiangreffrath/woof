@@ -541,19 +541,6 @@ void R_SetViewSize(int blocks)
   setblocks = MIN(blocks, 11);
 }
 
-static void R_ClearMobjRenderedJob(void *userdata)
-{
-    (void)userdata;
-    for (thinker_t *th = thinkercap.next; th != &thinkercap; th = th->next)
-    {
-        if (th->function.p1 == P_MobjThinker)
-        {
-            mobj_t *mobj = (mobj_t *)th;
-            memset(mobj->rendered, 0, sizeof(mobj->rendered));
-        }
-    }
-}
-
 //
 // R_ExecuteSetViewSize
 //
@@ -1131,6 +1118,8 @@ void R_RenderViewContext(rendercontext_t *context)
 
     R_NearbySprites();
 
+    R_ClearTrackedRendered();
+
     // [FG] update automap while playing: planes and sprites are skipped.
     if (automap_on)
     {
@@ -1259,8 +1248,6 @@ void R_RenderPlayerView (player_t* player)
 
   const int contexts = ActiveContexts();
 
-  R_ClearMobjRenderedJob(NULL);
-
   if (contexts > 1)
   {
     if (render_loadbalancing)
@@ -1311,7 +1298,7 @@ void R_InitRenderThreads(void)
   I_JobsInit(num_render_contexts - 1);
 
   // Frame scratch allocator: per-thread bump arena for small fixed-size
-  // per-frame buffers (currently the sprite clip buffers).
+  // per-frame.
   I_FrameScratchInit(1024 * 1024);
   I_AtExit(R_ShutdownRenderThreads, true);
 }

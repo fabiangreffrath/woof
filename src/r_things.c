@@ -322,6 +322,12 @@ static THREADLOCAL size_t num_vissprite, num_vissprite_alloc, num_vissprite_ptrs
 // [MT] each render thread collects its own nearby sprites during traversal.
 static THREADLOCAL mobj_t **nearby_sprites = NULL;
 
+// [MT] per-context list of mobjs that were rendered, for fast clearing of
+// mobj->rendered[] without iterating all thinkers.
+static THREADLOCAL mobj_t **rendered_things = NULL;
+static THREADLOCAL int rendered_things_count ;
+static THREADLOCAL int rendered_things_alloc;
+
 //
 // R_InitSprites
 // Called at program start.
@@ -701,6 +707,7 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
     }
 
   thing->rendered[r_context->index] = 1;
+  R_TrackRenderedThing(thing);
 
   // store information in a vissprite
   vis = R_NewVisSprite ();
@@ -862,6 +869,36 @@ void R_AddSprites(sector_t* sec, int lightlevel_override)
       }
     }
   }
+}
+
+// Track a rendered mobj for fast clearing of mobj->rendered[] without iterating
+// all thinkers.
+void R_TrackRenderedThing(mobj_t *thing)
+{
+    if (rendered_things_count >= rendered_things_alloc)
+    {
+        int new_alloc = rendered_things_alloc ? rendered_things_alloc * 2 : 128;
+        mobj_t **new_array = I_FrameScratchAlloc(new_alloc * sizeof(*new_array), 16);
+        if (rendered_things)
+        {
+            memcpy(new_array, rendered_things,
+                   rendered_things_count * sizeof(*new_array));
+        }
+        rendered_things = new_array;
+        rendered_things_alloc = new_alloc;
+    }
+    rendered_things[rendered_things_count++] = thing;
+}
+
+// Clear mobj->rendered[] for all tracked mobjs in this context.
+// Called after R_NearbySprites() but before automap early-return.
+void R_ClearTrackedRendered(void)
+{
+  for (int i = 0; i < rendered_things_count; i++)
+  {
+    rendered_things[i]->rendered[r_context->index] = 0;
+  }
+  rendered_things_count = 0;
 }
 
 void R_NearbySprites (void)
