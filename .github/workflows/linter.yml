@@ -58,7 +58,6 @@ jobs:
             --inline-suppr \
             --std=c11 \
             --project="${{ github.workspace }}/build/compile_commands.json" \
-            --include="${{ github.workspace }}/src/doomtype.h" \
             -i"${{ github.workspace }}/third-party" \
             -D__GNUC__
 
