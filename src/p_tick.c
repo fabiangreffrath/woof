@@ -148,11 +148,6 @@ static thinker_t *currentthinker;
 //
 inline static void RemoveThinker(thinker_t *thinker)
 {
-    if (thinker->references)
-    {
-        return;
-    }
-
     thinker_t *next = thinker->next;
     (next->prev = currentthinker = thinker->prev)->next = next;
 
@@ -162,44 +157,65 @@ inline static void RemoveThinker(thinker_t *thinker)
 
 void P_RemoveMobjThinkerDelayed(mobj_t *mobj)
 {
-    RemoveThinker(&mobj->thinker);
-    arena_free(thinkers_arena, mobj, mobj_t);
+    if (!mobj->thinker.references)
+    {
+        RemoveThinker(&mobj->thinker);
+        arena_free(thinkers_arena, mobj, mobj_t);
+    }
 }
 
 void P_RemoveCeilingThinkerDelayed(mobj_t *mobj)
 {
-    RemoveThinker(&mobj->thinker);
-    arena_free(thinkers_arena, mobj, ceiling_t);
+    if (!mobj->thinker.references)
+    {
+        RemoveThinker(&mobj->thinker);
+        arena_free(thinkers_arena, mobj, ceiling_t);
+    }
 }
 
 void P_RemoveDoorThinkerDelayed(mobj_t *mobj)
 {
-    RemoveThinker(&mobj->thinker);
-    arena_free(thinkers_arena, mobj, vldoor_t);
+    if (!mobj->thinker.references)
+    {
+        RemoveThinker(&mobj->thinker);
+        arena_free(thinkers_arena, mobj, vldoor_t);
+    }
 }
 
 void P_RemoveFloorThinkerDelayed(mobj_t *mobj)
 {
-    RemoveThinker(&mobj->thinker);
-    arena_free(thinkers_arena, mobj, floormove_t);
+    if (!mobj->thinker.references)
+    {
+        RemoveThinker(&mobj->thinker);
+        arena_free(thinkers_arena, mobj, floormove_t);
+    }
 }
 
 void P_RemoveElevatorThinkerDelayed(mobj_t *mobj)
 {
-    RemoveThinker(&mobj->thinker);
-    arena_free(thinkers_arena, mobj, elevator_t);
+    if (!mobj->thinker.references)
+    {
+        RemoveThinker(&mobj->thinker);
+        arena_free(thinkers_arena, mobj, elevator_t);
+    }
 }
 
 void P_RemovePlatThinkerDelayed(mobj_t *mobj)
 {
-    RemoveThinker(&mobj->thinker);
-    arena_free(thinkers_arena, mobj, plat_t);
+    if (!mobj->thinker.references)
+    {
+        RemoveThinker(&mobj->thinker);
+        arena_free(thinkers_arena, mobj, plat_t);
+    }
 }
 
 void P_RemoveAmbientThinkerDelayed(mobj_t *mobj)
 {
-    RemoveThinker(&mobj->thinker);
-    arena_free(thinkers_arena, mobj, ambient_t);
+    if (!mobj->thinker.references)
+    {
+        RemoveThinker(&mobj->thinker);
+        arena_free(thinkers_arena, mobj, ambient_t);
+    }
 }
 
 //
