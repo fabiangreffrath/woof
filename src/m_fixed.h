@@ -103,12 +103,12 @@ inline static fixed_t FixedNeg(fixed_t x)
 
 inline static fixed_t FixedAbs(fixed_t x)
 {
-    uint32_t mask = (uint32_t)(x >> 31); 
+    const uint32_t mask = 0u - ((uint32_t)x >> 31);
 
     // Conditional inversion and addition: (u ^ mask) - mask
-    //    If negative: (u ^ 0xFFFFFFFF) - 0xFFFFFFFF => (~u) + 1  (Negation)
-    //    If positive: (u ^ 0) - 0                   => u         (No change)
-    return (fixed_t)((((uint32_t)x) ^ mask) - mask);
+    //    If negative: (u + 0xFFFFFFFF) ^ 0xFFFFFFFF => ~(u - 1)  (Negation)
+    //    If positive: (u + 0) ^ 0                   => u         (No change)
+    return (fixed_t)(((uint32_t)x + mask) ^ mask);
 }
 
 //
