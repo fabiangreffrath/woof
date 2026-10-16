@@ -11,8 +11,8 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
-#ifndef W_INTERNAL_H
-#define W_INTERNAL_H
+#ifndef W_COMMON_H
+#define W_COMMON_H
 
 #include "w_wad.h"
 
@@ -53,7 +53,7 @@ void W_ConvertSlashes(char *path);
 
 void W_Filter(w_module_t *module, w_handle_t handle);
 
-void W_FilterAutoload(w_module_t *module, w_handle_t handle);
+void W_AutoloadIWAD(w_module_t *module, w_handle_t handle);
 
 // [ZDoom PK3] sprite frames containing the '\' character (e.g. VILE\1)
 // are named with a caret in archives (e.g. VILE^1.png).

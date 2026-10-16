@@ -794,14 +794,14 @@ static void IdentifyVersion(void)
 
     D_AddFile(iwadfile);
 
-    D_GetModeAndMissionByIWADName(M_BaseName(wadfiles[0]), &gamemode, &gamemission);
+    D_GetInfoByIWADName(M_BaseName(wadfiles[0]), &gamemode, &gamemission, &gametype);
 
     if (gamemode == indetermined)
     {
         CheckIWAD();
     }
 
-    gamedescription = D_GetIWADDescription(M_BaseName(wadfiles[0]), gamemode, gamemission);
+    gamedescription = D_GetIWADDescription(M_BaseName(wadfiles[0]), gamemode, gamemission, gametype);
     I_Printf(VB_INFO, " - \"%s\" version", gamedescription);
 }
 
@@ -1253,7 +1253,8 @@ static void AutoloadIWadDir(void (*AutoLoadFunc)(const char *path))
 {
     GameMode_t local_gamemode;
     GameMission_t local_gamemission;
-    D_GetModeAndMissionByIWADName(M_BaseName(wadfiles[0]), &local_gamemode, &local_gamemission);
+    GameType_t local_gametype;
+    D_GetInfoByIWADName(M_BaseName(wadfiles[0]), &local_gamemode, &local_gamemission, &local_gametype);
 
     for (int j = 0; j < array_size(autoload_paths); ++j)
     {
