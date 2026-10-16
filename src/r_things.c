@@ -917,7 +917,7 @@ static boolean PIT_Overlap(line_t *ld)
 
 static void R_CollectOverlaps(mobj_t *mobj)
 {
-    const fixed_t radius = MAX(mobj->radius, sprites[mobj->sprite].maxradius);
+    const fixed_t radius = sprites[mobj->sprite].maxradius;
 
     mobj->overlapcount = 0;
     overlap_mobj = mobj;
