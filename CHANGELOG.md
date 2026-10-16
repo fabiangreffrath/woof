@@ -1,5 +1,8 @@
 ## New Features and Improvements
 
+* **Renderer**
+  - Adapt multithread renderer from Rum and Raisin Doom. Effective at high resolutions, expect 2-4 times performance increase on multicore CPU.
+
 * **Mod Support:**
   - Add support for optional menu and intermission sounds.
   - Add support for ambient sound definitions by SNDINFO lumps.
