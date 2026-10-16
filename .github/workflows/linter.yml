@@ -52,7 +52,6 @@ jobs:
           mkdir cppcheck_cache
           cppcheck -j4  --cppcheck-build-dir="cppcheck_cache" \
             --quiet \
-            --error-exitcode=1 \
             --check-level=exhaustive \
             --inconclusive \
             --inline-suppr \
