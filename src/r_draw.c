@@ -424,8 +424,6 @@ void R_SetFuzzPosTic(void)
 
 void R_SetFuzzPosDraw(void)
 {
-    // [MT] the fuzz drawers reseed fuzzpos per column/block from
-    // fuzzpos_tic; this just gives the render context a defined start.
     fuzzpos = fuzzpos_tic;
 }
 
@@ -469,10 +467,6 @@ static void DrawFuzzColumnOriginal(void)
         I_Error("%i to %i at %i", dc_yl, dc_yh, dc_x);
     }
 #endif
-
-    // [MT] seed the animation from the absolute position so the pattern is
-    // identical for any slab split; 7 and 13 are coprime to FUZZTABLE.
-    fuzzpos = (fuzzpos_tic + dc_x * 7 + dc_yl * 13) % FUZZTABLE;
 
     // Keep till detailshift bug in blocky mode fixed,
     //  or blocky mode removed.
@@ -572,11 +566,6 @@ static void DrawFuzzColumnBlocky(void)
 
     const int fuzzblockwidth =
         MIN(blockstart + fuzzblocksize, r_context->endcol) - dc_x;
-
-    // [MT] seed the animation from the absolute block position (the same
-    // seed for both halves of a block split by a slab border) and the row
-    // where this call starts; see DrawFuzzColumnOriginal.
-    fuzzpos = (fuzzpos_tic + (blockstart / fuzzblocksize) * 7 + dc_yl * 13) % FUZZTABLE;
 
     do
     {
@@ -688,9 +677,6 @@ static void DrawFuzzColumnRefraction(void)
     int lines = fuzzblocksize - (dc_yl % fuzzblocksize);
 
     const int fuzzblockwidth = MIN(blockstart + fuzzblocksize, r_context->endcol) - dc_x;
-
-    // [MT] seed the animation as in DrawFuzzColumnBlocky above.
-    fuzzpos = (fuzzpos_tic + (blockstart / fuzzblocksize) * 7 + dc_yl * 13) % FUZZTABLE;
 
     int dark = FUZZDARK;
     int offset = 0;
