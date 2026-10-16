@@ -77,7 +77,7 @@ extern int numcolormaps;    // killough 4/4/98: dynamic number of maps
 extern int       ** scalelightoffset;
 extern int       ** zlightoffset;
 
-// [R&R] per-column perspective correction for the flat rasteriser:
+// [RNR] per-column perspective correction for the flat rasteriser:
 // distscale[x] = 1/cos(xtoviewangle[x]). Built by R_ExecuteSetViewSize on
 // the main thread, read-only during rendering.
 extern fixed_t *distscale;

@@ -137,7 +137,7 @@ static THREADLOCAL fixed_t *planecolsin = NULL;
 
 // Perspective-correct resampling stride: the exact texture position is
 // recomputed every planeleap rows and stepped linearly in between
-// (R&R's Span_PolyRaster_Log2_* selection).
+// (RNR's Span_PolyRaster_Log2_* selection).
 static THREADLOCAL int planeleap;
 static THREADLOCAL int planeleaplog2;
 
@@ -192,7 +192,7 @@ static void R_AllocPlaneBuffers(void)
 
     memset(openings, 0, maxopenings * sizeof(*openings));
 
-    // R&R spantype selection: clamp(round(log2(height * 0.02)), 2..4),
+    // RNR spantype selection: clamp(round(log2(height * 0.02)), 2..4),
     // written out with integer thresholds (2^2.5*50 ~= 283, 2^3.5*50 ~= 566).
     if (video.height < 283)
     {
@@ -780,11 +780,11 @@ static void do_draw_plane(visplane_t *pl)
                                             ? colormaps[pl->tint]
                                             : fullcolormap;
 
-    // [R&R] once per plane: per-row distance and light cache, limited to the
+    // [RNR] once per plane: per-row distance and light cache, limited to the
     // rows this plane actually covers (maintained in R_RenderSegLoop).
     R_PreparePlaneRows(thiscolormap, pl->miny, pl->maxy);
 
-    // [R&R] per-column perspective-correct rasterisation - the span
+    // [RNR] per-column perspective-correct rasterisation - the span
     // generation pass (R_MakeSpans over pl->top/pl->bottom) is gone.
     for (int x = pl->minx; x <= pl->maxx; x++)
     {
