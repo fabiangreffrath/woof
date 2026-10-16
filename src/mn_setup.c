@@ -1445,6 +1445,7 @@ static setup_menu_t keys_settings1[] = {
     {"Turn Left",    S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_turnleft},
     {"Turn Right",   S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_turnright},
     {"180 Turn",     S_INPUT | S_STRICT, KB_X, M_SPC, {0}, m_scrn, input_reverse},
+    {"Jump",         S_INPUT | S_STRICT, KB_X, M_SPC, {0}, m_scrn, input_jump},
     {"Gyro",         S_INPUT, KB_X, M_SPC, {0}, m_gyro, input_gyro},
     MI_GAP,
     {"Autorun",   S_INPUT, KB_X, M_SPC, {0}, m_scrn, input_autorun},

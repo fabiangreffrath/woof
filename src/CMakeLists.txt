@@ -144,6 +144,7 @@ set(WOOF_SOURCES
     p_floor.c
     p_genlin.c
     p_inter.c              p_inter.h
+    p_jump.c               p_jump.h
                            p_keyframe.h
     p_lights.c
     p_map.c                p_map.h
