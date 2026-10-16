@@ -135,20 +135,28 @@ void W_FlushDirRun(void)
     CloseDirRun();
 }
 
+const char *game_filters[] = {
+    [game_doom] = "game-doom",   [game_heretic] = "game-heretic",
+    [game_hexen] = "game-hexen", [game_strife] = "game-strife",
+    [game_chex] = "game-chex",
+};
+
 void W_Filter(w_module_t *module, w_handle_t handle)
 {
-    const char *game_filter = D_GetGameFilter(gamemission);
-    const char *game_dir = M_StringJoin("filter", DIR_SEPARATOR_S, game_filter);
-    module->AddDir(handle, game_dir);
-
-    const char *iwad_filter = D_GetIwadFilter();
-    if (!iwad_filter)
+    if (gametype == game_doom || gametype == game_strife || gametype == game_chex)
     {
-        return;
+        module->AddDir(handle, "game-doomstrifechex");
+    }
+    if (gametype == game_doom || gametype == game_chex)
+    {
+        module->AddDir(handle, "game-doomchex");
     }
 
-    char *dir = M_StringJoin("filter", DIR_SEPARATOR_S, iwad_filter);
+    char *game_dir = M_StringJoin("filter", DIR_SEPARATOR_S, game_filters[gametype]);
+    module->AddDir(handle, game_dir);
+    free(game_dir);
 
+    char *dir = M_StringJoin("filter", DIR_SEPARATOR_S, D_GetIwadFilter());
     for (char *p = dir; *p; ++p)
     {
         if (*p == '.')

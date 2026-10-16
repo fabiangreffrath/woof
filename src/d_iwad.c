@@ -30,26 +30,26 @@
 
 static const iwad_t iwads[] = {
     // clang-format off
-    {"doom2.wad",     doom2,         commercial,   "DOOM II: Hell on Earth",          "doom.id.doom2.commercial"       },
-    {"plutonia.wad",  pack_plut,     commercial,   "Final DOOM: Plutonia Experiment", "doom.id.doom2.plutonia"         },
-    {"tnt.wad",       pack_tnt,      commercial,   "Final DOOM: TNT - Evilution",     "doom.id.doom2.tnt"              },
+    {"doom2.wad",     doom2,         commercial,   game_doom, "DOOM II: Hell on Earth",          "doom.id.doom2.commercial"       },
+    {"plutonia.wad",  pack_plut,     commercial,   game_doom, "Final DOOM: Plutonia Experiment", "doom.id.doom2.plutonia"         },
+    {"tnt.wad",       pack_tnt,      commercial,   game_doom, "Final DOOM: TNT - Evilution",     "doom.id.doom2.tnt"              },
     // "doom.wad" may be retail or registered
-    {"doom.wad",      doom,          indetermined, "DOOM",                            "doom.id.doom1"                  },
-    {"doom.wad",      doom,          registered,   "DOOM Registered",                 "doom.id.doom1.registered"       },
-    {"doom.wad",      doom,          retail,       "The Ultimate DOOM",               "doom.id.doom1.ultimate"         },
+    {"doom.wad",      doom,          indetermined, game_doom, "DOOM",                            "doom.id.doom1"                  },
+    {"doom.wad",      doom,          registered,   game_doom, "DOOM Registered",                 "doom.id.doom1.registered"       },
+    {"doom.wad",      doom,          retail,       game_doom, "The Ultimate DOOM",               "doom.id.doom1.ultimate"         },
     // "doomu.wad" alias to allow retail wad to coexist with registered in the same folder
-    {"doomu.wad",     doom,          retail,       "The Ultimate DOOM",               "doom.id.doom1.ultimate"         },
-    {"doom1.wad",     doom,          shareware,    "DOOM Shareware",                  "doom.id.doom1.shareware"        },
-    {"doom2f.wad",    doom2,         commercial,   "DOOM II: L'Enfer sur Terre",      "doom.id.doom2.commercial.french"},
-    {"freedoom2.wad", pack_freedoom, commercial,   "Freedoom: Phase 2",               "doom.freedoom.phase1"           },
-    {"freedoom1.wad", pack_freedoom, retail,       "Freedoom: Phase 1",               "doom.freedoom.phase2"           },
-    {"freedm.wad",    pack_freedoom, commercial,   "FreeDM",                          "doom.freedoom.freedm"           },
-    {"chex.wad",      pack_chex,     retail,       "Chex Quest",                      "chex.chex1"                     },
-    {"chex3v.wad",    pack_chex3v,   retail,       "Chex Quest 3: Vanilla Edition",   "chex3vanilla.cq3"               },
-    {"chex3d2.wad",   pack_chex3v,   commercial,   "Chex Quest 3: Modding Edition",   "chex3vanilla.d2"                },
-    {"hacx.wad",      pack_hacx,     commercial,   "HACX: Twitch n' Kill",            "hacx.hacx1"                     },
-    {"rekkr.wad",     pack_rekkr,    retail,       "REKKR",                           "rekkr.rekkr"                    },
-    {"rekkrsl.wad",   pack_rekkr,    retail,       "REKKR: Sunken Land",              "rekkr.rekkrsl"                  },
+    {"doomu.wad",     doom,          retail,       game_doom, "The Ultimate DOOM",               "doom.id.doom1.ultimate"         },
+    {"doom1.wad",     doom,          shareware,    game_doom, "DOOM Shareware",                  "doom.id.doom1.shareware"        },
+    {"doom2f.wad",    doom2,         commercial,   game_doom, "DOOM II: L'Enfer sur Terre",      "doom.id.doom2.commercial.french"},
+    {"freedoom2.wad", pack_freedoom, commercial,   game_doom, "Freedoom: Phase 2",               "doom.freedoom.phase1"           },
+    {"freedoom1.wad", pack_freedoom, retail,       game_doom, "Freedoom: Phase 1",               "doom.freedoom.phase2"           },
+    {"freedm.wad",    pack_freedoom, commercial,   game_doom, "FreeDM",                          "doom.freedoom.freedm"           },
+    {"chex.wad",      pack_chex,     retail,       game_chex, "Chex Quest",                      "chex.chex1"                     },
+    {"chex3v.wad",    pack_chex3v,   retail,       game_doom, "Chex Quest 3: Vanilla Edition",   "chex3vanilla.cq3"               },
+    {"chex3d2.wad",   pack_chex3v,   commercial,   game_doom, "Chex Quest 3: Modding Edition",   "chex3vanilla.d2"                },
+    {"hacx.wad",      pack_hacx,     commercial,   game_doom, "HACX: Twitch n' Kill",            "hacx.hacx1"                     },
+    {"rekkrsa.wad",   pack_rekkr,    retail,       game_doom, "REKKR",                           "rekkr.rekkr"                    },
+    {"rekkrsl.wad",   pack_rekkr,    retail,       game_doom, "REKKR: Sunken Land",              "rekkr.rekkrsl"                  },
     // clang-format on
 };
 
@@ -877,8 +877,8 @@ GameMission_t D_GetGameMissionByIWADName(const char *name)
     return none;
 }
 
-void D_GetModeAndMissionByIWADName(const char *name, GameMode_t *mode,
-                                   GameMission_t *mission)
+void D_GetInfoByIWADName(const char *name, GameMode_t *mode,
+                         GameMission_t *mission, GameType_t *type)
 {
     for (int i = 0; i < arrlen(iwads); ++i)
     {
@@ -886,20 +886,22 @@ void D_GetModeAndMissionByIWADName(const char *name, GameMode_t *mode,
         {
             *mode = iwads[i].mode;
             *mission = iwads[i].mission;
+            *type = iwads[i].type;
             return;
         }
     }
     *mode = indetermined;
     *mission = none;
+    *type = game_doom;
 }
 
 const char *D_GetIWADDescription(const char *name, GameMode_t mode,
-                                 GameMission_t mission)
+                                 GameMission_t mission, GameType_t type)
 {
     for (int i = 0; i < arrlen(iwads); ++i)
     {
         if (!strcasecmp(name, iwads[i].name) && mode == iwads[i].mode
-            && mission == iwads[i].mission)
+            && mission == iwads[i].mission && type == iwads[i].type)
         {
             iwad_filter = iwads[i].filter;
             return iwads[i].description;
@@ -914,34 +916,4 @@ const char *D_GetIWADDescription(const char *name, GameMode_t mode,
 const char *D_GetIwadFilter(void)
 {
     return iwad_filter;
-}
-
-// [ZDoom PK3]
-// I this case, "game" refers to the simplified list of GameVersion_t
-// Since we don't really use GameVersion_t in higher complevels, we
-// need to check against GameMission_t for now.
-const char *D_GetGameFilter(GameMission_t mission)
-{
-    const char *filter = NULL;
-
-    switch (mission)
-    {
-        case doom:
-        case doom2:
-        case pack_tnt:
-        case pack_plut:
-        case pack_hacx:
-        case pack_rekkr:
-        case pack_chex3v:
-        case pack_freedoom:
-        case none:
-            filter = "game-doom";
-            break;
-        case pack_chex:
-            // Only original CQ1 and CQ2 (and CQ3 proper), but not CQ3VE
-            filter = "game-chex";
-            break;
-    }
-
-    return filter;
 }

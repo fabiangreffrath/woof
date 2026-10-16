@@ -26,6 +26,7 @@ typedef struct
     const char *name;
     GameMission_t mission;
     GameMode_t mode;
+    GameType_t type;
     const char *description;
     const char *filter;
 } iwad_t;
@@ -39,11 +40,10 @@ char *D_FindIWADFile(void);
 boolean D_IsIWADName(const char *name);
 const iwad_t **D_GetIwads(void);
 GameMission_t D_GetGameMissionByIWADName(const char *name);
-void D_GetModeAndMissionByIWADName(const char *name, GameMode_t *mode,
-                                   GameMission_t *mission);
+void D_GetInfoByIWADName(const char *name, GameMode_t *mode,
+                         GameMission_t *mission, GameType_t *type);
 const char *D_GetIWADDescription(const char *name, GameMode_t mode,
-                                 GameMission_t mission);
+                                 GameMission_t mission, GameType_t type);
 const char *D_GetIwadFilter(void);
-const char *D_GetGameFilter(GameMission_t mission);
 
 #endif
