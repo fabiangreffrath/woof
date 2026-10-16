@@ -205,13 +205,27 @@ void D_PostEvent(event_t *ev)
 // Send all the events of the given timestamp down the responder chain
 //
 
-void D_ProcessEvents (void)
+void D_ProcessEvents(void)
 {
     for (; eventtail != eventhead; eventtail = (eventtail+1) & (MAXEVENTS-1))
     {
-      M_InputTrackEvent(events+eventtail);
-      if (!M_Responder(events+eventtail))
-        G_Responder(events+eventtail);
+        event_t *ev = &events[eventtail];
+        M_InputTrackEvent(ev);
+
+        // Finale ate event?
+        if (gamestate == GS_FINALE && !F_ShowCast() && F_Responder(ev))
+        {
+            continue;
+        }
+        // Menu used event?
+        else if (M_Responder(ev))
+        {
+            continue;
+        }
+        else
+        {
+            G_Responder(ev);
+        }
     }
 }
 
