@@ -335,8 +335,7 @@ sector_t *R_FakeFlat(sector_t *sec, sector_t *tempsec,
 // [MT] Called lazily from render workers, so several threads may store into
 // the same sector's interp* fields concurrently. The stored values are a
 // deterministic function of shared read-only state (gametic, old/current
-// heights), so every thread writes the same value - benign race, same
-// approach as Rum and Raisin Doom.
+// heights), so every thread writes the same value - benign race.
 NOSANITIZE_THREAD static void R_MaybeInterpolateSector(sector_t* sector)
 {
     if (uncapped)

@@ -1176,6 +1176,10 @@ void R_RenderPlayerView (player_t* player)
 
   R_SetupFrame (player);
 
+  // [MT] Rebuild the wide-sprite sector index before the render contexts are
+  // dispatched (see R_BuildSectMobjs / R_AddSprites).
+  R_BuildSectMobjs();
+
   if (autodetect_hom)
     { // killough 2/10/98: add flashing red HOM indicators
       pixel_t c[47*47];

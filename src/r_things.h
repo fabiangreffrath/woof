@@ -61,6 +61,10 @@ void R_InitSpritesRes(void);
 
 void R_NearbySprites(void);
 
+// Rebuild the per-frame sector -> wide-sprite mobj index used by R_AddSprites
+// to project sprites whose own subsector a slab-local BSP traversal misses.
+void R_BuildSectMobjs(void);
+
 // Track a rendered mobj for fast clearing of mobj->rendered[] without iterating all thinkers.
 void R_TrackRenderedThing(mobj_t *thing);
 

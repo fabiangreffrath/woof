@@ -516,6 +516,12 @@ typedef struct
 {
   int numframes;
   spriteframe_t *spriteframes;
+
+  // [MT] Largest horizontal half-extent of this sprite's patches (over all
+  // frames and rotations). The renderer uses it to associate a mobj with
+  // every sector its visual bounding box overlaps, so a wide sprite is
+  // projected in every slab its pixels reach (see R_BuildSectMobjs).
+  fixed_t maxradius;
 } spritedef_t;
 
 //

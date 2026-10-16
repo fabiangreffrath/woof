@@ -32,9 +32,14 @@
 #include "i_thread.h"
 #include "i_video.h"
 #include "info.h"
+#include "m_bbox.h"
 #include "m_swap.h"
+#include "p_map.h"
+#include "p_maputl.h"
 #include "p_mobj.h"
 #include "p_pspr.h"
+#include "p_setup.h"
+#include "p_tick.h"
 #include "r_bsp.h"
 #include "r_draw.h"
 #include "r_main.h"
@@ -302,6 +307,23 @@ void R_InitSpriteDefs(char **namelist)
                 Z_Malloc (maxframe * sizeof(spriteframe_t), PU_STATIC, NULL);
               memcpy (sprites[i].spriteframes, sprtemp,
                       maxframe*sizeof(spriteframe_t));
+
+              // [MT] widest patch of this sprite (see spritedef_t::maxradius):
+              // the horizontal half-extent of the visual bounding box used to
+              // keep wide sprites projected in every render-context slab.
+              fixed_t maxradius = 0;
+              for (frame = 0; frame < maxframe; frame++)
+                for (int rot = 0; rot < 8; rot++)
+                  {
+                    const int l = sprtemp[frame].lump[rot];
+                    if (l < 0)
+                      continue;
+                    const fixed_t extent =
+                      MAX(spriteoffset[l], spritewidth[l] - spriteoffset[l]);
+                    if (extent > maxradius)
+                      maxradius = extent;
+                  }
+              sprites[i].maxradius = maxradius;
             }
         }
     }
@@ -828,6 +850,172 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
 }
 
 //
+// [MT] Wide-sprite sector association.
+//
+// Each render context culls the BSP subtrees that do not overlap its column
+// slab. A sprite whose own subsector lies in slab A but whose pixels reach
+// slab B is therefore never projected in B - and the nearby-sprite path misses
+// it too, because sec->touching_thinglist is built from the mobj's physical
+// radius (p_map.c: P_CreateSecNodeList), far smaller than the sprite itself.
+//
+// RNR handles this the same way: P_SortMobj() files each mobj under every
+// sector its sprite bounding box overlaps (radius = max(radius, sprite
+// maxradius)), and R_AddSprites() walks sec->sectormobjs. We cache the
+// overlapping sectors per mobj (mobj_t::overlapsec) and rebuild a per-frame
+// sector -> mobj index on the main thread before the contexts are dispatched.
+//
+
+static int *sectmobj_head = NULL;      // [numsectors], -1 = empty
+static int sectmobj_head_alloc;
+static mobj_t **sectmobj_thing = NULL; // link pool
+static int *sectmobj_next = NULL;
+static int sectmobj_count, sectmobj_alloc;
+
+static mobj_t *overlap_mobj;
+static fixed_t overlap_bbox[4];
+
+static void R_AddOverlap(sector_t *sec)
+{
+    mobj_t *mobj = overlap_mobj;
+    const int index = (int)(sec - sectors);
+
+    for (int i = 0; i < mobj->overlapcount; i++)
+    {
+        if (mobj->overlapsec[i] == index)
+        {
+            return;
+        }
+    }
+
+    if (mobj->overlapcount < MAX_SECTOR_OVERLAPS)
+    {
+        mobj->overlapsec[mobj->overlapcount++] = index;
+    }
+}
+
+static boolean PIT_Overlap(line_t *ld)
+{
+    if (overlap_bbox[BOXRIGHT] <= ld->bbox[BOXLEFT]
+        || overlap_bbox[BOXLEFT] >= ld->bbox[BOXRIGHT]
+        || overlap_bbox[BOXTOP] <= ld->bbox[BOXBOTTOM]
+        || overlap_bbox[BOXBOTTOM] >= ld->bbox[BOXTOP])
+    {
+        return true;
+    }
+
+    if (ld->frontsector)
+    {
+        R_AddOverlap(ld->frontsector);
+    }
+    if (ld->backsector && ld->backsector != ld->frontsector)
+    {
+        R_AddOverlap(ld->backsector);
+    }
+
+    return true;
+}
+
+static void R_CollectOverlaps(mobj_t *mobj)
+{
+    const fixed_t radius = MAX(mobj->radius, sprites[mobj->sprite].maxradius);
+
+    mobj->overlapcount = 0;
+    overlap_mobj = mobj;
+    R_AddOverlap(mobj->subsector->sector);
+
+    overlap_bbox[BOXTOP] = mobj->y + radius;
+    overlap_bbox[BOXBOTTOM] = mobj->y - radius;
+    overlap_bbox[BOXRIGHT] = mobj->x + radius;
+    overlap_bbox[BOXLEFT] = mobj->x - radius;
+
+    validcount++; // P_BlockLinesIterator dedups lines by validcount
+
+    const int xl = (overlap_bbox[BOXLEFT] - bmaporgx) >> MAPBLOCKSHIFT;
+    const int xh = (overlap_bbox[BOXRIGHT] - bmaporgx) >> MAPBLOCKSHIFT;
+    const int yl = (overlap_bbox[BOXBOTTOM] - bmaporgy) >> MAPBLOCKSHIFT;
+    const int yh = (overlap_bbox[BOXTOP] - bmaporgy) >> MAPBLOCKSHIFT;
+
+    for (int bx = xl; bx <= xh; bx++)
+    {
+        for (int by = yl; by <= yh; by++)
+        {
+            P_BlockLinesIterator(bx, by, PIT_Overlap);
+        }
+    }
+}
+
+// Rebuild the per-frame sector -> wide-mobj index. Called on the main thread
+// once per frame, before the render contexts are dispatched.
+void R_BuildSectMobjs(void)
+{
+    if (sectmobj_head_alloc < numsectors)
+    {
+        sectmobj_head = I_Realloc(sectmobj_head,
+                                  numsectors * sizeof(*sectmobj_head));
+        sectmobj_head_alloc = numsectors;
+    }
+    memset(sectmobj_head, -1, numsectors * sizeof(*sectmobj_head));
+
+    sectmobj_count = 0;
+
+    for (thinker_t *th = thinkercap.next; th != &thinkercap; th = th->next)
+    {
+        if (th->function.p1 != P_MobjThinker)
+        {
+            continue;
+        }
+
+        mobj_t *mobj = (mobj_t *)th;
+
+        if ((unsigned)mobj->sprite >= (unsigned)num_sprites)
+        {
+            continue;
+        }
+
+        // MF_NOSECTOR things live in nosectorthinglist; sec->thinglist never
+        // contains them, so neither should this index (they are invisible).
+        if (mobj->flags & MF_NOSECTOR)
+        {
+            continue;
+        }
+
+        // Only sprites wider than the mobj's physical radius need this; the
+        // rest are already covered by sec->touching_thinglist.
+        if (sprites[mobj->sprite].maxradius <= mobj->radius)
+        {
+            continue;
+        }
+
+        if (mobj->overlapcount == 0 || mobj->overlapbox_sprite != mobj->sprite
+            || mobj->overlapbox_x != mobj->x || mobj->overlapbox_y != mobj->y)
+        {
+            R_CollectOverlaps(mobj);
+            mobj->overlapbox_sprite = mobj->sprite;
+            mobj->overlapbox_x = mobj->x;
+            mobj->overlapbox_y = mobj->y;
+        }
+
+        for (int k = 0; k < mobj->overlapcount; k++)
+        {
+            const int sec = mobj->overlapsec[k];
+
+            if (sectmobj_count >= sectmobj_alloc)
+            {
+                sectmobj_alloc = sectmobj_alloc ? sectmobj_alloc * 2 : 1024;
+                sectmobj_thing = I_Realloc(sectmobj_thing,
+                    sectmobj_alloc * sizeof(*sectmobj_thing));
+                sectmobj_next = I_Realloc(sectmobj_next,
+                    sectmobj_alloc * sizeof(*sectmobj_next));
+            }
+
+            sectmobj_thing[sectmobj_count] = mobj;
+            sectmobj_next[sectmobj_count] = sectmobj_head[sec];
+            sectmobj_head[sec] = sectmobj_count++;
+        }
+    }
+}
+
+//
 // R_AddSprites
 // During BSP traversal, this adds sprites by sector.
 //
@@ -874,6 +1062,24 @@ void R_AddSprites(sector_t* sec, int lightlevel_override)
         array_push(nearby_sprites, thing);
       }
     }
+
+    // [MT] wide sprites whose own subsector this context's slab-local BSP
+    // traversal never reaches (see R_BuildSectMobjs). The physical touching
+    // list above misses them because it is built from mobj->radius, not the
+    // sprite's visual extent.
+    if (sectmobj_head)
+    {
+      for (int link = sectmobj_head[(int)(sec - sectors)]; link != -1;
+           link = sectmobj_next[link])
+      {
+        thing = sectmobj_thing[link];
+
+        if (!thing->subsector->sector->rendervalidcount[r_context->index])
+        {
+          array_push(nearby_sprites, thing);
+        }
+      }
+    }
   }
 }
 
@@ -884,13 +1090,8 @@ void R_TrackRenderedThing(mobj_t *thing)
     if (rendered_things_count >= rendered_things_alloc)
     {
         int new_alloc = rendered_things_alloc ? rendered_things_alloc * 2 : 1024;
-        mobj_t **new_array = R_FrameScratchAlloc(new_alloc * sizeof(*new_array), 16);
-        if (rendered_things)
-        {
-            memcpy(new_array, rendered_things,
-                   rendered_things_count * sizeof(*new_array));
-        }
-        rendered_things = new_array;
+        rendered_things = I_Realloc(rendered_things,
+                                    new_alloc * sizeof(*rendered_things));
         rendered_things_alloc = new_alloc;
     }
     rendered_things[rendered_things_count++] = thing;
