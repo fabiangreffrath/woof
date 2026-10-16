@@ -873,7 +873,7 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 
   mobj->type = type;
   mobj->info = info;
-  // [MT] invalidate the wide-sprite overlap cache (see R_BuildSectMobjs).
+  // [MT] invalidate the wide-sprite overlap cache (see R_SortMobj).
   mobj->overlapcount = 0;
   mobj->overlapbox_sprite = -1;
   mobj->x = x;

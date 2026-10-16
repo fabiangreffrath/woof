@@ -19,7 +19,7 @@
 
 // [MT] Maximum number of sectors one mobj's sprite bounding box is recorded
 // as overlapping, for the wide-sprite sector association used by the
-// multithreaded renderer (see R_BuildSectMobjs). Same limit as RNR.
+// multithreaded renderer (see R_SortMobj). Same limit as RNR.
 #define MAX_SECTOR_OVERLAPS 32
 
 // Job system for the multithreaded renderer.

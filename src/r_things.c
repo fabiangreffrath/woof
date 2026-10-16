@@ -944,9 +944,12 @@ static void R_CollectOverlaps(mobj_t *mobj)
     }
 }
 
-// Rebuild the per-frame sector -> wide-mobj index. Called on the main thread
-// once per frame, before the render contexts are dispatched.
-void R_BuildSectMobjs(void)
+//
+// [MT] Sector -> wide-mobj index. Rebuilt once per tic from the thinker pass.
+//
+
+// Reset the index for the coming tic. Called from P_RunThinkers().
+void R_ClearSectMobjs(void)
 {
     if (sectmobj_head_alloc < numsectors)
     {
@@ -957,61 +960,59 @@ void R_BuildSectMobjs(void)
     memset(sectmobj_head, -1, numsectors * sizeof(*sectmobj_head));
 
     sectmobj_count = 0;
+}
 
-    for (thinker_t *th = thinkercap.next; th != &thinkercap; th = th->next)
+// [MT] File one mobj under the sectors its sprite bounding box overlaps, so a
+// wide sprite is still projected in a slab whose BSP traversal never reaches
+// its own subsector.
+void R_SortMobj(mobj_t *mobj)
+{
+    if ((unsigned)mobj->sprite >= (unsigned)num_sprites)
     {
-        if (th->function.p1 != P_MobjThinker)
+        return;
+    }
+
+    // MF_NOSECTOR things live in nosectorthinglist; sec->thinglist never
+    // contains them, so neither should this index (they are invisible).
+    if (mobj->flags & MF_NOSECTOR)
+    {
+        return;
+    }
+
+    // Only sprites wider than the mobj's physical radius need this; the rest
+    // are already covered by sec->thinglist + sec->touching_thinglist.
+    if (sprites[mobj->sprite].maxradius <= mobj->radius)
+    {
+        return;
+    }
+
+    // Recollect only when the mobj moved or changed sprite (RNR keys this on
+    // prev/curr; we key on the last collected position/sprite).
+    if (mobj->overlapcount == 0 || mobj->overlapbox_sprite != mobj->sprite
+        || mobj->overlapbox_x != mobj->x || mobj->overlapbox_y != mobj->y)
+    {
+        R_CollectOverlaps(mobj);
+        mobj->overlapbox_sprite = mobj->sprite;
+        mobj->overlapbox_x = mobj->x;
+        mobj->overlapbox_y = mobj->y;
+    }
+
+    for (int k = 0; k < mobj->overlapcount; k++)
+    {
+        const int sec = mobj->overlapsec[k];
+
+        if (sectmobj_count >= sectmobj_alloc)
         {
-            continue;
+            sectmobj_alloc = sectmobj_alloc ? sectmobj_alloc * 2 : 1024;
+            sectmobj_thing = I_Realloc(sectmobj_thing,
+                sectmobj_alloc * sizeof(*sectmobj_thing));
+            sectmobj_next = I_Realloc(sectmobj_next,
+                sectmobj_alloc * sizeof(*sectmobj_next));
         }
 
-        mobj_t *mobj = (mobj_t *)th;
-
-        if ((unsigned)mobj->sprite >= (unsigned)num_sprites)
-        {
-            continue;
-        }
-
-        // MF_NOSECTOR things live in nosectorthinglist; sec->thinglist never
-        // contains them, so neither should this index (they are invisible).
-        if (mobj->flags & MF_NOSECTOR)
-        {
-            continue;
-        }
-
-        // Only sprites wider than the mobj's physical radius need this; the
-        // rest are already covered by sec->touching_thinglist.
-        if (sprites[mobj->sprite].maxradius <= mobj->radius)
-        {
-            continue;
-        }
-
-        if (mobj->overlapcount == 0 || mobj->overlapbox_sprite != mobj->sprite
-            || mobj->overlapbox_x != mobj->x || mobj->overlapbox_y != mobj->y)
-        {
-            R_CollectOverlaps(mobj);
-            mobj->overlapbox_sprite = mobj->sprite;
-            mobj->overlapbox_x = mobj->x;
-            mobj->overlapbox_y = mobj->y;
-        }
-
-        for (int k = 0; k < mobj->overlapcount; k++)
-        {
-            const int sec = mobj->overlapsec[k];
-
-            if (sectmobj_count >= sectmobj_alloc)
-            {
-                sectmobj_alloc = sectmobj_alloc ? sectmobj_alloc * 2 : 1024;
-                sectmobj_thing = I_Realloc(sectmobj_thing,
-                    sectmobj_alloc * sizeof(*sectmobj_thing));
-                sectmobj_next = I_Realloc(sectmobj_next,
-                    sectmobj_alloc * sizeof(*sectmobj_next));
-            }
-
-            sectmobj_thing[sectmobj_count] = mobj;
-            sectmobj_next[sectmobj_count] = sectmobj_head[sec];
-            sectmobj_head[sec] = sectmobj_count++;
-        }
+        sectmobj_thing[sectmobj_count] = mobj;
+        sectmobj_next[sectmobj_count] = sectmobj_head[sec];
+        sectmobj_head[sec] = sectmobj_count++;
     }
 }
 
@@ -1064,7 +1065,7 @@ void R_AddSprites(sector_t* sec, int lightlevel_override)
     }
 
     // [MT] wide sprites whose own subsector this context's slab-local BSP
-    // traversal never reaches (see R_BuildSectMobjs). The physical touching
+    // traversal never reaches (see R_SortMobj). The physical touching
     // list above misses them because it is built from mobj->radius, not the
     // sprite's visual extent.
     if (sectmobj_head)
