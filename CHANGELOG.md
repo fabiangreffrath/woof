@@ -1,5 +1,8 @@
 ## New Features and Improvements
 
+* **Renderer**
+  - Adapt multithread renderer from Rum and Raisin Doom. Effective at high resolutions, expect 2-4 times performance increase on multicore CPU.
+
 * **Mod Support:**
   - Add support for optional menu and intermission sounds.
   - Add support for ambient sound definitions by SNDINFO lumps.
@@ -66,3 +69,6 @@
 * Renamed MacOS build from "`Woof-<version>-uni.zip`" to "`Woof-<version>-MacOS-universal.zip`"
 * Savegame description and snapshot are now saved outside the compressed keyframe to speed up populating the Load/Save Game menu pages
 * The release artifacts now run on Windows 7 agains
+
+## Regressions
+* Deprecate and remove brightmaps support during the multithreaded renderer implementation.

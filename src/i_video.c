@@ -1210,8 +1210,6 @@ static void ResetResolution(int height)
 
     video.deltaw = (video.unscaledw - NONWIDEWIDTH) / 2;
 
-    Z_FreeTag(PU_VALLOC);
-
     V_Init();
     R_InitVisplanesRes();
     R_SetFuzzColumnMode();

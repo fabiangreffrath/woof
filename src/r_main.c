@@ -30,15 +30,19 @@
 #include "doomdata.h"
 #include "doomdef.h"
 #include "doomstat.h"
+#include "i_exit.h"
+#include "i_thread.h"
+#include "i_timer.h"
 #include "i_video.h"
 #include "p_mobj.h"
 #include "p_pspr.h"
+#include "p_tick.h"
 #include "r_bsp.h"
 #include "r_data.h"
 #include "r_defs.h"
 #include "r_draw.h"
 #include "r_main.h"
-#include "r_bmaps.h"
+#include "r_common.h"
 #include "r_plane.h"
 #include "r_sky.h"
 #include "r_state.h"
@@ -110,8 +114,14 @@ lighttable_t **colormaps;
 
 int       ** scalelightoffset;
 int       ** zlightoffset;
-int const  * planezlightoffset;
-int const  * walllightoffset;
+
+// [RNR] per-column distance correction for the flat rasteriser.
+fixed_t *distscale = NULL;
+static int distscale_size = 0;
+// [MT] both point into the tables above but are selected while drawing,
+// so they are thread-local like the rest of the drawer state.
+THREADLOCAL int const *planezlightoffset;
+THREADLOCAL int const *walllightoffset;
 
 // killough 3/20/98, 4/4/98: end dynamic colormaps
 
@@ -119,7 +129,7 @@ int extralight;                           // bumped light from gun blasts
 
 int extra_level_brightness;               // level brightness feature
 
-void (*colfunc)(void);                    // current column draw function
+THREADLOCAL void (*colfunc)(void);        // current column draw function
 
 //
 // R_PointOnSide
@@ -600,6 +610,23 @@ void R_ExecuteSetViewSize (void)
 
   R_InitTextureMapping();
 
+  // [RNR] distscale table for the per-column flat rasteriser.
+  if (distscale_size != viewwidth)
+  {
+    free(distscale);
+    distscale = malloc(viewwidth * sizeof(*distscale));
+    distscale_size = viewwidth;
+  }
+  for (i = 0; i < viewwidth; i++)
+  {
+    fixed_t cosadj = finecosine[xtoviewangle[i] >> ANGLETOFINESHIFT];
+    if (cosadj < 0)
+      cosadj = -cosadj;
+    if (!cosadj) // extreme FOV guard; RNR has the same division
+      cosadj = 1;
+    distscale[i] = FixedDiv(FRACUNIT, cosadj);
+  }
+
   R_SetupFreelook();
 
   // psprite scales
@@ -643,10 +670,19 @@ void R_Init (void)
   R_InitTranslationTables();
   V_InitFlexTranTable();
 
+  // [MT] pre-create the missing-flat dummy on the main thread (PU_STATIC),
+  // so render workers never allocate it from the zone.
+  R_MissingFlat();
+
   // [FG] spectre drawing mode
   R_SetFuzzColumnMode();
 
   colfunc = R_DrawColumn;
+
+  // [MT] worker pool for parallel render contexts; context 0 renders on this
+  // (main) thread. Worker threads inherit nothing - their thread-local drawer
+  // state is re-established at the start of every R_RenderViewContext().
+  R_InitRenderThreads();
 }
 
 //
@@ -854,20 +890,291 @@ static boolean flashing_hom;
 int autodetect_hom = 0;       // killough 2/7/98: HOM autodetection flag
 
 //
+// Port of the Rum and Raisin Doom multithreaded renderer design:
+//
+//  - The view is split into vertical column slabs, one per render context.
+//  - Context 0 renders on the calling thread, contexts 1..N-1 are dispatched
+//    to the persistent worker pool in i_thread.c.
+//  - All renderer state mutated during a frame is THREADLOCAL.
+//  - Columns outside a context's slab are marked solid in R_ClearClipSegs(),
+//    which makes the BSP traversal cull everything that cannot affect the
+//    slab. Sprites/voxels/psprites are clipped to the slab in r_things.c and
+//    r_voxel.c; border sprites are projected once per context and each
+//    context draws its own slice.
+//
+
+static int num_render_contexts = 0;      // 0 = auto: one per logical CPU core
+static boolean render_loadbalancing = true;
+
+THREADLOCAL rendercontext_t *r_context = NULL;
+
+// [MT] scratch allocator index for this thread: 0 = main thread,
+// 1..numjobthreads = worker threads. Workers set this in R_RenderContextJob.
+THREADLOCAL int r_worker_scratch_index = 0;
+
+static rendercontext_t rendercontexts[MAX_RENDER_CONTEXTS];
+
+// number of contexts usable this frame (pool size is fixed at init)
+static int ActiveContexts(void)
+{
+    // Disable when resolution is low
+    if (video.height < SCREENHEIGHT * 3)
+    {
+        return 1;
+    }
+
+    return CLAMP(num_render_contexts, 1, R_JobsNumThreads() + 1);
+}
+
+//
+// R_RenderLoadBalance
+//
+// Each context's last frame time becomes a share of the view width; contexts
+// that took longer than their fair share shrink by up to a quarter of the
+// ideal share, faster ones grow.
+//
+
+static void R_EvenContextSplit(int contexts)
+{
+    const int width = viewwidth / contexts;
+    int start = 0;
+
+    for (int i = 0; i < contexts; i++)
+    {
+        rendercontexts[i].startcol = start;
+        start += width;
+        rendercontexts[i].endcol =
+            (i == contexts - 1) ? viewwidth : MIN(start, viewwidth);
+    }
+}
+
+static void R_RenderLoadBalance(int contexts)
+{
+    const double idealpercentage = 1.0 / contexts;
+    double total_smoothed_time = 0;
+    double total_smoothed_sprites = 0;
+    double timepercentages[MAX_RENDER_CONTEXTS];
+    double loadpercentages[MAX_RENDER_CONTEXTS];
+    double widthpercentages[MAX_RENDER_CONTEXTS];
+    int overbudgetcount = 0;
+    int underbudgetcount = 0;
+
+    // Update exponentially smoothed time: 90% old + 10% new
+    // This prevents slab boundaries from jumping every frame.
+    for (int i = 0; i < contexts; i++)
+    {
+        rendercontexts[i].smoothed_time =
+            0.9 * rendercontexts[i].smoothed_time
+            + 0.1 * (double)rendercontexts[i].timetaken;
+        total_smoothed_time += rendercontexts[i].smoothed_time;
+
+        // Same EMA over the last frame's vissprite count.
+        rendercontexts[i].smoothed_sprites =
+            0.9 * rendercontexts[i].smoothed_sprites
+            + 0.1 * (double)rendercontexts[i].rendered_vissprites;
+        total_smoothed_sprites += rendercontexts[i].smoothed_sprites;
+    }
+
+    if (total_smoothed_time <= 0)
+    {
+        R_EvenContextSplit(contexts);
+        return;
+    }
+
+    for (int i = 0; i < contexts; i++)
+    {
+        timepercentages[i] =
+            rendercontexts[i].smoothed_time / total_smoothed_time;
+
+        // [MT] blend the sprite share into the load estimate: time still
+        // dominates (it measures all of the slab's work), the sprite count
+        // is a leading indicator of rasterization hot spots. Both shares
+        // sum to 1, so the blend does too.
+        loadpercentages[i] = timepercentages[i];
+        if (total_smoothed_sprites > 0)
+        {
+            loadpercentages[i] = 0.75 * timepercentages[i]
+                                 + 0.25 * (rendercontexts[i].smoothed_sprites
+                                          / total_smoothed_sprites);
+        }
+
+        if (loadpercentages[i] > idealpercentage)
+        {
+            overbudgetcount++;
+        }
+        else
+        {
+            underbudgetcount++;
+        }
+    }
+
+    // shift up to a quarter of the ideal share from slow to fast contexts
+    const double totalshuffle = idealpercentage * 0.25;
+    double removeamount = totalshuffle / 2;
+    double addamount = totalshuffle - removeamount;
+
+    if (overbudgetcount)
+    {
+        removeamount /= overbudgetcount;
+    }
+    if (underbudgetcount)
+    {
+        addamount /= underbudgetcount;
+    }
+
+    for (int i = 0; i < contexts; i++)
+    {
+        const double oldwidthpercentage =
+            (double)(rendercontexts[i].endcol - rendercontexts[i].startcol)
+            / viewwidth;
+
+        const double growamount =
+            loadpercentages[i] > idealpercentage ? -removeamount : addamount;
+
+        // Hysteresis: only adjust if imbalance exceeds 10% of ideal share.
+        // This prevents slab boundaries from jittering due to timing noise.
+        const double imbalance = fabs(loadpercentages[i] - idealpercentage);
+        const double hysteresis_threshold = idealpercentage * 0.10;
+        if (imbalance > hysteresis_threshold)
+        {
+            widthpercentages[i] = oldwidthpercentage + growamount;
+        }
+        else
+        {
+            widthpercentages[i] = oldwidthpercentage;
+        }
+    }
+
+    double totalpercentage = 0.0;
+    for (int i = 0; i < contexts; i++)
+    {
+        totalpercentage += widthpercentages[i];
+    }
+
+    if (totalpercentage <= 0.0)
+    {
+        R_EvenContextSplit(contexts);
+        return;
+    }
+
+    for (int i = 0; i < contexts; i++)
+    {
+        widthpercentages[i] /= totalpercentage;
+    }
+
+    int currstart = 0;
+    int desiredwidth = 0;
+    for (int i = 0; i < contexts; i++)
+    {
+        desiredwidth = (int)(viewwidth * widthpercentages[i]);
+        if (desiredwidth <= 0)
+        {
+            R_EvenContextSplit(contexts);
+            return;
+        }
+
+        rendercontexts[i].startcol = currstart;
+        currstart += desiredwidth;
+        rendercontexts[i].endcol = MIN(currstart, viewwidth);
+    }
+
+    currstart -= desiredwidth;
+    rendercontexts[contexts - 1].startcol = MAX(currstart, 0);
+    rendercontexts[contexts - 1].endcol = viewwidth;
+}
+
+//
+// R_RenderViewContext
+//
+// Renders one column slab end to end. This is the worker body: what used to
+// be the single-threaded R_RenderPlayerView() loop, with every piece of
+// state either thread-local or clipped to the context's column range.
+//
+
+void R_RenderViewContext(rendercontext_t *context)
+{
+    const uint64_t starttime = I_GetTimeUS();
+
+    r_context = context;
+
+    // per-frame stats (rendered_vissprites/rendered_voxels are set by the
+    // Clear functions below, matching the original R_ClearStats semantics)
+    context->rendered_visplanes = 0;
+    context->rendered_segs = 0;
+
+    // Thread-local storage starts zero-initialized; restore the base drawer
+    // invariant that R_Init() establishes for the main thread.
+    colfunc = R_DrawColumn;
+
+    // [crispy] draw fuzz effect independent of rendering frame rate; every
+    // thread restarts from the shared tic position, then animates on its own.
+    R_SetFuzzPosDraw();
+
+    // Clear buffers.
+    R_ClearClipSegs();
+    R_ClearDrawSegs();
+    R_ClearPlanes();
+    R_ClearSprites();
+    VX_ClearVoxels();
+
+    // The head node is the last node output.
+    R_RenderBSPNode(numnodes - 1);
+
+    R_NearbySprites();
+
+    R_ClearTrackedRendered();
+    R_ClearVisitedSectors();
+
+    // [FG] update automap while playing: planes and sprites are skipped.
+    if (automap_on)
+    {
+        context->timetaken = I_GetTimeUS() - starttime;
+        return;
+    }
+
+    R_DrawPlanes();
+
+    R_DrawMasked();
+
+    context->timetaken = I_GetTimeUS() - starttime;
+}
+
+// Job wrapper: userdata is the owning render context.
+static void R_RenderContextJob(void *userdata)
+{
+    rendercontext_t *context = (rendercontext_t *)userdata;
+    // If the job system ever runs this inline on the calling thread, the
+    // scratch index must be restored afterwards.
+    const int saved_scratch_index = r_worker_scratch_index;
+
+    r_worker_scratch_index = context->index;
+    R_FrameScratchReset();
+    R_RenderViewContext(context);
+
+    r_worker_scratch_index = saved_scratch_index;
+}
+
+static void R_AggregateStats(int contexts)
+{
+    for (int i = 0; i < contexts; i++)
+    {
+        rendered_visplanes += rendercontexts[i].rendered_visplanes;
+        rendered_segs += rendercontexts[i].rendered_segs;
+        rendered_vissprites += rendercontexts[i].rendered_vissprites;
+        rendered_voxels += rendercontexts[i].rendered_voxels;
+    }
+}
+
+//
 // R_RenderView
 //
 void R_RenderPlayerView (player_t* player)
 {
+  R_FrameScratchReset();
+
   R_ClearStats();
 
   R_SetupFrame (player);
-
-  // Clear buffers.
-  R_ClearClipSegs ();
-  R_ClearDrawSegs ();
-  R_ClearPlanes ();
-  R_ClearSprites ();
-  VX_ClearVoxels ();
 
   if (autodetect_hom)
     { // killough 2/10/98: add flashing red HOM indicators
@@ -940,38 +1247,81 @@ void R_RenderPlayerView (player_t* player)
     }
 
   // check for new console commands.
+  // [MT] kept before the parallel render starts; the NetUpdate() calls that
+  // used to sit between the render phases are gone.
   NetUpdate ();
 
-  // The head node is the last node output.
-  R_RenderBSPNode (numnodes-1);
+  const int contexts = ActiveContexts();
 
-  R_NearbySprites ();
+  if (contexts > 1)
+  {
+    if (render_loadbalancing)
+      R_RenderLoadBalance(contexts);
+    else
+      R_EvenContextSplit(contexts);
 
-  // [FG] update automap while playing
-  if (automap_on)
-    return;
+    // Contexts 1..N-1 go to the worker threads, context 0 renders inline on
+    // the calling thread, then everything is flushed.
+    for (int i = 1; i < contexts; i++)
+      R_JobsAdd(R_RenderContextJob, &rendercontexts[i]);
 
-  // Check for new console commands.
-  NetUpdate ();
+    R_RenderViewContext(&rendercontexts[0]);
+    R_JobsFlush();
+  }
+  else
+  {
+    rendercontexts[0].startcol = 0;
+    rendercontexts[0].endcol = viewwidth;
+    R_RenderViewContext(&rendercontexts[0]);
+  }
 
-  R_DrawPlanes ();
-
-  // Check for new console commands.
-  NetUpdate ();
-
-  // [crispy] draw fuzz effect independent of rendering frame rate
-  R_SetFuzzPosDraw();
-  R_DrawMasked ();
+  R_AggregateStats(contexts);
 
   // Check for new console commands.
   NetUpdate ();
 }
 
+//
+// Render thread pool lifecycle
+//
+
+void R_InitRenderThreads(void)
+{
+    if (num_render_contexts <= 0 || num_render_contexts > MAX_RENDER_CONTEXTS)
+    {
+        num_render_contexts =
+            CLAMP(I_ThreadGetHardwareCount(), 1, MAX_RENDER_CONTEXTS);
+    }
+
+    for (int i = 0; i < MAX_RENDER_CONTEXTS; i++)
+    {
+        rendercontexts[i].index = i;
+        rendercontexts[i].timetaken = 1;
+        rendercontexts[i].smoothed_time = 1.0;
+        rendercontexts[i].smoothed_sprites = 0.0;
+    }
+
+    // Context 0 always renders on the calling thread, so the pool only needs
+    // num_render_contexts - 1 workers.
+    R_JobsInit(num_render_contexts - 1);
+
+    // Frame scratch allocator: per-thread bump arena for small fixed-size
+    // per-frame.
+    R_FrameScratchInit(1024 * 1024);
+    I_AtExit(R_ShutdownRenderThreads, true);
+}
+
+void R_ShutdownRenderThreads(void)
+{
+    R_FrameScratchShutdown();
+    R_JobsShutdown();
+}
+
 void R_InitAnyRes(void)
 {
-  R_InitSpritesRes();
-  R_InitBufferRes();
-  R_InitPlanesRes();
+    R_InitSpritesRes();
+    R_InitBufferRes();
+    R_InitPlanesRes();
 }
 
 void R_BindRenderVariables(void)
@@ -986,8 +1336,6 @@ void R_BindRenderVariables(void)
   BIND_BOOL_GENERAL(r_swirl, false, "Swirling animated flats");
   M_BindBool("voxels_rendering", &default_voxels_rendering, &voxels_rendering,
              true, ss_none, wad_no, "Allow voxel models");
-  BIND_BOOL_GENERAL(brightmaps, false,
-    "Brightmaps for textures and sprites");
   BIND_NUM_GENERAL(invul_mode, INVUL_MBF, INVUL_VANILLA, INVUL_GRAY,
     "Invulnerability effect (0 = Vanilla; 1 = MBF; 2 = Gray)");
   BIND_BOOL(flashing_hom, true, "Enable flashing of the HOM indicator");
@@ -1003,6 +1351,13 @@ void R_BindRenderVariables(void)
 
   BIND_BOOL(draw_nearby_sprites, true,
     "Draw sprites overlapping into visible sectors");
+
+  // [MT] multithreaded rendering
+  M_BindNum("render_contexts", &num_render_contexts, NULL, 0, 0,
+            MAX_RENDER_CONTEXTS, ss_gen, wad_no,
+            "Parallel render contexts (0 = one per CPU core, 1 = single-threaded)");
+  BIND_BOOL(render_loadbalancing, true,
+            "Load-balance render contexts by previous frame times");
 }
 
 //----------------------------------------------------------------------------

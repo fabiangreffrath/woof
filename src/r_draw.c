@@ -27,7 +27,6 @@
 #include "i_system.h"
 #include "i_video.h"
 #include "m_fixed.h"
-#include "r_bsp.h"
 #include "r_defs.h"
 #include "r_draw.h"
 #include "r_main.h"
@@ -55,8 +54,11 @@ int viewwidth;
 int viewheight;
 int viewwindowx;
 int viewwindowy;
-static pixel_t **xlookup = NULL;
-static int *rowofs = NULL;
+// [MT] shared between r_draw.c and r_plane.c (flat rasteriser destination
+// addressing). Rebuilt by R_InitBuffer() on the main thread, read-only
+// during rendering.
+pixel_t **xlookup = NULL;
+int *rowofs = NULL;
 static int linesize; // killough 11/98
 
 // Backing buffer containing the bezel drawn around the screen and surrounding
@@ -69,15 +71,17 @@ static pixel_t *background_buffer = NULL;
 // Source is the top of the column to scale.
 //
 
-const lighttable_t *dc_colormap;
-int dc_x;
-int dc_yl;
-int dc_yh;
-fixed_t dc_iscale;
-fixed_t dc_texturemid;
-int dc_texheight; // killough
-byte *dc_source;  // first pixel in a column (possibly virtual)
-byte dc_skycolor;
+// [MT] thread-local drawer state, see r_draw.h.
+THREADLOCAL const lighttable_t *dc_colormap;
+THREADLOCAL int dc_x;
+THREADLOCAL int dc_x1;
+THREADLOCAL int dc_yl;
+THREADLOCAL int dc_yh;
+THREADLOCAL fixed_t dc_iscale;
+THREADLOCAL fixed_t dc_texturemid;
+THREADLOCAL int dc_texheight; // killough
+THREADLOCAL byte *dc_source;  // first pixel in a column (possibly virtual)
+THREADLOCAL byte dc_skycolor;
 
 //
 // A column is a vertical slice/span from a wall texture that,
@@ -402,19 +406,20 @@ static const int fuzzoffset[FUZZTABLE] =
     FUZZOFF,FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,-FUZZOFF,FUZZOFF
 };
 
-static int fuzzpos = 0;
+// [MT] fuzzpos is thread-local scratch: every fuzz column/block seeds it
+// from fuzzpos_tic and its absolute screen position, so the pattern does
+// not depend on how the view is split into render context slabs.
+static THREADLOCAL int fuzzpos = 0;
 
 // [crispy] draw fuzz effect independent of rendering frame rate
 static int fuzzpos_tic;
 
 void R_SetFuzzPosTic(void)
 {
-    // [crispy] prevent the animation from remaining static
-    if (fuzzpos == fuzzpos_tic)
-    {
-        fuzzpos = (fuzzpos + 1) % FUZZTABLE;
-    }
-    fuzzpos_tic = fuzzpos;
+    // [MT] advance the shared position exactly once per tic, independent of how
+    // much any render context consumed. Every context restarts from
+    // fuzzpos_tic each frame, so all slabs animate in lockstep.
+    fuzzpos_tic = (fuzzpos_tic + 1) % FUZZTABLE;
 }
 
 void R_SetFuzzPosDraw(void)
@@ -509,11 +514,21 @@ static void DrawFuzzColumnOriginal(void)
 
 static int fuzzblocksize;
 
+// [MT] blocky/refraction fuzz writes fuzzblocksize-wide blocks on a global
+// column grid (dc_x % fuzzblocksize), so the pattern does not depend on how
+// the view is split into slabs. A block is written by the context that owns
+// its first column, clipped to that context's endcol; if the block straddles
+// a slab border, the next context finishes it from its own first column
+// (dc_x1).
 static void DrawFuzzColumnBlocky(void)
 {
     boolean cutoff = false;
 
-    if (dc_x % fuzzblocksize)
+    const int blockstart = dc_x - dc_x % fuzzblocksize;
+
+    // Draw if this column owns the block, or if it is the first column of
+    // the sprite slice and the block began to its left.
+    if (dc_x % fuzzblocksize && dc_x != dc_x1)
     {
         return;
     }
@@ -549,7 +564,8 @@ static void DrawFuzzColumnBlocky(void)
 
     int lines = fuzzblocksize - (dc_yl % fuzzblocksize);
 
-    const int fuzzblockwidth = MIN(fuzzblocksize, video.width - dc_x);
+    const int fuzzblockwidth =
+        MIN(blockstart + fuzzblocksize, r_context->endcol) - dc_x;
 
     do
     {
@@ -621,7 +637,10 @@ static void DrawFuzzColumnRefraction(void)
 {
     boolean cutoff = false;
 
-    if (dc_x % fuzzblocksize)
+    const int blockstart = dc_x - dc_x % fuzzblocksize;
+
+    // same ownership rule as DrawFuzzColumnBlocky above
+    if (dc_x % fuzzblocksize && dc_x != dc_x1)
     {
         return;
     }
@@ -657,7 +676,7 @@ static void DrawFuzzColumnRefraction(void)
 
     int lines = fuzzblocksize - (dc_yl % fuzzblocksize);
 
-    const int fuzzblockwidth = MIN(fuzzblocksize, video.width - dc_x);
+    const int fuzzblockwidth = MIN(blockstart + fuzzblocksize, r_context->endcol) - dc_x;
 
     int dark = FUZZDARK;
     int offset = 0;
@@ -788,7 +807,8 @@ void R_SetFuzzColumnMode(void)
 //  identical sprites, kinda brightened up.
 //
 
-byte *dc_translation, *translationtables;
+THREADLOCAL byte *dc_translation;
+byte *translationtables;
 
 void R_DrawTranslatedColumn(void)
 {
@@ -973,75 +993,11 @@ void R_DrawTRTLColumn(void)
     #undef SRCPIXEL
 }
 
-//
-// R_DrawSpan
-// With DOOM style restrictions on view orientation,
-//  the floors and ceilings consist of horizontal slices
-//  or spans with constant z depth.
-// However, rotation around the world z axis is possible,
-//  thus this mapping, while simpler and faster than
-//  perspective correct texture mapping, has to traverse
-//  the texture at an angle in all but a few cases.
-// In consequence, flats are not stored by column (like walls),
-//  and the inner loop has to step in texture space u and v.
-//
-
-int ds_y;
-int ds_x1;
-int ds_x2;
-
-const lighttable_t *ds_colormap;
-
-uint32_t ds_xfrac;
-uint32_t ds_yfrac;
-uint32_t ds_xstep;
-uint32_t ds_ystep;
-
-// start of a 64*64 tile image
-byte *ds_source;
-
-void R_DrawSpan(void)
-{
-    int count = ds_x2 - ds_x1 + 1;
-    pixel_t *dest = xlookup[ds_x1] + rowofs[ds_y];
-    const byte *const source = ds_source;
-    const lighttable_t *const colormap = ds_colormap;
-
-    // SoM: we only need 6 bits for the integer part (0 thru 63) so the rest
-    // can be used for the fraction part. This allows calculation of the memory
-    // address in the texture with two shifts, an OR and one AND.
-    unsigned int       xf = ds_xfrac << 10, yf = ds_yfrac << 10;
-    const unsigned int xs = ds_xstep << 10, ys = ds_ystep << 10;
-
-    #define XSHIFT (32 - 6)
-    #define YSHIFT (32 - 6 - 6)
-    #define YMASK  (63 * 64) // 0x0FC0
-
-    byte src;
-
-    UNROLL_LOOP_BY(4)
-    while (count--)
-    {
-        // SoM: Why didn't I see this earlier? the spot variable is a waste now
-        // because we don't have the uber complicated math to calculate it now,
-        // so that was a memory write we didn't need!
-        src = source[((yf >> YSHIFT) & YMASK) | (xf >> XSHIFT)];
-        *dest = colormap[src];
-        dest += linesize;
-        xf += xs;
-        yf += ys;
-    }
-
-    #undef YSHIFT
-    #undef YMASK
-    #undef XSHIFT
-}
-
 void R_InitBufferRes(void)
 {
     rowofs = Z_Malloc(video.height * sizeof(*rowofs), PU_RENDERER, NULL);
     xlookup = Z_Malloc(video.width * sizeof(*xlookup), PU_RENDERER, NULL);
-    solidcol = Z_Calloc(video.width, sizeof(*solidcol), PU_RENDERER, NULL);
+    // [MT] solidcol moved to r_bsp.c as a per-thread buffer.
 }
 
 //
