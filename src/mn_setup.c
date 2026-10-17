@@ -48,7 +48,7 @@
 #include "mn_font.h"
 #include "mn_menu.h"
 #include "p_mobj.h"
-#include "r_bmaps.h"
+// #include "r_bmaps.h"
 #include "r_data.h"
 #include "r_defs.h"
 #include "r_draw.h"
@@ -3367,8 +3367,8 @@ static setup_menu_t gen_settings5[] = {
 
     {"Voxels", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC, {"voxels_rendering"}},
 
-    {"Brightmaps", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC, {"brightmaps"},
-     .action = R_ToggleBrightmaps},
+    // {"Brightmaps", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC, {"brightmaps"},
+     // .action = R_ToggleBrightmaps},
 
     {"Stretch Short Skies", S_ONOFF, OFF_CNTR_X, M_SPC, {"stretchsky"},
      .action = R_UpdateStretchSkies},
@@ -3465,10 +3465,10 @@ void MN_DisableVoxelsRenderingItem(void)
     DisableItem(true, gen_settings5, "voxels_rendering");
 }
 
-void MN_DisableBrightmapsItem(void)
-{
-    DisableItem(true, gen_settings5, "brightmaps");
-}
+// void MN_DisableBrightmapsItem(void)
+// {
+    // DisableItem(true, gen_settings5, "brightmaps");
+// }
 
 // Setting up for the General screen. Turn on flags, set pointers,
 // locate the first item on the screen where the cursor is allowed to

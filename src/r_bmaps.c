@@ -19,6 +19,8 @@
 //	Adapted from doomretro/src/r_data.c:97-209
 //
 
+#if 0
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -429,3 +431,5 @@ void R_ParseBrightmaps(int lumpnum)
 
     R_ToggleBrightmaps();
 }
+
+#endif
