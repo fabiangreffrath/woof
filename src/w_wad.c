@@ -162,7 +162,7 @@ boolean W_AddPath(const char *path)
 
     W_Filter(module, handle);
 
-    W_FilterAutoload(module, handle);
+    W_AutoloadIWAD(module, handle);
 
     return true;
 }
@@ -378,7 +378,7 @@ boolean W_InitBaseFile(const char *path)
 
 void W_AutoloadBaseIWAD(void)
 {
-    W_FilterAutoload(&w_zip_module, base_handle);
+    W_AutoloadIWAD(&w_zip_module, base_handle);
 }
 
 void W_AutoloadBasePWAD(void)

@@ -66,6 +66,16 @@ typedef enum
     exe_chex,        // Chex Quest
 } GameVersion_t;
 
+typedef enum Game_e
+{
+    game_any,
+    game_doom,
+    game_heretic,
+    game_hexen,
+    game_strife,
+    game_chex,
+} GameType_t;
+
 // [FG] flashing disk icon
 #define DISK_ICON_THRESHOLD (20 * 1024)
 

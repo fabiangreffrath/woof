@@ -103,12 +103,14 @@ inline static fixed_t FixedNeg(fixed_t x)
 
 inline static fixed_t FixedAbs(fixed_t x)
 {
-    uint32_t mask = (uint32_t)(x >> 31); 
+    // mask = 0 for x >= 0, 0xFFFFFFFF for x < 0
+    const uint32_t mask = 0u - ((uint32_t)x >> 31);
 
-    // Conditional inversion and addition: (u ^ mask) - mask
-    //    If negative: (u ^ 0xFFFFFFFF) - 0xFFFFFFFF => (~u) + 1  (Negation)
-    //    If positive: (u ^ 0) - 0                   => u         (No change)
-    return (fixed_t)((((uint32_t)x) ^ mask) - mask);
+    // Branchless two's-complement abs:
+    //   mask == 0     -> u
+    //   mask == ~0u   -> (u - 1) ^ ~0u = ~(u - 1) = -u mod 2^32
+    // Unsigned wraparound is defined; INT32_MIN maps to itself.
+    return (fixed_t)(((uint32_t)x + mask) ^ mask);
 }
 
 //
