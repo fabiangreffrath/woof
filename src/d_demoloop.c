@@ -35,34 +35,34 @@
 
 // Doom
 static demoloop_entry_t demoloop_registered[] = {
-    { "TITLEPIC", "D_INTRO", mus_intro, 170, TYPE_ART,  wipe_Default },
-    { "DEMO1",    "",        mus_None,  0,   TYPE_DEMO, wipe_Default },
-    { "CREDIT",   "",        mus_None,  200, TYPE_ART,  wipe_Default },
-    { "DEMO2",    "",        mus_None,  0,   TYPE_DEMO, wipe_Default },
-    { "HELP2",    "",        mus_None,  200, TYPE_ART,  wipe_Default },
-    { "DEMO3",    "",        mus_None,  0,   TYPE_DEMO, wipe_Default },
+    { "TITLEPIC", "", mus_intro, 170, TYPE_ART,  wipe_Default },
+    { "DEMO1",    "", mus_None,  0,   TYPE_DEMO, wipe_Default },
+    { "CREDIT",   "", mus_None,  200, TYPE_ART,  wipe_Default },
+    { "DEMO2",    "", mus_None,  0,   TYPE_DEMO, wipe_Default },
+    { "HELP2",    "", mus_None,  200, TYPE_ART,  wipe_Default },
+    { "DEMO3",    "", mus_None,  0,   TYPE_DEMO, wipe_Default },
 };
 
 // Ultimate Doom
 static demoloop_entry_t demoloop_retail[] = {
-    { "TITLEPIC", "D_INTRO",  mus_intro, 170, TYPE_ART,  wipe_Default },
-    { "DEMO1",    "",         mus_None,  0,   TYPE_DEMO, wipe_Default },
-    { "CREDIT",   "",         mus_None,  200, TYPE_ART,  wipe_Default },
-    { "DEMO2",    "",         mus_None,  0,   TYPE_DEMO, wipe_Default },
-    { "CREDIT",   "",         mus_None,  200, TYPE_ART,  wipe_Default },
-    { "DEMO3",    "",         mus_None,  0,   TYPE_DEMO, wipe_Default },
-    { "DEMO4",    "",         mus_None,  0,   TYPE_DEMO, wipe_Default },
+    { "TITLEPIC", "",  mus_intro, 170, TYPE_ART,  wipe_Default },
+    { "DEMO1",    "",  mus_None,  0,   TYPE_DEMO, wipe_Default },
+    { "CREDIT",   "",  mus_None,  200, TYPE_ART,  wipe_Default },
+    { "DEMO2",    "",  mus_None,  0,   TYPE_DEMO, wipe_Default },
+    { "CREDIT",   "",  mus_None,  200, TYPE_ART,  wipe_Default },
+    { "DEMO3",    "",  mus_None,  0,   TYPE_DEMO, wipe_Default },
+    { "DEMO4",    "",  mus_None,  0,   TYPE_DEMO, wipe_Default },
 };
 
 // Doom II & Final Doom
 static demoloop_entry_t demoloop_commercial[] = {
-    { "TITLEPIC", "D_DM2TTL", mus_dm2ttl, 385, TYPE_ART,  wipe_Default },
-    { "DEMO1",    "",         mus_None,   0,   TYPE_DEMO, wipe_Default },
-    { "CREDIT",   "",         mus_None,   200, TYPE_ART,  wipe_Default },
-    { "DEMO2",    "",         mus_None,   0,   TYPE_DEMO, wipe_Default },
-    { "TITLEPIC", "D_DM2TTL", mus_dm2ttl, 385, TYPE_ART,  wipe_Default },
-    { "DEMO3",    "",         mus_None,   0,   TYPE_DEMO, wipe_Default },
-    { "DEMO4",    "",         mus_None,   0,   TYPE_DEMO, wipe_Default },
+    { "TITLEPIC", "", mus_dm2ttl, 385, TYPE_ART,  wipe_Default },
+    { "DEMO1",    "", mus_None,   0,   TYPE_DEMO, wipe_Default },
+    { "CREDIT",   "", mus_None,   200, TYPE_ART,  wipe_Default },
+    { "DEMO2",    "", mus_None,   0,   TYPE_DEMO, wipe_Default },
+    { "TITLEPIC", "", mus_dm2ttl, 385, TYPE_ART,  wipe_Default },
+    { "DEMO3",    "", mus_None,   0,   TYPE_DEMO, wipe_Default },
+    { "DEMO4",    "", mus_None,   0,   TYPE_DEMO, wipe_Default },
 };
 
 demoloop_t demoloop = NULL;
