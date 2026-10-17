@@ -484,6 +484,10 @@ void D_DoAdvanceDemo(void)
                 {
                     S_ChangeMusInfoMusic(music, false);
                 }
+                else
+                {
+                    S_StartMusic(demoloop_point->music_id);
+                }
             }
             break;
 
