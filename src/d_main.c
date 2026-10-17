@@ -479,10 +479,17 @@ void D_DoAdvanceDemo(void)
             {
                 pagename = demoloop_point->primary_lump;
                 pagetic = demoloop_point->duration;
-                int music = W_CheckNumForName(demoloop_point->secondary_lump);
-                if (music >= 0)
+                if (demoloop_point->no_switch == false)
                 {
-                    S_ChangeMusInfoMusic(music, false);
+                    int music = W_CheckNumForName(demoloop_point->secondary_lump);
+                    if (music >= 0)
+                    {
+                        S_ChangeMusInfoMusic(music, false);
+                    }
+                    else
+                    {
+                        S_StartMusic(demoloop_point->music_id);
+                    }
                 }
             }
             break;
