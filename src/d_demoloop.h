@@ -35,11 +35,12 @@ typedef enum
 typedef struct
 {
     char        primary_lump[9];   // Screen graphic or DEMO lump.
-    char        secondary_lump[9]; // Music lump for screen graphic.
     musicenum_t music_id;
     int         duration;          // Game tics.
     dl_type_t   type;
     wipefx_t    outro_wipe;
+    boolean     no_switch;         // No music switch.
+    char        secondary_lump[9]; // Music lump for screen graphic.
 } demoloop_entry_t;
 
 typedef demoloop_entry_t* demoloop_t;
