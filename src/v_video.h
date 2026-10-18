@@ -71,6 +71,10 @@ void V_ScaleRect(vrect_t *rect);
 int V_ScaleX(int x);
 int V_ScaleY(int y);
 
+// Vertical clipping for UI drawing.
+void V_SetClipY(int top, int bottom);
+void V_ResetClipY(void);
+
 // Allocates buffer screens, call before R_Init.
 void V_Init(void);
 

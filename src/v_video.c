@@ -77,6 +77,21 @@ typedef struct
 
 crop_t no_crop = {0};
 
+static int clip_top;
+static int clip_bottom = SCREENHEIGHT;
+
+void V_SetClipY(int top, int bottom)
+{
+    clip_top = CLAMP(top, 0, SCREENHEIGHT);
+    clip_bottom = CLAMP(bottom, clip_top, SCREENHEIGHT);
+}
+
+void V_ResetClipY(void)
+{
+    clip_top = 0;
+    clip_bottom = SCREENHEIGHT;
+}
+
 static const byte *translation, *translation2;
 
 static void (*drawcolfunc)(const patch_column_t *patchcol);
@@ -236,8 +251,14 @@ static void DrawPatchColumnTRTL(const patch_column_t *patchcol)
 static void DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
                              const column_t *column)
 {
-    const int screentop = CLAMP(ytop, 0, SCREENHEIGHT-1);
-    const int screenbottom = CLAMP(ytop + patchcol->height, 0, SCREENHEIGHT);
+    if (clip_bottom <= clip_top)
+    {
+        return;
+    }
+
+    const int screentop = CLAMP(ytop, clip_top, clip_bottom - 1);
+    const int screenbottom = CLAMP(ytop + patchcol->height, clip_top,
+                                   clip_bottom);
 
     for (; column->topdelta != 0xff;
          column = (column_t *)((byte *)column + column->length + 4))

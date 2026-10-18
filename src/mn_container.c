@@ -952,7 +952,11 @@ void MN_ContainerDrawer(void)
 
     MN_DrawTitle(M_X_CENTER, 2, menu->title_patch, menu->title_text);
     DrawTabs(menu);
+
+    V_SetClipY(menu->viewport.y, menu->viewport.y + menu->viewport.h);
     DrawItems(menu);
+    V_ResetClipY();
+
     UpdateScrollbar(menu);
     DrawScrollbar(menu);
     DrawInstructions(menu);
