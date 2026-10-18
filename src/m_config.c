@@ -613,9 +613,14 @@ boolean M_ParseOption(const char *p, boolean wad)
         } while (scan);
     }
 
-    if (wad && dp->setup_menu)
+    if (wad)
     {
-        dp->setup_menu->m_flags |= S_DISABLE;
+        dp->disabled = true;
+
+        if (dp->setup_menu)
+        {
+            dp->setup_menu->m_flags |= S_DISABLE;
+        }
     }
 
     return 0; // Success
@@ -760,5 +765,12 @@ void M_LoadDefaults(void)
 boolean M_CheckIfDisabled(const char *name)
 {
     const default_t *dp = M_LookupDefault(name);
-    return dp->setup_menu->m_flags & S_DISABLE;
+
+    if (!dp)
+    {
+        return false;
+    }
+
+    return dp->disabled
+           || (dp->setup_menu && (dp->setup_menu->m_flags & S_DISABLE));
 }

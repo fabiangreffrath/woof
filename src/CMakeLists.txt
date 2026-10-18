@@ -108,7 +108,10 @@ set(WOOF_SOURCES
     m_json.c               m_json.h
     m_scanner.c            m_scanner.h
     mn_font.c              mn_font.h
+    mn_container.c         mn_container.h
     mn_menu.c              mn_menu.h
+    mn_options.c           mn_options.h
+    mn_options_data.c
     mn_setup.c             mn_internal.h
     m_misc.c               m_misc.h
     m_random.c             m_random.h

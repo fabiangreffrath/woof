@@ -13,6 +13,9 @@
 //  GNU General Public License for more details.
 //
 
+#ifndef __MN_INTERNAL__
+#define __MN_INTERNAL__
+
 #include "doomdef.h"
 #include "doomtype.h"
 
@@ -278,6 +281,9 @@ typedef struct default_s
     int modified;                    // Whether it's been modified
     config_t orig_default;           // Original default, if modified
     struct setup_menu_s *setup_menu; // Xref to setup menu item, if any
+    boolean disabled;                // Disabled by an OPTIONS lump
 } default_t;
 
 extern default_t *defaults;
+
+#endif

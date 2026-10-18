@@ -49,8 +49,10 @@
 #include "m_misc.h"
 #include "m_swap.h"
 #include "mn_font.h"
+#include "mn_container.h"
 #include "mn_internal.h"
 #include "mn_menu.h"
+#include "mn_options.h"
 #include "mn_snapshot.h"
 #include "p_saveg.h"
 #include "r_data.h"
@@ -2087,6 +2089,7 @@ static void M_Setup(int choice)
     options_active = true;
 
     SetNextMenu(&SetupDef);
+    MN_OptionsOpen();
 }
 
 //
@@ -2100,6 +2103,7 @@ void MN_ClearMenus(void)
     mouse_active_thermo = false;
     options_active = false;
     customskill_active = false;
+    MN_ContainerClose();
     print_warning_about_changes = 0; // killough 8/15/98
     default_verify = 0;              // killough 10/98
 
@@ -2321,6 +2325,11 @@ void M_Ticker(void)
     {
         whichSkull ^= 1;
         skullAnimCounter = 8;
+    }
+
+    if (MN_ContainerActive())
+    {
+        MN_ContainerTicker();
     }
 }
 
@@ -2894,6 +2903,22 @@ boolean M_Responder(event_t *ev)
 
         case ev_mouseb_down:
             menu_input = mouse_mode;
+
+            if (MN_ContainerActive())
+            {
+                if (M_IsMouseWheel(ev->data1.i))
+                {
+                    MN_ContainerWheel(ev->data1.i == MOUSE_BUTTON_WHEELUP ? -1
+                                                                           : 1);
+                }
+                else
+                {
+                    MN_ContainerMouseMove(mouse_state_x, mouse_state_y);
+                    MN_ContainerMouseButton(ev->data1.i, true);
+                }
+                return true;
+            }
+
             if (MouseResponder())
             {
                 return true;
@@ -2901,6 +2926,16 @@ boolean M_Responder(event_t *ev)
             break;
 
         case ev_mouseb_up:
+            if (MN_ContainerActive())
+            {
+                if (!M_IsMouseWheel(ev->data1.i))
+                {
+                    MN_ContainerMouseMove(mouse_state_x, mouse_state_y);
+                    MN_ContainerMouseButton(ev->data1.i, false);
+                }
+                return true;
+            }
+
             if (menu_input == mouse_mode)
             {
                 return MouseResponder();
@@ -2915,6 +2950,18 @@ boolean M_Responder(event_t *ev)
             menu_input = mouse_mode;
             mouse_state_x = (int)ev->data2.f;
             mouse_state_y = (int)ev->data3.f;
+
+            if (MN_ContainerActive())
+            {
+                MN_ContainerMouseMove(mouse_state_x, mouse_state_y);
+
+                if (ev->data1.i == EV_RESIZE_VIEWPORT)
+                {
+                    MN_ContainerRelayout();
+                }
+                return true;
+            }
+
             CursorPosition();
             MouseResponder();
             return true;
@@ -3058,6 +3105,32 @@ boolean M_Responder(event_t *ev)
     {
         clean_screenshot = true;
         G_ScreenShot();
+    }
+
+    if (MN_ContainerActive())
+    {
+        const mn_container_result_t result = MN_ContainerResponder(action, ch);
+
+        if (result == MN_CONTAINER_ESCAPE)
+        {
+            MN_ContainerClose();
+            MN_ClearMenus();
+            M_StartSound(sfx_mnucls);
+            help_input = old_help_input;
+            menu_input = old_menu_input;
+            MN_ResetMouseCursor();
+        }
+        else if (result == MN_CONTAINER_CLOSE)
+        {
+            MN_ContainerClose();
+            MN_Back();
+            M_StartSound(sfx_mnubak);
+            help_input = old_help_input;
+            menu_input = old_menu_input;
+            MN_ResetMouseCursor();
+        }
+
+        return true;
     }
 
     // Pop-up Main menu?
@@ -3384,6 +3457,12 @@ void M_Drawer(void)
     if (MN_MenuIsShaded())
     {
         V_ShadeScreen();
+    }
+
+    if (MN_ContainerActive())
+    {
+        MN_ContainerDrawer();
+        return;
     }
 
     if (currentMenu->routine)
