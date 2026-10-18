@@ -926,6 +926,11 @@ static int ActiveContexts(void)
     return CLAMP(num_render_contexts, 1, R_JobsNumThreads() + 1);
 }
 
+boolean R_IsMultiThreaded(void)
+{
+    return ActiveContexts() > 1;
+}
+
 //
 // R_RenderLoadBalance
 //
@@ -1106,8 +1111,9 @@ void R_RenderViewContext(rendercontext_t *context)
     // invariant that R_Init() establishes for the main thread.
     colfunc = R_DrawColumn;
 
-    // [crispy] draw fuzz effect independent of rendering frame rate; every
-    // thread restarts from the shared tic position, then animates on its own.
+    // [crispy] draw fuzz effect independent of rendering frame rate. With
+    // multiple contexts every thread restarts from the shared tic seed and
+    // accumulates locally; single-threaded mode keeps vanilla progression.
     R_SetFuzzPosDraw();
 
     // Clear buffers.

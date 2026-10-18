@@ -55,7 +55,9 @@ void R_DrawColumn(void);
 void R_DrawTLColumn(void);      // drawing translucent textures // phares
 extern void (*R_DrawFuzzColumn)(void);    // The Spectre/Invisibility effect.
 
-// [crispy] draw fuzz effect independent of rendering frame rate
+// [crispy] draw fuzz effect independent of rendering frame rate.
+// Single-threaded rendering keeps vanilla's accumulated progression; MT
+// restarts each context from the shared per-tic seed.
 void R_SetFuzzPosTic(void);
 void R_SetFuzzPosDraw(void);
 

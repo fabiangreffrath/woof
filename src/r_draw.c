@@ -406,9 +406,10 @@ static const int fuzzoffset[FUZZTABLE] =
     FUZZOFF,FUZZOFF,-FUZZOFF,FUZZOFF,FUZZOFF,-FUZZOFF,FUZZOFF
 };
 
-// [MT] fuzzpos is thread-local scratch: every fuzz column/block seeds it
-// from fuzzpos_tic and its absolute screen position, so the pattern does
-// not depend on how the view is split into render context slabs.
+// [MT] fuzzpos is thread-local scratch. Each render context starts from the
+// shared fuzzpos_tit, then accumulates locally for the columns it draws. This
+// is intentionally not vanilla-exact across slabs: a scalar per-slab seed
+// cannot reproduce vanilla's global sprite-major phase.
 static THREADLOCAL int fuzzpos = 0;
 
 // [crispy] draw fuzz effect independent of rendering frame rate
@@ -416,12 +417,26 @@ static int fuzzpos_tic;
 
 void R_SetFuzzPosTic(void)
 {
-    // [MT] advance the shared position exactly once per tic, independent of how
-    // much any render context consumed. Every context restarts from
-    // fuzzpos_tic each frame, so all slabs animate in lockstep.
-    fuzzpos_tic = (fuzzpos_tic + 1) % FUZZTABLE;
+    if (R_IsMultiThreaded())
+    {
+        // [MT] Advance the shared seed exactly once per tic, independent of
+        // how much any render context consumed. Every context restarts from
+        // fuzzpos_tic, so all slabs animate in lockstep. This does not aim
+        // for vanilla-exact cross-slab phase.
+        fuzzpos_tic = (fuzzpos_tic + 1) % FUZZTABLE;
+    }
+    else
+    {
+        if (fuzzpos == fuzzpos_tic)
+        {
+            fuzzpos = (fuzzpos + 1) % FUZZTABLE;
+        }
+        fuzzpos_tic = fuzzpos;
+    }
 }
 
+// Restart the current draw pass from the tic position. In single-threaded
+// mode this is the vanilla per-frame reset.
 void R_SetFuzzPosDraw(void)
 {
     fuzzpos = fuzzpos_tic;
@@ -515,11 +530,8 @@ static void DrawFuzzColumnOriginal(void)
 static int fuzzblocksize;
 
 // [MT] blocky/refraction fuzz writes fuzzblocksize-wide blocks on a global
-// column grid (dc_x % fuzzblocksize), so the pattern does not depend on how
-// the view is split into slabs. A block is written by the context that owns
-// its first column, clipped to that context's endcol; if the block straddles
-// a slab border, the next context finishes it from its own first column
-// (dc_x1).
+// column grid (dc_x % fuzzblocksize), so block placement does not depend on
+// slab boundaries.
 static void DrawFuzzColumnBlocky(void)
 {
     boolean cutoff = false;

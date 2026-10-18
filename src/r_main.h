@@ -138,6 +138,7 @@ extern THREADLOCAL rendercontext_t *r_context;
 void R_InitRenderThreads(void);
 void R_ShutdownRenderThreads(void);
 void R_RenderViewContext(rendercontext_t *context);
+boolean R_IsMultiThreaded(void);
 
 //
 // Utility functions.
