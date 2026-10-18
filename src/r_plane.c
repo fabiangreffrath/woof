@@ -325,19 +325,19 @@ static void R_RasterPlaneColumn(const byte *source, int x, int top, int bottom)
 
     fixed_t distance = planeraster[row].distance;
     fixed_t length = FixedMul(distance, scaledist);
-    fixed_t xfrac = viewx_trans + FixedMul(anglecos, length);
-    fixed_t yfrac = viewy_trans - FixedMul(anglesin, length);
+    uint32_t xfrac = viewx_trans + FixedMul(anglecos, length);
+    uint32_t yfrac = viewy_trans - FixedMul(anglesin, length);
 
     while (count >= planeleap)
     {
         const int nextrow = row + planeleap;
         distance = planeraster[nextrow].distance;
         length = FixedMul(distance, scaledist);
-        const fixed_t nextxfrac = viewx_trans + FixedMul(anglecos, length);
-        const fixed_t nextyfrac = viewy_trans - FixedMul(anglesin, length);
+        const uint32_t nextxfrac = viewx_trans + FixedMul(anglecos, length);
+        const uint32_t nextyfrac = viewy_trans - FixedMul(anglesin, length);
 
-        const fixed_t xstep = (nextxfrac - xfrac) >> planeleaplog2;
-        const fixed_t ystep = (nextyfrac - yfrac) >> planeleaplog2;
+        const uint32_t xstep = (nextxfrac - xfrac) >> planeleaplog2;
+        const uint32_t ystep = (nextyfrac - yfrac) >> planeleaplog2;
 
         for (int i = 0; i < planeleap; i++)
         {
