@@ -1,5 +1,8 @@
 ## New Features and Improvements
 
+* **Renderer**
+  - Adapt multithread renderer from Rum and Raisin Doom. Effective at high resolutions, expect 2-4 times performance increase on multicore CPU.
+
 * **Mod Support:**
   - Add support for optional menu and intermission sounds.
   - Add support for ambient sound definitions by SNDINFO lumps.
@@ -13,6 +16,7 @@
     The `filter/` subdirectories are loaded first, before `autoload/` subdirectories.
     The subdirectories `colormaps/`, `flats/`, `sprites/`, `textures/`, `voxels/`, will map to their own `_START`/`_END` lump markers.
     The subdirectories `graphics/`, `maps/`, `music/`, `patches/`, `sounds/`, will map to the global lump list.
+  - Add support for `comp_thingsectorlight`, in preparation for revision 1.5 of the MBF21 spec.
 
 * **Quality of Life:**
   - Player view no longer abruptly jolts when running across very shallow floor height changes
@@ -66,3 +70,6 @@
 * Renamed MacOS build from "`Woof-<version>-uni.zip`" to "`Woof-<version>-MacOS-universal.zip`"
 * Savegame description and snapshot are now saved outside the compressed keyframe to speed up populating the Load/Save Game menu pages
 * The release artifacts now run on Windows 7 agains
+
+## Regressions
+* Deprecate and remove brightmaps support during the multithreaded renderer implementation.

@@ -25,6 +25,7 @@
 #include "doomdata.h"
 #include "m_fixed.h"
 #include "tables.h"
+#include "r_common.h"
 
 // We rely on the thinker data struct
 // to handle sound origins in sectors.
@@ -91,6 +92,10 @@ typedef struct sector_s
   int blockbox[4];       // mapblock bounding box for height changes
   degenmobj_t soundorg;  // origin for any sounds played by the sector
   int validcount;        // if == validcount, already checked
+  // [MT] per-render-thread sprite-dedup flag, see R_AddSprites(). Separate
+  // from validcount because each parallel render context needs its own flag
+  // while the gameplay code keeps using validcount.
+  uint8_t rendervalidcount[MAX_RENDER_CONTEXTS];
   struct mobj_s *thinglist; // list of mobjs in sector
 
   // TODO: convert from special, Eternity-style
@@ -153,10 +158,6 @@ typedef struct sector_s
 
   int linecount;
   struct line_s **lines;
-
-  // WiggleFix: [kb] For R_FixWiggle()
-  int cachedheight;
-  int scaleindex;
 
   // [AM] Previous position of floor and ceiling before
   //      think.  Used to interpolate between positions.
@@ -468,8 +469,6 @@ typedef struct vissprite_s
   // [FG] colored blood and gibs
   int color;
 
-  const byte *brightmap;
-
   // ID24
   const byte *tranmap;
 
@@ -517,6 +516,12 @@ typedef struct
 {
   int numframes;
   spriteframe_t *spriteframes;
+
+  // [MT] Largest horizontal half-extent of this sprite's patches (over all
+  // frames and rotations). The renderer uses it to associate a mobj with
+  // every sector its visual bounding box overlaps, so a wide sprite is
+  // projected in every slab its pixels reach (see R_SortMobj).
+  fixed_t maxradius;
 } spritedef_t;
 
 //
@@ -529,13 +534,22 @@ typedef struct visplane_s
 {
   struct visplane_s *next;        // Next visplane in hash chain -- killough
   int picnum, lightlevel, minx, maxx;
+  // Covered row range, maintained where top/bottom are written, lets the flat
+  // rasteriser prepare only the rows the plane actually covers.
+  int miny, maxy;
   fixed_t height;
   fixed_t xoffs, yoffs;         // killough 2/28/98: Support scrolling flats
   angle_t rotation;
   int tint; // ID24 per-sector colormap
+  // [MT] top/bottom cover only the owning render context's slab
+  // [startcol, endcol) instead of the whole screen width. They are
+  // pre-shifted so that indexing by absolute view column still works;
+  // buffer is allocated grow-only and both pointers are rebased in
+  // new_visplane().
+  int allocwidth;
+  unsigned short *buffer;
+  unsigned short *top;
   unsigned short *bottom;
-  unsigned short pad1;          // leave pads for [minx-1]/[maxx+1]
-  unsigned short top[3];
 } visplane_t;
 
 #endif

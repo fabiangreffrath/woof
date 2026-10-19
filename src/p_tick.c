@@ -28,6 +28,7 @@
 #include "p_tick.h"
 #include "p_spec.h"
 #include "p_user.h"
+#include "r_things.h"
 #include "s_musinfo.h"
 
 int leveltime;
@@ -318,11 +319,21 @@ void P_SetTarget(mobj_t **mop, mobj_t *targ)
 
 static void P_RunThinkers (void)
 {
+  // [MT] Reset the sector -> wide-sprite mobj index for this tic and file each
+  // mobj into it right after its thinker ran.
+  R_ClearSectMobjs();
+
   for (currentthinker = thinkercap.next;
        currentthinker != &thinkercap;
        currentthinker = currentthinker->next)
     if (currentthinker->function.p1)
-      currentthinker->function.p1((mobj_t *)currentthinker);
+      {
+        currentthinker->function.p1((mobj_t *)currentthinker);
+
+        // [MT] the thinker may have removed itself; only file live mobjs.
+        if (currentthinker->function.p1 == P_MobjThinker)
+          R_SortMobj((mobj_t *)currentthinker);
+      }
 
   // [crispy] support MUSINFO lump (dynamic music changing)
   T_MusInfo();

@@ -2345,6 +2345,12 @@ void ST_Ticker(void)
 
 void ST_Drawer(void)
 {
+    // display crosshair
+    if (hud_crosshair)
+    {
+        HU_DrawCrosshair();
+    }
+
     if (!sbardef)
     {
         return;
