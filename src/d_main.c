@@ -486,7 +486,7 @@ void D_DoAdvanceDemo(void)
                     {
                         S_ChangeMusInfoMusic(music, false);
                     }
-                    else
+                    else if (demoloop->music_id > mus_None)
                     {
                         S_StartMusic(demoloop_point->music_id);
                     }
