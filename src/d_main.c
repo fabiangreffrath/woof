@@ -56,6 +56,7 @@
 #include "f_wipe.h"
 #include "g_compatibility.h"
 #include "g_game.h"
+#include "g_skillinfo.h"
 #include "i_endoom.h"
 #include "i_exit.h"
 #include "i_glob.h"
@@ -74,8 +75,8 @@
 #include "mn_menu.h"
 #include "m_misc.h"
 #include "m_swap.h"
-#include "net_client.h"
-#include "net_dedicated.h"
+#include "nw_client.h"
+#include "nw_dedicated.h"
 #include "deh_misc.h" // deh_max_health_bonus
 #include "p_ambient.h"
 #include "p_setup.h"
@@ -108,21 +109,11 @@ boolean clpistolstart;  // checkparm of -pistolstart
 boolean clcoopspawns;   // checkparm of -coop_spawns
 // jff 1/24/98 end definition of command line version of play mode switches
 
-// custom skill options
-boolean cshalfplayerdamage = false;
-boolean csdoubleammo = false;
-boolean csaggromonsters = false;
-int cshelperdogs = 0;
-
 boolean nomonsters;     // working -nomonsters
 boolean respawnparm;    // working -respawn
 boolean fastparm;       // working -fast
 boolean pistolstart;    // working -pistolstart
 boolean coopspawns;     // working -coop_spawns
-
-boolean halfplayerdamage;
-boolean doubleammo;
-boolean aggromonsters;
 
 boolean singletics = false; // debug flag to cancel adaptiveness
 
@@ -430,7 +421,7 @@ void D_PageTicker(void)
     return;
   }
 
-  // killough 12/98: don't advance internal demos if a single one is 
+  // killough 12/98: don't advance internal demos if a single one is
   // being played. The only time this matters is when using -loadgame with
   // -fastdemo, -playdemo, or -timedemo, and a consistency error occurs.
 
@@ -803,14 +794,14 @@ static void IdentifyVersion(void)
 
     D_AddFile(iwadfile);
 
-    D_GetModeAndMissionByIWADName(M_BaseName(wadfiles[0]), &gamemode, &gamemission);
+    D_GetInfoByIWADName(M_BaseName(wadfiles[0]), &gamemode, &gamemission, &gametype);
 
     if (gamemode == indetermined)
     {
         CheckIWAD();
     }
 
-    gamedescription = D_GetIWADDescription(M_BaseName(wadfiles[0]), gamemode, gamemission);
+    gamedescription = D_GetIWADDescription(M_BaseName(wadfiles[0]), gamemode, gamemission, gametype);
     I_Printf(VB_INFO, " - \"%s\" version", gamedescription);
 }
 
@@ -1241,7 +1232,7 @@ static void M_AddLooseFiles(void)
 static void AutoLoadWADs(const char *path)
 {
     glob_t * glob = I_StartMultiGlob(path, GLOB_FLAG_NOCASE|GLOB_FLAG_SORTED,
-                                     "*.wad", "*.zip", "*.pk3");
+                                     "*.wad", "*.zip", "*.pk3", "*.lmp");
     for (;;)
     {
         const char *filename = I_NextGlob(glob);
@@ -1250,70 +1241,20 @@ static void AutoLoadWADs(const char *path)
             break;
         }
 
-        if (!W_AddPath(filename))
+        if (!W_OpenFile(filename))
         {
             I_Error("Failed to load %s", filename);
         }
     }
     I_EndGlob(glob);
-
-    W_AddPath(path);
-}
-
-static void LoadIWadBase(void)
-{
-    GameMode_t local_gamemode;
-    GameMission_t local_gamemission;
-    D_GetModeAndMissionByIWADName(M_BaseName(wadfiles[0]), &local_gamemode,
-                                  &local_gamemission);
-
-    if (local_gamemission == none
-        || (local_gamemode == indetermined && local_gamemission != doom))
-    {
-        return;
-    }
-
-    if (local_gamemission < pack_chex)
-    {
-        W_AddBaseDir("doom-all");
-    }
-    if (local_gamemission == pack_chex || local_gamemission == pack_chex3v)
-    {
-        W_AddBaseDir("chex-all");
-    }
-    if (local_gamemission == doom)
-    {
-        W_AddBaseDir("doom1-all");
-    }
-    else if (local_gamemission >= doom2 && local_gamemission <= pack_plut)
-    {
-        W_AddBaseDir("doom2-all");
-    }
-    else if (local_gamemission == pack_freedoom)
-    {
-        W_AddBaseDir("freedoom-all");
-        if (local_gamemode == commercial)
-        {
-            W_AddBaseDir("freedoom2-all");
-        }
-        else
-        {
-            W_AddBaseDir("freedoom1-all");
-        }
-    }
-    else if (local_gamemission == pack_rekkr)
-    {
-        W_AddBaseDir("rekkr-all");
-    }
-
-    W_AddBaseDir(M_BaseName(wadfiles[0]));
 }
 
 static void AutoloadIWadDir(void (*AutoLoadFunc)(const char *path))
 {
     GameMode_t local_gamemode;
     GameMission_t local_gamemission;
-    D_GetModeAndMissionByIWADName(M_BaseName(wadfiles[0]), &local_gamemode, &local_gamemission);
+    GameType_t local_gametype;
+    D_GetInfoByIWADName(M_BaseName(wadfiles[0]), &local_gamemode, &local_gamemission, &local_gametype);
 
     for (int j = 0; j < array_size(autoload_paths); ++j)
     {
@@ -1380,14 +1321,6 @@ static void AutoloadIWadDir(void (*AutoLoadFunc)(const char *path))
         dir = GetAutoloadDir(autoload_paths[j], M_BaseName(wadfiles[0]), true);
         AutoLoadFunc(dir);
         free(dir);
-    }
-}
-
-static void LoadPWadBase(void)
-{
-    for (int i = 1; i < array_size(wadfiles); ++i)
-    {
-        W_AddBaseDir(wadfiles[i]);
     }
 }
 
@@ -1663,7 +1596,7 @@ void D_DoomMain(void)
   {
       I_Printf(VB_INFO, "Dedicated server mode.");
       I_InitTimer();
-      NET_DedicatedServer();
+      NW_DedicatedServer();
 
       // Never returns
   }
@@ -1834,7 +1767,7 @@ void D_DoomMain(void)
 
   // add wad files from autoload IWAD directories before wads from -file parameter
 
-  LoadIWadBase();
+  W_AutoloadBaseIWAD();
   PrepareAutoloadPaths();
   AutoloadIWadDir(AutoLoadWADs);
 
@@ -1869,7 +1802,7 @@ void D_DoomMain(void)
 
   // add wad files from autoload PWAD directories
 
-  LoadPWadBase();
+  W_AutoloadBasePWAD();
   AutoloadPWadDir(AutoLoadWADs);
 
   // get skill / episode / map from parms
@@ -2083,6 +2016,8 @@ void D_DoomMain(void)
   // Check for wolf levels
   haswolflevels = (W_CheckNumForName("map31") >= 0);
 
+  G_InitSkills();
+
   //
   // Start DeHackEd Loading
   //
@@ -2242,8 +2177,8 @@ void D_DoomMain(void)
   I_InitSound();
   I_InitMusic();
 
-  I_Printf(VB_INFO, "NET_Init: Init network subsystem.");
-  NET_Init();
+  I_Printf(VB_INFO, "NW_Init: Init network subsystem.");
+  NW_Init();
 
   // Initial netgame startup. Connect to server etc.
   D_ConnectNetGame();
@@ -2315,7 +2250,7 @@ void D_DoomMain(void)
 
   // start the apropriate game based on parms
 
-  // killough 12/98: 
+  // killough 12/98:
   // Support -loadgame with -record and reimplement -recordfrom.
 
   //!
@@ -2513,7 +2448,7 @@ void D_BindMiscVariables(void)
     "Palette changes when taking damage or picking up items (0 = Off; 1 = On; 2 = Reduced)");
   BIND_NUM_GENERAL(organize_savefiles, -1, -1, 1,
     "Organize save files");
-  M_BindStr("net_player_name", &net_player_name, DEFAULT_PLAYER_NAME, wad_no,
+  M_BindStr("nw_player_name", &nw_player_name, DEFAULT_PLAYER_NAME, wad_no,
     "Network setup player name");
 
   M_BindBool("colored_blood", &colored_blood, NULL, false, ss_enem, wad_no,

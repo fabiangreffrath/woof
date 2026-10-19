@@ -18,7 +18,7 @@
 #ifndef TXT_MAIN_H
 #define TXT_MAIN_H
 
-// For the moment, txt_sdl.c is the only implementation of the base 
+// For the moment, txt_sdl.c is the only implementation of the base
 // text mode screen API:
 
 #include "txt_sdl.h"

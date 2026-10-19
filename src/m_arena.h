@@ -28,21 +28,20 @@ typedef struct arena_s arena_t;
 #define arena_alloc_num(arena, type, num) \
     (type *)M_ArenaAlloc(arena, sizeof(type) * (num), alignof(type))
 
-void *M_ArenaAlloc(arena_t *arena, int size, int align);
+#define arena_free(arena, ptr, type) \
+    M_ArenaFree(arena, ptr, sizeof(type), alignof(type))
 
-void arena_free(arena_t *arena, void *ptr);
+void *M_ArenaAlloc(arena_t *arena, int size, int align);
+void M_ArenaFree(arena_t *arena, void *ptr, int size, int align);
 
 arena_t *M_ArenaInit(int reserve, int commit);
 void M_ArenaClear(arena_t *arena);
 
 typedef struct arena_copy_s arena_copy_t;
 
-arena_copy_t *M_ArenaCopy(const arena_t *arena);
+arena_copy_t *M_ArenaCreateCopy(const arena_t *arena);
+arena_copy_t *M_ArenaCopy(arena_copy_t *copy, const arena_t *arena);
 void M_ArenaRestore(arena_t *arena, const arena_copy_t *copy);
 void M_ArenaFreeCopy(arena_copy_t *copy);
-
-int M_ArenaTableIndex(const arena_t *arena, uintptr_t key);
-int M_ArenaTableSize(const arena_t *arena);
-uintptr_t *M_ArenaTable(const arena_t *arena);
 
 #endif

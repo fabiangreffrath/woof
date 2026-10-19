@@ -79,7 +79,7 @@ void I_UpdateDiscordPresence(const char *curstate, const char *curstatus)
             .joinRequest = DiscordJoinRequest
         };
         Discord_Initialize(curappid, &handlers, 1, NULL);
-        
+
         I_AtExit(Discord_ClearPresence, true);
         I_AtSignal(Discord_ClearPresence);
     }

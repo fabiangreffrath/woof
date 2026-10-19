@@ -24,6 +24,9 @@
 
 byte *R_DistortedFlat(int flatnum);
 
+// [MT] pre-create the swirl offset tables on the main thread.
+void R_InitDistortedFlats(void);
+
 extern boolean r_swirl;
 
 #endif

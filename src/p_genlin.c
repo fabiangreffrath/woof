@@ -88,7 +88,7 @@ int EV_DoGenFloor
   {
     sec = &sectors[secnum];
 
-manual_floor:                
+manual_floor:
     // Do not start another function if floor already moving
     if (P_SectorActive(floor_special,sec))
     {
@@ -291,7 +291,7 @@ int EV_DoGenCeiling
   {
     sec = &sectors[secnum];
 
-manual_ceiling:                
+manual_ceiling:
     // Do not start another function if ceiling already moving
     if (P_SectorActive(ceiling_special,sec)) //jff 2/22/98
     {
@@ -394,7 +394,7 @@ manual_ceiling:
 
         //jff 5/23/98 find model with floor at target height if target
         //is a floor type
-        sec = (Targ==CtoHnF || Targ==CtoF)?         
+        sec = (Targ==CtoHnF || Targ==CtoF)?
           P_FindModelFloorSector(targheight,secnum) :
           P_FindModelCeilingSector(targheight,secnum);
         if (sec)
@@ -485,7 +485,7 @@ int EV_DoGenLift
 
   if (Targ==LnF2HnF)
     P_ActivateInStasis(line->args[0]);
-        
+
   // check if a manual trigger, if so do just the sector on the backside
   manual = false;
   if (Trig==PushOnce || Trig==PushMany)
@@ -511,12 +511,12 @@ manual_lift:
       else
         return rtn;
     }
-      
+
     // Setup the plat thinker
     rtn = 1;
     plat = arena_alloc(thinkers_arena, plat_t);
     P_AddThinker(&plat->thinker);
-              
+
     plat->sector = sec;
     plat->sector->floordata = plat;
     plat->thinker.function.p1 = T_PlatRaiseAdapter;
@@ -622,12 +622,12 @@ int EV_DoGenStairs
   int                   ok;
   int                   rtn;
   boolean               manual;
-    
+
   sector_t*             sec;
   sector_t*             tsec;
 
   floormove_t*  floor;
-    
+
   fixed_t               stairsize;
   fixed_t               speed;
 
@@ -660,7 +660,7 @@ int EV_DoGenStairs
   {
     sec = &sectors[secnum];
 
-manual_stair:          
+manual_stair:
     //Do not start another function if floor already moving
     //jff 2/26/98 add special lockout condition to wait for entire
     //staircase to build before retriggering
@@ -671,7 +671,7 @@ manual_stair:
       else
         return rtn;
     }
-      
+
     // new floor thinker
     rtn = 1;
     floor = arena_alloc(thinkers_arena, floormove_t);
@@ -728,7 +728,7 @@ manual_stair:
     sec->nextsec = -1;
     sec->prevsec = -1;
 
-    osecnum = secnum;            //jff 3/4/98 preserve loop index  
+    osecnum = secnum;            //jff 3/4/98 preserve loop index
     // Find next sector to raise
     // 1.     Find 2-sided line with same sector side[0]
     // 2.     Other side is the next sector to raise
@@ -739,10 +739,10 @@ manual_stair:
       {
         if ( !((sec->lines[i])->backsector) )
           continue;
-                                  
+
         tsec = (sec->lines[i])->frontsector;
         newsecnum = tsec-sectors;
-          
+
         if (secnum != newsecnum)
           continue;
 
@@ -761,7 +761,7 @@ manual_stair:
         if (P_SectorActive(floor_special,tsec) || tsec->stairlock)
           continue;
 
-	// jff 6/19/98 increase height AFTER continue        
+	// jff 6/19/98 increase height AFTER continue
 	// killough 10/98: corrected use of demo compatibility flag
         if (demo_version >= DV_BOOM)
           height += floor->direction * stairsize;
@@ -848,7 +848,7 @@ int EV_DoGenCrusher
   {
     sec = &sectors[secnum];
 
-manual_crusher:                
+manual_crusher:
     // Do not start another function if ceiling already moving
     if (P_SectorActive(ceiling_special,sec)) //jff 2/22/98
     {
@@ -938,7 +938,7 @@ int EV_DoGenLockedDoor
 
   secnum = -1;
   rtn = 0;
-  
+
   // if not manual do all sectors tagged the same as the line
   while ((secnum = P_FindSectorFromLineTag(line,secnum)) >= 0)
   {
@@ -952,7 +952,7 @@ manual_locked:
       else
         return rtn;
     }
-  
+
     // new door thinker
     rtn = 1;
     door = arena_alloc(thinkers_arena, vldoor_t);
@@ -968,7 +968,7 @@ manual_locked:
     door->direction = 1;
 
     // killough 10/98: implement gradual lighting
-    door->lighttag = !STRICTMODE_COMP(comp_doorlight) && (line->special&6) == 6 && 
+    door->lighttag = !STRICTMODE_COMP(comp_doorlight) && (line->special&6) == 6 &&
       line->special > GenLockedBase ? line->args[0] : 0;
 
     // setup speed of door motion
@@ -1046,7 +1046,7 @@ int EV_DoGenDoor
 
   secnum = -1;
   rtn = 0;
-  
+
   // if not manual do all sectors tagged the same as the line
   while ((secnum = P_FindSectorFromLineTag(line,secnum)) >= 0)
   {
@@ -1060,7 +1060,7 @@ manual_door:
       else
         return rtn;
     }
-  
+
     // new door thinker
     rtn = 1;
     door = arena_alloc(thinkers_arena, vldoor_t);
@@ -1107,7 +1107,7 @@ manual_door:
     door->line = line; // jff 1/31/98 remember line that triggered us
 
     // killough 10/98: implement gradual lighting
-    door->lighttag = !STRICTMODE_COMP(comp_doorlight) && (line->special&6) == 6 && 
+    door->lighttag = !STRICTMODE_COMP(comp_doorlight) && (line->special&6) == 6 &&
       line->special > GenLockedBase ? line->args[0] : 0;
 
     // set kind of door, whether it opens then close, opens, closes etc.

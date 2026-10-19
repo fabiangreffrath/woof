@@ -119,8 +119,6 @@ static SDL_Texture *texture;
 static SDL_Rect src_rect = {0}, dst_rect = {0};
 static SDL_FRect src_frect = {0.0f}, dst_frect = {0.0f};
 
-static boolean clearneeded = false;
-
 static int window_width, window_height;
 static int default_window_width, default_window_height;
 static boolean window_focused = true;
@@ -388,7 +386,7 @@ static void HandleWindowEvent(SDL_WindowEvent *event)
 static boolean ToggleFullScreenKeyShortcut(SDL_Scancode scancode)
 {
     Uint16 flags = (SDL_KMOD_LALT | SDL_KMOD_RALT);
-#if defined(__MACOSX__)
+#if defined(__APPLE__)
     flags |= (SDL_KMOD_LGUI | SDL_KMOD_RGUI);
 #endif
     return (scancode == SDL_SCANCODE_RETURN
@@ -435,7 +433,7 @@ static void AdjustWindowSize(void)
     old_h = actualheight;
 }
 
-static void I_ToggleFullScreen(void)
+static void ToggleFullScreen(void)
 {
     if (fullscreen)
     {
@@ -558,7 +556,7 @@ static void ProcessEvent(SDL_Event *ev)
     }
 }
 
-static void I_GetEvent(void)
+static void GetEvent(void)
 {
     #define NUM_PEEP 32
     static SDL_Event sdlevents[NUM_PEEP];
@@ -631,7 +629,7 @@ static void UpdateMouseMenu(void)
 //
 void I_StartTic(void)
 {
-    I_GetEvent();
+    GetEvent();
 
     if (menuactive)
     {
@@ -705,12 +703,7 @@ static void UpdateRender(void)
 
     SDL_UnlockTexture(texture);
 
-    if (clearneeded)
-    {
-        SDL_RenderClear(renderer);
-        clearneeded = false;
-    }
-
+    SDL_RenderClear(renderer);
     SDL_RenderTextureRotated(renderer, texture, &src_frect, &dst_frect, 90.0, NULL, SDL_FLIP_VERTICAL);
 }
 
@@ -846,10 +839,10 @@ void I_DynamicResolution(void)
     ResetLogicalSize();
 }
 
-static void I_DrawDiskIcon(), I_RestoreDiskBackground();
+static void DrawDiskIcon(), RestoreDiskBackground();
 static unsigned int disk_to_draw, disk_to_restore;
 
-static void I_ResetTargetRefresh(void);
+static void ResetTargetRefresh(void);
 
 void I_FinishUpdate(void)
 {
@@ -860,7 +853,7 @@ void I_FinishUpdate(void)
 
     if (toggle_fullscreen)
     {
-        I_ToggleFullScreen();
+        ToggleFullScreen();
         toggle_fullscreen = false;
     }
 
@@ -886,7 +879,7 @@ void I_FinishUpdate(void)
         }
     }
 
-    I_DrawDiskIcon();
+    DrawDiskIcon();
 
     UpdateRender();
 
@@ -897,7 +890,7 @@ void I_FinishUpdate(void)
 
     SDL_RenderPresent(renderer);
 
-    I_RestoreDiskBackground();
+    RestoreDiskBackground();
 
     if (use_limiter)
     {
@@ -930,7 +923,7 @@ void I_FinishUpdate(void)
     if (setrefreshneeded)
     {
         setrefreshneeded = false;
-        I_ResetTargetRefresh();
+        ResetTargetRefresh();
     }
 }
 
@@ -950,7 +943,7 @@ void I_ReadScreen(pixel_t *dst)
 static pixel_t *diskflash, *old_data;
 static vrect_t disk;
 
-static void I_InitDiskFlash(void)
+static void InitDiskFlash(void)
 {
     disk.x = 0;
     disk.y = 0;
@@ -982,7 +975,7 @@ void I_BeginRead(unsigned int bytes)
     disk_to_draw += bytes;
 }
 
-static void I_DrawDiskIcon(void)
+static void DrawDiskIcon(void)
 {
     if (!disk_icon || PLAYBACK_SKIP)
     {
@@ -1009,7 +1002,7 @@ void I_EndRead(void)
     // [FG] posponed to next tic
 }
 
-static void I_RestoreDiskBackground(void)
+static void RestoreDiskBackground(void)
 {
     if (!disk_icon || PLAYBACK_SKIP)
     {
@@ -1053,8 +1046,6 @@ void I_SetPalette(palette_t pal, palette_layer_t layer)
         // emulating VGA "porch" behaviour
         SDL_SetRenderDrawColor(renderer, colors[0].r, colors[0].g, colors[0].b,
                                SDL_ALPHA_OPAQUE);
-
-        clearneeded = true;
     }
 }
 
@@ -1131,6 +1122,9 @@ boolean I_WritePNGfile(char *filename)
 
 void I_InitWindowIcon(void)
 {
+// On Windows, let the system itself set the application icon.
+// This fixes incorrect icon display in Task Manager.
+#ifndef _WIN32
     SDL_Surface *surface = SDL_CreateSurfaceFrom(
         icon_w, icon_h,
         SDL_GetPixelFormatForMasks(32, 0xffu << 24, 0xffu << 16, 0xffu << 8,
@@ -1139,6 +1133,7 @@ void I_InitWindowIcon(void)
 
     SDL_SetWindowIcon(screen, surface);
     SDL_DestroySurface(surface);
+#endif
 }
 
 static void SetWindowPosition(void)
@@ -1215,8 +1210,6 @@ static void ResetResolution(int height)
 
     video.deltaw = (video.unscaledw - NONWIDEWIDTH) / 2;
 
-    Z_FreeTag(PU_VALLOC);
-
     V_Init();
     R_InitVisplanesRes();
     R_SetFuzzColumnMode();
@@ -1224,7 +1217,7 @@ static void ResetResolution(int height)
 
     AM_ResetScreenSize();
 
-    I_InitDiskFlash();
+    InitDiskFlash();
 
     I_Printf(VB_DEBUG, "ResetResolution: %dx%d (%s)", video.width, video.height,
              widescreen_strings[widescreen]);
@@ -1278,7 +1271,7 @@ static void UpdateUncapped(void)
     }
 }
 
-static void I_ResetTargetRefresh(void)
+static void ResetTargetRefresh(void)
 {
     UpdateUncapped();
 
@@ -1312,7 +1305,7 @@ static void I_ResetTargetRefresh(void)
     I_ResetDRS();
 }
 
-static void I_ResetInvalidDisplayIndex(void)
+static void ResetInvalidDisplayIndex(void)
 {
     // Check that video_display corresponds to a display that really exists,
     // and if it doesn't, reset it.
@@ -1329,11 +1322,11 @@ static void I_ResetInvalidDisplayIndex(void)
 // killough 11/98: New routine, for setting hires and page flipping
 //
 
-static void I_InitVideoParms(void)
+static void InitVideoParms(void)
 {
     int p, tmp_scalefactor;
 
-    I_ResetInvalidDisplayIndex();
+    ResetInvalidDisplayIndex();
     const SDL_DisplayMode *mode = SDL_GetCurrentDisplayMode(video_display_id);
     if (!mode)
     {
@@ -1382,7 +1375,7 @@ static void I_InitVideoParms(void)
 
     widescreen = default_widescreen;
     grabmouse = default_grabmouse;
-    I_ResetTargetRefresh();
+    ResetTargetRefresh();
 
     if (M_CheckParm("-grabmouse"))
     {
@@ -1467,7 +1460,7 @@ static void I_InitVideoParms(void)
     MN_UpdateDynamicResolutionItem();
 }
 
-static void I_InitGraphicsMode(void)
+static void InitGraphicsMode(void)
 {
     SDL_WindowFlags flags = 0;
 
@@ -1646,8 +1639,6 @@ void I_ResetScreen(void)
 
     SDL_SetTextureScaleMode(texture, smooth_scaling ? SDL_SCALEMODE_PIXELART
                                                     : SDL_SCALEMODE_NEAREST);
-
-    clearneeded = true;
 }
 
 void I_ShutdownGraphics(void)
@@ -1680,8 +1671,8 @@ void I_InitGraphics(void)
 
     I_AtExit(I_ShutdownGraphics, true);
 
-    I_InitVideoParms();
-    I_InitGraphicsMode(); // killough 10/98
+    InitVideoParms();
+    InitGraphicsMode(); // killough 10/98
     ResetResolution(GetCurrentVideoHeight());
     I_UpdateHudAnchoring();
     CreateVideoBuffer();

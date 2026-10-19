@@ -1734,7 +1734,7 @@ void pffft_zconvolve_accumulate(PFFFT_Setup *s, const float *a, const float *b, 
   bi0 = ((v4sf_union*)vb)[1].f[0];
   abr0 = ((v4sf_union*)vab)[0].f[0];
   abi0 = ((v4sf_union*)vab)[1].f[0];
- 
+
 #ifdef ZCONVOLVE_USING_INLINE_ASM // inline asm version, unfortunately miscompiled by clang 3.2, at least on ubuntu.. so this will be restricted to gcc
   const float *a_ = a, *b_ = b; float *ab_ = ab;
   int N = Ncvec;

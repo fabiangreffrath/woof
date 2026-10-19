@@ -30,6 +30,7 @@
 #include "doomdata.h"
 #include "doomdef.h"
 #include "doomtype.h"
+#include "g_skillinfo.h"
 #include "f_wipe.h"
 
 struct MI_Entry_s;
@@ -53,6 +54,7 @@ extern  int screenblocks;     // killough 11/98
 
 extern GameMode_t gamemode;
 extern GameMission_t gamemission;
+extern GameType_t gametype;
 
 // [FG] emulate a specific version of Doom
 extern GameVersion_t gameversion;
@@ -199,16 +201,6 @@ extern  struct MI_Entry_s *gamemapinfo;
 
 // If non-zero, exit the level after this number of minutes
 extern  int             timelimit;
-
-// Nightmare mode flag, single player.
-extern  boolean         respawnmonsters;
-
-// Custom skill flags
-extern boolean halfplayerdamage, cshalfplayerdamage;
-extern boolean doubleammo, csdoubleammo;
-extern boolean aggromonsters, csaggromonsters;
-
-extern int cshelperdogs;
 
 // Netgame? Only true if >1 player.
 extern  boolean netgame;

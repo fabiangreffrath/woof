@@ -27,6 +27,7 @@
 #include "deh_misc.h"
 #include "doomdef.h"
 #include "doomstat.h"
+#include "g_skillinfo.h"
 #include "i_system.h"
 #include "info.h"
 #include "m_fixed.h"
@@ -106,9 +107,8 @@ boolean P_GiveAmmo(player_t *player, ammotype_t ammo, int num)
   else
     num = clipammo[ammo]/2;
 
-  // give double ammo in trainer mode, you'll need in nightmare
-  if (gameskill == sk_baby || gameskill == sk_nightmare || doubleammo)
-    num <<= 1;
+  if (skill_info.ammo_factor)
+    num = FixedMul(num, skill_info.ammo_factor);
 
   oldammo = player->ammo[ammo];
   player->ammo[ammo] += num;
@@ -807,8 +807,8 @@ void P_DamageMobjBy(mobj_t *target,mobj_t *inflictor, mobj_t *source, int damage
     target->momx = target->momy = target->momz = 0;
 
   player = target->player;
-  if (player && (gameskill == sk_baby || halfplayerdamage))
-    damage >>= 1;   // take half damage in trainer mode
+  if (player && skill_info.damage_factor)
+    damage = FixedMul(damage, skill_info.damage_factor);
 
   // Some close combat weapons should not
   // inflict thrust and push the victim out of reach,
@@ -885,14 +885,14 @@ void P_DamageMobjBy(mobj_t *target,mobj_t *inflictor, mobj_t *source, int damage
         player->damagecount = 100;  // teleport stomp does 10k points...
 
 #if 0
-      // killough 11/98: 
+      // killough 11/98:
       // This is unused -- perhaps it was designed for
       // a hand-connected input device or VR helmet,
       // to pinch the player when they're hurt :)
 
       {
 	int temp = damage < 100 ? damage : 100;
-	
+
 	if (player == &players[consoleplayer])
 	  I_Tactile (40,10,40+temp*2);
       }
@@ -923,14 +923,14 @@ void P_DamageMobjBy(mobj_t *target,mobj_t *inflictor, mobj_t *source, int damage
       // so that a friend can tell who's hurting a player
       if (player)
 	P_SetTarget(&target->target, source);
-      
+
       // killough 9/8/98:
       // If target's health is less than 50%, move it to the front of its list.
       // This will slightly increase the chances that enemies will choose to
       // "finish it off", but its main purpose is to alert friends of danger.
       if (target->health*2 < target->info->spawnhealth)
 	{
-	  thinker_t *cap = &thinkerclasscap[target->flags & MF_FRIEND ? 
+	  thinker_t *cap = &thinkerclasscap[target->flags & MF_FRIEND ?
 					   th_friends : th_enemies];
 	  (target->thinker.cprev->cnext = target->thinker.cnext)->cprev =
 	    target->thinker.cprev;
@@ -949,7 +949,7 @@ void P_DamageMobjBy(mobj_t *target,mobj_t *inflictor, mobj_t *source, int damage
 
   if (source && source != target && !(source->flags2 & MF2_DMGIGNORED) &&
       (!target->threshold || target->flags2 & MF2_NOTHRESHOLD) &&
-      ((source->flags ^ target->flags) & MF_FRIEND || 
+      ((source->flags ^ target->flags) & MF_FRIEND ||
        monster_infighting || demo_version < DV_MBF) &&
       !P_InfightingImmune(target, source))
     {

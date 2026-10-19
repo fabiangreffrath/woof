@@ -94,7 +94,7 @@ static void DrawPatchColumn(const patch_column_t *patchcol)
     if ((unsigned int)patchcol->x >= (unsigned int)video.width
         || (unsigned int)patchcol->y1 >= (unsigned int)video.height)
     {
-        I_Error("%i to %i at %i", patchcol->y1, patchcol->y2, patchcol->x); 
+        I_Error("%i to %i at %i", patchcol->y1, patchcol->y2, patchcol->x);
     }
 #endif
 
@@ -124,7 +124,7 @@ static void DrawPatchColumnTR(const patch_column_t *patchcol)
     if ((unsigned int)patchcol->x >= (unsigned int)video.width
         || (unsigned int)patchcol->y1 >= (unsigned int)video.height)
     {
-        I_Error("%i to %i at %i", patchcol->y1, patchcol->y2, patchcol->x); 
+        I_Error("%i to %i at %i", patchcol->y1, patchcol->y2, patchcol->x);
     }
 #endif
 
@@ -154,7 +154,7 @@ static void DrawPatchColumnTRTR(const patch_column_t *patchcol)
     if ((unsigned int)patchcol->x >= (unsigned int)video.width
         || (unsigned int)patchcol->y1 >= (unsigned int)video.height)
     {
-        I_Error("%i to %i at %i", patchcol->y1, patchcol->y2, patchcol->x); 
+        I_Error("%i to %i at %i", patchcol->y1, patchcol->y2, patchcol->x);
     }
 #endif
 
@@ -184,7 +184,7 @@ static void DrawPatchColumnTL(const patch_column_t *patchcol)
     if ((unsigned int)patchcol->x >= (unsigned int)video.width
         || (unsigned int)patchcol->y1 >= (unsigned int)video.height)
     {
-        I_Error("%i to %i at %i", patchcol->y1, patchcol->y2, patchcol->x); 
+        I_Error("%i to %i at %i", patchcol->y1, patchcol->y2, patchcol->x);
     }
 #endif
 
@@ -215,7 +215,7 @@ static void DrawPatchColumnTRTL(const patch_column_t *patchcol)
     if ((unsigned int)patchcol->x >= (unsigned int)video.width
         || (unsigned int)patchcol->y1 >= (unsigned int)video.height)
     {
-        I_Error("%i to %i at %i", patchcol->y1, patchcol->y2, patchcol->x); 
+        I_Error("%i to %i at %i", patchcol->y1, patchcol->y2, patchcol->x);
     }
 #endif
 

@@ -45,7 +45,7 @@ static int (*RoundSide)(double side);
 
 void G_UpdateSideMove(void)
 {
-    if (strictmode || (netgame && !solonet))
+    if (strictmode)
     {
         RoundSide = RoundSide_Strict;
         sidemove = default_sidemove;
@@ -133,16 +133,13 @@ void G_UpdateAngleFunctions(void)
     G_CarryAngleTic = lowres_turn ? CarryAngleTic_LowRes : CarryAngleTic_Full;
     G_CarryAngle = G_CarryAngleTic;
 
-    if (!netgame || solonet)
+    if (lowres_turn && fake_longtics)
     {
-        if (lowres_turn && fake_longtics)
-        {
-            G_CarryAngle = CarryAngle_FakeLongTics;
-        }
-        else if (uncapped && raw_input)
-        {
-            G_CarryAngle = lowres_turn ? CarryAngle_LowRes : CarryAngle_Full;
-        }
+        G_CarryAngle = CarryAngle_FakeLongTics;
+    }
+    else if (uncapped && raw_input)
+    {
+        G_CarryAngle = lowres_turn ? CarryAngle_LowRes : CarryAngle_Full;
     }
 }
 

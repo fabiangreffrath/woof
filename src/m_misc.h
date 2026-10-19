@@ -85,4 +85,8 @@ typedef struct
 int M_CompareVersions(const version_t *v1, const version_t *v2);
 boolean M_ParseVersion(const char *s, version_t *v);
 
+int M_CheckStreamLength(int32_t length);
+int M_CheckZlibHeader(uint8_t *c);
+int M_CheckJSONStream(uint8_t *c, size_t length);
+
 #endif

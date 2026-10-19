@@ -55,7 +55,7 @@ ENDMAP   = Required closing lump.
 
 For the purposes of demo-accuracy this namespace requires support for the
 ZNODES lump. The loading process will give a fatal error out if the lump is
-not found. 
+not found.
 
 While BLOCKMAP and REJECT will be read if available, they will be generated
 (or padded) internally if invalid or missing, following the PrBoom+ demo

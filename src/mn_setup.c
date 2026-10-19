@@ -28,6 +28,7 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "g_game.h"
+#include "g_skillinfo.h"
 #include "hu_crosshair.h"
 #include "i_gamepad.h"
 #include "i_gyro.h"
@@ -47,7 +48,6 @@
 #include "mn_font.h"
 #include "mn_menu.h"
 #include "p_mobj.h"
-#include "r_bmaps.h"
 #include "r_data.h"
 #include "r_defs.h"
 #include "r_draw.h"
@@ -365,6 +365,7 @@ enum
 
     str_resolution_scale,
     str_midi_player,
+    str_native_midi_reset_type,
 
     str_gamma,
     str_sound_module,
@@ -391,6 +392,7 @@ enum
     str_skill,
     str_freelook,
     str_sky_projection,
+    str_overunder,
 };
 
 static const char **GetStrings(int id);
@@ -455,7 +457,7 @@ static void BlinkingArrowLeft(setup_menu_t *s)
     {
         if (flags & S_CENTER)
         {
-            strcpy(menu_buffer, "  ");    
+            strcpy(menu_buffer, "  ");
         }
         return;
     }
@@ -489,7 +491,7 @@ static void BlinkingArrowRight(setup_menu_t *s)
     {
         if (flags & S_CENTER)
         {
-            strcat(menu_buffer, "  ");    
+            strcat(menu_buffer, "  ");
         }
         return;
     }
@@ -2270,6 +2272,9 @@ setup_menu_t comp_settings1[] = {
     {"Walk Under Solid Hanging Bodies", S_ONOFF | S_STRICT, M_X, M_SPC,
      {"hangsolid"}},
 
+    {"Move Over/Under Monsters", S_CHOICE | S_STRICT, M_X, M_SPC,
+     {"overunder"}, .strings_id = str_overunder},
+
     {"Emulate INTERCEPTS overflow", S_ONOFF | S_VANILLA, M_X, M_SPC,
      {"emu_intercepts"}, .action = UpdateInterceptsEmuItem},
 
@@ -2486,7 +2491,7 @@ static setup_menu_t gen_settings1[] = {
      .action = UpdateFOV},
 
     {"Gamma Correction", S_THERMO, CNTR_X, M_THRM_SPC, {"gamma2"},
-     .strings_id = str_gamma},
+     .strings_id = str_gamma, .action = V_ResetPalette},
 
     {"Extra Lighting", S_THERMO | S_STRICT, CNTR_X,
      M_THRM_SPC, {"extra_level_brightness"}},
@@ -2586,7 +2591,7 @@ static setup_menu_t gen_settings2[] = {
     {"Sound Module", S_CHOICE, CNTR_X, M_SPC, {"snd_module"},
      .strings_id = str_sound_module, .action = SetSoundModule},
 
-    {"Headphones Mode", S_ONOFF, CNTR_X, M_SPC, {"snd_hrtf"}, 
+    {"Headphones Mode", S_ONOFF, CNTR_X, M_SPC, {"snd_hrtf"},
      .action = SetSoundModule},
 
     MI_GAP,
@@ -2677,6 +2682,10 @@ static void ResetAutoGain(void)
     UpdateGainItems();
 }
 
+static const char *native_midi_reset_strings[] = {
+    "No SysEx", "GM", "GS", "XG"
+};
+
 static setup_menu_t music_settings1[] = {
 
     {"Auto Gain", S_ONOFF, CNTR_X, M_SPC, {"auto_gain"},
@@ -2705,6 +2714,12 @@ static setup_menu_t music_settings1[] = {
 
     {"OPL3 Reverse Stereo", S_ONOFF, CNTR_X, M_SPC,
      {"opl_stereo_correct"}, .action = SetMidiPlayerOpl},
+
+    MI_GAP,
+
+    {"Native MIDI Reset Type", S_CHOICE | S_ACTION, CNTR_X, M_SPC,
+      {"midi_reset_type"}, .strings_id = str_native_midi_reset_type,
+      .action = SetMidiPlayer},
 
     MI_END
 };
@@ -3351,9 +3366,6 @@ static setup_menu_t gen_settings5[] = {
 
     {"Voxels", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC, {"voxels_rendering"}},
 
-    {"Brightmaps", S_ONOFF | S_STRICT, OFF_CNTR_X, M_SPC, {"brightmaps"},
-     .action = R_ToggleBrightmaps},
-
     {"Stretch Short Skies", S_ONOFF, OFF_CNTR_X, M_SPC, {"stretchsky"},
      .action = R_UpdateStretchSkies},
 
@@ -3373,6 +3385,8 @@ static const char *screen_wipe_strings[] = {"Off", "Melt", "Crossfade", "Fizzle"
 static const char *palette_changes_strings[] = {"Off", "On", "Reduced"};
 
 static const char *invul_mode_strings[] = {"Vanilla", "MBF", "Gray"};
+
+static const char *overunder_strings[] = {"Off", "Player only", "All"};
 
 static const char *endoom_strings[] = {"Off", "PWAD Only", "Always"};
 
@@ -3509,25 +3523,19 @@ void MN_DrawGeneral(void)
     }
 }
 
-static boolean csmenu_skill;
+int csmenu_skill;
 
-static struct
-{
-    boolean fastparm;
-    boolean respawnparm;
-    boolean nomonsters;
-    boolean coopspawns;
-    boolean pistolstart;
-    boolean halfplayerdamage;
-    boolean doubleammo;
-    boolean aggromonsters;
-    int helperdogs;
-} csmenu;
+csmenu_t csmenu;
 
 const char *skill_strings[] = {
     "I'm too young to die", "Hey, not too rough", "Hurt me plenty",
     "Ultra-Violence", "NIGHTMARE!",
 };
+
+void M_InitCustomSkill(void)
+{
+    csmenu_skill = sk_medium;
+}
 
 static void CsBarkSound(void)
 {
@@ -3541,17 +3549,9 @@ static void SelectSkillLevel(void);
 
 static void StartGame(void)
 {
-    clfastparm = csmenu.fastparm;
-    clrespawnparm = csmenu.respawnparm;
-    clnomonsters = csmenu.nomonsters;
-    clcoopspawns = csmenu.coopspawns;
-    clpistolstart = csmenu.pistolstart;
-    cshalfplayerdamage = csmenu.halfplayerdamage;
-    csdoubleammo = csmenu.doubleammo;
-    csaggromonsters = csmenu.aggromonsters;
-    cshelperdogs = csmenu.helperdogs;
+    G_UpdateCustomSkill(num_og_skills);
 
-    M_ChooseSkill(csmenu_skill);
+    M_ChooseSkill(num_og_skills);
     setup_active = false;
 }
 
@@ -3583,8 +3583,6 @@ static setup_menu_t customskill_settings1[] = {
 
 static void SelectSkillLevel(void)
 {
-    memset(&csmenu, 0, sizeof(csmenu));
-
     switch (csmenu_skill)
     {
         case sk_baby:
@@ -3621,7 +3619,6 @@ void MN_CustomSkill(void)
     current_tabs = NULL;
     SetupMenu();
 
-    csmenu_skill = default_skill - 1;
     SelectSkillLevel();
 }
 
@@ -3870,6 +3867,10 @@ static int M_GetKeyString(int c, int offset)
         else if (c == '.') // probably means the '>' key?
         {
             c = '>';
+        }
+        else if (c == '`') // probably means the '`' or '~' (tilde) key?
+        {
+            c = '\'';
         }
         menu_buffer[offset++] = c; // Just insert the ascii key
         menu_buffer[offset] = 0;
@@ -5069,6 +5070,7 @@ static const char **selectstrings[] = {
     [str_weapon_slots] = NULL,
     [str_resolution_scale] = NULL,
     [str_midi_player] = NULL,
+    [str_native_midi_reset_type] = native_midi_reset_strings,
     [str_gamma] = gamma_strings,
     [str_sound_module] = sound_module_strings,
     [str_extra_music] = extra_music_strings,
@@ -5091,6 +5093,7 @@ static const char **selectstrings[] = {
     [str_skill] = skill_strings,
     [str_freelook] = free_look_strings,
     [str_sky_projection] = sky_projection_strings,
+    [str_overunder] = overunder_strings,
 };
 
 static const char **GetStrings(int id)

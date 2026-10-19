@@ -134,12 +134,14 @@ inline static double clamp(double x, double min, double max)
   #define PRINTF_ARG_ATTR(x)
 #endif
 
-#if defined(__GNUC__) || defined(__clang__)
-  #define NORETURN __attribute__((noreturn))
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
+    #define NORETURN _Noreturn
+#elif defined(__GNUC__) || defined(__clang__)
+    #define NORETURN __attribute__((noreturn))
 #elif defined(_MSC_VER)
-  #define NORETURN __declspec(noreturn)
+    #define NORETURN __declspec(noreturn)
 #else
-  #define NORETURN
+    #define NORETURN
 #endif
 
 #if defined(__GNUC__) && !defined(__clang__)
@@ -150,6 +152,16 @@ inline static double clamp(double x, double min, double max)
   #define UNROLL_LOOP_BY(n) PRAGMA(clang loop unroll_count(n))
 #else
   #define UNROLL_LOOP_BY(n)
+#endif
+
+#if defined(__has_feature)
+  #if __has_feature(thread_sanitizer)
+    #define NOSANITIZE_THREAD __attribute__((no_sanitize("thread")))
+  #else
+    #define NOSANITIZE_THREAD
+  #endif
+#else
+    #define NOSANITIZE_THREAD
 #endif
 
 // The packed attribute forces structures to be packed into the minimum

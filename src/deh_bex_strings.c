@@ -499,7 +499,7 @@ const char * const strings_players[] =
     HUSTR_PLRGREEN, HUSTR_PLRINDIGO, HUSTR_PLRBROWN, HUSTR_PLRRED,
 };
 
-const char * const strings_quit_messages[] = 
+const char * const strings_quit_messages[] =
 {
     QUITMSG,   QUITMSG1,  QUITMSG2,  QUITMSG3, QUITMSG4,  QUITMSG5,
     QUITMSG6,  QUITMSG7,  QUITMSG8,  QUITMSG9, QUITMSG10, QUITMSG11,

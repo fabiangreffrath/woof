@@ -99,8 +99,7 @@ check_library_exists(m pow "" HAVE_LIBM)
 check_symbol_exists(strcasecmp "strings.h" HAVE_DECL_STRCASECMP)
 check_symbol_exists(strncasecmp "strings.h" HAVE_DECL_STRNCASECMP)
 check_symbol_exists(getpwuid "unistd.h;sys/types.h;pwd.h" HAVE_GETPWUID)
-check_c_source_compiles(
-    "
+check_c_source_compiles("
     typedef float quat __attribute__((ext_vector_type(4)));
     int main(void)
     {
@@ -111,14 +110,42 @@ check_c_source_compiles(
         a.w = 3;
         return 0;
     }
-    "
-    HAVE_EXT_VECTOR_TYPE
+" HAVE_EXT_VECTOR_TYPE
 )
+check_c_source_compiles("
+    _Thread_local int counter = 0;
+    int get_counter(void) { return ++counter; }
+    int main(void) { return get_counter(); }
+" HAVE_THREAD_LOCAL
+)
+check_c_source_compiles("
+    __thread int counter = 0;
+    int get_counter(void) { return ++counter; }
+    int main(void) { return get_counter(); }
+" HAVE___THREAD
+)
+check_c_source_compiles("
+    __declspec(thread) int counter = 0;
+    int get_counter(void) { return ++counter; }
+    int main(void) { return get_counter(); }
+" HAVE_DECLSPEC_THREAD
+)
+
+if(HAVE_THREAD_LOCAL)
+    set(WOOF_THREAD_LOCAL "_Thread_local")
+elseif(HAVE___THREAD)
+    set(WOOF_THREAD_LOCAL "__thread")
+elseif(HAVE_DECLSPEC_THREAD)
+    set(WOOF_THREAD_LOCAL "__declspec(thread)")
+else()
+    message(FATAL_ERROR "No thread-local storage specifier is available.")
+endif()
 
 set(CMAKE_FIND_FRAMEWORK NEVER)
 
 # Library requirements.
 find_package(SDL3 3.4.0 REQUIRED)
+find_package(SDL3_net REQUIRED)
 find_package(OpenAL REQUIRED)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     find_package(ALSA REQUIRED)
@@ -224,5 +251,4 @@ add_subdirectory(third-party)
 add_subdirectory(src)
 add_subdirectory(setup)
 add_subdirectory(man)
-add_subdirectory(netlib)
 add_subdirectory(cmake/packaging)

@@ -72,7 +72,7 @@ static demoloop_entry_t demoloop_commercial[] = {
 demoloop_t demoloop = NULL;
 int        demoloop_count = 0;
 
-static void D_ParseOutroWipe(json_t *json, demoloop_entry_t *entry)
+static void ParseOutroWipe(json_t *json, demoloop_entry_t *entry)
 {
     entry->outro_wipe = JS_GetIntegerValue(json, "outrowipe");
 
@@ -83,7 +83,7 @@ static void D_ParseOutroWipe(json_t *json, demoloop_entry_t *entry)
     }
 }
 
-static void D_ParseDuration(json_t *json, demoloop_entry_t *entry)
+static void ParseDuration(json_t *json, demoloop_entry_t *entry)
 {
     const double duration_seconds = JS_GetNumberValue(json, "duration");
     double duration_tics = duration_seconds * TICRATE;
@@ -91,7 +91,7 @@ static void D_ParseDuration(json_t *json, demoloop_entry_t *entry)
     entry->duration = lround(duration_tics);
 }
 
-static boolean D_ParseSecondaryLump(json_t *json, demoloop_entry_t *entry)
+static boolean ParseSecondaryLump(json_t *json, demoloop_entry_t *entry)
 {
     const char *secondary_lump = JS_GetStringValue(json, "secondarylump");
 
@@ -114,7 +114,7 @@ static boolean D_ParseSecondaryLump(json_t *json, demoloop_entry_t *entry)
     return true;
 }
 
-static boolean D_ParsePrimaryLump(json_t *json, demoloop_entry_t *entry)
+static boolean ParsePrimaryLump(json_t *json, demoloop_entry_t *entry)
 {
     const char *primary_lump = JS_GetStringValue(json, "primarylump");
 
@@ -128,7 +128,7 @@ static boolean D_ParsePrimaryLump(json_t *json, demoloop_entry_t *entry)
     return true;
 }
 
-static boolean D_ParseDemoLoopEntry(json_t *json)
+static boolean ParseDemoLoopEntry(json_t *json)
 {
     demoloop_entry_t entry = {0};
 
@@ -137,23 +137,23 @@ static boolean D_ParseDemoLoopEntry(json_t *json)
     switch (entry.type)
     {
         case TYPE_ART:
-            if (!D_ParsePrimaryLump(json, &entry)
-                || !D_ParseSecondaryLump(json, &entry))
+            if (!ParsePrimaryLump(json, &entry)
+                || !ParseSecondaryLump(json, &entry))
             {
                 return false;
             }
-            D_ParseDuration(json, &entry);
-            D_ParseOutroWipe(json, &entry);
+            ParseDuration(json, &entry);
+            ParseOutroWipe(json, &entry);
             break;
 
         case TYPE_DEMO:
-            if (!D_ParsePrimaryLump(json, &entry))
+            if (!ParsePrimaryLump(json, &entry))
             {
                 return false;
             }
             entry.secondary_lump[0] = '\0';
             entry.duration = 0;
-            D_ParseOutroWipe(json, &entry);
+            ParseOutroWipe(json, &entry);
             break;
 
         default:
@@ -165,7 +165,7 @@ static boolean D_ParseDemoLoopEntry(json_t *json)
     return true;
 }
 
-static void D_ParseDemoLoop(void)
+static void ParseDemoLoop(void)
 {
     // Does the JSON lump even exist?
     json_t *json = JS_Open("DEMOLOOP", "demoloop", (version_t){1, 1, 0});
@@ -196,7 +196,7 @@ static void D_ParseDemoLoop(void)
     json_t *entry;
     JS_ArrayForEach(entry, entry_list)
     {
-        if (!D_ParseDemoLoopEntry(entry))
+        if (!ParseDemoLoopEntry(entry))
         {
             array_free(demoloop);
             JS_Close("DEMOLOOP");
@@ -209,7 +209,7 @@ static void D_ParseDemoLoop(void)
     JS_Close("DEMOLOOP");
 }
 
-static void D_GetDefaultDemoLoop(GameMode_t mode)
+static void GetDefaultDemoLoop(GameMode_t mode)
 {
     switch(mode)
     {
@@ -253,7 +253,7 @@ static void D_GetDefaultDemoLoop(GameMode_t mode)
     }
 }
 
-static void D_TitlePicFix(void)
+static void TitlePicFix(void)
 {
     if (W_CheckNumForName("TITLEPIC") < 0 && W_CheckNumForName("DMENUPIC") >= 0)
     {
@@ -270,7 +270,7 @@ static void D_TitlePicFix(void)
     }
 }
 
-static void D_CheckPrimaryLumps(void)
+static void CheckPrimaryLumps(void)
 {
     for (int i = 0; i < demoloop_count; i++)
     {
@@ -287,17 +287,17 @@ static void D_CheckPrimaryLumps(void)
 
 void D_SetupDemoLoop(void)
 {
-    D_ParseDemoLoop();
+    ParseDemoLoop();
 
     if (demoloop)
     {
-        D_TitlePicFix();
-        D_CheckPrimaryLumps();
+        TitlePicFix();
+        CheckPrimaryLumps();
     }
 
     if (demoloop == NULL)
     {
-        D_GetDefaultDemoLoop(gamemode);
-        D_TitlePicFix();
+        GetDefaultDemoLoop(gamemode);
+        TitlePicFix();
     }
 }

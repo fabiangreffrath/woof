@@ -302,7 +302,7 @@ void P_UpdateCheckSight(void)
 // used in tandem.
 //
 // Adapted from Eternity, so big thanks to Quasar
-// 
+//
 
 boolean P_CheckFov(mobj_t *t1, mobj_t *t2, angle_t fov)
 {

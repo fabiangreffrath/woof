@@ -48,6 +48,7 @@ static const char *params[] = {
 "-nodeh",
 "-nomapinfo",
 "-nooptions",
+"-norollback",
 "-reject_pad_with_ff",
 "-tranmap",
 "-levelstat",

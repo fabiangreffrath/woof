@@ -31,7 +31,7 @@
 // ********************************************************************
 // Sprite name enumeration - must match info.c
 // ********************************************************************
-typedef enum                                  
+typedef enum
 {
   SPR_TROO,
   SPR_SHTG,
@@ -1169,12 +1169,12 @@ typedef enum
   S_TECH2LAMP2,
   S_TECH2LAMP3,
   S_TECH2LAMP4,
-  S_TNT1, // add state for invisible sprite         // phares 3/8/98 
+  S_TNT1, // add state for invisible sprite         // phares 3/8/98
 
   S_GRENADE,   // killough 8/9/98: grenade launcher
   S_DETONATE,  // killough 8/9/98: detonation of objects
   S_DETONATE2,
-  S_DETONATE3, 
+  S_DETONATE3,
 
   S_DOGS_STND,      // killough 7/19/98: Marine's best friend :)
   S_DOGS_STND2,

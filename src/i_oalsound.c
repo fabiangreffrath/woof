@@ -728,7 +728,7 @@ boolean I_OAL_CacheSound(sfxinfo_t *sfx)
             {
                 // Ignore ambient sounds that are somehow over 32767.99998474
                 // seconds long.
-                sfx->length = 0.0f; 
+                sfx->length = 0.0f;
             }
         }
 

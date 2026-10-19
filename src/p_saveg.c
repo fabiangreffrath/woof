@@ -339,7 +339,7 @@ static void saveg_read_mobj_t(mobj_t *str)
     str->tint = NO_INDEX;
 
     // [FG] height of the sprite in pixels
-    P_SetActualHeight(str); 
+    P_SetActualHeight(str);
 }
 
 static void saveg_read_ticcmd_t(ticcmd_t *str)

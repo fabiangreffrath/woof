@@ -14,7 +14,7 @@
 //
 // DESCRIPTION:
 //   Related to f_finale.c, which is called at the end of a level
-//    
+//
 //-----------------------------------------------------------------------------
 
 

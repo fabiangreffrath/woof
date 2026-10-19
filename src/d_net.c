@@ -28,7 +28,7 @@
 #include "i_printf.h"
 #include "m_argv.h"
 #include "m_misc.h"
-#include "net_defs.h"
+#include "nw_defs.h"
 #include "p_mobj.h"
 #include "tables.h"
 
@@ -58,7 +58,7 @@ static void PlayerQuitGame(player_t *player)
 
     // TODO: check if it is sensible to do this:
 
-    if (demorecording) 
+    if (demorecording)
     {
         G_CheckDemoStatus ();
     }
@@ -94,7 +94,7 @@ void RunTic(ticcmd_t *cmds, boolean *ingame)
 // Load game settings from the specified structure and
 // set global variables.
 
-static void LoadGameSettings(net_gamesettings_t *settings)
+static void LoadGameSettings(nw_gamesettings_t *settings)
 {
     unsigned int i;
 
@@ -146,7 +146,7 @@ static void LoadGameSettings(net_gamesettings_t *settings)
 // Save the game settings from global variables to the specified
 // game settings structure.
 
-static void SaveGameSettings(net_gamesettings_t *settings)
+static void SaveGameSettings(nw_gamesettings_t *settings)
 {
     // Fill in game settings structure with appropriate parameters
     // for the new game
@@ -185,7 +185,7 @@ static void SaveGameSettings(net_gamesettings_t *settings)
     G_WriteOptions(settings->options);
 }
 
-static void InitConnectData(net_connect_data_t *connect_data)
+static void InitConnectData(nw_connect_data_t *connect_data)
 {
     connect_data->max_players = MAXPLAYERS;
     connect_data->drone = false;
@@ -202,7 +202,7 @@ static void InitConnectData(net_connect_data_t *connect_data)
         connect_data->drone = true;
     }
 
-    //! 
+    //!
     // @category net
     //
     // Run as the right screen in three screen mode.
@@ -242,7 +242,7 @@ static void InitConnectData(net_connect_data_t *connect_data)
 
 void D_ConnectNetGame(void)
 {
-    net_connect_data_t connect_data;
+    nw_connect_data_t connect_data;
 
     InitConnectData(&connect_data);
     netgame = D_InitNetGame(&connect_data);
@@ -268,7 +268,7 @@ void D_ConnectNetGame(void)
 //
 void D_CheckNetGame (void)
 {
-    net_gamesettings_t settings;
+    nw_gamesettings_t settings;
 
     if (netgame)
     {

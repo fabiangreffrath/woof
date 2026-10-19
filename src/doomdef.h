@@ -66,6 +66,16 @@ typedef enum
     exe_chex,        // Chex Quest
 } GameVersion_t;
 
+typedef enum Game_e
+{
+    game_any,
+    game_doom,
+    game_heretic,
+    game_hexen,
+    game_strife,
+    game_chex,
+} GameType_t;
+
 // [FG] flashing disk icon
 #define DISK_ICON_THRESHOLD (20 * 1024)
 
@@ -124,16 +134,6 @@ typedef enum mapthing_options_e {
   MTF_SKILL4 = (1u << 19),
   MTF_SKILL5 = (1u << 20),
 } mapthing_options_t;
-
-typedef enum {
-  sk_default=-2,
-  sk_none=-1, //jff 3/24/98 create unpicked skill setting
-  sk_baby=0,
-  sk_easy,
-  sk_medium,
-  sk_hard,
-  sk_nightmare
-} skill_t;
 
 //
 // Key cards.

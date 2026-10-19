@@ -60,7 +60,7 @@ struct sector_s;
 // killough 2/14/98: redefine in terms of MAXPLAYERS
 #define MAXBUTTONS    (MAXPLAYERS*4)
 
-// 1 second, in ticks. 
+// 1 second, in ticks.
 #define BUTTONTIME  TICRATE
 
 // p_lights
@@ -85,7 +85,7 @@ struct sector_s;
 #define DEATH_MASK            0x1000 // bit 12
 #define KILL_MONSTERS_MASK    0x2000 // bit 13
 
-//jff 02/04/98 Define masks, shifts, for fields in 
+//jff 02/04/98 Define masks, shifts, for fields in
 // generalized linedef types
 
 #define GenFloorBase          0x6000
@@ -114,7 +114,7 @@ struct sector_s;
 #define FloorDirectionShift        6
 #define FloorModelShift            5
 #define FloorSpeedShift            3
-                               
+
 // define masks and shifts for the ceiling type fields
 
 #define CeilingCrush          0x1000
@@ -353,7 +353,7 @@ typedef enum
   raiseToNearestAndChange,
   blazeDWUS,
   genLift,      //jff added to support generalized Plat types
-  genPerpetual, 
+  genPerpetual,
   toggleUpDn,   //jff 3/14/98 added to support instant toggle type
 
 } plattype_e;
@@ -413,16 +413,16 @@ typedef enum
 {
   // lower floor to highest surrounding floor
   lowerFloor,
-  
+
   // lower floor to lowest surrounding floor
   lowerFloorToLowest,
-  
+
   // lower floor to highest surrounding floor VERY FAST
   turboLower,
-  
+
   // raise floor to lowest surrounding CEILING
   raiseFloor,
-  
+
   // raise floor to next highest surrounding floor
   raiseFloorToNearest,
 
@@ -437,7 +437,7 @@ typedef enum
 
   // raise floor to shortest height texture around it
   raiseToTexture,
-  
+
   // lower floor to lowest surrounding floor
   //  and change floorpic
   lowerAndChange,
@@ -451,7 +451,7 @@ typedef enum
   raiseFloorCrush,
 
   // raise to next highest floor, turbo-speed
-  raiseFloorTurbo,       
+  raiseFloorTurbo,
   donutRaise,
   raiseFloor512,
 
@@ -470,7 +470,7 @@ typedef enum
 {
   build8, // slowly build by 8
   turbo16 // quickly build by 16
-    
+
 } stair_e;
 
 typedef enum
@@ -603,7 +603,7 @@ typedef struct plat_s
 // New limit-free plat structure -- killough
 
 typedef struct platlist {
-  plat_t *plat; 
+  plat_t *plat;
   struct platlist *next,**prev;
 } platlist_t;
 
@@ -619,13 +619,13 @@ typedef struct vldoor_s
 
   // 1 = up, 0 = waiting at top, -1 = down
   int direction;
-  
+
   // tics to wait at the top
   int topwait;
   // (keep in case a door going down is reset)
   // when it reaches 0, start going down
   int topcountdown;
-  
+
   //jff 1/31/98 keep track of line door is triggered by
   struct line_s *line;
 
@@ -654,13 +654,13 @@ typedef struct ceiling_s
   int direction;
 
   // ID
-  int tag;                   
+  int tag;
   int olddirection;
   struct ceilinglist *list;   // jff 2/22/98 copied from killough's plats
 } ceiling_t;
 
 typedef struct ceilinglist {
-  ceiling_t *ceiling; 
+  ceiling_t *ceiling;
   struct ceilinglist *next,**prev;
 } ceilinglist_t;
 
@@ -831,7 +831,7 @@ fixed_t P_FindShortestUpperAround(int secnum); // jff 2/04/98
 
 struct sector_s *P_FindModelFloorSector(fixed_t floordestheight, int secnum); //jff 02/04/98
 
-struct sector_s *P_FindModelCeilingSector(fixed_t ceildestheight, int secnum); //jff 02/04/98 
+struct sector_s *P_FindModelCeilingSector(fixed_t ceildestheight, int secnum); //jff 02/04/98
 
 int P_FindSectorFromLineTag(const struct line_s *line, int start); // killough 4/17/98
 
@@ -923,7 +923,7 @@ int EV_Teleport(struct line_s *line, int side, struct mobj_s *thing);
 int EV_SilentTeleport(struct line_s *line, int side, struct mobj_s *thing);
 
 // killough 1/31/98: Add silent line teleporter
-int EV_SilentLineTeleport(struct line_s *line, int side, 
+int EV_SilentLineTeleport(struct line_s *line, int side,
                           struct mobj_s *thing, boolean reverse);
 
 // p_floor
@@ -1055,7 +1055,7 @@ void P_RemoveAllActiveCeilings(void);                //jff 2/22/98
 
 void P_AddActiveCeiling(ceiling_t *c);
 
-int P_ActivateInStasisCeiling(struct line_s *line); 
+int P_ActivateInStasisCeiling(struct line_s *line);
 
 struct mobj_s *P_GetPushThing(int);                                // phares 3/23/98
 

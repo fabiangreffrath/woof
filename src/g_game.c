@@ -31,6 +31,7 @@
 #include "d_iwad.h"
 #include "d_main.h"
 #include "d_player.h"
+#include "d_rollback.h"
 #include "d_ticcmd.h"
 #include "deh_bex_partimes.h"
 #include "deh_main.h"
@@ -43,6 +44,7 @@
 #include "doomtype.h"
 #include "f_finale.h"
 #include "g_game.h"
+#include "g_skillinfo.h"
 #include "f_wipe.h"
 #include "g_nextweapon.h"
 #include "g_rewind.h"
@@ -72,12 +74,13 @@
 #include "memio.h"
 #include "mn_menu.h"
 #include "mn_snapshot.h"
-#include "net_defs.h"
+#include "nw_defs.h"
 #include "p_dirty.h"
 #include "p_enemy.h"
 #include "p_inter.h"
 #include "p_keyframe.h"
 #include "p_map.h"
+#include "p_overunder.h"
 #include "p_maputl.h"
 #include "p_mobj.h"
 #include "p_pspr.h"
@@ -125,7 +128,6 @@ static int G_GameOptionSize(void);
 gameaction_t    gameaction;
 gamestate_t     gamestate;
 skill_t         gameskill;
-boolean         respawnmonsters;
 int             gameepisode;
 int             gamemap;
 MI_Entry_t*     gamemapinfo;
@@ -393,7 +395,7 @@ static void (*UpdateLocalView)(void);
 
 void G_UpdateLocalViewFunction(void)
 {
-  if (lowres_turn && fake_longtics && (!netgame || solonet))
+  if (lowres_turn && fake_longtics)
   {
     UpdateLocalView = UpdateLocalView_FakeLongTics;
   }
@@ -798,7 +800,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
   // except in demo_compatibility mode.
   //
   // killough 3/26/98, 4/2/98: fix autoswitch when no weapons are left
- 
+
   if (!players[consoleplayer].attackdown)
   {
     done_autoswitch = false;
@@ -965,7 +967,7 @@ static void G_DoLoadLevel(boolean from_savegame)
 
   // ID24 exit line specials
   // [crispy] pistol start
-  if (reset_inventory || CRITICAL(pistolstart))
+  if (reset_inventory || CRITICAL(skill_info.flags & SI_PISTOL_START))
   {
     for (int player = 0; player < MAXPLAYERS; player++)
     {
@@ -1442,8 +1444,8 @@ static void G_ReadDemoTiccmd(ticcmd_t *cmd)
       }
       cmd->buttons = (unsigned char)*demo_p++;
 
-      // killough 3/26/98, 10/98: Ignore savegames in demos 
-      if (demoplayback && 
+      // killough 3/26/98, 10/98: Ignore savegames in demos
+      if (demoplayback &&
 	  cmd->buttons & BT_SPECIAL &&
 	  cmd->buttons & BT_SPECIALMASK &&
 	  cmd->buttons & BTS_SAVEGAME)
@@ -1881,12 +1883,12 @@ static void G_DoPlayDemo(void)
 
       classic_bfg = 0;                  // killough 7/19/98
       beta_emulation = 0;               // killough 7/24/98
-      
+
       dogs = 0;                         // killough 7/19/98
       dog_jumping = 0;                  // killough 10/98
 
       monster_backing = 0;              // killough 9/8/98
-      
+
       monster_avoid_hazards = 0;        // killough 9/9/98
 
       monster_friction = 0;             // killough 10/98
@@ -1980,13 +1982,13 @@ static void G_DoPlayDemo(void)
       // killough 2/22/98:
       // Do it anyway for timing demos, to reduce timing noise
       precache = timingdemo;
-  
+
       G_InitNew(skill, episode, map, false);
 
       // killough 11/98: If OPTIONS were loaded from the wad in G_InitNew(),
       // reload any demo sync-critical ones from the demo itself, to be exactly
       // the same as during recording.
-      
+
       if (option_p)
       {
         if (mbf21)
@@ -2219,7 +2221,7 @@ static uint64_t G_Signature(int sig_epi, int sig_map)
   uint64_t s = 0;
   int lump, i;
   char name[9];
-  
+
   M_CopyLumpName(name, MapName(sig_epi, sig_map));
 
   lump = W_CheckNumForName(name);
@@ -2334,8 +2336,8 @@ static void DoSaveGame(char *name)
                                   (const unsigned char *)json_str,
                                   (mz_ulong)json_len, MZ_BEST_SPEED);
 
-        if (mz_ret == MZ_OK && CheckStreamLength((int32_t)json_len)
-            && CheckStreamLength((int32_t)compressed_len))
+        if (mz_ret == MZ_OK && M_CheckStreamLength((int32_t)json_len)
+            && M_CheckStreamLength((int32_t)compressed_len))
         {
             free(json_str);
             save_p = savebuffer =
@@ -2423,11 +2425,18 @@ static void G_DoSaveAutoSave(void)
 static byte *LoadCustomSkillOptions(byte *opt_p)
 {
     // Woof! < 16.0.0 (binary savegame format) had no custom skill options
-    pistolstart = clpistolstart;
-    coopspawns = clcoopspawns;
-    halfplayerdamage = false;
-    doubleammo = false;
-    aggromonsters = false;
+    csmenu_skill = sk_medium;
+    csmenu.fastparm = clfastparm;
+    csmenu.respawnparm = clrespawnparm;
+    csmenu.nomonsters = clnomonsters;
+    csmenu.coopspawns = clcoopspawns;
+    csmenu.pistolstart = clpistolstart;
+    csmenu.halfplayerdamage = false;
+    csmenu.doubleammo = false;
+    csmenu.aggromonsters = false;
+    csmenu.helperdogs = default_dogs;
+
+    G_UpdateCustomSkill(num_cskill);
 
     return opt_p;
 }
@@ -2436,22 +2445,34 @@ static json_mut_t *WriteCustomSkillOptionsJSON(json_mut_doc_t *doc)
 {
     json_mut_t *obj = JS_NewObject(doc);
 
-    JS_SetInt(doc, obj, "pistolstart", pistolstart);
-    JS_SetInt(doc, obj, "coopspawns", coopspawns);
-    JS_SetInt(doc, obj, "halfplayerdamage", halfplayerdamage);
-    JS_SetInt(doc, obj, "doubleammo", doubleammo);
-    JS_SetInt(doc, obj, "aggromonsters", aggromonsters);
+    JS_SetInt(doc, obj, "skill", csmenu_skill);
+    JS_SetInt(doc, obj, "fastparm", csmenu.fastparm);
+    JS_SetInt(doc, obj, "respawnparm", csmenu.respawnparm);
+    JS_SetInt(doc, obj, "nomonsters", csmenu.nomonsters);
+    JS_SetInt(doc, obj, "coopspawns", csmenu.coopspawns);
+    JS_SetInt(doc, obj, "pistolstart", csmenu.pistolstart);
+    JS_SetInt(doc, obj, "halfplayerdamage", csmenu.halfplayerdamage);
+    JS_SetInt(doc, obj, "doubleammo", csmenu.doubleammo);
+    JS_SetInt(doc, obj, "aggromonsters", csmenu.aggromonsters);
+    JS_SetInt(doc, obj, "helperdogs", csmenu.helperdogs);
 
     return obj;
 }
 
 static void LoadCustomSkillOptionsJSON(json_t *root)
 {
-    pistolstart = JS_GetIntegerValue(root, "pistolstart");
-    coopspawns = JS_GetIntegerValue(root, "coopspawns");
-    halfplayerdamage = JS_GetIntegerValue(root, "halfplayerdamage");
-    doubleammo = JS_GetIntegerValue(root, "doubleammo");
-    aggromonsters = JS_GetIntegerValue(root, "aggromonsters");
+    csmenu_skill = JS_GetIntegerValueDefault(root, "skill", gameskill);
+    csmenu.fastparm = JS_GetIntegerValue(root, "fastparm");
+    csmenu.respawnparm = JS_GetIntegerValue(root, "respawnparm");
+    csmenu.nomonsters = JS_GetIntegerValue(root, "nomonsters");
+    csmenu.coopspawns = JS_GetIntegerValue(root, "coopspawns");
+    csmenu.pistolstart = JS_GetIntegerValue(root, "pistolstart");
+    csmenu.halfplayerdamage = JS_GetIntegerValue(root, "halfplayerdamage");
+    csmenu.doubleammo = JS_GetIntegerValue(root, "doubleammo");
+    csmenu.aggromonsters = JS_GetIntegerValue(root, "aggromonsters");
+    csmenu.helperdogs = JS_GetIntegerValue(root, "helperdogs");
+
+    G_UpdateCustomSkill(num_cskill);
 }
 
 static void ReadOptionsJSON(json_t *root);
@@ -2779,13 +2800,13 @@ static boolean DoLoadGame()
 
     save_p = savebuffer + SAVESTRINGSIZE;
     decomp_len = (mz_ulong)saveg_read32();
-    if (!CheckStreamLength((int32_t)decomp_len) || !CheckZlibHeader(save_p))
+    if (!M_CheckStreamLength((int32_t)decomp_len) || !M_CheckZlibHeader(save_p))
     {
         save_p = savebuffer;
         decomp_len = (mz_ulong)saveg_read32();
     }
 
-    if (CheckStreamLength((int32_t)decomp_len) && CheckZlibHeader(save_p))
+    if (M_CheckStreamLength((int32_t)decomp_len) && M_CheckZlibHeader(save_p))
     {
         decomp_str = malloc((size_t)decomp_len);
 
@@ -2818,7 +2839,7 @@ static boolean DoLoadGame()
     // Check for JSON stream
 
     json_t *root = NULL;
-    if (CheckJSONStream(json_str, json_len))
+    if (M_CheckJSONStream(json_str, json_len))
     {
         root = JS_OpenString((char *)json_str, json_len);
     }
@@ -3109,7 +3130,7 @@ void G_Ticker(void)
     }
   else
     {
-      if (!timingdemo && !paused
+      if (!timingdemo && !paused && !netgame
           && gamestate == GS_LEVEL && gameaction == ga_nothing)
         G_SaveAutoKeyframe();
 
@@ -3149,7 +3170,7 @@ void G_Ticker(void)
 	      // check for turbo cheats
 	      // killough 2/14/98, 2/20/98 -- only warn in netgames and demos
 
-	      if ((netgame || demoplayback) && 
+	      if ((netgame || demoplayback) &&
 		  cmd->forwardmove > TURBOTHRESHOLD &&
 		  !(gametic&31) && ((gametic>>5)&3) == i )
 		{
@@ -3158,10 +3179,20 @@ void G_Ticker(void)
 
 	      if (netgame && !netdemo && !(gametic%ticdup) )
 		{
+		  // The record must always be written, including during a
+		  // rollback resim: that is what corrects the checksum we
+		  // will send BACKUPTICS tics from now, and what a lockstep
+		  // peer compares against.
+		  //
+		  // The comparison, however, is only valid on the forward
+		  // (non-resim) run of a confirmed tic.
 		  if (gametic > BACKUPTICS
+		      && !rollback_resim
+		      && RB_TicConfirmed(gametic / ticdup)
 		      && consistancy[i][buf] != cmd->consistancy)
-		    I_Error ("consistency failure (%i should be %i)",
-			     cmd->consistancy, consistancy[i][buf]);
+		    I_Error("Desync: player %i at tic %i (got %i, expected %i)",
+			     i, gametic / ticdup, cmd->consistancy,
+			     consistancy[i][buf]);
 		  if (players[i].mo)
 		    consistancy[i][buf] = players[i].mo->x;
 		  else
@@ -3173,7 +3204,8 @@ void G_Ticker(void)
       if (demoplayback)
         ++playback_tic;
 
-      HU_UpdateCommandHistory(&players[displayplayer].cmd);
+      if (!rollback_resim)
+        HU_UpdateCommandHistory(&players[displayplayer].cmd);
 
       // check for special buttons
       for (i=0; i<MAXPLAYERS; i++)
@@ -3203,7 +3235,7 @@ void G_Ticker(void)
 	        S_ResumeMusic();
 	      }
 	      break;
-	
+
 	    case BTS_SAVEGAME:
 		if (!savedescription[0])
 		  strcpy(savedescription, "NET GAME");
@@ -3360,13 +3392,13 @@ static boolean G_CheckSpot(int playernum, mapthing_t *mthing)
       if (queuesize < bodyquesize)
 	{
 	  bodyque = Z_Realloc(bodyque, bodyquesize*sizeof*bodyque, PU_STATIC, 0);
-	  memset(bodyque+queuesize, 0, 
+	  memset(bodyque+queuesize, 0,
 		 (bodyquesize-queuesize)*sizeof*bodyque);
 	  queuesize = bodyquesize;
 	}
-      if (bodyqueslot >= bodyquesize) 
-	P_RemoveMobj(bodyque[bodyqueslot % bodyquesize]); 
-      bodyque[bodyqueslot++ % bodyquesize] = players[playernum].mo; 
+      if (bodyqueslot >= bodyquesize)
+	P_RemoveMobj(bodyque[bodyqueslot % bodyquesize]);
+      bodyque[bodyqueslot++ % bodyquesize] = players[playernum].mo;
     }
   else
     if (!bodyquesize)
@@ -3393,12 +3425,11 @@ static boolean G_CheckSpot(int playernum, mapthing_t *mthing)
 
   {
     fixed_t xa, ya;
-    signed int an;
 
-    // This calculation overflows in Vanilla Doom, but here we deliberately
-    // avoid integer overflow as it is undefined behavior, so the value of
-    // 'an' will always be positive.
-    an = (ANG45 >> ANGLETOFINESHIFT) * ((signed int) mthing->angle / 45);
+    // This calculation overflows in Vanilla Doom, so use unsigned arithmetic
+    // for a defined wraparound. 'an' is then always within [0, 8191].
+    const uint32_t k = (uint32_t)((signed int) mthing->angle / 45);
+    const int an = (int)(((uint32_t)ANG45 * k) >> ANGLETOFINESHIFT);
 
     if (demo_compatibility)
       switch (an)
@@ -3426,10 +3457,6 @@ static boolean G_CheckSpot(int playernum, mapthing_t *mthing)
             xa = finecosine[an];
             ya = finesine[an];
             break;
-        case 8192:  // 360 deg:
-            xa = tantoangle[0];        // finecosine[8192]
-            ya = finesine[8192];       // finesine[8192]
-            break;
         default:
             I_Error("unexpected angle %d\n", an);
             xa = ya = 0;
@@ -3440,7 +3467,10 @@ static boolean G_CheckSpot(int playernum, mapthing_t *mthing)
       xa = finecosine[an];
       ya = finesine[an];
     }
-    mo = P_SpawnMobj(x + 20 * xa, y + 20 * ya,
+
+    // Vanilla Doom wraps around here (20 * finetangent[0] overflows).
+    mo = P_SpawnMobj((fixed_t)(x + 20 * (int64_t)xa),
+                     (fixed_t)(y + 20 * (int64_t)ya),
                      ss->sector->floorheight, MT_TFOG);
   }
 
@@ -3925,11 +3955,6 @@ void G_ReloadDefaults(boolean keep_demover)
   pistolstart = clpistolstart;
   coopspawns = clcoopspawns;
 
-  halfplayerdamage = cshalfplayerdamage;
-  doubleammo = csdoubleammo;
-  aggromonsters = csaggromonsters;
-  dogs = cshelperdogs;
-
   //jff 3/24/98 set startskill from defaultskill in config file, unless
   // it has already been set by a -skill parameter
   if (startskill == sk_default)
@@ -4108,10 +4133,13 @@ void G_DoNewGame (void)
 // killough 4/10/98: New function to fix bug which caused Doom
 // lockups when idclev was used in conjunction with -fast.
 
-void G_SetFastParms(int fast_pending)
+void G_RefreshFastMonsters(void)
 {
   static int fast = 0;            // remembers fast state
   int i;
+  int fast_pending;
+
+  fast_pending = skill_info.flags & SI_FAST_MONSTERS;
 
   if (fast != fast_pending)       // only change if necessary
   {
@@ -4153,8 +4181,7 @@ void G_InitNew(skill_t skill, int episode, int map, boolean from_savegame)
       S_ResumeMusic();
     }
 
-  if (skill > sk_nightmare)
-    skill = sk_nightmare;
+  skill = MIN(skill, num_skills - 1);
 
   if (episode < 1)
     episode = 1;
@@ -4184,11 +4211,7 @@ void G_InitNew(skill_t skill, int episode, int map, boolean from_savegame)
     map = 9;
   }
 
-  G_SetFastParms(fastparm || skill == sk_nightmare);  // killough 4/10/98
-
   M_ClearRandom();
-
-  respawnmonsters = skill == sk_nightmare || respawnparm;
 
   // force players to be initialized upon first level load
   for (i=0 ; i<MAXPLAYERS ; i++)
@@ -4201,8 +4224,11 @@ void G_InitNew(skill_t skill, int episode, int map, boolean from_savegame)
   viewactive = true;
   gameepisode = episode;
   gamemap = map;
-  gameskill = skill;
+  G_UpdateGameSkill(skill);
   gamemapinfo = MI_MapEntry(gameepisode, gamemap);
+
+  if (skill_info.helper_dogs != -1)
+    dogs = skill_info.helper_dogs;
 
   // [FG] total time for all completed levels
   totalleveltimes = 0;
@@ -4385,8 +4411,8 @@ byte *G_WriteOptions(byte *demo_p)
   *demo_p++ = classic_bfg;          // killough 7/19/98
   *demo_p++ = beta_emulation;       // killough 7/24/98
 
-  *demo_p++ = (distfriend >> 8) & 0xff;  // killough 8/8/98  
-  *demo_p++ =  distfriend       & 0xff;  // killough 8/8/98  
+  *demo_p++ = (distfriend >> 8) & 0xff;  // killough 8/8/98
+  *demo_p++ =  distfriend       & 0xff;  // killough 8/8/98
 
   *demo_p++ = monster_backing;         // killough 9/8/98
 
@@ -4443,7 +4469,7 @@ static json_mut_t *WriteOptionsJSON(json_mut_doc_t *doc)
     JS_SetInt(doc, obj, "dogs", dogs); // killough 7/19/98
     JS_SetInt(doc, obj, "classic_bfg", classic_bfg); // killough 7/19/98
     JS_SetInt(doc, obj, "beta_emulation", beta_emulation); // killough 7/24/98
-    JS_SetInt(doc, obj, "distfriend", distfriend); // killough 8/8/98  
+    JS_SetInt(doc, obj, "distfriend", distfriend); // killough 8/8/98
     JS_SetInt(doc, obj, "monster_backing", monster_backing); // killough 9/8/98
     JS_SetInt(doc, obj, "monster_avoid_hazards", monster_avoid_hazards); // killough 9/9/98
     JS_SetInt(doc, obj, "monster_friction", monster_friction); // killough 10/98
@@ -4590,7 +4616,7 @@ byte *G_ReadOptions(byte *demo_p)
 
       classic_bfg = *demo_p++;          // killough 7/19/98
       beta_emulation = *demo_p++;       // killough 7/24/98
-      
+
       if (beta_emulation && !M_CheckParm("-beta"))
 	I_Error("The -beta option is required to play "
 		"back beta emulation demos");
@@ -4628,7 +4654,7 @@ byte *G_ReadOptions(byte *demo_p)
       monster_infighting = 1;           // killough 7/19/98
 
       monster_backing = 0;              // killough 9/8/98
-      
+
       monster_avoid_hazards = 0;        // killough 9/9/98
 
       monster_friction = 0;             // killough 10/98
@@ -5153,6 +5179,9 @@ void G_BindCompVariables(void)
              "Automatic strafe50 (SR50)");
   M_BindBool("hangsolid", &hangsolid, NULL, false, ss_comp, wad_no,
              "Enable walking under solid hanging bodies");
+  M_BindNum("overunder", &overunder, NULL,
+            OVERUNDER_OFF, OVERUNDER_OFF, OVERUNDER_ALL, ss_comp, wad_no,
+            "Move over/under monsters (0 = Off; 1 = Player only; 2 = Player and Monsters)");
   M_BindBool("blockmapfix", &blockmapfix, NULL, false, ss_comp, wad_no,
              "Fix blockmap bug (improves hit detection)");
   M_BindBool("checksight12", &checksight12, NULL, false, ss_comp, wad_no,

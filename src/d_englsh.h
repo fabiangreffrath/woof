@@ -226,7 +226,7 @@
 #define HUSTR_9     "level 9: the pit"
 #define HUSTR_10    "level 10: refueling base"
 #define HUSTR_11    "level 11: 'o' of destruction!"
-  
+
 #define HUSTR_12    "level 12: the factory"
 #define HUSTR_13    "level 13: downtown"
 #define HUSTR_14    "level 14: the inmost dens"
@@ -236,7 +236,7 @@
 #define HUSTR_18    "level 18: the courtyard"
 #define HUSTR_19    "level 19: the citadel"
 #define HUSTR_20    "level 20: gotcha!"
-  
+
 #define HUSTR_21    "level 21: nirvana"
 #define HUSTR_22    "level 22: the catacombs"
 #define HUSTR_23    "level 23: barrels o' fun"
@@ -247,7 +247,7 @@
 #define HUSTR_28    "level 28: the spirit world"
 #define HUSTR_29    "level 29: the living end"
 #define HUSTR_30    "level 30: icon of sin"
-  
+
 #define HUSTR_31    "level 31: wolfenstein"
 #define HUSTR_32    "level 32: grosse"
 
@@ -262,7 +262,7 @@
 #define PHUSTR_9    "level 9: abattoire"
 #define PHUSTR_10   "level 10: onslaught"
 #define PHUSTR_11   "level 11: hunted"
-  
+
 #define PHUSTR_12   "level 12: speed"
 #define PHUSTR_13   "level 13: the crypt"
 #define PHUSTR_14   "level 14: genesis"
@@ -272,7 +272,7 @@
 #define PHUSTR_18   "level 18: neurosphere"
 #define PHUSTR_19   "level 19: nme"
 #define PHUSTR_20   "level 20: the death domain"
-  
+
 #define PHUSTR_21   "level 21: slayer"
 #define PHUSTR_22   "level 22: impossible mission"
 #define PHUSTR_23   "level 23: tombstone"
@@ -283,10 +283,10 @@
 #define PHUSTR_28   "level 28: the sewers"
 #define PHUSTR_29   "level 29: odyssey of noises"
 #define PHUSTR_30   "level 30: the gateway of hell"
-  
+
 #define PHUSTR_31   "level 31: cyberden"
 #define PHUSTR_32   "level 32: go 2 it"
-  
+
 #define THUSTR_1    "level 1: system control"
 #define THUSTR_2    "level 2: human bbq"
 #define THUSTR_3    "level 3: power control"
@@ -298,7 +298,7 @@
 #define THUSTR_9    "level 9: stronghold"
 #define THUSTR_10   "level 10: redemption"
 #define THUSTR_11   "level 11: storage facility"
-  
+
 #define THUSTR_12   "level 12: crater"
 #define THUSTR_13   "level 13: nukage processing"
 #define THUSTR_14   "level 14: steel works"
@@ -308,7 +308,7 @@
 #define THUSTR_18   "level 18: mill"
 #define THUSTR_19   "level 19: shipping/respawning"
 #define THUSTR_20   "level 20: central processing"
-  
+
 #define THUSTR_21   "level 21: administration center"
 #define THUSTR_22   "level 22: habitat"
 #define THUSTR_23   "level 23: lunar mining project"
@@ -319,7 +319,7 @@
 #define THUSTR_28   "level 28: heck"
 #define THUSTR_29   "level 29: river styx"
 #define THUSTR_30   "level 30: last call"
-  
+
 #define THUSTR_31   "level 31: pharaoh"
 #define THUSTR_32   "level 32: caribbean"
 
@@ -432,8 +432,8 @@
   "To continue the DOOM experience, play\n"\
   "The Shores of Hell and its amazing\n"\
   "sequel, Inferno!\n"
-  
-  
+
+
 #define E2TEXT \
   "You've done it! The hideous cyber-\n"\
   "demon lord that ruled the lost Deimos\n"\
@@ -452,8 +452,8 @@
   "\n" \
   "Now, it's on to the final chapter of\n"\
   "DOOM! -- Inferno."
-  
-  
+
+
 #define E3TEXT \
   "The loathsome spiderdemon that\n"\
   "masterminded the invasion of the moon\n"\
@@ -472,8 +472,8 @@
   "unleashed. It's good that no Hell-\n"\
   "spawn could have come through that\n"\
   "door with you ..."
-  
-  
+
+
 #define E4TEXT \
   "the spider mastermind must have sent forth\n"\
   "its legions of hellspawn before your\n"\
@@ -491,10 +491,10 @@
   "of demons run amok among our cities.\n"\
   "\n"\
   "next stop, hell on earth!"
-  
-  
+
+
 // after level 6, put this:
-  
+
 #define C1TEXT \
   "YOU HAVE ENTERED DEEPLY INTO THE INFESTED\n" \
   "STARPORT. BUT SOMETHING IS WRONG. THE\n" \
@@ -508,9 +508,9 @@
   "OF THE STARBASE AND FIND THE CONTROLLING\n" \
   "SWITCH WHICH HOLDS EARTH'S POPULATION\n" \
   "HOSTAGE."
-  
+
 // After level 11, put this:
-  
+
 #define C2TEXT \
   "YOU HAVE WON! YOUR VICTORY HAS ENABLED\n" \
   "HUMANKIND TO EVACUATE EARTH AND ESCAPE\n"\
@@ -529,10 +529,10 @@
   "YOUR OWN HOME CITY, NOT FAR FROM THE\n"\
   "STARPORT.\" SLOWLY AND PAINFULLY YOU GET\n"\
   "UP AND RETURN TO THE FRAY."
-  
-  
+
+
 // After level 20, put this:
-  
+
 #define C3TEXT \
   "YOU ARE AT THE CORRUPT HEART OF THE CITY,\n"\
   "SURROUNDED BY THE CORPSES OF YOUR ENEMIES.\n"\
@@ -543,10 +543,10 @@
   "THERE MUST BE A WAY TO CLOSE IT ON THE\n"\
   "OTHER SIDE. WHAT DO YOU CARE IF YOU'VE\n"\
   "GOT TO GO THROUGH HELL TO GET TO IT?"
-  
-  
+
+
 // After level 29, put this:
-  
+
 #define C4TEXT \
   "THE HORRENDOUS VISAGE OF THE BIGGEST\n"\
   "DEMON YOU'VE EVER SEEN CRUMBLES BEFORE\n"\
@@ -563,28 +563,28 @@
   "FOREHEAD YOU BEGIN THE LONG TREK BACK\n"\
   "HOME. REBUILDING EARTH OUGHT TO BE A\n"\
   "LOT MORE FUN THAN RUINING IT WAS.\n"
-  
-  
-  
+
+
+
 // Before level 31, put this:
-  
+
   #define C5TEXT \
   "CONGRATULATIONS, YOU'VE FOUND THE SECRET\n"\
   "LEVEL! LOOKS LIKE IT'S BEEN BUILT BY\n"\
   "HUMANS, RATHER THAN DEMONS. YOU WONDER\n"\
   "WHO THE INMATES OF THIS CORNER OF HELL\n"\
   "WILL BE."
-  
-  
+
+
 // Before level 32, put this:
-  
+
   #define C6TEXT \
   "CONGRATULATIONS, YOU'VE FOUND THE\n"\
   "SUPER SECRET LEVEL!  YOU'D BETTER\n"\
   "BLAZE THROUGH THIS ONE!\n"
-  
-// after map 06 
-  
+
+// after map 06
+
   #define P1TEXT  \
   "You gloat over the steaming carcass of the\n"\
   "Guardian.  With its death, you've wrested\n"\
@@ -598,10 +598,10 @@
   "struggles will have been wasted. Keep\n"\
   "moving, keep fighting, keep killing.\n"\
   "Oh yes, keep living, too."
-  
-  
+
+
 // after map 11
-  
+
   #define P2TEXT \
   "Even the deadly Arch-Vile labyrinth could\n"\
   "not stop you, and you've gotten to the\n"\
@@ -609,10 +609,10 @@
   "efficiently and permanently deactivated.\n"\
   "\n"\
   "You're good at that kind of thing."
-  
-  
+
+
 // after map 20
-  
+
   #define P3TEXT \
   "You've bashed and battered your way into\n"\
   "the heart of the devil-hive.  Time for a\n"\
@@ -624,9 +624,9 @@
   "Grinning evilly, you check your gear, and\n"\
   "get ready to give the bastard a little Hell\n"\
   "of your own making!"
-  
+
 // after map 30
-  
+
   #define P4TEXT \
   "The Gatekeeper's evil face is splattered\n"\
   "all over the place.  As its tattered corpse\n"\
@@ -640,23 +640,23 @@
   "launcher in your coffin. If you go to Hell\n"\
   "when you die, you'll need it for some\n"\
   "final cleaning-up ..."
-  
+
 // before map 31
-  
+
 #define P5TEXT \
   "You've found the second-hardest level we\n"\
   "got. Hope you have a saved game a level or\n"\
   "two previous.  If not, be prepared to die\n"\
   "aplenty. For master marines only."
-  
+
 // before map 32
-  
+
 #define P6TEXT \
   "Betcha wondered just what WAS the hardest\n"\
   "level we had ready for ya?  Now you know.\n"\
   "No one gets out alive."
-  
-  
+
+
 #define T1TEXT \
   "You've fought your way out of the infested\n"\
   "experimental labs.   It seems that UAC has\n"\
@@ -670,8 +670,8 @@
   "their teeth into you. With luck, the\n"\
   "complex still has some warlike ordnance\n"\
   "laying around."
-  
-  
+
+
 #define T2TEXT \
   "You hear the grinding of heavy machinery\n"\
   "ahead.  You sure hope they're not stamping\n"\
@@ -682,8 +682,8 @@
   "maniacs packed into one mad killer.\n"\
   "\n"\
   "You don't plan to go down easy."
-  
-  
+
+
 #define T3TEXT \
   "The vista opening ahead looks real damn\n"\
   "familiar. Smells familiar, too -- like\n"\
@@ -693,7 +693,7 @@
   "brood on it, the madder you get.\n"\
   "Hefting your gun, an evil grin trickles\n"\
   "onto your face. Time to take some names."
-  
+
 #define T4TEXT \
   "Suddenly, all is silent, from one horizon\n"\
   "to the other. The agonizing echo of Hell\n"\
@@ -706,16 +706,16 @@
   "Something rumbles in the distance.\n"\
   "A blue light begins to glow inside the\n"\
   "ruined skull of the demon-spitter."
-  
-  
+
+
 #define T5TEXT \
   "What now? Looks totally different. Kind\n"\
   "of like King Tut's condo. Well,\n"\
   "whatever's here can't be any worse\n"\
   "than usual. Can it?  Or maybe it's best\n"\
   "to let sleeping gods lie.."
-  
-  
+
+
 #define T6TEXT \
   "Time for a vacation. You've burst the\n"\
   "bowels of hell and by golly you're ready\n"\

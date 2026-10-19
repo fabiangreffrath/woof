@@ -20,31 +20,34 @@
 #ifndef __R_BSP__
 #define __R_BSP__
 
+#include "i_thread.h"
 #include "r_defs.h"
 
-extern seg_t    *curline;
-extern side_t   *sidedef;
-extern line_t   *linedef;
-extern sector_t *frontsector;
-extern sector_t *backsector;
-extern int      rw_x;
-extern int      rw_stopx;
-extern boolean  segtextured;
-extern boolean  markfloor;      // false if the back side is the same plane
-extern boolean  markceiling;
+// [MT] All of the following are mutated during BSP traversal, which now runs
+// in parallel (one render context per thread), so they are thread-local.
+extern THREADLOCAL seg_t    *curline;
+extern THREADLOCAL side_t   *sidedef;
+extern THREADLOCAL line_t   *linedef;
+extern THREADLOCAL sector_t *frontsector;
+extern THREADLOCAL sector_t *backsector;
+extern THREADLOCAL int      rw_x;
+extern THREADLOCAL int      rw_stopx;
+extern THREADLOCAL boolean  segtextured;
+extern THREADLOCAL boolean  markfloor;      // false if the back side is the same plane
+extern THREADLOCAL boolean  markceiling;
 
 // old code -- killough:
 // extern drawseg_t drawsegs[MAXDRAWSEGS];
 // new code -- killough:
-extern drawseg_t *drawsegs;
-extern unsigned maxdrawsegs;
+extern THREADLOCAL drawseg_t *drawsegs;
+extern THREADLOCAL unsigned maxdrawsegs;
 
-extern drawseg_t *ds_p;
+extern THREADLOCAL drawseg_t *ds_p;
 
-extern byte *solidcol;
+extern THREADLOCAL byte *solidcol;
 
 // killough 4/7/98: indicates doors closed wrt automap bugfix:
-extern int doorclosed;
+extern THREADLOCAL int doorclosed;
 
 void R_ClearClipSegs(void);
 void R_ClearDrawSegs(void);

@@ -1126,8 +1126,8 @@ void A_BFGSpray(mobj_t *mo)
       // mo->target is the originator (player) of the missile
 
       // killough 8/2/98: make autoaiming prefer enemies
-      if (demo_version < DV_MBF || 
-	  (P_AimLineAttack(mo->target, an, 16*64*FRACUNIT, MF_FRIEND), 
+      if (demo_version < DV_MBF ||
+	  (P_AimLineAttack(mo->target, an, 16*64*FRACUNIT, MF_FRIEND),
 	   !linetarget))
 	P_AimLineAttack(mo->target, an, 16*64*FRACUNIT, 0);
 
@@ -1353,7 +1353,7 @@ void A_WeaponBulletAttack(mobj_t *mo, player_t *player, pspdef_t *psp)
   RETURN_IF_NO_PLAYER
 
   int hspread, vspread, numbullets, damagebase, damagemod;
-  int i, damage, angle, slope;
+  int i, damage, slope;
 
   if (!mbf21 || !psp->state)
     return;
@@ -1369,7 +1369,8 @@ void A_WeaponBulletAttack(mobj_t *mo, player_t *player, pspdef_t *psp)
   for (i = 0; i < numbullets; i++)
   {
     damage = (P_Random(pr_mbf21) % damagemod + 1) * damagebase;
-    angle = (int)player->mo->angle + P_RandomHitscanAngle(pr_mbf21, hspread);
+    const angle_t angle = player->mo->angle
+                          + (angle_t)P_RandomHitscanAngle(pr_mbf21, hspread);
     slope = bulletslope + P_RandomHitscanSlope(pr_mbf21, vspread);
 
     P_LineAttack(player->mo, angle, MISSILERANGE, slope, damage);

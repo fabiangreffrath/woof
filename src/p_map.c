@@ -39,6 +39,7 @@
 #include "p_map.h"
 #include "p_maputl.h"
 #include "p_mobj.h"
+#include "p_overunder.h"
 #include "p_setup.h"
 #include "p_spec.h"
 #include "p_user.h"
@@ -154,7 +155,7 @@ int P_GetFriction(const mobj_t *mo, int *frictionfactor)
   // floorheight that have different frictions, use the lowest
   // friction value (muddy has precedence over icy).
 
-  if (!(mo->flags & (MF_NOCLIP|MF_NOGRAVITY)) 
+  if (!(mo->flags & (MF_NOCLIP|MF_NOGRAVITY))
       && (demo_version >= DV_MBF || (mo->player && !compatibility)) &&
       variable_friction)
     for (m = mo->touching_sectorlist; m; m = m->m_tnext)
@@ -165,7 +166,7 @@ int P_GetFriction(const mobj_t *mo, int *frictionfactor)
 	    mo->z <= sectors[sec->heightsec].floorheight &&
 	    demo_version >= DV_MBF)))
 	friction = sec->friction, movefactor = sec->movefactor;
-  
+
   if (frictionfactor)
     *frictionfactor = movefactor;
 
@@ -261,7 +262,7 @@ boolean P_TeleportMove(mobj_t *thing, fixed_t x, fixed_t y, boolean boss)
   subsector_t *newsubsec;
 
   // killough 8/9/98: make telefragging more consistent, preserve compatibility
-  telefrag = thing->player || 
+  telefrag = thing->player ||
     (comp[comp_telefrag] || demo_version < DV_MBF ? gamemap==30 : boss);
 
   // kill anything occupying the position
@@ -348,10 +349,10 @@ boolean P_TeleportMove(mobj_t *thing, fixed_t x, fixed_t y, boolean boss)
 
 static boolean PIT_CrossLine(line_t *ld)
 {
-  return 
+  return
     !((ld->flags ^ ML_TWOSIDED) & (ML_TWOSIDED|ML_BLOCKING|ML_BLOCKMONSTERS))
     || tmbbox[BOXLEFT]   > ld->bbox[BOXRIGHT]
-    || tmbbox[BOXRIGHT]  < ld->bbox[BOXLEFT]   
+    || tmbbox[BOXRIGHT]  < ld->bbox[BOXLEFT]
     || tmbbox[BOXTOP]    < ld->bbox[BOXBOTTOM]
     || tmbbox[BOXBOTTOM] > ld->bbox[BOXTOP]
     || P_PointOnLineSide(pe_x,pe_y,ld) == P_PointOnLineSide(ls_x,ls_y,ld);
@@ -363,7 +364,7 @@ static boolean PIT_CrossLine(line_t *ld)
 static int untouched(line_t *ld)
 {
   fixed_t x, y, tmbbox[4];
-  return 
+  return
     (tmbbox[BOXRIGHT] = (x=tmthing->x)+tmthing->radius) <= ld->bbox[BOXLEFT] ||
     (tmbbox[BOXLEFT] = x-tmthing->radius) >= ld->bbox[BOXRIGHT] ||
     (tmbbox[BOXTOP] = (y=tmthing->y)+tmthing->radius) <= ld->bbox[BOXBOTTOM] ||
@@ -606,7 +607,7 @@ static boolean PIT_CheckThing(mobj_t *thing) // killough 3/26/98: make static
 	  if (thing->type != MT_PLAYER && !deh_species_infighting) // Explode, but do no damage.
 	    return false;	        // Let players missile other players.
       }
-      
+
       // killough 8/10/98: if moving thing is not a missile, no damage
       // is inflicted, and momentum is reduced if object hit is solid.
 
@@ -676,6 +677,46 @@ static boolean PIT_CheckThing(mobj_t *thing) // killough 3/26/98: make static
     tmceilingz = thing->z; // pretend ceiling height is at body's base
     return true;
   }
+
+    // Pass over or under the thing if the Z ranges do not overlap.
+    // Its top or bottom then acts as floor or ceiling for the mover.
+    if (P_CanOverUnder(tmthing, thing))
+    {
+        const fixed_t top = thing->z + thing->height;
+
+        // The mover is above the thing, or a player can step up onto it.
+        if (tmthing->z >= top
+            || (tmthing->player && top - tmthing->z <= STEP_HEIGHT))
+        {
+            if (top > tmfloorz)
+            {
+                tmfloorz = top;
+                tmbelow = thing;
+            }
+            return true;
+        }
+
+        if (tmthing->z + tmthing->height <= thing->z)
+        {
+            if (thing->z < tmceilingz)
+            {
+                tmceilingz = thing->z;
+                tmabove = thing;
+            }
+            return true;
+        }
+
+        // Already intersecting, e.g. pushed into the thing by a moving sector. Let
+        // the mover leave, but not move deeper: the distance must not shrink in both
+        // axes.
+        if (abs(tmthing->x - thing->x) < blockdist
+            && abs(tmthing->y - thing->y) < blockdist
+            && (abs(tmx - thing->x) >= abs(tmthing->x - thing->x)
+                || abs(tmy - thing->y) >= abs(tmthing->y - thing->y)))
+        {
+            return true;
+        }
+    }
 
   // killough 3/16/98: Allow non-solid moving objects to move through solid
   // ones, by allowing the moving thing (tmthing) to move if it's non-solid,
@@ -764,13 +805,14 @@ boolean Check_Sides(mobj_t *actor, int x, int y)
 //  numspeciallines
 //
 
-boolean P_CheckPosition(mobj_t *thing, fixed_t x, fixed_t y) 
+boolean P_CheckPosition(mobj_t *thing, fixed_t x, fixed_t y)
 {
   int xl, xh, yl, yh, bx, by;
   subsector_t *newsubsec;
 
   tmthing = thing;
   tmflags = thing->flags;
+  tmbelow = tmabove = NULL;
 
   tmx = x;
   tmy = y;
@@ -824,10 +866,10 @@ boolean P_CheckPosition(mobj_t *thing, fixed_t x, fixed_t y)
   yl = (tmbbox[BOXBOTTOM] - bmaporgy)>>MAPBLOCKSHIFT;
   yh = (tmbbox[BOXTOP] - bmaporgy)>>MAPBLOCKSHIFT;
 
-  // mbf21: Basically, in vanilla doom, this variable is incremented in the wrong position 
+  // mbf21: Basically, in vanilla doom, this variable is incremented in the wrong position
   // in P_CheckPosition. The explanation for why this is a problem is complicated, but
   // ripper projectiles (and possibly other cases) will expose this bug and cause desyncs.
-  // I recommend adding an extra validcount increment in P_CheckPosition before running 
+  // I recommend adding an extra validcount increment in P_CheckPosition before running
   // the P_BlockLinesIterator.
   if (mbf21)
   {
@@ -867,14 +909,14 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, int dropoff)
 	  (floatok = true, !(thing->flags & MF_TELEPORT) &&
 	   tmceilingz - thing->z < thing->height) ||
 	  // too big a step up
-	  (!(thing->flags & MF_TELEPORT) && 
-	   tmfloorz - thing->z > 24*FRACUNIT))
-	return tmunstuck 
+	  (!(thing->flags & MF_TELEPORT) &&
+	   tmfloorz - thing->z > STEP_HEIGHT))
+	return tmunstuck
 	  && !(ceilingline && untouched(ceilingline))
 	  && !(  floorline && untouched(  floorline));
-      
+
       // killough 3/15/98: Allow certain objects to drop off
-      // killough 7/24/98, 8/1/98: 
+      // killough 7/24/98, 8/1/98:
       // Prevent monsters from getting stuck hanging off ledges
       // killough 10/98: Allow dropoffs in controlled circumstances
       // killough 11/98: Improve symmetry of clipping on stairs
@@ -887,23 +929,23 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, int dropoff)
 	if (comp[comp_dropoff] || ledgeblock)
 	  {
 	    if ((ledgeblock || !dropoff) &&
-		tmfloorz - tmdropoffz > 24*FRACUNIT)
+		tmfloorz - tmdropoffz > STEP_HEIGHT)
 	      return false;                      // don't stand over a dropoff
 	  }
 	else
 	  if (!dropoff || (dropoff==2 &&  // large jump down (e.g. dogs)
-			   (tmfloorz-tmdropoffz > 128*FRACUNIT || 
+			   (tmfloorz-tmdropoffz > 128*FRACUNIT ||
 			    !thing->target || thing->target->z >tmdropoffz)))
 	    {
 	      if (!monkeys || demo_version < DV_MBF ?
-		  tmfloorz - tmdropoffz > 24*FRACUNIT :
-		  thing->floorz  - tmfloorz > 24*FRACUNIT ||
-		  thing->dropoffz - tmdropoffz > 24*FRACUNIT)
+		  tmfloorz - tmdropoffz > STEP_HEIGHT :
+		  thing->floorz  - tmfloorz > STEP_HEIGHT ||
+		  thing->dropoffz - tmdropoffz > STEP_HEIGHT)
 		return false;
 	    }
 	  else  // dropoff allowed -- check for whether it fell more than 24
 	    felldown = !(thing->flags & MF_NOGRAVITY) &&
-	      thing->z - tmfloorz > 24*FRACUNIT;
+	      thing->z - tmfloorz > STEP_HEIGHT;
       }
 
       if (thing->flags & MF_BOUNCES &&    // killough 8/13/98
@@ -927,6 +969,7 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, int dropoff)
   thing->floorz = tmfloorz;
   thing->ceilingz = tmceilingz;
   thing->dropoffz = tmdropoffz;      // killough 11/98: keep track of dropoffs
+  P_SetOverUnderLinks(thing);
   thing->x = x;
   thing->y = y;
 
@@ -980,7 +1023,7 @@ static boolean PIT_ApplyTorque(line_t *ld)
 
       fixed_t dist =                               // lever arm
 	+ (ld->dx >> FRACBITS) * (mo->y >> FRACBITS)
-	- (ld->dy >> FRACBITS) * (mo->x >> FRACBITS) 
+	- (ld->dy >> FRACBITS) * (mo->x >> FRACBITS)
 	- (ld->dx >> FRACBITS) * (ld->v1->y >> FRACBITS)
 	+ (ld->dy >> FRACBITS) * (ld->v1->x >> FRACBITS);
 
@@ -1018,7 +1061,7 @@ static boolean PIT_ApplyTorque(line_t *ld)
 				   y >> +(mo->gear - OVERDRIVE)), x);
 
 	  // Apply momentum away from the pivot linedef.
-	  
+
 	  x = FixedMul(ld->dy, dist);
 	  y = FixedMul(ld->dx, dist);
 
@@ -1028,7 +1071,7 @@ static boolean PIT_ApplyTorque(line_t *ld)
 
 	  while (dist > FRACUNIT*4 && mo->gear < MAXGEAR)
 	    ++mo->gear, x >>= 1, y >>= 1, dist >>= 1;
-	  
+
 	  mo->momx -= x;
 	  mo->momy += y;
 	}
@@ -1044,23 +1087,23 @@ static boolean PIT_ApplyTorque(line_t *ld)
 
 void P_ApplyTorque(mobj_t *mo)
 {
-  int xl = ((tmbbox[BOXLEFT] = 
+  int xl = ((tmbbox[BOXLEFT] =
 	     mo->x - mo->radius) - bmaporgx) >> MAPBLOCKSHIFT;
-  int xh = ((tmbbox[BOXRIGHT] = 
+  int xh = ((tmbbox[BOXRIGHT] =
 	     mo->x + mo->radius) - bmaporgx) >> MAPBLOCKSHIFT;
   int yl = ((tmbbox[BOXBOTTOM] =
 	     mo->y - mo->radius) - bmaporgy) >> MAPBLOCKSHIFT;
-  int yh = ((tmbbox[BOXTOP] = 
+  int yh = ((tmbbox[BOXTOP] =
 	     mo->y + mo->radius) - bmaporgy) >> MAPBLOCKSHIFT;
   int bx,by,flags = mo->intflags; //Remember the current state, for gear-change
 
   tmthing = mo;
   validcount++; // prevents checking same line twice
-      
+
   for (bx = xl ; bx <= xh ; bx++)
     for (by = yl ; by <= yh ; by++)
       P_BlockLinesIterator(bx, by, PIT_ApplyTorque);
-      
+
   // If any momentum, mark object as 'falling' using engine-internal flags
   if (mo->momx | mo->momy)
     mo->intflags |= MIF_FALLING;
@@ -1071,7 +1114,7 @@ void P_ApplyTorque(mobj_t *mo)
   // This helps reach equilibrium and avoid oscillations.
   //
   // Doom has no concept of potential energy, much less
-  // of rotation, so we have to creatively simulate these 
+  // of rotation, so we have to creatively simulate these
   // systems somehow :)
 
   if (!((mo->intflags | flags) & MIF_FALLING))   // If not falling for a while,
@@ -1104,6 +1147,7 @@ static boolean P_ThingHeightClip(mobj_t *thing)
   thing->floorz = tmfloorz;
   thing->ceilingz = tmceilingz;
   thing->dropoffz = tmdropoffz;         // killough 11/98: remember dropoffs
+  P_SetOverUnderLinks(thing);
 
   if (onfloor)  // walking monsters rise and fall with the floor
     {
@@ -1164,7 +1208,7 @@ static void P_HitSlideLine(line_t *ld)
 
   if (demo_version >= DV_MBF)
   {
-  icyfloor = 
+  icyfloor =
      P_AproxDistance(tmxmove, tmymove) > 4*FRACUNIT &&
     variable_friction &&  // killough 8/28/98: calc friction on demand
     slidemo->z <= slidemo->floorz &&
@@ -1209,7 +1253,7 @@ static void P_HitSlideLine(line_t *ld)
   // less than 45 degrees.
 
   side = P_PointOnLineSide (slidemo->x, slidemo->y, ld);
-  
+
   lineangle = R_PointToAngle2 (0,0, ld->dx, ld->dy);
   if (side == 1)
     lineangle += ANG180;
@@ -1284,7 +1328,7 @@ static boolean PTR_SlideTraverse(intercept_t *in)
   if (opentop - slidemo->z < slidemo->height)
     goto isblocking;  // mobj is too high
 
-  if (openbottom - slidemo->z > 24*FRACUNIT )
+  if (openbottom - slidemo->z > STEP_HEIGHT )
     goto isblocking;  // too big a step up
 
   // this line doesn't block movement
@@ -1324,7 +1368,7 @@ void P_SlideMove(mobj_t *mo)
 
   slidemo = mo; // the object that's sliding
 
-  do 
+  do
     {
       fixed_t leadx, leady, trailx, traily;
 
@@ -1379,14 +1423,14 @@ void P_SlideMove(mobj_t *mo)
 	}
 
       // fudge a bit to make sure it doesn't hit
-      
+
       if ((bestslidefrac -= 0x800) > 0)
 	{
 	  fixed_t newx = FixedMul(mo->momx, bestslidefrac);
 	  fixed_t newy = FixedMul(mo->momy, bestslidefrac);
 
 	  // killough 3/15/98: Allow objects to drop off ledges
-	  
+
 	  if (!P_TryMove(mo, mo->x+newx, mo->y+newy, true))
 	    goto stairstep;
 	}
@@ -1754,12 +1798,12 @@ static mobj_t *usething;
 static boolean PTR_UseTraverse(intercept_t *in)
 {
   return in->d.line->special ?
-    P_UseSpecialLine(usething, in->d.line, 
+    P_UseSpecialLine(usething, in->d.line,
 		     P_PointOnLineSide(usething->x,usething->y,in->d.line)==1, false),
 
     //WAS can't use for than one special line in a row
     //jff 3/21/98 NOW multiple use allowed with enabling line flag
-    
+
     !demo_compatibility && in->d.line->flags & ML_PASSUSE :
 
     (P_LineOpening(in->d.line), openrange <= 0) ?
@@ -1787,7 +1831,7 @@ static boolean PTR_NoWayTraverse(intercept_t *in)
     !(ld->flags & ML_BLOCKING ||                  // Always blocking
       (P_LineOpening(ld),                         // Find openings
        openrange <= 0 ||                          // No opening
-       openbottom > usething->z+24*FRACUNIT ||    // Too high it blocks
+       openbottom > usething->z+STEP_HEIGHT ||    // Too high it blocks
        opentop < usething->z+usething->height));  // Too low it blocks
 }
 
@@ -1944,7 +1988,7 @@ boolean PIT_RadiusAttack(mobj_t *thing)
 {
   fixed_t dx, dy, dist;
 
-  // killough 8/20/98: allow bouncers to take damage 
+  // killough 8/20/98: allow bouncers to take damage
   // (missile bouncers are already excluded with MF_NOBLOCKMAP)
 
   if (!(thing->flags & (MF_SHOOTABLE | MF_BOUNCES)))
@@ -2037,12 +2081,36 @@ static boolean crushchange, nofit;
 // PIT_ChangeSector
 //
 
+// Moves the things above lower along with it, from the bottom to the top.
+static void carry_above(mobj_t *lower, mobj_t *upper)
+{
+  while (upper)
+  {
+    mobj_t *const next = P_LinkedAbove(upper);
+
+    upper->z = lower->z + lower->height;
+
+    if (!P_ThingHeightClip(upper))
+    {
+      nofit = true;
+    }
+
+    lower = upper;
+    upper = next;
+  }
+}
+
 boolean PIT_ChangeSector(mobj_t *thing)
 {
   mobj_t *mo;
+  mobj_t *const above =
+      (CRITICAL(overunder) != OVERUNDER_OFF) ? P_LinkedAbove(thing) : NULL;
 
   if (P_ThingHeightClip(thing))
+  {
+    carry_above(thing, above);
     return true; // keep checking
+  }
 
   // crunch bodies to giblets
 
@@ -2215,7 +2283,7 @@ static void P_PutSecnode(msecnode_t *node)
 //
 // killough 11/98: reformatted
 
-static msecnode_t *P_AddSecnode(sector_t *s, mobj_t *thing, 
+static msecnode_t *P_AddSecnode(sector_t *s, mobj_t *thing,
 				msecnode_t *nextnode)
 {
   msecnode_t *node;
@@ -2370,7 +2438,7 @@ void P_CreateSecNodeList(mobj_t *thing,fixed_t x,fixed_t y)
   // added or verified as needed, m_thing will be set properly. When
   // finished, delete all nodes where m_thing is still NULL. These
   // represent the sectors the Thing has vacated.
-  
+
   for (node = sector_list; node; node = node->m_tnext)
     node->m_thing = NULL;
 
@@ -2402,7 +2470,7 @@ void P_CreateSecNodeList(mobj_t *thing,fixed_t x,fixed_t y)
 
   // Now delete any nodes that won't be used. These are the ones where
   // m_thing is still NULL.
-  
+
   for (node = sector_list; node;)
     if (node->m_thing == NULL)
       {

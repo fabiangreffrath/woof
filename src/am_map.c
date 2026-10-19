@@ -12,7 +12,7 @@
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //  GNU General Public License for more details.
 //
-// DESCRIPTION:  
+// DESCRIPTION:
 //   the automap code
 //
 //-----------------------------------------------------------------------------
@@ -112,7 +112,7 @@ static int thickness;
 #define MAPUNIT (1<<MAPBITS)
 #define FRACTOMAPBITS (FRACBITS-MAPBITS)
 
-// [Woof!] New radius to use with FRACTOMAPBITS, since orginal 
+// [Woof!] New radius to use with FRACTOMAPBITS, since orginal
 // PLAYERRADIUS macro can't be used in this implementation.
 #define MAPPLAYERRADIUS (16*(1<<MAPBITS))
 
@@ -307,7 +307,7 @@ static fixed_t ftom_zoommul; // how far the window zooms each tic (fb coords)
 
 // based on level size (same for both views, so stays global)
 static fixed_t  min_x;
-static fixed_t  min_y; 
+static fixed_t  min_y;
 static fixed_t  max_x;
 static fixed_t  max_y;
 
@@ -609,7 +609,7 @@ void AM_initVariables(void)
 
 //
 // AM_loadPics()
-// 
+//
 // Load the patches for the mark numbers
 //
 // Sets the marknums[i] variables to the patches for each digit
@@ -848,8 +848,8 @@ static void StartView(am_view_id_t id)
 
 //
 // AM_Start()
-// 
-// Start up automap operations, 
+//
+// Start up automap operations,
 //  if a new level, or game start, (re)initialize level variables
 //  init map variables
 //  load mark patches
@@ -1299,7 +1299,7 @@ static boolean AM_clipMline
   int   dx;
   int   dy;
 
-    
+
 #define DOOUTCODE(oc, mx, my) \
   (oc) = 0; \
   if ((my) < 0) (oc) |= TOP; \
@@ -1307,7 +1307,7 @@ static boolean AM_clipMline
   if ((mx) < 0) (oc) |= LEFT; \
   else if ((mx) >= am->f_x + am->f_w) (oc) |= RIGHT;
 
-    
+
   // do trivial rejects and outcodes
   if (ml->a.y > am->m_y2)
   outcode1 = TOP;
@@ -2324,7 +2324,7 @@ static void AM_drawLineCharacter
 //
 // AM_drawPlayers()
 //
-// Draws the player arrow in single player, 
+// Draws the player arrow in single player,
 // or all the player arrows in a netgame.
 //
 // Passed nothing, returns nothing
@@ -2367,7 +2367,7 @@ static void AM_drawPlayers(am_viewstate_t *am)
         cur_mapcolor_sngl,      //jff color
         pt.x,
         pt.y
-      ); 
+      );
     else
       AM_drawLineCharacter
       (
@@ -2378,7 +2378,7 @@ static void AM_drawPlayers(am_viewstate_t *am)
         smoothangle,
         cur_mapcolor_sngl,      //jff color
         pt.x,
-        pt.y);        
+        pt.y);
     return;
   }
 

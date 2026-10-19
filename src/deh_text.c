@@ -65,7 +65,7 @@ const char *GetBanner(void)
                    : (gamemission == pack_tnt) ? cbanner_tnt
                                                : cbanner_1_9;
         banner = cbanners[i];
-        
+
     }
     else if (gamemode == retail)
     {

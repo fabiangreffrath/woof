@@ -41,6 +41,8 @@ struct sector_s;
 // is larger, but we do not have any moving sectors nearby
 #define MAXRADIUS       (32*FRACUNIT)
 
+#define STEP_HEIGHT (24*FRACUNIT)
+
 #define CROSSHAIR_AIM 1
 
 // killough 3/15/98: add fourth argument to P_TryMove
@@ -84,6 +86,7 @@ extern boolean floatok;
 extern boolean felldown;   // killough 11/98: indicates object pushed off ledge
 extern fixed_t tmfloorz;
 extern fixed_t tmceilingz;
+extern fixed_t tmdropoffz;
 extern struct line_s *ceilingline;
 extern struct line_s *floorline;      // killough 8/23/98
 extern struct mobj_s *linetarget;     // who got hit (or NULL)

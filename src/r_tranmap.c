@@ -50,7 +50,9 @@ static char playpal_string[33];
 static char *tranmap_dir, *playpal_dir;
 static byte *normal_tranmap[100];
 
-const byte *tranmap;      // translucency filter maps 256x256   // phares
+// [MT] thread-local: the active tranmap changes while drawing sprites,
+// translucent midtextures and sky foregrounds in parallel contexts.
+THREADLOCAL const byte *tranmap;      // translucency filter maps 256x256   // phares
 const byte *main_tranmap; // killough 4/11/98
 const byte *main_addimap; // Some things look better with added luminosity :)
 

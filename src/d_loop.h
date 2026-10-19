@@ -21,7 +21,7 @@
 
 #include "doomtype.h"
 #include "m_fixed.h"
-#include "net_defs.h"
+#include "nw_defs.h"
 
 // Callback function invoked while waiting for the netgame to start.
 // The callback is invoked when new players are ready. The callback
@@ -45,12 +45,12 @@ void D_StartGameLoop(void);
 
 // Initialize networking code and connect to server.
 
-boolean D_InitNetGame(net_connect_data_t *connect_data);
+boolean D_InitNetGame(nw_connect_data_t *connect_data);
 
 // Start game with specified settings. The structure will be updated
 // with the actual settings for the game.
 
-void D_StartNetGame(net_gamesettings_t *settings,
+void D_StartNetGame(nw_gamesettings_t *settings,
                     netgame_startup_callback_t callback);
 
 void D_ReceiveTic(ticcmd_t *ticcmds, boolean *players_mask);

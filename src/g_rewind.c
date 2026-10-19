@@ -71,15 +71,15 @@ static void Push(keyframe_t *keyframe)
                 // Queue becomes empty after removal
                 queue.top = NULL;
             }
-            P_FreeKeyframe(oldtail->keyframe);
+            P_DeleteKeyframe(oldtail->keyframe);
             free(oldtail);
             --queue.count;
         }
     }
 
-    elem_t *newelem = calloc(1, sizeof(*newelem));    
+    elem_t *newelem = calloc(1, sizeof(*newelem));
     newelem->keyframe = keyframe;
-    
+
     if (IsEmpty())
     {
         queue.top = newelem;
@@ -101,7 +101,7 @@ static keyframe_t *Pop(void)
     {
         return NULL;
     }
-    
+
     elem_t* temp = queue.top;
     keyframe_t *keyframe = temp->keyframe;
     queue.top = temp->next;
@@ -133,7 +133,7 @@ void G_SaveAutoKeyframe(void)
     if (!disable_rewind && current_tic % interval_tics == 0)
     {
         int time = I_GetTimeMS();
-        
+
         Push(P_SaveKeyframe(current_tic));
 
         if (rewind_timeout)
@@ -185,7 +185,7 @@ void G_LoadAutoKeyframe(void)
         keyframe_t* skipped = Pop();
         if (skipped)
         {
-            P_FreeKeyframe(skipped);
+            P_DeleteKeyframe(skipped);
         }
     }
 
@@ -206,7 +206,7 @@ void G_LoadAutoKeyframe(void)
         }
         else
         {
-            P_FreeKeyframe(keyframe);
+            P_DeleteKeyframe(keyframe);
         }
 
         G_ClearInput();
@@ -225,7 +225,7 @@ static void FreeKeyframeQueue(void)
     {
         elem_t* temp = current;
         current = current->next;
-        P_FreeKeyframe(temp->keyframe);
+        P_DeleteKeyframe(temp->keyframe);
         free(temp);
     }
     memset(&queue, 0, sizeof(queue));

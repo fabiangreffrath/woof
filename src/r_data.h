@@ -62,7 +62,7 @@ byte *R_MissingFlat(void);
 // Called by P_Ticker for switches and animations,
 // returns the texture number for the texture name.
 int R_TextureNumForName (const char *name);    // killough -- const added
-int R_CheckTextureNumForName (const char *name); 
+int R_CheckTextureNumForName (const char *name);
 
 void R_ToggleTextureBrightmaps(void);
 

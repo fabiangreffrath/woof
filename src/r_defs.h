@@ -25,6 +25,7 @@
 #include "doomdata.h"
 #include "m_fixed.h"
 #include "tables.h"
+#include "r_common.h"
 
 // We rely on the thinker data struct
 // to handle sound origins in sectors.
@@ -91,6 +92,10 @@ typedef struct sector_s
   int blockbox[4];       // mapblock bounding box for height changes
   degenmobj_t soundorg;  // origin for any sounds played by the sector
   int validcount;        // if == validcount, already checked
+  // [MT] per-render-thread sprite-dedup flag, see R_AddSprites(). Separate
+  // from validcount because each parallel render context needs its own flag
+  // while the gameplay code keeps using validcount.
+  uint8_t rendervalidcount[MAX_RENDER_CONTEXTS];
   struct mobj_s *thinglist; // list of mobjs in sector
 
   // TODO: convert from special, Eternity-style
@@ -110,7 +115,7 @@ typedef struct sector_s
   int stairlock;   // -2 on first locked -1 after thinker done 0 normally
   int prevsec;     // -1 or number of sector for previous step
   int nextsec;     // -1 or number of next step sector
-  
+
   // killough 3/7/98: floor and ceiling texture offsets
   fixed_t   floor_xoffs,   floor_yoffs;
   fixed_t ceiling_xoffs, ceiling_yoffs;
@@ -139,7 +144,7 @@ typedef struct sector_s
   int32_t tint, tintfloor, tintceiling;
 
   // killough 10/98: support skies coming from sidedefs. Allows scrolling
-  // skies and other effects. No "level info" kind of lump is needed, 
+  // skies and other effects. No "level info" kind of lump is needed,
   // because you can use an arbitrary number of skies per level with this
   // method. This field only applies when skyflatnum is used for floorpic
   // or ceilingpic, because the rest of Doom needs to know which is sky
@@ -149,14 +154,10 @@ typedef struct sector_s
 
   // list of mobjs that are at least partially in the sector
   // thinglist is a subset of touching_thinglist
-  struct msecnode_s *touching_thinglist;               // phares 3/14/98  
+  struct msecnode_s *touching_thinglist;               // phares 3/14/98
 
   int linecount;
   struct line_s **lines;
-
-  // WiggleFix: [kb] For R_FixWiggle()
-  int cachedheight;
-  int scaleindex;
 
   // [AM] Previous position of floor and ceiling before
   //      think.  Used to interpolate between positions.
@@ -206,7 +207,7 @@ typedef struct side_s
   fixed_t offsetx_bottom;
   fixed_t offsety_bottom;
 
-  short toptexture;      // Texture indices. We do not maintain names here. 
+  short toptexture;      // Texture indices. We do not maintain names here.
   short bottomtexture;
   short midtexture;
   sector_t* sector;      // Sector the SideDef is facing.
@@ -289,7 +290,7 @@ typedef struct line_s
   fixed_t bbox[4];       // A bounding box, for the linedef's extent
   slopetype_t slopetype; // To aid move clipping.
   sector_t *frontsector; // Front and back sector.
-  sector_t *backsector; 
+  sector_t *backsector;
   int validcount;        // if == validcount, already checked
   void *specialdata;     // thinker_t for reversable actions
   degenmobj_t soundorg;  // sound origin for switches/buttons
@@ -340,7 +341,7 @@ typedef struct seg_s
   angle_t angle;
   side_t* sidedef;
   line_t* linedef;
-  
+
   // Sector references.
   // Could be retrieved from linedef, too
   // (but that would be slower -- killough)
@@ -433,10 +434,10 @@ typedef struct drawseg_s
 //
 
 typedef struct patch_s
-{ 
-  short width, height;  // bounding box size 
-  short leftoffset;     // pixels to the left of origin 
-  short topoffset;      // pixels below the origin 
+{
+  short width, height;  // bounding box size
+  short leftoffset;     // pixels to the left of origin
+  short topoffset;      // pixels below the origin
   int columnofs[8];     // only [width] used
 } patch_t;
 
@@ -468,8 +469,6 @@ typedef struct vissprite_s
   // [FG] colored blood and gibs
   int color;
 
-  const byte *brightmap;
-
   // ID24
   const byte *tranmap;
 
@@ -477,7 +476,7 @@ typedef struct vissprite_s
   int voxel_index;
 } vissprite_t;
 
-//  
+//
 // Sprites are patches with a special naming convention
 //  so they can be recognized by R_InitSprites.
 // The base name is NNNNFx or NNNNFxFx, with
@@ -517,6 +516,12 @@ typedef struct
 {
   int numframes;
   spriteframe_t *spriteframes;
+
+  // [MT] Largest horizontal half-extent of this sprite's patches (over all
+  // frames and rotations). The renderer uses it to associate a mobj with
+  // every sector its visual bounding box overlaps, so a wide sprite is
+  // projected in every slab its pixels reach (see R_SortMobj).
+  fixed_t maxradius;
 } spritedef_t;
 
 //
@@ -529,13 +534,22 @@ typedef struct visplane_s
 {
   struct visplane_s *next;        // Next visplane in hash chain -- killough
   int picnum, lightlevel, minx, maxx;
+  // Covered row range, maintained where top/bottom are written, lets the flat
+  // rasteriser prepare only the rows the plane actually covers.
+  int miny, maxy;
   fixed_t height;
   fixed_t xoffs, yoffs;         // killough 2/28/98: Support scrolling flats
   angle_t rotation;
   int tint; // ID24 per-sector colormap
+  // [MT] top/bottom cover only the owning render context's slab
+  // [startcol, endcol) instead of the whole screen width. They are
+  // pre-shifted so that indexing by absolute view column still works;
+  // buffer is allocated grow-only and both pointers are rebased in
+  // new_visplane().
+  int allocwidth;
+  unsigned short *buffer;
+  unsigned short *top;
   unsigned short *bottom;
-  unsigned short pad1;          // leave pads for [minx-1]/[maxx+1]
-  unsigned short top[3];
 } visplane_t;
 
 #endif

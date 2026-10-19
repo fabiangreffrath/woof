@@ -24,6 +24,7 @@
 // Game Mode - identify IWAD as shareware, retail etc.
 GameMode_t gamemode = indetermined;
 GameMission_t gamemission = doom;
+GameType_t gametype = game_doom;
 
 // [FG] emulate a specific version of Doom
 GameVersion_t gameversion = exe_doom_1_9;
@@ -83,7 +84,7 @@ boolean default_monsters_remember = true;
 boolean monster_infighting = true;       // killough 7/19/98: monster<=>monster attacks
 boolean default_monster_infighting = true;
 
-boolean monster_friction = true;       // killough 10/98: monsters affected by friction 
+boolean monster_friction = true;       // killough 10/98: monsters affected by friction
 boolean default_monster_friction = true;
 
 // killough 7/19/98: classic Doom BFG

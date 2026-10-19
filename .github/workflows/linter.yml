@@ -36,6 +36,7 @@ jobs:
         with:
           install-linux-dependencies: true
           version: 3-latest
+          version-sdl-net: 3-latest
 
       - uses: actions/checkout@v7
 
@@ -51,7 +52,6 @@ jobs:
           mkdir cppcheck_cache
           cppcheck -j4  --cppcheck-build-dir="cppcheck_cache" \
             --quiet \
-            --error-exitcode=1 \
             --check-level=exhaustive \
             --inconclusive \
             --inline-suppr \

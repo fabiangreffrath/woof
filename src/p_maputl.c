@@ -46,8 +46,8 @@ fixed_t P_AproxDistance(fixed_t dx, fixed_t dy)
   dx = FixedAbs(dx);
   dy = FixedAbs(dy);
   if (dx < dy)
-    return dx+dy-(dx>>1);
-  return dx+dy-(dy>>1);
+    return FixedSub(FixedAdd(dx, dy), dx >> 1);
+  return FixedSub(FixedAdd(dx, dy), dy >> 1);
 }
 
 //
@@ -60,8 +60,8 @@ int (*P_PointOnLineSide)(fixed_t x, fixed_t y, line_t *line) = P_PointOnLineSide
 
 int P_PointOnLineSide_Classic(fixed_t x, fixed_t y, line_t *line)
 {
-  const fixed_t dx = (fixed_t)((unsigned int)x - (unsigned int)line->v1->x);
-  const fixed_t dy = (fixed_t)((unsigned int)y - (unsigned int)line->v1->y);
+  const fixed_t dx = FixedSub(x, line->v1->x);
+  const fixed_t dy = FixedSub(y, line->v1->y);
   return
     !line->dx ? x <= line->v1->x ? line->dy > 0 : line->dy < 0 :
     !line->dy ? y <= line->v1->y ? line->dx < 0 : line->dx > 0 :
@@ -120,8 +120,8 @@ int (*P_PointOnDivlineSide)(fixed_t x, fixed_t y, divline_t *line) = P_PointOnDi
 
 int P_PointOnDivlineSide_Classic(fixed_t x, fixed_t y, divline_t *line)
 {
-  const fixed_t dx = (fixed_t)((unsigned int)x - (unsigned int)line->x);
-  const fixed_t dy = (fixed_t)((unsigned int)y - (unsigned int)line->y);
+  const fixed_t dx = FixedSub(x, line->x);
+  const fixed_t dy = FixedSub(y, line->y);
   return
     !line->dx ? x <= line->x ? line->dy > 0 : line->dy < 0 :
     !line->dy ? y <= line->y ? line->dx < 0 : line->dx > 0 :
@@ -131,8 +131,8 @@ int P_PointOnDivlineSide_Classic(fixed_t x, fixed_t y, divline_t *line)
 
 int P_PointOnDivlineSide_Precise(fixed_t x, fixed_t y, divline_t *line)
 {
-  const fixed_t dx = (fixed_t)((unsigned int)x - (unsigned int)line->x);
-  const fixed_t dy = (fixed_t)((unsigned int)y - (unsigned int)line->y);
+  const fixed_t dx = FixedSub(x, line->x);
+  const fixed_t dy = FixedSub(y, line->y);
   return
     !line->dx ? x <= line->x ? line->dy > 0 : line->dy < 0 :
     !line->dy ? y <= line->y ? line->dx < 0 : line->dx > 0 :
@@ -265,7 +265,7 @@ void P_UnsetThingPosition (mobj_t *thing)
       //
       // If this Thing is being removed entirely, then the calling
       // routine will clear out the nodes in sector_list.
-      
+
       sector_list = thing->touching_sectorlist;
       thing->touching_sectorlist = NULL; //to be restored by P_SetThingPosition
     }
@@ -273,7 +273,7 @@ void P_UnsetThingPosition (mobj_t *thing)
   if (!(thing->flags & MF_NOBLOCKMAP))
     {
       // inert things don't need to be in blockmap
-      
+
       // killough 8/11/98: simpler scheme using pointers-to-pointers for prev
       // pointers, allows head node pointers to be treated like everything else
       //
@@ -739,7 +739,7 @@ boolean P_TraverseIntercepts(traverser_t func, fixed_t maxfrac)
 }
 
 // Intercepts Overrun emulation, from PrBoom-plus.
-// Thanks to Andrey Budko (entryway) for researching this and his 
+// Thanks to Andrey Budko (entryway) for researching this and his
 // implementation of Intercepts Overrun emulation in PrBoom-plus
 // which this is based on.
 
@@ -852,7 +852,7 @@ static void InterceptsOverrun(int num_intercepts, intercept_t *intercept)
     // the values from the intercept structure.
     //
     // Note: the ->d.{thing,line} member should really have its
-    // address translated into the correct address value for 
+    // address translated into the correct address value for
     // Vanilla Doom.
 
     InterceptsMemoryOverrun(location, intercept->frac);

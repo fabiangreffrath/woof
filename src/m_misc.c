@@ -728,3 +728,29 @@ boolean M_ParseVersion(const char *s, version_t *v)
     }
     return false;
 }
+
+int M_CheckStreamLength(int32_t length)
+{
+    return length > 0 && length < (1 << 28); // 256 MiB
+}
+
+int M_CheckZlibHeader(uint8_t *c)
+{
+    return c[0] == 0x78 /* ZLIB_MAGIC_BYTE */ && ((c[0] << 8) + c[1]) % 31 == 0;
+}
+
+int M_CheckJSONStream(uint8_t *c, size_t length)
+{
+    int ends_with_brace = (c[--length] == '}');
+
+    int starts_with_brace = (*c++ == '{');
+
+    // skip white-space characters
+    while (*c == '\n' || *c == ' ')
+    {
+        c++;
+    }
+    int next_is_quote = (*c == '"');
+
+    return starts_with_brace && next_is_quote && ends_with_brace;
+}

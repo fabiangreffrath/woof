@@ -30,15 +30,19 @@
 #include "doomdata.h"
 #include "doomdef.h"
 #include "doomstat.h"
+#include "i_exit.h"
+#include "i_thread.h"
+#include "i_timer.h"
 #include "i_video.h"
 #include "p_mobj.h"
 #include "p_pspr.h"
+#include "p_tick.h"
 #include "r_bsp.h"
 #include "r_data.h"
 #include "r_defs.h"
 #include "r_draw.h"
 #include "r_main.h"
-#include "r_bmaps.h"
+#include "r_common.h"
 #include "r_plane.h"
 #include "r_sky.h"
 #include "r_state.h"
@@ -88,7 +92,7 @@ angle_t vx_clipangle;
 // The viewangletox[viewangle + FINEANGLES/4] lookup
 // maps the visible view angles to screen X coordinates,
 // flattening the arc to a flat projection plane.
-// There will be many angles mapped to the same X. 
+// There will be many angles mapped to the same X.
 
 int viewangletox[FINEANGLES/2];
 
@@ -110,8 +114,14 @@ lighttable_t **colormaps;
 
 int       ** scalelightoffset;
 int       ** zlightoffset;
-int const  * planezlightoffset;
-int const  * walllightoffset;
+
+// [RNR] per-column distance correction for the flat rasteriser.
+fixed_t *distscale = NULL;
+static int distscale_size = 0;
+// [MT] both point into the tables above but are selected while drawing,
+// so they are thread-local like the rest of the drawer state.
+THREADLOCAL int const *planezlightoffset;
+THREADLOCAL int const *walllightoffset;
 
 // killough 3/20/98, 4/4/98: end dynamic colormaps
 
@@ -119,7 +129,7 @@ int extralight;                           // bumped light from gun blasts
 
 int extra_level_brightness;               // level brightness feature
 
-void (*colfunc)(void);                    // current column draw function
+THREADLOCAL void (*colfunc)(void);        // current column draw function
 
 //
 // R_PointOnSide
@@ -145,8 +155,8 @@ int R_PointOnSide_Classic(fixed_t x, fixed_t y, node_t *node)
 
     // Workaround for optimization bug in clang
     // fixes desync in competn/doom/fp2-3655.lmp and in dmnsns.wad dmn01m909.lmp
-    x = (fixed_t)((unsigned int)x - (unsigned int)node->x);
-    y = (fixed_t)((unsigned int)y - (unsigned int)node->y);
+    x = FixedSub(x, node->x);
+    y = FixedSub(y, node->y);
 
     // Try to quickly decide by looking at sign bits.
     if ((node->dy ^ node->dx ^ x ^ y) < 0)
@@ -169,8 +179,8 @@ int R_PointOnSide_Precise(fixed_t x, fixed_t y, node_t *node)
         return y <= node->y ? node->dx < 0 : node->dx > 0;
     }
 
-    x = (fixed_t)((unsigned int)x - (unsigned int)node->x);
-    y = (fixed_t)((unsigned int)y - (unsigned int)node->y);
+    x = FixedSub(x, node->x);
+    y = FixedSub(y, node->y);
 
     // Try to quickly decide by looking at sign bits.
     if ((node->dy ^ node->dx ^ x ^ y) < 0)
@@ -186,8 +196,8 @@ int R_PointOnSegSide(fixed_t x, fixed_t y, seg_t *line)
 {
   fixed_t lx = line->v1->x;
   fixed_t ly = line->v1->y;
-  const fixed_t ldx = (fixed_t)((unsigned int)line->v2->x - (unsigned int)lx);
-  const fixed_t ldy = (fixed_t)((unsigned int)line->v2->y - (unsigned int)ly);
+  const fixed_t ldx = FixedSub(line->v2->x, lx);
+  const fixed_t ldy = FixedSub(line->v2->y, ly);
 
   if (!ldx)
     return x <= lx ? ldy > 0 : ldy < 0;
@@ -195,13 +205,59 @@ int R_PointOnSegSide(fixed_t x, fixed_t y, seg_t *line)
   if (!ldy)
     return y <= ly ? ldx < 0 : ldx > 0;
 
-  x = (fixed_t)((unsigned int)x - (unsigned int)lx);
-  y = (fixed_t)((unsigned int)y - (unsigned int)ly);
+  x = FixedSub(x, lx);
+  y = FixedSub(y, ly);
 
   // Try to quickly decide by looking at sign bits.
   if ((ldy ^ ldx ^ x ^ y) < 0)
     return (ldy ^ x) < 0;          // (left is negative)
   return (int64_t) y * ldx >= (int64_t) x * ldy;
+}
+
+// Fold the view-relative vector into the first octant and look up its angle.
+static inline angle_t PointToAngle(fixed_t x, fixed_t y,
+                                   int (*slope_div)(unsigned, unsigned))
+{
+    if (x == 0 && y == 0)
+    {
+        return 0;
+    }
+
+    if (x >= 0)
+    {
+        if (y >= 0)
+        {
+            if (x > y)
+            {
+                return tantoangle[slope_div(y, x)]; // octant 0
+            }
+            return ANG90 - 1 - tantoangle[slope_div(x, y)]; // octant 1
+        }
+
+        y = FixedNeg(y);
+        if (x > y)
+        {
+            return 0 - tantoangle[slope_div(y, x)]; // octant 8
+        }
+        return ANG270 + tantoangle[slope_div(x, y)]; // octant 7
+    }
+
+    x = FixedNeg(x);
+    if (y >= 0)
+    {
+        if (x > y)
+        {
+            return ANG180 - 1 - tantoangle[slope_div(y, x)]; // octant 3
+        }
+        return ANG90 + tantoangle[slope_div(x, y)]; // octant 2
+    }
+
+    y = FixedNeg(y);
+    if (x > y)
+    {
+        return ANG180 + tantoangle[slope_div(y, x)]; // octant 4
+    }
+    return ANG270 - 1 - tantoangle[slope_div(x, y)]; // octant 5
 }
 
 //
@@ -218,35 +274,13 @@ int R_PointOnSegSide(fixed_t x, fixed_t y, seg_t *line)
 // killough 5/2/98: reformatted, cleaned up
 
 angle_t R_PointToAngle(fixed_t x, fixed_t y)
-{       
-  return (y -= viewy, (x -= viewx) || y) ?
-    x >= 0 ?
-      y >= 0 ? 
-        (x > y) ? tantoangle[SlopeDiv(y,x)] :                      // octant 0 
-                ANG90-1-tantoangle[SlopeDiv(x,y)] :                // octant 1
-        x > (y = -y) ? 0-tantoangle[SlopeDiv(y,x)] :               // octant 8
-                       ANG270+tantoangle[SlopeDiv(x,y)] :          // octant 7
-      y >= 0 ? (x = -x) > y ? ANG180-1-tantoangle[SlopeDiv(y,x)] : // octant 3
-                            ANG90 + tantoangle[SlopeDiv(x,y)] :    // octant 2
-        (x = -x) > (y = -y) ? ANG180+tantoangle[ SlopeDiv(y,x)] :  // octant 4
-                              ANG270-1-tantoangle[SlopeDiv(x,y)] : // octant 5
-    0;
+{
+    return R_PointToAngle2(viewx, viewy, x, y);
 }
 
 angle_t R_PointToAngle2(fixed_t viewx, fixed_t viewy, fixed_t x, fixed_t y)
-{       
-  return (y -= viewy, (x -= viewx) || y) ?
-    x >= 0 ?
-      y >= 0 ? 
-        (x > y) ? tantoangle[SlopeDiv(y,x)] :                      // octant 0 
-                ANG90-1-tantoangle[SlopeDiv(x,y)] :                // octant 1
-        x > (y = -y) ? 0-tantoangle[SlopeDiv(y,x)] :               // octant 8
-                       ANG270+tantoangle[SlopeDiv(x,y)] :          // octant 7
-      y >= 0 ? (x = -x) > y ? ANG180-1-tantoangle[SlopeDiv(y,x)] : // octant 3
-                            ANG90 + tantoangle[SlopeDiv(x,y)] :    // octant 2
-        (x = -x) > (y = -y) ? ANG180+tantoangle[ SlopeDiv(y,x)] :  // octant 4
-                              ANG270-1-tantoangle[SlopeDiv(x,y)] : // octant 5
-    0;
+{
+    return PointToAngle(FixedSub(x, viewx), FixedSub(y, viewy), SlopeDiv);
 }
 
 // [FG] overflow-safe R_PointToAngle() flavor,
@@ -254,30 +288,20 @@ angle_t R_PointToAngle2(fixed_t viewx, fixed_t viewy, fixed_t x, fixed_t y)
 
 angle_t R_PointToAngleCrispy(fixed_t x, fixed_t y)
 {
-  // [FG] fix overflows for very long distances
-  int64_t y_viewy = (int64_t)y - viewy;
-  int64_t x_viewx = (int64_t)x - viewx;
+    // [FG] fix overflows for very long distances
+    int64_t y_viewy = (int64_t)y - viewy;
+    int64_t x_viewx = (int64_t)x - viewx;
 
-  // [FG] the worst that could happen is e.g. INT_MIN-INT_MAX = 2*INT_MIN
-  if (x_viewx <= INT_MIN || x_viewx > INT_MAX || y_viewy <= INT_MIN || y_viewy > INT_MAX)
-  {
-    // [FG] preserving the angle by halfing the distance in both directions
-    x = (int)(x_viewx / 2 + viewx);
-    y = (int)(y_viewy / 2 + viewy);
-  }
+    // [FG] the worst that could happen is e.g. INT_MIN-INT_MAX = 2*INT_MIN
+    if (x_viewx <= INT32_MIN || x_viewx > INT32_MAX || y_viewy <= INT32_MIN
+        || y_viewy > INT32_MAX)
+    {
+        // [FG] preserving the angle by halfing the distance in both directions
+        x_viewx /= 2;
+        y_viewy /= 2;
+    }
 
-  return (y -= viewy, (x -= viewx) || y) ?
-    x >= 0 ?
-      y >= 0 ?
-        (x > y) ? tantoangle[SlopeDivCrispy(y,x)] :                      // octant 0
-                ANG90-1-tantoangle[SlopeDivCrispy(x,y)] :                // octant 1
-        x > (y = -y) ? 0-tantoangle[SlopeDivCrispy(y,x)] :               // octant 8
-                       ANG270+tantoangle[SlopeDivCrispy(x,y)] :          // octant 7
-      y >= 0 ? (x = -x) > y ? ANG180-1-tantoangle[SlopeDivCrispy(y,x)] : // octant 3
-                            ANG90 + tantoangle[SlopeDivCrispy(x,y)] :    // octant 2
-        (x = -x) > (y = -y) ? ANG180+tantoangle[SlopeDivCrispy(y,x)] :  // octant 4
-                              ANG270-1-tantoangle[SlopeDivCrispy(x,y)] : // octant 5
-    0;
+    return PointToAngle((fixed_t)x_viewx, (fixed_t)y_viewy, SlopeDivCrispy);
 }
 
 // WiggleFix: move R_ScaleFromGlobalAngle to r_segs.c,
@@ -372,7 +396,7 @@ static void R_InitTextureMapping(void)
         }
       viewangletox[i] = t;
     }
-    
+
   // Scan viewangletox[] to generate xtoviewangle[]:
   //  xtoviewangle will give the smallest view angle
   //  that maps to x.
@@ -388,15 +412,15 @@ static void R_InitTextureMapping(void)
       int angle = (0.5 - x / (double)viewwidth) * linearskyfactor;
       linearskyangle[x] = (angle >= 0) ? angle : ANGLE_MAX + angle;
     }
-    
+
   // Take out the fencepost cases from viewangletox.
   for (i=0; i<FINEANGLES/2; i++)
     if (viewangletox[i] == -1)
       viewangletox[i] = 0;
-    else 
+    else
       if (viewangletox[i] == viewwidth+1)
         viewangletox[i] = viewwidth;
-        
+
   clipangle = xtoviewangle[0];
 
   vx_clipangle = clipangle - ((fov << ANGLETOFINESHIFT) - ANG90);
@@ -586,6 +610,23 @@ void R_ExecuteSetViewSize (void)
 
   R_InitTextureMapping();
 
+  // [RNR] distscale table for the per-column flat rasteriser.
+  if (distscale_size != viewwidth)
+  {
+    free(distscale);
+    distscale = malloc(viewwidth * sizeof(*distscale));
+    distscale_size = viewwidth;
+  }
+  for (i = 0; i < viewwidth; i++)
+  {
+    fixed_t cosadj = finecosine[xtoviewangle[i] >> ANGLETOFINESHIFT];
+    if (cosadj < 0)
+      cosadj = -cosadj;
+    if (!cosadj) // extreme FOV guard; RNR has the same division
+      cosadj = 1;
+    distscale[i] = FixedDiv(FRACUNIT, cosadj);
+  }
+
   R_SetupFreelook();
 
   // psprite scales
@@ -629,10 +670,19 @@ void R_Init (void)
   R_InitTranslationTables();
   V_InitFlexTranTable();
 
+  // [MT] pre-create the missing-flat dummy on the main thread (PU_STATIC),
+  // so render workers never allocate it from the zone.
+  R_MissingFlat();
+
   // [FG] spectre drawing mode
   R_SetFuzzColumnMode();
 
   colfunc = R_DrawColumn;
+
+  // [MT] worker pool for parallel render contexts; context 0 renders on this
+  // (main) thread. Worker threads inherit nothing - their thread-local drawer
+  // state is re-established at the start of every R_RenderViewContext().
+  R_InitRenderThreads();
 }
 
 //
@@ -840,20 +890,297 @@ static boolean flashing_hom;
 int autodetect_hom = 0;       // killough 2/7/98: HOM autodetection flag
 
 //
+// Port of the Rum and Raisin Doom multithreaded renderer design:
+//
+//  - The view is split into vertical column slabs, one per render context.
+//  - Context 0 renders on the calling thread, contexts 1..N-1 are dispatched
+//    to the persistent worker pool in i_thread.c.
+//  - All renderer state mutated during a frame is THREADLOCAL.
+//  - Columns outside a context's slab are marked solid in R_ClearClipSegs(),
+//    which makes the BSP traversal cull everything that cannot affect the
+//    slab. Sprites/voxels/psprites are clipped to the slab in r_things.c and
+//    r_voxel.c; border sprites are projected once per context and each
+//    context draws its own slice.
+//
+
+static int num_render_contexts = 0;      // 0 = auto: one per logical CPU core
+static boolean render_loadbalancing = true;
+
+THREADLOCAL rendercontext_t *r_context = NULL;
+
+// [MT] scratch allocator index for this thread: 0 = main thread,
+// 1..numjobthreads = worker threads. Workers set this in R_RenderContextJob.
+THREADLOCAL int r_worker_scratch_index = 0;
+
+static rendercontext_t rendercontexts[MAX_RENDER_CONTEXTS];
+
+// number of contexts usable this frame (pool size is fixed at init)
+static int ActiveContexts(void)
+{
+    // Disable when resolution is low
+    if (video.height < SCREENHEIGHT * 3)
+    {
+        return 1;
+    }
+
+    return CLAMP(num_render_contexts, 1, R_JobsNumThreads() + 1);
+}
+
+boolean R_IsMultiThreaded(void)
+{
+    return ActiveContexts() > 1;
+}
+
+//
+// R_RenderLoadBalance
+//
+// Each context's last frame time becomes a share of the view width; contexts
+// that took longer than their fair share shrink by up to a quarter of the
+// ideal share, faster ones grow.
+//
+
+static void R_EvenContextSplit(int contexts)
+{
+    const int width = viewwidth / contexts;
+    int start = 0;
+
+    for (int i = 0; i < contexts; i++)
+    {
+        rendercontexts[i].startcol = start;
+        start += width;
+        rendercontexts[i].endcol =
+            (i == contexts - 1) ? viewwidth : MIN(start, viewwidth);
+    }
+}
+
+static void R_RenderLoadBalance(int contexts)
+{
+    const double idealpercentage = 1.0 / contexts;
+    double total_smoothed_time = 0;
+    double total_smoothed_sprites = 0;
+    double timepercentages[MAX_RENDER_CONTEXTS];
+    double loadpercentages[MAX_RENDER_CONTEXTS];
+    double widthpercentages[MAX_RENDER_CONTEXTS];
+    int overbudgetcount = 0;
+    int underbudgetcount = 0;
+
+    // Update exponentially smoothed time: 90% old + 10% new
+    // This prevents slab boundaries from jumping every frame.
+    for (int i = 0; i < contexts; i++)
+    {
+        rendercontexts[i].smoothed_time =
+            0.9 * rendercontexts[i].smoothed_time
+            + 0.1 * (double)rendercontexts[i].timetaken;
+        total_smoothed_time += rendercontexts[i].smoothed_time;
+
+        // Same EMA over the last frame's vissprite count.
+        rendercontexts[i].smoothed_sprites =
+            0.9 * rendercontexts[i].smoothed_sprites
+            + 0.1 * (double)rendercontexts[i].rendered_vissprites;
+        total_smoothed_sprites += rendercontexts[i].smoothed_sprites;
+    }
+
+    if (total_smoothed_time <= 0)
+    {
+        R_EvenContextSplit(contexts);
+        return;
+    }
+
+    for (int i = 0; i < contexts; i++)
+    {
+        timepercentages[i] =
+            rendercontexts[i].smoothed_time / total_smoothed_time;
+
+        // [MT] blend the sprite share into the load estimate: time still
+        // dominates (it measures all of the slab's work), the sprite count
+        // is a leading indicator of rasterization hot spots. Both shares
+        // sum to 1, so the blend does too.
+        loadpercentages[i] = timepercentages[i];
+        if (total_smoothed_sprites > 0)
+        {
+            loadpercentages[i] = 0.75 * timepercentages[i]
+                                 + 0.25 * (rendercontexts[i].smoothed_sprites
+                                          / total_smoothed_sprites);
+        }
+
+        if (loadpercentages[i] > idealpercentage)
+        {
+            overbudgetcount++;
+        }
+        else
+        {
+            underbudgetcount++;
+        }
+    }
+
+    // shift up to a quarter of the ideal share from slow to fast contexts
+    const double totalshuffle = idealpercentage * 0.25;
+    double removeamount = totalshuffle / 2;
+    double addamount = totalshuffle - removeamount;
+
+    if (overbudgetcount)
+    {
+        removeamount /= overbudgetcount;
+    }
+    if (underbudgetcount)
+    {
+        addamount /= underbudgetcount;
+    }
+
+    for (int i = 0; i < contexts; i++)
+    {
+        const double oldwidthpercentage =
+            (double)(rendercontexts[i].endcol - rendercontexts[i].startcol)
+            / viewwidth;
+
+        const double growamount =
+            loadpercentages[i] > idealpercentage ? -removeamount : addamount;
+
+        // Hysteresis: only adjust if imbalance exceeds 10% of ideal share.
+        // This prevents slab boundaries from jittering due to timing noise.
+        const double imbalance = fabs(loadpercentages[i] - idealpercentage);
+        const double hysteresis_threshold = idealpercentage * 0.10;
+        if (imbalance > hysteresis_threshold)
+        {
+            widthpercentages[i] = oldwidthpercentage + growamount;
+        }
+        else
+        {
+            widthpercentages[i] = oldwidthpercentage;
+        }
+    }
+
+    double totalpercentage = 0.0;
+    for (int i = 0; i < contexts; i++)
+    {
+        totalpercentage += widthpercentages[i];
+    }
+
+    if (totalpercentage <= 0.0)
+    {
+        R_EvenContextSplit(contexts);
+        return;
+    }
+
+    for (int i = 0; i < contexts; i++)
+    {
+        widthpercentages[i] /= totalpercentage;
+    }
+
+    int currstart = 0;
+    int desiredwidth = 0;
+    for (int i = 0; i < contexts; i++)
+    {
+        desiredwidth = (int)(viewwidth * widthpercentages[i]);
+        if (desiredwidth <= 0)
+        {
+            R_EvenContextSplit(contexts);
+            return;
+        }
+
+        rendercontexts[i].startcol = currstart;
+        currstart += desiredwidth;
+        rendercontexts[i].endcol = MIN(currstart, viewwidth);
+    }
+
+    currstart -= desiredwidth;
+    rendercontexts[contexts - 1].startcol = MAX(currstart, 0);
+    rendercontexts[contexts - 1].endcol = viewwidth;
+}
+
+//
+// R_RenderViewContext
+//
+// Renders one column slab end to end. This is the worker body: what used to
+// be the single-threaded R_RenderPlayerView() loop, with every piece of
+// state either thread-local or clipped to the context's column range.
+//
+
+void R_RenderViewContext(rendercontext_t *context)
+{
+    const uint64_t starttime = I_GetTimeUS();
+
+    r_context = context;
+
+    // per-frame stats (rendered_vissprites/rendered_voxels are set by the
+    // Clear functions below, matching the original R_ClearStats semantics)
+    context->rendered_visplanes = 0;
+    context->rendered_segs = 0;
+
+    // Thread-local storage starts zero-initialized; restore the base drawer
+    // invariant that R_Init() establishes for the main thread.
+    colfunc = R_DrawColumn;
+
+    // [crispy] draw fuzz effect independent of rendering frame rate. With
+    // multiple contexts every thread restarts from the shared tic seed and
+    // accumulates locally; single-threaded mode keeps vanilla progression.
+    R_SetFuzzPosDraw();
+
+    // Clear buffers.
+    R_ClearClipSegs();
+    R_ClearDrawSegs();
+    R_ClearPlanes();
+    R_ClearSprites();
+    VX_ClearVoxels();
+
+    // The head node is the last node output.
+    R_RenderBSPNode(numnodes - 1);
+
+    R_NearbySprites();
+
+    R_ClearTrackedRendered();
+    R_ClearVisitedSectors();
+
+    // [FG] update automap while playing: planes and sprites are skipped.
+    if (automap_on)
+    {
+        context->timetaken = I_GetTimeUS() - starttime;
+        return;
+    }
+
+    R_DrawPlanes();
+
+    R_DrawMasked();
+
+    context->timetaken = I_GetTimeUS() - starttime;
+}
+
+// Job wrapper: userdata is the owning render context.
+static void R_RenderContextJob(void *userdata)
+{
+    rendercontext_t *context = (rendercontext_t *)userdata;
+    // If the job system ever runs this inline on the calling thread, the
+    // scratch index must be restored afterwards.
+    const int saved_scratch_index = r_worker_scratch_index;
+
+    r_worker_scratch_index = context->index;
+    R_FrameScratchReset();
+    R_RenderViewContext(context);
+
+    r_worker_scratch_index = saved_scratch_index;
+}
+
+static void R_AggregateStats(int contexts)
+{
+    for (int i = 0; i < contexts; i++)
+    {
+        rendered_visplanes += rendercontexts[i].rendered_visplanes;
+        rendered_segs += rendercontexts[i].rendered_segs;
+        rendered_vissprites += rendercontexts[i].rendered_vissprites;
+        rendered_voxels += rendercontexts[i].rendered_voxels;
+    }
+}
+
+//
 // R_RenderView
 //
 void R_RenderPlayerView (player_t* player)
-{       
+{
+  R_FrameScratchReset();
+
   R_ClearStats();
 
   R_SetupFrame (player);
-
-  // Clear buffers.
-  R_ClearClipSegs ();
-  R_ClearDrawSegs ();
-  R_ClearPlanes ();
-  R_ClearSprites ();
-  VX_ClearVoxels ();
 
   if (autodetect_hom)
     { // killough 2/10/98: add flashing red HOM indicators
@@ -926,38 +1253,81 @@ void R_RenderPlayerView (player_t* player)
     }
 
   // check for new console commands.
+  // [MT] kept before the parallel render starts; the NetUpdate() calls that
+  // used to sit between the render phases are gone.
   NetUpdate ();
 
-  // The head node is the last node output.
-  R_RenderBSPNode (numnodes-1);
+  const int contexts = ActiveContexts();
 
-  R_NearbySprites ();
+  if (contexts > 1)
+  {
+    if (render_loadbalancing)
+      R_RenderLoadBalance(contexts);
+    else
+      R_EvenContextSplit(contexts);
 
-  // [FG] update automap while playing
-  if (automap_on)
-    return;
+    // Contexts 1..N-1 go to the worker threads, context 0 renders inline on
+    // the calling thread, then everything is flushed.
+    for (int i = 1; i < contexts; i++)
+      R_JobsAdd(R_RenderContextJob, &rendercontexts[i]);
 
-  // Check for new console commands.
-  NetUpdate ();
-    
-  R_DrawPlanes ();
-    
-  // Check for new console commands.
-  NetUpdate ();
-    
-  // [crispy] draw fuzz effect independent of rendering frame rate
-  R_SetFuzzPosDraw();
-  R_DrawMasked ();
+    R_RenderViewContext(&rendercontexts[0]);
+    R_JobsFlush();
+  }
+  else
+  {
+    rendercontexts[0].startcol = 0;
+    rendercontexts[0].endcol = viewwidth;
+    R_RenderViewContext(&rendercontexts[0]);
+  }
+
+  R_AggregateStats(contexts);
 
   // Check for new console commands.
   NetUpdate ();
 }
 
+//
+// Render thread pool lifecycle
+//
+
+void R_InitRenderThreads(void)
+{
+    if (num_render_contexts <= 0 || num_render_contexts > MAX_RENDER_CONTEXTS)
+    {
+        num_render_contexts =
+            CLAMP(I_ThreadGetHardwareCount(), 1, MAX_RENDER_CONTEXTS);
+    }
+
+    for (int i = 0; i < MAX_RENDER_CONTEXTS; i++)
+    {
+        rendercontexts[i].index = i;
+        rendercontexts[i].timetaken = 1;
+        rendercontexts[i].smoothed_time = 1.0;
+        rendercontexts[i].smoothed_sprites = 0.0;
+    }
+
+    // Context 0 always renders on the calling thread, so the pool only needs
+    // num_render_contexts - 1 workers.
+    R_JobsInit(num_render_contexts - 1);
+
+    // Frame scratch allocator: per-thread bump arena for small fixed-size
+    // per-frame.
+    R_FrameScratchInit(1024 * 1024);
+    I_AtExit(R_ShutdownRenderThreads, true);
+}
+
+void R_ShutdownRenderThreads(void)
+{
+    R_FrameScratchShutdown();
+    R_JobsShutdown();
+}
+
 void R_InitAnyRes(void)
 {
-  R_InitSpritesRes();
-  R_InitBufferRes();
-  R_InitPlanesRes();
+    R_InitSpritesRes();
+    R_InitBufferRes();
+    R_InitPlanesRes();
 }
 
 void R_BindRenderVariables(void)
@@ -972,8 +1342,6 @@ void R_BindRenderVariables(void)
   BIND_BOOL_GENERAL(r_swirl, false, "Swirling animated flats");
   M_BindBool("voxels_rendering", &default_voxels_rendering, &voxels_rendering,
              true, ss_none, wad_no, "Allow voxel models");
-  BIND_BOOL_GENERAL(brightmaps, false,
-    "Brightmaps for textures and sprites");
   BIND_NUM_GENERAL(invul_mode, INVUL_MBF, INVUL_VANILLA, INVUL_GRAY,
     "Invulnerability effect (0 = Vanilla; 1 = MBF; 2 = Gray)");
   BIND_BOOL(flashing_hom, true, "Enable flashing of the HOM indicator");
@@ -989,6 +1357,13 @@ void R_BindRenderVariables(void)
 
   BIND_BOOL(draw_nearby_sprites, true,
     "Draw sprites overlapping into visible sectors");
+
+  // [MT] multithreaded rendering
+  M_BindNum("render_contexts", &num_render_contexts, NULL, 0, 0,
+            MAX_RENDER_CONTEXTS, ss_gen, wad_no,
+            "Parallel render contexts (0 = one per CPU core, 1 = single-threaded)");
+  BIND_BOOL(render_loadbalancing, true,
+            "Load-balance render contexts by previous frame times");
 }
 
 //----------------------------------------------------------------------------
