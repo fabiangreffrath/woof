@@ -23,9 +23,9 @@
 #include "i_printf.h"
 #include "i_system.h"
 #include "info.h"
+#include "m_arena.h"
 #include "m_array.h"
 #include "m_fixed.h"
-#include "m_hashmap.h"
 #include "m_json.h"
 #include "m_random.h"
 #include "p_ambient.h"
@@ -160,13 +160,6 @@ static uintptr_t *msecnode_pointers;
 static uintptr_t *ceilinglist_pointers;
 static uintptr_t *platlist_pointers;
 
-// Hashmaps for pointer -> index mapping during archiving.
-// Key: pointer address (uintptr_t), Value: index (int).
-static hashmap_t *thinker_hashmap;
-static hashmap_t *msecnode_hashmap;
-static hashmap_t *ceilinglist_hashmap;
-static hashmap_t *platlist_hashmap;
-
 // Convenience macros for pointer-as-array-index fields (subsector, sector,
 // state, line, …).  The pointer is converted to/from an offset into its
 // respective base array.  A null_index round-trips to NULL.
@@ -226,15 +219,7 @@ static int getidx_thinker(const thinker_t *thinker)
     }
     else
     {
-        int *value = hashmap_get(thinker_hashmap, (uintptr_t)thinker);
-        if (value)
-        {
-            index = *value;
-        }
-        else
-        {
-            I_Error("Thinker not found in hashmap: %p", (void *)thinker);
-        }
+        index = M_ArenaTableIndex(thinkers_arena, (uintptr_t)thinker);
     }
     return index;
 }
@@ -271,15 +256,7 @@ static int getidx_msecnode(const msecnode_t *node)
     }
     else
     {
-        int *value = hashmap_get(msecnode_hashmap, (uintptr_t)node);
-        if (value)
-        {
-            index = *value;
-        }
-        else
-        {
-            I_Error("MSecNode not found in hashmap: %p", (void *)node);
-        }
+        index = M_ArenaTableIndex(msecnodes_arena, (uintptr_t)node);
     }
     return index;
 }
@@ -306,15 +283,7 @@ static int getidx_activeceilings(const ceilinglist_t *cl)
     }
     else
     {
-        int *value = hashmap_get(ceilinglist_hashmap, (uintptr_t)cl);
-        if (value)
-        {
-            index = *value;
-        }
-        else
-        {
-            I_Error("CeilingList not found in hashmap: %p", (void *)cl);
-        }
+        index = M_ArenaTableIndex(activeceilings_arena, (uintptr_t)cl);
     }
     return index;
 }
@@ -341,15 +310,7 @@ static int getidx_activeplats(const platlist_t *pl)
     }
     else
     {
-        int *value = hashmap_get(platlist_hashmap, (uintptr_t)pl);
-        if (value)
-        {
-            index = *value;
-        }
-        else
-        {
-            I_Error("PlatList not found in hashmap: %p", (void *)pl);
-        }
+        index = M_ArenaTableIndex(activeplats_arena, (uintptr_t)pl);
     }
     return index;
 }
@@ -1732,56 +1693,61 @@ static thinker_class_t GetThinkerClass(actionf_p1 func)
 
 static thinker_class_t CheckCeilingInStasis(thinker_t *thinker)
 {
-    for (ceilinglist_t *cl = activeceilings; cl; cl = cl->next)
+    uintptr_t *table = M_ArenaTable(activeceilings_arena);
+    int count = M_ArenaTableSize(activeceilings_arena);
+
+    thinker_class_t tc = tc_none;
+    for (int i = 0; i < count; ++i)
     {
+        ceilinglist_t *cl = (ceilinglist_t *)table[i];
         if (cl->ceiling->thinker.function.v == NULL
             && thinker == &cl->ceiling->thinker)
         {
-            return tc_ceiling;
+            tc = tc_ceiling;
+            break;
         }
     }
-    return tc_none;
+    free(table);
+
+    return tc;
 }
 
 static thinker_class_t CheckPlatInStasis(thinker_t *thinker)
 {
-    for (platlist_t *pl = activeplats; pl; pl = pl->next)
+    uintptr_t *table = M_ArenaTable(activeplats_arena);
+    int count = M_ArenaTableSize(activeplats_arena);
+
+    thinker_class_t tc = tc_none;
+    for (int i = 0; i < count; ++i)
     {
-        if (pl->plat->thinker.function.v == NULL
-            && thinker == &pl->plat->thinker)
+        platlist_t *cl = (platlist_t *)table[i];
+        if (cl->plat->thinker.function.v == NULL
+            && thinker == &cl->plat->thinker)
         {
-            return tc_plat;
+            tc = tc_plat;
+            break;
         }
     }
-    return tc_none;
+    free(table);
+
+    return tc;
 }
 
-// Pass 1 of archiving: build hashmap of all live thinkers so that every
-// live thinker pointer can later be converted to a stable integer index.
-// Must be called before any write_*_t function that references thinker pointers.
+// Pass 1 of archiving: snapshot the arena table so that every live thinker
+// pointer can later be converted to a stable integer index.  Must be called
+// before any write_*_t function that references thinker pointers.
 static void PrepareArchiveThinkers(void)
 {
-    // Initialize hashmap for thinker -> index mapping
-    if (thinker_hashmap)
-    {
-        hashmap_free(thinker_hashmap);
-    }
-    thinker_hashmap = hashmap_init(1024, sizeof(int));
+    uintptr_t *table = M_ArenaTable(thinkers_arena);
 
-    // Count thinkers by traversing the linked list
-    int count = 0;
-    for (thinker_t *th = thinkercap.next; th != &thinkercap; th = th->next)
-    {
-        count++;
-    }
+    int count = M_ArenaTableSize(thinkers_arena);
 
     array_resize(thinker_pointers, count);
 
-    // Iterate through thinkers and build hashmap
-    int i = 0;
-    for (thinker_t *th = thinkercap.next; th != &thinkercap; th = th->next)
+    for (int i = 0; i < count; ++i)
     {
-        thinker_class_t tc = GetThinkerClass(th->function.p1);
+        thinker_t *thinker = (thinker_t *)table[i];
+        thinker_class_t tc = GetThinkerClass(thinker->function.p1);
 
         // killough 2/8/98: fix plat original height bug.
         // Since acv==NULL, this could be a plat in stasis.
@@ -1790,10 +1756,10 @@ static void PrepareArchiveThinkers(void)
 
         if (tc == tc_none)
         {
-            tc = CheckPlatInStasis(th);
+            tc = CheckPlatInStasis(thinker);
             if (tc == tc_none)
             {
-                tc = CheckCeilingInStasis(th);
+                tc = CheckCeilingInStasis(thinker);
             }
         }
 
@@ -1803,13 +1769,11 @@ static void PrepareArchiveThinkers(void)
                      "PrepareArchiveThinkers: Unknown thinker class");
         }
 
-        // Store thinker pointer -> index mapping in hashmap
-        hashmap_put(thinker_hashmap, (uintptr_t)th, &i);
-
-        thinker_pointer_t pointer = {.tc = tc, .p.integer = (uintptr_t)th};
+        thinker_pointer_t pointer = {.tc = tc, .p.integer = table[i]};
         thinker_pointers[i] = pointer;
-        i++;
     }
+
+    free(table);
 }
 
 static void ArchiveThinkers(json_mut_doc_t *doc, json_mut_t *root_mut)
@@ -2040,62 +2004,18 @@ static void UnArchiveThinkers(json_t *thinkers)
 // MSecNodes
 //
 
-static void PrepareArchiveMSecNodes(void)
-{
-    // Initialize hashmap for msecnode -> index mapping
-    if (msecnode_hashmap)
-    {
-        hashmap_free(msecnode_hashmap);
-    }
-    msecnode_hashmap = hashmap_init(1024, sizeof(int));
-
-    // Iterate through all sectors' touching_thinglist to find all active msecnodes
-    int i = 0;
-    for (int s = 0; s < numsectors; s++)
-    {
-        for (msecnode_t *node = sectors[s].touching_thinglist; node; node = node->m_snext)
-        {
-            int index = i;
-            hashmap_put(msecnode_hashmap, (uintptr_t)node, &index);
-            i++;
-        }
-    }
-
-    // Also include freelist nodes (headsecnode chain)
-    for (msecnode_t *node = headsecnode; node; node = node->m_snext)
-    {
-        int index = i;
-        hashmap_put(msecnode_hashmap, (uintptr_t)node, &index);
-        i++;
-    }
-}
-
 static void ArchiveMSecNodes(json_mut_doc_t *doc, json_mut_t *root_mut)
 {
     json_mut_t *msecnodes_arr = JS_NewArray(doc);
 
-    // Ensure hashmap is initialized (in case PrepareArchiveMSecNodes wasn't called)
-    if (!msecnode_hashmap)
+    uintptr_t *table = M_ArenaTable(msecnodes_arena);
+    int count = M_ArenaTableSize(msecnodes_arena);
+    for (int i = 0; i < count; ++i)
     {
-        PrepareArchiveMSecNodes();
-    }
-
-    // Iterate through all sectors' touching_thinglist and write to JSON
-    for (int s = 0; s < numsectors; s++)
-    {
-        for (msecnode_t *node = sectors[s].touching_thinglist; node; node = node->m_snext)
-        {
-            json_mut_t *msecnode_obj = write_msecnode_t(node, doc);
-            JS_ArrayAddObject(doc, msecnodes_arr, msecnode_obj);
-        }
-    }
-
-    // Also include freelist nodes (headsecnode chain)
-    for (msecnode_t *node = headsecnode; node; node = node->m_snext)
-    {
-        json_mut_t *msecnode_obj = write_msecnode_t(node, doc);
+        json_mut_t *msecnode_obj = write_msecnode_t((msecnode_t *)table[i], doc);
         JS_ArrayAddObject(doc, msecnodes_arr, msecnode_obj);
     }
+    free(table);
 
     JS_SetArray(doc, root_mut, "msecnodes", msecnodes_arr);
 }
@@ -2220,40 +2140,19 @@ static void UnArchiveBlocklinks(json_t *root)
 // CeilingList
 //
 
-static void PrepareArchiveCeilingList(void)
-{
-    // Initialize hashmap for ceilinglist -> index mapping
-    if (ceilinglist_hashmap)
-    {
-        hashmap_free(ceilinglist_hashmap);
-    }
-    ceilinglist_hashmap = hashmap_init(1024, sizeof(int));
-
-    // Iterate through ceilinglist and build hashmap
-    int i = 0;
-    for (ceilinglist_t *cl = activeceilings; cl; cl = cl->next)
-    {
-        int index = i;
-        hashmap_put(ceilinglist_hashmap, (uintptr_t)cl, &index);
-        i++;
-    }
-}
-
 static void ArchiveCeilingList(json_mut_doc_t *doc, json_mut_t *root_mut)
 {
     json_mut_t *ceilinglist_arr = JS_NewArray(doc);
 
-    // Ensure hashmap is initialized
-    if (!ceilinglist_hashmap)
+    uintptr_t *table = M_ArenaTable(activeceilings_arena);
+    int count = M_ArenaTableSize(activeceilings_arena);
+    for (int i = 0; i < count; ++i)
     {
-        PrepareArchiveCeilingList();
+        ceilinglist_t *cl = (ceilinglist_t *)table[i];
+        JS_ArrayAddInt(doc, ceilinglist_arr,
+                       getidx_thinker(&cl->ceiling->thinker));
     }
-
-    // Iterate through ceilinglist and write to JSON
-    for (ceilinglist_t *cl = activeceilings; cl; cl = cl->next)
-    {
-        JS_ArrayAddInt(doc, ceilinglist_arr, getidx_thinker(&cl->ceiling->thinker));
-    }
+    free(table);
 
     JS_SetArray(doc, root_mut, "ceilinglist", ceilinglist_arr);
 }
@@ -2294,40 +2193,18 @@ static void UnArchiveCeilingList(json_t *ceilinglist_arr)
 // PlatList
 //
 
-static void PrepareArchivePlatList(void)
-{
-    // Initialize hashmap for platlist -> index mapping
-    if (platlist_hashmap)
-    {
-        hashmap_free(platlist_hashmap);
-    }
-    platlist_hashmap = hashmap_init(1024, sizeof(int));
-
-    // Iterate through platlist and build hashmap
-    int i = 0;
-    for (platlist_t *pl = activeplats; pl; pl = pl->next)
-    {
-        int index = i;
-        hashmap_put(platlist_hashmap, (uintptr_t)pl, &index);
-        i++;
-    }
-}
-
 static void ArchivePlatList(json_mut_doc_t *doc, json_mut_t *root_mut)
 {
     json_mut_t *platlist_arr = JS_NewArray(doc);
 
-    // Ensure hashmap is initialized
-    if (!platlist_hashmap)
+    uintptr_t *table = M_ArenaTable(activeplats_arena);
+    int count = M_ArenaTableSize(activeplats_arena);
+    for (int i = 0; i < count; ++i)
     {
-        PrepareArchivePlatList();
+        platlist_t *cl = (platlist_t *)table[i];
+        JS_ArrayAddInt(doc, platlist_arr, getidx_thinker(&cl->plat->thinker));
     }
-
-    // Iterate through platlist and write to JSON
-    for (platlist_t *pl = activeplats; pl; pl = pl->next)
-    {
-        JS_ArrayAddInt(doc, platlist_arr, getidx_thinker(&pl->plat->thinker));
-    }
+    free(table);
 
     JS_SetArray(doc, root_mut, "platlist", platlist_arr);
 }
@@ -2466,26 +2343,6 @@ static void UnArchiveAutoMap(json_t *root)
 static void EndArchive(void)
 {
     array_free(thinker_pointers);
-    if (thinker_hashmap)
-    {
-        hashmap_free(thinker_hashmap);
-        thinker_hashmap = NULL;
-    }
-    if (msecnode_hashmap)
-    {
-        hashmap_free(msecnode_hashmap);
-        msecnode_hashmap = NULL;
-    }
-    if (ceilinglist_hashmap)
-    {
-        hashmap_free(ceilinglist_hashmap);
-        ceilinglist_hashmap = NULL;
-    }
-    if (platlist_hashmap)
-    {
-        hashmap_free(platlist_hashmap);
-        platlist_hashmap = NULL;
-    }
 }
 
 static void StartUnArchive(void)
@@ -2507,7 +2364,6 @@ static void EndUnArchive(void)
 void P_ArchiveKeyframe(json_mut_doc_t *doc, json_mut_t *root_mut)
 {
     PrepareArchiveThinkers();
-    PrepareArchiveMSecNodes();
 
     JS_SetObject(doc, root_mut, "thinkercap", write_thinker_t(&thinkercap, doc));
 
@@ -2567,11 +2423,9 @@ void P_ArchiveKeyframe(json_mut_doc_t *doc, json_mut_t *root_mut)
     ArchiveThinkers(doc, root_mut);
     ArchiveMSecNodes(doc, root_mut);
 
-    PrepareArchiveCeilingList();
     JS_SetInt(doc, root_mut, "activeceilings",
               getidx_activeceilings(activeceilings));
     ArchiveCeilingList(doc, root_mut);
-    PrepareArchivePlatList();
     JS_SetInt(doc, root_mut, "activeplats",
               getidx_activeplats(activeplats));
     ArchivePlatList(doc, root_mut);
