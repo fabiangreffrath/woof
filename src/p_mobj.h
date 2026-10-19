@@ -38,6 +38,8 @@
 // Needs precompiled tables/data structures.
 #include "info.h"
 
+#include "r_common.h"
+
 //
 // NOTES: mobj_t
 //
@@ -413,6 +415,21 @@ typedef struct mobj_s
 
     // [FG] height of the sprite in pixels
     int actualheight;
+
+    // [MT] Per-render-context sprite deduplication: nonzero if this mobj has
+    // already been projected during the current frame for the given context.
+    uint8_t rendered[MAX_RENDER_CONTEXTS];
+
+    // [MT] Renderer-only cache: sectors whose bounding box overlaps this
+    // mobj's sprite bounding box, with radius
+    // max(mobj->radius, sprites[sprite].maxradius). Rebuilt when the mobj
+    // moves or changes sprite. Needed because a wide sprite can reach into a
+    // render-context slab whose BSP traversal never reaches this mobj's own
+    // subsector.
+    int overlapcount;
+    int overlapsec[MAX_SECTOR_OVERLAPS];
+    fixed_t overlapbox_x, overlapbox_y;
+    int overlapbox_sprite;
 } mobj_t;
 
 // External declarations (fomerly in p_local.h) -- killough 5/2/98

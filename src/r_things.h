@@ -21,6 +21,7 @@
 #define __R_THINGS__
 
 #include "doomtype.h"
+#include "i_thread.h"
 #include "m_fixed.h"
 #include "p_mobj.h"
 #include "r_defs.h"
@@ -32,11 +33,12 @@ extern int *negonearray;         // killough 2/8/98:
 extern int *screenheightarray;   // change to MAX_*
 
 // Vars for R_DrawMaskedColumn
+// [MT] mutated while drawing sprites/masked segs in parallel contexts.
 
-extern int   *mfloorclip; // [FG] 32-bit integer math
-extern int   *mceilingclip; // [FG] 32-bit integer math
-extern fixed_t spryscale;
-extern int64_t sprtopscreen; // [FG] 64-bit integer math
+extern THREADLOCAL int   *mfloorclip; // [FG] 32-bit integer math
+extern THREADLOCAL int   *mceilingclip; // [FG] 32-bit integer math
+extern THREADLOCAL fixed_t spryscale;
+extern THREADLOCAL int64_t sprtopscreen; // [FG] 64-bit integer math
 extern fixed_t pspritescale;
 extern fixed_t pspriteiscale;
 
@@ -58,6 +60,24 @@ void R_ClipVisSprite(vissprite_t *vis, int xl, int xh);
 void R_InitSpritesRes(void);
 
 void R_NearbySprites(void);
+
+// Sector -> wide-sprite mobj index: R_ClearSectMobjs() resets it for the
+// coming tic, R_SortMobj() files one mobj into it. Both are driven from the
+// thinker pass (P_RunThinkers); R_AddSprites() reads the index.
+void R_ClearSectMobjs(void);
+void R_SortMobj(mobj_t *mobj);
+
+// Track a rendered mobj for fast clearing of mobj->rendered[] without iterating all thinkers.
+void R_TrackRenderedThing(mobj_t *thing);
+
+// Track a visited sector for fast clearing of sector->rendervalidcount[].
+void R_TrackVisitedSector(sector_t *sec);
+
+// Clear mobj->rendered[] for all tracked mobjs in this context.
+void R_ClearTrackedRendered(void);
+
+// Clear sector->rendervalidcount[] for all tracked sectors in this context.
+void R_ClearVisitedSectors(void);
 
 extern const lighttable_t * const GetThingTint(const mobj_t *const mo,
                                                const sector_t *const sector);

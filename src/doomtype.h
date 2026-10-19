@@ -154,6 +154,16 @@ inline static double clamp(double x, double min, double max)
   #define UNROLL_LOOP_BY(n)
 #endif
 
+#if defined(__has_feature)
+  #if __has_feature(thread_sanitizer)
+    #define NOSANITIZE_THREAD __attribute__((no_sanitize("thread")))
+  #else
+    #define NOSANITIZE_THREAD
+  #endif
+#else
+    #define NOSANITIZE_THREAD
+#endif
+
 // The packed attribute forces structures to be packed into the minimum
 // space necessary.  If this is not done, the compiler may align structure
 // fields differently to optimize memory access, inflating the overall
