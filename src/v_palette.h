@@ -92,6 +92,7 @@ extern playpal_t *playpal_iwad;
 
 void V_InitPalette(void);
 void V_ResetPalette(void);
+void V_SetCustomPalette(const char *name);
 byte V_GetNearestColor(palette_t pal, const byte r, const byte g, const byte b);
 byte V_GetNearestColorLinear(palette_t pal, const double r, const double g,
                              const double b);
