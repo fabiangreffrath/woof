@@ -6,7 +6,7 @@
   - Color translation tables from PWADs are extended but never overridden.
   - Leave some more space in the HUD menu for the layout description.
   - Add support for optional chaingun sound, via `DSCHGUN`.
-  - Add support to MBF21 spec version 1.5, from previous 1.4, adding `comp_thingsectorlight`.
+  - Add support for `comp_thingsectorlight`, in preparation for revision 1.5 of the MBF21 spec.
 
 * **Quality of Life:**
   - Player view no longer abruptly jolts when running across very shallow floor height changes
