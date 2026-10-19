@@ -2357,8 +2357,10 @@ static msecnode_t *P_DelSecnode(msecnode_t *node)
       if (sn)
 	sn->m_sprev = sp;
 
-      // Return this node to the freelist
+      // Clear m_thing to avoid stale pointers in freelist nodes
+      node->m_thing = NULL;
 
+      // Return this node to the freelist
       P_PutSecnode(node);
 
       node = tn;
