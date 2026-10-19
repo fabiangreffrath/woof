@@ -16,6 +16,7 @@
     The `filter/` subdirectories are loaded first, before `autoload/` subdirectories.
     The subdirectories `colormaps/`, `flats/`, `sprites/`, `textures/`, `voxels/`, will map to their own `_START`/`_END` lump markers.
     The subdirectories `graphics/`, `maps/`, `music/`, `patches/`, `sounds/`, will map to the global lump list.
+  - Add support for `comp_thingsectorlight`, in preparation for revision 1.5 of the MBF21 spec.
 
 * **Quality of Life:**
   - Player view no longer abruptly jolts when running across very shallow floor height changes
