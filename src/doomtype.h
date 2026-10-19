@@ -134,14 +134,12 @@ inline static double clamp(double x, double min, double max)
   #define PRINTF_ARG_ATTR(x)
 #endif
 
-#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
-    #define NORETURN _Noreturn
-#elif defined(__GNUC__) || defined(__clang__)
-    #define NORETURN __attribute__((noreturn))
+#if defined(__GNUC__) || defined(__clang__)
+  #define NORETURN __attribute__((noreturn))
 #elif defined(_MSC_VER)
-    #define NORETURN __declspec(noreturn)
+  #define NORETURN __declspec(noreturn)
 #else
-    #define NORETURN
+  #define NORETURN
 #endif
 
 #if defined(__GNUC__) && !defined(__clang__)
