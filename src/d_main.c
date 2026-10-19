@@ -212,13 +212,18 @@ void D_ProcessEvents(void)
         event_t *ev = &events[eventtail];
         M_InputTrackEvent(ev);
 
-        // Finale ate event?
+        // Endpalette ate event?
         if (gamestate == GS_FINALE && !F_ShowCast() && F_Responder(ev))
         {
             continue;
         }
         // Menu used event?
         else if (M_Responder(ev))
+        {
+            continue;
+        }
+        // Cast call ate event?
+        else if (gamestate == GS_FINALE && F_ShowCast() && F_Responder(ev))
         {
             continue;
         }
