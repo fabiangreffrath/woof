@@ -84,6 +84,7 @@ struct mn_item_s
     const char *const *choices;
     int num_choices;
     int slider_size;
+    int choice_width;
     unsigned flags;
     const char *desc;
     const char *suffix;
@@ -105,6 +106,9 @@ struct mn_item_s
 
     int draw_value_x;
     int draw_value_w;
+
+    int hover_segment;
+    int hover_arrow;
 };
 
 struct mn_item_ops_s
@@ -113,6 +117,7 @@ struct mn_item_ops_s
     boolean (*respond)(mn_item_t *item, menu_action_t action, int ch);
     void (*tick)(mn_item_t *item);
     void (*drag)(mn_item_t *item, int mouse_x);
+    boolean (*click)(mn_item_t *item, int mouse_x, int mouse_y);
 };
 
 struct mn_page_s

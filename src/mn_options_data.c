@@ -30,6 +30,8 @@
     {.label = (lbl), .cfg = (key), .type = MN_ITEM_NUMBER, .suffix = (sfx)}
 #define MN_CHOICE(lbl, key, strs) \
     {.label = (lbl), .cfg = (key), .type = MN_ITEM_CHOICE, .choices = (strs)}
+#define MN_CHOICE_W(lbl, key, strs, w) \
+    {.label = (lbl), .cfg = (key), .type = MN_ITEM_CHOICE, .choices = (strs), .choice_width = (w)}
 #define MN_ACTION(lbl, act) \
     {.label = (lbl), .type = MN_ITEM_ACTION, .action = (act)}
 
@@ -55,6 +57,13 @@
      .cfg = (key),                         \
      .type = MN_ITEM_CHOICE,               \
      .choices = (strs),                    \
+     .action = (act)}
+#define MN_CHOICE_ACT_W(lbl, key, strs, w, act) \
+    {.label = (lbl),                            \
+     .cfg = (key),                              \
+     .type = MN_ITEM_CHOICE,                    \
+     .choices = (strs),                         \
+     .choice_width = (w),                       \
      .action = (act)}
 #define MN_SLIDER_ACT(lbl, key, strs, siz, act) \
     {.label = (lbl),                            \
@@ -88,8 +97,8 @@ static mn_item_t general_items[] = {
                   MN_OptionsResetVideo),
     MN_TOGGLE_ACT("Dynamic Resolution", "dynamic_resolution",
                   MN_OptionsResetVideo),
-    MN_CHOICE_ACT("Widescreen", "widescreen", widescreen_strings,
-                  MN_OptionsResetVideo),
+    MN_CHOICE_ACT_W("Widescreen", "widescreen", widescreen_strings, 6,
+                    MN_OptionsResetVideo),
     MN_TOGGLE_ACT("Fullscreen", "fullscreen", MN_OptionsUpdateFullscreen),
 
     MN_TITLE("Performance"),
@@ -108,11 +117,11 @@ static mn_item_t general_items[] = {
                   MN_OptionsUpdateSfxVolume),
     MN_SLIDER_ACT("Music Volume", "music_volume", NULL, 8,
                   MN_OptionsUpdateMusicVolume),
-    MN_CHOICE_ACT("Sound Module", "snd_module", sound_module_strings,
-                  MN_OptionsSetSoundModule),
+    MN_CHOICE_ACT_W("Sound Module", "snd_module", sound_module_strings, 3,
+                    MN_OptionsSetSoundModule),
     MN_TOGGLE_ACT("Headphones Mode", "snd_hrtf", MN_OptionsSetSoundModule),
-    MN_CHOICE_ACT("Extra Soundtrack", "extra_music", extra_music_strings,
-                  MN_OptionsRestartMusic),
+    MN_CHOICE_ACT_W("Extra Soundtrack", "extra_music", extra_music_strings, 3,
+                    MN_OptionsRestartMusic),
 
     MN_TITLE("Menu"),
     MN_ACTION("Classic Options", MN_OptionsOpenClassic),
@@ -137,15 +146,15 @@ static mn_item_t music_items[] = {
                   MN_OptionsUpdateMusicVolume),
     MN_SLIDER("OPL3 Number of Chips", "num_opl_chips", NULL, 4),
     MN_TOGGLE("OPL3 Reverse Stereo", "opl_stereo_correct"),
-    MN_CHOICE_ACT("Native MIDI Reset Type", "midi_reset_type",
-                  midi_reset_strings, MN_OptionsRestartMusic),
+    MN_CHOICE_ACT_W("Native MIDI Reset Type", "midi_reset_type",
+                    midi_reset_strings, 4, MN_OptionsRestartMusic),
     MN_RESET("Reset to Defaults"),
     MN_END
 };
 
 static mn_item_t equalizer_items[] = {
-    MN_CHOICE_ACT("Preset", "snd_equalizer", equalizer_preset_strings,
-                  MN_OptionsEqualizerPreset),
+    MN_CHOICE_ACT_W("Preset", "snd_equalizer", equalizer_preset_strings, 5,
+                    MN_OptionsEqualizerPreset),
     MN_SLIDER_ACT("Preamp", "snd_eq_preamp", NULL, 8,
                   MN_OptionsEqualizerPreset),
     MN_SLIDER_ACT("Low Gain", "snd_eq_low_gain", NULL, 8,

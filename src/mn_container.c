@@ -23,6 +23,7 @@
 #include "mn_container.h"
 #include "mn_internal.h"
 #include "mn_menu.h"
+#include "mn_options.h"
 #include "sounds.h"
 #include "v_palette.h"
 #include "v_patch.h"
@@ -100,8 +101,11 @@ static void LayoutPage(mn_menu_t *menu, mn_page_t *page)
     for (mn_item_t *item = page->items; item->type != MN_ITEM_END; ++item)
     {
         const int height =
-            item->height ? item->height
-                         : (item->type == MN_ITEM_SLIDER ? MN_SPC + 5 : MN_SPC);
+            item->height
+                ? item->height
+                : (item->type == MN_ITEM_SLIDER || item->type == MN_ITEM_CHOICE)
+                       ? MN_SPC + 5
+                       : MN_SPC;
 
         item->rect.x = 0;
         item->rect.y = y;
@@ -373,14 +377,82 @@ static void MouseSelect(mn_menu_t *menu, int x, int y)
     for (int i = 0; i < page->num_items; ++i)
     {
         mn_item_t *item = &page->items[i];
+        item->hover_segment = -1;
+        item->hover_arrow = -1;
         mrect_t rect = item->rect;
 
         rect.x += menu->viewport.x;
         rect.y += menu->viewport.y - page->scroll;
 
-        if (MN_ContainerPointInside(&rect, x, y))
+        if (!MN_ContainerPointInside(&rect, x, y))
         {
-            menu->hover = IsNavigable(item) ? i : -1;
+            continue;
+        }
+
+        menu->hover = IsNavigable(item) ? i : -1;
+
+        if (menu->hover >= 0 && item->type == MN_ITEM_CHOICE)
+        {
+            const int value = MN_OptionValue(item);
+            const int min = ItemMin(item);
+            const int max = ItemMax(item);
+            const int num_choices = max - min + 1;
+
+            const int arrow_w = 8;
+            const int padding = 4;
+            const int seg_w = 8;
+            const int seg_gap = 2;
+
+            int visible_choices = item->choice_width > 0 ? item->choice_width : num_choices;
+            visible_choices = CLAMP(visible_choices, 3, 12);
+
+            const char *current_text = NULL;
+            if (item->choices && value >= 0 && value < item->num_choices)
+            {
+                current_text = item->choices[value];
+            }
+            else
+            {
+                static char buffer[32];
+                M_snprintf(buffer, sizeof(buffer), "%d", value);
+                current_text = buffer;
+            }
+
+            const int text_w = MN_GetPixelWidth(current_text);
+            const int bar_w = visible_choices * seg_w + (visible_choices - 1) * seg_gap;
+            const int content_w = MAX(text_w, bar_w);
+
+            int item_x = item->draw_value_x + item->draw_value_w - (arrow_w * 2 + padding * 2 + content_w);
+            int rel_x = x - video.deltaw - item_x;
+
+            if (rel_x >= 0 && rel_x < arrow_w + padding)
+            {
+                item->hover_arrow = 0;
+            }
+            else
+            {
+                rel_x -= arrow_w + padding;
+                if (rel_x >= 0 && rel_x < content_w)
+                {
+                    int rel_bar_x = rel_x - (content_w - bar_w) / 2;
+                    if (rel_bar_x >= 0 && rel_bar_x < bar_w)
+                    {
+                        int idx = rel_bar_x / (seg_w + seg_gap);
+                        if (idx >= 0 && idx < visible_choices)
+                        {
+                            item->hover_segment = idx;
+                        }
+                    }
+                }
+                else
+                {
+                    rel_x -= content_w + padding;
+                    if (rel_x >= 0 && rel_x < arrow_w + padding)
+                    {
+                        item->hover_arrow = 1;
+                    }
+                }
+            }
             return;
         }
     }
@@ -758,6 +830,14 @@ boolean MN_ContainerMouseButton(int button, boolean down)
             return true;
         }
 
+        if (item->ops && item->ops->click)
+        {
+            if (item->ops->click(item, last_mouse_x, last_mouse_y))
+            {
+                return true;
+            }
+        }
+
         ActivateItem(menu, menu->hover, true);
     }
 
@@ -914,13 +994,13 @@ static void DrawScrollbar(const mn_menu_t *menu)
                menu->scroll_track.y,
                menu->scroll_track.w - 2,
                menu->scroll_track.h,
-               MenuColor(CR_GRAY, true));
+               MenuColor(CR_WHITE, false));
 
     V_FillRect(menu->scroll_thumb.x + video.deltaw + 1,
                menu->scroll_thumb.y,
                menu->scroll_thumb.w - 2,
                menu->scroll_thumb.h,
-               playpal_global->white);
+               MenuColor(CR_GRAY, false));
 }
 
 static void DrawInstructions(const mn_menu_t *menu)

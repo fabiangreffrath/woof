@@ -40,7 +40,7 @@
 #include "v_trans.h"
 #include "v_video.h"
 
-static int ItemMin(const mn_item_t *item)
+int ItemMin(const mn_item_t *item)
 {
     if (item->def && item->def->limit.min != UL)
     {
@@ -50,7 +50,7 @@ static int ItemMin(const mn_item_t *item)
     return 0;
 }
 
-static int ItemMax(const mn_item_t *item)
+int ItemMax(const mn_item_t *item)
 {
     if (item->type == MN_ITEM_CHOICE && item->num_choices > 0)
     {
@@ -167,7 +167,7 @@ static byte *ValueColor(const mn_draw_ctx_t *ctx)
         return xlat[CR_BRIGHT].table;
     }
 
-    return xlat[CR_GREEN].table;
+    return NULL;
 }
 
 static void DrawValueString(const mn_draw_ctx_t *ctx, const char *text)
@@ -175,7 +175,7 @@ static void DrawValueString(const mn_draw_ctx_t *ctx, const char *text)
     const int width = MN_GetPixelWidth(text);
 
     MN_DrawStringCR(ctx->value_x + ctx->value_w - width, ctx->y,
-                    ValueColor(ctx), NULL, text);
+                    xlat[CR_GREEN].table, ValueColor(ctx), text);
 }
 
 static void TitleDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
@@ -311,16 +311,97 @@ static boolean NumberRespond(mn_item_t *item, menu_action_t action, int ch)
 static void ChoiceDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
 {
     const int value = MN_OptionValue(item);
+    const int min = ItemMin(item);
+    const int max = ItemMax(item);
+    const int num_choices = max - min + 1;
 
+    const int arrow_w = 8;
+    const int padding = 4;
+    const int seg_w = 8;
+    const int seg_gap = 2;
+    const int seg_h = 1;
+
+    int visible_choices = item->choice_width > 0 ? item->choice_width : num_choices;
+    visible_choices = CLAMP(visible_choices, 3, 12);
+
+    const char *current_text = NULL;
     if (item->choices && value >= 0 && value < item->num_choices)
     {
-        DrawValueString(ctx, item->choices[value]);
+        current_text = item->choices[value];
     }
     else
     {
-        char buffer[32];
+        static char buffer[32];
         M_snprintf(buffer, sizeof(buffer), "%d", value);
-        DrawValueString(ctx, buffer);
+        current_text = buffer;
+    }
+
+    const int text_w = MN_GetPixelWidth(current_text);
+    const int bar_w = visible_choices * seg_w + (visible_choices - 1) * seg_gap;
+    const int content_w = MAX(text_w, bar_w);
+    const int total_w = arrow_w * 2 + padding * 2 + content_w;
+
+    int x = ctx->value_x + ctx->value_w - total_w;
+    const int y = ctx->y;
+    byte *cr = ValueColor(ctx);
+
+    boolean left_hover = (item->hover_arrow == 0);
+    boolean right_hover = (item->hover_arrow == 1);
+
+    if (left_hover)
+    {
+        MN_DrawStringCR(x, y, xlat[CR_WHITE].table, NULL, "<");
+    }
+    else
+    {
+        MN_DrawStringCR(x, y, xlat[CR_GREEN].table, cr, "<");
+    }
+    x += arrow_w + padding;
+
+    int text_x = x + (content_w - text_w) / 2;
+    MN_DrawStringCR(text_x, y, xlat[CR_GREEN].table, cr, current_text);
+
+    int bar_x = x + (content_w - bar_w) / 2;
+    int bar_y = y + MN_SPC;
+
+    for (int i = 0; i < visible_choices; ++i)
+    {
+        int choice_idx = min + i;
+        boolean is_current = (choice_idx == value);
+        boolean is_hover = (item->hover_segment == i);
+
+        byte seg_color;
+        const byte dark = cr_dark[playpal_global->white];
+        const byte shade = cr_shaded[playpal_global->white];
+        if (is_current)
+        {
+            seg_color = xlat[CR_WHITE].table[shade];
+        }
+        else if (is_hover)
+        {
+            seg_color = xlat[CR_WHITE].table[playpal_global->white];
+        }
+        else if (ctx->disabled)
+        {
+            seg_color = xlat[CR_GREEN].table[dark];
+        }
+        else
+        {
+            seg_color = xlat[CR_GREEN].table[shade];
+        }
+
+        V_FillRect(bar_x + video.deltaw, bar_y, seg_w, seg_h, seg_color);
+        bar_x += seg_w + seg_gap;
+    }
+
+    x += content_w + padding;
+    if (right_hover)
+    {
+        MN_DrawStringCR(x, y, xlat[CR_WHITE].table, NULL, ">");
+    }
+    else
+    {
+        MN_DrawStringCR(x, y, xlat[CR_GREEN].table, cr, ">");
     }
 }
 
@@ -359,6 +440,118 @@ static boolean ChoiceRespond(mn_item_t *item, menu_action_t action, int ch)
 
     MN_ContainerItemChanged(item);
     return true;
+}
+
+static boolean ChoiceClick(mn_item_t *item, int mouse_x, int mouse_y)
+{
+    mn_menu_t *menu = MN_ContainerCurrent();
+    if (!menu)
+    {
+        return false;
+    }
+
+    mn_page_t *page = &menu->pages[menu->page];
+
+    int item_index = -1;
+    for (int i = 0; i < page->num_items; ++i)
+    {
+        if (&page->items[i] == item)
+        {
+            item_index = i;
+            break;
+        }
+    }
+    if (item_index < 0)
+    {
+        return false;
+    }
+
+    const int value = MN_OptionValue(item);
+    const int min = ItemMin(item);
+    const int max = ItemMax(item);
+    const int num_choices = max - min + 1;
+
+    const int arrow_w = 8;
+    const int padding = 4;
+    const int seg_w = 8;
+    const int seg_gap = 2;
+
+    int visible_choices = item->choice_width > 0 ? item->choice_width : num_choices;
+    visible_choices = CLAMP(visible_choices, 3, 12);
+
+    const int bar_w = visible_choices * seg_w + (visible_choices - 1) * seg_gap;
+
+    const char *current_text = NULL;
+    if (item->choices && value >= 0 && value < item->num_choices)
+    {
+        current_text = item->choices[value];
+    }
+    else
+    {
+        static char buffer[32];
+        M_snprintf(buffer, sizeof(buffer), "%d", value);
+        current_text = buffer;
+    }
+
+    const int text_w = MN_GetPixelWidth(current_text);
+    const int content_w = MAX(text_w, bar_w);
+    const int total_w = arrow_w * 2 + padding * 2 + content_w;
+
+    int x = item->draw_value_x + item->draw_value_w - total_w;
+    const int y = menu->viewport.y + item->rect.y - page->scroll;
+
+    int rel_x = mouse_x - video.deltaw - x;
+
+    if (rel_x >= 0 && rel_x < arrow_w + padding)
+    {
+        int new_value = (value <= min) ? max : value - 1;
+        if (*item->def->location.i != new_value)
+        {
+            *item->def->location.i = new_value;
+            M_StartSound(sfx_mnusli);
+            MN_ContainerItemChanged(item);
+        }
+        return true;
+    }
+
+    rel_x -= arrow_w + padding;
+    if (rel_x >= 0 && rel_x < content_w)
+    {
+        int bar_x = x + arrow_w + padding + (content_w - bar_w) / 2;
+        int rel_bar_x = mouse_x - video.deltaw - bar_x;
+
+        if (rel_bar_x >= 0 && rel_bar_x < bar_w)
+        {
+            int idx = rel_bar_x / (seg_w + seg_gap);
+            if (idx >= 0 && idx < visible_choices)
+            {
+                int new_value = min + idx;
+                if (new_value > max) new_value = max;
+                if (*item->def->location.i != new_value)
+                {
+                    *item->def->location.i = new_value;
+                    M_StartSound(sfx_mnusli);
+                    MN_ContainerItemChanged(item);
+                }
+            }
+        }
+        return true;
+    }
+
+    rel_x -= content_w + padding;
+    if (rel_x >= 0 && rel_x < arrow_w + padding)
+    {
+        int new_value = (value >= max) ? min : value + 1;
+        if (*item->def->location.i != new_value)
+        {
+            *item->def->location.i = new_value;
+            M_StartSound(sfx_mnusli);
+            MN_ContainerItemChanged(item);
+        }
+        return true;
+    }
+
+    return false;
 }
 
 static void DrawThermo(const mn_item_t *item, const mn_draw_ctx_t *ctx)
@@ -531,15 +724,15 @@ static boolean WeaponRespond(mn_item_t *item, menu_action_t action, int ch)
     return true;
 }
 
-static const mn_item_ops_t title_ops =  {TitleDraw,  TitleRespond,  NULL};
-static const mn_item_ops_t toggle_ops = {ToggleDraw, ToggleRespond, NULL};
-static const mn_item_ops_t number_ops = {NumberDraw, NumberRespond, NULL};
-static const mn_item_ops_t choice_ops = {ChoiceDraw, ChoiceRespond, NULL};
-static const mn_item_ops_t slider_ops = {SliderDraw, SliderRespond, NULL, SliderDrag};
-static const mn_item_ops_t action_ops = {ActionDraw, ActionRespond, NULL};
-static const mn_item_ops_t reset_ops =  {ResetDraw,  ResetRespond,  NULL};
-static const mn_item_ops_t input_ops =  {InputDraw,  InputRespond,  NULL};
-static const mn_item_ops_t weapon_ops = {WeaponDraw, WeaponRespond, NULL};
+static const mn_item_ops_t title_ops  = {TitleDraw,  TitleRespond,  NULL, NULL, NULL};
+static const mn_item_ops_t toggle_ops = {ToggleDraw, ToggleRespond, NULL, NULL, NULL};
+static const mn_item_ops_t number_ops = {NumberDraw, NumberRespond, NULL, NULL, NULL};
+static const mn_item_ops_t choice_ops = {ChoiceDraw, ChoiceRespond, NULL, NULL, ChoiceClick};
+static const mn_item_ops_t slider_ops = {SliderDraw, SliderRespond, NULL, SliderDrag, NULL};
+static const mn_item_ops_t action_ops = {ActionDraw, ActionRespond, NULL, NULL, NULL};
+static const mn_item_ops_t reset_ops  = {ResetDraw,  ResetRespond,  NULL, NULL, NULL};
+static const mn_item_ops_t input_ops  = {InputDraw,  InputRespond,  NULL, NULL, NULL};
+static const mn_item_ops_t weapon_ops = {WeaponDraw, WeaponRespond, NULL, NULL, NULL};
 
 static void BindItem(mn_item_t *item)
 {
