@@ -12,8 +12,7 @@
 //  GNU General Public License for more details.
 //
 // DESCRIPTION:
-//  Small tabbed/page container with smooth scrolling, used by the new
-//  options menu.
+//  Small tabbed/page container with smooth scrolling.
 //
 
 #include <stdlib.h>
@@ -193,15 +192,39 @@ void MN_ContainerEnsureVisible(mn_item_t *item)
 
     mn_page_t *page = &active_menu->pages[active_menu->page];
 
-    if (item->rect.y < page->scroll_target)
+    int item_index = -1;
+    for (int i = 0; i < page->num_items; ++i)
     {
-        page->scroll_target = item->rect.y;
+        if (&page->items[i] == item)
+        {
+            item_index = i;
+            break;
+        }
     }
-    else if (item->rect.y + item->rect.h
+
+    int target_y = item->rect.y;
+    int target_h = item->rect.h;
+
+    if (item_index > 0 && !IsNavigable(&page->items[item_index - 1]))
+    {
+        int first_visible = item_index - 1;
+        while (first_visible > 0 && !IsNavigable(&page->items[first_visible - 1]))
+        {
+            first_visible--;
+        }
+        target_y = page->items[first_visible].rect.y;
+        target_h = item->rect.y + item->rect.h - target_y;
+    }
+
+    if (target_y < page->scroll_target)
+    {
+        page->scroll_target = target_y;
+    }
+    else if (target_y + target_h
              > page->scroll_target + active_menu->viewport.h)
     {
         page->scroll_target =
-            item->rect.y + item->rect.h - active_menu->viewport.h;
+            target_y + target_h - active_menu->viewport.h;
     }
 
     ClampScroll(active_menu, page);
@@ -379,8 +402,10 @@ static void UpdateScrollbar(mn_menu_t *menu)
     const int thumb_h =
         MAX(8, menu->viewport.h * menu->viewport.h / page->content_h);
 
-    menu->scroll_track = (mrect_t){menu->viewport.x + menu->viewport.w + 2,
-                                   menu->viewport.y, 4, menu->viewport.h};
+    menu->scroll_track = (mrect_t){menu->viewport.x + menu->viewport.w + 6,
+                                   menu->viewport.y,
+                                   4,
+                                   menu->viewport.h};
 
     const int thumb_y = menu->scroll_track.y
                         + page->scroll * (menu->scroll_track.h - thumb_h) / max;
@@ -403,7 +428,8 @@ static void ScrollToThumb(mn_menu_t *menu, int mouse_y)
     int value =
         (mouse_y - menu->scroll_track.y - menu->drag_offset) * max / range;
 
-    page->scroll_target = CLAMP(value, 0, max);
+    page->scroll = CLAMP(value, 0, max);
+    page->scroll_target = page->scroll;
 }
 
 void MN_ContainerOpen(mn_menu_t *menu)
@@ -763,10 +789,20 @@ void MN_ContainerTicker(void)
     if (page->scroll != page->scroll_target)
     {
         const int diff = page->scroll_target - page->scroll;
+        int step = diff / 3;
 
-        page->scroll += diff / 3;
+        if (step == 0 && diff != 0)
+        {
+            step = diff > 0 ? 1 : -1;
+        }
+        else if (abs(step) < 2 && abs(diff) > 3)
+        {
+            step = diff > 0 ? 2 : -2;
+        }
 
-        if (abs(page->scroll_target - page->scroll) < 2)
+        page->scroll += step;
+
+        if (abs(page->scroll_target - page->scroll) <= 2)
         {
             page->scroll = page->scroll_target;
         }
@@ -874,13 +910,17 @@ static void DrawScrollbar(const mn_menu_t *menu)
         return;
     }
 
-    V_FillRect(menu->scroll_track.x + video.deltaw, menu->scroll_track.y,
-               menu->scroll_track.w, menu->scroll_track.h,
+    V_FillRect(menu->scroll_track.x + video.deltaw + 1,
+               menu->scroll_track.y,
+               menu->scroll_track.w - 2,
+               menu->scroll_track.h,
                MenuColor(CR_GRAY, true));
 
-    V_FillRect(menu->scroll_thumb.x + video.deltaw, menu->scroll_thumb.y,
-               menu->scroll_thumb.w, menu->scroll_thumb.h,
-               MenuColor(CR_GOLD, false));
+    V_FillRect(menu->scroll_thumb.x + video.deltaw + 1,
+               menu->scroll_thumb.y,
+               menu->scroll_thumb.w - 2,
+               menu->scroll_thumb.h,
+               playpal_global->white);
 }
 
 static void DrawInstructions(const mn_menu_t *menu)
