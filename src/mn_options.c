@@ -339,9 +339,17 @@ static boolean ChoiceRespond(mn_item_t *item, menu_action_t action, int ch)
     }
 
     int value = MN_OptionValue(item);
+    const int min = ItemMin(item);
+    const int max = ItemMax(item);
 
-    value += (action == MENU_RIGHT) ? 1 : -1;
-    value = CLAMP(value, ItemMin(item), ItemMax(item));
+    if (action == MENU_RIGHT)
+    {
+        value = (value >= max) ? min : value + 1;
+    }
+    else
+    {
+        value = (value <= min) ? max : value - 1;
+    }
 
     if (*item->def->location.i != value)
     {
@@ -585,9 +593,16 @@ static void BindItem(mn_item_t *item)
 
     if (item->choices && item->num_choices == 0)
     {
-        while (item->choices[item->num_choices])
+        if (item->type == MN_ITEM_CHOICE && item->def && item->def->limit.max != UL)
         {
-            item->num_choices++;
+            item->num_choices = item->def->limit.max + 1;
+        }
+        else
+        {
+            while (item->choices[item->num_choices] && item->num_choices < 64)
+            {
+                item->num_choices++;
+            }
         }
     }
 
