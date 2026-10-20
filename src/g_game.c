@@ -602,6 +602,17 @@ static void AdjustWeaponSelection(int *newweapon)
     // killough 2/8/98, 3/22/98 -- end of weapon selection changes
 }
 
+// Returns true only on the tic the jump key goes down, so holding it never repeats.
+static boolean JumpPressed(void)
+{
+    static boolean was_down = false;
+    const boolean down = M_InputGameActive(input_jump);
+    const boolean pressed = down && !was_down;
+
+    was_down = down;
+    return pressed;
+}
+
 static boolean FilterDeathUseAction(void)
 {
     if (players[consoleplayer].playerstate == PST_DEAD && gamestate == GS_LEVEL)
@@ -789,6 +800,13 @@ void G_BuildTiccmd(ticcmd_t* cmd)
       // clear double clicks if hit use button
       dclick = false;
     }
+
+  // Jumping is not part of the demo format, so it must never be active in
+  // demos or netgames.
+  if (CRITICAL(JumpPressed()))
+  {
+    cmd->jump = 1;
+  }
 
   // Toggle between the top 2 favorite weapons.                   // phares
   // If not currently aiming one of these, switch to              // phares
