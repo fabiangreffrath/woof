@@ -26,8 +26,8 @@
 #define MN_TITLE(txt) {.label = (txt), .type = MN_ITEM_TITLE}
 #define MN_TOGGLE(lbl, key) \
     {.label = (lbl), .cfg = (key), .type = MN_ITEM_TOGGLE}
-#define MN_NUMBER(lbl, key, sfx) \
-    {.label = (lbl), .cfg = (key), .type = MN_ITEM_NUMBER, .suffix = (sfx)}
+#define MN_NUMBER(lbl, key, suffix) \
+    {.label = (lbl), .cfg = (key), .type = MN_ITEM_NUMBER, .suffix = (suffix)}
 #define MN_CHOICE(lbl, key, strs) \
     {.label = (lbl), .cfg = (key), .type = MN_ITEM_CHOICE, .choices = (strs)}
 #define MN_CHOICE_W(lbl, key, strs, w) \
@@ -35,12 +35,12 @@
 #define MN_ACTION(lbl, act) \
     {.label = (lbl), .type = MN_ITEM_ACTION, .action = (act)}
 
-#define MN_SLIDER(lbl, key, strs, siz)     \
+#define MN_SLIDER(lbl, key, strs, size)    \
     {.label = (lbl),                       \
      .cfg = (key),                         \
      .type = MN_ITEM_SLIDER,               \
      .choices = (strs),                    \
-     .slider_size = (siz)}
+     .slider_size = (size)}
 #define MN_TOGGLE_ACT(lbl, key, act)       \
     {.label = (lbl),                       \
      .cfg = (key),                         \
@@ -65,12 +65,12 @@
      .choices = (strs),                         \
      .choice_width = (w),                       \
      .action = (act)}
-#define MN_SLIDER_ACT(lbl, key, strs, siz, act) \
-    {.label = (lbl),                            \
-     .cfg = (key),                              \
-     .type = MN_ITEM_SLIDER,                    \
-     .choices = (strs),                         \
-     .slider_size = (siz),                      \
+#define MN_SLIDER_ACT(lbl, key, strs, size, act) \
+    {.label = (lbl),                             \
+     .cfg = (key),                               \
+     .type = MN_ITEM_SLIDER,                     \
+     .choices = (strs),                          \
+     .slider_size = (size),                      \
      .action = (act)}
 
 static const char *sound_module_strings[] = {
@@ -97,8 +97,8 @@ static mn_item_t general_items[] = {
                   MN_OptionsResetVideo),
     MN_TOGGLE_ACT("Dynamic Resolution", "dynamic_resolution",
                   MN_OptionsResetVideo),
-    MN_CHOICE_ACT_W("Widescreen", "widescreen", widescreen_strings, 6,
-                    MN_OptionsResetVideo),
+    MN_CHOICE_ACT("Widescreen", "widescreen", widescreen_strings,
+                  MN_OptionsResetVideo),
     MN_TOGGLE_ACT("Fullscreen", "fullscreen", MN_OptionsUpdateFullscreen),
 
     MN_TITLE("Performance"),
@@ -117,10 +117,10 @@ static mn_item_t general_items[] = {
                   MN_OptionsUpdateSfxVolume),
     MN_SLIDER_ACT("Music Volume", "music_volume", NULL, 8,
                   MN_OptionsUpdateMusicVolume),
-    MN_CHOICE_ACT_W("Sound Module", "snd_module", sound_module_strings, 3,
+    MN_CHOICE_ACT_W("Sound Module", "snd_module", sound_module_strings, 8,
                     MN_OptionsSetSoundModule),
     MN_TOGGLE_ACT("Headphones Mode", "snd_hrtf", MN_OptionsSetSoundModule),
-    MN_CHOICE_ACT_W("Extra Soundtrack", "extra_music", extra_music_strings, 3,
+    MN_CHOICE_ACT_W("Extra Soundtrack", "extra_music", extra_music_strings, 6,
                     MN_OptionsRestartMusic),
 
     MN_TITLE("Menu"),
@@ -147,7 +147,7 @@ static mn_item_t music_items[] = {
     MN_SLIDER("OPL3 Number of Chips", "num_opl_chips", NULL, 4),
     MN_TOGGLE("OPL3 Reverse Stereo", "opl_stereo_correct"),
     MN_CHOICE_ACT_W("Native MIDI Reset Type", "midi_reset_type",
-                    midi_reset_strings, 4, MN_OptionsRestartMusic),
+                    midi_reset_strings, 6, MN_OptionsRestartMusic),
     MN_RESET("Reset to Defaults"),
     MN_END
 };

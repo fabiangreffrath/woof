@@ -23,7 +23,6 @@
 #include "mn_container.h"
 #include "mn_internal.h"
 #include "mn_menu.h"
-#include "mn_options.h"
 #include "sounds.h"
 #include "v_palette.h"
 #include "v_patch.h"
@@ -100,12 +99,19 @@ static void LayoutPage(mn_menu_t *menu, mn_page_t *page)
 
     for (mn_item_t *item = page->items; item->type != MN_ITEM_END; ++item)
     {
-        const int height =
-            item->height
-                ? item->height
-                : (item->type == MN_ITEM_SLIDER || item->type == MN_ITEM_CHOICE)
-                       ? MN_SPC + 5
-                       : MN_SPC;
+        int height;
+        if (item->height)
+        {
+            height = item->height;
+        }
+        else if (item->type == MN_ITEM_SLIDER || item->type == MN_ITEM_CHOICE)
+        {
+            height = MN_SPC + 5;
+        }
+        else
+        {
+            height = MN_SPC;
+        }
 
         item->rect.x = 0;
         item->rect.y = y;
@@ -384,76 +390,16 @@ static void MouseSelect(mn_menu_t *menu, int x, int y)
         rect.x += menu->viewport.x;
         rect.y += menu->viewport.y - page->scroll;
 
-        if (!MN_ContainerPointInside(&rect, x, y))
+        if (!MN_ContainerPointInside(&rect, x, y) || item->disabled)
         {
             continue;
         }
 
         menu->hover = IsNavigable(item) ? i : -1;
 
-        if (menu->hover >= 0 && item->type == MN_ITEM_CHOICE)
+        if (menu->hover >= 0 && item->ops && item->ops->hover)
         {
-            const int value = MN_OptionValue(item);
-            const int min = ItemMin(item);
-            const int max = ItemMax(item);
-            const int num_choices = max - min + 1;
-
-            const int arrow_w = 8;
-            const int padding = 4;
-            const int seg_w = 8;
-            const int seg_gap = 2;
-
-            int visible_choices = item->choice_width > 0 ? item->choice_width : num_choices;
-            visible_choices = CLAMP(visible_choices, 3, 12);
-
-            const char *current_text = NULL;
-            if (item->choices && value >= 0 && value < item->num_choices)
-            {
-                current_text = item->choices[value];
-            }
-            else
-            {
-                static char buffer[32];
-                M_snprintf(buffer, sizeof(buffer), "%d", value);
-                current_text = buffer;
-            }
-
-            const int text_w = MN_GetPixelWidth(current_text);
-            const int bar_w = visible_choices * seg_w + (visible_choices - 1) * seg_gap;
-            const int content_w = MAX(text_w, bar_w);
-
-            int item_x = item->draw_value_x + item->draw_value_w - (arrow_w * 2 + padding * 2 + content_w);
-            int rel_x = x - video.deltaw - item_x;
-
-            if (rel_x >= 0 && rel_x < arrow_w + padding)
-            {
-                item->hover_arrow = 0;
-            }
-            else
-            {
-                rel_x -= arrow_w + padding;
-                if (rel_x >= 0 && rel_x < content_w)
-                {
-                    int rel_bar_x = rel_x - (content_w - bar_w) / 2;
-                    if (rel_bar_x >= 0 && rel_bar_x < bar_w)
-                    {
-                        int idx = rel_bar_x / (seg_w + seg_gap);
-                        if (idx >= 0 && idx < visible_choices)
-                        {
-                            item->hover_segment = idx;
-                        }
-                    }
-                }
-                else
-                {
-                    rel_x -= content_w + padding;
-                    if (rel_x >= 0 && rel_x < arrow_w + padding)
-                    {
-                        item->hover_arrow = 1;
-                    }
-                }
-            }
-            return;
+            item->ops->hover(item, x, y);
         }
     }
 }
@@ -463,8 +409,8 @@ static void UpdateScrollbar(mn_menu_t *menu)
     mn_page_t *page = &menu->pages[menu->page];
     const int max = MaxScroll(menu, page);
 
-    menu->scroll_track = (mrect_t){0, 0, 0, 0};
-    menu->scroll_thumb = (mrect_t){0, 0, 0, 0};
+    menu->scroll_track = (mrect_t){0};
+    menu->scroll_thumb = (mrect_t){0};
 
     if (max <= 0 || menu->viewport.h <= 0)
     {
@@ -518,6 +464,7 @@ void MN_ContainerOpen(mn_menu_t *menu)
     menu->drag_item = NULL;
     menu->dragging_scroll = false;
     menu->confirm = false;
+    menu->highlight_tab = -1;
 
     for (int i = 0; i < menu->num_pages; ++i)
     {
@@ -752,6 +699,27 @@ boolean MN_ContainerMouseMove(int x, int y)
         ScrollToThumb(active_menu, y);
     }
 
+    int highlight_tab = -1;
+    for (int i = 0; i < active_menu->num_pages && i < MN_MAX_TABS; ++i)
+    {
+        mrect_t *rect = &active_menu->tab_rects[i];
+        if (MN_ContainerPointInside(rect, x, y))
+        {
+            highlight_tab = i;
+            break;
+        }
+    }
+
+    if (highlight_tab != active_menu->page &&
+        highlight_tab != active_menu->highlight_tab)
+    {
+        active_menu->highlight_tab = highlight_tab;
+        if (highlight_tab >= 0)
+        {
+            M_StartSound(sfx_mnusel);
+        }
+    }
+
     MouseSelect(active_menu, x, y);
     return true;
 }
@@ -809,6 +777,7 @@ boolean MN_ContainerMouseButton(int button, boolean down)
             CancelActiveItem(menu);
             menu->page = i;
             menu->hover = -1;
+            menu->highlight_tab = -1;
             EnsureValidSelection(menu, i);
             MN_ContainerEnsureVisible(
                 &menu->pages[i].items[menu->pages[i].selected]);
@@ -887,14 +856,6 @@ void MN_ContainerTicker(void)
             page->scroll = page->scroll_target;
         }
     }
-
-    for (int i = 0; i < page->num_items; ++i)
-    {
-        if (page->items[i].ops && page->items[i].ops->tick)
-        {
-            page->items[i].ops->tick(&page->items[i]);
-        }
-    }
 }
 
 static void DrawTabs(const mn_menu_t *menu)
@@ -908,6 +869,11 @@ static void DrawTabs(const mn_menu_t *menu)
             MN_DrawString(rect->x, rect->y, CR_GOLD, menu->pages[i].tab);
             V_FillRect(rect->x + video.deltaw, rect->y + MN_SPC, rect->w, 1,
                        MenuColor(CR_GOLD, false));
+        }
+        else if (i == menu->highlight_tab)
+        {
+            MN_DrawStringCR(rect->x, rect->y, xlat[CR_GRAY].table,
+                            xlat[CR_BRIGHT].table,  menu->pages[i].tab);
         }
         else
         {
@@ -927,12 +893,18 @@ static void DrawItemLabel(const mn_item_t *item, const mn_draw_ctx_t *ctx)
                : ctx->selected ? xlat[CR_BRIGHT].table
                                : xlat[CR_NONE].table;
 
-    if (ctx->selected && whichSkull)
+    int y = ctx->y;
+    if (item->height > MN_SPC)
     {
-        MN_DrawStringCR(ctx->x - 8, ctx->y, cr, NULL, ">");
+        y += (item->height - MN_SPC) / 2;
     }
 
-    MN_DrawStringCR(ctx->x, ctx->y, cr, NULL, item->label);
+    if (ctx->selected && whichSkull)
+    {
+        MN_DrawStringCR(ctx->x - 8, y, cr, NULL, ">");
+    }
+
+    MN_DrawStringCR(ctx->x, y, cr, NULL, item->label);
 }
 
 static void DrawItems(const mn_menu_t *menu)

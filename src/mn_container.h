@@ -115,9 +115,9 @@ struct mn_item_ops_s
 {
     void (*draw)(const mn_item_t *item, const mn_draw_ctx_t *ctx);
     boolean (*respond)(mn_item_t *item, menu_action_t action, int ch);
-    void (*tick)(mn_item_t *item);
     void (*drag)(mn_item_t *item, int mouse_x);
     boolean (*click)(mn_item_t *item, int mouse_x, int mouse_y);
+    void (*hover)(mn_item_t *item, int mouse_x, int mouse_y);
 };
 
 struct mn_page_s
@@ -149,6 +149,8 @@ struct mn_menu_s
     mrect_t tabbar;
     mrect_t viewport;
     mrect_t tab_rects[MN_MAX_TABS];
+
+    int highlight_tab;
 
     mrect_t scroll_track;
     mrect_t scroll_thumb;

@@ -45,7 +45,4 @@ int MN_OptionValue(const mn_item_t *item);
 void MN_OptionSetValue(mn_item_t *item, int value);
 void MN_OptionSliderSetFromMouse(mn_item_t *item, int mouse_x);
 
-int ItemMin(const mn_item_t *item);
-int ItemMax(const mn_item_t *item);
-
 #endif
