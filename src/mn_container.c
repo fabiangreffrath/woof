@@ -20,6 +20,8 @@
 
 #include "doomdef.h"
 #include "doomkeys.h"
+#include "i_gamepad.h"
+#include "m_input.h"
 #include "m_misc.h"
 #include "mn_container.h"
 #include "mn_internal.h"
@@ -61,6 +63,31 @@ static boolean IsNavigable(const mn_item_t *item)
 static boolean IsSelectable(const mn_item_t *item)
 {
     return IsNavigable(item) && !item->disabled;
+}
+
+// The item the help text refers to: the mouse-hovered one in mouse mode,
+// otherwise the keyboard-selected one. Mirrors the legacy setup menus.
+static const mn_item_t *HighlightedItem(const mn_menu_t *menu)
+{
+    const mn_page_t *page = &menu->pages[menu->page];
+
+    if (menu_input == mouse_mode)
+    {
+        const int index =
+            menu->help_hover >= 0 ? menu->help_hover : menu->hover;
+
+        if (index >= 0 && index < page->num_items)
+        {
+            return &page->items[index];
+        }
+    }
+
+    if (page->selected >= 0 && page->selected < page->num_items)
+    {
+        return &page->items[page->selected];
+    }
+
+    return NULL;
 }
 
 static int FirstNavigable(const mn_page_t *page)
@@ -355,6 +382,7 @@ static void ResetMenuState(mn_menu_t *menu)
 {
     menu->page = 0;
     menu->hover = -1;
+    menu->help_hover = -1;
     menu->active_item = NULL;
     menu->drag_item = NULL;
     menu->dragging_scroll = false;
@@ -400,6 +428,7 @@ static boolean PopMenu(void)
 
     active_menu = menu_stack[--menu_depth];
     active_menu->hover = -1;
+    active_menu->help_hover = -1;
     active_menu->active_item = NULL;
     active_menu->drag_item = NULL;
     active_menu->dragging_scroll = false;
@@ -428,6 +457,7 @@ static boolean NextPage(mn_menu_t *menu, int direction)
 
     menu->page = page;
     menu->hover = -1;
+    menu->help_hover = -1;
     EnsureValidSelection(menu, page);
     MN_ContainerEnsureVisible(
         &menu->pages[page].items[menu->pages[page].selected]);
@@ -446,12 +476,6 @@ static void ActivateItem(mn_menu_t *menu, int index, boolean mouse)
 
     mn_item_t *item = &page->items[index];
 
-    if (!IsSelectable(item))
-    {
-        M_StartSound(sfx_mnuerr);
-        return;
-    }
-
     if (menu->active_item && menu->active_item != item)
     {
         CancelActiveItem(menu);
@@ -459,6 +483,12 @@ static void ActivateItem(mn_menu_t *menu, int index, boolean mouse)
 
     page->selected = index;
     MN_ContainerEnsureVisible(item);
+
+    if (!IsSelectable(item))
+    {
+        M_StartSound(sfx_mnuerr);
+        return;
+    }
 
     if (item->type == MN_ITEM_SUBMENU && item->submenu)
     {
@@ -514,6 +544,7 @@ static void ActivateItem(mn_menu_t *menu, int index, boolean mouse)
 static void MouseSelect(mn_menu_t *menu, int x, int y)
 {
     mn_page_t *page = &menu->pages[menu->page];
+    const int old_hover = menu->hover;
 
     menu->hover = -1;
 
@@ -527,12 +558,22 @@ static void MouseSelect(mn_menu_t *menu, int x, int y)
         rect.x += menu->viewport.x;
         rect.y += menu->viewport.y - page->scroll;
 
-        if (!MN_ContainerPointInside(&rect, x, y) || item->disabled)
+        if (!MN_ContainerPointInside(&rect, x, y))
         {
             continue;
         }
 
         menu->hover = IsNavigable(item) ? i : -1;
+
+        if (menu->hover >= 0)
+        {
+            menu->help_hover = menu->hover;
+
+            if (old_hover != menu->hover)
+            {
+                M_StartSound(sfx_mnusel);
+            }
+        }
 
         if (menu->hover >= 0 && item->ops && item->ops->hover)
         {
@@ -903,6 +944,7 @@ boolean MN_ContainerMouseButton(int button, boolean down)
             CancelActiveItem(menu);
             menu->page = i;
             menu->hover = -1;
+            menu->help_hover = -1;
             menu->highlight_tab = -1;
             EnsureValidSelection(menu, i);
             MN_ContainerEnsureVisible(
@@ -1001,7 +1043,7 @@ static void DrawTabs(const mn_menu_t *menu)
             V_FillRect(rect->x + video.deltaw, rect->y + MN_SPC, rect->w, 1,
                        MenuColor(CR_GOLD, false));
         }
-        else if (i == menu->highlight_tab)
+        else if (i == menu->highlight_tab && menu_input == mouse_mode)
         {
             MN_DrawStringCR(rect->x, rect->y, xlat[CR_GRAY].table,
                             xlat[CR_BRIGHT].table,  menu->pages[i].tab);
@@ -1031,7 +1073,7 @@ static void DrawItemLabel(const mn_item_t *item, const mn_draw_ctx_t *ctx,
         y += (item->height - MN_SPC) / 2;
     }
 
-    if (ctx->selected && whichSkull)
+    if (ctx->selected && whichSkull && menu_input != mouse_mode)
     {
         MN_DrawStringCR(label_x - 8, y, cr, NULL, ">");
     }
@@ -1045,11 +1087,14 @@ static void DrawItems(const mn_menu_t *menu)
     const int top = menu->viewport.y;
     const int bottom = menu->viewport.y + menu->viewport.h;
     const boolean hide_values = (menu->flags & MN_MENU_HIDE_VALUES) != 0;
+    const boolean mouse = (menu_input == mouse_mode);
 
     for (int i = 0; i < page->num_items; ++i)
     {
         mn_item_t *item = &page->items[i];
         const int y = menu->viewport.y + item->rect.y - page->scroll;
+        const boolean highlighted =
+            mouse ? (i == menu->hover) : (i == page->selected);
 
         if (y + item->rect.h <= top || y >= bottom)
         {
@@ -1077,8 +1122,8 @@ static void DrawItems(const mn_menu_t *menu)
             .h = item->rect.h,
             .value_x = value_x,
             .value_w = MAX(0, value_w),
-            .color = (i == page->selected) ? CR_BRIGHT : CR_NONE,
-            .selected = (i == page->selected || i == menu->hover),
+            .color = highlighted ? CR_BRIGHT : CR_NONE,
+            .selected = highlighted,
             .active = (item == menu->active_item),
             .disabled = item->disabled,
             .mouse_inside = (i == menu->hover),
@@ -1174,7 +1219,7 @@ static void DrawHints(const mn_menu_t *menu)
         return;
     }
 
-    mn_item_t *item = MN_ContainerSelected();
+    const mn_item_t *item = HighlightedItem(menu);
     const char *text = NULL;
 
     if (item)
@@ -1214,9 +1259,26 @@ static void DrawScrollbar(const mn_menu_t *menu)
                MenuColor(CR_GRAY, false));
 }
 
+static const char *ConfirmKeyName(boolean pad)
+{
+    return pad ? M_GetPlatformName(gamepad_confirm)
+               : M_GetNameForKey(KEY_ENTER);
+}
+
+static const char *CancelKeyName(boolean pad)
+{
+    return pad ? M_GetPlatformName(gamepad_cancel)
+               : M_GetNameForKey(KEY_ESCAPE);
+}
+
+static const char *BackKeyName(boolean pad)
+{
+    return pad ? M_GetPlatformName(gamepad_cancel)
+               : M_GetNameForKey(KEY_BACKSPACE);
+}
+
 static void DrawInstructions(const mn_menu_t *menu)
 {
-    const mn_item_t *item = MN_ContainerSelected();
     const char *text;
 
     if (menu->confirm)
@@ -1235,21 +1297,84 @@ static void DrawInstructions(const mn_menu_t *menu)
         return;
     }
 
-    if (menu->active_item)
+    if (menu_help == MENU_HELP_OFF)
     {
-        text = "Enter: accept, Esc: cancel";
+        return;
     }
-    else if (item && item->desc && menu->hint_rect.w <= 0)
+
+    const mn_item_t *item =
+        menu->active_item ? menu->active_item : HighlightedItem(menu);
+
+    if (!item)
+    {
+        return;
+    }
+
+    const boolean pad = ((menu_help == MENU_HELP_AUTO && help_input == pad_mode)
+                         || menu_help == MENU_HELP_PAD);
+    char buffer[80];
+
+    if (item->disabled)
+    {
+        M_snprintf(buffer, sizeof(buffer), "[ %s ] Back", BackKeyName(pad));
+        text = buffer;
+    }
+    else if (item->desc && menu->hint_rect.w <= 0)
     {
         text = item->desc;
     }
-    else if (HasTabs(menu))
+    else if (menu->active_item)
     {
-        text = "Up/Down: select, Left/Right: page, Enter: change";
+        switch (item->type)
+        {
+            case MN_ITEM_NUMBER:
+                text = "Enter value";
+                break;
+
+            case MN_ITEM_INPUT:
+                text = "Press key or button to bind/unbind";
+                break;
+
+            case MN_ITEM_WEAPON:
+                text = "Enter weapon number";
+                break;
+
+            default:
+                M_snprintf(buffer, sizeof(buffer),
+                           "[ Left/Right ] Choose, [ %s ] Cancel",
+                           CancelKeyName(pad));
+                text = buffer;
+                break;
+        }
     }
     else
     {
-        text = "Up/Down: select, Enter: change";
+        switch (item->type)
+        {
+            case MN_ITEM_RESET:
+                M_snprintf(buffer, sizeof(buffer), "[ %s ] Restore defaults",
+                           ConfirmKeyName(pad));
+                break;
+
+            case MN_ITEM_TOGGLE:
+                M_snprintf(buffer, sizeof(buffer), "[ %s ] Toggle",
+                           ConfirmKeyName(pad));
+                break;
+
+            case MN_ITEM_ACTION:
+            case MN_ITEM_SUBMENU:
+                M_snprintf(buffer, sizeof(buffer), "[ %s ] Select",
+                           ConfirmKeyName(pad));
+                break;
+
+            default:
+                M_snprintf(buffer, sizeof(buffer),
+                           "[ %s ] Change, [ %s ] Back",
+                           ConfirmKeyName(pad), BackKeyName(pad));
+                break;
+        }
+
+        text = buffer;
     }
 
     MN_DrawStringCR((SCREENWIDTH - MN_GetPixelWidth(text)) / 2,

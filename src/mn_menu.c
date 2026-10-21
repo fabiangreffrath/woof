@@ -2906,6 +2906,8 @@ boolean M_Responder(event_t *ev)
 
             if (MN_ContainerActive())
             {
+                MN_ResetMouseCursor();
+
                 if (M_IsMouseWheel(ev->data1.i))
                 {
                     MN_ContainerWheel(ev->data1.i == MOUSE_BUTTON_WHEELUP ? -1
@@ -2928,6 +2930,8 @@ boolean M_Responder(event_t *ev)
         case ev_mouseb_up:
             if (MN_ContainerActive())
             {
+                MN_ResetMouseCursor();
+
                 if (!M_IsMouseWheel(ev->data1.i))
                 {
                     MN_ContainerMouseMove(mouse_state_x, mouse_state_y);
@@ -2953,6 +2957,7 @@ boolean M_Responder(event_t *ev)
 
             if (MN_ContainerActive())
             {
+                MN_ResetMouseCursor();
                 MN_ContainerMouseMove(mouse_state_x, mouse_state_y);
 
                 if (ev->data1.i == EV_RESIZE_VIEWPORT)
@@ -3109,6 +3114,7 @@ boolean M_Responder(event_t *ev)
 
     if (MN_ContainerActive())
     {
+        MN_ResetMouseCursor();
         const mn_container_result_t result = MN_ContainerResponder(action, ch);
 
         if (result == MN_CONTAINER_ESCAPE)

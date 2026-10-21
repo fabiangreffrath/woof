@@ -48,6 +48,14 @@ typedef enum
     key_mode
 } menu_input_mode_t;
 
+typedef enum
+{
+    MENU_HELP_OFF,
+    MENU_HELP_AUTO,
+    MENU_HELP_KEY,
+    MENU_HELP_PAD
+} menu_help_t;
+
 typedef struct
 {
     const char *text;
@@ -69,6 +77,7 @@ extern int bigfont_priority;
 
 extern menu_input_mode_t help_input, old_help_input; // pad_mode or key_mode.
 extern menu_input_mode_t menu_input, old_menu_input;
+extern menu_help_t menu_help;
 void MN_ResetMouseCursor(void);
 
 extern boolean setup_active;

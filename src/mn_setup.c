@@ -1232,15 +1232,7 @@ static void DrawGyroCalibration(void)
 //
 // killough 8/15/98: rewritten
 
-typedef enum
-{
-    MENU_HELP_OFF,
-    MENU_HELP_AUTO,
-    MENU_HELP_KEY,
-    MENU_HELP_PAD
-} menu_help_t;
-
-static menu_help_t menu_help;
+menu_help_t menu_help;
 
 static void DrawInstructions(void)
 {

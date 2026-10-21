@@ -155,6 +155,7 @@ struct mn_menu_s
     int page;
 
     int hover;
+    int help_hover;
     mn_item_t *active_item;
     mn_item_t *drag_item;
 
