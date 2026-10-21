@@ -769,6 +769,9 @@ static void BindItem(mn_item_t *item)
         case MN_ITEM_ACTION:
             item->ops = &action_ops;
             break;
+        case MN_ITEM_SUBMENU:
+            item->ops = &action_ops;
+            break;
         case MN_ITEM_RESET:
             item->ops = &reset_ops;
             break;
@@ -816,11 +819,11 @@ static void BindItem(mn_item_t *item)
     item->disabled = !MN_OptionEnabled(item);
 }
 
-void MN_OptionsBind(void)
+static void BindMenu(mn_menu_t *menu)
 {
-    for (int i = 0; i < options_menu.num_pages; ++i)
+    for (int i = 0; i < menu->num_pages; ++i)
     {
-        mn_page_t *page = &options_menu.pages[i];
+        mn_page_t *page = &menu->pages[i];
 
         for (mn_item_t *item = page->items; item->type != MN_ITEM_END; ++item)
         {
@@ -829,17 +832,29 @@ void MN_OptionsBind(void)
     }
 }
 
-void MN_OptionsRefresh(void)
+static void RefreshMenu(mn_menu_t *menu)
 {
-    for (int i = 0; i < options_menu.num_pages; ++i)
+    for (int i = 0; i < menu->num_pages; ++i)
     {
-        mn_page_t *page = &options_menu.pages[i];
+        mn_page_t *page = &menu->pages[i];
 
         for (mn_item_t *item = page->items; item->type != MN_ITEM_END; ++item)
         {
             item->disabled = !MN_OptionEnabled(item);
         }
     }
+}
+
+void MN_OptionsBind(void)
+{
+    BindMenu(&options_root_menu);
+    BindMenu(&options_menu);
+}
+
+void MN_OptionsRefresh(void)
+{
+    RefreshMenu(&options_root_menu);
+    RefreshMenu(&options_menu);
 }
 
 void MN_OptionsResetPage(void)
@@ -900,7 +915,7 @@ void MN_OptionsOpen(void)
 {
     MN_OptionsBind();
     MN_OptionsRefresh();
-    MN_ContainerOpen(&options_menu);
+    MN_ContainerOpen(&options_root_menu);
 }
 
 void MN_OptionsOpenClassic(void)

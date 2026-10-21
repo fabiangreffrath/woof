@@ -34,6 +34,10 @@
     {.label = (lbl), .cfg = (key), .type = MN_ITEM_CHOICE, .choices = (strs), .choice_width = (w)}
 #define MN_ACTION(lbl, act) \
     {.label = (lbl), .type = MN_ITEM_ACTION, .action = (act)}
+#define MN_SUBMENU(lbl, menu) \
+    {.label = (lbl), .type = MN_ITEM_SUBMENU, .submenu = (menu)}
+#define MN_SUBMENU_STUB(lbl) \
+    {.label = (lbl), .type = MN_ITEM_SUBMENU, .flags = MN_ITEM_DISABLED}
 
 #define MN_SLIDER(lbl, key, strs, size)    \
     {.label = (lbl),                       \
@@ -190,4 +194,24 @@ mn_menu_t options_menu = {
     .background = "FLOOR4_6",
     .pages = options_pages,
     .num_pages = arrlen(options_pages),
+};
+
+static mn_item_t options_root_items[] = {
+    MN_SUBMENU("Video", &options_menu),
+    MN_SUBMENU_STUB("Audio"),
+    MN_SUBMENU_STUB("Controls"),
+    MN_SUBMENU_STUB("Gameplay"),
+    MN_END
+};
+
+static mn_page_t options_root_pages[] = {
+    {.items = options_root_items},
+};
+
+mn_menu_t options_root_menu = {
+    .title_patch = "M_OPTTTL",
+    .title_text = "OPTIONS",
+    .background = "FLOOR4_6",
+    .pages = options_root_pages,
+    .num_pages = arrlen(options_root_pages),
 };

@@ -21,6 +21,7 @@
 #include "mn_container.h"
 
 extern mn_menu_t options_menu;
+extern mn_menu_t options_root_menu;
 
 void MN_OptionsBind(void);
 void MN_OptionsRefresh(void);

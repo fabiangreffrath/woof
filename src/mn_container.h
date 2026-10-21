@@ -36,6 +36,7 @@ typedef enum
     MN_ITEM_WEAPON,
     MN_ITEM_ACTION,
     MN_ITEM_RESET,
+    MN_ITEM_SUBMENU,
     MN_ITEM_END
 } mn_item_type_t;
 
@@ -89,6 +90,7 @@ struct mn_item_s
     const char *desc;
     const char *suffix;
     void (*action)(void);
+    mn_menu_t *submenu;
     int input_id;
     int group;
 
