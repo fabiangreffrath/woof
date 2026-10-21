@@ -314,84 +314,146 @@ static boolean NumberRespond(mn_item_t *item, menu_action_t action, int ch)
     return true;
 }
 
+enum
+{
+    CHOICE_ARROW_W = 8,
+    CHOICE_PADDING = 4,
+    CHOICE_SEG_W = 8,
+    CHOICE_SEG_GAP = 2,
+    CHOICE_MIN_VISIBLE = 3,
+    CHOICE_MAX_VISIBLE = 12,
+};
+
+typedef struct
+{
+    int x;
+    int bar_x;
+    int bar_w;
+    int content_w;
+    int visible;
+    int min;
+    int max;
+    int num_choices;
+} choice_layout_t;
+
+static choice_layout_t ChoiceLayout(const mn_item_t *item)
+{
+    choice_layout_t l;
+
+    l.min = ItemMin(item);
+    l.max = ItemMax(item);
+    l.num_choices = l.max - l.min + 1;
+    l.visible = CLAMP(l.num_choices, CHOICE_MIN_VISIBLE, CHOICE_MAX_VISIBLE);
+
+    const int text_area_w =
+        MAX(item->choice_width > 0 ? item->choice_width * 8 : l.num_choices * 8,
+            CHOICE_MIN_VISIBLE * 8);
+
+    l.bar_w = l.visible * CHOICE_SEG_W + (l.visible - 1) * CHOICE_SEG_GAP;
+    l.content_w = MAX(text_area_w, l.bar_w);
+    l.x = item->draw_value_x + item->draw_value_w
+          - (CHOICE_ARROW_W * 2 + CHOICE_PADDING * 2 + l.content_w);
+    l.bar_x =
+        l.x + CHOICE_ARROW_W + CHOICE_PADDING + (l.content_w - l.bar_w) / 2;
+
+    return l;
+}
+
+static const char *ChoiceText(const mn_item_t *item, int value)
+{
+    static char buffer[32];
+
+    if (item->choices && value >= 0 && value < item->num_choices)
+    {
+        return item->choices[value];
+    }
+
+    M_snprintf(buffer, sizeof(buffer), "%d", value);
+    return buffer;
+}
+
+static int ChoiceStep(const mn_item_t *item, boolean right)
+{
+    const int value = MN_OptionValue(item);
+    const int min = ItemMin(item);
+    const int max = ItemMax(item);
+
+    return right ? (value >= max ? min : value + 1)
+                 : (value <= min ? max : value - 1);
+}
+
+static void ChoiceApplyValue(mn_item_t *item, int value)
+{
+    if (*item->def->location.i != value)
+    {
+        *item->def->location.i = value;
+        M_StartSound(sfx_mnusli);
+        MN_ContainerItemChanged(item);
+    }
+}
+
+// Locates the mouse inside the widget. Returns false when outside of it.
+static boolean ChoiceHitTest(const mn_item_t *item, int mouse_x, int *arrow,
+                             int *segment)
+{
+    const choice_layout_t l = ChoiceLayout(item);
+    int rel_x = mouse_x - video.deltaw - l.x;
+
+    *arrow = -1;
+    *segment = -1;
+
+    if (rel_x >= 0 && rel_x < CHOICE_ARROW_W + CHOICE_PADDING)
+    {
+        *arrow = 0;
+        return true;
+    }
+
+    rel_x -= CHOICE_ARROW_W + CHOICE_PADDING;
+
+    if (rel_x >= 0 && rel_x < l.content_w)
+    {
+        const int bar_rel_x = rel_x - (l.content_w - l.bar_w) / 2;
+
+        if (bar_rel_x >= 0 && bar_rel_x < l.bar_w)
+        {
+            *segment = bar_rel_x / (CHOICE_SEG_W + CHOICE_SEG_GAP);
+        }
+
+        return true;
+    }
+
+    rel_x -= l.content_w + CHOICE_PADDING;
+
+    if (rel_x >= 0 && rel_x < CHOICE_ARROW_W + CHOICE_PADDING)
+    {
+        *arrow = 1;
+        return true;
+    }
+
+    return false;
+}
+
 static void ChoiceHover(mn_item_t *item, int mouse_x, int mouse_y)
 {
-    const int num_choices = ItemMax(item) - ItemMin(item) + 1;
-
-    const int arrow_w = 8;
-    const int padding = 4;
-    const int seg_w = 8;
-    const int seg_gap = 2;
-
-    int visible_choices = CLAMP(num_choices, 3, 12);
-
-    int text_area_w =
-        (item->choice_width > 0) ? item->choice_width * 8 : num_choices * 8;
-    text_area_w = MAX(text_area_w, 3 * 8);
-
-    const int bar_w = visible_choices * seg_w + (visible_choices - 1) * seg_gap;
-    const int content_w = MAX(text_area_w, bar_w);
-    const int total_w = arrow_w * 2 + padding * 2 + content_w;
-
-    int x = item->draw_value_x + item->draw_value_w - total_w;
-
-    int rel_x = mouse_x - video.deltaw - x;
-
-    if (rel_x >= 0 && rel_x < arrow_w + padding)
-    {
-        item->hover_arrow = 0;
-        return;
-    }
-
-    rel_x -= arrow_w + padding;
-    if (rel_x >= 0 && rel_x < content_w)
-    {
-        int rel_bar_x = rel_x - (content_w - bar_w) / 2;
-        if (rel_bar_x >= 0 && rel_bar_x < bar_w)
-        {
-            int idx = rel_bar_x / (seg_w + seg_gap);
-            if (idx >= 0 && idx < visible_choices)
-            {
-                item->hover_segment = idx;
-            }
-        }
-        return;
-    }
-
-    rel_x -= content_w + padding;
-    if (rel_x >= 0 && rel_x < arrow_w + padding)
-    {
-        item->hover_arrow = 1;
-    }
+    ChoiceHitTest(item, mouse_x, &item->hover_arrow, &item->hover_segment);
 }
 
 static void ChoiceDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
 {
     const int value = MN_OptionValue(item);
-    const int min = ItemMin(item);
-    const int max = ItemMax(item);
-    const int num_choices = max - min + 1;
-
-    const int arrow_w = 8;
-    const int padding = 4;
-    const int seg_w = 8;
-    const int seg_gap = 2;
-    const int seg_h = 1;
-
-    int text_area_w =
-        item->choice_width > 0 ? item->choice_width * 8 : num_choices * 8;
-    text_area_w = MAX(text_area_w, 3 * 8);
-
-    int visible_choices = num_choices;
-    visible_choices = CLAMP(visible_choices, 3, 12);
-
-    boolean is_hovering_segment =
-        (item->hover_segment >= 0 && item->hover_segment < visible_choices);
+    const choice_layout_t l = ChoiceLayout(item);
+    const int content_x = l.x + CHOICE_ARROW_W + CHOICE_PADDING;
+    const int y = ctx->y;
+    const boolean left_hover = (item->hover_arrow == 0);
+    const boolean right_hover = (item->hover_arrow == 1);
+    byte *cr = ValueColor(ctx);
 
     const char *current_text = NULL;
-    if (is_hovering_segment && item->choices)
+    if (item->hover_segment >= 0 && item->hover_segment < l.visible
+        && item->choices)
     {
-        int hover_idx = min + item->hover_segment;
+        const int hover_idx = l.min + item->hover_segment;
+
         if (hover_idx >= 0 && hover_idx < item->num_choices)
         {
             current_text = item->choices[hover_idx];
@@ -400,60 +462,29 @@ static void ChoiceDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
 
     if (!current_text)
     {
-        if (item->choices && value >= 0 && value < item->num_choices)
-        {
-            current_text = item->choices[value];
-        }
-        else
-        {
-            static char buffer[32];
-            M_snprintf(buffer, sizeof(buffer), "%d", value);
-            current_text = buffer;
-        }
+        current_text = ChoiceText(item, value);
     }
 
-    const int text_w = MN_GetPixelWidth(current_text);
-    const int bar_w = visible_choices * seg_w + (visible_choices - 1) * seg_gap;
-    const int content_w = MAX(text_area_w, bar_w);
-    const int total_w = arrow_w * 2 + padding * 2 + content_w;
+    MN_DrawStringCR(l.x, y,
+                    left_hover ? xlat[CR_GRAY].table : xlat[CR_GREEN].table,
+                    left_hover ? NULL : cr, "<");
 
-    int x = ctx->value_x + ctx->value_w - total_w;
-    const int y = ctx->y;
-    byte *cr = ValueColor(ctx);
+    MN_DrawStringCR(content_x
+                        + (l.content_w - MN_GetPixelWidth(current_text)) / 2,
+                    y, xlat[CR_GREEN].table, cr, current_text);
 
-    boolean left_hover = (item->hover_arrow == 0);
-    boolean right_hover = (item->hover_arrow == 1);
+    const byte dark = cr_dark[playpal_global->white];
+    const byte shade = cr_shaded[playpal_global->white];
 
-    if (left_hover)
+    for (int i = 0; i < l.visible; ++i)
     {
-        MN_DrawStringCR(x, y, xlat[CR_GRAY].table, NULL, "<");
-    }
-    else
-    {
-        MN_DrawStringCR(x, y, xlat[CR_GREEN].table, cr, "<");
-    }
-    x += arrow_w + padding;
-
-    int text_x = x + (content_w - text_w) / 2;
-    MN_DrawStringCR(text_x, y, xlat[CR_GREEN].table, cr, current_text);
-
-    int bar_x = x + (content_w - bar_w) / 2;
-    int bar_y = y + MN_SPC;
-
-    for (int i = 0; i < visible_choices; ++i)
-    {
-        int choice_idx = min + i;
-        boolean is_current = (choice_idx == value);
-        boolean is_hover = (item->hover_segment == i);
-
         byte seg_color;
-        const byte dark = cr_dark[playpal_global->white];
-        const byte shade = cr_shaded[playpal_global->white];
-        if (is_current)
+
+        if (l.min + i == value)
         {
             seg_color = xlat[CR_WHITE].table[shade];
         }
-        else if (is_hover)
+        else if (item->hover_segment == i)
         {
             seg_color = xlat[CR_WHITE].table[playpal_global->white];
         }
@@ -466,19 +497,13 @@ static void ChoiceDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
             seg_color = xlat[CR_GREEN].table[shade];
         }
 
-        V_FillRect(bar_x + video.deltaw, bar_y, seg_w, seg_h, seg_color);
-        bar_x += seg_w + seg_gap;
+        V_FillRect(l.bar_x + i * (CHOICE_SEG_W + CHOICE_SEG_GAP) + video.deltaw,
+                   y + MN_SPC, CHOICE_SEG_W, 1, seg_color);
     }
 
-    x += content_w + padding;
-    if (right_hover)
-    {
-        MN_DrawStringCR(x, y, xlat[CR_GRAY].table, NULL, ">");
-    }
-    else
-    {
-        MN_DrawStringCR(x, y, xlat[CR_GREEN].table, cr, ">");
-    }
+    MN_DrawStringCR(content_x + l.content_w + CHOICE_PADDING, y,
+                    right_hover ? xlat[CR_GRAY].table : xlat[CR_GREEN].table,
+                    right_hover ? NULL : cr, ">");
 }
 
 static boolean ChoiceRespond(mn_item_t *item, menu_action_t action, int ch)
@@ -495,18 +520,7 @@ static boolean ChoiceRespond(mn_item_t *item, menu_action_t action, int ch)
         return false;
     }
 
-    int value = MN_OptionValue(item);
-    const int min = ItemMin(item);
-    const int max = ItemMax(item);
-
-    if (action == MENU_RIGHT)
-    {
-        value = (value >= max) ? min : value + 1;
-    }
-    else
-    {
-        value = (value <= min) ? max : value - 1;
-    }
+    const int value = ChoiceStep(item, action == MENU_RIGHT);
 
     if (*item->def->location.i != value)
     {
@@ -518,80 +532,26 @@ static boolean ChoiceRespond(mn_item_t *item, menu_action_t action, int ch)
     return true;
 }
 
-static int ChoiceArrowValue(int value, int min, int max, boolean right)
-{
-    return right ? ((value >= max) ? min : value + 1)
-                 : ((value <= min) ? max : value - 1);
-}
-
-static void ChoiceApplyValue(mn_item_t *item, int new_value)
-{
-    if (*item->def->location.i != new_value)
-    {
-        *item->def->location.i = new_value;
-        M_StartSound(sfx_mnusli);
-        MN_ContainerItemChanged(item);
-    }
-}
-
 static boolean ChoiceClick(mn_item_t *item, int mouse_x, int mouse_y)
 {
-    const int value = MN_OptionValue(item);
-    const int min = ItemMin(item);
-    const int max = ItemMax(item);
-    const int num_choices = max - min + 1;
+    int arrow;
+    int segment;
 
-    const int arrow_w = 8;
-    const int padding = 4;
-    const int seg_w = 8;
-    const int seg_gap = 2;
-
-    int visible_choices = CLAMP(num_choices, 3, 12);
-
-    int text_area_w =
-        (item->choice_width > 0) ? item->choice_width * 8 : num_choices * 8;
-    text_area_w = MAX(text_area_w, 3 * 8);
-
-    const int bar_w = visible_choices * seg_w + (visible_choices - 1) * seg_gap;
-    const int content_w = MAX(text_area_w, bar_w);
-    const int total_w = arrow_w * 2 + padding * 2 + content_w;
-
-    int x = item->draw_value_x + item->draw_value_w - total_w;
-    int rel_x = mouse_x - video.deltaw - x;
-
-    if (rel_x >= 0 && rel_x < arrow_w + padding)
+    if (!ChoiceHitTest(item, mouse_x, &arrow, &segment))
     {
-        ChoiceApplyValue(item, ChoiceArrowValue(value, min, max, false));
-        return true;
+        return false;
     }
 
-    rel_x -= arrow_w + padding;
-    if (rel_x >= 0 && rel_x < content_w)
+    if (arrow >= 0)
     {
-        int bar_x = x + arrow_w + padding + (content_w - bar_w) / 2;
-        int rel_bar_x = mouse_x - video.deltaw - bar_x;
-
-        if (rel_bar_x >= 0 && rel_bar_x < bar_w)
-        {
-            int idx = rel_bar_x / (seg_w + seg_gap);
-            if (idx >= 0 && idx < visible_choices)
-            {
-                int new_value = min + idx;
-                if (new_value > max) new_value = max;
-                ChoiceApplyValue(item, new_value);
-            }
-        }
-        return true;
+        ChoiceApplyValue(item, ChoiceStep(item, arrow == 1));
+    }
+    else if (segment >= 0)
+    {
+        ChoiceApplyValue(item, MIN(ItemMin(item) + segment, ItemMax(item)));
     }
 
-    rel_x -= content_w + padding;
-    if (rel_x >= 0 && rel_x < arrow_w + padding)
-    {
-        ChoiceApplyValue(item, ChoiceArrowValue(value, min, max, true));
-        return true;
-    }
-
-    return false;
+    return true;
 }
 
 static void DrawThermo(const mn_item_t *item, const mn_draw_ctx_t *ctx)
