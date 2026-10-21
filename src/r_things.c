@@ -415,7 +415,38 @@ THREADLOCAL int   *mceilingclip; // [FG] 32-bit integer math
 THREADLOCAL fixed_t spryscale;
 THREADLOCAL int64_t sprtopscreen; // [FG] 64-bit integer math
 
-void R_DrawMaskedColumn(column_t *column)
+static THREADLOCAL boolean can_copy_column;
+static THREADLOCAL int copy_column_x;
+static THREADLOCAL int copy_column_yl, copy_column_yh;
+// [Alaux] Unclipped screen coordinates for last drawn column
+static THREADLOCAL int copy_column_uyl, copy_column_uyh;
+
+// [Alaux]
+static boolean CopyLastColumn(void)
+{
+  const int
+    yl = MAX(copy_column_uyl, mceilingclip[dc_x] + 1),
+    yh = MIN(copy_column_uyh, mfloorclip[dc_x]   - 1);
+
+  if (yl < copy_column_yl || copy_column_yh < yh)
+  {
+    // The target range exceeds the last drawn column's range
+    return false;
+  }
+
+  if (yl <= yh)
+  {
+    memcpy(
+      xlookup[dc_x] + rowofs[yl],
+      xlookup[copy_column_x] + rowofs[yl],
+      yh - yl + 1
+    );
+  }
+
+  return true;
+}
+
+void R_DrawMaskedColumn(column_t *column, const boolean try_copy_column)
 {
   int64_t topscreen, bottomscreen; // [FG] 64-bit integer math
   fixed_t basetexturemid = dc_texturemid;
@@ -423,30 +454,65 @@ void R_DrawMaskedColumn(column_t *column)
 
   dc_texheight = 0; // killough 11/98
 
+  int num_posts = 0;
+  copy_column_x = dc_x;
+
   while (column->topdelta != 0xff)
     {
       // [FG] support for tall sprites in DeePsea format
       if (column->topdelta <= top)
       {
-            top += column->topdelta;
+        top += column->topdelta;
       }
       else
       {
-            top = column->topdelta;
+        top = column->topdelta;
       }
+
       // calculate unclipped screen coordinates for post
-      topscreen = sprtopscreen + spryscale*top;
-      bottomscreen = topscreen + spryscale*column->length;
+      topscreen = sprtopscreen + spryscale * top;
+      bottomscreen = topscreen + spryscale * column->length;
 
       // Here's where "sparkles" come in -- killough:
-      dc_yl = (int)((topscreen+FRACMASK)>>FRACBITS); // [FG] 64-bit integer math
-      dc_yh = (int)((bottomscreen-1)>>FRACBITS); // [FG] 64-bit integer math
+      dc_yl = (int) ((topscreen + FRACMASK) >> FRACBITS); // [FG] 64-bit integer math
+      dc_yh = (int) ((bottomscreen - 1) >> FRACBITS); // [FG] 64-bit integer math
+
+      const int uyl = dc_yl, uyh = dc_yh;
 
       if (dc_yh >= mfloorclip[dc_x])
         dc_yh = mfloorclip[dc_x]-1;
 
       if (dc_yl <= mceilingclip[dc_x])
         dc_yl = mceilingclip[dc_x]+1;
+
+      if (try_copy_column)
+      {
+        // [Alaux] Only copy columns with contiguous posts
+        if (++num_posts == 1)
+        {
+          copy_column_yl = dc_yl;
+          copy_column_yh = dc_yh;
+
+          copy_column_uyl = uyl;
+          copy_column_uyh = uyh;
+
+          can_copy_column = true;
+        }
+        else if (can_copy_column)
+        {
+          if (uyl - copy_column_uyh <= 1)
+          {
+            // Contiguous posts
+            copy_column_yh = dc_yh;
+            copy_column_uyh = uyh;
+          }
+          else
+          {
+            // Non-contiguous posts
+            can_copy_column = false;
+          }
+        }
+      }
 
       // killough 3/2/98, 3/27/98: Failsafe against overflow/crash:
       if (dc_yl <= dc_yh && dc_yh < viewheight)
@@ -458,8 +524,10 @@ void R_DrawMaskedColumn(column_t *column)
           //  or (SHADOW) R_DrawFuzzColumn.
           colfunc();
         }
-      column = (column_t *)((byte *) column + column->length + 4);
+
+      column = (column_t *) ((byte *) column + column->length + 4);
     }
+
   dc_texturemid = basetexturemid;
 }
 
@@ -530,6 +598,12 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
   spryscale = vis->scale;
   sprtopscreen = centeryfrac - FixedMul(dc_texturemid,spryscale);
 
+  // [Alaux] Try copying columns of opaque sprites with 10% or more repetition
+  const boolean try_copy_column =
+    dc_iscale <= FRACUNIT*9/10 && vis->colormap[0] && !tranmap;
+
+  int lastcolumn = -1;
+
   for (dc_x=vis->x1 ; dc_x<=vis->x2 ; dc_x++, frac += vis->xiscale)
     {
       texturecolumn = frac>>FRACBITS;
@@ -539,9 +613,20 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
       else if (texturecolumn >= SHORT(patch->width))
         break;
 
+      if (try_copy_column && lastcolumn == texturecolumn && can_copy_column)
+      {
+        if (CopyLastColumn())
+        {
+          continue;
+        }
+      }
+
+      lastcolumn = texturecolumn;
+
       column = (column_t *)((byte *) patch +
                             LONG(patch->columnofs[texturecolumn]));
-      R_DrawMaskedColumn (column);
+
+      R_DrawMaskedColumn (column, try_copy_column);
     }
   colfunc = R_DrawColumn;         // killough 3/14/98
 }

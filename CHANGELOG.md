@@ -1,8 +1,5 @@
 ## New Features and Improvements
 
-* **Renderer**
-  - Adapt multithread renderer from Rum and Raisin Doom. Effective at high resolutions, expect 2-4 times performance increase on multicore CPU.
-
 * **Mod Support:**
   - Add support for optional menu and intermission sounds.
   - Add support for ambient sound definitions by SNDINFO lumps.
@@ -34,10 +31,11 @@
   - Add "Native MIDI Reset Type" to General->Audio->Music menu.
 
 * **Rendering:**
+  - Adapt multithread renderer from Rum and Raisin Doom. Effective at high resolutions, expect 2-4 times performance increase on multicore CPU.
   - Improved palettization of PNG graphics, and general color approximation in the engine.
   - Implemented transposed rendering for improved rendering performance in general.
+  - Optimized rendering of sprites near the camera.
   - Added "Cylindrical" sky projection as a third option besides "Vanilla" and "Linear" (from Nugget Doom).
-  - Improved performance of brightmapped rendering (thanks @bangstk).
 
 * **Multiplayer:**
   - Implemented rollback netcode: Processes local inputs instantly and predicts opponent actions, automatically rewinding and correcting the game state if a prediction is incorrect.
