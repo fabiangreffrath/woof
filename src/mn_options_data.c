@@ -192,6 +192,7 @@ mn_menu_t options_menu = {
     .title_patch = "M_OPTTTL",
     .title_text = "OPTIONS",
     .background = "FLOOR4_6",
+    .flags = MN_MENU_HINTS,
     .pages = options_pages,
     .num_pages = arrlen(options_pages),
 };
@@ -212,6 +213,8 @@ mn_menu_t options_root_menu = {
     .title_patch = "M_OPTTTL",
     .title_text = "OPTIONS",
     .background = "FLOOR4_6",
+    .flags = MN_MENU_CENTER | MN_MENU_HIDE_VALUES,
+    .item_spacing = 6,
     .pages = options_root_pages,
     .num_pages = arrlen(options_root_pages),
 };

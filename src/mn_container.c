@@ -16,6 +16,7 @@
 //
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "doomdef.h"
 #include "doomkeys.h"
@@ -106,6 +107,7 @@ static void LayoutPage(mn_menu_t *menu, mn_page_t *page)
 {
     int y = 0;
     int count = 0;
+    int label_width = 0;
 
     for (mn_item_t *item = page->items; item->type != MN_ITEM_END; ++item)
     {
@@ -128,12 +130,35 @@ static void LayoutPage(mn_menu_t *menu, mn_page_t *page)
         item->rect.w = menu->viewport.w;
         item->rect.h = height;
 
+        if (item->type != MN_ITEM_TITLE)
+        {
+            label_width = MAX(label_width, MN_GetPixelWidth(item->label));
+        }
+
         y += height;
+
+        if ((item + 1)->type != MN_ITEM_END)
+        {
+            y += menu->item_spacing;
+        }
+
         count++;
     }
 
     page->num_items = count;
     page->content_h = y;
+    page->label_width = label_width;
+
+    if ((menu->flags & MN_MENU_CENTER) && y < menu->viewport.h)
+    {
+        const int offset = (menu->viewport.h - y) / 2;
+
+        for (int i = 0; i < count; ++i)
+        {
+            page->items[i].rect.y += offset;
+        }
+    }
+
     ClampScroll(menu, page);
 }
 
@@ -165,7 +190,7 @@ static void LayoutTabs(mn_menu_t *menu)
         total += width;
     }
 
-    int x = (SCREENWIDTH - total) / 2;
+    int x = menu->viewport.x + (menu->viewport.w - total) / 2;
 
     for (int i = 0; i < menu->num_pages && i < MN_MAX_TABS; ++i)
     {
@@ -180,15 +205,32 @@ static void LayoutTabs(mn_menu_t *menu)
         x += width;
     }
 
-    menu->tabbar = (mrect_t){0, 22, SCREENWIDTH, MN_SPC};
+    menu->tabbar = (mrect_t){menu->viewport.x, 22, menu->viewport.w, MN_SPC};
 }
 
 static void LayoutMenu(mn_menu_t *menu)
 {
     const int top = HasTabs(menu) ? 40 : 30;
+    const int height = SCREENHEIGHT - top - 20;
 
-    menu->viewport =
-        (mrect_t){24, top, SCREENWIDTH - 48, SCREENHEIGHT - top - 20};
+    // Coordinates are logical: the whole widescreen width is available,
+    // with the non-widescreen part centered by video.deltaw.
+    const int left = 24 - video.deltaw;
+    int width = (video.unscaledw > 0 ? video.unscaledw : SCREENWIDTH) - 48;
+
+    menu->hint_rect = (mrect_t){0};
+
+    if ((menu->flags & MN_MENU_HINTS) && video.deltaw > 0)
+    {
+        const int gap = 16;
+        const int hint_w = MAX(96, width / 3);
+
+        menu->hint_rect =
+            (mrect_t){left + width - hint_w, top, hint_w, height};
+        width -= hint_w + gap;
+    }
+
+    menu->viewport = (mrect_t){left, top, width, height};
 
     LayoutTabs(menu);
 
@@ -971,7 +1013,8 @@ static void DrawTabs(const mn_menu_t *menu)
     }
 }
 
-static void DrawItemLabel(const mn_item_t *item, const mn_draw_ctx_t *ctx)
+static void DrawItemLabel(const mn_item_t *item, const mn_draw_ctx_t *ctx,
+                          int label_x)
 {
     if (item->type == MN_ITEM_TITLE)
     {
@@ -990,10 +1033,10 @@ static void DrawItemLabel(const mn_item_t *item, const mn_draw_ctx_t *ctx)
 
     if (ctx->selected && whichSkull)
     {
-        MN_DrawStringCR(ctx->x - 8, y, cr, NULL, ">");
+        MN_DrawStringCR(label_x - 8, y, cr, NULL, ">");
     }
 
-    MN_DrawStringCR(ctx->x, y, cr, NULL, item->label);
+    MN_DrawStringCR(label_x, y, cr, NULL, item->label);
 }
 
 static void DrawItems(const mn_menu_t *menu)
@@ -1001,6 +1044,7 @@ static void DrawItems(const mn_menu_t *menu)
     const mn_page_t *page = &menu->pages[menu->page];
     const int top = menu->viewport.y;
     const int bottom = menu->viewport.y + menu->viewport.h;
+    const boolean hide_values = (menu->flags & MN_MENU_HIDE_VALUES) != 0;
 
     for (int i = 0; i < page->num_items; ++i)
     {
@@ -1013,9 +1057,14 @@ static void DrawItems(const mn_menu_t *menu)
         }
 
         const int x = menu->viewport.x;
-        const int label_w = MN_GetPixelWidth(item->label);
+        const int label_w = (menu->flags & MN_MENU_CENTER)
+                                ? page->label_width
+                                : MN_GetPixelWidth(item->label);
+        const int label_x = (menu->flags & MN_MENU_CENTER)
+                                ? x + (item->rect.w - page->label_width) / 2
+                                : x;
         const int value_x =
-            MIN(x + MAX(label_w + 12, 120), x + item->rect.w - 48);
+            MIN(label_x + MAX(label_w + 12, 120), x + item->rect.w - 48);
         const int value_w = x + item->rect.w - value_x;
 
         item->draw_value_x = value_x;
@@ -1035,12 +1084,113 @@ static void DrawItems(const mn_menu_t *menu)
             .mouse_inside = (i == menu->hover),
         };
 
-        DrawItemLabel(item, &ctx);
+        DrawItemLabel(item, &ctx, label_x);
 
-        if (item->ops && item->ops->draw)
+        if (!hide_values && item->ops && item->ops->draw)
         {
             item->ops->draw(item, &ctx);
         }
+    }
+}
+
+static void DrawWrappedText(int x, int y, int width, const char *text)
+{
+    const int line_h = MN_StringHeight("X") + 1;
+    char line[256];
+    int len = 0;
+
+    while (*text)
+    {
+        if (*text == '\n')
+        {
+            line[len] = '\0';
+            MN_DrawString(x, y, CR_GRAY, line);
+            y += line_h;
+            len = 0;
+            text++;
+            continue;
+        }
+
+        if (*text == ' ')
+        {
+            text++;
+            continue;
+        }
+
+        const char *word = text;
+
+        while (*text && *text != ' ' && *text != '\n')
+        {
+            text++;
+        }
+
+        int word_len = text - word;
+
+        char probe[256];
+        int probe_len = 0;
+
+        if (len)
+        {
+            memcpy(probe, line, len);
+            probe_len = len;
+            probe[probe_len++] = ' ';
+        }
+
+        if (probe_len + word_len >= (int)sizeof(probe))
+        {
+            word_len = (int)sizeof(probe) - probe_len - 1;
+        }
+
+        memcpy(probe + probe_len, word, word_len);
+        probe_len += word_len;
+        probe[probe_len] = '\0';
+
+        if (len && MN_GetPixelWidth(probe) > width)
+        {
+            line[len] = '\0';
+            MN_DrawString(x, y, CR_GRAY, line);
+            y += line_h;
+            memcpy(line, word, word_len);
+            len = word_len;
+        }
+        else
+        {
+            memcpy(line, probe, probe_len);
+            len = probe_len;
+        }
+    }
+
+    if (len)
+    {
+        line[len] = '\0';
+        MN_DrawString(x, y, CR_GRAY, line);
+    }
+}
+
+static void DrawHints(const mn_menu_t *menu)
+{
+    if (menu->hint_rect.w <= 0)
+    {
+        return;
+    }
+
+    mn_item_t *item = MN_ContainerSelected();
+    const char *text = NULL;
+
+    if (item)
+    {
+        text = item->desc;
+
+        if (!text && item->def)
+        {
+            text = item->def->help;
+        }
+    }
+
+    if (text)
+    {
+        DrawWrappedText(menu->hint_rect.x, menu->hint_rect.y,
+                        menu->hint_rect.w, text);
     }
 }
 
@@ -1089,7 +1239,7 @@ static void DrawInstructions(const mn_menu_t *menu)
     {
         text = "Enter: accept, Esc: cancel";
     }
-    else if (item && item->desc)
+    else if (item && item->desc && menu->hint_rect.w <= 0)
     {
         text = item->desc;
     }
@@ -1140,6 +1290,7 @@ void MN_ContainerDrawer(void)
 
     V_SetClipY(menu->viewport.y, menu->viewport.y + menu->viewport.h);
     DrawItems(menu);
+    DrawHints(menu);
     V_ResetClipY();
 
     UpdateScrollbar(menu);

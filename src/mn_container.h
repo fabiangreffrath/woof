@@ -25,6 +25,13 @@
 #define MN_SPC      9
 #define MN_MAX_TABS 16
 
+enum
+{
+    MN_MENU_CENTER = (1u << 0),
+    MN_MENU_HIDE_VALUES = (1u << 1),
+    MN_MENU_HINTS = (1u << 2),
+};
+
 typedef enum
 {
     MN_ITEM_TITLE,
@@ -131,6 +138,7 @@ struct mn_page_s
     int scroll;
     int scroll_target;
     int content_h;
+    int label_width;
     void (*refresh)(void);
 };
 
@@ -139,6 +147,8 @@ struct mn_menu_s
     const char *title_patch;
     const char *title_text;
     const char *background;
+    unsigned flags;
+    int item_spacing;
 
     mn_page_t *pages;
     int num_pages;
@@ -150,6 +160,7 @@ struct mn_menu_s
 
     mrect_t tabbar;
     mrect_t viewport;
+    mrect_t hint_rect;
     mrect_t tab_rects[MN_MAX_TABS];
 
     int highlight_tab;
