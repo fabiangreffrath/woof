@@ -23,6 +23,7 @@
 #include "g_game.h"
 #include "i_oalequalizer.h"
 #include "i_oalsound.h"
+#include "i_input.h"
 #include "i_sound.h"
 #include "i_system.h"
 #include "i_video.h"
@@ -714,14 +715,155 @@ static boolean ResetRespond(mn_item_t *item, menu_action_t action, int ch)
     return false;
 }
 
+static void AppendText(char *buffer, int size, int *offset, const char *text)
+{
+    if (!text || *offset >= size - 1)
+    {
+        return;
+    }
+
+    int len = strlen(text);
+
+    if (*offset + len > size - 1)
+    {
+        len = size - 1 - *offset;
+    }
+
+    memcpy(buffer + *offset, text, len);
+    *offset += len;
+    buffer[*offset] = '\0';
+}
+
 static void InputDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
 {
-    DrawValueString(ctx, "N/A");
+    const input_t *inputs = M_Input(item->input_id);
+    const int count = array_size(inputs);
+    char buffer[128];
+    int offset = 0;
+
+    buffer[0] = '\0';
+
+    for (int i = 0; i < count; ++i)
+    {
+        const char *name = NULL;
+        char key_name[2] = {0, 0};
+        int key = inputs[i].value;
+
+        switch (inputs[i].type)
+        {
+            case INPUT_KEY:
+                if (key >= 33 && key <= 126)
+                {
+                    // Match the legacy display of shifted key names.
+                    switch (key)
+                    {
+                        case '=':
+                            key = '+';
+                            break;
+                        case ',':
+                            key = '<';
+                            break;
+                        case '.':
+                            key = '>';
+                            break;
+                        case '`':
+                            key = '\'';
+                            break;
+                        default:
+                            break;
+                    }
+
+                    key_name[0] = key;
+                    name = key_name;
+                }
+                else
+                {
+                    name = M_GetNameForKey(key);
+                }
+                break;
+
+            case INPUT_MOUSEB:
+                name = M_GetNameForMouseB(key);
+                break;
+
+            case INPUT_JOYB:
+                name = M_GetPlatformName(key);
+                break;
+
+            default:
+                break;
+        }
+
+        if (!name)
+        {
+            continue;
+        }
+
+        if (offset > 0)
+        {
+            AppendText(buffer, sizeof(buffer), &offset, " + ");
+        }
+
+        AppendText(buffer, sizeof(buffer), &offset, name);
+    }
+
+    if (offset == 0)
+    {
+        M_snprintf(buffer, sizeof(buffer), "NONE");
+    }
+
+    DrawValueString(ctx, buffer);
 }
 
 static boolean InputRespond(mn_item_t *item, menu_action_t action, int ch)
 {
-    MN_ContainerEndEdit();
+    if (!item->gathering)
+    {
+        if (action == MENU_CLEAR)
+        {
+            M_InputReset(item->input_id);
+            return true;
+        }
+
+        if (action == MENU_ENTER)
+        {
+            item->gathering = true;
+            return true;
+        }
+
+        MN_ContainerEndEdit();
+        return true;
+    }
+
+    if (action == MENU_ESCAPE)
+    {
+        item->gathering = false;
+        MN_ContainerEndEdit();
+        return true;
+    }
+
+    if (MN_ContainerBindInput(item))
+    {
+        item->gathering = false;
+        MN_ContainerEndEdit();
+    }
+
+    return true;
+}
+
+static boolean InputClick(mn_item_t *item, int x, int y)
+{
+    if (!item->gathering)
+    {
+        return false;
+    }
+
+    if (MN_ContainerBindInput(item))
+    {
+        item->gathering = false;
+        MN_ContainerEndEdit();
+    }
+
     return true;
 }
 
@@ -759,7 +901,8 @@ static const mn_item_ops_t slider_ops = {SliderDraw, SliderRespond,
                                          .drag = SliderDrag};
 static const mn_item_ops_t action_ops = {ActionDraw, ActionRespond};
 static const mn_item_ops_t reset_ops =  {ResetDraw, ResetRespond};
-static const mn_item_ops_t input_ops =  {InputDraw, InputRespond};
+static const mn_item_ops_t input_ops =  {InputDraw, InputRespond,
+                                        .click = InputClick};
 static const mn_item_ops_t weapon_ops = {WeaponDraw, WeaponRespond};
 
 static void BindItem(mn_item_t *item)
@@ -860,20 +1003,24 @@ static void RefreshMenu(mn_menu_t *menu)
 
 void MN_OptionsBind(void)
 {
-    BindMenu(&options_root_menu);
+    BindMenu(&options_menu);
     BindMenu(&display_menu);
     BindMenu(&video_menu);
     BindMenu(&audio_menu);
     BindMenu(&equalizer_menu);
+    BindMenu(&controls_menu);
+    BindMenu(&input_bindings_menu);
 }
 
 void MN_OptionsRefresh(void)
 {
-    RefreshMenu(&options_root_menu);
+    RefreshMenu(&options_menu);
     RefreshMenu(&display_menu);
     RefreshMenu(&video_menu);
     RefreshMenu(&audio_menu);
     RefreshMenu(&equalizer_menu);
+    RefreshMenu(&controls_menu);
+    RefreshMenu(&input_bindings_menu);
 }
 
 static void OptionsResetPage(void)
@@ -934,7 +1081,7 @@ void MN_OptionsOpen(void)
 {
     MN_OptionsBind();
     MN_OptionsRefresh();
-    MN_ContainerOpen(&options_root_menu);
+    MN_ContainerOpen(&options_menu);
 }
 
 void MN_OptionsUpdateSfxVolume(void)
@@ -1112,7 +1259,7 @@ void MN_UpdateFreeLook(void)
     }
 }
 
-static void UpdateFreeLookMode(void)
+void MN_OptionsUpdateFreeLookMode(void)
 {
     switch (freelook_mode)
     {
@@ -1131,6 +1278,17 @@ static void UpdateFreeLookMode(void)
     }
 
     MN_UpdateFreeLook();
+}
+
+void MN_GetGamepadDeviceStrings(mn_item_t *item)
+{
+    item->choices = I_GamepadDeviceList();
+    item->num_choices = array_size(item->choices);
+}
+
+void MN_OptionsUpdateGamepadDevice(void)
+{
+    I_UpdateGamepadDevice(menu_input == pad_mode);
 }
 
 void MN_BindOptionsVariables(void)

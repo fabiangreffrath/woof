@@ -782,6 +782,51 @@ void MN_ContainerItemChanged(mn_item_t *item)
     }
 }
 
+boolean MN_ContainerBindInput(mn_item_t *item)
+{
+    if (!item || !item->input_id)
+    {
+        return false;
+    }
+
+    // Pressing an input already bound to this action unbinds it.
+    if (M_InputActivated(item->input_id))
+    {
+        M_InputRemoveActivated(item->input_id);
+        return true;
+    }
+
+    // Swap the input away from another action in the same group, unless
+    // that action keeps its binding.
+    if (active_menu)
+    {
+        for (int p = 0; p < active_menu->num_pages; ++p)
+        {
+            for (mn_item_t *other = active_menu->pages[p].items;
+                 other->type != MN_ITEM_END; ++other)
+            {
+                if (other == item || other->type != MN_ITEM_INPUT
+                    || other->group != item->group)
+                {
+                    continue;
+                }
+
+                if (M_InputActivated(other->input_id))
+                {
+                    if (other->flags & MN_ITEM_KEEP)
+                    {
+                        return true;
+                    }
+
+                    M_InputRemoveActivated(other->input_id);
+                }
+            }
+        }
+    }
+
+    return M_InputAddActivated(item->input_id);
+}
+
 mn_container_result_t MN_ContainerResponder(menu_action_t action, int ch)
 {
     if (!active_menu)
@@ -933,9 +978,27 @@ boolean MN_ContainerMouseMove(int x, int y)
 
 boolean MN_ContainerMouseButton(int button, boolean down)
 {
-    if (!active_menu || button != MOUSE_BUTTON_LEFT)
+    if (!active_menu)
     {
-        return active_menu != NULL;
+        return false;
+    }
+
+    // While an input binding is being captured, any button press is bound
+    // instead of activating a menu item.
+    if (active_menu->active_item && active_menu->active_item->gathering)
+    {
+        if (down && active_menu->active_item->ops
+            && active_menu->active_item->ops->click)
+        {
+            active_menu->active_item->ops->click(active_menu->active_item,
+                                                 last_mouse_x, last_mouse_y);
+        }
+        return true;
+    }
+
+    if (button != MOUSE_BUTTON_LEFT)
+    {
+        return true;
     }
 
     mn_menu_t *menu = active_menu;
@@ -1027,6 +1090,17 @@ boolean MN_ContainerWheel(int delta)
     if (!active_menu)
     {
         return false;
+    }
+
+    if (active_menu->active_item && active_menu->active_item->gathering)
+    {
+        if (active_menu->active_item->ops
+            && active_menu->active_item->ops->click)
+        {
+            active_menu->active_item->ops->click(active_menu->active_item,
+                                                 last_mouse_x, last_mouse_y);
+        }
+        return true;
     }
 
     mn_page_t *page = &active_menu->pages[active_menu->page];
@@ -1410,6 +1484,13 @@ static void DrawInstructions(const mn_menu_t *menu)
     {
         switch (item->type)
         {
+            case MN_ITEM_INPUT:
+                M_snprintf(buffer, sizeof(buffer),
+                           "[ %s ] Change, [ %s ] Clear", ConfirmKeyName(pad),
+                           pad ? M_GetPlatformName(GAMEPAD_NORTH)
+                               : M_GetNameForKey(KEY_DEL));
+                break;
+
             case MN_ITEM_RESET:
                 M_snprintf(buffer, sizeof(buffer), "[ %s ] Restore defaults",
                            ConfirmKeyName(pad));

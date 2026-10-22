@@ -210,4 +210,7 @@ void MN_ContainerEndEdit(void);
 boolean MN_ContainerPointInside(const mrect_t *rect, int x, int y);
 void MN_ContainerItemChanged(mn_item_t *item);
 
+// Binds the input that triggered the current event to the item's action.
+boolean MN_ContainerBindInput(mn_item_t *item);
+
 #endif

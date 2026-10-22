@@ -24,7 +24,9 @@ extern mn_menu_t display_menu;
 extern mn_menu_t video_menu;
 extern mn_menu_t audio_menu;
 extern mn_menu_t equalizer_menu;
-extern mn_menu_t options_root_menu;
+extern mn_menu_t controls_menu;
+extern mn_menu_t input_bindings_menu;
+extern mn_menu_t options_menu;
 
 void MN_OptionsBind(void);
 void MN_OptionsRefresh(void);
@@ -41,6 +43,7 @@ void MN_OptionsUpdateFPSLimit(void);
 void MN_OptionsUpdateFOV(void);
 void MN_OptionsResetVideo(void);
 void MN_OptionsResetPalette(void);
+
 void MN_OptionsSetSoundModule(void);
 void MN_OptionsRestartMusic(void);
 void MN_OptionsEqualizerPreset(void);
@@ -49,5 +52,9 @@ void MN_GetMidiPlayerStrings(mn_item_t *item);
 void MN_OptionsSetMidiPlayer(void);
 
 void MN_GetResamplerStrings(mn_item_t *item);
+
+void MN_OptionsUpdateFreeLookMode(void);
+void MN_GetGamepadDeviceStrings(mn_item_t *item);
+void MN_OptionsUpdateGamepadDevice(void);
 
 #endif
