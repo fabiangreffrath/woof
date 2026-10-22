@@ -18,8 +18,9 @@
 #include "mn_internal.h"
 
 #define MN_SPC        9
-#define MN_SPC_SLIDER (MN_SPC + 6)
-#define MN_SPC_CHOICE (MN_SPC + 4)
+#define MN_SPC_ITEM   (MN_SPC + 3)
+#define MN_SPC_SLIDER (MN_SPC + 5)
+#define MN_SPC_CHOICE (MN_SPC + 3)
 #define MN_MAX_TABS   16
 
 enum
@@ -60,6 +61,7 @@ enum
     MN_ITEM_KEEP = (1u << 10),
     MN_ITEM_WRAP = (1u << 11),
     MN_ITEM_DEFER_ACTION = (1u << 12),
+    MN_ITEM_TWO_LINES = (1u << 13),
 };
 
 typedef struct mn_item_ops_s mn_item_ops_t;
@@ -212,5 +214,11 @@ void MN_ContainerItemChanged(mn_item_t *item);
 
 // Binds the input that triggered the current event to the item's action.
 boolean MN_ContainerBindInput(mn_item_t *item);
+
+// Text layout helpers shared by the hints panel and multi-line items.
+// Wraps a mutable string to the given width, inserting newlines, and
+// returns the number of lines. Truncates a single line to the width.
+int MN_WrapText(char *buffer, int width);
+void MN_TruncateText(char *buffer, int width);
 
 #endif

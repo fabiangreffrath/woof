@@ -23,7 +23,6 @@
 #include "m_input.h"
 #include "mn_container.h"
 #include "mn_internal.h"
-#include "mn_menu.h"
 #include "mn_options.h"
 #include "r_data.h"
 #include "r_draw.h"
@@ -95,6 +94,14 @@
      .choice_width = (width),                                  \
      .action = (act),                                          \
      .flags = MN_ITEM_DEFER_ACTION}
+#define MN_CHOICE_ACT_DYN_DEFER_2LINES(lbl, key, getstrs, width, act) \
+    {.label = (lbl),                                                  \
+     .cfg = (key),                                                    \
+     .type = MN_ITEM_CHOICE,                                          \
+     .getchoices = (getstrs),                                         \
+     .choice_width = (width),                                         \
+     .action = (act),                                                 \
+     .flags = MN_ITEM_DEFER_ACTION | MN_ITEM_TWO_LINES}
 
 #define MN_SLIDER(lbl, key, size) \
     {.label = (lbl),              \
@@ -126,7 +133,6 @@
     {.label = (lbl),                                    \
      .cfg = (key),                                      \
      .type = MN_ITEM_SLIDER,                            \
-     .choices = NULL,                                   \
      .getchoices = (getstrs),                           \
      .slider_size = (size),                             \
      .action = (act)}
@@ -134,18 +140,11 @@
     {.label = (lbl),                                          \
      .cfg = (key),                                            \
      .type = MN_ITEM_SLIDER,                                  \
-     .choices = NULL,                                         \
      .getchoices = (getstrs),                                 \
      .slider_size = (size),                                   \
      .action = (act),                                         \
      .flags = MN_ITEM_DEFER_ACTION}
 
-static const char *sound_module_strings[] = {
-    "Standard", "OpenAL 3D",
-#if defined(HAVE_AL_BUFFER_CALLBACK)
-    "PC Speaker"
-#endif
-};
 
 static const char *window_mode_strings[] = {"Windowed", "Borderless"};
 
@@ -181,7 +180,6 @@ mn_menu_t display_menu = {
     .title_text = "Display",
     .background = "FLOOR4_6",
     .flags = MN_MENU_HINTS,
-    .item_spacing = 1,
     .pages = display_pages,
     .num_pages = arrlen(display_pages)
 };
@@ -193,9 +191,9 @@ static mn_item_t video_general_items[] = {
                             MN_OptionsUpdateResolutionScale),
     MN_TOGGLE_ACT("  Dynamic Resolution", "dynamic_resolution",
                   MN_OptionsResetVideo),
-    MN_CHOICE_ACT("Pixel Scaling", "smooth_scaling", pixel_scaling_strings, 6,
+    MN_CHOICE_ACT("Pixel Scaling", "smooth_scaling", pixel_scaling_strings, 8,
                   MN_OptionsResetVideo),
-    MN_CHOICE_ACT_DEFER("Aspect Ratio", "widescreen", widescreen_strings, 0,
+    MN_CHOICE_ACT_DEFER("Aspect Ratio", "widescreen", widescreen_strings, 8,
                         MN_OptionsResetVideo),
     MN_TOGGLE_ACT("Uncapped FPS", "uncapped", MN_OptionsUpdateFPSLimit),
     MN_NUMBER_ACT("Target FPS", "fpslimit", NULL, MN_OptionsUpdateFPSLimit),
@@ -231,22 +229,28 @@ static mn_item_t video_graphics_items[] = {
     MN_TOGGLE_ACT("Colored Blood", "colored_blood", D_SetBloodColor),
     MN_GAP(6),
     MN_TITLE("Effects"),
-    MN_CHOICE("Screen Wipe", "screen_melt", screen_wipe_strings, 8),
-    MN_CHOICE_ACT("Partial Invisibility", "fuzzmode", fuzzmode_strings, 8,
+    MN_CHOICE("Screen Wipe", "screen_melt", screen_wipe_strings, 10),
+    MN_CHOICE_ACT("Partial Invisibility", "fuzzmode", fuzzmode_strings, 10,
         R_SetFuzzColumnMode),
-    MN_CHOICE_ACT("Invulnerability", "invul_mode", invul_mode_strings, 8,
+    MN_CHOICE_ACT("Invulnerability", "invul_mode", invul_mode_strings, 10,
         R_InvulMode),
-    MN_CHOICE("Screen Flashes", "palette_changes", palette_changes_strings, 8),
+    MN_CHOICE("Screen Flashes", "palette_changes", palette_changes_strings, 10),
     MN_TOGGLE("Swirling Flats", "r_swirl"),
     MN_GAP(6),
     MN_TITLE("Skies"),
     MN_TOGGLE_ACT("Vertical Stretch", "stretchsky", R_UpdateStretchSkies),
-    MN_CHOICE_ACT("Projection", "sky_projection", sky_projection_strings, 8,
+    MN_CHOICE_ACT("Projection", "sky_projection", sky_projection_strings, 10,
                   R_InitPlanes),
     MN_RESET("Reset to Deafults"),
     MN_END
 };
 
+static const char *sound_module_strings[] = {
+    "Standard", "OpenAL 3D",
+#if defined(HAVE_AL_BUFFER_CALLBACK)
+    "PC Speaker"
+#endif
+};
 
 static const char *extra_music_strings[] = {"Off", "Remix", "Original"};
 
@@ -258,16 +262,16 @@ static mn_item_t audio_general_items[] = {
     MN_SLIDER_ACT("Music Volume", "music_volume", 8, MN_OptionsUpdateMusicVolume),
     MN_GAP(6),
     MN_TITLE("Output"),
-    MN_CHOICE_ACT("Sound Mode", "snd_module", sound_module_strings, 8,
+    MN_CHOICE_ACT("Sound Mode", "snd_module", sound_module_strings, 10,
                   MN_OptionsSetSoundModule),
     MN_TOGGLE_ACT("  Headphones Mode", "snd_hrtf", MN_OptionsSetSoundModule),
     // !!! TODO should be on/off
     // MN_TOGGLE_ACT("  Doppler Effect", "snd_doppler", MN_OptionsSetSoundModule),
     MN_CHOICE_ACT("Extra Soundtrack", "extra_music", extra_music_strings, 6,
                   MN_OptionsRestartMusic),
-    MN_CHOICE_ACT_DYN_DEFER("MIDI Player", "midi_player_menu",
-                            MN_GetMidiPlayerStrings, 22,
-                            MN_OptionsSetMidiPlayer),
+    MN_CHOICE_ACT_DYN_DEFER_2LINES("MIDI Player", "midi_player_menu",
+                                    MN_GetMidiPlayerStrings, 18,
+                                    MN_OptionsSetMidiPlayer),
     MN_RESET("Reset to Defaults"),
     MN_END
 };
@@ -297,7 +301,6 @@ mn_menu_t equalizer_menu = {
     .title_text = "Equalizer",
     .background = "FLOOR4_6",
     .flags = MN_MENU_HINTS,
-    .item_spacing = 1,
     .pages = equalizer_pages,
     .num_pages = arrlen(equalizer_pages)
 };
@@ -348,7 +351,6 @@ mn_menu_t audio_menu = {
     .title_text = "Audio",
     .background = "FLOOR4_6",
     .flags = MN_MENU_HINTS,
-    .item_spacing = 1,
     .pages = audio_pages,
     .num_pages = arrlen(audio_pages),
 };
@@ -489,7 +491,6 @@ mn_menu_t input_bindings_menu = {
     .title_text = "Input Bindings",
     .background = "FLOOR4_6",
     .flags = MN_MENU_HINTS,
-    .item_spacing = 1,
     .pages = input_bindings_pages,
     .num_pages = arrlen(input_bindings_pages),
 };
@@ -524,8 +525,9 @@ static const char *layout_strings[] = {
 };
 
 static mn_item_t controls_gamepad_items[] = {
-    MN_CHOICE_ACT_DYN_DEFER("Device", "joy_device", MN_GetGamepadDeviceStrings,
-                            22, MN_OptionsUpdateGamepadDevice),
+    MN_CHOICE_ACT_DYN_DEFER_2LINES("Device", "joy_device",
+                                   MN_GetGamepadDeviceStrings, 16,
+                                   MN_OptionsUpdateGamepadDevice),
     MN_GAP(6),
     MN_SUBMENU("Input Bindings", &input_bindings_menu),
     MN_CHOICE_ACT("Stick Layout", "joy_stick_layout", layout_strings, 16,
@@ -544,7 +546,6 @@ mn_menu_t controls_menu = {
     .title_text = "Controls",
     .background = "FLOOR4_6",
     .flags = MN_MENU_HINTS,
-    .item_spacing = 1,
     .pages = controls_pages,
     .num_pages = arrlen(controls_pages),
 };
@@ -567,7 +568,7 @@ mn_menu_t options_menu = {
     .title_text = "",
     .background = "FLOOR4_6",
     .flags = MN_MENU_CENTER | MN_MENU_HIDE_VALUES,
-    .item_spacing = 6,
+    .item_spacing = 3,
     .pages = options_pages,
     .num_pages = arrlen(options_pages),
 };

@@ -339,7 +339,7 @@ static boolean NumberRespond(mn_item_t *item, menu_action_t action, int ch)
 enum
 {
     CHOICE_ARROW_W = 8,
-    CHOICE_PADDING = 4,
+    CHOICE_PADDING = 2,
     CHOICE_SEG_W = 8,
     CHOICE_SEG_GAP = 2,
     CHOICE_MIN_VISIBLE = 2,
@@ -349,9 +349,14 @@ enum
 typedef struct
 {
     int x;
+    int text_x;
+    int text_w;
+    int text_h;
     int bar_x;
     int bar_w;
-    int content_w;
+    int seg_w;
+    int seg_extra;
+    int gap;
     int visible;
     int min;
     int max;
@@ -365,18 +370,41 @@ static choice_layout_t ChoiceLayout(const mn_item_t *item)
     l.min = ItemMin(item);
     l.max = ItemMax(item);
     l.num_choices = l.max - l.min + 1;
+
+    if (item->choice_width > 0)
+    {
+        l.text_w = item->choice_width * 8;
+    }
+    else
+    {
+        l.text_w = MAX(l.num_choices * 8,
+                       CHOICE_MIN_VISIBLE * CHOICE_SEG_W
+                           + (CHOICE_MIN_VISIBLE - 1) * CHOICE_SEG_GAP);
+    }
+
     l.visible = CLAMP(l.num_choices, CHOICE_MIN_VISIBLE, CHOICE_MAX_VISIBLE);
+    l.gap = CHOICE_SEG_GAP;
 
-    const int text_area_w =
-        MAX(item->choice_width > 0 ? item->choice_width * 8 : l.num_choices * 8,
-            CHOICE_MIN_VISIBLE * 8);
+    // Fill the whole text area with segments, keeping each at least
+    // CHOICE_SEG_W wide. Shrink the number of segments.
+    while (l.visible > 1
+           && l.visible * CHOICE_SEG_W + (l.visible - 1) * l.gap > l.text_w)
+    {
+        l.visible--;
+    }
 
-    l.bar_w = l.visible * CHOICE_SEG_W + (l.visible - 1) * CHOICE_SEG_GAP;
-    l.content_w = MAX(text_area_w, l.bar_w);
+    const int usable = MAX(l.visible * CHOICE_SEG_W,
+                           l.text_w - (l.visible - 1) * l.gap);
+
+    l.seg_w = usable / l.visible;
+    l.seg_extra = usable % l.visible;
+    l.bar_w = usable + (l.visible - 1) * l.gap;
+    l.text_h = (item->flags & MN_ITEM_TWO_LINES) ? 2 * MN_SPC : MN_SPC;
+
     l.x = item->draw_value_x + item->draw_value_w
-          - (CHOICE_ARROW_W * 2 + CHOICE_PADDING * 2 + l.content_w);
-    l.bar_x =
-        l.x + CHOICE_ARROW_W + CHOICE_PADDING + (l.content_w - l.bar_w) / 2;
+          - (CHOICE_ARROW_W * 2 + CHOICE_PADDING * 2 + l.text_w);
+    l.text_x = l.x + CHOICE_ARROW_W + CHOICE_PADDING;
+    l.bar_x = l.text_x;
 
     return l;
 }
@@ -432,19 +460,29 @@ static boolean ChoiceHitTest(const mn_item_t *item, int mouse_x, int *arrow,
 
     rel_x -= CHOICE_ARROW_W + CHOICE_PADDING;
 
-    if (rel_x >= 0 && rel_x < l.content_w)
+    if (rel_x >= 0 && rel_x < l.text_w)
     {
-        const int bar_rel_x = rel_x - (l.content_w - l.bar_w) / 2;
+        int seg_x = 0;
 
-        if (bar_rel_x >= 0 && bar_rel_x < l.bar_w)
+        for (int i = 0; i < l.visible; ++i)
         {
-            *segment = bar_rel_x / (CHOICE_SEG_W + CHOICE_SEG_GAP);
+            const int seg_w = l.seg_w + (i < l.seg_extra ? 1 : 0);
+
+            // Gaps belong to the preceding segment, so the mouse has no
+            // dead zones between segments.
+            if (rel_x < seg_x + seg_w + l.gap || i == l.visible - 1)
+            {
+                *segment = i;
+                break;
+            }
+
+            seg_x += seg_w + l.gap;
         }
 
         return true;
     }
 
-    rel_x -= l.content_w + CHOICE_PADDING;
+    rel_x -= l.text_w + CHOICE_PADDING;
 
     if (rel_x >= 0 && rel_x < CHOICE_ARROW_W + CHOICE_PADDING)
     {
@@ -460,12 +498,62 @@ static void ChoiceHover(mn_item_t *item, int mouse_x, int mouse_y)
     ChoiceHitTest(item, mouse_x, &item->hover_arrow, &item->hover_segment);
 }
 
+static void ChoiceDrawText(const mn_item_t *item, const choice_layout_t *l,
+                           int y, const char *text, byte *cr)
+{
+    char buffer[256];
+
+    M_snprintf(buffer, sizeof(buffer), "%s", text);
+
+    if (!(item->flags & MN_ITEM_TWO_LINES))
+    {
+        MN_TruncateText(buffer, l->text_w);
+        MN_DrawStringCR(
+            l->text_x + (l->text_w - MN_GetPixelWidth(buffer)) / 2, y,
+            xlat[CR_GREEN].table, cr, buffer);
+        return;
+    }
+
+    const int num_lines = MN_WrapText(buffer, l->text_w);
+    const int draw_lines = MIN(num_lines, 2);
+    int start = 0;
+
+    y += MAX(0, (l->text_h - draw_lines * MN_SPC) / 2);
+
+    for (int i = 0; i < draw_lines && buffer[start]; ++i)
+    {
+        int end = start;
+
+        while (buffer[end] && buffer[end] != '\n')
+        {
+            end++;
+        }
+
+        const char saved = buffer[end];
+        buffer[end] = '\0';
+        MN_TruncateText(buffer + start, l->text_w);
+        MN_DrawStringCR(
+            l->text_x
+                + (l->text_w - MN_GetPixelWidth(buffer + start)) / 2,
+            y, xlat[CR_GREEN].table, cr, buffer + start);
+        buffer[end] = saved;
+
+        if (!saved)
+        {
+            break;
+        }
+
+        y += MN_SPC;
+        start = end + 1;
+    }
+}
+
 static void ChoiceDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
 {
     const int value = OptionValue(item);
     const choice_layout_t l = ChoiceLayout(item);
-    const int content_x = l.x + CHOICE_ARROW_W + CHOICE_PADDING;
     const int y = ctx->y;
+    const int arrow_y = y + (l.text_h - MN_SPC) / 2;
     const boolean hovered = ctx->mouse_inside && menu_input == mouse_mode;
     const boolean left_hover = hovered && (item->hover_arrow == 0);
     const boolean right_hover = hovered && (item->hover_arrow == 1);
@@ -488,16 +576,16 @@ static void ChoiceDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
         current_text = ChoiceText(item, value);
     }
 
-    MN_DrawStringCR(l.x, y,
+    MN_DrawStringCR(l.x, arrow_y,
                     left_hover ? xlat[CR_GRAY].table : xlat[CR_GREEN].table,
                     left_hover ? NULL : cr, "<");
 
-    MN_DrawStringCR(content_x
-                        + (l.content_w - MN_GetPixelWidth(current_text)) / 2,
-                    y, xlat[CR_GREEN].table, cr, current_text);
+    ChoiceDrawText(item, &l, y, current_text, cr);
 
     const byte dark = cr_dark[playpal_global->white];
     const byte shade = cr_shaded[playpal_global->white];
+    const int bar_y = y + l.text_h;
+    int seg_x = l.bar_x;
 
     for (int i = 0; i < l.visible; ++i)
     {
@@ -520,11 +608,13 @@ static void ChoiceDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
             seg_color = xlat[CR_GREEN].table[shade];
         }
 
-        V_FillRect(l.bar_x + i * (CHOICE_SEG_W + CHOICE_SEG_GAP) + video.deltaw,
-                   y + MN_SPC, CHOICE_SEG_W, 1, seg_color);
+        const int seg_w = l.seg_w + (i < l.seg_extra ? 1 : 0);
+
+        V_FillRect(seg_x + video.deltaw, bar_y, seg_w, 1, seg_color);
+        seg_x += seg_w + l.gap;
     }
 
-    MN_DrawStringCR(content_x + l.content_w + CHOICE_PADDING, y,
+    MN_DrawStringCR(l.text_x + l.text_w + CHOICE_PADDING, arrow_y,
                     right_hover ? xlat[CR_GRAY].table : xlat[CR_GREEN].table,
                     right_hover ? NULL : cr, ">");
 }

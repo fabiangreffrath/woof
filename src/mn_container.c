@@ -148,10 +148,15 @@ static void LayoutPage(mn_menu_t *menu, mn_page_t *page)
             else if (item->type == MN_ITEM_CHOICE)
             {
                 item->height = MN_SPC_CHOICE;
+
+                if (item->flags & MN_ITEM_TWO_LINES)
+                {
+                    item->height += MN_SPC;
+                }
             }
             else
             {
-                item->height = MN_SPC;
+                item->height = MN_SPC_ITEM;
             }
         }
 
@@ -1258,15 +1263,8 @@ static void DrawItems(const mn_menu_t *menu)
     }
 }
 
-static void DrawWrappedText(int x, int y, int width, int height,
-                            const char *text)
+int MN_WrapText(char *buffer, int width)
 {
-    const int line_h = MN_StringHeight("X") + 1;
-    char buffer[512];
-    int num_lines = 0;
-
-    M_snprintf(buffer, sizeof(buffer), "%s", text);
-
     // Wrap into lines: replace the last space before the overflow with a
     // newline, so every line fits the given width.
     int line_start = 0;
@@ -1299,24 +1297,45 @@ static void DrawWrappedText(int x, int y, int width, int height,
         }
     }
 
-    for (int start = 0; buffer[start];)
+    int lines = 0;
+
+    for (int i = 0; buffer[i];)
     {
-        int end = start;
+        lines++;
 
-        while (buffer[end] && buffer[end] != '\n')
+        while (buffer[i] && buffer[i] != '\n')
         {
-            end++;
+            i++;
         }
 
-        num_lines++;
-
-        if (!buffer[end])
+        if (buffer[i] == '\n')
         {
-            break;
+            i++;
         }
-
-        start = end + 1;
     }
+
+    return lines;
+}
+
+void MN_TruncateText(char *buffer, int width)
+{
+    int len = strlen(buffer);
+
+    while (len > 0 && MN_GetPixelWidth(buffer) > width)
+    {
+        buffer[--len] = '\0';
+    }
+}
+
+static void DrawWrappedText(int x, int y, int width, int height,
+                            const char *text)
+{
+    const int line_h = MN_StringHeight("X") + 1;
+    char buffer[512];
+
+    M_snprintf(buffer, sizeof(buffer), "%s", text);
+
+    const int num_lines = MN_WrapText(buffer, width);
 
     // Center the text block vertically; every line stays left-aligned.
     y += MAX(0, (height - num_lines * line_h) / 2);
