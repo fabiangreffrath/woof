@@ -15,11 +15,18 @@
 //  Declarative tables for the new options menu.
 //
 
+#include "am_map.h"
 #include "config.h"
 #include "d_main.h"
 #include "doomtype.h"
 #include "g_input.h"
+#include "hu_command.h"
+#include "hu_crosshair.h"
+#include "i_gamepad.h"
+#include "i_gyro.h"
+#include "i_oalequalizer.h"
 #include "i_oalsound.h"
+#include "i_video.h"
 #include "m_input.h"
 #include "mn_container.h"
 #include "mn_internal.h"
@@ -29,17 +36,14 @@
 #include "r_plane.h"
 #include "r_sky.h"
 
-#define MN_RESET      {.label = "", .type = MN_ITEM_RESET, .flags = MN_ITEM_DIRECT_COORDS}
+#define MN_RESET \
+    {.label = "", .type = MN_ITEM_RESET, .flags = MN_ITEM_DIRECT_COORDS}
 #define MN_END        {.type = MN_ITEM_END}
 #define MN_GAP(gap)   {.type = MN_ITEM_SKIP, .height = (gap)}
 #define MN_TITLE(txt) {.label = (txt), .type = MN_ITEM_TITLE}
-#define MN_ACTION(lbl, act) \
-    {.label = (lbl), .type = MN_ITEM_ACTION, .action = (act)}
 
 #define MN_SUBMENU(lbl, menu) \
     {.label = (lbl), .type = MN_ITEM_SUBMENU, .submenu = (menu)}
-#define MN_SUBMENU_STUB(lbl) \
-    {.label = (lbl), .type = MN_ITEM_SUBMENU, .flags = MN_ITEM_DISABLED}
 
 #define MN_INPUT(lbl, id, grp) \
     {.label = (lbl),           \
@@ -108,19 +112,26 @@
      .cfg = (key),                \
      .type = MN_ITEM_SLIDER,      \
      .slider_size = (size)}
+#define MN_SLIDER_STR(lbl, key, strs, size) \
+    {.label = (lbl),                        \
+     .cfg = (key),                          \
+     .type = MN_ITEM_SLIDER,                \
+     .choices = (strs),                     \
+     .num_choices = arrlen(strs),           \
+     .slider_size = (size)}
 #define MN_SLIDER_ACT(lbl, key, size, act) \
     {.label = (lbl),                       \
      .cfg = (key),                         \
      .type = MN_ITEM_SLIDER,               \
      .slider_size = (size),                \
      .action = (act)}
-#define MN_SLIDER_ACT_DEFER(lbl, key, size, act) \
-    {.label = (lbl),                             \
-     .cfg = (key),                               \
-     .type = MN_ITEM_SLIDER,                     \
-     .slider_size = (size),                      \
-     .action = (act),                            \
-     .flags = MN_ITEM_DEFER_ACTION}
+#define MN_SLIDER_ACT_SUFFIX(lbl, key, size, act, sfx) \
+    {.label = (lbl),                                   \
+     .cfg = (key),                                     \
+     .type = MN_ITEM_SLIDER,                           \
+     .slider_size = (size),                            \
+     .suffix = (sfx),                                  \
+     .action = (act)}
 #define MN_SLIDER_ACT_STR(lbl, key, strs, size, act) \
     {.label = (lbl),                                 \
      .cfg = (key),                                   \
@@ -129,6 +140,15 @@
      .num_choices = arrlen(strs),                    \
      .slider_size = (size),                          \
      .action = (act)}
+#define MN_SLIDER_ACT_STR_DEFER(lbl, key, strs, size, act) \
+    {.label = (lbl),                                       \
+     .cfg = (key),                                         \
+     .type = MN_ITEM_SLIDER,                               \
+     .choices = (strs),                                    \
+     .num_choices = arrlen(strs),                          \
+     .slider_size = (size),                                \
+     .action = (act),                                      \
+     .flags = MN_ITEM_DEFER_ACTION}
 #define MN_SLIDER_ACT_DYN(lbl, key, getstrs, size, act) \
     {.label = (lbl),                                    \
      .cfg = (key),                                      \
@@ -147,10 +167,9 @@
 
 
 static const char *window_mode_strings[] = {"Windowed", "Borderless"};
-
-static const char *widescreen_strings[] = {"Off", "Auto", "16:10", "16:9",
-                                           "21:9", "32:9"};
-
+static const char *widescreen_strings[] = {
+    "Off", "Auto", "16:10", "16:9", "21:9", "32:9"
+};
 static const char *pixel_scaling_strings[] = {"Sharp", "Smooth"};
 
 const char *gamma_strings[] = {
@@ -167,7 +186,7 @@ const char *gamma_strings[] = {
 static mn_item_t display_items[] = {
     MN_CHOICE_ACT("Window Mode", "fullscreen", window_mode_strings, 10,
                   MN_OptionsUpdateFullscreen),
-    MN_TOGGLE_ACT("Vertical Sync", "use_vsync", MN_OptionsUpdateVSync),
+    MN_TOGGLE_ACT("Vertical Sync", "use_vsync", I_ToggleVsync),
     MN_END
 };
 
@@ -201,7 +220,7 @@ static mn_item_t video_general_items[] = {
     MN_TITLE("Preferences"),
     MN_SLIDER_ACT("Field of View", "fov", 11, MN_OptionsUpdateFOV),
     MN_SLIDER_ACT_STR("Gamma Correction", "gamma2", gamma_strings, 8,
-                      MN_OptionsResetPalette),
+                      V_ResetPalette),
     MN_SLIDER("Extra Lighting", "extra_level_brightness", 8),
     MN_RESET,
     MN_END
@@ -210,14 +229,9 @@ static mn_item_t video_general_items[] = {
 static const char *fuzzmode_strings[] = {
     "Blocky", "Refraction", "Shadow", "Original"
 };
-
 static const char *screen_wipe_strings[] = {"Off", "Melt", "Crossfade", "Fizzle"};
-
 static const char *invul_mode_strings[] = {"Vanilla", "MBF", "Gray"};
-
-// [Nugget] Sky projection
 static const char *sky_projection_strings[] = {"Vanilla", "Linear", "Cylindrical"};
-
 static const char *palette_changes_strings[] = {"Off", "On", "Reduced"};
 
 static mn_item_t video_graphics_items[] = {
@@ -253,9 +267,12 @@ static const char *sound_module_strings[] = {
 };
 
 static const char *extra_music_strings[] = {"Off", "Remix", "Original"};
-
-static const char *equalizer_preset_strings[] = {"Off", "Classical", "Rock",
-                                                 "Vocal", "Custom"};
+static const char *equalizer_preset_strings[] = {
+    "Off", "Classical", "Rock", "Vocal", "Custom"
+};
+static const char *percent_strings[] = {
+    "Off", "10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%"
+};
 
 static mn_item_t audio_general_items[] = {
     MN_SLIDER_ACT("Sound Volume", "sfx_volume", 8, MN_OptionsUpdateSfxVolume),
@@ -265,10 +282,12 @@ static mn_item_t audio_general_items[] = {
     MN_CHOICE_ACT("Sound Mode", "snd_module", sound_module_strings, 10,
                   MN_OptionsSetSoundModule),
     MN_TOGGLE_ACT("  Headphones Mode", "snd_hrtf", MN_OptionsSetSoundModule),
-    // !!! TODO should be on/off
-    // MN_TOGGLE_ACT("  Doppler Effect", "snd_doppler", MN_OptionsSetSoundModule),
-    MN_CHOICE_ACT("Extra Soundtrack", "extra_music", extra_music_strings, 6,
+    // !!! TODO Should be On/Off
+    MN_SLIDER_ACT_STR_DEFER("  Doppler Effect", "snd_doppler", percent_strings,
+                            6, MN_OptionsSetSoundModule),
+    MN_CHOICE_ACT("Extra Soundtrack", "extra_music", extra_music_strings, 8,
                   MN_OptionsRestartMusic),
+    MN_GAP(20),
     MN_CHOICE_ACT_DYN_DEFER_2LINES("MIDI Player", "midi_player_menu",
                                     MN_GetMidiPlayerStrings, 18,
                                     MN_OptionsSetMidiPlayer),
@@ -277,17 +296,17 @@ static mn_item_t audio_general_items[] = {
 };
 
 static mn_item_t equalizer_items[] = {
-    MN_CHOICE_ACT("Preset", "snd_equalizer", equalizer_preset_strings, 5,
-                  MN_OptionsEqualizerPreset),
-    MN_SLIDER_ACT("  Preamp", "snd_eq_preamp", 8, MN_OptionsEqualizerPreset),
-    MN_SLIDER_ACT("  Low Gain", "snd_eq_low_gain", 8, MN_OptionsEqualizerPreset),
-    MN_SLIDER_ACT("  Mid 1 Gain", "snd_eq_mid1_gain", 8, MN_OptionsEqualizerPreset),
-    MN_SLIDER_ACT("  Mid 2 Gain", "snd_eq_mid2_gain", 8, MN_OptionsEqualizerPreset),
-    MN_SLIDER_ACT("  High Gain", "snd_eq_high_gain", 8, MN_OptionsEqualizerPreset),
-    MN_NUMBER_ACT("  Low Cutoff", "snd_eq_low_cutoff", "Hz", MN_OptionsEqualizerPreset),
-    MN_NUMBER_ACT("  Mid 1 Center", "snd_eq_mid1_center", "Hz", MN_OptionsEqualizerPreset),
-    MN_NUMBER_ACT("  Mid 2 Center", "snd_eq_mid2_center", "Hz", MN_OptionsEqualizerPreset),
-    MN_NUMBER_ACT("  High Cutoff", "snd_eq_high_cutoff", "Hz", MN_OptionsEqualizerPreset),
+    MN_CHOICE_ACT("Preset", "snd_equalizer", equalizer_preset_strings, 8,
+                  I_OAL_EqualizerPreset),
+    MN_SLIDER_ACT("  Preamp", "snd_eq_preamp", 8, I_OAL_EqualizerPreset),
+    MN_SLIDER_ACT("  Low Gain", "snd_eq_low_gain", 8, I_OAL_EqualizerPreset),
+    MN_SLIDER_ACT("  Mid 1 Gain", "snd_eq_mid1_gain", 8, I_OAL_EqualizerPreset),
+    MN_SLIDER_ACT("  Mid 2 Gain", "snd_eq_mid2_gain", 8, I_OAL_EqualizerPreset),
+    MN_SLIDER_ACT("  High Gain", "snd_eq_high_gain", 8, I_OAL_EqualizerPreset),
+    MN_NUMBER_ACT("  Low Cutoff", "snd_eq_low_cutoff", "Hz", I_OAL_EqualizerPreset),
+    MN_NUMBER_ACT("  Mid 1 Center", "snd_eq_mid1_center", "Hz", I_OAL_EqualizerPreset),
+    MN_NUMBER_ACT("  Mid 2 Center", "snd_eq_mid2_center", "Hz", I_OAL_EqualizerPreset),
+    MN_NUMBER_ACT("  High Cutoff", "snd_eq_high_cutoff", "Hz", I_OAL_EqualizerPreset),
     MN_RESET,
     MN_END
 };
@@ -305,6 +324,10 @@ mn_menu_t equalizer_menu = {
     .num_pages = arrlen(equalizer_pages)
 };
 
+static const char *native_midi_reset_strings[] = {
+    "No SysEx", "GM", "GS", "XG"
+};
+
 static mn_item_t audio_advanced_items[] = {
     MN_TITLE("Sound"),
     MN_TOGGLE("Pitch-Shifting", "pitched_sounds"),
@@ -317,14 +340,18 @@ static mn_item_t audio_advanced_items[] = {
     MN_SUBMENU("Equalizer", &equalizer_menu),
     MN_GAP(6),
     MN_TITLE("Music"),
-    MN_TOGGLE_ACT("Auto Gain", "auto_gain", MN_OptionsRestartMusic),
-    MN_SLIDER_ACT("  FluidSynth Gain", "fl_gain", 8, MN_OptionsUpdateMusicVolume),
-    MN_SLIDER_ACT("  OPL3 Gain", "opl_gain", 8, MN_OptionsUpdateMusicVolume),
+    MN_TOGGLE_ACT("Auto Gain", "auto_gain", MN_OptionsResetAutoGain),
+#if defined (HAVE_FLUIDSYNTH)
+    MN_SLIDER_ACT_SUFFIX("  FluidSynth Gain", "fl_gain", 8,
+                         MN_OptionsUpdateMusicVolume, "dB"),
+#endif
+    MN_SLIDER_ACT_SUFFIX("  OPL3 Gain", "opl_gain", 8,
+                         MN_OptionsUpdateMusicVolume, "dB"),
+    MN_CHOICE_ACT("Native MIDI Reset Type", "midi_reset_type",
+                  native_midi_reset_strings, 8, MN_OptionsSetMidiPlayer),
     MN_RESET,
     MN_END
 };
-
-// static const char *free_look_strings[] = {"Off", "Auto-Aim", "Direct Aim"};
 
 static mn_page_t video_pages[] = {
     {.tab = "General",  .items = video_general_items  },
@@ -497,7 +524,7 @@ mn_menu_t input_bindings_menu = {
 
 static const char *free_look_strings[] = {"Off", "Auto-Aim", "Direct Aim"};
 
-static mn_item_t controls_mouse_keyboard_items[] = {
+static mn_item_t mouse_keyboard_items[] = {
     MN_SUBMENU("Input Bindings", &input_bindings_menu),
     MN_GAP(6),
     MN_TITLE("Mouse"),
@@ -524,21 +551,185 @@ static const char *layout_strings[] = {
     "Flick Stick Southpaw",
 };
 
-static mn_item_t controls_gamepad_items[] = {
+static const char *movement_type_strings[] = {"Normalized", "Faster Diagonals"};
+
+static const char *curve_strings[] = {
+    "",       "",    "",    "",        "",    "",    "",
+    "",       "",    "", // Dummy values, start at 1.0.
+    "Linear", "1.1", "1.2", "1.3",     "1.4", "1.5", "1.6",
+    "1.7",    "1.8", "1.9", "Squared", "2.1", "2.2", "2.3",
+    "2.4",    "2.5", "2.6", "2.7",     "2.8", "2.9", "Cubed"
+};
+
+static mn_item_t advanced_gamepad_items[] = {
+    MN_CHOICE_ACT("Movement Type", "joy_movement_type", movement_type_strings,
+                  14, I_ResetGamepad),
+    MN_SLIDER_ACT_DYN("Forward Sensitivity", "joy_forward_sensitivity",
+                      MN_GetMovementSensitivityStrings, 8, I_ResetGamepad),
+    MN_SLIDER_ACT_DYN("Strafe Sensitivity", "joy_strafe_sensitivity",
+                      MN_GetMovementSensitivityStrings, 8, I_ResetGamepad),
+    MN_SLIDER_ACT("Extra Turn Speed", "joy_outer_turn_speed", 11,
+                  MN_OptionsUpdateGamepad),
+    MN_SLIDER_ACT_DYN("  Extra Ramp Time", "joy_outer_ramp_time",
+                      MN_GetMsTimeStrings, 8, I_ResetGamepad),
+    MN_SLIDER_ACT_STR("Response Curve", "joy_camera_curve", curve_strings, 8,
+                      I_ResetGamepad),
+    MN_RESET,
+    MN_END
+};
+
+mn_page_t advanced_gamepad_pages[] = {
+    {.items = advanced_gamepad_items}
+};
+
+mn_menu_t advanced_gamepad_menu = {
+    .title_patch = "",
+    .title_text = "Advanced Gamepad",
+    .background = "FLOOR4_6",
+    .flags = MN_MENU_HINTS,
+    .pages = advanced_gamepad_pages,
+    .num_pages = arrlen(advanced_gamepad_pages)
+};
+
+static mn_item_t gamepad_items[] = {
     MN_CHOICE_ACT_DYN_DEFER_2LINES("Device", "joy_device",
                                    MN_GetGamepadDeviceStrings, 16,
                                    MN_OptionsUpdateGamepadDevice),
     MN_GAP(6),
     MN_SUBMENU("Input Bindings", &input_bindings_menu),
     MN_CHOICE_ACT("Stick Layout", "joy_stick_layout", layout_strings, 16,
+                  MN_OptionsUpdateGamepad),
+    MN_SLIDER_ACT_DYN("  Flick Stick Time", "joy_flick_time",
+                      MN_GetMsTimeStrings, 8, I_ResetGamepad),
+    MN_SLIDER_ACT("Vibration", "joy_rumble", 8, MN_OptionsUpdateRumble),
+    MN_GAP(6),
+    MN_TITLE("Movement/Camera"),
+    MN_SLIDER_ACT("Turn Speed", "joy_turn_speed", 11, I_ResetGamepad),
+    MN_SLIDER_ACT("Look Speed", "joy_look_speed", 11, I_ResetGamepad),
+    MN_CHOICE_ACT("Freelook", "freelook_mode", free_look_strings, 8,
+                  MN_OptionsUpdateFreeLookMode),
+    MN_TOGGLE_ACT("Invert Look", "joy_invert_look", I_ResetGamepad),
+    MN_SLIDER_ACT_SUFFIX("Movement Deadzone", "joy_movement_inner_deadzone",
+                         8, I_ResetGamepad, "%"),
+    MN_SLIDER_ACT_SUFFIX("Camera Deadzone", "joy_camera_inner_deadzone",
+                         8, I_ResetGamepad, "%"),
+    MN_SUBMENU("Advanced Options", &advanced_gamepad_menu),
+    MN_RESET,
+    MN_END
+};
+
+static const char *gyro_space_strings[] = {"Local", "Player"};
+
+static mn_item_t advanced_gyro_items[] = {
+    MN_CHOICE_ACT("Gyro Orientation", "gyro_space", gyro_space_strings, 8,
+                  I_ResetGamepad),
+    // !!! TODO Local Roll
+    MN_SLIDER_ACT_DYN("Gyro Steadying", "gyro_smooth_threshold",
+                      MN_GetGyroSensitivityStrings, 11,
+                      MN_OptionsUpdateGyroSteadying),
+    // !!! TODO Gyro Smoothing
+    MN_SLIDER_ACT_DYN("Gyro Acceleration", "gyro_acceleration",
+                      MN_GetGyroAccelStrings, 11,
+                      MN_OptionsUpdateGyroAcceleration),
+    MN_SLIDER_ACT("  Lower Threshold", "gyro_accel_min_threshold", 11,
+                  I_ResetGamepad),
+    MN_SLIDER_ACT("  Upper Threshold", "gyro_accel_max_threshold", 11,
                   I_ResetGamepad),
     MN_RESET,
     MN_END
 };
 
+mn_page_t advanced_gyro_pages[] = {
+    {.items = advanced_gyro_items}
+};
+
+mn_menu_t advanced_gyro_menu = {
+    .title_patch = "",
+    .title_text = "Advanced Gyro",
+    .background = "FLOOR4_6",
+    .flags = MN_MENU_HINTS,
+    .pages = advanced_gyro_pages,
+    .num_pages = arrlen(advanced_gyro_pages)
+};
+
+static const char *gyro_action_strings[] = {
+    "None",
+    "Disable Gyro",
+    "Enable Gyro",
+    "Invert Gyro",
+    "Reset Camera",
+    "Reset / Disable Gyro",
+    "Reset / Enable Gyro",
+    "Reset / Invert Gyro"
+};
+
+static mn_item_t gyro_items[] = {
+    MN_TOGGLE_ACT("Gyro Aiming", "gyro_enable", MN_OptionsUpdateGyroAiming),
+    MN_CHOICE_ACT("Gyro Button Action", "gyro_button_action",
+                  gyro_action_strings, 18, I_ResetGamepad),
+    MN_CHOICE_ACT("Camera Stick Action", "gyro_stick_action",
+                  gyro_action_strings, 18, I_ResetGamepad),
+    MN_SUBMENU("Advanced Options", &advanced_gyro_menu),
+    MN_SLIDER_ACT_DYN("Turn Sensitivity", "gyro_turn_sensitivity",
+                      MN_GetGyroSensitivityStrings, 11, I_ResetGamepad),
+    MN_SLIDER_ACT_DYN("Look Sensitivity", "gyro_look_sensitivity",
+                      MN_GetGyroSensitivityStrings, 11, I_ResetGamepad),
+    MN_CHOICE_ACT("Freelook", "freelook_mode", free_look_strings, 8,
+                  MN_OptionsUpdateFreeLookMode),
+    {.label = "Calibrate Gyro", .type = MN_ITEM_ACTION,
+     .action = I_UpdateGyroCalibrationState,
+     .desc = "Place gamepad on a flat surface"},
+    MN_RESET,
+    MN_END
+};
+
+#define MN_WEAPON_SLOT(i, key)              \
+    {.label = slot_labels[i],               \
+     .cfg = (key),                          \
+     .type = MN_ITEM_CHOICE,                \
+     .getchoices = MN_GetWeaponSlotStrings, \
+     .choice_width = 8,                     \
+     .action = MN_OptionsUpdateWeaponSlots}
+
+static const char *weapon_slots_activation_strings[] = {
+    "Off", "Hold \"Last\"", "Always On"
+};
+static const char *weapon_slots_selection_strings[] = {
+    "D-Pad", "Face Buttons", "1-4 Keys"
+};
+
+static mn_item_t slots_items[] = {
+    MN_CHOICE_ACT("Enable Slots", "weapon_slots_activation",
+                   weapon_slots_activation_strings, 12,
+                   MN_OptionsUpdateWeaponSlotActivation),
+    MN_CHOICE_ACT("Select Slots", "weapon_slots_selection",
+                   weapon_slots_selection_strings, 12,
+                   MN_OptionsUpdateWeaponSlotSelection),
+    MN_GAP(6),
+    MN_WEAPON_SLOT(0, "weapon_slots_1_1"),
+    MN_WEAPON_SLOT(1, "weapon_slots_1_2"),
+    MN_WEAPON_SLOT(2, "weapon_slots_1_3"),
+    MN_GAP(6),
+    MN_WEAPON_SLOT(3, "weapon_slots_2_1"),
+    MN_WEAPON_SLOT(4, "weapon_slots_2_2"),
+    MN_WEAPON_SLOT(5, "weapon_slots_2_3"),
+    MN_GAP(6),
+    MN_WEAPON_SLOT(6, "weapon_slots_3_1"),
+    MN_WEAPON_SLOT(7, "weapon_slots_3_2"),
+    MN_WEAPON_SLOT(8, "weapon_slots_3_3"),
+    MN_GAP(6),
+    MN_WEAPON_SLOT(9, "weapon_slots_4_1"),
+    MN_WEAPON_SLOT(10, "weapon_slots_4_2"),
+    MN_WEAPON_SLOT(11, "weapon_slots_4_3"),
+    MN_RESET,
+    MN_END
+};
+
 static mn_page_t controls_pages[] = {
-    {.tab = "Mouse/Keyboard", .items = controls_mouse_keyboard_items},
-    {.tab = "Gamepad", .items = controls_gamepad_items},
+    {.tab = "Mouse / Keyboard", .items = mouse_keyboard_items},
+    {.tab = "Gamepad", .items = gamepad_items},
+    {.tab = "Gyro", .items = gyro_items},
+    {.tab = "Slots", .items = slots_items},
 };
 
 mn_menu_t controls_menu = {
@@ -550,12 +741,183 @@ mn_menu_t controls_menu = {
     .num_pages = arrlen(controls_pages),
 };
 
+static const char *hud_anchoring_strings[] = {
+    "Wide", "4:3", "16:9", "21:9"
+};
+static const char *show_widgets_strings[] = {"Off", "Automap", "HUD", "Always"};
+static const char *show_adv_widgets_strings[] = {
+    "Off", "Automap", "HUD", "Always", "Advanced"
+};
+static const char *stats_format_strings[] = {
+    "Ratio", "Boolean", "Percent", "Remaining", "Count"
+};
+
+static mn_item_t statusbar_items[] = {
+    MN_SLIDER_ACT_DYN("HUD Layout" , "screenblocks", MN_GetScreenSizeStrings,
+                      6, MN_OptionsViewSize),
+    MN_CHOICE_ACT("HUD Anchoring", "hud_anchoring", hud_anchoring_strings, 6,
+                  I_UpdateHudAnchoring),
+    MN_GAP(6),
+    MN_TITLE("Widgets"),
+    MN_CHOICE_ACT("Show Level Stats", "hud_level_stats", show_widgets_strings,
+                  8, MN_OptionsUpdateStatsFormatItem),
+    MN_CHOICE("Show Level Time", "hud_level_time", show_widgets_strings, 8),
+    MN_CHOICE("Show Player Coords", "hud_player_coords", show_adv_widgets_strings, 8),
+    MN_TOGGLE_ACT("Show Command History", "hud_command_history",
+                  HU_ResetCommandHistory),
+    MN_TOGGLE("Show Use-Button Timer", "hud_time_use"),
+    MN_GAP(6),
+    MN_TITLE("Widget Appearance"),
+    MN_CHOICE("Use Doom Font", "hud_widget_font", show_widgets_strings, 8),
+    MN_CHOICE("Level Stats Format", "hud_stats_format", stats_format_strings, 8),
+    MN_GAP(6),
+    MN_TITLE("Status Bar"),
+    MN_TOGGLE("Colored Numbers", "sts_colored_numbers"),
+    MN_TOGGLE("Solid Background", "st_solidbackground"),
+    MN_RESET,
+    MN_END
+};
+
+static const char *crosshair_target_strings[] = {"Off", "Highlight", "Health"};
+static const char *hudcolor_strings[] = {
+    "BRICK",  "TAN",    "GRAY",  "GREEN", "BROWN",  "GOLD",  "RED", "BLUE",
+    "ORANGE", "YELLOW", "BLUE2", "BLACK", "PURPLE", "WHITE", "NONE"
+};
+
+static mn_item_t crosshair_items[] = {
+    {.label = "Crosshair",
+     .cfg = "hud_crosshair",
+     .type = MN_ITEM_CHOICE,
+     .choices = crosshair_strings,
+     .num_choices = HU_CROSSHAIRS,
+     .choice_width = 12,
+     .action = MN_OptionsUpdateCrosshairItems,
+     .flags = MN_ITEM_DRAW_CROSSHAIR},
+    MN_TOGGLE("Color By Player Health", "hud_crosshair_health"),
+    MN_CHOICE_ACT("Color By Target", "hud_crosshair_target",
+                  crosshair_target_strings, 8, MN_OptionsUpdateCrosshairItems),
+    MN_TOGGLE("Lock On Target", "hud_crosshair_lockon"),
+    MN_CHOICE("Default Color", "hud_crosshair_color", hudcolor_strings, 8),
+    MN_CHOICE("Highlight Color", "hud_crosshair_target_color", hudcolor_strings, 8),
+    MN_RESET,
+    MN_END
+};
+
+static const char *secretmessage_strings[] = {"Off", "On", "Count",};
+
+static mn_item_t messages_items[] = {
+    MN_CHOICE("Announce Revealed Secrets", "hud_secret_message",
+              secretmessage_strings, 6),
+    MN_TOGGLE("Announce Map Titles", "hud_map_announce"),
+    MN_TOGGLE("Show Toggle Messages", "show_toggle_messages"),
+    MN_TOGGLE("Show Pickup Messages", "show_pickup_messages"),
+    MN_TOGGLE("Show Obituaries", "show_obituary_messages"),
+    MN_TOGGLE("Center Messages", "message_centered"),
+    MN_TOGGLE("Colorize Messages", "message_colorized"),
+    MN_RESET,
+    MN_END
+};
+
+static const char *automap_thickness_strings[] = {
+    "Auto", "1", "2", "3", "4", "5", "6"
+};
+static const char *overlay_strings[] = {"Off", "On", "Dark"};
+static const char *automap_preset_strings[] = {"Vanilla", "Crispy", "Boom", "ZDoom"};
+static const char *automap_keyed_door_strings[] = {"Off", "On", "Flashing"};
+
+static mn_item_t automap_items[] = {
+    MN_TITLE("Modes"),
+    MN_TOGGLE("Follow Player", "followplayer"),
+    MN_TOGGLE("Rotate Automap", "automaprotate"),
+    MN_CHOICE("Overlay Automap", "automapoverlay", overlay_strings, 6),
+    MN_GAP(6),
+    MN_TOGGLE("Show Minimap", "minimap"),
+    MN_SLIDER_ACT_STR("Line Thickness", "map_line_thickness",
+                      automap_thickness_strings, 4, AM_ResetThickness),
+    MN_GAP(6),
+    MN_TITLE("Miscellaneous"),
+    MN_CHOICE_ACT("Color Preset", "mapcolor_preset", automap_preset_strings, 6,
+                  AM_ColorPreset),
+    MN_TOGGLE("Show Found Secrets Only", "map_secret_after"),
+    MN_CHOICE("Color Keyed Doors", "map_keyed_door",
+              automap_keyed_door_strings, 6),
+    MN_RESET,
+    MN_END
+};
+
+static mn_page_t interface_pages[] = {
+    {.tab = "General", .items = statusbar_items},
+    {.tab = "Crosshair", .items = crosshair_items},
+    {.tab = "Messages", .items = messages_items},
+    {.tab = "Automap", .items = automap_items},
+};
+
+mn_menu_t interface_menu = {
+    .title_patch = "",
+    .title_text = "Interface",
+    .background = "FLOOR4_6",
+    .flags = MN_MENU_HINTS,
+    .pages = interface_pages,
+    .num_pages = arrlen(interface_pages),
+};
+
+static const char *overunder_strings[] = {"Off", "Player only", "All"};
+
+static mn_item_t gameplay_items[] = {
+    MN_TOGGLE("Autosave", "autosave"),
+    MN_TOGGLE("On Death Action", "death_use_action"),
+    MN_GAP(6),
+    MN_TITLE("Physics"),
+    MN_CHOICE("Move Over/Under Monsters", "overunder", overunder_strings, 8),
+    MN_TOGGLE_ACT("Auto Strafe 50", "autostrafe50", G_UpdateSideMove),
+    MN_TOGGLE("Improved Hit Detection", "blockmapfix"),
+    MN_RESET,
+    MN_END
+};
+
+static const char *bobbing_pct_strings[] = {"0%", "25%", "50%", "75%", "100%"};
+
+static const char *center_weapon_strings[] = {"Off", "Centered", "Bobbing"};
+
+static mn_item_t weapons_items[] = {
+    MN_SLIDER_STR("View Bob", "view_bobbing_pct", bobbing_pct_strings, 8),
+    MN_SLIDER_ACT_STR("Weapon Bob", "weapon_bobbing_pct", bobbing_pct_strings,
+                      8, MN_OptionsUpdateCenteredWeaponItem),
+    MN_GAP(6),
+    MN_CHOICE("Weapon Alignment", "center_weapon", center_weapon_strings, 8),
+    MN_TOGGLE("Hide Weapon", "hide_weapon"),
+    MN_TOGGLE("Weapon Recoil", "weapon_recoilpitch"),
+    MN_GAP(6),
+    MN_TOGGLE("Weapon Carousel", "weapon_carousel"),
+    MN_TOGGLE("Vanilla Weapon Cycle", "doom_weapon_cycle"),
+    MN_TOGGLE("Use Weapon Toggles", "doom_weapon_toggles"),
+    MN_GAP(6),
+    MN_TOGGLE("Pre-Beta BFG", "classic_bfg"),
+    MN_RESET,
+    MN_END
+};
+
+static mn_page_t gameplay_pages[] = {
+    {.tab = "General", .items = gameplay_items},
+    {.tab = "Weapons", .items = weapons_items},
+    {.tab = "Automap", .items = automap_items},
+};
+
+mn_menu_t gameplay_menu = {
+    .title_patch = "",
+    .title_text = "Gameplay",
+    .background = "FLOOR4_6",
+    .flags = MN_MENU_HINTS,
+    .pages = gameplay_pages,
+    .num_pages = arrlen(gameplay_pages),
+};
+
 static mn_item_t options_items[] = {
     MN_SUBMENU("Video", &video_menu),
     MN_SUBMENU("Audio", &audio_menu),
     MN_SUBMENU("Controls", &controls_menu),
-    MN_SUBMENU_STUB("Gameplay"),
-    MN_SUBMENU_STUB("Interface"),
+    MN_SUBMENU("Gameplay", &gameplay_menu),
+    MN_SUBMENU("Interface", &interface_menu),
     MN_END
 };
 

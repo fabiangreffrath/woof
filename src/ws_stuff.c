@@ -22,6 +22,7 @@
 #include "i_timer.h"
 #include "m_config.h"
 #include "m_input.h"
+#include "mn_options.h"
 #include "r_main.h"
 #include "ws_stuff.h"
 
@@ -226,6 +227,7 @@ void WS_Init(void)
     WS_UpdateSelection();
     WS_UpdateSlots();
     WS_Reset();
+    MN_OptionsUpdateWeaponSlotLabels();
 }
 
 //

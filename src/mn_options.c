@@ -21,9 +21,12 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "g_game.h"
+#include "hu_crosshair.h"
+#include "i_gyro.h"
 #include "i_oalequalizer.h"
 #include "i_oalsound.h"
 #include "i_input.h"
+#include "i_rumble.h"
 #include "i_sound.h"
 #include "i_system.h"
 #include "i_video.h"
@@ -40,11 +43,14 @@
 #include "r_voxel.h"
 #include "s_sound.h"
 #include "sounds.h"
+#include "st_stuff.h"
+#include "st_widgets.h"
 #include "v_palette.h"
 #include "v_patch.h"
 #include "v_trans.h"
 #include "v_video.h"
 #include "m_swap.h"
+#include "ws_stuff.h"
 
 static int ItemMin(const mn_item_t *item)
 {
@@ -150,7 +156,12 @@ static void DisableItem(boolean condition, mn_menu_t *menu, const char *name)
 
         for (mn_item_t *item = page->items; item->type != MN_ITEM_END; ++item)
         {
-            if (!strcmp(item->cfg, name))
+            if (item->cfg && !strcmp(item->cfg, name))
+            {
+                item->disabled = condition;
+                return;
+            }
+            else if (item->label && !strcmp(item->label, name))
             {
                 item->disabled = condition;
                 return;
@@ -160,6 +171,20 @@ static void DisableItem(boolean condition, mn_menu_t *menu, const char *name)
 
     I_Error("%s not found.", name);
 }
+
+static void DisableItemsInternal(boolean condition, mn_menu_t *menu,
+                                 const char *items[], int size)
+{
+    for (int i = 0; i < size; ++i)
+    {
+        DisableItem(condition, menu, items[i]);
+    }
+}
+
+#define DisableItems(condition, menu, ...)                                   \
+    DisableItemsInternal((condition), (menu), (const char *[]){__VA_ARGS__}, \
+                         sizeof((const char *[]){__VA_ARGS__})               \
+                             / sizeof(const char *))
 
 static int SliderPixelWidth(int size)
 {
@@ -632,6 +657,41 @@ static void ChoiceDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
     }
 }
 
+static void ChoiceDrawCrosshair(const mn_item_t *item, const mn_draw_ctx_t *ctx)
+{
+    ChoiceDraw(item, ctx);
+
+    if (!(item->flags & MN_ITEM_DRAW_CROSSHAIR))
+    {
+        return;
+    }
+
+    const choice_layout_t l = ChoiceLayout(item);
+    const boolean hovered = ctx->mouse_inside && menu_input == mouse_mode;
+
+    int current_idx = hud_crosshair;
+    if (hovered && item->hover_segment >= 0 && item->hover_segment < l.visible)
+    {
+        const int hover_idx = l.min + item->hover_segment;
+
+        if (hover_idx >= 0 && hover_idx < item->num_choices)
+        {
+            current_idx = hover_idx;
+        }
+    }
+
+    if (current_idx)
+    {
+        patch_t *patch =
+            V_CachePatchName(crosshair_lumps[current_idx], PU_CACHE);
+
+        int x = ctx->x + 105 - SHORT(patch->width) / 2;
+        int y = ctx->y + MN_SPC_CHOICE / 2 - SHORT(patch->height) / 2 - 1;
+
+        V_DrawPatchTranslated(x, y, patch, xlat[hud_crosshair_color].table);
+    }
+}
+
 static boolean ChoiceRespond(mn_item_t *item, menu_action_t action, int ch)
 {
     if (action == MENU_ENTER || action == MENU_ESCAPE
@@ -993,17 +1053,18 @@ static boolean WeaponRespond(mn_item_t *item, menu_action_t action, int ch)
     return true;
 }
 
-static const mn_item_ops_t title_ops =  {TitleDraw, TitleRespond};
+static const mn_item_ops_t title_ops = {TitleDraw, TitleRespond};
 static const mn_item_ops_t toggle_ops = {ToggleDraw, ToggleRespond};
 static const mn_item_ops_t number_ops = {NumberDraw, NumberRespond};
-static const mn_item_ops_t choice_ops = {ChoiceDraw, ChoiceRespond,
-                                         .click = ChoiceClick,
-                                         .hover = ChoiceHover};
-static const mn_item_ops_t slider_ops = {SliderDraw, SliderRespond,
-                                         .drag = SliderDrag};
+static const mn_item_ops_t choice_ops = {
+    ChoiceDrawCrosshair, ChoiceRespond, .click = ChoiceClick, .hover = ChoiceHover
+};
+static const mn_item_ops_t slider_ops = {
+    SliderDraw, SliderRespond, .drag = SliderDrag
+};
 static const mn_item_ops_t action_ops = {ActionDraw, ActionRespond};
-static const mn_item_ops_t reset_ops =  {ResetDraw, ResetRespond};
-static const mn_item_ops_t input_ops =  {InputDraw, InputRespond,
+static const mn_item_ops_t reset_ops = {ResetDraw, ResetRespond};
+static const mn_item_ops_t input_ops = {InputDraw, InputRespond,
                                         .click = InputClick};
 static const mn_item_ops_t weapon_ops = {WeaponDraw, WeaponRespond};
 
@@ -1113,26 +1174,34 @@ static void RefreshMenu(mn_menu_t *menu)
     }
 }
 
+static mn_menu_t *all_menus[] = {
+    &display_menu,
+    &video_menu,
+    &audio_menu,
+    &equalizer_menu,
+    &controls_menu,
+    &advanced_gamepad_menu,
+    &advanced_gyro_menu,
+    &input_bindings_menu,
+    &interface_menu,
+    &gameplay_menu,
+    &options_menu,
+};
+
 void MN_OptionsBind(void)
 {
-    BindMenu(&options_menu);
-    BindMenu(&display_menu);
-    BindMenu(&video_menu);
-    BindMenu(&audio_menu);
-    BindMenu(&equalizer_menu);
-    BindMenu(&controls_menu);
-    BindMenu(&input_bindings_menu);
+    for (int i = 0; i < arrlen(all_menus); ++i)
+    {
+        BindMenu(all_menus[i]);
+    }
 }
 
 void MN_OptionsRefresh(void)
 {
-    RefreshMenu(&options_menu);
-    RefreshMenu(&display_menu);
-    RefreshMenu(&video_menu);
-    RefreshMenu(&audio_menu);
-    RefreshMenu(&equalizer_menu);
-    RefreshMenu(&controls_menu);
-    RefreshMenu(&input_bindings_menu);
+    for (int i = 0; i < arrlen(all_menus); ++i)
+    {
+        RefreshMenu(all_menus[i]);
+    }
 }
 
 static void OptionsResetPage(void)
@@ -1207,7 +1276,7 @@ void MN_OptionsUpdateMusicVolume(void)
 }
 
 static int resolution_scale, max_resolution_scale;
-#define DRS_MENU_STEP 50
+#define RS_MENU_STEP 50
 
 void MN_GetResolutionScaleStrings(mn_item_t *item)
 {
@@ -1229,7 +1298,7 @@ void MN_GetResolutionScaleStrings(mn_item_t *item)
         M_snprintf(buf, sizeof(buf), "%d%%", pct);
         array_push(item->choices, M_StringDuplicate(buf));
 
-        val += DRS_MENU_STEP;
+        val += RS_MENU_STEP;
     }
 
     max_resolution_scale = i;
@@ -1257,7 +1326,7 @@ void MN_OptionsUpdateResolutionScale(void)
     else
     {
         current_video_height =
-            SCREENHEIGHT * 2 + (resolution_scale - 1) * DRS_MENU_STEP;
+            SCREENHEIGHT * 2 + (resolution_scale - 1) * RS_MENU_STEP;
     }
 
     if (!dynamic_resolution)
@@ -1276,11 +1345,6 @@ void MN_OptionsUpdateFullscreen(void)
     toggle_fullscreen = true;
 }
 
-void MN_OptionsUpdateVSync(void)
-{
-    I_ToggleVsync();
-}
-
 void MN_OptionsUpdateFPSLimit(void)
 {
     setrefreshneeded = true;
@@ -1296,11 +1360,6 @@ void MN_OptionsResetVideo(void)
     resetneeded = true;
 }
 
-void MN_OptionsResetPalette(void)
-{
-    V_ResetPalette();
-}
-
 void MN_OptionsSetSoundModule(void)
 {
     if (!I_AllowReinitSound())
@@ -1312,6 +1371,11 @@ void MN_OptionsSetSoundModule(void)
 
     S_EvictChannels();
     I_SetSoundModule();
+}
+
+void MN_OptionsUpdateAdvancedSoundItems(boolean toggle)
+{
+    DisableItems(toggle, &audio_menu, "snd_hrtf", "snd_doppler");
 }
 
 void MN_OptionsRestartMusic(void)
@@ -1343,7 +1407,14 @@ void MN_OptionsSetMidiPlayer(void)
 
 void MN_OptionsEqualizerPreset(void)
 {
-    I_OAL_EqualizerPreset();
+    DisableItem(!I_OAL_EqualizerInitialized(), &equalizer_menu, "snd_equalizer");
+
+    const boolean condition = !I_OAL_CustomEqualizer();
+
+    DisableItems(condition, &equalizer_menu, "snd_eq_preamp", "snd_eq_low_gain",
+                 "snd_eq_low_cutoff", "snd_eq_mid1_gain", "snd_eq_mid1_center",
+                 "snd_eq_mid2_gain", "snd_eq_mid2_center", "snd_eq_high_gain",
+                 "snd_eq_high_cutoff");
 }
 
 typedef enum
@@ -1352,6 +1423,20 @@ typedef enum
     FREELOOK_AUTO_AIM,   // Free look enabled with traditional auto-aiming.
     FREELOOK_DIRECT_AIM, // Free look enabled with direct vertical aiming.
 } freelook_mode_t;
+
+static void UpdateGainItems(void)
+{
+#if defined (HAVE_FLUIDSYNTH)
+    DisableItem(auto_gain, &audio_menu, "fl_gain");
+#endif
+    DisableItem(auto_gain, &audio_menu, "opl_gain");
+}
+
+void MN_OptionsResetAutoGain(void)
+{
+    MN_OptionsRestartMusic();
+    UpdateGainItems();
+}
 
 static freelook_mode_t freelook_mode;
 
@@ -1401,6 +1486,308 @@ void MN_GetGamepadDeviceStrings(mn_item_t *item)
 void MN_OptionsUpdateGamepadDevice(void)
 {
     I_UpdateGamepadDevice(menu_input == pad_mode);
+}
+
+static void UpdateGamepadItems(void)
+{
+    const boolean devices = (I_GamepadEnabled() && I_GamepadDevices());
+    const boolean gamepad = (I_UseGamepad() && devices);
+    const boolean gyro = (I_GyroEnabled() && I_GyroSupported());
+    const boolean sticks = I_UseStickLayout();
+    const boolean flick = (gamepad && sticks && !I_StandardLayout());
+    const boolean ramp = (gamepad && sticks && I_RampTimeEnabled());
+    const boolean condition = (!gamepad || !sticks);
+
+    DisableItem(!devices, &controls_menu, "joy_device");
+    DisableItem(!gamepad, &controls_menu, "Advanced Options");
+    DisableItem(!gamepad || !I_GyroSupported(), &controls_menu, "Gyro Options");
+    DisableItem(!gamepad || !I_RumbleSupported(), &controls_menu, "joy_rumble");
+    DisableItem(!gamepad || (!sticks && !gyro) || strictmode, &controls_menu,
+        "freelook_mode");
+    DisableItems(condition, &controls_menu, "joy_invert_look",
+        "joy_movement_inner_deadzone", "joy_camera_inner_deadzone",
+        "joy_turn_speed", "joy_look_speed");
+
+    DisableItem(!gamepad, &controls_menu, "joy_stick_layout");
+    DisableItem(!flick, &controls_menu, "joy_flick_time");
+    DisableItems(condition, &controls_menu, "joy_movement_type",
+        "joy_forward_sensitivity", "joy_strafe_sensitivity",
+        "joy_outer_turn_speed");
+    DisableItem(!ramp, &controls_menu, "joy_outer_ramp_time");
+    DisableItem(condition, &controls_menu, "joy_camera_curve");
+}
+
+void MN_OptionsUpdateGamepad(void)
+{
+    UpdateGamepadItems();
+    I_ResetGamepad();
+}
+
+#define MS_TIME_STRINGS_SIZE (100 + 1)
+
+void MN_GetMsTimeStrings(mn_item_t *item)
+{
+    static const char *strings[MS_TIME_STRINGS_SIZE];
+    char buf[8];
+
+    for (int i = 0; i < MS_TIME_STRINGS_SIZE; ++i)
+    {
+        M_snprintf(buf, sizeof(buf), "%d ms", i * 10);
+        strings[i] = M_StringDuplicate(buf);
+    }
+
+    item->choices = strings;
+    item->num_choices = MS_TIME_STRINGS_SIZE;
+}
+
+void MN_OptionsUpdateRumble(void)
+{
+    I_UpdateRumbleEnabled();
+    I_RumbleMenuFeedback();
+}
+
+#define MOVEMENT_SENSITIVITY_STRINGS_SIZE (40 + 1)
+
+void MN_GetMovementSensitivityStrings(mn_item_t *item)
+{
+    static const char *strings[MOVEMENT_SENSITIVITY_STRINGS_SIZE];
+    char buf[8];
+
+    for (int i = 0; i < MOVEMENT_SENSITIVITY_STRINGS_SIZE; i++)
+    {
+        M_snprintf(buf, sizeof(buf), "%1d.%1d", i / 10, i % 10);
+        strings[i] = M_StringDuplicate(buf);
+    }
+
+    item->choices = strings;
+    item->num_choices = MOVEMENT_SENSITIVITY_STRINGS_SIZE;
+}
+
+static void UpdateGyroItems(void)
+{
+    const boolean gamepad = (I_UseGamepad() && I_GamepadEnabled());
+    const boolean gyro = (I_GyroEnabled() && I_GyroSupported());
+    const boolean acceleration = (gamepad && gyro && I_GyroAcceleration());
+    const boolean condition = (!gamepad || !gyro);
+
+    DisableItem(!gamepad || !I_GyroSupported(), &controls_menu, "gyro_enable");
+    DisableItems(condition, &controls_menu, "gyro_space", "gyro_button_action",
+                 "gyro_stick_action", "gyro_turn_sensitivity",
+                 "gyro_look_sensitivity", "gyro_acceleration");
+    DisableItems(!acceleration, &controls_menu, "gyro_accel_min_threshold",
+                 "gyro_accel_max_threshold");
+    DisableItems(condition, &controls_menu, "gyro_smooth_threshold",
+                 "Calibrate Gyro");
+}
+
+void MN_OptionsUpdateGyroAiming(void)
+{
+    UpdateGamepadItems(); // Update "Gyro Options" and freelook.
+    UpdateGyroItems();
+    I_SetSensorsEnabled(I_GyroEnabled());
+    I_ResetGamepad();
+}
+
+#define GYRO_SENS_STRINGS_SIZE (500 + 1)
+
+void MN_GetGyroSensitivityStrings(mn_item_t *item)
+{
+    static const char *strings[GYRO_SENS_STRINGS_SIZE];
+    char buf[8];
+
+    for (int i = 0; i < GYRO_SENS_STRINGS_SIZE; i++)
+    {
+        M_snprintf(buf, sizeof(buf), "%1d.%1d", i / 10, i % 10);
+        strings[i] = M_StringDuplicate(buf);
+    }
+    
+    item->choices = strings;
+    item->num_choices = GYRO_SENS_STRINGS_SIZE;
+}
+
+#define GYRO_ACCEL_STRINGS_SIZE (200 + 1)
+
+void MN_GetGyroAccelStrings(mn_item_t *item)
+{
+    static const char *strings[GYRO_ACCEL_STRINGS_SIZE] = {
+        "", "", "", "", "", "", "", "", "", "", "Off"
+    };
+    char buf[8];
+
+    for (int i = 11; i < GYRO_ACCEL_STRINGS_SIZE; i++)
+    {
+        M_snprintf(buf, sizeof(buf), "%1d.%1d", i / 10, i % 10);
+        strings[i] = M_StringDuplicate(buf);
+    }
+    
+    item->choices = strings;
+    item->num_choices = GYRO_ACCEL_STRINGS_SIZE;
+}
+
+void MN_OptionsUpdateGyroSteadying(void)
+{
+    I_UpdateGyroSteadying();
+    I_ResetGamepad();
+}
+
+void MN_OptionsUpdateGyroAcceleration(void)
+{
+    UpdateGyroItems();
+    I_ResetGamepad();
+}
+
+void MN_OptionsUpdateWeaponSlotLabels(void)
+{
+    const char *keys[NUM_WS_SLOTS];
+
+    switch (WS_Selection())
+    {
+        case WS_SELECT_DPAD:
+            keys[0] = M_GetPlatformName(GAMEPAD_DPAD_UP);
+            keys[1] = M_GetPlatformName(GAMEPAD_DPAD_DOWN);
+            keys[2] = M_GetPlatformName(GAMEPAD_DPAD_LEFT);
+            keys[3] = M_GetPlatformName(GAMEPAD_DPAD_RIGHT);
+            break;
+
+        case WS_SELECT_FACE_BUTTONS:
+            keys[0] = M_GetPlatformName(GAMEPAD_NORTH);
+            keys[1] = M_GetPlatformName(GAMEPAD_SOUTH);
+            keys[2] = M_GetPlatformName(GAMEPAD_WEST);
+            keys[3] = M_GetPlatformName(GAMEPAD_EAST);
+            break;
+
+        default: // WS_SELECT_1234
+            keys[0] = "1-Key";
+            keys[1] = "2-Key";
+            keys[2] = "3-Key";
+            keys[3] = "4-Key";
+            break;
+    }
+
+    const char *pos[NUM_WS_WEAPS] = {"1st", "2nd", "3rd"};
+    int num = 0;
+
+    for (int i = 0; i < NUM_WS_SLOTS; i++)
+    {
+        M_snprintf(slot_labels[num++], WS_BUF_SIZE, "%s %s", keys[i], pos[0]);
+
+        for (int j = 1; j < NUM_WS_WEAPS; j++)
+        {
+            M_snprintf(slot_labels[num++], WS_BUF_SIZE, "%s", pos[j]);
+        }
+    }
+}
+
+static void UpdateWeaponSlotItems(void)
+{
+    const boolean condition = !WS_Enabled();
+
+    DisableItems(condition, &controls_menu, "weapon_slots_selection",
+                 "weapon_slots_1_1", "weapon_slots_1_2", "weapon_slots_1_3",
+                 "weapon_slots_2_1", "weapon_slots_2_2", "weapon_slots_2_3",
+                 "weapon_slots_3_1", "weapon_slots_3_2", "weapon_slots_3_3",
+                 "weapon_slots_4_1", "weapon_slots_4_2", "weapon_slots_4_3");
+}
+
+void MN_OptionsUpdateWeaponSlotActivation(void)
+{
+    WS_Reset();
+    UpdateWeaponSlotItems();
+}
+
+void MN_OptionsUpdateWeaponSlotSelection(void)
+{
+    WS_UpdateSelection();
+    WS_Reset();
+    MN_OptionsUpdateWeaponSlotLabels();
+}
+
+void MN_OptionsUpdateWeaponSlots(void)
+{
+    WS_UpdateSlots();
+    WS_Reset();
+}
+
+void MN_GetWeaponSlotStrings(mn_item_t *item)
+{
+    static const char *vanilla_doom_strings[] = {
+        "--", "Chainsaw/Fist", "Pistol", "Shotgun", "Chaingun",
+        "Rocket", "Plasma", "BFG", "Chainsaw/Fist", "Shotgun"
+    };
+    static const char *vanilla_doom2_strings[] = {
+        "--", "Chainsaw/Fist", "Pistol", "SSG/Shotgun", "Chaingun",
+        "Rocket", "Plasma", "BFG", "Chainsaw/Fist", "SSG/Shotgun"
+    };
+    static const char *full_doom2_strings[] = {
+        "--", "Fist", "Pistol", "Shotgun", "Chaingun",
+        "Rocket", "Plasma", "BFG", "Chainsaw", "SSG"
+    };
+
+    if (force_complevel == CL_VANILLA || default_complevel == CL_VANILLA)
+    {
+        item->choices = ALLOW_SSG ? vanilla_doom2_strings : vanilla_doom_strings;
+    }
+    else
+    {
+        item->choices = full_doom2_strings;
+    }
+    item->num_choices = arrlen(full_doom2_strings);
+}
+
+void MN_GetScreenSizeStrings(mn_item_t *item)
+{
+    const char **strings = NULL;
+
+    for (int i = 0; i < 3; ++i)
+    {
+        array_push(strings, "");
+    }
+    for (int i = 3; i < 10; ++i)
+    {
+        char buf[8];
+        buf[0] = '\0';
+        M_snprintf(buf, sizeof(buf), "%d", i);
+        array_push(strings, M_StringDuplicate(buf));
+    }
+
+    const char **st_strings = ST_StatusbarList();
+    for (int i = 0; i < array_size(st_strings); ++i)
+    {
+        array_push(strings, st_strings[i]);
+    }
+
+    maxscreenblocks = array_size(strings) - 1;
+    screenblocks = MIN(screenblocks, maxscreenblocks);
+
+    item->choices = strings;
+    item->num_choices = array_size(strings);
+}
+
+void MN_OptionsViewSize(void)
+{
+    R_SetViewSize(screenblocks);
+}
+
+void MN_OptionsUpdateStatsFormatItem(void)
+{
+    DisableItem(!hud_level_stats, &interface_menu, "hud_stats_format");
+}
+
+void MN_OptionsUpdateCrosshairItems(void)
+{
+    DisableItems(!hud_crosshair, &interface_menu, "hud_crosshair_health",
+                 "hud_crosshair_target", "hud_crosshair_lockon",
+                 "hud_crosshair_color");
+    DisableItem(
+        !(hud_crosshair && hud_crosshair_target == crosstarget_highlight),
+        &interface_menu, "hud_crosshair_target_color");
+
+    HU_StartCrosshair();
+}
+
+void MN_OptionsUpdateCenteredWeaponItem(void)
+{
+    DisableItem(!weapon_bobbing_pct, &gameplay_menu, "center_weapon");
 }
 
 void MN_BindOptionsVariables(void)

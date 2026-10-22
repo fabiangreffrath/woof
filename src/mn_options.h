@@ -25,7 +25,11 @@ extern mn_menu_t video_menu;
 extern mn_menu_t audio_menu;
 extern mn_menu_t equalizer_menu;
 extern mn_menu_t controls_menu;
+extern mn_menu_t advanced_gamepad_menu;
+extern mn_menu_t advanced_gyro_menu;
 extern mn_menu_t input_bindings_menu;
+extern mn_menu_t interface_menu;
+extern mn_menu_t gameplay_menu;
 extern mn_menu_t options_menu;
 
 void MN_OptionsBind(void);
@@ -34,27 +38,49 @@ void MN_OptionsOpen(void);
 
 void MN_GetResolutionScaleStrings(mn_item_t *item);
 void MN_OptionsUpdateResolutionScale(void);
-
-void MN_OptionsUpdateSfxVolume(void);
-void MN_OptionsUpdateMusicVolume(void);
 void MN_OptionsUpdateFullscreen(void);
-void MN_OptionsUpdateVSync(void);
 void MN_OptionsUpdateFPSLimit(void);
 void MN_OptionsUpdateFOV(void);
 void MN_OptionsResetVideo(void);
-void MN_OptionsResetPalette(void);
 
+void MN_OptionsUpdateSfxVolume(void);
+void MN_OptionsUpdateMusicVolume(void);
 void MN_OptionsSetSoundModule(void);
 void MN_OptionsRestartMusic(void);
 void MN_OptionsEqualizerPreset(void);
-
 void MN_GetMidiPlayerStrings(mn_item_t *item);
 void MN_OptionsSetMidiPlayer(void);
-
 void MN_GetResamplerStrings(mn_item_t *item);
+void MN_OptionsResetAutoGain(void);
+void MN_OptionsUpdateAdvancedSoundItems(boolean toggle);
 
 void MN_OptionsUpdateFreeLookMode(void);
 void MN_GetGamepadDeviceStrings(mn_item_t *item);
 void MN_OptionsUpdateGamepadDevice(void);
+void MN_OptionsUpdateGamepad(void);
+void MN_GetMsTimeStrings(mn_item_t *item);
+void MN_OptionsUpdateRumble(void);
+void MN_GetMovementSensitivityStrings(mn_item_t *item);
+void MN_OptionsUpdateGyroAiming(void);
+void MN_GetGyroSensitivityStrings(mn_item_t *item);
+void MN_GetGyroAccelStrings(mn_item_t *item);
+void MN_OptionsUpdateGyroSteadying(void);
+void MN_OptionsUpdateGyroAcceleration(void);
+
+#include "ws_stuff.h"
+#define WS_BUF_SIZE 80
+char slot_labels[NUM_WS_SLOTS * NUM_WS_WEAPS][WS_BUF_SIZE];
+void MN_OptionsUpdateWeaponSlotLabels(void);
+void MN_OptionsUpdateWeaponSlotActivation(void);
+void MN_OptionsUpdateWeaponSlotSelection(void);
+void MN_OptionsUpdateWeaponSlots(void);
+void MN_GetWeaponSlotStrings(mn_item_t *item);
+
+void MN_GetScreenSizeStrings(mn_item_t *item);
+void MN_OptionsViewSize(void);
+void MN_OptionsUpdateStatsFormatItem(void);
+void MN_OptionsUpdateCrosshairItems(void);
+
+void MN_OptionsUpdateCenteredWeaponItem(void);
 
 #endif

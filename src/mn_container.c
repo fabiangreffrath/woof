@@ -1087,6 +1087,11 @@ boolean MN_ContainerMouseButton(int button, boolean down)
     {
         mn_item_t *item = &page->items[menu->hover];
 
+        if (!IsSelectable(item))
+        {
+            return true;
+        }
+
         if (item->type == MN_ITEM_SLIDER && item->ops && item->ops->drag)
         {
             menu->drag_item = item;

@@ -1681,8 +1681,8 @@ static const char **GetWeaponSlotStrings(void)
     }
 }
 
-#define WS_BUF_SiZE 80
-static char slot_labels[NUM_WS_SLOTS * NUM_WS_WEAPS][WS_BUF_SiZE];
+#define WS_BUF_SIZE 80
+static char slot_labels[NUM_WS_SLOTS * NUM_WS_WEAPS][WS_BUF_SIZE];
 
 static void UpdateWeaponSlotLabels(void)
 {
@@ -1717,11 +1717,11 @@ static void UpdateWeaponSlotLabels(void)
 
     for (int i = 0; i < NUM_WS_SLOTS; i++)
     {
-        M_snprintf(slot_labels[num++], WS_BUF_SiZE, "%s %s", keys[i], pos[0]);
+        M_snprintf(slot_labels[num++], WS_BUF_SIZE, "%s %s", keys[i], pos[0]);
 
         for (int j = 1; j < NUM_WS_WEAPS; j++)
         {
-            M_snprintf(slot_labels[num++], WS_BUF_SiZE, "%s", pos[j]);
+            M_snprintf(slot_labels[num++], WS_BUF_SIZE, "%s", pos[j]);
         }
     }
 }
@@ -2790,22 +2790,22 @@ static setup_menu_t eq_settings1[] = {
 
 static setup_menu_t *eq_settings[] = {eq_settings1, NULL};
 
-void MN_UpdateEqualizerItems(void)
-{
-    const boolean condition = !I_OAL_CustomEqualizer();
+// void MN_UpdateEqualizerItems(void)
+// {
+//     const boolean condition = !I_OAL_CustomEqualizer();
 
-    DisableItem(!I_OAL_EqualizerInitialized(), gen_settings2, "Equalizer Options");
-    DisableItem(!I_OAL_EqualizerInitialized(), eq_settings1, "snd_equalizer");
-    DisableItem(condition, eq_settings1, "snd_eq_preamp");
-    DisableItem(condition, eq_settings1, "snd_eq_low_gain");
-    DisableItem(condition, eq_settings1, "snd_eq_low_cutoff");
-    DisableItem(condition, eq_settings1, "snd_eq_mid1_gain");
-    DisableItem(condition, eq_settings1, "snd_eq_mid1_center");
-    DisableItem(condition, eq_settings1, "snd_eq_mid2_gain");
-    DisableItem(condition, eq_settings1, "snd_eq_mid2_center");
-    DisableItem(condition, eq_settings1, "snd_eq_high_gain");
-    DisableItem(condition, eq_settings1, "snd_eq_high_cutoff");
-}
+//     DisableItem(!I_OAL_EqualizerInitialized(), gen_settings2, "Equalizer Options");
+//     DisableItem(!I_OAL_EqualizerInitialized(), eq_settings1, "snd_equalizer");
+//     DisableItem(condition, eq_settings1, "snd_eq_preamp");
+//     DisableItem(condition, eq_settings1, "snd_eq_low_gain");
+//     DisableItem(condition, eq_settings1, "snd_eq_low_cutoff");
+//     DisableItem(condition, eq_settings1, "snd_eq_mid1_gain");
+//     DisableItem(condition, eq_settings1, "snd_eq_mid1_center");
+//     DisableItem(condition, eq_settings1, "snd_eq_mid2_gain");
+//     DisableItem(condition, eq_settings1, "snd_eq_mid2_center");
+//     DisableItem(condition, eq_settings1, "snd_eq_high_gain");
+//     DisableItem(condition, eq_settings1, "snd_eq_high_cutoff");
+// }
 
 static setup_tab_t equalizer_tabs[] = {{"Equalizer"}, {NULL}};
 
@@ -5174,7 +5174,7 @@ void MN_SetupResetMenu(void)
     UpdateGamepadItems();
     UpdateGyroItems();
     UpdateWeaponSlotItems();
-    MN_UpdateEqualizerItems();
+//    MN_UpdateEqualizerItems();
     UpdateGainItems();
 }
 

@@ -64,7 +64,6 @@ void MN_ForcedLoadGame(const char *msg); // killough 5/15/98: forced loadgames
 void MN_SetupResetMenu(void);
 void MN_UpdateFreeLook(void);
 void MN_UpdateAllGamepadItems(void);
-void MN_UpdateEqualizerItems(void);
 void MN_UpdateAdvancedSoundItems(boolean toggle);
 void MN_SetHUFontKerning(void);
 void MN_DisableVoxelsRenderingItem(void);

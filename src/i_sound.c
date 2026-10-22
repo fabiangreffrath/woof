@@ -32,6 +32,7 @@
 #include "m_array.h"
 #include "m_misc.h"
 #include "mn_menu.h"
+#include "mn_options.h"
 #include "p_mobj.h"
 #include "s_sound.h"
 #include "sounds.h"
@@ -620,7 +621,7 @@ void I_SetSoundModule(void)
     }
 
     CacheSounds();
-    MN_UpdateAdvancedSoundItems(snd_module != SND_MODULE_3D);
+    MN_OptionsUpdateAdvancedSoundItems(snd_module != SND_MODULE_3D);
 }
 
 midiplayertype_t I_MidiPlayerType(void)
