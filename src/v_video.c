@@ -467,6 +467,16 @@ void V_DrawPatch(
     );
 }
 
+// Ignore clipping
+void V_DrawPatchDirect(int x, int y, const patch_t *patch)
+{
+    int saved_top = clip_top;
+    int saved_bottom = clip_bottom;
+    V_ResetClipY();
+    V_DrawPatch(x, y, patch);
+    V_SetClipY(saved_top, saved_bottom);
+}
+
 // 160px X centers the sprite in the middle
 // while 170px Y puts it just above the callee's name
 void V_DrawPatchCastCall(

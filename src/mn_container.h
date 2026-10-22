@@ -62,6 +62,7 @@ enum
     MN_ITEM_WRAP = (1u << 11),
     MN_ITEM_DEFER_ACTION = (1u << 12),
     MN_ITEM_TWO_LINES = (1u << 13),
+    MN_ITEM_DIRECT_COORDS = (1u << 14),
 };
 
 typedef struct mn_item_ops_s mn_item_ops_t;

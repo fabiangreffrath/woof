@@ -29,7 +29,7 @@
 #include "r_plane.h"
 #include "r_sky.h"
 
-#define MN_RESET(lbl) {.label = (lbl), .type = MN_ITEM_RESET}
+#define MN_RESET      {.label = "", .type = MN_ITEM_RESET, .flags = MN_ITEM_DIRECT_COORDS}
 #define MN_END        {.type = MN_ITEM_END}
 #define MN_GAP(gap)   {.type = MN_ITEM_SKIP, .height = (gap)}
 #define MN_TITLE(txt) {.label = (txt), .type = MN_ITEM_TITLE}
@@ -203,7 +203,7 @@ static mn_item_t video_general_items[] = {
     MN_SLIDER_ACT_STR("Gamma Correction", "gamma2", gamma_strings, 8,
                       MN_OptionsResetPalette),
     MN_SLIDER("Extra Lighting", "extra_level_brightness", 8),
-    MN_RESET("Reset to Defaults"),
+    MN_RESET,
     MN_END
 };
 
@@ -241,7 +241,7 @@ static mn_item_t video_graphics_items[] = {
     MN_TOGGLE_ACT("Vertical Stretch", "stretchsky", R_UpdateStretchSkies),
     MN_CHOICE_ACT("Projection", "sky_projection", sky_projection_strings, 10,
                   R_InitPlanes),
-    MN_RESET("Reset to Deafults"),
+    MN_RESET,
     MN_END
 };
 
@@ -272,7 +272,7 @@ static mn_item_t audio_general_items[] = {
     MN_CHOICE_ACT_DYN_DEFER_2LINES("MIDI Player", "midi_player_menu",
                                     MN_GetMidiPlayerStrings, 18,
                                     MN_OptionsSetMidiPlayer),
-    MN_RESET("Reset to Defaults"),
+    MN_RESET,
     MN_END
 };
 
@@ -288,7 +288,7 @@ static mn_item_t equalizer_items[] = {
     MN_NUMBER_ACT("  Mid 1 Center", "snd_eq_mid1_center", "Hz", MN_OptionsEqualizerPreset),
     MN_NUMBER_ACT("  Mid 2 Center", "snd_eq_mid2_center", "Hz", MN_OptionsEqualizerPreset),
     MN_NUMBER_ACT("  High Cutoff", "snd_eq_high_cutoff", "Hz", MN_OptionsEqualizerPreset),
-    MN_RESET("Reset to Defaults"),
+    MN_RESET,
     MN_END
 };
 
@@ -320,7 +320,7 @@ static mn_item_t audio_advanced_items[] = {
     MN_TOGGLE_ACT("Auto Gain", "auto_gain", MN_OptionsRestartMusic),
     MN_SLIDER_ACT("  FluidSynth Gain", "fl_gain", 8, MN_OptionsUpdateMusicVolume),
     MN_SLIDER_ACT("  OPL3 Gain", "opl_gain", 8, MN_OptionsUpdateMusicVolume),
-    MN_RESET("Reset to Defaults"),
+    MN_RESET,
     MN_END
 };
 
@@ -372,7 +372,7 @@ static mn_item_t input_bindings_action_items[] = {
     MN_INPUT("Autorun", input_autorun, m_scrn),
     MN_INPUT("Free Look", input_freelook, m_scrn),
     MN_INPUT("Vertmouse", input_novert, m_scrn),
-    MN_RESET("Reset to Defaults"),
+    MN_RESET,
     MN_END
 };
 
@@ -391,7 +391,7 @@ static mn_item_t input_bindings_weapon_items[] = {
     MN_GAP(6),
     MN_INPUT("Previous", input_prevweapon, m_scrn),
     MN_INPUT("Next", input_nextweapon, m_scrn),
-    MN_RESET("Reset to Defaults"),
+    MN_RESET,
     MN_END
 };
 
@@ -411,7 +411,7 @@ static mn_item_t input_bindings_misc_items[] = {
     MN_GAP(6),
     MN_INPUT("Begin Chat", input_chat, m_scrn),
     MN_INPUT("Show Netgame Stats", input_netgame_stats, m_scrn),
-    MN_RESET("Reset to Defaults"),
+    MN_RESET,
     MN_END
 };
 
@@ -432,7 +432,7 @@ static mn_item_t input_bindings_func_items[] = {
     MN_INPUT("Clean Screenshot", input_clean_screenshot, m_scrn),
     MN_INPUT("Larger View", input_zoomin, m_scrn),
     MN_INPUT("Smaller View", input_zoomout, m_scrn),
-    MN_RESET("Reset to Defaults"),
+    MN_RESET,
     MN_END
 };
 
@@ -453,7 +453,7 @@ static mn_item_t input_bindings_automap_items[] = {
     MN_INPUT("Clear Last Mark", input_map_clear, m_map),
     MN_INPUT("Full/Zoom", input_map_gobig, m_map),
     MN_INPUT("Grid", input_map_grid, m_map),
-    MN_RESET("Reset to Defaults"),
+    MN_RESET,
     MN_END
 };
 
@@ -473,7 +473,7 @@ static mn_item_t input_bindings_cheat_items[] = {
     MN_INPUT("Light Amplification", input_idbeholdl, m_scrn),
     MN_INPUT("No Target", input_notarget, m_scrn),
     MN_INPUT("Freeze", input_freeze, m_scrn),
-    MN_RESET("Reset to Defaults"),
+    MN_RESET,
     MN_END
 };
 
@@ -510,7 +510,7 @@ static mn_item_t controls_mouse_keyboard_items[] = {
                   MN_OptionsUpdateFreeLookMode),
     MN_TOGGLE_ACT("Invert Look", "mouse_y_invert", G_UpdateMouseVariables),
     MN_TOGGLE("Double-Click to \"Use\"", "dclick_use"),
-    MN_RESET("Reset to Defaults"),
+    MN_RESET,
     MN_END
 };
 
@@ -532,7 +532,7 @@ static mn_item_t controls_gamepad_items[] = {
     MN_SUBMENU("Input Bindings", &input_bindings_menu),
     MN_CHOICE_ACT("Stick Layout", "joy_stick_layout", layout_strings, 16,
                   I_ResetGamepad),
-    MN_RESET("Reset to Defaults"),
+    MN_RESET,
     MN_END
 };
 
@@ -550,7 +550,7 @@ mn_menu_t controls_menu = {
     .num_pages = arrlen(controls_pages),
 };
 
-static mn_item_t options_root_items[] = {
+static mn_item_t options_items[] = {
     MN_SUBMENU("Video", &video_menu),
     MN_SUBMENU("Audio", &audio_menu),
     MN_SUBMENU("Controls", &controls_menu),
@@ -560,7 +560,7 @@ static mn_item_t options_root_items[] = {
 };
 
 static mn_page_t options_pages[] = {
-    {.items = options_root_items},
+    {.items = options_items},
 };
 
 mn_menu_t options_menu = {

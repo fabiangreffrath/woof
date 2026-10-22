@@ -139,6 +139,14 @@ static void LayoutPage(mn_menu_t *menu, mn_page_t *page)
 
     for (mn_item_t *item = page->items; item->type != MN_ITEM_END; ++item)
     {
+        count++;
+
+        // Skip direct-coords items in layout calculations.
+        if (item->flags & MN_ITEM_DIRECT_COORDS)
+        {
+            continue;
+        }
+
         if (item->height == 0)
         {
             if (item->type == MN_ITEM_SLIDER)
@@ -176,8 +184,6 @@ static void LayoutPage(mn_menu_t *menu, mn_page_t *page)
         {
             y += menu->item_spacing;
         }
-
-        count++;
     }
 
     page->num_items = count;
@@ -190,7 +196,10 @@ static void LayoutPage(mn_menu_t *menu, mn_page_t *page)
 
         for (int i = 0; i < count; ++i)
         {
-            page->items[i].rect.y += offset;
+            if (!(page->items[i].flags & MN_ITEM_DIRECT_COORDS))
+            {
+                page->items[i].rect.y += offset;
+            }
         }
     }
 
@@ -508,7 +517,12 @@ static void ActivateItem(mn_menu_t *menu, int index, boolean mouse)
     }
 
     page->selected = index;
-    MN_ContainerEnsureVisible(item);
+
+    // Don't scroll for direct-coords items
+    if (!(item->flags & MN_ITEM_DIRECT_COORDS))
+    {
+        MN_ContainerEnsureVisible(item);
+    }
 
     if (!IsSelectable(item))
     {
@@ -581,8 +595,12 @@ static void MouseSelect(mn_menu_t *menu, int x, int y)
         item->hover_arrow = -1;
         mrect_t rect = item->rect;
 
-        rect.x += menu->viewport.x;
-        rect.y += menu->viewport.y - page->scroll;
+        // For direct-coords items, use rect as-is (absolute screen coordinates)
+        if (!(item->flags & MN_ITEM_DIRECT_COORDS))
+        {
+            rect.x += menu->viewport.x;
+            rect.y += menu->viewport.y - page->scroll;
+        }
 
         if (!MN_ContainerPointInside(&rect, x, y))
         {
@@ -1216,7 +1234,8 @@ static void DrawItems(const mn_menu_t *menu)
         const boolean highlighted =
             mouse ? (i == menu->hover) : (i == page->selected);
 
-        if (y + item->rect.h <= top || y >= bottom)
+        if (!(item->flags & MN_ITEM_DIRECT_COORDS)
+            && (y + item->rect.h <= top || y >= bottom))
         {
             continue;
         }

@@ -103,6 +103,12 @@ void V_DrawPatch(
     const patch_t *patch
 );
 
+void V_DrawPatchDirect(
+    int x,
+    int y,
+    const patch_t *patch
+);
+
 void V_DrawPatchCastCall(
     const patch_t *patch,
     const byte *tranmap,

@@ -44,6 +44,7 @@
 #include "v_patch.h"
 #include "v_trans.h"
 #include "v_video.h"
+#include "m_swap.h"
 
 static int ItemMin(const mn_item_t *item)
 {
@@ -576,9 +577,14 @@ static void ChoiceDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
         current_text = ChoiceText(item, value);
     }
 
-    MN_DrawStringCR(l.x, arrow_y,
-                    left_hover ? xlat[CR_GRAY].table : xlat[CR_GREEN].table,
-                    left_hover ? NULL : cr, "<");
+    if (left_hover)
+    {
+        MN_DrawStringCR(l.x, arrow_y, xlat[CR_GRAY].table, NULL, "<");
+    }
+    else
+    {
+        MN_DrawStringCR(l.x, arrow_y, xlat[CR_GREEN].table, cr, "<");
+    }
 
     ChoiceDrawText(item, &l, y, current_text, cr);
 
@@ -614,9 +620,16 @@ static void ChoiceDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
         seg_x += seg_w + l.gap;
     }
 
-    MN_DrawStringCR(l.text_x + l.text_w + CHOICE_PADDING, arrow_y,
-                    right_hover ? xlat[CR_GRAY].table : xlat[CR_GREEN].table,
-                    right_hover ? NULL : cr, ">");
+    if (right_hover)
+    {
+        MN_DrawStringCR(l.text_x + l.text_w + CHOICE_PADDING, arrow_y,
+                        xlat[CR_GRAY].table, NULL, ">");
+    }
+    else
+    {
+        MN_DrawStringCR(l.text_x + l.text_w + CHOICE_PADDING, arrow_y,
+                        xlat[CR_GREEN].table, cr, ">");
+    }
 }
 
 static boolean ChoiceRespond(mn_item_t *item, menu_action_t action, int ch)
@@ -787,8 +800,7 @@ static void ResetDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
     static const char *const names[2] = {"M_BUTT1", "M_BUTT2"};
     const int index = (ctx->selected || ctx->active) ? whichSkull : 0;
     patch_t *patch = V_CachePatchName(names[index], PU_CACHE);
-
-    V_DrawPatch(ctx->value_x + ctx->value_w - patch->width, ctx->y, patch);
+    V_DrawPatchDirect(item->rect.x, item->rect.y, patch);
 }
 
 static void OptionsResetPage(void);
@@ -1054,6 +1066,16 @@ static void BindItem(mn_item_t *item)
     if (item->getchoices)
     {
         item->getchoices(item);
+    }
+
+    // Initialize rect dimensions from patch for direct-coords reset button
+    if (item->type == MN_ITEM_RESET)
+    {
+        patch_t *patch = V_CachePatchName("M_BUTT1", PU_CACHE);
+        item->rect.x = 301;
+        item->rect.y = (SCREENHEIGHT - 15 - 3);
+        item->rect.w = SHORT(patch->width);
+        item->rect.h = SHORT(patch->height);
     }
 
     item->disabled = !OptionEnabled(item);
