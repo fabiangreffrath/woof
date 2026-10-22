@@ -20,14 +20,18 @@
 
 #include "mn_container.h"
 
-extern mn_menu_t options_menu;
+extern mn_menu_t display_menu;
+extern mn_menu_t video_menu;
+extern mn_menu_t audio_menu;
+extern mn_menu_t equalizer_menu;
 extern mn_menu_t options_root_menu;
 
 void MN_OptionsBind(void);
 void MN_OptionsRefresh(void);
 void MN_OptionsOpen(void);
-void MN_OptionsOpenClassic(void);
-void MN_OptionsResetPage(void);
+
+void MN_GetResolutionScaleStrings(mn_item_t *item);
+void MN_OptionsUpdateResolutionScale(void);
 
 void MN_OptionsUpdateSfxVolume(void);
 void MN_OptionsUpdateMusicVolume(void);
@@ -41,9 +45,9 @@ void MN_OptionsSetSoundModule(void);
 void MN_OptionsRestartMusic(void);
 void MN_OptionsEqualizerPreset(void);
 
-boolean MN_OptionEnabled(const mn_item_t *item);
-int MN_OptionValue(const mn_item_t *item);
-void MN_OptionSetValue(mn_item_t *item, int value);
-void MN_OptionSliderSetFromMouse(mn_item_t *item, int mouse_x);
+void MN_GetMidiPlayerStrings(mn_item_t *item);
+void MN_OptionsSetMidiPlayer(void);
+
+void MN_GetResamplerStrings(mn_item_t *item);
 
 #endif

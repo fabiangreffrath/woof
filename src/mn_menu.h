@@ -87,7 +87,6 @@ boolean MN_MenuIsShaded(void);
 extern int savepage;
 
 extern const char *skill_strings[];
-extern const char *widescreen_strings[];
 
 void M_SaveAutoSave(void);
 
@@ -103,6 +102,8 @@ void MN_DrawString(int cx, int cy, int color, const char *ch);
 void M_StartSound(int sound_id);
 
 void MN_BindMenuVariables(void);
+
+void MN_BindOptionsVariables(void);
 
 extern boolean csmenu_skill;
 

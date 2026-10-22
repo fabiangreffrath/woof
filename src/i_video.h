@@ -30,14 +30,6 @@
 #define ASPECT_RATIO_MAX 3.6 // Up to 32:9 aspect ratio.
 #define ASPECT_RATIO_MIN (4.0 / 3.0)
 
-typedef struct
-{
-    int max;
-    int step;
-} resolution_scaling_t;
-
-resolution_scaling_t I_GetResolutionScaling(void);
-
 // Called by D_DoomMain,
 // determines the hardware configuration
 // and sets up the video mode
@@ -58,6 +50,7 @@ void I_DynamicResolution(void);
 void I_ResetDRS(void);
 
 extern int current_video_height;
+extern int max_height_adjusted;
 #define DRS_MIN_HEIGHT 400
 extern boolean dynamic_resolution;
 extern boolean uncapped;

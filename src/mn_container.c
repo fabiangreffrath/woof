@@ -57,7 +57,8 @@ boolean MN_ContainerPointInside(const mrect_t *rect, int x, int y)
 
 static boolean IsNavigable(const mn_item_t *item)
 {
-    return item->type != MN_ITEM_END && item->type != MN_ITEM_TITLE;
+    return item->type != MN_ITEM_END && item->type != MN_ITEM_TITLE
+           && item->type != MN_ITEM_SKIP;
 }
 
 static boolean IsSelectable(const mn_item_t *item)
@@ -138,31 +139,33 @@ static void LayoutPage(mn_menu_t *menu, mn_page_t *page)
 
     for (mn_item_t *item = page->items; item->type != MN_ITEM_END; ++item)
     {
-        int height;
-        if (item->height)
+        if (item->height == 0)
         {
-            height = item->height;
-        }
-        else if (item->type == MN_ITEM_SLIDER || item->type == MN_ITEM_CHOICE)
-        {
-            height = MN_SPC + 5;
-        }
-        else
-        {
-            height = MN_SPC;
+            if (item->type == MN_ITEM_SLIDER)
+            {
+                item->height = MN_SPC_SLIDER;
+            }
+            else if (item->type == MN_ITEM_CHOICE)
+            {
+                item->height = MN_SPC_CHOICE;
+            }
+            else
+            {
+                item->height = MN_SPC;
+            }
         }
 
         item->rect.x = 0;
         item->rect.y = y;
         item->rect.w = menu->viewport.w;
-        item->rect.h = height;
+        item->rect.h = item->height;
 
-        if (item->type != MN_ITEM_TITLE)
+        if (item->type != MN_ITEM_TITLE && item->label)
         {
             label_width = MAX(label_width, MN_GetPixelWidth(item->label));
         }
 
-        y += height;
+        y += item->height;
 
         if ((item + 1)->type != MN_ITEM_END)
         {
@@ -242,8 +245,8 @@ static void LayoutMenu(mn_menu_t *menu)
 
     // Coordinates are logical: the whole widescreen width is available,
     // with the non-widescreen part centered by video.deltaw.
-    const int left = 24 - video.deltaw;
-    int width = (video.unscaledw > 0 ? video.unscaledw : SCREENWIDTH) - 48;
+    const int left = 12 - video.deltaw;
+    int width = (video.unscaledw > 0 ? video.unscaledw : SCREENWIDTH) - 24;
 
     menu->hint_rect = (mrect_t){0};
 
@@ -366,6 +369,19 @@ static void MoveSelection(mn_menu_t *menu, int direction)
     }
 }
 
+static void FlushItemAction(mn_item_t *item)
+{
+    if (item && item->action_pending)
+    {
+        item->action_pending = false;
+
+        if (item->action)
+        {
+            item->action();
+        }
+    }
+}
+
 static void CancelActiveItem(mn_menu_t *menu)
 {
     if (menu->active_item)
@@ -374,6 +390,8 @@ static void CancelActiveItem(mn_menu_t *menu)
         {
             menu->active_item->ops->respond(menu->active_item, MENU_ESCAPE, 0);
         }
+
+        FlushItemAction(menu->active_item);
         menu->active_item = NULL;
     }
 }
@@ -425,6 +443,9 @@ static boolean PopMenu(void)
     {
         return false;
     }
+
+    FlushItemAction(active_menu->active_item);
+    FlushItemAction(active_menu->drag_item);
 
     active_menu = menu_stack[--menu_depth];
     active_menu->hover = -1;
@@ -641,6 +662,12 @@ void MN_ContainerOpen(mn_menu_t *menu)
 
 void MN_ContainerClose(void)
 {
+    if (active_menu)
+    {
+        FlushItemAction(active_menu->active_item);
+        FlushItemAction(active_menu->drag_item);
+    }
+
     active_menu = NULL;
     menu_depth = 0;
 }
@@ -676,6 +703,7 @@ void MN_ContainerEndEdit(void)
 {
     if (active_menu)
     {
+        FlushItemAction(active_menu->active_item);
         active_menu->active_item = NULL;
     }
 
@@ -738,7 +766,19 @@ void MN_ContainerItemChanged(mn_item_t *item)
 
     if (item->action)
     {
-        item->action();
+        const boolean defer = (item->flags & MN_ITEM_DEFER_ACTION)
+                              && active_menu
+                              && (active_menu->active_item == item
+                                  || active_menu->drag_item == item);
+
+        if (defer)
+        {
+            item->action_pending = true;
+        }
+        else
+        {
+            item->action();
+        }
     }
 }
 
@@ -914,6 +954,7 @@ boolean MN_ContainerMouseButton(int button, boolean down)
 
     if (!down)
     {
+        FlushItemAction(menu->drag_item);
         menu->dragging_scroll = false;
         menu->drag_item = NULL;
         return true;
@@ -1058,7 +1099,7 @@ static void DrawTabs(const mn_menu_t *menu)
 static void DrawItemLabel(const mn_item_t *item, const mn_draw_ctx_t *ctx,
                           int label_x)
 {
-    if (item->type == MN_ITEM_TITLE)
+    if (item->type == MN_ITEM_TITLE || item->type == MN_ITEM_SKIP)
     {
         return;
     }
@@ -1101,6 +1142,11 @@ static void DrawItems(const mn_menu_t *menu)
             continue;
         }
 
+        if (item->type == MN_ITEM_SKIP)
+        {
+            continue;
+        }
+
         const int x = menu->viewport.x;
         const int label_w = (menu->flags & MN_MENU_CENTER)
                                 ? page->label_width
@@ -1138,77 +1184,90 @@ static void DrawItems(const mn_menu_t *menu)
     }
 }
 
-static void DrawWrappedText(int x, int y, int width, const char *text)
+static void DrawWrappedText(int x, int y, int width, int height,
+                            const char *text)
 {
     const int line_h = MN_StringHeight("X") + 1;
-    char line[256];
-    int len = 0;
+    char buffer[512];
+    int num_lines = 0;
 
-    while (*text)
+    M_snprintf(buffer, sizeof(buffer), "%s", text);
+
+    // Wrap into lines: replace the last space before the overflow with a
+    // newline, so every line fits the given width.
+    int line_start = 0;
+    int last_space = -1;
+
+    for (int i = 0; buffer[i]; ++i)
     {
-        if (*text == '\n')
+        if (buffer[i] == '\n')
         {
-            line[len] = '\0';
-            MN_DrawString(x, y, CR_GRAY, line);
-            y += line_h;
-            len = 0;
-            text++;
+            line_start = i + 1;
+            last_space = -1;
             continue;
         }
 
-        if (*text == ' ')
+        if (buffer[i] == ' ')
         {
-            text++;
-            continue;
+            last_space = i;
         }
 
-        const char *word = text;
+        const char saved = buffer[i + 1];
+        buffer[i + 1] = '\0';
+        const int w = MN_GetPixelWidth(buffer + line_start);
+        buffer[i + 1] = saved;
 
-        while (*text && *text != ' ' && *text != '\n')
+        if (w > width && last_space > line_start)
         {
-            text++;
-        }
-
-        int word_len = text - word;
-
-        char probe[256];
-        int probe_len = 0;
-
-        if (len)
-        {
-            memcpy(probe, line, len);
-            probe_len = len;
-            probe[probe_len++] = ' ';
-        }
-
-        if (probe_len + word_len >= (int)sizeof(probe))
-        {
-            word_len = (int)sizeof(probe) - probe_len - 1;
-        }
-
-        memcpy(probe + probe_len, word, word_len);
-        probe_len += word_len;
-        probe[probe_len] = '\0';
-
-        if (len && MN_GetPixelWidth(probe) > width)
-        {
-            line[len] = '\0';
-            MN_DrawString(x, y, CR_GRAY, line);
-            y += line_h;
-            memcpy(line, word, word_len);
-            len = word_len;
-        }
-        else
-        {
-            memcpy(line, probe, probe_len);
-            len = probe_len;
+            buffer[last_space] = '\n';
+            line_start = last_space + 1;
+            last_space = -1;
         }
     }
 
-    if (len)
+    for (int start = 0; buffer[start];)
     {
-        line[len] = '\0';
-        MN_DrawString(x, y, CR_GRAY, line);
+        int end = start;
+
+        while (buffer[end] && buffer[end] != '\n')
+        {
+            end++;
+        }
+
+        num_lines++;
+
+        if (!buffer[end])
+        {
+            break;
+        }
+
+        start = end + 1;
+    }
+
+    // Center the text block vertically; every line stays left-aligned.
+    y += MAX(0, (height - num_lines * line_h) / 2);
+
+    for (int start = 0; buffer[start];)
+    {
+        int end = start;
+
+        while (buffer[end] && buffer[end] != '\n')
+        {
+            end++;
+        }
+
+        const char saved = buffer[end];
+        buffer[end] = '\0';
+        MN_DrawString(x, y, CR_GRAY, buffer + start);
+        buffer[end] = saved;
+
+        if (!saved)
+        {
+            break;
+        }
+
+        y += line_h;
+        start = end + 1;
     }
 }
 
@@ -1235,7 +1294,7 @@ static void DrawHints(const mn_menu_t *menu)
     if (text)
     {
         DrawWrappedText(menu->hint_rect.x, menu->hint_rect.y,
-                        menu->hint_rect.w, text);
+                        menu->hint_rect.w, menu->hint_rect.h, text);
     }
 }
 

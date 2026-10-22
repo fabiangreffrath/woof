@@ -2336,6 +2336,7 @@ static int resolution_scale;
 
 static const char **GetResolutionScaleStrings(void)
 {
+#if 0
     const char **strings = NULL;
     resolution_scaling_t rs = I_GetResolutionScaling();
 
@@ -2368,10 +2369,12 @@ static const char **GetResolutionScaleStrings(void)
     array_push(strings, "max");
 
     return strings;
+#endif
 }
 
 static void ResetVideoHeight(void)
 {
+#if 0
     const char **strings = GetStrings(str_resolution_scale);
     resolution_scaling_t rs = I_GetResolutionScaling();
 
@@ -2415,9 +2418,10 @@ static void ResetVideoHeight(void)
     MN_UpdateDynamicResolutionItem();
 
     resetneeded = true;
+#endif
 }
 
-const char *widescreen_strings[] = {"Off", "Auto", "16:10", "16:9",
+static const char *widescreen_strings[] = {"Off", "Auto", "16:10", "16:9",
                                     "21:9", "32:9"};
 
 static void ResetVideo(void)
@@ -2440,25 +2444,14 @@ static void UpdateFPSLimit(void)
     setrefreshneeded = true;
 }
 
-const char *gamma_strings[] = {
-    // Darker
-    "-4", "-3.6", "-3.2", "-2.8", "-2.4", "-2.0", "-1.6", "-1.2", "-0.8",
-
-    // No gamma correction
-    "0",
-
-    // Lighter
-    "0.5", "1", "1.5", "2", "2.5", "3", "3.5", "4"
-};
-
 static setup_menu_t gen_settings1[] = {
 
-    {"Resolution Scale", S_THERMO | S_THRM_SIZE11 | S_ACTION, CNTR_X,
-     M_THRM_SPC, {"resolution_scale"}, .strings_id = str_resolution_scale,
-     .action = ResetVideoHeight},
+    // {"Resolution Scale", S_THERMO | S_THRM_SIZE11 | S_ACTION, CNTR_X,
+    //  M_THRM_SPC, {"resolution_scale"}, .strings_id = str_resolution_scale,
+    //  .action = ResetVideoHeight},
 
-    {"Dynamic Resolution", S_ONOFF, CNTR_X, M_SPC, {"dynamic_resolution"},
-     .action = ResetVideoHeight},
+    // {"Dynamic Resolution", S_ONOFF, CNTR_X, M_SPC, {"dynamic_resolution"},
+    //  .action = ResetVideoHeight},
 
     {"Widescreen", S_CHOICE, CNTR_X, M_SPC, {"widescreen"},
      .strings_id = str_widescreen, .action = ResetVideo},
@@ -2495,7 +2488,7 @@ static setup_menu_t gen_settings1[] = {
 
 void MN_DisableResolutionScaleItem(void)
 {
-    DisableItem(true, gen_settings1, "resolution_scale");
+    //DisableItem(true, gen_settings1, "resolution_scale");
 }
 
 static void UpdateSfxVolume(void)
@@ -2849,21 +2842,21 @@ static freelook_mode_t freelook_mode;
 
 static const char *free_look_strings[] = {"Off", "Auto-Aim", "Direct Aim"};
 
-void MN_UpdateFreeLook(void)
-{
-    P_UpdateDirectVerticalAiming();
+// void MN_UpdateFreeLook(void)
+// {
+//     P_UpdateDirectVerticalAiming();
 
-    if (!freelook)
-    {
-        for (int i = 0; i < MAXPLAYERS; ++i)
-        {
-            if (playeringame[i])
-            {
-                players[i].centering = true;
-            }
-        }
-    }
-}
+//     if (!freelook)
+//     {
+//         for (int i = 0; i < MAXPLAYERS; ++i)
+//         {
+//             if (playeringame[i])
+//             {
+//                 players[i].centering = true;
+//             }
+//         }
+//     }
+// }
 
 static void UpdateFreeLookMode(void)
 {
@@ -5153,7 +5146,7 @@ void MN_InitMenuStrings(void)
 {
     UpdateWeaponSlotLabels();
     UpdateWeaponSlotStrings();
-    selectstrings[str_resolution_scale] = GetResolutionScaleStrings();
+    //selectstrings[str_resolution_scale] = GetResolutionScaleStrings();
     selectstrings[str_midi_player] = GetMidiPlayerStrings();
     selectstrings[str_mouse_accel] = GetMouseAccelStrings();
     selectstrings[str_ms_time] = GetMsTimeStrings();
@@ -5187,7 +5180,7 @@ void MN_SetupResetMenu(void)
 
 void MN_BindMenuVariables(void)
 {
-    BIND_NUM_MENU(resolution_scale, 0, UL);
+    //BIND_NUM_MENU(resolution_scale, 0, UL);
     BIND_BOOL_GENERAL(menu_pause_demos, false,
         "Pause demo loop while menu is open");
     BIND_NUM_GENERAL(menu_backdrop, MENU_BG_DARK, MENU_BG_OFF, MENU_BG_TEXTURE,
@@ -5204,5 +5197,5 @@ void MN_BindMenuVariables(void)
     BIND_BOOL_MENU(csmenu.halfplayerdamage);
     BIND_BOOL_MENU(csmenu.aggromonsters);
     BIND_NUM_MENU(csmenu.helperdogs, 0, 3);
-    BIND_NUM_MENU(freelook_mode, FREELOOK_OFF, FREELOOK_DIRECT_AIM);
+    //BIND_NUM_MENU(freelook_mode, FREELOOK_OFF, FREELOOK_DIRECT_AIM);
 }

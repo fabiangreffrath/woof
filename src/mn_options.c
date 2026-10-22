@@ -18,13 +18,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "doomdef.h"
 #include "doomstat.h"
+#include "doomtype.h"
 #include "g_game.h"
 #include "i_oalequalizer.h"
+#include "i_oalsound.h"
 #include "i_sound.h"
 #include "i_system.h"
 #include "i_video.h"
+#include "m_array.h"
 #include "m_config.h"
 #include "m_input.h"
 #include "m_misc.h"
@@ -32,7 +34,9 @@
 #include "mn_internal.h"
 #include "mn_menu.h"
 #include "mn_options.h"
+#include "p_mobj.h"
 #include "r_main.h"
+#include "r_voxel.h"
 #include "s_sound.h"
 #include "sounds.h"
 #include "v_palette.h"
@@ -70,12 +74,12 @@ static int ItemMax(const mn_item_t *item)
     return 100;
 }
 
-int MN_OptionValue(const mn_item_t *item)
+static int OptionValue(const mn_item_t *item)
 {
     return item->def ? *item->def->location.i : 0;
 }
 
-boolean MN_OptionEnabled(const mn_item_t *item)
+static boolean OptionEnabled(const mn_item_t *item)
 {
     if (!item || (item->flags & MN_ITEM_DISABLED))
     {
@@ -118,7 +122,7 @@ boolean MN_OptionEnabled(const mn_item_t *item)
     return true;
 }
 
-void MN_OptionSetValue(mn_item_t *item, int value)
+static void OptionSetValue(mn_item_t *item, int value)
 {
     if (!item->def)
     {
@@ -136,12 +140,31 @@ void MN_OptionSetValue(mn_item_t *item, int value)
     MN_ContainerItemChanged(item);
 }
 
+static void DisableItem(boolean condition, mn_menu_t *menu, const char *name)
+{
+    for (int i = 0; i < menu->num_pages; ++i)
+    {
+        mn_page_t *page = &menu->pages[i];
+
+        for (mn_item_t *item = page->items; item->type != MN_ITEM_END; ++item)
+        {
+            if (!strcmp(item->cfg, name))
+            {
+                item->disabled = condition;
+                return;
+            }
+        }
+    }
+
+    I_Error("%s not found.", name);
+}
+
 static int SliderPixelWidth(int size)
 {
     return 8 + (size + 1) * 8 + 8;
 }
 
-void MN_OptionSliderSetFromMouse(mn_item_t *item, int mouse_x)
+static void OptionSliderSetFromMouse(mn_item_t *item, int mouse_x)
 {
     const int size = item->slider_size ? item->slider_size : 8;
     const int thermo_w = SliderPixelWidth(size);
@@ -158,7 +181,7 @@ void MN_OptionSliderSetFromMouse(mn_item_t *item, int mouse_x)
     const int rel = mouse_x - video.deltaw - bar_x;
     const int value = min + rel * (max - min) / bar_w;
 
-    MN_OptionSetValue(item, value);
+    OptionSetValue(item, value);
 }
 
 static byte *ValueColor(const mn_draw_ctx_t *ctx)
@@ -186,9 +209,7 @@ static void DrawValueString(const mn_draw_ctx_t *ctx, const char *text)
 
 static void TitleDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
 {
-    const int width = MN_GetPixelWidth(item->label);
-
-    MN_DrawString((SCREENWIDTH - width) / 2, ctx->y, CR_GOLD, item->label);
+    MN_DrawString(ctx->x, ctx->y, CR_GOLD, item->label);
 }
 
 static boolean TitleRespond(mn_item_t *item, menu_action_t action, int ch)
@@ -198,7 +219,7 @@ static boolean TitleRespond(mn_item_t *item, menu_action_t action, int ch)
 
 static void ToggleDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
 {
-    DrawValueString(ctx, MN_OptionValue(item) ? "ON" : "OFF");
+    DrawValueString(ctx, OptionValue(item) ? "ON" : "OFF");
 }
 
 static boolean ToggleRespond(mn_item_t *item, menu_action_t action, int ch)
@@ -208,7 +229,7 @@ static boolean ToggleRespond(mn_item_t *item, menu_action_t action, int ch)
         return false;
     }
 
-    *item->def->location.i = !MN_OptionValue(item);
+    *item->def->location.i = !OptionValue(item);
     MN_ContainerItemChanged(item);
     MN_ContainerEndEdit();
     return true;
@@ -224,16 +245,16 @@ static void NumberDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
     }
     else if (item->suffix && !strcmp(item->suffix, "%"))
     {
-        M_snprintf(buffer, sizeof(buffer), "%d%%", MN_OptionValue(item));
+        M_snprintf(buffer, sizeof(buffer), "%d%%", OptionValue(item));
     }
     else if (item->suffix)
     {
-        M_snprintf(buffer, sizeof(buffer), "%d %s", MN_OptionValue(item),
+        M_snprintf(buffer, sizeof(buffer), "%d %s", OptionValue(item),
                    item->suffix);
     }
     else
     {
-        M_snprintf(buffer, sizeof(buffer), "%d", MN_OptionValue(item));
+        M_snprintf(buffer, sizeof(buffer), "%d", OptionValue(item));
     }
 
     DrawValueString(ctx, buffer);
@@ -250,7 +271,7 @@ static void NumberCommit(mn_item_t *item)
 
     if (item->gather_count)
     {
-        MN_OptionSetValue(item, atoi(item->gather));
+        OptionSetValue(item, atoi(item->gather));
     }
 
     item->gathering = false;
@@ -320,7 +341,7 @@ enum
     CHOICE_PADDING = 4,
     CHOICE_SEG_W = 8,
     CHOICE_SEG_GAP = 2,
-    CHOICE_MIN_VISIBLE = 3,
+    CHOICE_MIN_VISIBLE = 2,
     CHOICE_MAX_VISIBLE = 12,
 };
 
@@ -374,7 +395,7 @@ static const char *ChoiceText(const mn_item_t *item, int value)
 
 static int ChoiceStep(const mn_item_t *item, boolean right)
 {
-    const int value = MN_OptionValue(item);
+    const int value = OptionValue(item);
     const int min = ItemMin(item);
     const int max = ItemMax(item);
 
@@ -440,16 +461,17 @@ static void ChoiceHover(mn_item_t *item, int mouse_x, int mouse_y)
 
 static void ChoiceDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
 {
-    const int value = MN_OptionValue(item);
+    const int value = OptionValue(item);
     const choice_layout_t l = ChoiceLayout(item);
     const int content_x = l.x + CHOICE_ARROW_W + CHOICE_PADDING;
     const int y = ctx->y;
-    const boolean left_hover = (item->hover_arrow == 0);
-    const boolean right_hover = (item->hover_arrow == 1);
+    const boolean hovered = ctx->mouse_inside && menu_input == mouse_mode;
+    const boolean left_hover = hovered && (item->hover_arrow == 0);
+    const boolean right_hover = hovered && (item->hover_arrow == 1);
     byte *cr = ValueColor(ctx);
 
     const char *current_text = NULL;
-    if (item->hover_segment >= 0 && item->hover_segment < l.visible
+    if (hovered && item->hover_segment >= 0 && item->hover_segment < l.visible
         && item->choices)
     {
         const int hover_idx = l.min + item->hover_segment;
@@ -484,7 +506,7 @@ static void ChoiceDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
         {
             seg_color = xlat[CR_WHITE].table[shade];
         }
-        else if (item->hover_segment == i)
+        else if (hovered && item->hover_segment == i)
         {
             seg_color = xlat[CR_WHITE].table[playpal_global->white];
         }
@@ -557,7 +579,7 @@ static boolean ChoiceClick(mn_item_t *item, int mouse_x, int mouse_y)
 static void DrawThermo(const mn_item_t *item, const mn_draw_ctx_t *ctx)
 {
     const int size = item->slider_size ? item->slider_size : 8;
-    const int value = MN_OptionValue(item);
+    const int value = OptionValue(item);
     const int min = ItemMin(item);
     const int max = ItemMax(item);
     byte *cr = ctx->disabled                    ? cr_dark
@@ -594,7 +616,7 @@ static void SliderDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
     DrawThermo(item, ctx);
 
     char buffer[32];
-    const int value = MN_OptionValue(item);
+    const int value = OptionValue(item);
 
     if (item->choices && value >= 0 && value < item->num_choices)
     {
@@ -616,16 +638,11 @@ static void SliderDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
     const int size = item->slider_size ? item->slider_size : 8;
     const int thermo_w = SliderPixelWidth(size);
     const int text_w = MN_GetPixelWidth(buffer);
-    const int padding = 4;
 
-    int text_x = ctx->value_x + ctx->value_w - thermo_w - padding - text_w;
-    int text_y = ctx->y + (item->height > MN_SPC ? (item->height - MN_SPC) / 2 : 0);
+    int text_x = ctx->value_x + ctx->value_w - thermo_w - text_w;
+    int text_y = ctx->y + (MN_SPC_SLIDER - MN_SPC) / 2;
 
-    if (text_x >= ctx->value_x)
-    {
-        byte *cr = ValueColor(ctx);
-        MN_DrawStringCR(text_x, text_y, xlat[CR_GREEN].table, cr, buffer);
-    }
+    MN_DrawStringCR(text_x, text_y, xlat[CR_GREEN].table, ValueColor(ctx), buffer);
 }
 
 static boolean SliderRespond(mn_item_t *item, menu_action_t action, int ch)
@@ -642,16 +659,16 @@ static boolean SliderRespond(mn_item_t *item, menu_action_t action, int ch)
         return false;
     }
 
-    int value = MN_OptionValue(item);
+    int value = OptionValue(item);
 
     value += (action == MENU_RIGHT) ? 1 : -1;
-    MN_OptionSetValue(item, value);
+    OptionSetValue(item, value);
     return true;
 }
 
 static void SliderDrag(mn_item_t *item, int mouse_x)
 {
-    MN_OptionSliderSetFromMouse(item, mouse_x);
+    OptionSliderSetFromMouse(item, mouse_x);
 }
 
 static void ActionDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
@@ -683,11 +700,13 @@ static void ResetDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
     V_DrawPatch(ctx->value_x + ctx->value_w - patch->width, ctx->y, patch);
 }
 
+static void OptionsResetPage(void);
+
 static boolean ResetRespond(mn_item_t *item, menu_action_t action, int ch)
 {
     if (action == MENU_ENTER)
     {
-        MN_ContainerConfirm("Restore defaults? (Y/N)", MN_OptionsResetPage);
+        MN_ContainerConfirm("Restore defaults? (Y/N)", OptionsResetPage);
         MN_ContainerEndEdit();
         return true;
     }
@@ -710,7 +729,7 @@ static void WeaponDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
 {
     char buffer[8];
 
-    M_snprintf(buffer, sizeof(buffer), "%d", MN_OptionValue(item));
+    M_snprintf(buffer, sizeof(buffer), "%d", OptionValue(item));
     DrawValueString(ctx, buffer);
 }
 
@@ -724,7 +743,7 @@ static boolean WeaponRespond(mn_item_t *item, menu_action_t action, int ch)
 
     if (ch >= '1' && ch <= '9')
     {
-        MN_OptionSetValue(item, ch - '0');
+        OptionSetValue(item, ch - '0');
     }
 
     return true;
@@ -748,6 +767,9 @@ static void BindItem(mn_item_t *item)
     item->gathering = false;
     item->gather_count = 0;
     item->gather[0] = '\0';
+    item->action_pending = false;
+    item->hover_arrow = -1;
+    item->hover_segment = -1;
 
     switch (item->type)
     {
@@ -796,31 +818,21 @@ static void BindItem(mn_item_t *item)
         }
     }
 
-    if (item->choices && item->num_choices == 0)
+    if (item->getchoices)
     {
-        if (item->type == MN_ITEM_CHOICE && item->def && item->def->limit.max != UL)
-        {
-            item->num_choices = item->def->limit.max + 1;
-        }
-        else
-        {
-            while (item->choices[item->num_choices] && item->num_choices < 64)
-            {
-                item->num_choices++;
-            }
-        }
+        item->getchoices(item);
     }
 
-    if (item->type == MN_ITEM_SLIDER && item->height == 0)
-    {
-        item->height = MN_SPC + 5;
-    }
-
-    item->disabled = !MN_OptionEnabled(item);
+    item->disabled = !OptionEnabled(item);
 }
 
 static void BindMenu(mn_menu_t *menu)
 {
+    if (menu->init)
+    {
+        return;
+    }
+
     for (int i = 0; i < menu->num_pages; ++i)
     {
         mn_page_t *page = &menu->pages[i];
@@ -830,6 +842,7 @@ static void BindMenu(mn_menu_t *menu)
             BindItem(item);
         }
     }
+    menu->init = true;
 }
 
 static void RefreshMenu(mn_menu_t *menu)
@@ -840,7 +853,7 @@ static void RefreshMenu(mn_menu_t *menu)
 
         for (mn_item_t *item = page->items; item->type != MN_ITEM_END; ++item)
         {
-            item->disabled = !MN_OptionEnabled(item);
+            item->disabled = !OptionEnabled(item);
         }
     }
 }
@@ -848,16 +861,22 @@ static void RefreshMenu(mn_menu_t *menu)
 void MN_OptionsBind(void)
 {
     BindMenu(&options_root_menu);
-    BindMenu(&options_menu);
+    BindMenu(&display_menu);
+    BindMenu(&video_menu);
+    BindMenu(&audio_menu);
+    BindMenu(&equalizer_menu);
 }
 
 void MN_OptionsRefresh(void)
 {
     RefreshMenu(&options_root_menu);
-    RefreshMenu(&options_menu);
+    RefreshMenu(&display_menu);
+    RefreshMenu(&video_menu);
+    RefreshMenu(&audio_menu);
+    RefreshMenu(&equalizer_menu);
 }
 
-void MN_OptionsResetPage(void)
+static void OptionsResetPage(void)
 {
     mn_page_t *page = MN_ContainerCurrentPage();
 
@@ -918,12 +937,6 @@ void MN_OptionsOpen(void)
     MN_ContainerOpen(&options_root_menu);
 }
 
-void MN_OptionsOpenClassic(void)
-{
-    MN_ContainerClose();
-    MN_General(0);
-}
-
 void MN_OptionsUpdateSfxVolume(void)
 {
     S_SetSfxVolume(snd_SfxVolume);
@@ -932,6 +945,71 @@ void MN_OptionsUpdateSfxVolume(void)
 void MN_OptionsUpdateMusicVolume(void)
 {
     S_SetMusicVolume(snd_MusicVolume);
+}
+
+static int resolution_scale, max_resolution_scale;
+#define DRS_MENU_STEP 50
+
+void MN_GetResolutionScaleStrings(mn_item_t *item)
+{
+    array_push(item->choices, "100%");
+
+    resolution_scale = 0;
+    int val = SCREENHEIGHT * 2;
+    char buf[8];
+    int i;
+
+    for (i = 1; val < max_height_adjusted; ++i)
+    {
+        if (val == current_video_height)
+        {
+            resolution_scale = i;
+        }
+
+        int pct = val * 100 / SCREENHEIGHT;
+        M_snprintf(buf, sizeof(buf), "%d%%", pct);
+        array_push(item->choices, M_StringDuplicate(buf));
+
+        val += DRS_MENU_STEP;
+    }
+
+    max_resolution_scale = i;
+
+    if (current_video_height == max_height_adjusted)
+    {
+        resolution_scale = max_resolution_scale;
+    }
+
+    array_push(item->choices, "max");
+
+    item->num_choices = array_size(item->choices);
+}
+
+void MN_OptionsUpdateResolutionScale(void)
+{
+    if (resolution_scale == max_resolution_scale)
+    {
+        current_video_height = max_height_adjusted;
+    }
+    else if (resolution_scale == 0)
+    {
+        current_video_height = SCREENHEIGHT;
+    }
+    else
+    {
+        current_video_height =
+            SCREENHEIGHT * 2 + (resolution_scale - 1) * DRS_MENU_STEP;
+    }
+
+    if (!dynamic_resolution)
+    {
+        VX_ResetMaxDist();
+    }
+
+    DisableItem(current_video_height <= DRS_MIN_HEIGHT, &video_menu,
+                "dynamic_resolution");
+
+    resetneeded = true;
 }
 
 void MN_OptionsUpdateFullscreen(void)
@@ -984,7 +1062,79 @@ void MN_OptionsRestartMusic(void)
     S_RestartMusic();
 }
 
+void MN_GetMidiPlayerStrings(mn_item_t *item)
+{
+    item->choices = I_DeviceList();
+    item->num_choices = array_size(item->choices);
+}
+
+void MN_GetResamplerStrings(mn_item_t *item)
+{
+    item->choices = I_OAL_GetResamplerStrings();
+    item->num_choices = array_size(item->choices);
+}
+
+void MN_OptionsSetMidiPlayer(void)
+{
+    S_StopMusic();
+    I_SetMidiPlayer();
+    S_SetMusicVolume(snd_MusicVolume);
+    S_RestartMusic();
+}
+
 void MN_OptionsEqualizerPreset(void)
 {
     I_OAL_EqualizerPreset();
+}
+
+typedef enum
+{
+    FREELOOK_OFF,        // Free look disabled.
+    FREELOOK_AUTO_AIM,   // Free look enabled with traditional auto-aiming.
+    FREELOOK_DIRECT_AIM, // Free look enabled with direct vertical aiming.
+} freelook_mode_t;
+
+static freelook_mode_t freelook_mode;
+
+void MN_UpdateFreeLook(void)
+{
+    P_UpdateDirectVerticalAiming();
+
+    if (!freelook)
+    {
+        for (int i = 0; i < MAXPLAYERS; ++i)
+        {
+            if (playeringame[i])
+            {
+                players[i].centering = true;
+            }
+        }
+    }
+}
+
+static void UpdateFreeLookMode(void)
+{
+    switch (freelook_mode)
+    {
+        case FREELOOK_OFF:
+            freelook = false;
+            default_direct_vertical_aiming = false;
+            break;
+        case FREELOOK_AUTO_AIM:
+            freelook = true;
+            default_direct_vertical_aiming = false;
+            break;
+        case FREELOOK_DIRECT_AIM:
+            freelook = true;
+            default_direct_vertical_aiming = true;
+            break;
+    }
+
+    MN_UpdateFreeLook();
+}
+
+void MN_BindOptionsVariables(void)
+{
+    BIND_NUM_MENU(resolution_scale, 0, UL);
+    BIND_NUM_MENU(freelook_mode, FREELOOK_OFF, FREELOOK_DIRECT_AIM);
 }

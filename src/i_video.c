@@ -130,7 +130,7 @@ static int unscaled_actualheight;
 
 static int max_video_width, max_video_height;
 static int max_width, max_height;
-static int max_height_adjusted;
+int max_height_adjusted;
 static float display_refresh_rate;
 
 static boolean use_limiter;
@@ -1219,8 +1219,7 @@ static void ResetResolution(int height)
 
     InitDiskFlash();
 
-    I_Printf(VB_DEBUG, "ResetResolution: %dx%d (%s)", video.width, video.height,
-             widescreen_strings[widescreen]);
+    I_Printf(VB_DEBUG, "ResetResolution: %dx%d", video.width, video.height);
 
     drs_skip_frame = true;
 }
@@ -1430,8 +1429,9 @@ static void InitVideoParms(void)
     if (p && strcasecmp("-skipsec", myargv[p - 1]))
     {
         scalefactor = tmp_scalefactor;
-        GetCurrentVideoHeight();
-        MN_DisableResolutionScaleItem();
+        // !!! TODO
+        //GetCurrentVideoHeight();
+        //MN_DisableResolutionScaleItem();
     }
 
     //!
@@ -1457,7 +1457,8 @@ static void InitVideoParms(void)
     }
 
     MN_UpdateFpsLimitItem();
-    MN_UpdateDynamicResolutionItem();
+    // !!! TODO
+    //MN_UpdateDynamicResolutionItem();
 }
 
 static void InitGraphicsMode(void)
@@ -1520,12 +1521,6 @@ static void InitGraphicsMode(void)
              SDL_GetCurrentVideoDriver());
 
     UpdateLimiter();
-}
-
-resolution_scaling_t I_GetResolutionScaling(void)
-{
-    resolution_scaling_t rs = {.max = max_height_adjusted, .step = 50};
-    return rs;
 }
 
 static int GetCurrentVideoHeight(void)

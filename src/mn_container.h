@@ -10,11 +10,6 @@
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //  GNU General Public License for more details.
-//
-// DESCRIPTION:
-//  Small tabbed/page container with smooth scrolling, used by the new
-//  options menu.
-//
 
 #ifndef MN_CONTAINER_H
 #define MN_CONTAINER_H
@@ -22,8 +17,10 @@
 #include "doomtype.h"
 #include "mn_internal.h"
 
-#define MN_SPC      9
-#define MN_MAX_TABS 16
+#define MN_SPC        9
+#define MN_SPC_SLIDER (MN_SPC + 6)
+#define MN_SPC_CHOICE (MN_SPC + 4)
+#define MN_MAX_TABS   16
 
 enum
 {
@@ -44,6 +41,7 @@ typedef enum
     MN_ITEM_ACTION,
     MN_ITEM_RESET,
     MN_ITEM_SUBMENU,
+    MN_ITEM_SKIP,
     MN_ITEM_END
 } mn_item_type_t;
 
@@ -61,6 +59,7 @@ enum
     MN_ITEM_LEFTJUST = (1u << 9),
     MN_ITEM_KEEP = (1u << 10),
     MN_ITEM_WRAP = (1u << 11),
+    MN_ITEM_DEFER_ACTION = (1u << 12),
 };
 
 typedef struct mn_item_ops_s mn_item_ops_t;
@@ -89,11 +88,11 @@ struct mn_item_s
     const char *label;
     const char *cfg;
     mn_item_type_t type;
-    const char *const *choices;
+    const char **choices;
     int num_choices;
     int slider_size;
     int choice_width;
-    unsigned flags;
+    uint32_t flags;
     const char *desc;
     const char *suffix;
     void (*action)(void);
@@ -102,6 +101,7 @@ struct mn_item_s
     int group;
 
     // Runtime part.
+    void (*getchoices)(mn_item_t *item);
     struct default_s *def;
     const mn_item_ops_t *ops;
     mrect_t rect;
@@ -112,6 +112,7 @@ struct mn_item_s
     char gather[8];
 
     boolean disabled;
+    boolean action_pending;
 
     int draw_value_x;
     int draw_value_w;
@@ -147,8 +148,9 @@ struct mn_menu_s
     const char *title_patch;
     const char *title_text;
     const char *background;
-    unsigned flags;
+    uint32_t flags;
     int item_spacing;
+    boolean init;
 
     mn_page_t *pages;
     int num_pages;

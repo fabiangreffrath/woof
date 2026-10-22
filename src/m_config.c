@@ -135,6 +135,7 @@ void M_InitConfig(void)
     I_BindEqualizerVariables();
 
     MN_BindMenuVariables();
+    MN_BindOptionsVariables();
     D_BindMiscVariables();
     G_BindGameVariables();
     G_BindRewindVariables();
