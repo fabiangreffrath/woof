@@ -1186,6 +1186,7 @@ static mn_menu_t *all_menus[] = {
     &interface_menu,
     &gameplay_menu,
     &options_menu,
+    &csmenu_menu
 };
 
 void MN_OptionsBind(void)
@@ -1788,6 +1789,33 @@ void MN_OptionsUpdateCrosshairItems(void)
 void MN_OptionsUpdateCenteredWeaponItem(void)
 {
     DisableItem(!weapon_bobbing_pct, &gameplay_menu, "center_weapon");
+}
+
+void MN_OptionsSelectSkillLevel(void)
+{
+    switch (csmenu_skill)
+    {
+        case sk_baby:
+            csmenu.halfplayerdamage = true;
+            csmenu.doubleammo = true;
+            break;
+        case sk_nightmare:
+            csmenu.doubleammo = true;
+            csmenu.aggromonsters = true;
+            csmenu.fastparm = true;
+            csmenu.respawnparm = true;
+            break;
+        default:
+            break;
+    }
+
+    DisableItem(csmenu_skill == sk_baby, &csmenu_menu,
+                "csmenu.halfplayerdamage");
+    DisableItem(csmenu_skill == sk_baby || csmenu_skill == sk_nightmare,
+                &csmenu_menu, "csmenu.doubleammo");
+    DisableItems(csmenu_skill == sk_nightmare, &csmenu_menu,
+                 "csmenu.aggromonsters", "csmenu.fastparm",
+                 "csmenu.respawnparm");
 }
 
 void MN_BindOptionsVariables(void)

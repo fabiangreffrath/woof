@@ -113,6 +113,7 @@ set(WOOF_SOURCES
     mn_menu.c              mn_menu.h
     mn_options.c           mn_options.h
     mn_options_data.c
+    mn_csmenu_data.c
     mn_setup.c             mn_internal.h
     m_misc.c               m_misc.h
     m_random.c             m_random.h

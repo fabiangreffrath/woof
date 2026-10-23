@@ -182,6 +182,26 @@ struct mn_menu_s
     void (*confirm_action)(void);
 };
 
+#define MN_END        {.type = MN_ITEM_END}
+#define MN_GAP(gap)   {.type = MN_ITEM_SKIP, .height = (gap)}
+#define MN_TITLE(txt) {.label = (txt), .type = MN_ITEM_TITLE}
+
+#define MN_CHOICE(lbl, key, strs, width) \
+    {.label = (lbl),                     \
+     .cfg = (key),                       \
+     .type = MN_ITEM_CHOICE,             \
+     .choices = (strs),                  \
+     .num_choices = arrlen(strs),        \
+     .choice_width = (width)}
+#define MN_CHOICE_ACT(lbl, key, strs, width, act) \
+    {.label = (lbl),                              \
+     .cfg = (key),                                \
+     .type = MN_ITEM_CHOICE,                      \
+     .choices = (strs),                           \
+     .num_choices = arrlen(strs),                 \
+     .choice_width = (width),                     \
+     .action = (act)}
+
 typedef enum
 {
     MN_CONTAINER_HANDLED,

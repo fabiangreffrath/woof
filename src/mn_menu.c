@@ -747,7 +747,8 @@ void M_ChooseSkill(int choice)
 static void M_CustomSkill(int choice)
 {
     customskill_active = true;
-    MN_CustomSkill();
+    //MN_CustomSkill();
+    MN_ContainerOpen(&csmenu_menu);
 }
 
 /////////////////////////////

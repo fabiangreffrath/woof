@@ -12,7 +12,7 @@
 //  GNU General Public License for more details.
 //
 // DESCRIPTION:
-//  Declarative tables for the new options menu.
+//  Declarative tables for the options menu.
 //
 
 #include "am_map.h"
@@ -38,9 +38,6 @@
 
 #define MN_RESET \
     {.label = "", .type = MN_ITEM_RESET, .flags = MN_ITEM_DIRECT_COORDS}
-#define MN_END        {.type = MN_ITEM_END}
-#define MN_GAP(gap)   {.type = MN_ITEM_SKIP, .height = (gap)}
-#define MN_TITLE(txt) {.label = (txt), .type = MN_ITEM_TITLE}
 
 #define MN_SUBMENU(lbl, menu) \
     {.label = (lbl), .type = MN_ITEM_SUBMENU, .submenu = (menu)}
@@ -66,21 +63,6 @@
      .suffix = (sfx),                     \
      .action = (act)}
 
-#define MN_CHOICE(lbl, key, strs, width) \
-    {.label = (lbl),                     \
-     .cfg = (key),                       \
-     .type = MN_ITEM_CHOICE,             \
-     .choices = (strs),                  \
-     .num_choices = arrlen(strs),        \
-     .choice_width = (width)}
-#define MN_CHOICE_ACT(lbl, key, strs, width, act) \
-    {.label = (lbl),                              \
-     .cfg = (key),                                \
-     .type = MN_ITEM_CHOICE,                      \
-     .choices = (strs),                           \
-     .num_choices = arrlen(strs),                 \
-     .choice_width = (width),                     \
-     .action = (act)}
 #define MN_CHOICE_ACT_DEFER(lbl, key, strs, width, act) \
     {.label = (lbl),                                    \
      .cfg = (key),                                      \

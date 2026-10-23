@@ -20,8 +20,8 @@
 
 #include "mn_container.h"
 
-extern mn_menu_t display_menu;
 extern mn_menu_t video_menu;
+extern mn_menu_t display_menu;
 extern mn_menu_t audio_menu;
 extern mn_menu_t equalizer_menu;
 extern mn_menu_t controls_menu;
@@ -31,6 +31,8 @@ extern mn_menu_t input_bindings_menu;
 extern mn_menu_t interface_menu;
 extern mn_menu_t gameplay_menu;
 extern mn_menu_t options_menu;
+
+extern mn_menu_t csmenu_menu;
 
 void MN_OptionsBind(void);
 void MN_OptionsRefresh(void);
@@ -82,5 +84,7 @@ void MN_OptionsUpdateStatsFormatItem(void);
 void MN_OptionsUpdateCrosshairItems(void);
 
 void MN_OptionsUpdateCenteredWeaponItem(void);
+
+void MN_OptionsSelectSkillLevel(void);
 
 #endif
