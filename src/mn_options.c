@@ -148,44 +148,6 @@ static void OptionSetValue(mn_item_t *item, int value)
     MN_ContainerItemChanged(item);
 }
 
-static void DisableItem(boolean condition, mn_menu_t *menu, const char *name)
-{
-    for (int i = 0; i < menu->num_pages; ++i)
-    {
-        mn_page_t *page = &menu->pages[i];
-
-        for (mn_item_t *item = page->items; item->type != MN_ITEM_END; ++item)
-        {
-            if (item->cfg && !strcmp(item->cfg, name))
-            {
-                item->disabled = condition;
-                return;
-            }
-            else if (item->label && !strcmp(item->label, name))
-            {
-                item->disabled = condition;
-                return;
-            }
-        }
-    }
-
-    I_Error("%s not found.", name);
-}
-
-static void DisableItemsInternal(boolean condition, mn_menu_t *menu,
-                                 const char *items[], int size)
-{
-    for (int i = 0; i < size; ++i)
-    {
-        DisableItem(condition, menu, items[i]);
-    }
-}
-
-#define DisableItems(condition, menu, ...)                                   \
-    DisableItemsInternal((condition), (menu), (const char *[]){__VA_ARGS__}, \
-                         sizeof((const char *[]){__VA_ARGS__})               \
-                             / sizeof(const char *))
-
 static int SliderPixelWidth(int size)
 {
     return 8 + (size + 1) * 8 + 8;
@@ -837,7 +799,13 @@ static void SliderDrag(mn_item_t *item, int mouse_x)
 
 static void ActionDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
 {
-    DrawValueString(ctx, ". . .");
+    int x = ctx->x + MN_GetPixelWidth(item->label);
+    int y = ctx->y;
+    if (item->height > MN_SPC)
+    {
+        y += (item->height - MN_SPC) / 2;
+    }
+    MN_DrawStringCR(x, y, xlat[CR_NONE].table, NULL, " . . .");
 }
 
 static boolean ActionRespond(mn_item_t *item, menu_action_t action, int ch)
@@ -1095,8 +1063,6 @@ static void BindItem(mn_item_t *item)
             item->ops = &slider_ops;
             break;
         case MN_ITEM_ACTION:
-            item->ops = &action_ops;
-            break;
         case MN_ITEM_SUBMENU:
             item->ops = &action_ops;
             break;
@@ -1142,7 +1108,7 @@ static void BindItem(mn_item_t *item)
     item->disabled = !OptionEnabled(item);
 }
 
-static void BindMenu(mn_menu_t *menu)
+void MN_BindMenu(mn_menu_t *menu)
 {
     if (menu->init)
     {
@@ -1186,14 +1152,13 @@ static mn_menu_t *all_menus[] = {
     &interface_menu,
     &gameplay_menu,
     &options_menu,
-    &csmenu_menu
 };
 
 void MN_OptionsBind(void)
 {
     for (int i = 0; i < arrlen(all_menus); ++i)
     {
-        BindMenu(all_menus[i]);
+        MN_BindMenu(all_menus[i]);
     }
 }
 
@@ -1335,7 +1300,7 @@ void MN_OptionsUpdateResolutionScale(void)
         VX_ResetMaxDist();
     }
 
-    DisableItem(current_video_height <= DRS_MIN_HEIGHT, &video_menu,
+    MN_DisableItem(current_video_height <= DRS_MIN_HEIGHT, &video_menu,
                 "dynamic_resolution");
 
     resetneeded = true;
@@ -1376,7 +1341,7 @@ void MN_OptionsSetSoundModule(void)
 
 void MN_OptionsUpdateAdvancedSoundItems(boolean toggle)
 {
-    DisableItems(toggle, &audio_menu, "snd_hrtf", "snd_doppler");
+    MN_DisableItem(toggle, &audio_menu, "snd_hrtf", "snd_doppler");
 }
 
 void MN_OptionsRestartMusic(void)
@@ -1408,11 +1373,11 @@ void MN_OptionsSetMidiPlayer(void)
 
 void MN_OptionsEqualizerPreset(void)
 {
-    DisableItem(!I_OAL_EqualizerInitialized(), &equalizer_menu, "snd_equalizer");
+    MN_DisableItem(!I_OAL_EqualizerInitialized(), &equalizer_menu, "snd_equalizer");
 
     const boolean condition = !I_OAL_CustomEqualizer();
 
-    DisableItems(condition, &equalizer_menu, "snd_eq_preamp", "snd_eq_low_gain",
+    MN_DisableItem(condition, &equalizer_menu, "snd_eq_preamp", "snd_eq_low_gain",
                  "snd_eq_low_cutoff", "snd_eq_mid1_gain", "snd_eq_mid1_center",
                  "snd_eq_mid2_gain", "snd_eq_mid2_center", "snd_eq_high_gain",
                  "snd_eq_high_cutoff");
@@ -1428,9 +1393,9 @@ typedef enum
 static void UpdateGainItems(void)
 {
 #if defined (HAVE_FLUIDSYNTH)
-    DisableItem(auto_gain, &audio_menu, "fl_gain");
+    MN_DisableItem(auto_gain, &audio_menu, "fl_gain");
 #endif
-    DisableItem(auto_gain, &audio_menu, "opl_gain");
+    MN_DisableItem(auto_gain, &audio_menu, "opl_gain");
 }
 
 void MN_OptionsResetAutoGain(void)
@@ -1499,23 +1464,23 @@ static void UpdateGamepadItems(void)
     const boolean ramp = (gamepad && sticks && I_RampTimeEnabled());
     const boolean condition = (!gamepad || !sticks);
 
-    DisableItem(!devices, &controls_menu, "joy_device");
-    DisableItem(!gamepad, &controls_menu, "Advanced Options");
-    DisableItem(!gamepad || !I_GyroSupported(), &controls_menu, "Gyro Options");
-    DisableItem(!gamepad || !I_RumbleSupported(), &controls_menu, "joy_rumble");
-    DisableItem(!gamepad || (!sticks && !gyro) || strictmode, &controls_menu,
+    MN_DisableItem(!devices, &controls_menu, "joy_device");
+    MN_DisableItem(!gamepad, &controls_menu, "Advanced Options");
+    MN_DisableItem(!gamepad || !I_GyroSupported(), &controls_menu, "Gyro Options");
+    MN_DisableItem(!gamepad || !I_RumbleSupported(), &controls_menu, "joy_rumble");
+    MN_DisableItem(!gamepad || (!sticks && !gyro) || strictmode, &controls_menu,
         "freelook_mode");
-    DisableItems(condition, &controls_menu, "joy_invert_look",
+    MN_DisableItem(condition, &controls_menu, "joy_invert_look",
         "joy_movement_inner_deadzone", "joy_camera_inner_deadzone",
         "joy_turn_speed", "joy_look_speed");
 
-    DisableItem(!gamepad, &controls_menu, "joy_stick_layout");
-    DisableItem(!flick, &controls_menu, "joy_flick_time");
-    DisableItems(condition, &controls_menu, "joy_movement_type",
+    MN_DisableItem(!gamepad, &controls_menu, "joy_stick_layout");
+    MN_DisableItem(!flick, &controls_menu, "joy_flick_time");
+    MN_DisableItem(condition, &controls_menu, "joy_movement_type",
         "joy_forward_sensitivity", "joy_strafe_sensitivity",
         "joy_outer_turn_speed");
-    DisableItem(!ramp, &controls_menu, "joy_outer_ramp_time");
-    DisableItem(condition, &controls_menu, "joy_camera_curve");
+    MN_DisableItem(!ramp, &controls_menu, "joy_outer_ramp_time");
+    MN_DisableItem(condition, &controls_menu, "joy_camera_curve");
 }
 
 void MN_OptionsUpdateGamepad(void)
@@ -1571,13 +1536,13 @@ static void UpdateGyroItems(void)
     const boolean acceleration = (gamepad && gyro && I_GyroAcceleration());
     const boolean condition = (!gamepad || !gyro);
 
-    DisableItem(!gamepad || !I_GyroSupported(), &controls_menu, "gyro_enable");
-    DisableItems(condition, &controls_menu, "gyro_space", "gyro_button_action",
+    MN_DisableItem(!gamepad || !I_GyroSupported(), &controls_menu, "gyro_enable");
+    MN_DisableItem(condition, &controls_menu, "gyro_space", "gyro_button_action",
                  "gyro_stick_action", "gyro_turn_sensitivity",
                  "gyro_look_sensitivity", "gyro_acceleration");
-    DisableItems(!acceleration, &controls_menu, "gyro_accel_min_threshold",
+    MN_DisableItem(!acceleration, &controls_menu, "gyro_accel_min_threshold",
                  "gyro_accel_max_threshold");
-    DisableItems(condition, &controls_menu, "gyro_smooth_threshold",
+    MN_DisableItem(condition, &controls_menu, "gyro_smooth_threshold",
                  "Calibrate Gyro");
 }
 
@@ -1683,7 +1648,7 @@ static void UpdateWeaponSlotItems(void)
 {
     const boolean condition = !WS_Enabled();
 
-    DisableItems(condition, &controls_menu, "weapon_slots_selection",
+    MN_DisableItem(condition, &controls_menu, "weapon_slots_selection",
                  "weapon_slots_1_1", "weapon_slots_1_2", "weapon_slots_1_3",
                  "weapon_slots_2_1", "weapon_slots_2_2", "weapon_slots_2_3",
                  "weapon_slots_3_1", "weapon_slots_3_2", "weapon_slots_3_3",
@@ -1771,15 +1736,15 @@ void MN_OptionsViewSize(void)
 
 void MN_OptionsUpdateStatsFormatItem(void)
 {
-    DisableItem(!hud_level_stats, &interface_menu, "hud_stats_format");
+    MN_DisableItem(!hud_level_stats, &interface_menu, "hud_stats_format");
 }
 
 void MN_OptionsUpdateCrosshairItems(void)
 {
-    DisableItems(!hud_crosshair, &interface_menu, "hud_crosshair_health",
+    MN_DisableItem(!hud_crosshair, &interface_menu, "hud_crosshair_health",
                  "hud_crosshair_target", "hud_crosshair_lockon",
                  "hud_crosshair_color");
-    DisableItem(
+    MN_DisableItem(
         !(hud_crosshair && hud_crosshair_target == crosstarget_highlight),
         &interface_menu, "hud_crosshair_target_color");
 
@@ -1788,34 +1753,7 @@ void MN_OptionsUpdateCrosshairItems(void)
 
 void MN_OptionsUpdateCenteredWeaponItem(void)
 {
-    DisableItem(!weapon_bobbing_pct, &gameplay_menu, "center_weapon");
-}
-
-void MN_OptionsSelectSkillLevel(void)
-{
-    switch (csmenu_skill)
-    {
-        case sk_baby:
-            csmenu.halfplayerdamage = true;
-            csmenu.doubleammo = true;
-            break;
-        case sk_nightmare:
-            csmenu.doubleammo = true;
-            csmenu.aggromonsters = true;
-            csmenu.fastparm = true;
-            csmenu.respawnparm = true;
-            break;
-        default:
-            break;
-    }
-
-    DisableItem(csmenu_skill == sk_baby, &csmenu_menu,
-                "csmenu.halfplayerdamage");
-    DisableItem(csmenu_skill == sk_baby || csmenu_skill == sk_nightmare,
-                &csmenu_menu, "csmenu.doubleammo");
-    DisableItems(csmenu_skill == sk_nightmare, &csmenu_menu,
-                 "csmenu.aggromonsters", "csmenu.fastparm",
-                 "csmenu.respawnparm");
+    MN_DisableItem(!weapon_bobbing_pct, &gameplay_menu, "center_weapon");
 }
 
 void MN_BindOptionsVariables(void)

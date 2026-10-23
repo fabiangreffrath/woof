@@ -42,6 +42,12 @@
 #define MN_SUBMENU(lbl, menu) \
     {.label = (lbl), .type = MN_ITEM_SUBMENU, .submenu = (menu)}
 
+#define MN_MENU(lbl, menu)        \
+    {.label = (lbl),              \
+     .type = MN_ITEM_SUBMENU,     \
+     .submenu = (menu),           \
+     .flags = MN_ITEM_HIDE_VALUE}
+
 #define MN_INPUT(lbl, id, grp) \
     {.label = (lbl),           \
      .cfg = #id,               \
@@ -49,8 +55,6 @@
      .input_id = (id),         \
      .group = (grp)}
 
-#define MN_TOGGLE(lbl, key) \
-    {.label = (lbl), .cfg = (key), .type = MN_ITEM_TOGGLE}
 #define MN_TOGGLE_ACT(lbl, key, act) \
     {.label = (lbl), .cfg = (key), .type = MN_ITEM_TOGGLE, .action = (act)}
 
@@ -905,11 +909,11 @@ mn_menu_t gameplay_menu = {
 };
 
 static mn_item_t options_items[] = {
-    MN_SUBMENU("Video", &video_menu),
-    MN_SUBMENU("Audio", &audio_menu),
-    MN_SUBMENU("Controls", &controls_menu),
-    MN_SUBMENU("Gameplay", &gameplay_menu),
-    MN_SUBMENU("Interface", &interface_menu),
+    MN_MENU("Video", &video_menu),
+    MN_MENU("Audio", &audio_menu),
+    MN_MENU("Controls", &controls_menu),
+    MN_MENU("Gameplay", &gameplay_menu),
+    MN_MENU("Interface", &interface_menu),
     MN_END
 };
 
@@ -921,7 +925,7 @@ mn_menu_t options_menu = {
     .title_patch = "",
     .title_text = "",
     .background = "FLOOR4_6",
-    .flags = MN_MENU_CENTER | MN_MENU_HIDE_VALUES,
+    .flags = MN_MENU_CENTER,
     .item_spacing = 3,
     .pages = options_pages,
     .num_pages = arrlen(options_pages),

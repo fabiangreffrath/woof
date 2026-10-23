@@ -52,6 +52,7 @@
 #include "m_input.h"
 #include "m_io.h"
 #include "m_misc.h"
+#include "mn_csmenu.h"
 #include "mn_internal.h"
 #include "mn_menu.h"
 #include "r_main.h"
@@ -136,6 +137,7 @@ void M_InitConfig(void)
 
     MN_BindMenuVariables();
     MN_BindOptionsVariables();
+    MN_BindCSMenuVariables();
     D_BindMiscVariables();
     G_BindGameVariables();
     G_BindRewindVariables();

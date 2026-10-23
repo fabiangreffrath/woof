@@ -50,12 +50,12 @@
 #include "m_swap.h"
 #include "mn_font.h"
 #include "mn_container.h"
+#include "mn_csmenu.h"
 #include "mn_internal.h"
 #include "mn_menu.h"
 #include "mn_options.h"
 #include "mn_snapshot.h"
 #include "p_saveg.h"
-#include "r_data.h"
 #include "r_defs.h"
 #include "r_draw.h"
 #include "r_main.h"
@@ -747,7 +747,7 @@ void M_ChooseSkill(int choice)
 static void M_CustomSkill(int choice)
 {
     customskill_active = true;
-    //MN_CustomSkill();
+    MN_BindMenu(&csmenu_menu);
     MN_ContainerOpen(&csmenu_menu);
 }
 

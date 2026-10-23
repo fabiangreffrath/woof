@@ -26,11 +26,10 @@
 enum
 {
     MN_MENU_CENTER = (1u << 0),
-    MN_MENU_HIDE_VALUES = (1u << 1),
-    MN_MENU_HINTS = (1u << 2),
+    MN_MENU_HINTS = (1u << 1),
 
     // Centers the whole layout box.
-    MN_MENU_CENTER_LAYOUT = (1u << 3),
+    MN_MENU_CENTER_LAYOUT = (1u << 2),
 };
 
 typedef enum
@@ -58,15 +57,13 @@ enum
     MN_ITEM_BOOM = (1u << 4),
     MN_ITEM_MBF = (1u << 5),
     MN_ITEM_VANILLA = (1u << 6),
-    MN_ITEM_COSMETIC = (1u << 7),
     MN_ITEM_CENTER = (1u << 8),
-    MN_ITEM_LEFTJUST = (1u << 9),
-    MN_ITEM_KEEP = (1u << 10),
-    MN_ITEM_WRAP = (1u << 11),
-    MN_ITEM_DEFER_ACTION = (1u << 12),
-    MN_ITEM_TWO_LINES = (1u << 13),
-    MN_ITEM_DIRECT_COORDS = (1u << 14),
-    MN_ITEM_DRAW_CROSSHAIR = (1u << 15),
+    MN_ITEM_KEEP= (1u << 9),
+    MN_ITEM_DEFER_ACTION = (1u << 10),
+    MN_ITEM_TWO_LINES = (1u << 11),
+    MN_ITEM_DIRECT_COORDS = (1u << 12),
+    MN_ITEM_DRAW_CROSSHAIR = (1u << 13),
+    MN_ITEM_HIDE_VALUE = (1u << 14),
 };
 
 typedef struct mn_item_ops_s mn_item_ops_t;
@@ -221,6 +218,9 @@ struct mn_menu_s
 #define MN_GAP(gap)   {.type = MN_ITEM_SKIP, .height = (gap)}
 #define MN_TITLE(txt) {.label = (txt), .type = MN_ITEM_TITLE}
 
+#define MN_TOGGLE(lbl, key) \
+    {.label = (lbl), .cfg = (key), .type = MN_ITEM_TOGGLE}
+
 #define MN_CHOICE(lbl, key, strs, width) \
     {.label = (lbl),                     \
      .cfg = (key),                       \
@@ -277,5 +277,12 @@ boolean MN_ContainerBindInput(mn_item_t *item);
 // returns the number of lines. Truncates a single line to the width.
 int MN_WrapText(char *buffer, int width);
 void MN_TruncateText(char *buffer, int width);
+
+void MN_DisableItemInternal(boolean condition, mn_menu_t *menu,
+                            const char *names[], int size);
+#define MN_DisableItem(condition, menu, ...)                                   \
+    MN_DisableItemInternal((condition), (menu), (const char *[]){__VA_ARGS__}, \
+                         sizeof((const char *[]){__VA_ARGS__})               \
+                             / sizeof(const char *))
 
 #endif

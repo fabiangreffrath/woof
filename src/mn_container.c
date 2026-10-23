@@ -21,6 +21,7 @@
 #include "doomdef.h"
 #include "doomkeys.h"
 #include "i_gamepad.h"
+#include "i_system.h"
 #include "m_input.h"
 #include "m_misc.h"
 #include "mn_container.h"
@@ -1293,7 +1294,6 @@ static void DrawItems(const mn_menu_t *menu)
     const mn_page_t *page = &menu->pages[menu->page];
     const int top = menu->viewport.y;
     const int bottom = menu->viewport.y + menu->viewport.h;
-    const boolean hide_values = (menu->flags & MN_MENU_HIDE_VALUES) != 0;
     const boolean mouse = (menu_input == mouse_mode);
 
     for (int i = 0; i < page->num_items; ++i)
@@ -1315,12 +1315,23 @@ static void DrawItems(const mn_menu_t *menu)
         }
 
         const int x = menu->viewport.x;
-        const int label_w = (menu->flags & MN_MENU_CENTER)
-                                ? page->label_width
-                                : MN_GetPixelWidth(item->label);
-        const int label_x = (menu->flags & MN_MENU_CENTER)
-                                ? x + (item->rect.w - page->label_width) / 2
-                                : x;
+        int label_w;
+        int label_x;
+        if (menu->flags & MN_MENU_CENTER)
+        {
+            label_w = page->label_width;
+            label_x = x + (item->rect.w - page->label_width) / 2;
+        }
+        else if(item->flags & MN_ITEM_CENTER)
+        {
+            label_w = MN_GetPixelWidth(item->label);
+            label_x = x + (item->rect.w - label_w) / 2;
+        }
+        else
+        {
+            label_w = MN_GetPixelWidth(item->label);
+            label_x = x;
+        }
         const int value_x =
             MIN(label_x + MAX(label_w + 12, 120), x + item->rect.w - 48);
         const int value_w = x + item->rect.w - value_x;
@@ -1344,10 +1355,44 @@ static void DrawItems(const mn_menu_t *menu)
 
         DrawItemLabel(item, &ctx, label_x);
 
-        if (!hide_values && item->ops && item->ops->draw)
+        if (!(item->flags & MN_ITEM_HIDE_VALUE)
+            && item->ops && item->ops->draw)
         {
             item->ops->draw(item, &ctx);
         }
+    }
+}
+
+static void DisableItem(boolean condition, mn_menu_t *menu, const char *name)
+{
+    for (int i = 0; i < menu->num_pages; ++i)
+    {
+        mn_page_t *page = &menu->pages[i];
+
+        for (mn_item_t *item = page->items; item->type != MN_ITEM_END; ++item)
+        {
+            if (item->cfg && !strcmp(item->cfg, name))
+            {
+                item->disabled = condition;
+                return;
+            }
+            else if (item->label && !strcmp(item->label, name))
+            {
+                item->disabled = condition;
+                return;
+            }
+        }
+    }
+
+    I_Error("%s not found.", name);
+}
+
+void MN_DisableItemInternal(boolean condition, mn_menu_t *menu,
+                            const char *names[], int size)
+{
+    for (int i = 0; i < size; ++i)
+    {
+        DisableItem(condition, menu, names[i]);
     }
 }
 
