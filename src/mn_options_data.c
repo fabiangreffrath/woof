@@ -180,7 +180,8 @@ mn_menu_t display_menu = {
     .title_patch = "",
     .title_text = "Display",
     .background = "FLOOR4_6",
-    .flags = MN_MENU_HINTS,
+    .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
+    .layout = {.max_width = MN_PX(500)},
     .pages = display_pages,
     .num_pages = arrlen(display_pages)
 };
@@ -301,7 +302,8 @@ mn_menu_t equalizer_menu = {
     .title_patch = "",
     .title_text = "Equalizer",
     .background = "FLOOR4_6",
-    .flags = MN_MENU_HINTS,
+    .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
+    .layout = {.max_width = MN_PX(500)},
     .pages = equalizer_pages,
     .num_pages = arrlen(equalizer_pages)
 };
@@ -344,7 +346,8 @@ mn_menu_t video_menu = {
     .title_patch = "",
     .title_text = "Video",
     .background = "FLOOR4_6",
-    .flags = MN_MENU_HINTS,
+    .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
+    .layout = {.max_width = MN_PX(500)},
     .item_spacing = 1,
     .pages = video_pages,
     .num_pages = arrlen(video_pages),
@@ -359,7 +362,8 @@ mn_menu_t audio_menu = {
     .title_patch = "",
     .title_text = "Audio",
     .background = "FLOOR4_6",
-    .flags = MN_MENU_HINTS,
+    .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
+    .layout = {.max_width = MN_PX(500)},
     .pages = audio_pages,
     .num_pages = arrlen(audio_pages),
 };
@@ -499,7 +503,8 @@ mn_menu_t input_bindings_menu = {
     .title_patch = "",
     .title_text = "Input Bindings",
     .background = "FLOOR4_6",
-    .flags = MN_MENU_HINTS,
+    .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
+    .layout = {.max_width = MN_PX(500)},
     .pages = input_bindings_pages,
     .num_pages = arrlen(input_bindings_pages),
 };
@@ -568,7 +573,8 @@ mn_menu_t advanced_gamepad_menu = {
     .title_patch = "",
     .title_text = "Advanced Gamepad",
     .background = "FLOOR4_6",
-    .flags = MN_MENU_HINTS,
+    .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
+    .layout = {.max_width = MN_PX(500)},
     .pages = advanced_gamepad_pages,
     .num_pages = arrlen(advanced_gamepad_pages)
 };
@@ -629,7 +635,8 @@ mn_menu_t advanced_gyro_menu = {
     .title_patch = "",
     .title_text = "Advanced Gyro",
     .background = "FLOOR4_6",
-    .flags = MN_MENU_HINTS,
+    .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
+    .layout = {.max_width = MN_PX(500)},
     .pages = advanced_gyro_pages,
     .num_pages = arrlen(advanced_gyro_pages)
 };
@@ -718,7 +725,8 @@ mn_menu_t controls_menu = {
     .title_patch = "",
     .title_text = "Controls",
     .background = "FLOOR4_6",
-    .flags = MN_MENU_HINTS,
+    .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
+    .layout = {.max_width = MN_PX(500)},
     .pages = controls_pages,
     .num_pages = arrlen(controls_pages),
 };
@@ -838,7 +846,8 @@ mn_menu_t interface_menu = {
     .title_patch = "",
     .title_text = "Interface",
     .background = "FLOOR4_6",
-    .flags = MN_MENU_HINTS,
+    .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
+    .layout = {.max_width = MN_PX(500)},
     .pages = interface_pages,
     .num_pages = arrlen(interface_pages),
 };
@@ -889,7 +898,8 @@ mn_menu_t gameplay_menu = {
     .title_patch = "",
     .title_text = "Gameplay",
     .background = "FLOOR4_6",
-    .flags = MN_MENU_HINTS,
+    .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
+    .layout = {.max_width = MN_PX(500)},
     .pages = gameplay_pages,
     .num_pages = arrlen(gameplay_pages),
 };

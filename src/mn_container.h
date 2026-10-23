@@ -28,6 +28,9 @@ enum
     MN_MENU_CENTER = (1u << 0),
     MN_MENU_HIDE_VALUES = (1u << 1),
     MN_MENU_HINTS = (1u << 2),
+
+    // Centers the whole layout box.
+    MN_MENU_CENTER_LAYOUT = (1u << 3),
 };
 
 typedef enum
@@ -147,6 +150,37 @@ struct mn_page_s
     void (*refresh)(void);
 };
 
+typedef enum
+{
+    MN_UNIT_AUTO,
+    MN_UNIT_PX,
+    MN_UNIT_PERCENT
+} mn_unit_t;
+
+typedef struct
+{
+    int value;
+    mn_unit_t unit;
+} mn_length_t;
+
+#define MN_PX(v)  {.value = (v), .unit = MN_UNIT_PX}
+#define MN_PCT(v) {.value = (v), .unit = MN_UNIT_PERCENT}
+
+// Margins and the layout width resolve percentages against the full logical
+// screen width, hint sizes resolve them against the resulting content box.
+// MN_UNIT_AUTO fields keep the original hard-coded geometry.
+typedef struct
+{
+    mn_length_t margin_left;
+    mn_length_t margin_right;
+    mn_length_t min_width;
+    mn_length_t max_width;
+    mn_length_t hint_width;
+    mn_length_t hint_min_width;
+    mn_length_t hint_max_width;
+    int hint_gap;
+} mn_layout_t;
+
 struct mn_menu_s
 {
     const char *title_patch;
@@ -154,6 +188,7 @@ struct mn_menu_s
     const char *background;
     uint32_t flags;
     int item_spacing;
+    mn_layout_t layout;
     boolean init;
 
     mn_page_t *pages;

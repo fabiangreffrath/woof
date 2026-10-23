@@ -252,6 +252,19 @@ static void LayoutTabs(mn_menu_t *menu)
     menu->tabbar = (mrect_t){menu->viewport.x, 22, menu->viewport.w, MN_SPC};
 }
 
+static int ResolveLength(const mn_length_t *length, int base, int fallback)
+{
+    switch (length->unit)
+    {
+        case MN_UNIT_PX:
+            return length->value;
+        case MN_UNIT_PERCENT:
+            return base * length->value / 100;
+        default:
+            return fallback;
+    }
+}
+
 static void LayoutMenu(mn_menu_t *menu)
 {
     const int top = HasTabs(menu) ? 40 : 30;
@@ -259,22 +272,73 @@ static void LayoutMenu(mn_menu_t *menu)
 
     // Coordinates are logical: the whole widescreen width is available,
     // with the non-widescreen part centered by video.deltaw.
-    const int left = 12 - video.deltaw;
-    int width = (video.unscaledw > 0 ? video.unscaledw : SCREENWIDTH) - 24;
+    const int avail = video.unscaledw > 0 ? video.unscaledw : SCREENWIDTH;
+
+    // Margins and the layout bounds resolve percentages against the full
+    // logical width, like CSS margins against the containing block.
+    const int margin_left = ResolveLength(&menu->layout.margin_left, avail, 12);
+    const int margin_right = ResolveLength(&menu->layout.margin_right, avail, 12);
+    const int min_width = ResolveLength(&menu->layout.min_width, avail, 0);
+    const int max_width = ResolveLength(&menu->layout.max_width, avail, 0);
+
+    int width = avail - margin_left - margin_right;
+
+    if (max_width > 0 && width > max_width)
+    {
+        width = max_width;
+    }
+
+    // As in CSS, the minimum wins when both bounds conflict.
+    if (min_width > 0 && width < min_width)
+    {
+        width = MIN(min_width, avail);
+    }
+
+    width = CLAMP(width, 0, avail);
+
+    // The layout box contains the items column and the hints column. The
+    // centered variant splits the leftover space evenly instead of leaving
+    // it all on the right.
+    int x = margin_left;
+
+    if (menu->flags & MN_MENU_CENTER_LAYOUT)
+    {
+        x = (avail - width) / 2;
+    }
+
+    x = CLAMP(x, 0, MAX(0, avail - width));
+
+    const int left = x - video.deltaw;
+    int viewport_w = width;
 
     menu->hint_rect = (mrect_t){0};
 
     if ((menu->flags & MN_MENU_HINTS) && video.deltaw > 0)
     {
-        const int gap = 16;
-        const int hint_w = MAX(96, width / 3);
+        // Hint sizes resolve percentages against the content box.
+        const int gap = menu->layout.hint_gap > 0 ? menu->layout.hint_gap : 16;
+        const int hint_min =
+            ResolveLength(&menu->layout.hint_min_width, width, 96);
+        const int hint_max =
+            ResolveLength(&menu->layout.hint_max_width, width, 0);
+
+        int hint_w =
+            ResolveLength(&menu->layout.hint_width, width, MAX(96, width / 3));
+
+        if (hint_max > 0)
+        {
+            hint_w = MIN(hint_w, hint_max);
+        }
+
+        hint_w = MAX(hint_w, hint_min);
+        hint_w = CLAMP(hint_w, 0, MAX(0, width - gap));
 
         menu->hint_rect =
             (mrect_t){left + width - hint_w, top, hint_w, height};
-        width -= hint_w + gap;
+        viewport_w = width - hint_w - gap;
     }
 
-    menu->viewport = (mrect_t){left, top, width, height};
+    menu->viewport = (mrect_t){left, top, viewport_w, height};
 
     LayoutTabs(menu);
 
