@@ -77,6 +77,21 @@ typedef struct
 
 crop_t no_crop = {0};
 
+static int clip_top;
+static int clip_bottom = SCREENHEIGHT;
+
+void V_SetClipY(int top, int bottom)
+{
+    clip_top = CLAMP(top, 0, SCREENHEIGHT);
+    clip_bottom = CLAMP(bottom, clip_top, SCREENHEIGHT);
+}
+
+void V_ResetClipY(void)
+{
+    clip_top = 0;
+    clip_bottom = SCREENHEIGHT;
+}
+
 static const byte *translation, *translation2;
 
 static void (*drawcolfunc)(const patch_column_t *patchcol);
@@ -236,8 +251,14 @@ static void DrawPatchColumnTRTL(const patch_column_t *patchcol)
 static void DrawMaskedColumn(patch_column_t *patchcol, const int ytop,
                              const column_t *column)
 {
-    const int screentop = CLAMP(ytop, 0, SCREENHEIGHT-1);
-    const int screenbottom = CLAMP(ytop + patchcol->height, 0, SCREENHEIGHT);
+    if (clip_bottom <= clip_top)
+    {
+        return;
+    }
+
+    const int screentop = CLAMP(ytop, clip_top, clip_bottom - 1);
+    const int screenbottom = CLAMP(ytop + patchcol->height, clip_top,
+                                   clip_bottom);
 
     for (; column->topdelta != 0xff;
          column = (column_t *)((byte *)column + column->length + 4))
@@ -446,6 +467,16 @@ void V_DrawPatch(
     );
 }
 
+// Ignore clipping
+void V_DrawPatchDirect(int x, int y, const patch_t *patch)
+{
+    int saved_top = clip_top;
+    int saved_bottom = clip_bottom;
+    V_ResetClipY();
+    V_DrawPatch(x, y, patch);
+    V_SetClipY(saved_top, saved_bottom);
+}
+
 // 160px X centers the sprite in the middle
 // while 170px Y puts it just above the callee's name
 void V_DrawPatchCastCall(
@@ -559,7 +590,7 @@ static void ClipRect(vrect_t *rect)
 {
     // clip to left and top edges
     rect->cx1 = rect->x >= 0 ? rect->x : 0;
-    rect->cy1 = rect->y >= 0 ? rect->y : 0;
+    rect->cy1 = rect->y >= clip_top ? rect->y : clip_top;
 
     // determine right and bottom edges
     rect->cx2 = rect->x + rect->w - 1;
@@ -570,9 +601,9 @@ static void ClipRect(vrect_t *rect)
     {
         rect->cx2 = video.unscaledw - 1;
     }
-    if (rect->cy2 >= SCREENHEIGHT)
+    if (rect->cy2 >= clip_bottom)
     {
-        rect->cy2 = SCREENHEIGHT - 1;
+        rect->cy2 = clip_bottom - 1;
     }
 
     // determine clipped width and height

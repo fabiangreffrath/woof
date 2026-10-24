@@ -2838,36 +2838,26 @@ void AM_ResetThickness(void)
 
 void AM_BindAutomapVariables(void)
 {
-  M_BindBool("followplayer", &followplayer, NULL, true, ss_auto, wad_no,
-             "Automap follows the player");
-  M_BindNum("automapoverlay", &automapoverlay, NULL, AM_OVERLAY_OFF,
-            AM_OVERLAY_OFF, AM_OVERLAY_DARK, ss_auto, wad_no,
+  BIND_BOOL(followplayer, true, "Automap follows the player");
+  BIND_NUM(automapoverlay, AM_OVERLAY_OFF, AM_OVERLAY_OFF, AM_OVERLAY_DARK,
             "Automap overlay mode (0 = Off; 1 = On; 2 = Dark)");
-  M_BindBool("automaprotate", &automaprotate, NULL, false, ss_auto, wad_no,
-             "Automap rotation");
-
-  M_BindBool("map_point_coord", &map_point_coord, NULL, true, ss_none, wad_no,
-             "Show automap pointer coordinates in non-follow mode");
-  M_BindBool("map_secret_after", &map_secret_after, NULL, false, ss_auto, wad_no,
-             "Don't highlight secret sectors on the automap before they're revealed");
-  M_BindNum("map_keyed_door", &map_keyed_door, NULL,
-            MAP_KEYED_DOOR_COLOR, MAP_KEYED_DOOR_OFF, MAP_KEYED_DOOR_FLASH,
-            ss_auto, wad_no,
-            "Color key-locked doors on the automap (1 = Static; 2 = Flashing)");
-  M_BindBool("map_smooth_lines", &map_smooth_lines, NULL, true, ss_none,
-             wad_no, "Smooth automap lines");
-  M_BindNum("map_line_thickness", &map_line_thickness, NULL, 0, 0, 6,
-            ss_auto, wad_no, "Automap line thickness (0 = Auto, 1-6 = Thickness)");
-
-  M_BindNum("mapcolor_preset", &mapcolor_preset, NULL, AM_PRESET_BOOM,
-            AM_PRESET_VANILLA, AM_PRESET_ZDOOM, ss_auto, wad_no,
-            "Automap color preset (0 = Vanilla Doom; 1 = Crispy Doom; 2 = Boom; 3 = ZDoom)");
-
-  M_BindBool("automapsquareaspect", &automapsquareaspect, NULL, true, ss_none, wad_no,
-             "Use square aspect ratio in automap");
+  BIND_BOOL(automaprotate, false, "Automap rotation");
+  BIND_BOOL(map_point_coord, true,
+    "Show automap pointer coordinates in non-follow mode");
+  BIND_BOOL(map_secret_after, false,
+    "Don't highlight secret sectors on the automap before they're revealed");
+  BIND_NUM(map_keyed_door,
+    MAP_KEYED_DOOR_COLOR, MAP_KEYED_DOOR_OFF, MAP_KEYED_DOOR_FLASH,
+    "Color key-locked doors on the automap (1 = Static; 2 = Flashing)");
+  BIND_BOOL(map_smooth_lines, true, "Smooth automap lines");
+  BIND_NUM(map_line_thickness, 0, 0, 6,
+    "Automap line thickness (0 = Auto, 1-6 = Thickness)");
+  BIND_NUM(mapcolor_preset, AM_PRESET_BOOM, AM_PRESET_VANILLA, AM_PRESET_ZDOOM,
+    "Automap color preset (0 = Vanilla Doom; 1 = Crispy Doom; 2 = Boom; 3 = ZDoom)");
+  BIND_BOOL(automapsquareaspect, true, "Use square aspect ratio in automap");
 
 #define BIND_CR(name, v, help) \
-  M_BindNum(#name, &name, NULL, (v), 0, 255, ss_none, wad_yes, help)
+  M_BindNum(#name, &name, NULL, (v), 0, 255, wad_yes, help)
 
   BIND_CR(mapcolor_back, 247, "Color used for the automap background");
   BIND_CR(mapcolor_grid, 104, "Color used for grid lines");
@@ -2893,16 +2883,18 @@ void AM_BindAutomapVariables(void)
 
 #define BIND_PLR_CR(num, v, help)                                           \
   M_BindNum("mapcolor_ply"#num, &mapcolor_plyr[(num)-1], NULL, (v), 0, 255, \
-            ss_none, wad_yes, help)
+            wad_yes, help)
 
   BIND_PLR_CR(1, 112, "Color used for the green player's arrow");
   BIND_PLR_CR(2, 88, "Color used for the gray player's arrow");
   BIND_PLR_CR(3, 64, "Color used for the brown player's arrow");
   BIND_PLR_CR(4, 176, "Color used for the red player's arrow");
+#undef BIND_PLR_CR
 
   BIND_CR(mapcolor_frnd, 252, "Color used for friends");
   BIND_CR(mapcolor_enemy, 177, "Color used for enemies");
   BIND_CR(mapcolor_item, 231, "Color used for countable items");
+#undef BIND_CR
 }
 
 //----------------------------------------------------------------------------

@@ -643,11 +643,11 @@ static midiplayertype_t I_OAL_MidiPlayerType(void)
 
 static void I_OAL_BindVariables(void)
 {
-    BIND_BOOL_MUSIC(auto_gain, true, "Auto Gain");
+    BIND_BOOL(auto_gain, true, "Auto Gain");
 #if defined (HAVE_FLUIDSYNTH)
-    BIND_NUM_MUSIC(fl_gain, 0, -20, 20, "[FluidSynth] Gain [dB]");
+    BIND_NUM(fl_gain, 0, -20, 20, "[FluidSynth] Gain [dB]");
 #endif
-    BIND_NUM_MUSIC(opl_gain, 0, -20, 20, "[OPL3 Emulation] Gain [dB]");
+    BIND_NUM(opl_gain, 0, -20, 20, "[OPL3 Emulation] Gain [dB]");
     for (int i = 0; i < arrlen(midi_modules); ++i)
     {
         midi_modules[i]->BindVariables();
