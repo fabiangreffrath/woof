@@ -590,7 +590,7 @@ static void ClipRect(vrect_t *rect)
 {
     // clip to left and top edges
     rect->cx1 = rect->x >= 0 ? rect->x : 0;
-    rect->cy1 = rect->y >= 0 ? rect->y : 0;
+    rect->cy1 = rect->y >= clip_top ? rect->y : clip_top;
 
     // determine right and bottom edges
     rect->cx2 = rect->x + rect->w - 1;
@@ -601,9 +601,9 @@ static void ClipRect(vrect_t *rect)
     {
         rect->cx2 = video.unscaledw - 1;
     }
-    if (rect->cy2 >= SCREENHEIGHT)
+    if (rect->cy2 >= clip_bottom)
     {
-        rect->cy2 = SCREENHEIGHT - 1;
+        rect->cy2 = clip_bottom - 1;
     }
 
     // determine clipped width and height
