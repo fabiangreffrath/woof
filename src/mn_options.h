@@ -86,7 +86,7 @@ void MN_OptionsUpdateAllGamepadItems(void);
 
 #include "ws_stuff.h"
 #define WS_BUF_SIZE 80
-char slot_labels[NUM_WS_SLOTS * NUM_WS_WEAPS][WS_BUF_SIZE];
+extern char slot_labels[NUM_WS_SLOTS * NUM_WS_WEAPS][WS_BUF_SIZE];
 void MN_OptionsUpdateWeaponSlotLabels(void);
 void MN_OptionsUpdateWeaponSlotActivation(void);
 void MN_OptionsUpdateWeaponSlotSelection(void);

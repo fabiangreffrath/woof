@@ -1641,21 +1641,6 @@ void MN_OptionsUpdateGyroAcceleration(void)
     I_ResetGamepad();
 }
 
-static void DrawNotification(const char *text, int color, boolean blink)
-{
-    patch_t *patch = V_CachePatchName("M_VBOX", PU_CACHE);
-    int x = (SCREENWIDTH - patch->width) / 2;
-    int y = (SCREENHEIGHT - patch->height) / 2;
-    V_DrawPatch(x, y, patch);
-
-    if (!blink || whichSkull)
-    {
-        x = (SCREENWIDTH - MN_GetPixelWidth(text)) / 2;
-        y = (SCREENHEIGHT - MN_StringHeight(text)) / 2;
-        MN_DrawString(x, y, color, text);
-    }
-}
-
 // !!! TODO
 #if 0
 static void DrawGyroCalibration(void)
@@ -1696,6 +1681,8 @@ static void DrawGyroCalibration(void)
     }
 }
 #endif
+
+char slot_labels[NUM_WS_SLOTS * NUM_WS_WEAPS][WS_BUF_SIZE];
 
 void MN_OptionsUpdateWeaponSlotLabels(void)
 {
