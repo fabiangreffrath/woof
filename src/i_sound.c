@@ -570,7 +570,7 @@ void I_InitSound(void)
 
     I_AtExit(I_ShutdownSound, true);
 
-    MN_UpdateAdvancedSoundItems(snd_module != SND_MODULE_3D);
+    MN_OptionsUpdateAdvancedSoundItems(snd_module != SND_MODULE_3D);
 
     snd_init = true;
 
@@ -838,21 +838,21 @@ const char *I_MusicFormat(void)
 
 void I_BindSoundVariables(void)
 {
-    M_BindNum("sfx_volume", &snd_SfxVolume, NULL, 8, 0, 15, ss_none, wad_no,
+    M_BindNum("sfx_volume", &snd_SfxVolume, NULL, 8, 0, 15, wad_no,
         "Sound effects volume");
-    M_BindNum("music_volume", &snd_MusicVolume, NULL, 8, 0, 15, ss_none, wad_no,
+    M_BindNum("music_volume", &snd_MusicVolume, NULL, 8, 0, 15, wad_no,
         "Music volume");
-    BIND_BOOL_SFX(pitched_sounds, false,
+    BIND_BOOL(pitched_sounds, false,
         "Variable pitch for sound effects");
-    BIND_BOOL_SFX(full_sounds, false, "Play sounds in full length (prevent cutoffs)");
-    BIND_NUM_SFX(snd_channels, MAX_CHANNELS, 1, MAX_CHANNELS,
+    BIND_BOOL(full_sounds, false, "Play sounds in full length (prevent cutoffs)");
+    BIND_NUM(snd_channels, MAX_CHANNELS, 1, MAX_CHANNELS,
         "Number of sound channels");
-    BIND_BOOL_SFX(snd_limiter, false, "Use sound output limiter");
+    BIND_BOOL(snd_limiter, false, "Use sound output limiter");
     BIND_NUM(snd_channels_per_sfx, 5, 0, MAX_CHANNELS,
         "[Limiter] Max number of channels to play the same sound (0 = Off)");
     BIND_NUM(snd_volume_per_sfx, 5 * 100, 0, MAX_CHANNELS * 100,
         "[Limiter] Max volume for sounds played by multiple channels [percent] (0 = Off)");
-    BIND_NUM_GENERAL(snd_module, SND_MODULE_MBF, 0, NUM_SND_MODULES - 1,
+    BIND_NUM(snd_module, SND_MODULE_MBF, 0, NUM_SND_MODULES - 1,
         "Sound module (0 = Standard; 1 = OpenAL 3D; 2 = PC Speaker Sound)");
     for (int i = 0; i < arrlen(sound_modules); ++i)
     {

@@ -48,6 +48,8 @@
 #include "m_fixed.h"
 #include "m_io.h"
 #include "m_misc.h"
+#include "mn_container.h"
+#include "mn_options.h"
 #include "mn_menu.h"
 #include "r_draw.h"
 #include "r_main.h"
@@ -1300,7 +1302,7 @@ static void ResetTargetRefresh(void)
     }
 
     UpdateLimiter();
-    MN_UpdateFpsLimitItem();
+    MN_OptionsUpdateFPSLimitItem();
     I_ResetDRS();
 }
 
@@ -1429,9 +1431,8 @@ static void InitVideoParms(void)
     if (p && strcasecmp("-skipsec", myargv[p - 1]))
     {
         scalefactor = tmp_scalefactor;
-        // !!! TODO
-        //GetCurrentVideoHeight();
-        //MN_DisableResolutionScaleItem();
+        GetCurrentVideoHeight();
+        MN_DisableItem(true, &video_menu, "resolution_scale");
     }
 
     //!
@@ -1456,9 +1457,9 @@ static void InitVideoParms(void)
         fullscreen = true;
     }
 
-    MN_UpdateFpsLimitItem();
-    // !!! TODO
-    //MN_UpdateDynamicResolutionItem();
+    MN_OptionsUpdateFPSLimitItem();
+    MN_DisableItem(current_video_height <= DRS_MIN_HEIGHT, &video_menu,
+                   "dynamic_resolution");
 }
 
 static void InitGraphicsMode(void)
@@ -1618,7 +1619,7 @@ void I_UpdateHudAnchoring(void)
         st_wide_shift = video.deltaw;
     }
 
-    MN_UpdateHudAnchoringItem();
+    MN_DisableItem(!video.deltaw, &interface_menu, "hud_anchoring");
 }
 
 void I_ResetScreen(void)
@@ -1690,24 +1691,24 @@ void I_QuitVideo(void)
 void I_BindVideoVariables(void)
 {
     M_BindNum("current_video_height", &default_current_video_height,
-              &current_video_height, 600, 200, UL, ss_none, wad_no,
+              &current_video_height, 600, 200, UL, wad_no,
               "Vertical resolution");
-    BIND_BOOL_GENERAL(dynamic_resolution, true, "Dynamic resolution");
+    BIND_BOOL(dynamic_resolution, true, "Dynamic resolution");
     BIND_BOOL(correct_aspect_ratio, true, "Aspect ratio correction");
     BIND_BOOL(fullscreen, true, "Fullscreen");
-    BIND_BOOL_GENERAL(use_vsync, true,
+    BIND_BOOL(use_vsync, true,
         "Vertical sync to prevent display tearing");
-    M_BindBool("uncapped", &default_uncapped, &uncapped, true, ss_gen, wad_no,
+    M_BindBool("uncapped", &default_uncapped, &uncapped, true, wad_no,
         "Uncapped rendering frame rate");
-    BIND_NUM_GENERAL(fpslimit, 0, 0, 500,
+    BIND_NUM(fpslimit, 0, 0, 500,
         "Framerate limit in frames per second (< 35 = Disable)");
     M_BindNum("widescreen", &default_widescreen, &widescreen, RATIO_AUTO, 0,
-              NUM_RATIOS - 1, ss_gen, wad_no,
+              NUM_RATIOS - 1, wad_no,
               "Widescreen (0 = Off; 1 = Auto; 2 = 16:10; 3 = 16:9; 4 = 21:9; 5 = 32:9)");
-    M_BindNum("fov", &custom_fov, NULL, FOV_DEFAULT, FOV_MIN, FOV_MAX, ss_gen,
+    M_BindNum("fov", &custom_fov, NULL, FOV_DEFAULT, FOV_MIN, FOV_MAX,
               wad_no, "Field of view in degrees");
-    BIND_NUM_GENERAL(gamma2, 9, 0, 17, "Custom gamma level (0 = -4; 9 = 0; 17 = 4)");
-    BIND_BOOL_GENERAL(smooth_scaling, true, "Smooth pixel scaling");
+    BIND_NUM(gamma2, 9, 0, 17, "Custom gamma level (0 = -4; 9 = 0; 17 = 4)");
+    BIND_BOOL(smooth_scaling, true, "Smooth pixel scaling");
 
     BIND_BOOL(vga_porch_flash, false, "Emulate VGA \"porch\" behaviour");
     BIND_BOOL(disk_icon, false, "Flashing icon during disk I/O");
@@ -1717,14 +1718,14 @@ void I_BindVideoVariables(void)
     BIND_NUM(max_video_height, 0, SCREENHEIGHT, UL,
         "Maximum vertical resolution (0 = Native)");
     M_BindNum("window_width", &default_window_width, &window_width, 1065, 0, UL,
-        ss_none, wad_no, "Window width");
+        wad_no, "Window width");
     M_BindNum("window_height", &default_window_height, &window_height, 600, 0, UL,
-        ss_none, wad_no, "Window height");
+        wad_no, "Window height");
 
-    M_BindBool("grabmouse", &default_grabmouse, &grabmouse, true, ss_none,
+    M_BindBool("grabmouse", &default_grabmouse, &grabmouse, true,
                wad_no, "Grab mouse during play");
-    BIND_BOOL_GENERAL(mute_unfocused, true,
-                      "Mute audio when the window is not focused");
+    BIND_BOOL(mute_unfocused, true,
+        "Mute audio when the window is not focused");
 }
 
 //----------------------------------------------------------------------------

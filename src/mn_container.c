@@ -22,9 +22,11 @@
 #include "doomkeys.h"
 #include "i_gamepad.h"
 #include "i_system.h"
+#include "m_config.h"
 #include "m_input.h"
 #include "m_misc.h"
 #include "mn_container.h"
+#include "mn_font.h"
 #include "mn_internal.h"
 #include "mn_menu.h"
 #include "sounds.h"
@@ -41,6 +43,14 @@ static int last_mouse_y;
 
 static mn_menu_t *menu_stack[MN_MAX_DEPTH];
 static int menu_depth;
+
+int warning_about_changes, print_warning_about_changes;
+
+// killough 8/15/98: warn about changes not being committed until next game
+#define warn_about_changes(x) \
+    (warning_about_changes = (x), print_warning_about_changes = 2)
+
+static menu_help_t menu_help;
 
 static byte MenuColor(int cr, boolean shaded)
 {
@@ -642,7 +652,7 @@ static void ActivateItem(mn_menu_t *menu, int index, boolean mouse)
     if (item->type == MN_ITEM_ACTION || item->type == MN_ITEM_RESET
         || item->type == MN_ITEM_TOGGLE)
     {
-        M_StartSound(sfx_mnuact);
+        M_StartSound(sfx_mnusel);
     }
 }
 
@@ -1272,6 +1282,7 @@ static void DrawItemLabel(const mn_item_t *item, const mn_draw_ctx_t *ctx,
     }
 
     byte *cr = ctx->disabled   ? cr_dark
+               : ctx->active   ? xlat[CR_GRAY].table
                : ctx->selected ? xlat[CR_BRIGHT].table
                                : xlat[CR_NONE].table;
 
@@ -1673,19 +1684,24 @@ static void DrawInstructions(const mn_menu_t *menu)
                     SCREENHEIGHT - 15, cr_shaded, NULL, text);
 }
 
-static void DrawConfirm(const mn_menu_t *menu)
+static void DrawNotification(const char *text, int color, boolean blink)
 {
     patch_t *patch = V_CachePatchName("M_VBOX", PU_CACHE);
-    const int x = (SCREENWIDTH - patch->width) / 2;
-    const int y = (SCREENHEIGHT - patch->height) / 2;
-
+    int x = (SCREENWIDTH - patch->width) / 2;
+    int y = (SCREENHEIGHT - patch->height) / 2;
     V_DrawPatch(x, y, patch);
 
-    if (whichSkull)
+    if (!blink || whichSkull)
     {
-        MN_DrawString((SCREENWIDTH - MN_GetPixelWidth(menu->confirm_text)) / 2,
-                      y + patch->height / 2, CR_RED, menu->confirm_text);
+        x = (SCREENWIDTH - MN_GetPixelWidth(text)) / 2;
+        y = (SCREENHEIGHT - MN_StringHeight(text)) / 2;
+        MN_DrawString(x, y, color, text);
     }
+}
+
+void MN_DrawDelVerify(void)
+{
+    DrawNotification("Delete savegame? (Y/N)", CR_RED, true);
 }
 
 void MN_ContainerDrawer(void)
@@ -1716,6 +1732,12 @@ void MN_ContainerDrawer(void)
 
     if (menu->confirm)
     {
-        DrawConfirm(menu);
+        DrawNotification(menu->confirm_text, CR_RED, true);
     }
+}
+
+void MN_BindMenuVariables(void)
+{
+    BIND_NUM(menu_help, MENU_HELP_AUTO, MENU_HELP_OFF, MENU_HELP_PAD,
+        "Menu help (0 = Off; 1 = Auto; 2 = Always Keyboard; 3 = Always Gamepad)");
 }

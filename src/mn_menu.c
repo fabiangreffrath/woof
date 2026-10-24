@@ -242,7 +242,7 @@ static void M_StartMessage(const char *string, void (*routine)(int), boolean inp
 // phares 3/30/98
 // prototypes added to support Setup Menus and Extended HELP screens
 
-static void M_Setup(int choice);
+static void M_Options(int choice);
 
 static void M_InitExtendedHelp(void);
 static void M_ExtHelpNextScreen(int choice);
@@ -319,7 +319,7 @@ enum
 static menuitem_t MainMenu[] = {
     {1, "M_NGAME",  M_NewGame,  'n', "New Game",   MAIN_MENU_RECT},
     // change M_Options to M_Setup
-    {1, "M_OPTION", M_Setup,    'o', "Options",    MAIN_MENU_RECT},
+    {1, "M_OPTION", M_Options,  'o', "Options",    MAIN_MENU_RECT},
     {1, "M_LOADG",  M_LoadGame, 'l', "Load Game",  MAIN_MENU_RECT},
     {1, "M_SAVEG",  M_SaveGame, 's', "Save Game",  MAIN_MENU_RECT},
     // Another hickup with Special edition.
@@ -618,8 +618,10 @@ static menu_t NewDef = {
 
 static void InitializeSkillMenu(void)
 {
-    if (NewDef.numitems)  // Already initialized?
+    if (NewDef.numitems) // Already initialized?
+    {
         return;
+    }
 
     NewDef.lastOn = default_skill - 1;
     NewDef.numitems = num_skills;
@@ -631,7 +633,9 @@ static void InitializeSkillMenu(void)
         NewDef.menuitems[i].rect = (mrect_t)NEW_GAME_RECT(i);
 
         if (skill_infos[i].pic_name)
+        {
             M_CopyLumpName(NewDef.menuitems[i].name, skill_infos[i].pic_name);
+        }
 
         NewDef.menuitems[i].alttext = skill_infos[i].name;
 
@@ -639,7 +643,9 @@ static void InitializeSkillMenu(void)
         NewDef.menuitems[i].alphaKey = skill_infos[i].key;
 
         if (skill_infos[i].flags & SI_DEFAULT_SKILL)
+        {
             NewDef.lastOn = i;
+        }
     }
     menuitem_t cskill_item = {.status = 1,
                               .name = "M_CSTSKL",
@@ -650,10 +656,13 @@ static void InitializeSkillMenu(void)
                               .flags = MF_OPTLUMP};
 
     NewDef.menuitems[num_cskill] = cskill_item;
-    M_InitCustomSkill();
 
     if (NewDef.lastOn >= num_skills)
+    {
         NewDef.lastOn = num_skills - 1;
+    }
+
+    csmenu_skill = sk_medium;
 }
 
 //
@@ -902,9 +911,6 @@ static void M_DrawLoad(void)
     {
         M_DrawBorderedSnapshot(index);
     }
-
-    MN_SetCurrentPage(savepage + 1);
-    MN_DrawTabs();
 }
 
 //
@@ -983,9 +989,6 @@ void MN_ForcedLoadGame(const char *msg)
 // Selected from DOOM menu
 //
 
-static setup_tab_t load_tabs[] = {{" Q "}, {" 1 "}, {" 2 "}, {" 3 "}, {" 4 "},
-                                  {" 5 "}, {" 6 "}, {" 7 "}, {" 8 "}, {NULL}};
-
 static void M_LoadGame(int choice)
 {
     delete_verify = false;
@@ -1006,7 +1009,6 @@ static void M_LoadGame(int choice)
 
     SetNextMenu(&LoadDef);
     M_ReadSaveStrings();
-    MN_SetCurrentTabs(load_tabs);
 }
 
 /////////////////////////////
@@ -1254,9 +1256,6 @@ static void M_DrawSave(void)
     {
         M_DrawBorderedSnapshot(index);
     }
-
-    MN_SetCurrentPage(savepage);
-    MN_DrawTabs();
 }
 
 //
@@ -1391,9 +1390,6 @@ static void M_SaveSelect(int choice)
 // Selected from DOOM menu
 //
 
-static setup_tab_t save_tabs[] = {{" 1 "}, {" 2 "}, {" 3 "}, {" 4 "}, {" 5 "},
-                                  {" 6 "}, {" 7 "}, {" 8 "}, {NULL}};
-
 static void M_SaveGame(int choice)
 {
     delete_verify = false;
@@ -1413,7 +1409,6 @@ static void M_SaveGame(int choice)
     savepage = MAX(savepage, 0);
     SetNextMenu(&SaveDef);
     M_ReadSaveStrings();
-    MN_SetCurrentTabs(save_tabs);
 }
 
 /////////////////////////////
@@ -1491,14 +1486,15 @@ enum
     {80 /*SoundDef.x*/, 64 /*SoundDef.y*/ + LINEHEIGHT *(n), (16 + 2) * 8, 13}
 
 static menuitem_t SoundMenu[] = {
-    {2,  "M_SFXVOL", M_SfxVol,   's', "Sfx Volume", {0},                           MF_THRM_STR},
-    {-1, "",         NULL,       0,   NULL, THERMO_VOLUME_RECT(sfx_vol_thermo),   MF_THRM    },
-    {2,  "M_MUSVOL", M_MusicVol, 'm', "Music Volume", {0},                         MF_THRM_STR},
-    {-1, "",         NULL,       0,   NULL, THERMO_VOLUME_RECT(music_vol_thermo), MF_THRM    },
+    {2,  "M_SFXVOL", M_SfxVol,   's', "Sfx Volume",   {0},                                  MF_THRM_STR},
+    {-1, "",         NULL,       0,   NULL,           THERMO_VOLUME_RECT(sfx_vol_thermo),   MF_THRM    },
+    {2,  "M_MUSVOL", M_MusicVol, 'm', "Music Volume", {0},                                  MF_THRM_STR},
+    {-1, "",         NULL,       0,   NULL,           THERMO_VOLUME_RECT(music_vol_thermo), MF_THRM    },
 };
 
-static menu_t SoundDef = {sound_end, &MainDef, SoundMenu, M_DrawSound,
-                          80,        64,       0};
+static menu_t SoundDef = {
+    sound_end, &MainDef, SoundMenu, M_DrawSound, 80, 64, 0
+};
 
 //
 // Change Sfx & Music volumes
@@ -1866,230 +1862,9 @@ static void M_DrawExtHelp(void)
 //
 ////////////////////////////////////////////////////////////////////////////
 
-/////////////////////////////
-//
-// SetupMenu is the definition of what the main Setup Screen should look
-// like. Each entry shows that the cursor can land on each item (1), the
-// built-in graphic lump (i.e. "M_KEYBND") that should be displayed,
-// the program which takes over when an item is selected, and the hotkey
-// associated with the item.
-
-#define M_Y_SETUP 37
-
-#define SETUP_MENU_RECT(n) \
-    {0, M_Y_SETUP + (n) * LINEHEIGHT, SCREENWIDTH, LINEHEIGHT}
-
-static menuitem_t SetupMenu[] = {
-  // [FG] alternative text for missing menu graphics lumps
-    {1, "M_GENERL", MN_General,     'g', "General",            SETUP_MENU_RECT(0)},
-    {1, "M_KEYBND", MN_KeyBindings, 'k', "Key Bindings",       SETUP_MENU_RECT(1)},
-    {1, "M_COMPAT", MN_Compat,      'c', "Compatibility",      SETUP_MENU_RECT(2)},
-    {1, "M_STAT",   MN_StatusBar,   's', "Status Bar/HUD",     SETUP_MENU_RECT(3)},
-    {1, "M_AUTO",   MN_Automap,     'a', "Automap",            SETUP_MENU_RECT(4)},
-    {1, "M_WEAP",   MN_Weapons,     'w', "Weapons",            SETUP_MENU_RECT(5)},
-    {1, "M_ENEM",   MN_Enemy,       'e', "Enemies",            SETUP_MENU_RECT(6)},
-};
-
-/////////////////////////////
-//
-// M_DoNothing does just that: nothing. Just a placeholder.
-
-static void M_DoNothing(int choice)
-{
-}
-
-/////////////////////////////
-//
-// Items needed to satisfy the 'Big Font' menu structures:
-//
-// the generic_setup_e enum mimics the 'Big Font' menu structures, but
-// means nothing to the Setup Menus.
-
-enum
-{
-    generic_setupempty1,
-    generic_setup_end
-} generic_setup_e;
-
-// Generic_Setup is a do-nothing definition that the mainstream Menu code
-// can understand, while the Setup Menu code is working. Another placeholder.
-
-static menuitem_t Generic_Setup[] = {
-    {1, "", M_DoNothing, 0}
-};
-
-/////////////////////////////
-//
-// SetupDef is the menu definition that the mainstream Menu code understands.
-// This is used by M_Setup (below) to define what is drawn and what is done
-// with the main Setup screen.
-
-static menu_t SetupDef = {
-    ss_comp + 1,   // number of Setup Menu items (Key Bindings, etc.)
-    &MainDef,      // menu to return to when BACKSPACE is hit on this menu
-    SetupMenu,     // definition of items to show on the Setup Screen
-    M_DrawSetup,   // program that draws the Setup Screen
-    60, M_Y_SETUP, // x,y position of the skull (modified when the skull is
-                   // drawn). The skull is parked on the upper-left corner
-                   // of the Setup screens, since it isn't needed as a cursor
-    0              // last item the user was on for this menu
-};
-
-/////////////////////////////
-//
-// Here are the definitions of the individual Setup Menu screens. They
-// follow the format of the 'Big Font' menu structures. See the comments
-// for SetupDef (above) to help understand what each of these says.
-
-static menu_t KeybndDef =
-{
-    generic_setup_end,
-    &SetupDef,
-    Generic_Setup,
-    MN_DrawKeybnd,
-    34, 5, // skull drawn here
-    0
-};
-
-static menu_t WeaponDef =
-{
-    generic_setup_end,
-    &SetupDef,
-    Generic_Setup,
-    MN_DrawWeapons,
-    34, 5, // skull drawn here
-    0
-};
-
-static menu_t StatusHUDDef =
-{
-    generic_setup_end,
-    &SetupDef,
-    Generic_Setup,
-    MN_DrawStatusHUD,
-    34, 5, // skull drawn here
-    0
-};
-
-static menu_t AutoMapDef =
-{
-    generic_setup_end,
-    &SetupDef,
-    Generic_Setup,
-    MN_DrawAutoMap,
-    34, 5, // skull drawn here
-    0
-};
-
-static menu_t EnemyDef = // phares 4/08/98
-{
-    generic_setup_end,
-    &SetupDef,
-    Generic_Setup,
-    MN_DrawEnemy,
-    34, 5, // skull drawn here
-    0
-};
-
-static menu_t GeneralDef = // killough 10/98
-{
-    generic_setup_end,
-    &SetupDef,
-    Generic_Setup,
-    MN_DrawGeneral,
-    34, 5, // skull drawn here
-    0
-};
-
-static menu_t CompatDef = // killough 10/98
-{
-    generic_setup_end,
-    &SetupDef,
-    Generic_Setup,
-    MN_DrawCompat,
-    34, 5, // skull drawn here
-    0
-};
-
-static menu_t SfxDef = {
-    generic_setup_end,  // numitems
-    &SetupDef,          // prevMenu
-    Generic_Setup,      // menuitems
-    MN_DrawSfx,         // routine
-    34, 5,              // x, y (skull drawn here)
-};
-
-static menu_t MidiDef = {
-    generic_setup_end,  // numitems
-    &SetupDef,          // prevMenu
-    Generic_Setup,      // menuitems
-    MN_DrawMidi,        // routine
-    34, 5,              // x, y (skull drawn here)
-};
-
-static menu_t EqualizerDef = {
-    generic_setup_end,  // numitems
-    &SetupDef,          // prevMenu
-    Generic_Setup,      // menuitems
-    MN_DrawEqualizer,   // routine
-    34, 5,              // x, y (skull drawn here)
-};
-
-static menu_t PadAdvDef = {
-    generic_setup_end,  // numitems
-    &SetupDef,          // prevMenu
-    Generic_Setup,      // menuitems
-    MN_DrawPadAdv,      // routine
-    34, 5,              // x, y (skull drawn here)
-};
-
-static menu_t GyroDef = {
-    generic_setup_end,  // numitems
-    &SetupDef,          // prevMenu
-    Generic_Setup,      // menuitems
-    MN_DrawGyro,        // routine
-    34, 5,              // x, y (skull drawn here)
-};
-
-static menu_t CustomSkillDef = {
-    generic_setup_end,  // numitems
-    &NewDef,            // prevMenu
-    Generic_Setup,      // menuitems
-    MN_DrawCustomSkill, // routine
-    34, 5,              // x, y (skull drawn here)
-};
-
-void MN_SetNextMenuAlt(ss_types type)
-{
-    static menu_t *setup_defs[] = {
-        &KeybndDef, &WeaponDef,    &StatusHUDDef, &AutoMapDef,
-        &EnemyDef,  &GeneralDef,   &CompatDef,    &SfxDef,
-        &MidiDef,   &EqualizerDef, &PadAdvDef,    &GyroDef,
-        &CustomSkillDef
-    };
-
-    SetNextMenu(setup_defs[type]);
-}
-
-/////////////////////////////
-//
-// Draws the Title for the main Setup screen
-
-static void M_DrawSetup(void)
-{
-    MN_DrawTitle(M_X_CENTER, 15, "M_OPTTTL", "OPTIONS");
-}
-
-/////////////////////////////
-//
-// Uses the SetupDef structure to draw the menu items for the main
-// Setup screen
-
-static void M_Setup(int choice)
+static void M_Options(int choice)
 {
     options_active = true;
-
-    SetNextMenu(&SetupDef);
     MN_OptionsOpen();
 }
 
@@ -2106,15 +1881,10 @@ void MN_ClearMenus(void)
     customskill_active = false;
     MN_ContainerClose();
     print_warning_about_changes = 0; // killough 8/15/98
-    default_verify = 0;              // killough 10/98
-
-    // if (!netgame && usergame && paused)
-    //     sendpause = true;
 
     I_SetSensorEventState(false);
     G_ClearInput();
     M_ResumeSound();
-    MN_SetCurrentTabs(NULL);
 }
 
 static boolean MenuBack(void)
@@ -2129,23 +1899,6 @@ static boolean MenuBack(void)
     highlight_item = 0;
     M_StartSound(sfx_mnubak);
     return true;
-}
-
-void MN_Back(void)
-{
-    MenuBack();
-}
-
-void MN_BackSecondary(void)
-{
-    if (MenuBack())
-    {
-        if (currentMenu->menuitems && currentMenu->numitems > itemOn
-            && currentMenu->menuitems[itemOn].routine)
-        {
-            currentMenu->menuitems[itemOn].routine(0);
-        }
-    }
 }
 
 //
@@ -2184,7 +1937,6 @@ static void AddLineBreaks(char *string)
 
 void M_Init(void)
 {
-    MN_InitDefaults(); // killough 11/98
     currentMenu = &MainDef;
     menuactive = 0;
     itemOn = currentMenu->lastOn;
@@ -2257,7 +2009,6 @@ void M_Init(void)
         EpiDef.numitems--;
     }
 
-    MN_SetupResetMenu();
     M_InitExtendedHelp(); // init extended help screens // phares 3/30/98
 
     // [crispy] remove DOS reference from the game quit confirmation dialogs
@@ -2378,7 +2129,7 @@ boolean M_ShortcutResponder(const event_t *ev)
     {
         freelook = !freelook;
         togglemsg("Free Look %s", freelook ? "On" : "Off");
-        MN_UpdateFreeLook();
+        MN_OptionsUpdateFreeLook();
         // return true; // [FG] don't let toggles eat keys
     }
 
@@ -2639,16 +2390,6 @@ static void CursorPosition(void)
         return;
     }
 
-    if (MN_SetupCursorPostion(mouse_state_x, mouse_state_y))
-    {
-        return;
-    }
-
-    if (AnyLoadSaveMenu())
-    {
-        MN_HighlightTab(mouse_state_x, mouse_state_y);
-    }
-
     for (int i = 0; i < currentMenu->numitems; i++)
     {
         menuitem_t *item = &currentMenu->menuitems[i];
@@ -2768,24 +2509,6 @@ static boolean MouseResponder(void)
     }
 
     MN_ResetMouseCursor();
-
-    if (setup_active)
-    {
-        return MN_SetupMouseResponder(mouse_state_x, mouse_state_y);
-    }
-
-    if (AnyLoadSaveMenu())
-    {
-        if (SetupLoadSaveTab(&savepage))
-        {
-            if (currentMenu == &LoadDef)
-            {
-                savepage--;
-            }
-            M_ReadSaveStrings();
-            return true;
-        }
-    }
 
     menuitem_t *current_item = &currentMenu->menuitems[highlight_item];
 
@@ -2911,8 +2634,7 @@ boolean M_Responder(event_t *ev)
 
                 if (M_IsMouseWheel(ev->data1.i))
                 {
-                    MN_ContainerWheel(ev->data1.i == MOUSE_BUTTON_WHEELUP ? -1
-                                                                           : 1);
+                    MN_ContainerWheel(ev->data1.i == MOUSE_BUTTON_WHEELUP ? -1 : 1);
                 }
                 else
                 {
@@ -3130,7 +2852,7 @@ boolean M_Responder(event_t *ev)
         else if (result == MN_CONTAINER_CLOSE)
         {
             MN_ContainerClose();
-            MN_Back();
+            MenuBack();
             M_StartSound(sfx_mnubak);
             help_input = old_help_input;
             menu_input = old_menu_input;
@@ -3157,11 +2879,6 @@ boolean M_Responder(event_t *ev)
     }
 
     if (SaveLoadResponder(action, ch))
-    {
-        return true;
-    }
-
-    if (MN_SetupResponder(action, ch))
     {
         return true;
     }
@@ -3390,7 +3107,6 @@ void MN_StartControlPanel(void)
 
     InitializeSkillMenu();
 
-    default_verify = 0; // killough 10/98
     menuactive = 1;
     currentMenu = &MainDef;              // JDC
     itemOn = currentMenu->lastOn;        // JDC
@@ -3577,7 +3293,7 @@ void M_Drawer(void)
 
     // DRAW SKULL
 
-    y = setup_active ? SCREENHEIGHT - 19 : currentMenu->y;
+    y = currentMenu->y;
 
     V_DrawPatch(x + SKULLXOFF, y - 5 + itemOn * LINEHEIGHT,
                 V_CachePatchName(skullName[whichSkull], PU_CACHE));
@@ -3702,6 +3418,35 @@ static void WriteTextCR(int x, int y, byte *cr, const char *string)
 static void WriteText(int x, int y, const char *string)
 {
     WriteTextCR(x, y, NULL, string);
+}
+
+void MN_DrawTitle(int x, int y, const char *patch, const char *alttext)
+{
+    int patch_lump = W_CheckNumForName(patch);
+    int patch_priority = -1;
+
+    if (patch_lump >= 0)
+    {
+        patch_priority = lumpinfo[patch_lump].handle.priority;
+    }
+
+    if (patch_lump >= 0 && patch_priority >= bigfont_priority)
+    {
+        patch_t *patch = V_CachePatchNum(patch_lump, PU_CACHE);
+        V_DrawPatch(x == M_X_CENTER ? SCREENWIDTH / 2 - patch->width / 2 : x, y,
+                    patch);
+    }
+    else
+    {
+        // patch doesn't exist, draw some text in place of it
+        if (!MN_DrawFon2String((SCREENWIDTH - MN_GetFon2PixelWidth(alttext)) / 2,
+                               y, NULL, alttext))
+        {
+            MN_DrawString((SCREENWIDTH - MN_GetPixelWidth(alttext)) / 2,
+                          y + 8 - MN_StringHeight(alttext) / 2, // assumes patch height 16
+                          CR_GOLD, alttext);
+        }
+    }
 }
 
 void M_StartSound(int sound_id)

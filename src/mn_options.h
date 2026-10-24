@@ -20,6 +20,17 @@
 
 #include "mn_container.h"
 
+// The setup_group enum is used to show which 'groups' keys fall into so
+// that you can bind a key differently in each 'group'.
+
+typedef enum
+{
+    m_null, // Has no meaning; not applicable
+    m_scrn, // A key can not be assigned to more than one action
+    m_map,  // in the same group. A key can be assigned to one
+    m_gyro, // action in one group, and another action in another.
+} setup_group;
+
 extern mn_menu_t video_menu;
 extern mn_menu_t display_menu;
 extern mn_menu_t audio_menu;
@@ -42,6 +53,7 @@ void MN_GetResolutionScaleStrings(mn_item_t *item);
 void MN_OptionsUpdateResolutionScale(void);
 void MN_OptionsUpdateFullscreen(void);
 void MN_OptionsUpdateFPSLimit(void);
+void MN_OptionsUpdateFPSLimitItem(void);
 void MN_OptionsUpdateFOV(void);
 void MN_OptionsResetVideo(void);
 
@@ -56,6 +68,8 @@ void MN_GetResamplerStrings(mn_item_t *item);
 void MN_OptionsResetAutoGain(void);
 void MN_OptionsUpdateAdvancedSoundItems(boolean toggle);
 
+void MN_OptionsInitFreeLook(void);
+void MN_OptionsUpdateFreeLook(void);
 void MN_OptionsUpdateFreeLookMode(void);
 void MN_GetGamepadDeviceStrings(mn_item_t *item);
 void MN_OptionsUpdateGamepadDevice(void);
@@ -68,6 +82,7 @@ void MN_GetGyroSensitivityStrings(mn_item_t *item);
 void MN_GetGyroAccelStrings(mn_item_t *item);
 void MN_OptionsUpdateGyroSteadying(void);
 void MN_OptionsUpdateGyroAcceleration(void);
+void MN_OptionsUpdateAllGamepadItems(void);
 
 #include "ws_stuff.h"
 #define WS_BUF_SIZE 80
@@ -84,5 +99,7 @@ void MN_OptionsUpdateStatsFormatItem(void);
 void MN_OptionsUpdateCrosshairItems(void);
 
 void MN_OptionsUpdateCenteredWeaponItem(void);
+
+void MN_BindOptionsVariables(void);
 
 #endif

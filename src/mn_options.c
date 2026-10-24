@@ -35,6 +35,7 @@
 #include "m_input.h"
 #include "m_misc.h"
 #include "mn_container.h"
+#include "mn_font.h"
 #include "mn_internal.h"
 #include "mn_menu.h"
 #include "mn_options.h"
@@ -180,7 +181,12 @@ static byte *ValueColor(const mn_draw_ctx_t *ctx)
         return cr_dark;
     }
 
-    if (ctx->selected || ctx->active)
+    if (ctx->active)
+    {
+        return xlat[CR_GRAY].table;
+    }
+
+    if (ctx->selected)
     {
         return xlat[CR_BRIGHT].table;
     }
@@ -483,7 +489,15 @@ static boolean ChoiceHitTest(const mn_item_t *item, int mouse_x, int *arrow,
 
 static void ChoiceHover(mn_item_t *item, int mouse_x, int mouse_y)
 {
+    static int hover;
+
     ChoiceHitTest(item, mouse_x, &item->hover_arrow, &item->hover_segment);
+
+    if (hover != item->hover_segment)
+    {
+        hover = item->hover_segment;
+        M_StartSound(sfx_mnusel);
+    }
 }
 
 static void ChoiceDrawText(const mn_item_t *item, const choice_layout_t *l,
@@ -521,9 +535,8 @@ static void ChoiceDrawText(const mn_item_t *item, const choice_layout_t *l,
         buffer[end] = '\0';
         MN_TruncateText(buffer + start, l->text_w);
         MN_DrawStringCR(
-            l->text_x
-                + (l->text_w - MN_GetPixelWidth(buffer + start)) / 2,
-            y, xlat[CR_GREEN].table, cr, buffer + start);
+            l->text_x + (l->text_w - MN_GetPixelWidth(buffer + start)) / 2, y,
+            xlat[CR_GREEN].table, cr, buffer + start);
         buffer[end] = saved;
 
         if (!saved)
@@ -1316,6 +1329,13 @@ void MN_OptionsUpdateFPSLimit(void)
     setrefreshneeded = true;
 }
 
+void MN_OptionsUpdateFPSLimitItem(void)
+{
+    MN_DisableItem(!uncapped, &video_menu, "fpslimit");
+    G_ClearInput();
+    G_UpdateAngleFunctions();
+}
+
 void MN_OptionsUpdateFOV(void)
 {
     setsizeneeded = true;
@@ -1383,13 +1403,6 @@ void MN_OptionsEqualizerPreset(void)
                  "snd_eq_high_cutoff");
 }
 
-typedef enum
-{
-    FREELOOK_OFF,        // Free look disabled.
-    FREELOOK_AUTO_AIM,   // Free look enabled with traditional auto-aiming.
-    FREELOOK_DIRECT_AIM, // Free look enabled with direct vertical aiming.
-} freelook_mode_t;
-
 static void UpdateGainItems(void)
 {
 #if defined (HAVE_FLUIDSYNTH)
@@ -1404,9 +1417,36 @@ void MN_OptionsResetAutoGain(void)
     UpdateGainItems();
 }
 
+typedef enum
+{
+    FREELOOK_OFF,        // Free look disabled.
+    FREELOOK_AUTO_AIM,   // Free look enabled with traditional auto-aiming.
+    FREELOOK_DIRECT_AIM, // Free look enabled with direct vertical aiming.
+} freelook_mode_t;
+
 static freelook_mode_t freelook_mode;
 
-void MN_UpdateFreeLook(void)
+static void SetItemLimit(const char *name, int min, int max)
+{
+    default_t *def = M_LookupDefault(name);
+    def->limit.min = min;
+    def->limit.max = max;
+}
+
+void MN_OptionsInitFreeLook(void)
+{
+    if (strictmode)
+    {
+        MN_DisableItem(true, &controls_menu, "freelook_mode");
+        MN_DisableItem(true, &controls_menu, "freelook_mode");
+    }
+    if (demorecording || (netgame && !solonet))
+    {
+        SetItemLimit("freelook_mode", FREELOOK_OFF, FREELOOK_AUTO_AIM);
+    }
+}
+
+void MN_OptionsUpdateFreeLook(void)
 {
     P_UpdateDirectVerticalAiming();
 
@@ -1440,7 +1480,7 @@ void MN_OptionsUpdateFreeLookMode(void)
             break;
     }
 
-    MN_UpdateFreeLook();
+    MN_OptionsUpdateFreeLook();
 }
 
 void MN_GetGamepadDeviceStrings(mn_item_t *item)
@@ -1466,7 +1506,6 @@ static void UpdateGamepadItems(void)
 
     MN_DisableItem(!devices, &controls_menu, "joy_device");
     MN_DisableItem(!gamepad, &controls_menu, "Advanced Options");
-    MN_DisableItem(!gamepad || !I_GyroSupported(), &controls_menu, "Gyro Options");
     MN_DisableItem(!gamepad || !I_RumbleSupported(), &controls_menu, "joy_rumble");
     MN_DisableItem(!gamepad || (!sticks && !gyro) || strictmode, &controls_menu,
         "freelook_mode");
@@ -1476,11 +1515,11 @@ static void UpdateGamepadItems(void)
 
     MN_DisableItem(!gamepad, &controls_menu, "joy_stick_layout");
     MN_DisableItem(!flick, &controls_menu, "joy_flick_time");
-    MN_DisableItem(condition, &controls_menu, "joy_movement_type",
+    MN_DisableItem(condition, &advanced_gamepad_menu, "joy_movement_type",
         "joy_forward_sensitivity", "joy_strafe_sensitivity",
         "joy_outer_turn_speed");
-    MN_DisableItem(!ramp, &controls_menu, "joy_outer_ramp_time");
-    MN_DisableItem(condition, &controls_menu, "joy_camera_curve");
+    MN_DisableItem(!ramp, &advanced_gamepad_menu, "joy_outer_ramp_time");
+    MN_DisableItem(condition, &advanced_gamepad_menu, "joy_camera_curve");
 }
 
 void MN_OptionsUpdateGamepad(void)
@@ -1537,13 +1576,13 @@ static void UpdateGyroItems(void)
     const boolean condition = (!gamepad || !gyro);
 
     MN_DisableItem(!gamepad || !I_GyroSupported(), &controls_menu, "gyro_enable");
-    MN_DisableItem(condition, &controls_menu, "gyro_space", "gyro_button_action",
-                 "gyro_stick_action", "gyro_turn_sensitivity",
-                 "gyro_look_sensitivity", "gyro_acceleration");
-    MN_DisableItem(!acceleration, &controls_menu, "gyro_accel_min_threshold",
-                 "gyro_accel_max_threshold");
-    MN_DisableItem(condition, &controls_menu, "gyro_smooth_threshold",
-                 "Calibrate Gyro");
+    MN_DisableItem(condition, &controls_menu, "gyro_button_action",
+                   "gyro_stick_action", "gyro_turn_sensitivity",
+                   "gyro_look_sensitivity", "Calibrate Gyro");
+    MN_DisableItem(condition, &advanced_gyro_menu, "gyro_space",
+                   "gyro_acceleration", "gyro_smooth_threshold");
+    MN_DisableItem(!acceleration, &advanced_gyro_menu,
+                   "gyro_accel_min_threshold", "gyro_accel_max_threshold");
 }
 
 void MN_OptionsUpdateGyroAiming(void)
@@ -1601,6 +1640,62 @@ void MN_OptionsUpdateGyroAcceleration(void)
     UpdateGyroItems();
     I_ResetGamepad();
 }
+
+static void DrawNotification(const char *text, int color, boolean blink)
+{
+    patch_t *patch = V_CachePatchName("M_VBOX", PU_CACHE);
+    int x = (SCREENWIDTH - patch->width) / 2;
+    int y = (SCREENHEIGHT - patch->height) / 2;
+    V_DrawPatch(x, y, patch);
+
+    if (!blink || whichSkull)
+    {
+        x = (SCREENWIDTH - MN_GetPixelWidth(text)) / 2;
+        y = (SCREENHEIGHT - MN_StringHeight(text)) / 2;
+        MN_DrawString(x, y, color, text);
+    }
+}
+
+// !!! TODO
+#if 0
+static void DrawGyroCalibration(void)
+{
+    switch (I_GetGyroCalibrationState())
+    {
+        case GYRO_CALIBRATION_INACTIVE:
+            break;
+
+        case GYRO_CALIBRATION_STARTING:
+            //block_input = true;
+            DrawNotification("Starting calibration...", CR_GRAY, false);
+            I_UpdateGyroCalibrationState();
+            if (I_GetGyroCalibrationState() == GYRO_CALIBRATION_ACTIVE)
+            {
+                M_StartSound(sfx_mnumov);
+            }
+            break;
+
+        case GYRO_CALIBRATION_ACTIVE:
+            DrawNotification("Calibrating, please wait...", CR_GRAY, false);
+            I_UpdateGyroCalibrationState();
+            if (I_GetGyroCalibrationState() == GYRO_CALIBRATION_COMPLETE)
+            {
+                M_StartSound(sfx_mnumov);
+            }
+            break;
+
+        case GYRO_CALIBRATION_COMPLETE:
+            DrawNotification("Calibration complete!", CR_GREEN, false);
+            I_UpdateGyroCalibrationState();
+            if (I_GetGyroCalibrationState() == GYRO_CALIBRATION_INACTIVE)
+            {
+                M_StartSound(sfx_mnucls);
+                //block_input = false;
+            }
+            break;
+    }
+}
+#endif
 
 void MN_OptionsUpdateWeaponSlotLabels(void)
 {
@@ -1729,6 +1824,14 @@ void MN_GetScreenSizeStrings(mn_item_t *item)
     item->num_choices = array_size(strings);
 }
 
+void MN_OptionsUpdateAllGamepadItems(void)
+{
+    // !!! TODO selectstrings[str_gamepad_device] = GetGamepadDeviceStrings();
+    MN_OptionsUpdateWeaponSlotSelection();
+    UpdateGamepadItems();
+    UpdateGyroItems();
+}
+
 void MN_OptionsViewSize(void)
 {
     R_SetViewSize(screenblocks);
@@ -1760,4 +1863,8 @@ void MN_BindOptionsVariables(void)
 {
     BIND_NUM_MENU(resolution_scale, 0, UL);
     BIND_NUM_MENU(freelook_mode, FREELOOK_OFF, FREELOOK_DIRECT_AIM);
+    BIND_BOOL(menu_pause_demos, false,
+        "Pause demo loop while menu is open");
+    BIND_NUM(menu_backdrop, MENU_BG_DARK, MENU_BG_OFF, MENU_BG_TEXTURE,
+        "Menu backdrop (0 = Off; 1 = Dark; 2 = Texture)");
 }

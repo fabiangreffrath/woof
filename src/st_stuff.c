@@ -2504,56 +2504,48 @@ void WI_DrawWidgets(void)
 
 void ST_BindSTSVariables(void)
 {
-  M_BindNum("hud_anchoring", &hud_anchoring, NULL, HUD_ANCHORING_16_9,
-            HUD_ANCHORING_WIDE, HUD_ANCHORING_21_9, ss_stat, wad_no,
-            "HUD anchoring (0 = Wide; 1 = 4:3; 2 = 16:9; 3 = 21:9)");
-  M_BindBool("sts_colored_numbers", &sts_colored_numbers, NULL,
-             false, ss_stat, wad_yes, "Colored numbers on the status bar");
-  M_BindBool("sts_pct_always_gray", &sts_pct_always_gray, NULL,
-             false, ss_none, wad_yes,
-             "Percent signs on the status bar are always gray");
-  M_BindBool("st_solidbackground", &st_solidbackground, NULL,
-             false, ss_stat, wad_no,
-             "Use solid-color borders for the status bar in widescreen mode");
-  M_BindBool("hud_armor_type", &hud_armor_type, NULL, true, ss_none, wad_no,
-             "Armor count is colored based on armor type");
-  M_BindNum("health_red", &health_red, NULL, 25, 0, 200, ss_none, wad_yes,
-            "Amount of health for red-to-yellow transition");
-  M_BindNum("health_yellow", &health_yellow, NULL, 50, 0, 200, ss_none, wad_yes,
-            "Amount of health for yellow-to-green transition");
-  M_BindNum("health_green", &health_green, NULL, 100, 0, 200, ss_none, wad_yes,
-            "Amount of health for green-to-blue transition");
-  M_BindNum("armor_red", &armor_red, NULL, 25, 0, 200, ss_none, wad_yes,
-            "Amount of armor for red-to-yellow transition");
-  M_BindNum("armor_yellow", &armor_yellow, NULL, 50, 0, 200, ss_none, wad_yes,
-            "Amount of armor for yellow-to-green transition");
-  M_BindNum("armor_green", &armor_green, NULL, 100, 0, 200, ss_none, wad_yes,
-            "Amount of armor for green-to-blue transition");
-  M_BindNum("ammo_red", &ammo_red, NULL, 25, 0, 100, ss_none, wad_yes,
-            "Percent of ammo for red-to-yellow transition");
-  M_BindNum("ammo_yellow", &ammo_yellow, NULL, 50, 0, 100, ss_none, wad_yes,
-            "Percent of ammo for yellow-to-green transition");
+    BIND_NUM(hud_anchoring, HUD_ANCHORING_16_9, HUD_ANCHORING_WIDE,
+             HUD_ANCHORING_21_9,
+             "HUD anchoring (0 = Wide; 1 = 4:3; 2 = 16:9; 3 = 21:9)");
+    M_BindBool("sts_colored_numbers", &sts_colored_numbers, NULL, false,
+               wad_yes, "Colored numbers on the status bar");
+    M_BindBool("sts_pct_always_gray", &sts_pct_always_gray, NULL, false,
+               wad_yes, "Percent signs on the status bar are always gray");
+    BIND_BOOL(st_solidbackground, false,
+              "Use solid-color borders for the status bar in widescreen mode");
+    BIND_BOOL(hud_armor_type, true,
+              "Armor count is colored based on armor type");
+    M_BindNum("health_red", &health_red, NULL, 25, 0, 200, wad_yes,
+              "Amount of health for red-to-yellow transition");
+    M_BindNum("health_yellow", &health_yellow, NULL, 50, 0, 200, wad_yes,
+              "Amount of health for yellow-to-green transition");
+    M_BindNum("health_green", &health_green, NULL, 100, 0, 200, wad_yes,
+              "Amount of health for green-to-blue transition");
+    M_BindNum("armor_red", &armor_red, NULL, 25, 0, 200, wad_yes,
+              "Amount of armor for red-to-yellow transition");
+    M_BindNum("armor_yellow", &armor_yellow, NULL, 50, 0, 200, wad_yes,
+              "Amount of armor for yellow-to-green transition");
+    M_BindNum("armor_green", &armor_green, NULL, 100, 0, 200, wad_yes,
+              "Amount of armor for green-to-blue transition");
+    M_BindNum("ammo_red", &ammo_red, NULL, 25, 0, 100, wad_yes,
+              "Percent of ammo for red-to-yellow transition");
+    M_BindNum("ammo_yellow", &ammo_yellow, NULL, 50, 0, 100, wad_yes,
+              "Percent of ammo for yellow-to-green transition");
 
-  M_BindNum("hud_crosshair", &hud_crosshair, NULL, 0, 0, 10 - 1, ss_stat, wad_no,
-            "Crosshair");
-  M_BindBool("hud_crosshair_health", &hud_crosshair_health, NULL,
-             false, ss_stat, wad_no, "Change crosshair color based on player health");
-  M_BindNum("hud_crosshair_target", &hud_crosshair_target, NULL,
-            0, 0, 2, ss_stat, wad_no,
-            "Change crosshair color when locking on target (1 = Highlight; 2 = Health)");
-  M_BindBool("hud_crosshair_lockon", &hud_crosshair_lockon, NULL,
-             false, ss_stat, wad_no, "Lock crosshair on target");
-  M_BindNum("hud_crosshair_color", &hud_crosshair_color, NULL,
-            CR_GRAY, CR_BRICK, CR_NONE, ss_stat, wad_no,
-            "Default crosshair color");
-  M_BindNum("hud_crosshair_target_color", &hud_crosshair_target_color, NULL,
-            CR_YELLOW, CR_BRICK, CR_NONE, ss_stat, wad_no,
-            "Crosshair color when aiming at target");
+    BIND_NUM(hud_crosshair, 0, 0, HU_CROSSHAIRS - 1, "Crosshair");
+    BIND_BOOL(hud_crosshair_health, false,
+              "Change crosshair color based on player health");
+    BIND_NUM(hud_crosshair_target, 0, 0, 2,
+             "Change crosshair color when locking on target (1 = Highlight; 2 "
+             "= Health)");
+    BIND_BOOL(hud_crosshair_lockon, false, "Lock crosshair on target");
+    BIND_NUM(hud_crosshair_color, CR_GRAY, CR_BRICK, CR_NONE,
+             "Default crosshair color");
+    BIND_NUM(hud_crosshair_target_color, CR_YELLOW, CR_BRICK, CR_NONE,
+             "Crosshair color when aiming at target");
 
-  M_BindBool("weapon_carousel", &weapon_carousel, NULL,
-             true, ss_weap, wad_no, "Show weapon carousel");
-
-  M_BindBool("minimap", &minimap, NULL, false, ss_auto, wad_no, "Show minimap");
+    BIND_BOOL(weapon_carousel, true, "Show weapon carousel");
+    BIND_BOOL(minimap, false, "Show minimap");
 }
 
 //----------------------------------------------------------------------------

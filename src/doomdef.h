@@ -222,28 +222,6 @@ typedef enum {
   IRONTICS    = (60*TICRATE)
 } powerduration_t;
 
-// phares 4/19/98:
-// Defines Setup Screen groups that config variables appear in.
-// Used when resetting the defaults for every item in a Setup group.
-
-typedef enum {
-  ss_none = -1,
-  ss_keys,
-  ss_weap,
-  ss_stat,
-  ss_auto,
-  ss_enem,
-  ss_gen,       // killough 10/98
-  ss_comp,      // killough 10/98
-  ss_sfx,
-  ss_music,
-  ss_eq,
-  ss_padadv,
-  ss_gyro,
-  ss_cskill,
-  ss_max
-} ss_types;
-
 typedef enum {
   wad_no,
   wad_yes

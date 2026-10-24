@@ -285,4 +285,6 @@ void MN_DisableItemInternal(boolean condition, mn_menu_t *menu,
                          sizeof((const char *[]){__VA_ARGS__})               \
                              / sizeof(const char *))
 
+void MN_BindMenuVariables(void);
+
 #endif

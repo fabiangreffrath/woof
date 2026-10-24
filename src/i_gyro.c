@@ -804,41 +804,35 @@ void I_RefreshGyroSettings(void)
     motion.tightening = gyro_tightening / 10.0f * PI_F / 180.0f;
 }
 
-#define BIND_NUM_GYRO(name, v, a, b, help) \
-    M_BindNum(#name, &name, NULL, (v), (a), (b), ss_gyro, wad_no, help)
-
-#define BIND_BOOL_GYRO(name, v, help) \
-    M_BindBool(#name, &name, NULL, (v), ss_gyro, wad_no, help)
-
 void I_BindGyroVaribales(void)
 {
-    BIND_BOOL_GYRO(gyro_enable, false,
+    BIND_BOOL(gyro_enable, false,
         "Enable gamepad gyro aiming");
-    BIND_NUM_GYRO(gyro_space,
+    BIND_NUM(gyro_space,
         SPACE_PLAYER, SPACE_LOCAL, SPACE_PLAYER,
         "Gyro space (0 = Local; 1 = Player)");
     BIND_NUM(gyro_local_roll,
         ROLL_ON, ROLL_OFF, ROLL_INVERT,
         "Local gyro space uses roll (0 = Off; 1 = On; 2 = Invert)");
-    BIND_NUM_GYRO(gyro_button_action,
+    BIND_NUM(gyro_button_action,
         ACTION_ENABLE, ACTION_NONE, ACTION_RESET_INVERT,
         "Gyro button action (0 = None; 1 = Disable Gyro; 2 = Enable Gyro; "
         "3 = Invert Gyro; 4 = Reset Camera; 5 = Reset / Disable Gyro; "
         "6 = Reset / Enable Gyro; 7 = Reset / Invert Gyro)");
-    BIND_NUM_GYRO(gyro_stick_action,
+    BIND_NUM(gyro_stick_action,
         ACTION_NONE, ACTION_NONE, ACTION_ENABLE,
         "Camera stick action (0 = None; 1 = Disable Gyro; 2 = Enable Gyro)");
-    BIND_NUM_GYRO(gyro_turn_sensitivity, 25, 0, 200,
+    BIND_NUM(gyro_turn_sensitivity, 25, 0, 200,
         "Gyro turn sensitivity (0 = 0.0x; 200 = 20.0x)");
-    BIND_NUM_GYRO(gyro_look_sensitivity, 25, 0, 200,
+    BIND_NUM(gyro_look_sensitivity, 25, 0, 200,
         "Gyro look sensitivity (0 = 0.0x; 200 = 20.0x)");
-    BIND_NUM_GYRO(gyro_acceleration, 10, 10, 200,
+    BIND_NUM(gyro_acceleration, 10, 10, 200,
         "Gyro acceleration multiplier (10 = 1.0x; 200 = 20.0x)");
-    BIND_NUM_GYRO(gyro_accel_min_threshold, 0, 0, 300,
+    BIND_NUM(gyro_accel_min_threshold, 0, 0, 300,
         "Lower threshold for applying gyro acceleration [degrees/second]");
-    BIND_NUM_GYRO(gyro_accel_max_threshold, 75, 0, 300,
+    BIND_NUM(gyro_accel_max_threshold, 75, 0, 300,
         "Upper threshold for applying gyro acceleration [degrees/second]");
-    BIND_NUM_GYRO(gyro_smooth_threshold, 30, 0, 500,
+    BIND_NUM(gyro_smooth_threshold, 30, 0, 500,
         "Gyro steadying: smoothing threshold "
         "(0 = Off; 500 = 50.0 degrees/second)");
     BIND_NUM(gyro_smooth_time, 125, 0, 500,

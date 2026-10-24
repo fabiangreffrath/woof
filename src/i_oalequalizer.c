@@ -327,7 +327,7 @@ void I_OAL_EqualizerPreset(void)
 }
 
 #define BIND_NUM_EQ(name, default_name, v, a, b, help) \
-    M_BindNum(#name, &default_name, &name, (v), (a), (b), ss_eq, wad_no, help)
+    M_BindNum(#name, &default_name, &name, (v), (a), (b), wad_no, help)
 
 void I_BindEqualizerVariables(void)
 {

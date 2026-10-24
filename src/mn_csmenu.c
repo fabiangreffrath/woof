@@ -11,10 +11,19 @@
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //  GNU General Public License for more details.
 
+#include "doomtype.h"
 #include "g_skillinfo.h"
 #include "m_config.h"
 #include "mn_csmenu.h"
-#include "mn_menu.h"
+
+boolean csmenu_skill;
+
+csmenu_t csmenu;
+
+void M_InitCustomSkill(void)
+{
+    csmenu_skill = sk_medium;
+}
 
 void MN_CSmenuSelectSkillLevel(void)
 {
