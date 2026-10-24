@@ -35,6 +35,8 @@ typedef struct csmenu_s
 
 extern csmenu_t csmenu;
 
+void MN_CSMenuOpen(void);
+
 void MN_CSmenuSelectSkillLevel(void);
 void MN_CSMenuStartGame(void);
 

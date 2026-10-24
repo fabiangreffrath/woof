@@ -88,49 +88,6 @@ static int OptionValue(const mn_item_t *item)
     return item->def ? *item->def->location.i : 0;
 }
 
-static boolean OptionEnabled(const mn_item_t *item)
-{
-    if (!item || (item->flags & MN_ITEM_DISABLED))
-    {
-        return false;
-    }
-
-    if (item->def && item->def->disabled)
-    {
-        return false;
-    }
-
-    if (item->cfg && M_CheckIfDisabled(item->cfg))
-    {
-        return false;
-    }
-
-    const complevel_t complevel =
-        force_complevel != CL_NONE ? force_complevel : default_complevel;
-
-    if ((item->flags & MN_ITEM_STRICT) && strictmode)
-    {
-        return false;
-    }
-
-    if ((item->flags & MN_ITEM_BOOM) && complevel < CL_BOOM)
-    {
-        return false;
-    }
-
-    if ((item->flags & MN_ITEM_MBF) && complevel < CL_MBF)
-    {
-        return false;
-    }
-
-    if ((item->flags & MN_ITEM_VANILLA) && complevel != CL_VANILLA)
-    {
-        return false;
-    }
-
-    return true;
-}
-
 static void OptionSetValue(mn_item_t *item, int value)
 {
     if (!item->def)
@@ -1117,8 +1074,6 @@ static void BindItem(mn_item_t *item)
         item->rect.w = SHORT(patch->width);
         item->rect.h = SHORT(patch->height);
     }
-
-    item->disabled = !OptionEnabled(item);
 }
 
 void MN_BindMenu(mn_menu_t *menu)
@@ -1140,19 +1095,6 @@ void MN_BindMenu(mn_menu_t *menu)
     menu->init = true;
 }
 
-static void RefreshMenu(mn_menu_t *menu)
-{
-    for (int i = 0; i < menu->num_pages; ++i)
-    {
-        mn_page_t *page = &menu->pages[i];
-
-        for (mn_item_t *item = page->items; item->type != MN_ITEM_END; ++item)
-        {
-            item->disabled = !OptionEnabled(item);
-        }
-    }
-}
-
 static mn_menu_t *all_menus[] = {
     &display_menu,
     &video_menu,
@@ -1167,19 +1109,11 @@ static mn_menu_t *all_menus[] = {
     &options_menu,
 };
 
-void MN_OptionsBind(void)
+static void OptionsBind(void)
 {
     for (int i = 0; i < arrlen(all_menus); ++i)
     {
         MN_BindMenu(all_menus[i]);
-    }
-}
-
-void MN_OptionsRefresh(void)
-{
-    for (int i = 0; i < arrlen(all_menus); ++i)
-    {
-        RefreshMenu(all_menus[i]);
     }
 }
 
@@ -1233,14 +1167,12 @@ static void OptionsResetPage(void)
         }
     }
 
-    MN_OptionsRefresh();
     MN_ContainerRefresh();
 }
 
 void MN_OptionsOpen(void)
 {
-    MN_OptionsBind();
-    MN_OptionsRefresh();
+    OptionsBind();
     MN_ContainerOpen(&options_menu);
 }
 
@@ -1438,7 +1370,6 @@ void MN_OptionsInitFreeLook(void)
     if (strictmode)
     {
         MN_DisableItem(true, &controls_menu, "freelook_mode");
-        MN_DisableItem(true, &controls_menu, "freelook_mode");
     }
     if (demorecording || (netgame && !solonet))
     {
@@ -1498,7 +1429,6 @@ static void UpdateGamepadItems(void)
 {
     const boolean devices = (I_GamepadEnabled() && I_GamepadDevices());
     const boolean gamepad = (I_UseGamepad() && devices);
-    const boolean gyro = (I_GyroEnabled() && I_GyroSupported());
     const boolean sticks = I_UseStickLayout();
     const boolean flick = (gamepad && sticks && !I_StandardLayout());
     const boolean ramp = (gamepad && sticks && I_RampTimeEnabled());
@@ -1507,8 +1437,6 @@ static void UpdateGamepadItems(void)
     MN_DisableItem(!devices, &controls_menu, "joy_device");
     MN_DisableItem(!gamepad, &controls_menu, "Advanced Options");
     MN_DisableItem(!gamepad || !I_RumbleSupported(), &controls_menu, "joy_rumble");
-    MN_DisableItem(!gamepad || (!sticks && !gyro) || strictmode, &controls_menu,
-        "freelook_mode");
     MN_DisableItem(condition, &controls_menu, "joy_invert_look",
         "joy_movement_inner_deadzone", "joy_camera_inner_deadzone",
         "joy_turn_speed", "joy_look_speed");

@@ -52,7 +52,7 @@ static int numchars;
 static int height;
 static int firstc;
 static boolean upper;
-static int kerning;
+static int fon2_kerning;
 
 #define FON2_SPACE 12
 
@@ -79,7 +79,7 @@ boolean MN_LoadFon2(const byte *gfx_data, int size)
 
     if (header->kerning)
     {
-        kerning = SHORT(*(int16_t *)p);
+        fon2_kerning = SHORT(*(int16_t *)p);
         p += 2;
     }
 
@@ -190,7 +190,7 @@ boolean MN_DrawFon2String(int x, int y, byte *cr, const char *str)
         if (chars[c].width)
         {
             V_DrawPatchTranslated(cx, y, chars[c].patch, cr);
-            cx += chars[c].width + kerning;
+            cx += chars[c].width + fon2_kerning;
         }
         else
         {
@@ -224,14 +224,14 @@ int MN_GetFon2PixelWidth(const char *str)
 
         if (chars[c].width)
         {
-            len += chars[c].width + kerning;
+            len += chars[c].width + fon2_kerning;
         }
         else
         {
             len += FON2_SPACE;
         }
     }
-    len -= kerning;
+    len -= fon2_kerning;
     return len;
 }
 

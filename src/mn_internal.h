@@ -16,9 +16,6 @@
 #ifndef MN_INTERNAL_H
 #define MN_INTERNAL_H
 
-#include "doomdef.h"
-#include "doomtype.h"
-
 typedef struct
 {
     short x;
@@ -63,24 +60,12 @@ void M_ChooseSkill(int choice);
 
 extern int maxscreenblocks;
 
-extern int bigfont_priority;
-
-void MN_ResetMouseCursor(void);
-
-extern boolean setup_active;
 extern short whichSkull; // which skull to draw (he blinks)
-extern int saved_screenblocks;
 
-extern boolean default_verify;
 extern int warning_about_changes, print_warning_about_changes;
 
 extern const char *gamma_strings[];
 void MN_DrawDelVerify(void);
-
-boolean MN_PointInsideRect(mrect_t *rect, int x, int y);
-void MN_ClearMenus(void);
-void MN_Back(void);
-void MN_BackSecondary(void);
 
 #define M_X_CENTER (-1)
 void MN_DrawTitle(int x, int y, const char *patch, const char *alttext);

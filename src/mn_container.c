@@ -1391,12 +1391,8 @@ static void DisableItem(boolean condition, mn_menu_t *menu, const char *name)
 
         for (mn_item_t *item = page->items; item->type != MN_ITEM_END; ++item)
         {
-            if (item->cfg && !strcmp(item->cfg, name))
-            {
-                item->disabled = condition;
-                return;
-            }
-            else if (item->label && !strcmp(item->label, name))
+            if ((item->cfg && !strcmp(item->cfg, name))
+                || (item->label && !strcmp(item->label, name)))
             {
                 item->disabled = condition;
                 return;
