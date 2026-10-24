@@ -252,9 +252,9 @@ mn_page_t *MN_ContainerCurrentPage(void);
 mn_item_t *MN_ContainerSelected(void);
 
 mn_container_result_t MN_ContainerResponder(menu_action_t action, int ch);
-boolean MN_ContainerMouseMove(int x, int y);
-boolean MN_ContainerMouseButton(int button, boolean down);
-boolean MN_ContainerWheel(int delta);
+void MN_ContainerMouseMove(int x, int y);
+mn_container_result_t MN_ContainerMouseButton(int button, boolean down);
+mn_container_result_t MN_ContainerWheel(int delta);
 
 void MN_ContainerTicker(void);
 void MN_ContainerDrawer(void);

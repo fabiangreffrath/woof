@@ -2569,6 +2569,30 @@ static boolean AllowDeleteSaveGame(void)
              && LoadDef.menuitems[index].status));
 }
 
+static void HandleContainerResult(mn_container_result_t result)
+{
+    switch (result)
+    {
+        case MN_CONTAINER_HANDLED:
+            return;
+
+        case MN_CONTAINER_CLOSE:
+            MN_ContainerClose();
+            MenuBack();
+            M_StartSound(sfx_mnubak);
+            break;
+
+        case MN_CONTAINER_ESCAPE:
+            MN_ClearMenus(); // closes the container as well
+            M_StartSound(sfx_mnucls);
+            break;
+    }
+
+    help_input = old_help_input;
+    menu_input = old_menu_input;
+    MN_ResetMouseCursor();
+}
+
 boolean M_Responder(event_t *ev)
 {
     int ch;
@@ -2631,15 +2655,20 @@ boolean M_Responder(event_t *ev)
             {
                 MN_ResetMouseCursor();
 
+                mn_container_result_t result;
+
                 if (M_IsMouseWheel(ev->data1.i))
                 {
-                    MN_ContainerWheel(ev->data1.i == MOUSE_BUTTON_WHEELUP ? -1 : 1);
+                    result = MN_ContainerWheel(
+                        ev->data1.i == MOUSE_BUTTON_WHEELUP ? -1 : 1);
                 }
                 else
                 {
                     MN_ContainerMouseMove(mouse_state_x, mouse_state_y);
-                    MN_ContainerMouseButton(ev->data1.i, true);
+                    result = MN_ContainerMouseButton(ev->data1.i, true);
                 }
+
+                HandleContainerResult(result);
                 return true;
             }
 
@@ -2654,11 +2683,15 @@ boolean M_Responder(event_t *ev)
             {
                 MN_ResetMouseCursor();
 
+                mn_container_result_t result = MN_CONTAINER_HANDLED;
+
                 if (!M_IsMouseWheel(ev->data1.i))
                 {
                     MN_ContainerMouseMove(mouse_state_x, mouse_state_y);
-                    MN_ContainerMouseButton(ev->data1.i, false);
+                    result = MN_ContainerMouseButton(ev->data1.i, false);
                 }
+
+                HandleContainerResult(result);
                 return true;
             }
 
@@ -2837,27 +2870,7 @@ boolean M_Responder(event_t *ev)
     if (MN_ContainerActive())
     {
         MN_ResetMouseCursor();
-        const mn_container_result_t result = MN_ContainerResponder(action, ch);
-
-        if (result == MN_CONTAINER_ESCAPE)
-        {
-            MN_ContainerClose();
-            MN_ClearMenus();
-            M_StartSound(sfx_mnucls);
-            help_input = old_help_input;
-            menu_input = old_menu_input;
-            MN_ResetMouseCursor();
-        }
-        else if (result == MN_CONTAINER_CLOSE)
-        {
-            MN_ContainerClose();
-            MenuBack();
-            M_StartSound(sfx_mnubak);
-            help_input = old_help_input;
-            menu_input = old_menu_input;
-            MN_ResetMouseCursor();
-        }
-
+        HandleContainerResult(MN_ContainerResponder(action, ch));
         return true;
     }
 

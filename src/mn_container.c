@@ -554,6 +554,17 @@ static boolean PopMenu(void)
     return true;
 }
 
+static mn_container_result_t ContainerBack(void)
+{
+    if (!PopMenu())
+    {
+        return MN_CONTAINER_CLOSE;
+    }
+
+    M_StartSound(sfx_mnubak);
+    return MN_CONTAINER_HANDLED;
+}
+
 static boolean NextPage(mn_menu_t *menu, int direction)
 {
     const int page = menu->page + direction;
@@ -971,13 +982,7 @@ mn_container_result_t MN_ContainerResponder(menu_action_t action, int ch)
 
     if (action == MENU_BACKSPACE)
     {
-        if (PopMenu())
-        {
-            M_StartSound(sfx_mnubak);
-            return MN_CONTAINER_HANDLED;
-        }
-
-        return MN_CONTAINER_CLOSE;
+        return ContainerBack();
     }
 
     if (page->num_items <= 0)
@@ -1025,11 +1030,11 @@ mn_container_result_t MN_ContainerResponder(menu_action_t action, int ch)
     return MN_CONTAINER_HANDLED;
 }
 
-boolean MN_ContainerMouseMove(int x, int y)
+void MN_ContainerMouseMove(int x, int y)
 {
     if (!active_menu)
     {
-        return false;
+        return;
     }
 
     last_mouse_x = x;
@@ -1041,7 +1046,7 @@ boolean MN_ContainerMouseMove(int x, int y)
         {
             active_menu->drag_item->ops->drag(active_menu->drag_item, x);
         }
-        return true;
+        return;
     }
 
     if (active_menu->dragging_scroll)
@@ -1071,14 +1076,13 @@ boolean MN_ContainerMouseMove(int x, int y)
     }
 
     MouseSelect(active_menu, x, y);
-    return true;
 }
 
-boolean MN_ContainerMouseButton(int button, boolean down)
+mn_container_result_t MN_ContainerMouseButton(int button, boolean down)
 {
     if (!active_menu)
     {
-        return false;
+        return MN_CONTAINER_HANDLED;
     }
 
     // While an input binding is being captured, any button press is bound
@@ -1091,12 +1095,17 @@ boolean MN_ContainerMouseButton(int button, boolean down)
             active_menu->active_item->ops->click(active_menu->active_item,
                                                  last_mouse_x, last_mouse_y);
         }
-        return true;
+        return MN_CONTAINER_HANDLED;
+    }
+
+    if (down && button == MOUSE_BUTTON_RIGHT)
+    {
+        return MN_ContainerResponder(MENU_BACKSPACE, 0);
     }
 
     if (button != MOUSE_BUTTON_LEFT)
     {
-        return true;
+        return MN_CONTAINER_HANDLED;
     }
 
     mn_menu_t *menu = active_menu;
@@ -1108,7 +1117,7 @@ boolean MN_ContainerMouseButton(int button, boolean down)
         {
             MN_ContainerResponder(MENU_ENTER, 0);
         }
-        return true;
+        return MN_CONTAINER_HANDLED;
     }
 
     UpdateScrollbar(menu);
@@ -1118,7 +1127,7 @@ boolean MN_ContainerMouseButton(int button, boolean down)
         FlushItemAction(menu->drag_item);
         menu->dragging_scroll = false;
         menu->drag_item = NULL;
-        return true;
+        return MN_CONTAINER_HANDLED;
     }
 
     if (MN_ContainerPointInside(&menu->scroll_thumb, last_mouse_x,
@@ -1126,7 +1135,7 @@ boolean MN_ContainerMouseButton(int button, boolean down)
     {
         menu->dragging_scroll = true;
         menu->drag_offset = last_mouse_y - menu->scroll_thumb.y;
-        return true;
+        return MN_CONTAINER_HANDLED;
     }
 
     if (MN_ContainerPointInside(&menu->scroll_track, last_mouse_x,
@@ -1135,7 +1144,7 @@ boolean MN_ContainerMouseButton(int button, boolean down)
         menu->dragging_scroll = true;
         menu->drag_offset = menu->scroll_thumb.h / 2;
         ScrollToThumb(menu, last_mouse_y);
-        return true;
+        return MN_CONTAINER_HANDLED;
     }
 
     for (int i = 0; i < menu->num_pages && i < MN_MAX_TABS; ++i)
@@ -1152,7 +1161,7 @@ boolean MN_ContainerMouseButton(int button, boolean down)
             MN_ContainerEnsureVisible(
                 &menu->pages[i].items[menu->pages[i].selected]);
             M_StartSound(sfx_mnumov);
-            return true;
+            return MN_CONTAINER_HANDLED;
         }
     }
 
@@ -1164,35 +1173,35 @@ boolean MN_ContainerMouseButton(int button, boolean down)
 
         if (!IsSelectable(item))
         {
-            return true;
+            return MN_CONTAINER_HANDLED;
         }
 
         if (item->type == MN_ITEM_SLIDER && item->ops && item->ops->drag)
         {
             menu->drag_item = item;
             item->ops->drag(item, last_mouse_x);
-            return true;
+            return MN_CONTAINER_HANDLED;
         }
 
         if (item->ops && item->ops->click)
         {
             if (item->ops->click(item, last_mouse_x, last_mouse_y))
             {
-                return true;
+                return MN_CONTAINER_HANDLED;
             }
         }
 
         ActivateItem(menu, menu->hover, true);
     }
 
-    return true;
+    return MN_CONTAINER_HANDLED;
 }
 
-boolean MN_ContainerWheel(int delta)
+mn_container_result_t MN_ContainerWheel(int delta)
 {
     if (!active_menu)
     {
-        return false;
+        return MN_CONTAINER_HANDLED;
     }
 
     if (active_menu->active_item && active_menu->active_item->gathering)
@@ -1203,13 +1212,13 @@ boolean MN_ContainerWheel(int delta)
             active_menu->active_item->ops->click(active_menu->active_item,
                                                  last_mouse_x, last_mouse_y);
         }
-        return true;
+        return MN_CONTAINER_HANDLED;
     }
 
     mn_page_t *page = &active_menu->pages[active_menu->page];
     page->scroll_target += delta * 3 * MN_SPC;
     ClampScroll(active_menu, page);
-    return true;
+    return MN_CONTAINER_HANDLED;
 }
 
 void MN_ContainerTicker(void)
