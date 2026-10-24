@@ -247,9 +247,7 @@ typedef enum
 void MN_ContainerOpen(mn_menu_t *menu);
 void MN_ContainerClose(void);
 boolean MN_ContainerActive(void);
-mn_menu_t *MN_ContainerCurrent(void);
 mn_page_t *MN_ContainerCurrentPage(void);
-mn_item_t *MN_ContainerSelected(void);
 
 mn_container_result_t MN_ContainerResponder(menu_action_t action, int ch);
 void MN_ContainerMouseMove(int x, int y);

@@ -45,8 +45,6 @@ extern mn_menu_t options_menu;
 
 void MN_BindMenu(mn_menu_t *menu);
 
-void MN_OptionsBind(void);
-void MN_OptionsRefresh(void);
 void MN_OptionsOpen(void);
 
 void MN_GetResolutionScaleStrings(mn_item_t *item);

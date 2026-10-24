@@ -786,26 +786,9 @@ boolean MN_ContainerActive(void)
     return active_menu != NULL;
 }
 
-mn_menu_t *MN_ContainerCurrent(void)
-{
-    return active_menu;
-}
-
 mn_page_t *MN_ContainerCurrentPage(void)
 {
     return active_menu ? &active_menu->pages[active_menu->page] : NULL;
-}
-
-mn_item_t *MN_ContainerSelected(void)
-{
-    mn_page_t *page = MN_ContainerCurrentPage();
-
-    if (!page || page->selected < 0 || page->selected >= page->num_items)
-    {
-        return NULL;
-    }
-
-    return &page->items[page->selected];
 }
 
 void MN_ContainerEndEdit(void)
@@ -1391,12 +1374,8 @@ static void DisableItem(boolean condition, mn_menu_t *menu, const char *name)
 
         for (mn_item_t *item = page->items; item->type != MN_ITEM_END; ++item)
         {
-            if (item->cfg && !strcmp(item->cfg, name))
-            {
-                item->disabled = condition;
-                return;
-            }
-            else if (item->label && !strcmp(item->label, name))
+            if ((item->cfg && !strcmp(item->cfg, name))
+                || (item->label && !strcmp(item->label, name)))
             {
                 item->disabled = condition;
                 return;

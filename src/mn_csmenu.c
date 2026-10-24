@@ -14,11 +14,19 @@
 #include "doomtype.h"
 #include "g_skillinfo.h"
 #include "m_config.h"
+#include "mn_container.h"
+#include "mn_options.h"
 #include "mn_csmenu.h"
 
 boolean csmenu_skill;
 
 csmenu_t csmenu;
+
+void MN_CSMenuOpen(void)
+{
+    MN_BindMenu(&csmenu_menu);
+    MN_ContainerOpen(&csmenu_menu);
+}
 
 void M_InitCustomSkill(void)
 {

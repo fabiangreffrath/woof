@@ -115,7 +115,7 @@ static boolean customskill_active;
 boolean menu_pause_demos;
 backdrop_t menu_backdrop;
 
-int bigfont_priority = -1;
+static int bigfont_priority = -1;
 
 #define SKULLXOFF        -32
 #define LINEHEIGHT       16
@@ -242,6 +242,7 @@ static void M_StartMessage(const char *string, void (*routine)(int), boolean inp
 // prototypes added to support Setup Menus and Extended HELP screens
 
 static void M_Options(int choice);
+static void M_ClearMenus(void);
 
 static void M_InitExtendedHelp(void);
 static void M_ExtHelpNextScreen(int choice);
@@ -719,7 +720,7 @@ static void FinishGameSelection(void)
         G_DeferedInitNew(chosen_skill, EpiMenuEpi[epiChoice], EpiMenuMap[epiChoice]);
     }
 
-    MN_ClearMenus();
+    M_ClearMenus();
 }
 
 static void VerifySkill(int ch)
@@ -755,8 +756,7 @@ void M_ChooseSkill(int choice)
 static void M_CustomSkill(int choice)
 {
     customskill_active = true;
-    MN_BindMenu(&csmenu_menu);
-    MN_ContainerOpen(&csmenu_menu);
+    MN_CSMenuOpen();
 }
 
 /////////////////////////////
@@ -948,7 +948,7 @@ static void LoadGameAtSlot(int slot, int page)
 
     G_LoadGame(name, slot, page, false); // killough 3/16/98, 5/15/98: add slot, cmd
 
-    MN_ClearMenus();
+    M_ClearMenus();
     free(name);
 
     // [crispy] save the last game you loaded
@@ -976,7 +976,7 @@ static void M_VerifyForcedLoadGame(int ch)
     {
         G_ForcedLoadGame();
     }
-    MN_ClearMenus();
+    M_ClearMenus();
 }
 
 void MN_ForcedLoadGame(const char *msg)
@@ -1263,7 +1263,7 @@ static void M_DrawSave(void)
 static void M_DoSave(int slot, int page)
 {
     G_SaveGame(slot, page, savegamestrings[slot]);
-    MN_ClearMenus();
+    M_ClearMenus();
 }
 
 // [FG] generate a default save slot name when the user saves to an empty slot
@@ -1700,7 +1700,7 @@ static void M_EndGameResponse(int ch)
 
     currentMenu->lastOn = itemOn;
     S_EvictChannels();
-    MN_ClearMenus();
+    M_ClearMenus();
     D_StartTitle();
 }
 
@@ -1872,7 +1872,7 @@ static void M_Options(int choice)
 //
 // Called when leaving the menu screens for the real world
 
-void MN_ClearMenus(void)
+static void M_ClearMenus(void)
 {
     menuactive = 0;
     mouse_active_thermo = false;
@@ -2376,7 +2376,7 @@ static boolean AnyLoadSaveMenu(void)
     return (currentMenu == &LoadDef || currentMenu == &SaveDef);
 }
 
-boolean MN_PointInsideRect(mrect_t *rect, int x, int y)
+static boolean PointInsideRect(mrect_t *rect, int x, int y)
 {
     return x > rect->x + video.deltaw && x < rect->x + rect->w + video.deltaw
            && y > rect->y && y < rect->y + rect->h;
@@ -2396,7 +2396,7 @@ static void CursorPosition(void)
 
         item->flags &= ~MF_HILITE;
 
-        if (MN_PointInsideRect(rect, mouse_state_x, mouse_state_y))
+        if (PointInsideRect(rect, mouse_state_x, mouse_state_y))
         {
             if (item->flags & MF_THRM_STR)
             {
@@ -2483,7 +2483,7 @@ static boolean SaveLoadResponder(menu_action_t action, int ch)
     return false;
 }
 
-void MN_ResetMouseCursor(void)
+static void ResetMouseCursor(void)
 {
     static boolean state;
 
@@ -2507,7 +2507,7 @@ static boolean MouseResponder(void)
         return false;
     }
 
-    MN_ResetMouseCursor();
+    ResetMouseCursor();
 
     menuitem_t *current_item = &currentMenu->menuitems[highlight_item];
 
@@ -2520,7 +2520,7 @@ static boolean MouseResponder(void)
 
     if (M_InputActivated(input_menu_enter))
     {
-        if (!MN_PointInsideRect(rect, mouse_state_x, mouse_state_y))
+        if (!PointInsideRect(rect, mouse_state_x, mouse_state_y))
         {
             return true; // eat event
         }
@@ -2583,14 +2583,14 @@ static void HandleContainerResult(mn_container_result_t result)
             break;
 
         case MN_CONTAINER_ESCAPE:
-            MN_ClearMenus(); // closes the container as well
+            M_ClearMenus(); // closes the container as well
             M_StartSound(sfx_mnucls);
             break;
     }
 
     help_input = old_help_input;
     menu_input = old_menu_input;
-    MN_ResetMouseCursor();
+    ResetMouseCursor();
 }
 
 boolean M_Responder(event_t *ev)
@@ -2653,7 +2653,7 @@ boolean M_Responder(event_t *ev)
 
             if (MN_ContainerActive())
             {
-                MN_ResetMouseCursor();
+                ResetMouseCursor();
 
                 mn_container_result_t result;
 
@@ -2681,7 +2681,7 @@ boolean M_Responder(event_t *ev)
         case ev_mouseb_up:
             if (MN_ContainerActive())
             {
-                MN_ResetMouseCursor();
+                ResetMouseCursor();
 
                 mn_container_result_t result = MN_CONTAINER_HANDLED;
 
@@ -2712,7 +2712,7 @@ boolean M_Responder(event_t *ev)
 
             if (MN_ContainerActive())
             {
-                MN_ResetMouseCursor();
+                ResetMouseCursor();
                 MN_ContainerMouseMove(mouse_state_x, mouse_state_y);
 
                 if (ev->data1.i == EV_RESIZE_VIEWPORT)
@@ -2869,7 +2869,7 @@ boolean M_Responder(event_t *ev)
 
     if (MN_ContainerActive())
     {
-        MN_ResetMouseCursor();
+        ResetMouseCursor();
         HandleContainerResult(MN_ContainerResponder(action, ch));
         return true;
     }
@@ -2897,7 +2897,7 @@ boolean M_Responder(event_t *ev)
 
     if (menuactive)
     {
-        MN_ResetMouseCursor();
+        ResetMouseCursor();
     }
 
     // From here on, these navigation keys are used on the BIG FONT menus
@@ -2989,11 +2989,11 @@ boolean M_Responder(event_t *ev)
     if (action == MENU_ESCAPE) // phares 3/7/98
     {
         currentMenu->lastOn = itemOn;
-        MN_ClearMenus();
+        M_ClearMenus();
         M_StartSound(sfx_mnucls);
         help_input = old_help_input;
         menu_input = old_menu_input;
-        MN_ResetMouseCursor();
+        ResetMouseCursor();
         return true;
     }
 
@@ -3029,12 +3029,12 @@ boolean M_Responder(event_t *ev)
         }
         else
         {
-            MN_ClearMenus();
+            M_ClearMenus();
             M_StartSound(sfx_mnucls);
         }
         help_input = old_help_input;
         menu_input = old_menu_input;
-        MN_ResetMouseCursor();
+        ResetMouseCursor();
         return true;
     }
 
