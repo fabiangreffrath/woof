@@ -39,12 +39,12 @@ typedef struct job_s
 
 typedef struct jobthread_s
 {
+    semaphore_t *jobsem;    // one release per queued job
+    thread_t *thread;
     job_t queue[JOB_QUEUE_SIZE];
     atomicint_t writepos;   // next slot the producer will claim
     atomicint_t readpos;    // next slot the worker will consume
     atomicint_t terminate;
-    semaphore_t *jobsem;    // one release per queued job
-    thread_t *thread;
     int index;
 } jobthread_t;
 
