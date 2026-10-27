@@ -834,10 +834,7 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
   }
 
   // [Alaux] Lock crosshair on target
-  // [MT] only the context owning the center column may touch the shared
-  // crosshair state while rendering in parallel.
-  if (STRICTMODE(hud_crosshair_lockon) && thing == crosshair_target
-      && centerx >= r_context->startcol && centerx < r_context->endcol)
+  if (STRICTMODE(hud_crosshair_lockon) && thing == crosshair_target)
   {
     int x = (centerxfrac + FixedMul(txc, xscale)) >> FRACBITS;
     int y = (centeryfrac + FixedMul(viewz - interpz - crosshair_target->actualheight / 2, xscale)) >> FRACBITS;

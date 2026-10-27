@@ -705,10 +705,7 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 	vis->color = thing->bloodcolor;
 
 	// [Alaux] Lock crosshair on target
-	// [MT] only the context owning the center column may touch the shared
-	// crosshair state while rendering in parallel.
-	if (STRICTMODE(hud_crosshair_lockon) && thing == crosshair_target
-	    && centerx >= r_context->startcol && centerx < r_context->endcol)
+	if (STRICTMODE(hud_crosshair_lockon) && thing == crosshair_target)
 	{
 		int x = (centerxfrac + FixedMul(tx, xscale)) >> FRACBITS;
 		int y = (centeryfrac + FixedMul(viewz - gz - crosshair_target->actualheight / 2, xscale)) >> FRACBITS;
