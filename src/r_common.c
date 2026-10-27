@@ -25,9 +25,6 @@
 // Each worker owns a fixed-size ring queue. There is exactly one producer
 // (the main thread), so the claim/publish sequence needs no CAS: writepos is
 // bumped to reserve a slot, the job is stored, then committed is published.
-// SDL semaphore operations act as memory barriers between producer and
-// consumer, so the job payload written before I_SemaphoreRelease() is
-// visible after I_SemaphoreAcquire().
 //
 
 #define JOB_QUEUE_SIZE 128
@@ -44,21 +41,20 @@ typedef struct jobthread_s
 {
     job_t queue[JOB_QUEUE_SIZE];
     atomicint_t writepos;   // next slot the producer will claim
-    atomicint_t committed;  // one past the last published slot
     atomicint_t readpos;    // next slot the worker will consume
     atomicint_t terminate;
-    semaphore_t *jobsem; // posted once per queued job
+    semaphore_t *jobsem;    // one release per queued job
     thread_t *thread;
     int index;
 } jobthread_t;
 
 static jobthread_t jobpool[MAX_JOB_THREADS];
-static int numjobthreads;   // threads created
-static int numactivejobs;   // round-robin window (I_JobsSetActive)
+static int numjobthreads;
+static int numactivejobs;
 static int nextjobthread;
 
-static semaphore_t *donesem; // worker posts once per completed job
-static int pendingjobs;     // jobs submitted since last flush (main thread)
+static semaphore_t *donesem;
+static int pendingjobs;
 
 static int JobThreadRun(void *data)
 {
@@ -73,16 +69,20 @@ static int JobThreadRun(void *data)
             return 0;
         }
 
-        const int pos = I_AtomicLoad(&worker->readpos);
+        // Drain: after a single wake-up, consume every job the producer
+        // has already published.  This amortizes one semaphore round-trip
+        // across a whole burst of jobs.
+        int pos = I_AtomicLoad(&worker->readpos);
+        while (I_AtomicLoad(&worker->writepos) != pos)
+        {
+            const job_t job = worker->queue[pos & JOB_QUEUE_MASK];
+            I_AtomicIncrement(&worker->readpos, 1);
+            pos++;
 
-        // The producer only releases jobsem after publishing committed, so
-        // the slot is ready here.
-        const job_t job = worker->queue[pos & JOB_QUEUE_MASK];
-        I_AtomicIncrement(&worker->readpos, 1);
+            job.func(job.userdata);
 
-        job.func(job.userdata);
-
-        I_SemaphoreRelease(donesem);
+            I_SemaphoreRelease(donesem);
+        }
     }
 }
 
@@ -106,7 +106,6 @@ void R_JobsInit(int numthreads)
         jobthread_t *worker = &jobpool[i];
         worker->index = i;
         I_AtomicExchange(&worker->writepos, 0);
-        I_AtomicExchange(&worker->committed, 0);
         I_AtomicExchange(&worker->readpos, 0);
         I_AtomicExchange(&worker->terminate, 0);
         worker->jobsem = I_SemaphoreCreate(0);
@@ -126,8 +125,6 @@ void R_JobsShutdown(void)
         return;
     }
 
-    // Flush anything still queued, then wake every worker so it can see the
-    // terminate flag.
     R_JobsFlush();
 
     for (int i = 0; i < numjobthreads; i++)
@@ -169,7 +166,6 @@ void R_JobsAdd(jobfunc_t func, void *userdata)
     const int pos = I_AtomicIncrement(&worker->writepos, 1);
     worker->queue[pos & JOB_QUEUE_MASK].func = func;
     worker->queue[pos & JOB_QUEUE_MASK].userdata = userdata;
-    I_AtomicExchange(&worker->committed, pos + 1);
 
     pendingjobs++;
     I_SemaphoreRelease(worker->jobsem);
