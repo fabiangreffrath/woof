@@ -421,32 +421,50 @@ static THREADLOCAL int copy_column_yl, copy_column_yh;
 // [Alaux] Unclipped screen coordinates for last drawn column
 static THREADLOCAL int copy_column_uyl, copy_column_uyh;
 
+#define MAX_CACHED_POSTS 32
+
+static THREADLOCAL struct
+{
+  int yl, yh;
+} cached_posts[MAX_CACHED_POSTS];
+
+static THREADLOCAL int num_cached_posts = 0;
+
 // [Alaux]
 static boolean CopyLastColumn(void)
 {
+  // Column range
   const int
-    yl = MAX(copy_column_uyl, mceilingclip[dc_x] + 1),
-    yh = MIN(copy_column_uyh, mfloorclip[dc_x]   - 1);
+    cyl = MAX(copy_column_uyl, mceilingclip[dc_x] + 1),
+    cyh = MIN(copy_column_uyh, mfloorclip[dc_x]   - 1);
 
-  if (yl < copy_column_yl || copy_column_yh < yh)
+  if (cyl < copy_column_yl || copy_column_yh < cyh)
   {
     // The target range exceeds the last drawn column's range
     return false;
   }
 
-  if (yl <= yh)
+  for (int i = 0; i < num_cached_posts; i++)
   {
-    memcpy(
-      xlookup[dc_x] + rowofs[yl],
-      xlookup[copy_column_x] + rowofs[yl],
-      yh - yl + 1
-    );
+    // Post range
+    const int
+      pyl = MAX(cached_posts[i].yl, cyl),
+      pyh = MIN(cached_posts[i].yh, cyh);
+
+    if (pyl <= pyh)
+    {
+      memcpy(
+        xlookup[dc_x] + rowofs[pyl],
+        xlookup[copy_column_x] + rowofs[pyl],
+        pyh - pyl + 1
+      );
+    }
   }
 
   return true;
 }
 
-void R_DrawMaskedColumn(column_t *column, const boolean try_copy_column)
+void R_DrawMaskedColumn(column_t *column, boolean try_copy_column)
 {
   int64_t topscreen, bottomscreen; // [FG] 64-bit integer math
   fixed_t basetexturemid = dc_texturemid;
@@ -454,7 +472,7 @@ void R_DrawMaskedColumn(column_t *column, const boolean try_copy_column)
 
   dc_texheight = 0; // killough 11/98
 
-  int num_posts = 0;
+  num_cached_posts = 0;
   copy_column_x = dc_x;
 
   while (column->topdelta != 0xff)
@@ -487,30 +505,42 @@ void R_DrawMaskedColumn(column_t *column, const boolean try_copy_column)
 
       if (try_copy_column)
       {
-        // [Alaux] Only copy columns with contiguous posts
-        if (++num_posts == 1)
+        if (!num_cached_posts)
         {
-          copy_column_yl = dc_yl;
-          copy_column_yh = dc_yh;
+          copy_column_yl = cached_posts[0].yl = dc_yl;
+          copy_column_yh = cached_posts[0].yh = dc_yh;
 
           copy_column_uyl = uyl;
           copy_column_uyh = uyh;
 
+          num_cached_posts++;
           can_copy_column = true;
         }
-        else if (can_copy_column)
+        else if (dc_yl - copy_column_yh <= 1)
         {
-          if (uyl - copy_column_uyh <= 1)
-          {
-            // Contiguous posts
-            copy_column_yh = dc_yh;
-            copy_column_uyh = uyh;
-          }
-          else
-          {
-            // Non-contiguous posts
-            can_copy_column = false;
-          }
+          // Contiguous posts; merge them
+
+          copy_column_yh = dc_yh;
+          copy_column_uyh = uyh;
+
+          cached_posts[num_cached_posts - 1].yh = dc_yh;
+        }
+        else
+        // Non-contiguous posts
+        if (num_cached_posts < MAX_CACHED_POSTS)
+        {
+          copy_column_yh = dc_yh;
+          copy_column_uyh = uyh;
+
+          cached_posts[num_cached_posts].yl = dc_yl;
+          cached_posts[num_cached_posts].yh = dc_yh;
+
+          num_cached_posts++;
+        }
+        else
+        {
+          // Too many posts; cancel the copy
+          try_copy_column = can_copy_column = false;
         }
       }
 
