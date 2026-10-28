@@ -79,7 +79,7 @@ static boolean IsSelectable(const mn_item_t *item)
 
 // The item the help text refers to: the mouse-hovered one in mouse mode,
 // otherwise the keyboard-selected one. Mirrors the legacy setup menus.
-static const mn_item_t *HighlightedItem(const mn_menu_t *menu)
+int MN_ContainerHighlightedIndex(const mn_menu_t *menu)
 {
     const mn_page_t *page = &menu->pages[menu->page];
 
@@ -90,16 +90,23 @@ static const mn_item_t *HighlightedItem(const mn_menu_t *menu)
 
         if (index >= 0 && index < page->num_items)
         {
-            return &page->items[index];
+            return index;
         }
     }
 
     if (page->selected >= 0 && page->selected < page->num_items)
     {
-        return &page->items[page->selected];
+        return page->selected;
     }
 
-    return NULL;
+    return -1;
+}
+
+static const mn_item_t *HighlightedItem(const mn_menu_t *menu)
+{
+    const int index = MN_ContainerHighlightedIndex(menu);
+
+    return index >= 0 ? &menu->pages[menu->page].items[index] : NULL;
 }
 
 static int FirstNavigable(const mn_page_t *page)
@@ -144,7 +151,7 @@ static void ClampScroll(const mn_menu_t *menu, mn_page_t *page)
 
 static void LayoutPage(mn_menu_t *menu, mn_page_t *page)
 {
-    int y = 0;
+    int y = page->pad_top;
     int count = 0;
     int label_width = 0;
 
@@ -198,7 +205,7 @@ static void LayoutPage(mn_menu_t *menu, mn_page_t *page)
     }
 
     page->num_items = count;
-    page->content_h = y;
+    page->content_h = y + page->pad_bottom;
     page->label_width = label_width;
 
     if ((menu->flags & MN_MENU_CENTER) && y < menu->viewport.h)
@@ -355,11 +362,6 @@ static void LayoutMenu(mn_menu_t *menu)
 
     for (int i = 0; i < menu->num_pages; ++i)
     {
-        if (menu->pages[i].refresh)
-        {
-            menu->pages[i].refresh();
-        }
-
         LayoutPage(menu, &menu->pages[i]);
     }
 }
@@ -411,15 +413,15 @@ void MN_ContainerEnsureVisible(mn_item_t *item)
         target_h = item->rect.y + item->rect.h - target_y;
     }
 
-    if (target_y < page->scroll_target)
+    if (target_y - page->pad_top < page->scroll_target)
     {
-        page->scroll_target = target_y;
+        page->scroll_target = MAX(0, target_y - page->pad_top);
     }
-    else if (target_y + target_h
+    else if (target_y + target_h + page->pad_bottom
              > page->scroll_target + active_menu->viewport.h)
     {
-        page->scroll_target =
-            target_y + target_h - active_menu->viewport.h;
+        page->scroll_target = target_y + target_h + page->pad_bottom
+                              - active_menu->viewport.h;
     }
 
     ClampScroll(active_menu, page);
@@ -677,8 +679,6 @@ static void MouseSelect(mn_menu_t *menu, int x, int y)
     for (int i = 0; i < page->num_items; ++i)
     {
         mn_item_t *item = &page->items[i];
-        item->hover_segment = -1;
-        item->hover_arrow = -1;
         mrect_t rect = item->rect;
 
         // For direct-coords items, use rect as-is (absolute screen coordinates)
@@ -803,25 +803,6 @@ void MN_ContainerEndEdit(void)
     {
         print_warning_about_changes--;
     }
-}
-
-void MN_ContainerRefresh(void)
-{
-    if (!active_menu)
-    {
-        return;
-    }
-
-    for (int i = 0; i < active_menu->num_pages; ++i)
-    {
-        if (active_menu->pages[i].refresh)
-        {
-            active_menu->pages[i].refresh();
-        }
-    }
-
-    MN_ContainerRelayout();
-    SelectFirst(active_menu);
 }
 
 void MN_ContainerConfirm(const char *text, void (*action)(void))
@@ -1003,7 +984,16 @@ mn_container_result_t MN_ContainerResponder(menu_action_t action, int ch)
         return MN_CONTAINER_HANDLED;
     }
 
-    mn_item_t *item = &page->items[page->selected];
+    // Character actions (e.g. Delete) apply to the highlighted item, which
+    // is the hovered one in mouse mode.
+    const int index = MN_ContainerHighlightedIndex(menu);
+
+    if (index < 0)
+    {
+        return MN_CONTAINER_HANDLED;
+    }
+
+    mn_item_t *item = &page->items[index];
 
     if (ch && item->ops && item->ops->respond)
     {
@@ -1279,7 +1269,10 @@ static void DrawItemLabel(const mn_item_t *item, const mn_draw_ctx_t *ctx,
                                : xlat[CR_NONE].table;
 
     int y = ctx->y;
-    if (item->height > MN_SPC)
+
+    // Save slots keep their description in the upper half of the row, above
+    // the border strip, so the cursor has to follow the text.
+    if (item->height > MN_SPC && item->type != MN_ITEM_SAVESLOT)
     {
         y += (item->height - MN_SPC) / 2;
     }
@@ -1349,6 +1342,7 @@ static void DrawItems(const mn_menu_t *menu)
             .h = item->rect.h,
             .value_x = value_x,
             .value_w = MAX(0, value_w),
+            .mouse_x = last_mouse_x,
             .color = highlighted ? CR_BRIGHT : CR_NONE,
             .selected = highlighted,
             .active = (item == menu->active_item),
@@ -1654,6 +1648,7 @@ static void DrawInstructions(const mn_menu_t *menu)
 
             case MN_ITEM_ACTION:
             case MN_ITEM_SUBMENU:
+            case MN_ITEM_SAVESLOT:
                 M_snprintf(buffer, sizeof(buffer), "[ %s ] Select",
                            ConfirmKeyName(pad));
                 break;
@@ -1687,11 +1682,6 @@ static void DrawNotification(const char *text, int color, boolean blink)
     }
 }
 
-void MN_DrawDelVerify(void)
-{
-    DrawNotification("Delete savegame? (Y/N)", CR_RED, true);
-}
-
 void MN_ContainerDrawer(void)
 {
     if (!active_menu)
@@ -1713,6 +1703,11 @@ void MN_ContainerDrawer(void)
     DrawItems(menu);
     DrawHints(menu);
     V_ResetClipY();
+
+    if (menu->pages[menu->page].draw)
+    {
+        menu->pages[menu->page].draw(menu, &menu->pages[menu->page]);
+    }
 
     UpdateScrollbar(menu);
     DrawScrollbar(menu);

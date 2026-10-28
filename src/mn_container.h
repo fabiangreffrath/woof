@@ -45,6 +45,7 @@ typedef enum
     MN_ITEM_RESET,
     MN_ITEM_SUBMENU,
     MN_ITEM_SKIP,
+    MN_ITEM_SAVESLOT,
     MN_ITEM_END
 } mn_item_type_t;
 
@@ -79,6 +80,7 @@ typedef struct
     int h;
     int value_x;
     int value_w;
+    int mouse_x;
     int color;
     boolean selected;
     boolean active;
@@ -120,9 +122,6 @@ struct mn_item_s
 
     int draw_value_x;
     int draw_value_w;
-
-    int hover_segment;
-    int hover_arrow;
 };
 
 struct mn_item_ops_s
@@ -144,7 +143,16 @@ struct mn_page_s
     int scroll_target;
     int content_h;
     int label_width;
-    void (*refresh)(void);
+
+    // Empty space kept above the first row and below the last one, for
+    // item graphics that overhang their rect and would otherwise be clipped
+    // when the list is scrolled to either end.
+    int pad_top;
+    int pad_bottom;
+
+    // Draws page content that is not bound to a single item, e.g. a preview
+    // panel next to the list.
+    void (*draw)(const mn_menu_t *menu, const mn_page_t *page);
 };
 
 typedef enum
@@ -262,6 +270,10 @@ void MN_ContainerConfirm(const char *text, void (*action)(void));
 void MN_ContainerEnsureVisible(mn_item_t *item);
 void MN_ContainerRefresh(void);
 void MN_ContainerEndEdit(void);
+
+// The index of the item the help text and the preview refer to: the
+// mouse-hovered one in mouse mode, otherwise the keyboard-selected one.
+int MN_ContainerHighlightedIndex(const mn_menu_t *menu);
 
 // Helpers shared by item implementations.
 boolean MN_ContainerPointInside(const mrect_t *rect, int x, int y);

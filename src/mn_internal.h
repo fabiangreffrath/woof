@@ -65,7 +65,6 @@ extern short whichSkull; // which skull to draw (he blinks)
 extern int warning_about_changes, print_warning_about_changes;
 
 extern const char *gamma_strings[];
-void MN_DrawDelVerify(void);
 
 #define M_X_CENTER (-1)
 void MN_DrawTitle(int x, int y, const char *patch, const char *alttext);

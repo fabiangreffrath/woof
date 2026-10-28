@@ -439,15 +439,46 @@ static boolean ChoiceHitTest(const mn_item_t *item, int mouse_x, int *arrow,
     return false;
 }
 
+// Resolves the arrow/segment under the mouse, if any.
+static void ChoiceHoverTest(const mn_item_t *item, const mn_draw_ctx_t *ctx,
+                            int *arrow, int *segment)
+{
+    *arrow = -1;
+    *segment = -1;
+
+    if (ctx->mouse_inside && menu_input == mouse_mode)
+    {
+        ChoiceHitTest(item, ctx->mouse_x, arrow, segment);
+    }
+}
+
+// The choice value under a hovered segment, or -1 if it has no value.
+static int ChoiceHoveredValue(const mn_item_t *item, const choice_layout_t *l,
+                              int segment)
+{
+    const int index = l->min + segment;
+
+    if (segment < 0 || segment >= l->visible || !item->choices || index < 0
+        || index >= item->num_choices)
+    {
+        return -1;
+    }
+
+    return index;
+}
+
 static void ChoiceHover(mn_item_t *item, int mouse_x, int mouse_y)
 {
     static int hover;
 
-    ChoiceHitTest(item, mouse_x, &item->hover_arrow, &item->hover_segment);
+    int arrow;
+    int segment;
 
-    if (hover != item->hover_segment)
+    ChoiceHitTest(item, mouse_x, &arrow, &segment);
+
+    if (hover != segment)
     {
-        hover = item->hover_segment;
+        hover = segment;
         M_StartSound(sfx_mnusel);
     }
 }
@@ -507,27 +538,17 @@ static void ChoiceDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
     const choice_layout_t l = ChoiceLayout(item);
     const int y = ctx->y;
     const int arrow_y = y + (l.text_h - MN_SPC) / 2;
-    const boolean hovered = ctx->mouse_inside && menu_input == mouse_mode;
-    const boolean left_hover = hovered && (item->hover_arrow == 0);
-    const boolean right_hover = hovered && (item->hover_arrow == 1);
+    int arrow;
+    int segment;
+    ChoiceHoverTest(item, ctx, &arrow, &segment);
+
+    const int hover_value = ChoiceHoveredValue(item, &l, segment);
+    const boolean left_hover = (arrow == 0);
+    const boolean right_hover = (arrow == 1);
     byte *cr = ValueColor(ctx);
-
-    const char *current_text = NULL;
-    if (hovered && item->hover_segment >= 0 && item->hover_segment < l.visible
-        && item->choices)
-    {
-        const int hover_idx = l.min + item->hover_segment;
-
-        if (hover_idx >= 0 && hover_idx < item->num_choices)
-        {
-            current_text = item->choices[hover_idx];
-        }
-    }
-
-    if (!current_text)
-    {
-        current_text = ChoiceText(item, value);
-    }
+    const char *current_text = (hover_value >= 0)
+                                   ? item->choices[hover_value]
+                                   : ChoiceText(item, value);
 
     if (left_hover)
     {
@@ -553,7 +574,7 @@ static void ChoiceDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
         {
             seg_color = xlat[CR_WHITE].table[shade];
         }
-        else if (hovered && item->hover_segment == i)
+        else if (segment == i)
         {
             seg_color = xlat[CR_WHITE].table[playpal_global->white];
         }
@@ -594,17 +615,15 @@ static void ChoiceDrawCrosshair(const mn_item_t *item, const mn_draw_ctx_t *ctx)
     }
 
     const choice_layout_t l = ChoiceLayout(item);
-    const boolean hovered = ctx->mouse_inside && menu_input == mouse_mode;
+    int arrow;
+    int segment;
+    ChoiceHoverTest(item, ctx, &arrow, &segment);
 
-    int current_idx = hud_crosshair;
-    if (hovered && item->hover_segment >= 0 && item->hover_segment < l.visible)
+    int current_idx = ChoiceHoveredValue(item, &l, segment);
+
+    if (current_idx < 0)
     {
-        const int hover_idx = l.min + item->hover_segment;
-
-        if (hover_idx >= 0 && hover_idx < item->num_choices)
-        {
-            current_idx = hover_idx;
-        }
+        current_idx = hud_crosshair;
     }
 
     if (current_idx)
@@ -1007,8 +1026,6 @@ static void BindItem(mn_item_t *item)
     item->gather_count = 0;
     item->gather[0] = '\0';
     item->action_pending = false;
-    item->hover_arrow = -1;
-    item->hover_segment = -1;
 
     switch (item->type)
     {
@@ -1161,8 +1178,6 @@ static void OptionsResetPage(void)
             item->action();
         }
     }
-
-    MN_ContainerRefresh();
 }
 
 void MN_OptionsOpen(void)

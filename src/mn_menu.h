@@ -72,15 +72,13 @@ typedef enum
 extern backdrop_t menu_backdrop;
 boolean MN_MenuIsShaded(void);
 
-extern int savepage;
+void MN_CloseMenu(void);
 
 extern const char *skill_strings[];
 
 void M_SaveAutoSave(void);
 
 void MN_InitFreeLook(void);
-
-boolean MN_StartsWithMapIdentifier(char *str);
 
 void M_StartSound(int sound_id);
 

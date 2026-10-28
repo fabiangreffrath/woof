@@ -116,6 +116,7 @@ set(WOOF_SOURCES
     mn_options.c           mn_options.h
     mn_options_data.c
                            mn_internal.h
+    mn_saveload.c          mn_saveload.h
     m_misc.c               m_misc.h
     m_random.c             m_random.h
     mn_snapshot.c          mn_snapshot.h
