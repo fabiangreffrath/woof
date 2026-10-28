@@ -1498,22 +1498,11 @@ static void DrawHints(const mn_menu_t *menu)
     }
 
     const mn_item_t *item = HighlightedItem(menu);
-    const char *text = NULL;
 
-    if (item)
-    {
-        text = item->desc;
-
-        if (!text && item->def)
-        {
-            text = item->def->help;
-        }
-    }
-
-    if (text)
+    if (item && item->description)
     {
         DrawWrappedText(menu->hint_rect.x, menu->hint_rect.y,
-                        menu->hint_rect.w, menu->hint_rect.h, text);
+                        menu->hint_rect.w, menu->hint_rect.h, item->description);
     }
 }
 
@@ -1597,9 +1586,9 @@ static void DrawInstructions(const mn_menu_t *menu)
         M_snprintf(buffer, sizeof(buffer), "[ %s ] Back", BackKeyName(pad));
         text = buffer;
     }
-    else if (item->desc && menu->hint_rect.w <= 0)
+    else if (item->instruction && menu->hint_rect.w <= 0)
     {
-        text = item->desc;
+        text = item->instruction;
     }
     else if (menu->active_item)
     {

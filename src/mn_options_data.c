@@ -55,78 +55,62 @@
      .input_id = (id),         \
      .group = (grp)}
 
-#define MN_TOGGLE_ACT(lbl, key, act) \
-    {.label = (lbl), .cfg = (key), .type = MN_ITEM_TOGGLE, .action = (act)}
-
-#define MN_NUMBER(lbl, key, sfx) \
-    {.label = (lbl), .cfg = (key), .type = MN_ITEM_NUMBER, .suffix = (sfx)}
-#define MN_NUMBER_ACT(lbl, key, sfx, act) \
-    {.label = (lbl),                      \
-     .cfg = (key),                        \
-     .type = MN_ITEM_NUMBER,              \
-     .suffix = (sfx),                     \
-     .action = (act)}
-
-#define MN_CHOICE_ACT_DEFER(lbl, key, strs, width, act) \
-    {.label = (lbl),                                    \
-     .cfg = (key),                                      \
-     .type = MN_ITEM_CHOICE,                            \
-     .choices = (strs),                                 \
-     .num_choices = arrlen(strs),                       \
-     .choice_width = (width),                           \
-     .action = (act),                                   \
-     .flags = MN_ITEM_DEFER_ACTION}
-#define MN_CHOICE_ACT_DYN_DEFER(lbl, key, getstrs, width, act) \
-    {.label = (lbl),                                           \
-     .cfg = (key),                                             \
-     .type = MN_ITEM_CHOICE,                                   \
-     .getchoices = (getstrs),                                  \
-     .choice_width = (width),                                  \
-     .action = (act),                                          \
-     .flags = MN_ITEM_DEFER_ACTION}
-#define MN_CHOICE_ACT_DYN_DEFER_2LINES(lbl, key, getstrs, width, act) \
-    {.label = (lbl),                                                  \
-     .cfg = (key),                                                    \
-     .type = MN_ITEM_CHOICE,                                          \
-     .getchoices = (getstrs),                                         \
-     .choice_width = (width),                                         \
-     .action = (act),                                                 \
-     .flags = MN_ITEM_DEFER_ACTION | MN_ITEM_TWO_LINES}
-
-#define MN_SLIDER(lbl, key, size) \
-    {.label = (lbl),              \
-     .cfg = (key),                \
-     .type = MN_ITEM_SLIDER,      \
-     .slider_size = (size)}
-#define MN_SLIDER_STR(lbl, key, strs, size) \
-    {.label = (lbl),                        \
-     .cfg = (key),                          \
-     .type = MN_ITEM_SLIDER,                \
-     .choices = (strs),                     \
-     .num_choices = arrlen(strs),           \
-     .slider_size = (size)}
-#define MN_SLIDER_ACT(lbl, key, size, act) \
+#define MN_TOGGLE_ACT(lbl, key, act, desc) \
     {.label = (lbl),                       \
      .cfg = (key),                         \
-     .type = MN_ITEM_SLIDER,               \
-     .slider_size = (size),                \
-     .action = (act)}
-#define MN_SLIDER_ACT_SUFFIX(lbl, key, size, act, sfx) \
-    {.label = (lbl),                                   \
-     .cfg = (key),                                     \
-     .type = MN_ITEM_SLIDER,                           \
-     .slider_size = (size),                            \
-     .suffix = (sfx),                                  \
-     .action = (act)}
-#define MN_SLIDER_ACT_STR(lbl, key, strs, size, act) \
-    {.label = (lbl),                                 \
-     .cfg = (key),                                   \
-     .type = MN_ITEM_SLIDER,                         \
-     .choices = (strs),                              \
-     .num_choices = arrlen(strs),                    \
-     .slider_size = (size),                          \
-     .action = (act)}
-#define MN_SLIDER_ACT_STR_DEFER(lbl, key, strs, size, act) \
+     .type = MN_ITEM_TOGGLE,               \
+     .action = (act),                      \
+     .description = (desc)}
+
+#define MN_NUMBER_ACT(lbl, key, sfx, act, desc) \
+    {.label = (lbl),                            \
+     .cfg = (key),                              \
+     .type = MN_ITEM_NUMBER,                    \
+     .suffix = (sfx),                           \
+     .action = (act),                           \
+     .description = (desc)}
+
+#define MN_CHOICE_ACT_DEFER(lbl, key, strs, size, act, desc) \
+    {.label = (lbl),                                         \
+     .cfg = (key),                                           \
+     .type = MN_ITEM_CHOICE,                                 \
+     .choices = (strs),                                      \
+     .num_choices = arrlen(strs),                            \
+     .choice_size = (size),                                  \
+     .action = (act),                                        \
+     .flags = MN_ITEM_DEFER_ACTION,                          \
+     .description = (desc)}
+
+#define MN_SLIDER(lbl, key, size, desc) \
+    {.label = (lbl),                    \
+     .cfg = (key),                      \
+     .type = MN_ITEM_SLIDER,            \
+     .slider_size = (size),             \
+     .description = (desc)}
+#define MN_SLIDER_STR(lbl, key, strs, size, desc) \
+    {.label = (lbl),                              \
+     .cfg = (key),                                \
+     .type = MN_ITEM_SLIDER,                      \
+     .choices = (strs),                           \
+     .num_choices = arrlen(strs),                 \
+     .slider_size = (size),                       \
+     .description = (desc)}
+#define MN_SLIDER_ACT(lbl, key, size, act, desc) \
+    {.label = (lbl),                             \
+     .cfg = (key),                               \
+     .type = MN_ITEM_SLIDER,                     \
+     .slider_size = (size),                      \
+     .action = (act),                            \
+     .description = (desc)}
+#define MN_SLIDER_ACT_SUFFIX(lbl, key, size, act, sfx, desc) \
+    {.label = (lbl),                                         \
+     .cfg = (key),                                           \
+     .type = MN_ITEM_SLIDER,                                 \
+     .slider_size = (size),                                  \
+     .suffix = (sfx),                                        \
+     .action = (act),                                        \
+     .description = (desc)}
+#define MN_SLIDER_ACT_STR(lbl, key, strs, size, act, desc) \
     {.label = (lbl),                                       \
      .cfg = (key),                                         \
      .type = MN_ITEM_SLIDER,                               \
@@ -134,27 +118,39 @@
      .num_choices = arrlen(strs),                          \
      .slider_size = (size),                                \
      .action = (act),                                      \
-     .flags = MN_ITEM_DEFER_ACTION}
-#define MN_SLIDER_ACT_DYN(lbl, key, getstrs, size, act) \
-    {.label = (lbl),                                    \
-     .cfg = (key),                                      \
-     .type = MN_ITEM_SLIDER,                            \
-     .getchoices = (getstrs),                           \
-     .slider_size = (size),                             \
-     .action = (act)}
-#define MN_SLIDER_ACT_DYN_DEFER(lbl, key, getstrs, size, act) \
+     .description = (desc)}
+#define MN_SLIDER_ACT_STR_DEFER(lbl, key, strs, size, act, desc) \
+    {.label = (lbl),                                             \
+     .cfg = (key),                                               \
+     .type = MN_ITEM_SLIDER,                                     \
+     .choices = (strs),                                          \
+     .num_choices = arrlen(strs),                                \
+     .slider_size = (size),                                      \
+     .action = (act),                                            \
+     .flags = MN_ITEM_DEFER_ACTION,                              \
+     .description = (desc)}
+#define MN_SLIDER_ACT_DYN(lbl, key, getstrs, size, act, desc) \
     {.label = (lbl),                                          \
      .cfg = (key),                                            \
      .type = MN_ITEM_SLIDER,                                  \
      .getchoices = (getstrs),                                 \
      .slider_size = (size),                                   \
      .action = (act),                                         \
-     .flags = MN_ITEM_DEFER_ACTION}
+     .description = (desc)}
+#define MN_SLIDER_ACT_DYN_DEFER(lbl, key, getstrs, size, act, desc) \
+    {.label = (lbl),                                                \
+     .cfg = (key),                                                  \
+     .type = MN_ITEM_SLIDER,                                        \
+     .getchoices = (getstrs),                                       \
+     .slider_size = (size),                                         \
+     .action = (act),                                               \
+     .flags = MN_ITEM_DEFER_ACTION,                                 \
+     .description = (desc)}
 
 
 static const char *window_mode_strings[] = {"Windowed", "Borderless"};
 static const char *widescreen_strings[] = {
-    "Off", "Auto", "16:10", "16:9", "21:9", "32:9"
+    "Original", "Auto", "16:10", "16:9", "21:9", "32:9"
 };
 static const char *pixel_scaling_strings[] = {"Sharp", "Smooth"};
 
@@ -171,8 +167,10 @@ const char *gamma_strings[] = {
 
 static mn_item_t display_items[] = {
     MN_CHOICE_ACT("Window Mode", "fullscreen", window_mode_strings, 10,
-                  MN_OptionsUpdateFullscreen),
-    MN_TOGGLE_ACT("Vertical Sync", "use_vsync", I_ToggleVsync),
+                  MN_OptionsUpdateFullscreen,
+                  "Window Mode:\n\nWindowed: Runs in a resizable window.\n\nBorderless: Fullscreen borderless window."),
+    MN_TOGGLE_ACT("Vertical Sync", "use_vsync", I_ToggleVsync,
+                  "Vertical Sync:\n\nSynchronizes frame rate with monitor refresh rate to prevent tearing."),
     MN_END
 };
 
@@ -192,23 +190,43 @@ mn_menu_t display_menu = {
 
 static mn_item_t video_general_items[] = {
     MN_SUBMENU("Display Options", &display_menu),
-    MN_SLIDER_ACT_DYN_DEFER("Resolution Scale", "resolution_scale",
-                            MN_GetResolutionScaleStrings, 11,
-                            MN_OptionsUpdateResolutionScale),
-    MN_TOGGLE_ACT("  Dynamic Resolution", "dynamic_resolution",
-                  MN_OptionsResetVideo),
-    MN_CHOICE_ACT("Pixel Scaling", "smooth_scaling", pixel_scaling_strings, 8,
-                  MN_OptionsResetVideo),
-    MN_CHOICE_ACT_DEFER("Aspect Ratio", "widescreen", widescreen_strings, 8,
-                        MN_OptionsResetVideo),
-    MN_TOGGLE_ACT("Uncapped FPS", "uncapped", MN_OptionsUpdateFPSLimit),
-    MN_NUMBER_ACT("Target FPS", "fpslimit", NULL, MN_OptionsUpdateFPSLimit),
+    MN_SLIDER_ACT_DYN_DEFER(
+        "Resolution Scale", "resolution_scale", MN_GetResolutionScaleStrings,
+        11, MN_OptionsUpdateResolutionScale,
+        "Resolution Scale:\n\nScales the internal rendering resolution.\nLower "
+        "values improve performance."),
+    MN_TOGGLE_ACT(
+        "  Dynamic Resolution", "dynamic_resolution", MN_OptionsResetVideo,
+        "Dynamic Resolution:\n\nAutomatically adjusts resolution "
+        "scale to maintain target FPS."),
+    MN_CHOICE_ACT(
+        "Pixel Scaling", "smooth_scaling", pixel_scaling_strings, 8,
+        MN_OptionsResetVideo,
+        "Pixel Scaling:\n\nSharp: Preserves details, but may look uneven.\n\n"
+        "Smooth: Even pixels, but may look softer."),
+    MN_CHOICE_ACT_DEFER(
+        "Aspect Ratio", "widescreen", widescreen_strings, 8, MN_OptionsResetVideo,
+        "Aspect Ratio:\n\nAuto: Detects from resolution."),
+    MN_TOGGLE_ACT(
+        "Uncapped FPS", "uncapped", MN_OptionsUpdateFPSLimit,
+        "Uncapped FPS:\n\nRemoves the original frame rate limit 35 FPS."),
+    MN_NUMBER_ACT(
+        "Target FPS", "fpslimit", NULL, MN_OptionsUpdateFPSLimit,
+        "Target FPS:\n\nSets the maximum frame rate limit.\n\n"
+        "Target frame rate for Dynamic Resolution scaling."),
     MN_GAP(12),
     MN_TITLE("Preferences"),
-    MN_SLIDER_ACT("Field of View", "fov", 11, MN_OptionsUpdateFOV),
-    MN_SLIDER_ACT_STR("Gamma Correction", "gamma2", gamma_strings, 8,
-                      V_ResetPalette),
-    MN_SLIDER("Extra Lighting", "extra_level_brightness", 8),
+    MN_SLIDER_ACT(
+        "Field of View", "fov", 11, MN_OptionsUpdateFOV,
+        "Field of View:\n\nAdjusts the horizontal viewing angle."),
+    MN_SLIDER_ACT_STR(
+        "Gamma Correction", "gamma2", gamma_strings, 8, V_ResetPalette,
+        "Gamma Correction:\n\nAdjusts overall brightness.\nNegative values "
+        "darken, positive values brighten."),
+    MN_SLIDER(
+        "Extra Lighting", "extra_level_brightness", 8,
+        "Extra Lighting:\n\nAdds constant light level to all sectors.\n"
+        "Useful for dark maps."),
     MN_RESET,
     MN_END
 };
@@ -222,26 +240,40 @@ static const char *sky_projection_strings[] = {"Vanilla", "Linear", "Cylindrical
 static const char *palette_changes_strings[] = {"Off", "On", "Reduced"};
 
 static mn_item_t video_graphics_items[] = {
-    MN_TOGGLE("Voxels", "voxels_rendering"),
+    MN_TOGGLE("Voxels", "voxels_rendering", NULL),
     MN_GAP(6),
     MN_TITLE("Sprites"),
-    MN_TOGGLE("Translucency", "translucency"),
-    MN_TOGGLE("Mirrored Corpses", "flipcorpses"),
-    MN_TOGGLE_ACT("Colored Blood", "colored_blood", D_SetBloodColor),
+    MN_TOGGLE("Translucency", "translucency", NULL),
+    MN_TOGGLE("Mirrored Corpses", "flipcorpses", NULL),
+    MN_TOGGLE_ACT("Colored Blood", "colored_blood", D_SetBloodColor,
+                  "Colored Blood:\n\nEnables monster-specific blood colors."),
     MN_GAP(6),
     MN_TITLE("Effects"),
-    MN_CHOICE("Screen Wipe", "screen_melt", screen_wipe_strings, 10),
-    MN_CHOICE_ACT("Partial Invisibility", "fuzzmode", fuzzmode_strings, 10,
-        R_SetFuzzColumnMode),
-    MN_CHOICE_ACT("Invulnerability", "invul_mode", invul_mode_strings, 10,
-        R_InvulMode),
-    MN_CHOICE("Screen Flashes", "palette_changes", palette_changes_strings, 10),
-    MN_TOGGLE("Swirling Flats", "r_swirl"),
+    MN_CHOICE("Screen Wipe", "screen_melt", screen_wipe_strings, 10, NULL),
+    MN_CHOICE_ACT(
+        "Partial Invisibility", "fuzzmode", fuzzmode_strings, 10,
+        R_SetFuzzColumnMode,
+        "Partial Invisibility:\n\nBlocky: Classic blocky effect.\n\n"
+        "Refraction: Distorted glass-like effect.\n\n"
+        "Shadow: Dark silhouette effect.\n\n"
+        "Original: Vanilla behavior."),
+    MN_CHOICE_ACT(
+        "Invulnerability", "invul_mode", invul_mode_strings, 10, R_InvulMode,
+        "Invulnerability:\n\nVanilla: Original inverse colors.\n\n"
+        "MBF: Dosen't affect skies.\n\nGray: Grayscale effect."),
+    MN_CHOICE("Screen Flashes", "palette_changes", palette_changes_strings, 10,
+              NULL),
+    MN_TOGGLE("Swirling Flats", "r_swirl", NULL),
     MN_GAP(6),
     MN_TITLE("Skies"),
-    MN_TOGGLE_ACT("Vertical Stretch", "stretchsky", R_UpdateStretchSkies),
-    MN_CHOICE_ACT("Projection", "sky_projection", sky_projection_strings, 10,
-                  R_InitPlanes),
+    MN_TOGGLE_ACT(
+        "Vertical Stretch", "stretchsky", R_UpdateStretchSkies,
+        "Vertical Stretch:\n\nStretches sky textures to fill vertical space."),
+    MN_CHOICE_ACT(
+        "Projection", "sky_projection", sky_projection_strings, 10, R_InitPlanes,
+        "Projection:\n\nVanilla: Original flat sky.\n\n"
+        "Linear: Perspective-corrected.\n\n"
+        "Cylindrical: Panoramic cylindrical mapping."),
     MN_RESET,
     MN_END
 };
@@ -262,38 +294,70 @@ static const char *percent_strings[] = {
 };
 
 static mn_item_t audio_general_items[] = {
-    MN_SLIDER_ACT("Sound Volume", "sfx_volume", 8, MN_OptionsUpdateSfxVolume),
-    MN_SLIDER_ACT("Music Volume", "music_volume", 8, MN_OptionsUpdateMusicVolume),
+    MN_SLIDER_ACT("Sound Volume", "sfx_volume", 8, MN_OptionsUpdateSfxVolume,
+                  "Sound Volume:\n\nAdjusts the volume of sound effects."),
+    MN_SLIDER_ACT("Music Volume", "music_volume", 8,
+                  MN_OptionsUpdateMusicVolume,
+                  "Music Volume:\n\nAdjusts the volume of background music."),
     MN_GAP(6),
     MN_TITLE("Output"),
-    MN_CHOICE_ACT("Sound Mode", "snd_module", sound_module_strings, 10,
-                  MN_OptionsSetSoundModule),
-    MN_TOGGLE_ACT("  Headphones Mode", "snd_hrtf", MN_OptionsSetSoundModule),
+    MN_CHOICE_ACT(
+        "Sound Mode", "snd_module", sound_module_strings, 10,
+        MN_OptionsSetSoundModule,
+        "Sound Mode:\n\nStandard: Basic stereo output.\nOpenAL 3D: 3D "
+        "positional audio.\nPC Speaker: Emulates PC speaker beeps."),
+    MN_TOGGLE_ACT(
+        "  Headphones Mode", "snd_hrtf", MN_OptionsSetSoundModule,
+        "Headphones Mode:\n\nEnables HRTF for better 3D audio on headphones."),
     // !!! TODO Should be On/Off
-    MN_SLIDER_ACT_STR_DEFER("  Doppler Effect", "snd_doppler", percent_strings,
-                            6, MN_OptionsSetSoundModule),
+    MN_SLIDER_ACT_STR_DEFER(
+        "  Doppler Effect", "snd_doppler", percent_strings, 6,
+        MN_OptionsSetSoundModule,
+        "Doppler Effect:\n\nSimulates pitch shift from moving sound sources."),
     MN_CHOICE_ACT("Extra Soundtrack", "extra_music", extra_music_strings, 8,
-                  MN_OptionsRestartMusic),
+                  MN_OptionsRestartMusic, NULL),
     MN_GAP(20),
-    MN_CHOICE_ACT_DYN_DEFER_2LINES("MIDI Player", "midi_player_menu",
-                                    MN_GetMidiPlayerStrings, 18,
-                                    MN_OptionsSetMidiPlayer),
+    {.label = "MIDI Player",
+     .cfg = "midi_player_menu",
+     .type = MN_ITEM_CHOICE,
+     .getchoices = MN_GetMidiPlayerStrings,
+     .choice_size = 18,
+     .action = MN_OptionsSetMidiPlayer,
+     .flags = MN_ITEM_DEFER_ACTION | MN_ITEM_TWO_LINES,
+     .description = "MIDI Player:\n\nSelects the MIDI playback device."},
     MN_RESET,
     MN_END
 };
 
 static mn_item_t equalizer_items[] = {
     MN_CHOICE_ACT("Preset", "snd_equalizer", equalizer_preset_strings, 8,
-                  I_OAL_EqualizerPreset),
-    MN_SLIDER_ACT("  Preamp", "snd_eq_preamp", 8, I_OAL_EqualizerPreset),
-    MN_SLIDER_ACT("  Low Gain", "snd_eq_low_gain", 8, I_OAL_EqualizerPreset),
-    MN_SLIDER_ACT("  Mid 1 Gain", "snd_eq_mid1_gain", 8, I_OAL_EqualizerPreset),
-    MN_SLIDER_ACT("  Mid 2 Gain", "snd_eq_mid2_gain", 8, I_OAL_EqualizerPreset),
-    MN_SLIDER_ACT("  High Gain", "snd_eq_high_gain", 8, I_OAL_EqualizerPreset),
-    MN_NUMBER_ACT("  Low Cutoff", "snd_eq_low_cutoff", "Hz", I_OAL_EqualizerPreset),
-    MN_NUMBER_ACT("  Mid 1 Center", "snd_eq_mid1_center", "Hz", I_OAL_EqualizerPreset),
-    MN_NUMBER_ACT("  Mid 2 Center", "snd_eq_mid2_center", "Hz", I_OAL_EqualizerPreset),
-    MN_NUMBER_ACT("  High Cutoff", "snd_eq_high_cutoff", "Hz", I_OAL_EqualizerPreset),
+                  I_OAL_EqualizerPreset,
+                  "Preset:\n\nOff: No equalization.\nClassical: Enhanced "
+                  "dynamics.\nRock: Boosted lows and highs.\nVocal: Enhanced "
+                  "midrange.\nCustom: Manual settings below."),
+    MN_SLIDER_ACT("  Preamp", "snd_eq_preamp", 8, I_OAL_EqualizerPreset,
+                  "Preamp:\n\nOverall gain adjustment for all frequencies."),
+    MN_SLIDER_ACT("  Low Gain", "snd_eq_low_gain", 8, I_OAL_EqualizerPreset,
+                  "Low Gain:\n\nAdjusts bass frequencies (20-250 Hz)."),
+    MN_SLIDER_ACT(
+        "  Mid 1 Gain", "snd_eq_mid1_gain", 8, I_OAL_EqualizerPreset,
+        "Mid 1 Gain:\n\nAdjusts lower mid frequencies (250-1000 Hz)."),
+    MN_SLIDER_ACT("  Mid 2 Gain", "snd_eq_mid2_gain", 8, I_OAL_EqualizerPreset,
+                  "Mid 2 Gain:\n\nAdjusts upper mid frequencies (1-4 kHz)."),
+    MN_SLIDER_ACT("  High Gain", "snd_eq_high_gain", 8, I_OAL_EqualizerPreset,
+                  "High Gain:\n\nAdjusts treble frequencies (4-20 kHz)."),
+    MN_NUMBER_ACT("  Low Cutoff", "snd_eq_low_cutoff", "Hz",
+                  I_OAL_EqualizerPreset,
+                  "Low Cutoff:\n\nFrequency boundary for low band."),
+    MN_NUMBER_ACT("  Mid 1 Center", "snd_eq_mid1_center", "Hz",
+                  I_OAL_EqualizerPreset,
+                  "Mid 1 Center:\n\nCenter frequency for lower mid band."),
+    MN_NUMBER_ACT("  Mid 2 Center", "snd_eq_mid2_center", "Hz",
+                  I_OAL_EqualizerPreset,
+                  "Mid 2 Center:\n\nCenter frequency for upper mid band."),
+    MN_NUMBER_ACT("  High Cutoff", "snd_eq_high_cutoff", "Hz",
+                  I_OAL_EqualizerPreset,
+                  "High Cutoff:\n\nFrequency boundary for high band."),
     MN_RESET,
     MN_END
 };
@@ -318,25 +382,37 @@ static const char *native_midi_reset_strings[] = {
 
 static mn_item_t audio_advanced_items[] = {
     MN_TITLE("Sound"),
-    MN_TOGGLE("Pitch-Shifting", "pitched_sounds"),
-    MN_TOGGLE("Disable Cutoffs", "full_sounds"),
-    MN_SLIDER("SFX Channels", "snd_channels", 8),
-    MN_TOGGLE_ACT("Output Limiter", "snd_limiter", MN_OptionsSetSoundModule),
-    MN_CHOICE_ACT_DYN_DEFER("Resampler", "snd_resampler",
-                            MN_GetResamplerStrings, 18,
-                            I_OAL_SetResampler),
+    MN_TOGGLE("Pitch-Shifting", "pitched_sounds", NULL),
+    MN_TOGGLE("Disable Cutoffs", "full_sounds", NULL),
+    MN_SLIDER("SFX Channels", "snd_channels", 8, NULL),
+    MN_TOGGLE_ACT("Output Limiter", "snd_limiter", MN_OptionsSetSoundModule,
+        "Output Limiter:\n\nPrevents audio clipping by limiting peak volume."),
+    {.label = "Resampler",
+     .cfg = "snd_resampler",
+     .getchoices = MN_GetResamplerStrings,
+     .choice_size = 18,
+     .action = I_OAL_SetResampler,
+     .flags = MN_ITEM_DEFER_ACTION,
+     .description = "Resampler:\n\nSelects the sample rate conversion algorithm."},
     MN_SUBMENU("Equalizer", &equalizer_menu),
     MN_GAP(6),
     MN_TITLE("Music"),
-    MN_TOGGLE_ACT("Auto Gain", "auto_gain", MN_OptionsResetAutoGain),
-#if defined (HAVE_FLUIDSYNTH)
+    MN_TOGGLE_ACT("Auto Gain", "auto_gain", MN_OptionsResetAutoGain,
+        "Auto Gain:\n\nAutomatically normalizes music volume across tracks."),
+#if defined(HAVE_FLUIDSYNTH)
     MN_SLIDER_ACT_SUFFIX("  FluidSynth Gain", "fl_gain", 8,
-                         MN_OptionsUpdateMusicVolume, "dB"),
+                         MN_OptionsUpdateMusicVolume, "dB",
+                         "FluidSynth Gain:\n\nAdjusts FluidSynth synthesizer "
+                         "volume in decibels."),
 #endif
     MN_SLIDER_ACT_SUFFIX("  OPL3 Gain", "opl_gain", 8,
-                         MN_OptionsUpdateMusicVolume, "dB"),
-    MN_CHOICE_ACT("Native MIDI Reset Type", "midi_reset_type",
-                  native_midi_reset_strings, 8, MN_OptionsSetMidiPlayer),
+        MN_OptionsUpdateMusicVolume, "dB",
+        "OPL3 Gain:\n\nAdjusts OPL3 FM synthesis volume in decibels."),
+    MN_CHOICE_ACT(
+        "Native MIDI Reset Type", "midi_reset_type", native_midi_reset_strings,
+        8, MN_OptionsSetMidiPlayer,
+        "Native MIDI Reset Type:\n\nNo SysEx: No reset sent.\nGM: General MIDI "
+        "reset.\nGS: Roland GS reset.\nXG: Yamaha XG reset."),
     MN_RESET,
     MN_END
 };
@@ -513,24 +589,36 @@ mn_menu_t input_bindings_menu = {
     .num_pages = arrlen(input_bindings_pages),
 };
 
-static const char *free_look_strings[] = {"Off", "Auto-Aim", "Direct Aim"};
+static const char *freelook_strings[] = {"Off", "Auto-Aim", "Direct Aim"};
+#define FREELOOK_DESC                         \
+    "Freelook:\n\nOff: No vertical look.\n\n" \
+    "Auto-Aim: Auto-aims at enemies.\n\n"     \
+    "Direct Aim: Full manual vertical aiming."
 
 static mn_item_t mouse_keyboard_items[] = {
     MN_SUBMENU("Input Bindings", &input_bindings_menu),
     MN_GAP(6),
     MN_TITLE("Mouse"),
-    MN_SLIDER_ACT("Turn Sensitivity", "mouse_sensitivity", 11, G_UpdateMouseVariables),
-    MN_SLIDER_ACT("Look Sensitivity", "mouse_sensitivity_y_look", 11, G_UpdateMouseVariables),
-    MN_SLIDER_ACT("Move Sensitivity", "mouse_sensitivity_y", 11, G_UpdateMouseVariables),
-    MN_SLIDER_ACT("Strafe Sensitivity", "mouse_sensitivity_strafe", 11, G_UpdateMouseVariables),
+    MN_SLIDER_ACT("Turn Sensitivity", "mouse_sensitivity", 11,
+                  G_UpdateMouseVariables,
+                  "Turn Sensitivity:\n\nHorizontal mouse turning speed."),
+    MN_SLIDER_ACT("Look Sensitivity", "mouse_sensitivity_y_look", 11,
+                  G_UpdateMouseVariables,
+                  "Look Sensitivity:\n\nVertical mouse looking speed."),
+    MN_SLIDER_ACT(
+        "Move Sensitivity", "mouse_sensitivity_y", 11, G_UpdateMouseVariables,
+        "Move Sensitivity:\n\nVertical mouse movement speed (forward/back)."),
+    MN_SLIDER_ACT("Strafe Sensitivity", "mouse_sensitivity_strafe", 11,
+                  G_UpdateMouseVariables,
+                  "Strafe Sensitivity:\n\nHorizontal mouse strafing speed."),
     MN_GAP(6),
-    MN_CHOICE_ACT("Freelook", "freelook_mode", free_look_strings, 8,
-                  MN_OptionsUpdateFreeLookMode),
-    MN_TOGGLE_ACT("Invert Look", "mouse_y_invert", G_UpdateMouseVariables),
-    MN_TOGGLE("Double-Click to \"Use\"", "dclick_use"),
+    MN_CHOICE_ACT("Freelook", "freelook_mode", freelook_strings, 8,
+                  MN_OptionsUpdateFreeLookMode, FREELOOK_DESC),
+    MN_TOGGLE_ACT("Invert Look", "mouse_y_invert", G_UpdateMouseVariables,
+                  "Invert Look:\n\nInverts vertical mouse look direction."),
+    MN_TOGGLE("Double-Click to \"Use\"", "dclick_use", NULL),
     MN_RESET,
-    MN_END
-};
+    MN_END};
 
 static const char *layout_strings[] = {
     "Off",
@@ -553,18 +641,32 @@ static const char *curve_strings[] = {
 };
 
 static mn_item_t advanced_gamepad_items[] = {
-    MN_CHOICE_ACT("Movement Type", "joy_movement_type", movement_type_strings,
-                  14, I_ResetGamepad),
-    MN_SLIDER_ACT_DYN("Forward Sensitivity", "joy_forward_sensitivity",
-                      MN_GetMovementSensitivityStrings, 8, I_ResetGamepad),
-    MN_SLIDER_ACT_DYN("Strafe Sensitivity", "joy_strafe_sensitivity",
-                      MN_GetMovementSensitivityStrings, 8, I_ResetGamepad),
+    MN_CHOICE_ACT(
+        "Movement Type", "joy_movement_type", movement_type_strings, 14,
+        I_ResetGamepad,
+        "Movement Type:\n\nNormalized: Consistent speed in all "
+        "directions.\nFaster Diagonals: Original Doom diagonal speed boost."),
+    MN_SLIDER_ACT_DYN(
+        "Forward Sensitivity", "joy_forward_sensitivity",
+        MN_GetMovementSensitivityStrings, 8, I_ResetGamepad,
+        "Forward Sensitivity:\n\nLeft stick forward movement sensitivity."),
+    MN_SLIDER_ACT_DYN(
+        "Strafe Sensitivity", "joy_strafe_sensitivity",
+        MN_GetMovementSensitivityStrings, 8, I_ResetGamepad,
+        "Strafe Sensitivity:\n\nLeft stick strafe movement sensitivity."),
     MN_SLIDER_ACT("Extra Turn Speed", "joy_outer_turn_speed", 11,
-                  MN_OptionsUpdateGamepad),
-    MN_SLIDER_ACT_DYN("  Extra Ramp Time", "joy_outer_ramp_time",
-                      MN_GetMsTimeStrings, 8, I_ResetGamepad),
+                  MN_OptionsUpdateGamepad,
+                  "Extra Turn Speed:\n\nAdditional turn speed when stick is at "
+                  "outer edge."),
+    MN_SLIDER_ACT_DYN(
+        "  Extra Ramp Time", "joy_outer_ramp_time", MN_GetMsTimeStrings, 8,
+        I_ResetGamepad,
+        "Extra Ramp Time:\n\nTime to reach extra turn speed at outer edge."),
     MN_SLIDER_ACT_STR("Response Curve", "joy_camera_curve", curve_strings, 8,
-                      I_ResetGamepad),
+                      I_ResetGamepad,
+                      "Response Curve:\n\nLinear: Direct stick-to-turn "
+                      "mapping.\nSquared/Cubed: Exponential curves for "
+                      "precision.\n1.1-2.9: Custom exponential curves."),
     MN_RESET,
     MN_END
 };
@@ -584,27 +686,40 @@ mn_menu_t advanced_gamepad_menu = {
 };
 
 static mn_item_t gamepad_items[] = {
-    MN_CHOICE_ACT_DYN_DEFER_2LINES("Device", "joy_device",
-                                   MN_GetGamepadDeviceStrings, 16,
-                                   MN_OptionsUpdateGamepadDevice),
+    {.label = "Device",
+     .cfg = "joy_device",
+     .type = MN_ITEM_CHOICE,
+     .getchoices = MN_GetGamepadDeviceStrings,
+     .choice_size = 16,
+     .action = MN_OptionsUpdateGamepadDevice,
+     .flags = MN_ITEM_DEFER_ACTION | MN_ITEM_TWO_LINES,
+     .description = "Device:\n\nSelects the active gamepad device."},
     MN_GAP(6),
     MN_SUBMENU("Input Bindings", &input_bindings_menu),
     MN_CHOICE_ACT("Stick Layout", "joy_stick_layout", layout_strings, 16,
-                  MN_OptionsUpdateGamepad),
-    MN_SLIDER_ACT_DYN("  Flick Stick Time", "joy_flick_time",
-                      MN_GetMsTimeStrings, 8, I_ResetGamepad),
-    MN_SLIDER_ACT("Vibration", "joy_rumble", 8, MN_OptionsUpdateRumble),
+                  MN_OptionsUpdateGamepad, NULL),
+    MN_SLIDER_ACT_DYN(
+        "  Flick Stick Time", "joy_flick_time", MN_GetMsTimeStrings, 8,
+        I_ResetGamepad,
+        "Flick Stick Time:\n\nTime window for flick stick gesture detection."),
+    MN_SLIDER_ACT("Vibration", "joy_rumble", 8, MN_OptionsUpdateRumble,
+                  "Vibration:\n\nController vibration intensity."),
     MN_GAP(6),
     MN_TITLE("Movement/Camera"),
-    MN_SLIDER_ACT("Turn Speed", "joy_turn_speed", 11, I_ResetGamepad),
-    MN_SLIDER_ACT("Look Speed", "joy_look_speed", 11, I_ResetGamepad),
-    MN_CHOICE_ACT("Freelook", "freelook_mode", free_look_strings, 8,
-                  MN_OptionsUpdateFreeLookMode),
-    MN_TOGGLE_ACT("Invert Look", "joy_invert_look", I_ResetGamepad),
-    MN_SLIDER_ACT_SUFFIX("Movement Deadzone", "joy_movement_inner_deadzone",
-                         8, I_ResetGamepad, "%"),
-    MN_SLIDER_ACT_SUFFIX("Camera Deadzone", "joy_camera_inner_deadzone",
-                         8, I_ResetGamepad, "%"),
+    MN_SLIDER_ACT("Turn Speed", "joy_turn_speed", 11, I_ResetGamepad,
+                  "Turn Speed:\n\nHorizontal camera rotation speed."),
+    MN_SLIDER_ACT("Look Speed", "joy_look_speed", 11, I_ResetGamepad,
+                  "Look Speed:\n\nVertical camera rotation speed."),
+    MN_CHOICE_ACT("Freelook", "freelook_mode", freelook_strings, 8,
+                  MN_OptionsUpdateFreeLookMode, FREELOOK_DESC),
+    MN_TOGGLE_ACT("Invert Look", "joy_invert_look", I_ResetGamepad,
+                  "Invert Look:\n\nInverts vertical camera look direction."),
+    MN_SLIDER_ACT_SUFFIX(
+        "Movement Deadzone", "joy_movement_inner_deadzone", 8, I_ResetGamepad,
+        "%", "Movement Deadzone:\n\nInner deadzone for movement stick."),
+    MN_SLIDER_ACT_SUFFIX(
+        "Camera Deadzone", "joy_camera_inner_deadzone", 8, I_ResetGamepad, "%",
+        "Camera Deadzone:\n\nInner deadzone for camera stick."),
     MN_SUBMENU("Advanced Options", &advanced_gamepad_menu),
     MN_RESET,
     MN_END
@@ -613,23 +728,26 @@ static mn_item_t gamepad_items[] = {
 static const char *gyro_space_strings[] = {"Local", "Player"};
 
 static mn_item_t advanced_gyro_items[] = {
-    MN_CHOICE_ACT("Gyro Orientation", "gyro_space", gyro_space_strings, 8,
-                  I_ResetGamepad),
+    MN_CHOICE_ACT(
+        "Gyro Orientation", "gyro_space", gyro_space_strings, 8, I_ResetGamepad,
+        "Gyro Orientation:\n\nLocal: Relative to controller orientation.\n"
+        "Player: Relative to player view direction."),
     // !!! TODO Local Roll
     MN_SLIDER_ACT_DYN("Gyro Steadying", "gyro_smooth_threshold",
-                      MN_GetGyroSensitivityStrings, 11,
-                      MN_OptionsUpdateGyroSteadying),
+        MN_GetGyroSensitivityStrings, 11, MN_OptionsUpdateGyroSteadying,
+        "Gyro Steadying:\n\nSmooths small gyro movements for stability."),
     // !!! TODO Gyro Smoothing
-    MN_SLIDER_ACT_DYN("Gyro Acceleration", "gyro_acceleration",
-                      MN_GetGyroAccelStrings, 11,
-                      MN_OptionsUpdateGyroAcceleration),
-    MN_SLIDER_ACT("  Lower Threshold", "gyro_accel_min_threshold", 11,
-                  I_ResetGamepad),
-    MN_SLIDER_ACT("  Upper Threshold", "gyro_accel_max_threshold", 11,
-                  I_ResetGamepad),
-    MN_RESET,
-    MN_END
-};
+    MN_SLIDER_ACT_DYN(
+        "Gyro Acceleration", "gyro_acceleration",
+        MN_GetGyroAccelStrings, 11, MN_OptionsUpdateGyroAcceleration,
+        "Gyro Acceleration:\n\nIncreases sensitivity for fast movements."),
+    MN_SLIDER_ACT(
+        "  Lower Threshold", "gyro_accel_min_threshold", 11, I_ResetGamepad,
+        "Lower Threshold:\n\nMinimum speed for acceleration to begin."),
+    MN_SLIDER_ACT(
+        "  Upper Threshold", "gyro_accel_max_threshold", 11, I_ResetGamepad,
+        "Upper Threshold:\n\nMaximum speed for full acceleration."),
+    MN_RESET, MN_END};
 
 mn_page_t advanced_gyro_pages[] = {
     {.items = advanced_gyro_items}
@@ -657,21 +775,34 @@ static const char *gyro_action_strings[] = {
 };
 
 static mn_item_t gyro_items[] = {
-    MN_TOGGLE_ACT("Gyro Aiming", "gyro_enable", MN_OptionsUpdateGyroAiming),
-    MN_CHOICE_ACT("Gyro Button Action", "gyro_button_action",
-                  gyro_action_strings, 18, I_ResetGamepad),
-    MN_CHOICE_ACT("Camera Stick Action", "gyro_stick_action",
-                  gyro_action_strings, 18, I_ResetGamepad),
+    MN_TOGGLE_ACT(
+        "Gyro Aiming", "gyro_enable", MN_OptionsUpdateGyroAiming,
+        "Gyro Aiming:\n\nEnables motion-controlled aiming using gyroscope."),
+    MN_CHOICE_ACT(
+        "Gyro Button Action", "gyro_button_action", gyro_action_strings, 18,
+        I_ResetGamepad, NULL),
+    MN_CHOICE_ACT(
+        "Camera Stick Action", "gyro_stick_action",
+        gyro_action_strings, 18, I_ResetGamepad,
+        "Camera Stick Action:\n\nSame options as Gyro Button Action, "
+        "triggered by camera stick."),
     MN_SUBMENU("Advanced Options", &advanced_gyro_menu),
-    MN_SLIDER_ACT_DYN("Turn Sensitivity", "gyro_turn_sensitivity",
-                      MN_GetGyroSensitivityStrings, 11, I_ResetGamepad),
-    MN_SLIDER_ACT_DYN("Look Sensitivity", "gyro_look_sensitivity",
-                      MN_GetGyroSensitivityStrings, 11, I_ResetGamepad),
-    MN_CHOICE_ACT("Freelook", "freelook_mode", free_look_strings, 8,
-                  MN_OptionsUpdateFreeLookMode),
-    {.label = "Calibrate Gyro", .type = MN_ITEM_ACTION,
-     .action = I_UpdateGyroCalibrationState,
-     .desc = "Place gamepad on a flat surface"},
+    MN_SLIDER_ACT_DYN(
+        "Turn Sensitivity", "gyro_turn_sensitivity",
+        MN_GetGyroSensitivityStrings, 11, I_ResetGamepad,
+        "Turn Sensitivity:\n\nHorizontal gyro aiming sensitivity."),
+    MN_SLIDER_ACT_DYN(
+        "Look Sensitivity", "gyro_look_sensitivity",
+        MN_GetGyroSensitivityStrings, 11, I_ResetGamepad,
+        "Look Sensitivity:\n\nVertical gyro aiming sensitivity."),
+    MN_CHOICE_ACT("Freelook", "freelook_mode", freelook_strings, 8,
+        MN_OptionsUpdateFreeLookMode, FREELOOK_DESC),
+    {.label = "Calibrate Gyro",
+       .type = MN_ITEM_ACTION,
+       .action = I_UpdateGyroCalibrationState,
+       .instruction = "Place gamepad on a flat surface",
+       .description = "Calibrate Gyro:\n\nCalibrates the gyroscope. Place "
+                    "controller on a flat surface."},
     MN_RESET,
     MN_END
 };
@@ -681,7 +812,7 @@ static mn_item_t gyro_items[] = {
      .cfg = (key),                          \
      .type = MN_ITEM_CHOICE,                \
      .getchoices = MN_GetWeaponSlotStrings, \
-     .choice_width = 8,                     \
+     .choice_size = 8,                      \
      .action = MN_OptionsUpdateWeaponSlots}
 
 static const char *weapon_slots_activation_strings[] = {
@@ -692,12 +823,20 @@ static const char *weapon_slots_selection_strings[] = {
 };
 
 static mn_item_t slots_items[] = {
-    MN_CHOICE_ACT("Enable Slots", "weapon_slots_activation",
-                   weapon_slots_activation_strings, 12,
-                   MN_OptionsUpdateWeaponSlotActivation),
-    MN_CHOICE_ACT("Select Slots", "weapon_slots_selection",
-                   weapon_slots_selection_strings, 12,
-                   MN_OptionsUpdateWeaponSlotSelection),
+    MN_CHOICE_ACT(
+        "Enable Slots", "weapon_slots_activation",
+        weapon_slots_activation_strings, 12,
+        MN_OptionsUpdateWeaponSlotActivation,
+        "Enable Slots:\n\nOff: Weapon slots disabled.\n\n"
+        "Hold \"Last\": Activate by holding Last Weapon key.\n\n"
+        "Always On: Slots always active."),
+    MN_CHOICE_ACT(
+        "Select Slots", "weapon_slots_selection",
+        weapon_slots_selection_strings, 12,
+        MN_OptionsUpdateWeaponSlotSelection,
+        "Select Slots:\n\nD-Pad: Use D-Pad for slot selection.\n\n"
+        "Face Buttons: Use face buttons.\n\n"
+        "1-4 Keys: Use number keys 1-4."),
     MN_GAP(6),
     MN_WEAPON_SLOT(0, "weapon_slots_1_1"),
     MN_WEAPON_SLOT(1, "weapon_slots_1_2"),
@@ -747,27 +886,33 @@ static const char *stats_format_strings[] = {
 };
 
 static mn_item_t statusbar_items[] = {
-    MN_SLIDER_ACT_DYN("HUD Layout" , "screenblocks", MN_GetScreenSizeStrings,
-                      6, MN_OptionsViewSize),
-    MN_CHOICE_ACT("HUD Anchoring", "hud_anchoring", hud_anchoring_strings, 6,
-                  I_UpdateHudAnchoring),
+    MN_SLIDER_ACT_DYN(
+        "HUD Layout", "screenblocks",
+        MN_GetScreenSizeStrings, 6, MN_OptionsViewSize,
+        "HUD Layout:\n\nChoose alternative HUD."),
+    MN_CHOICE_ACT(
+        "HUD Anchoring", "hud_anchoring",
+        hud_anchoring_strings, 6, I_UpdateHudAnchoring,
+        "HUD Anchoring:\n\nWide: Anchors to screen edges."),
     MN_GAP(6),
     MN_TITLE("Widgets"),
     MN_CHOICE_ACT("Show Level Stats", "hud_level_stats", show_widgets_strings,
-                  8, MN_OptionsUpdateStatsFormatItem),
-    MN_CHOICE("Show Level Time", "hud_level_time", show_widgets_strings, 8),
-    MN_CHOICE("Show Player Coords", "hud_player_coords", show_adv_widgets_strings, 8),
-    MN_TOGGLE_ACT("Show Command History", "hud_command_history",
-                  HU_ResetCommandHistory),
-    MN_TOGGLE("Show Use-Button Timer", "hud_time_use"),
+        8, MN_OptionsUpdateStatsFormatItem, NULL),
+    MN_CHOICE("Show Level Time", "hud_level_time", show_widgets_strings, 8, NULL),
+    MN_CHOICE("Show Player Coords", "hud_player_coords",
+              show_adv_widgets_strings, 8, NULL),
+    MN_TOGGLE_ACT(
+        "Show Command History", "hud_command_history", HU_ResetCommandHistory,
+        "Show Command History:\n\nDisplays recent commands on screen."),
+    MN_TOGGLE("Show Use-Button Timer", "hud_time_use", NULL),
     MN_GAP(6),
     MN_TITLE("Widget Appearance"),
-    MN_CHOICE("Use Doom Font", "hud_widget_font", show_widgets_strings, 8),
-    MN_CHOICE("Level Stats Format", "hud_stats_format", stats_format_strings, 8),
+    MN_CHOICE("Use Doom Font", "hud_widget_font", show_widgets_strings, 8, NULL),
+    MN_CHOICE("Level Stats Format", "hud_stats_format", stats_format_strings, 8, NULL),
     MN_GAP(6),
     MN_TITLE("Status Bar"),
-    MN_TOGGLE("Colored Numbers", "sts_colored_numbers"),
-    MN_TOGGLE("Solid Background", "st_solidbackground"),
+    MN_TOGGLE("Colored Numbers", "sts_colored_numbers", NULL),
+    MN_TOGGLE("Solid Background", "st_solidbackground", NULL),
     MN_RESET,
     MN_END
 };
@@ -784,15 +929,19 @@ static mn_item_t crosshair_items[] = {
      .type = MN_ITEM_CHOICE,
      .choices = crosshair_strings,
      .num_choices = HU_CROSSHAIRS,
-     .choice_width = 12,
+     .choice_size = 12,
      .action = MN_OptionsUpdateCrosshairItems,
      .flags = MN_ITEM_DRAW_CROSSHAIR},
-    MN_TOGGLE("Color By Player Health", "hud_crosshair_health"),
-    MN_CHOICE_ACT("Color By Target", "hud_crosshair_target",
-                  crosshair_target_strings, 8, MN_OptionsUpdateCrosshairItems),
-    MN_TOGGLE("Lock On Target", "hud_crosshair_lockon"),
-    MN_CHOICE("Default Color", "hud_crosshair_color", hudcolor_strings, 8),
-    MN_CHOICE("Highlight Color", "hud_crosshair_target_color", hudcolor_strings, 8),
+    MN_TOGGLE("Color By Player Health", "hud_crosshair_health", NULL),
+    MN_CHOICE_ACT(
+        "Color By Target", "hud_crosshair_target", crosshair_target_strings, 8,
+        MN_OptionsUpdateCrosshairItems,
+        "Color By Target:\n\nOff: No target coloring.\n\n"
+        "Highlight: Colors crosshair on target.\n\n"
+        "Health: Colors by target health percentage."),
+    MN_TOGGLE("Lock On Target", "hud_crosshair_lockon", NULL),
+    MN_CHOICE("Default Color", "hud_crosshair_color", hudcolor_strings, 8, NULL),
+    MN_CHOICE("Highlight Color", "hud_crosshair_target_color", hudcolor_strings, 8, NULL),
     MN_RESET,
     MN_END
 };
@@ -801,13 +950,15 @@ static const char *secretmessage_strings[] = {"Off", "On", "Count",};
 
 static mn_item_t messages_items[] = {
     MN_CHOICE("Announce Revealed Secrets", "hud_secret_message",
-              secretmessage_strings, 6),
-    MN_TOGGLE("Announce Map Titles", "hud_map_announce"),
-    MN_TOGGLE("Show Toggle Messages", "show_toggle_messages"),
-    MN_TOGGLE("Show Pickup Messages", "show_pickup_messages"),
-    MN_TOGGLE("Show Obituaries", "show_obituary_messages"),
-    MN_TOGGLE("Center Messages", "message_centered"),
-    MN_TOGGLE("Colorize Messages", "message_colorized"),
+              secretmessage_strings, 6, NULL),
+    MN_TOGGLE("Announce Map Titles", "hud_map_announce", NULL),
+    MN_GAP(6),
+    MN_TOGGLE("Show Toggle Messages", "show_toggle_messages", NULL),
+    MN_TOGGLE("Show Pickup Messages", "show_pickup_messages", NULL),
+    MN_TOGGLE("Show Obituaries", "show_obituary_messages", NULL),
+    MN_GAP(6),
+    MN_TOGGLE("Center Messages", "message_centered", NULL),
+    MN_TOGGLE("Colorize Messages", "message_colorized", NULL),
     MN_RESET,
     MN_END
 };
@@ -821,23 +972,26 @@ static const char *automap_keyed_door_strings[] = {"Off", "On", "Flashing"};
 
 static mn_item_t automap_items[] = {
     MN_TITLE("Modes"),
-    MN_TOGGLE("Follow Player", "followplayer"),
-    MN_TOGGLE("Rotate Automap", "automaprotate"),
-    MN_CHOICE("Overlay Automap", "automapoverlay", overlay_strings, 6),
+    MN_TOGGLE("Follow Player", "followplayer", NULL),
+    MN_TOGGLE("Rotate Automap", "automaprotate", NULL),
+    MN_CHOICE("Overlay Automap", "automapoverlay", overlay_strings, 6, NULL),
     MN_GAP(6),
-    MN_TOGGLE("Show Minimap", "minimap"),
-    MN_SLIDER_ACT_STR("Line Thickness", "map_line_thickness",
-                      automap_thickness_strings, 4, AM_ResetThickness),
+    MN_TOGGLE("Show Minimap", "minimap", NULL),
+    MN_SLIDER_ACT_STR(
+        "Line Thickness", "map_line_thickness",
+        automap_thickness_strings, 4, AM_ResetThickness,
+        "Line Thickness:\n\nAuto: Automatic based on resolution.\n\n"
+        "1-6: Fixed line thickness."),
     MN_GAP(6),
     MN_TITLE("Miscellaneous"),
-    MN_CHOICE_ACT("Color Preset", "mapcolor_preset", automap_preset_strings, 6,
-                  AM_ColorPreset),
-    MN_TOGGLE("Show Found Secrets Only", "map_secret_after"),
-    MN_CHOICE("Color Keyed Doors", "map_keyed_door",
-              automap_keyed_door_strings, 6),
+    MN_CHOICE_ACT(
+        "Color Preset", "mapcolor_preset", automap_preset_strings, 6,
+        AM_ColorPreset, NULL),
+    MN_TOGGLE("Show Found Secrets Only", "map_secret_after", NULL),
+    MN_CHOICE("Color Keyed Doors", "map_keyed_door", automap_keyed_door_strings,
+              6, NULL),
     MN_RESET,
-    MN_END
-};
+    MN_END};
 
 static mn_page_t interface_pages[] = {
     {.tab = "General", .items = statusbar_items},
@@ -859,13 +1013,15 @@ mn_menu_t interface_menu = {
 static const char *overunder_strings[] = {"Off", "Player only", "All"};
 
 static mn_item_t gameplay_items[] = {
-    MN_TOGGLE("Autosave", "autosave"),
-    MN_TOGGLE("On Death Action", "death_use_action"),
+    MN_TOGGLE("Autosave", "autosave", NULL),
+    MN_TOGGLE("On Death Action", "death_use_action", NULL),
     MN_GAP(6),
     MN_TITLE("Physics"),
-    MN_CHOICE("Move Over/Under Monsters", "overunder", overunder_strings, 8),
-    MN_TOGGLE_ACT("Auto Strafe 50", "autostrafe50", G_UpdateSideMove),
-    MN_TOGGLE("Improved Hit Detection", "blockmapfix"),
+    MN_CHOICE("Move Over/Under Monsters", "overunder", overunder_strings, 8, NULL),
+    MN_TOGGLE_ACT(
+        "Auto Strafe 50", "autostrafe50", G_UpdateSideMove,
+        "Auto Strafe 50:\n\nAutomatically applies SR50 turning for maximum speed."),
+    MN_TOGGLE("Improved Hit Detection", "blockmapfix", NULL),
     MN_RESET,
     MN_END
 };
@@ -875,19 +1031,23 @@ static const char *bobbing_pct_strings[] = {"0%", "25%", "50%", "75%", "100%"};
 static const char *center_weapon_strings[] = {"Off", "Centered", "Bobbing"};
 
 static mn_item_t weapons_items[] = {
-    MN_SLIDER_STR("View Bob", "view_bobbing_pct", bobbing_pct_strings, 8),
-    MN_SLIDER_ACT_STR("Weapon Bob", "weapon_bobbing_pct", bobbing_pct_strings,
-                      8, MN_OptionsUpdateCenteredWeaponItem),
+    MN_SLIDER_STR(
+        "View Bob", "view_bobbing_pct", bobbing_pct_strings, 8,
+        "View Bob:\n\nAmount of camera bobbing when moving."),
+    MN_SLIDER_ACT_STR(
+        "Weapon Bob", "weapon_bobbing_pct", bobbing_pct_strings, 8,
+        MN_OptionsUpdateCenteredWeaponItem,
+        "Weapon Bob:\n\nAmount of weapon sprite bobbing when moving."),
     MN_GAP(6),
-    MN_CHOICE("Weapon Alignment", "center_weapon", center_weapon_strings, 8),
-    MN_TOGGLE("Hide Weapon", "hide_weapon"),
-    MN_TOGGLE("Weapon Recoil", "weapon_recoilpitch"),
+    MN_CHOICE("Weapon Alignment", "center_weapon", center_weapon_strings, 8, NULL),
+    MN_TOGGLE("Hide Weapon", "hide_weapon", NULL),
+    MN_TOGGLE("Weapon Recoil", "weapon_recoilpitch", NULL),
     MN_GAP(6),
-    MN_TOGGLE("Weapon Carousel", "weapon_carousel"),
-    MN_TOGGLE("Vanilla Weapon Cycle", "doom_weapon_cycle"),
-    MN_TOGGLE("Use Weapon Toggles", "doom_weapon_toggles"),
+    MN_TOGGLE("Weapon Carousel", "weapon_carousel", NULL),
+    MN_TOGGLE("Vanilla Weapon Cycle", "doom_weapon_cycle", NULL),
+    MN_TOGGLE("Use Weapon Toggles", "doom_weapon_toggles", NULL),
     MN_GAP(6),
-    MN_TOGGLE("Pre-Beta BFG", "classic_bfg"),
+    MN_TOGGLE("Pre-Beta BFG", "classic_bfg", NULL),
     MN_RESET,
     MN_END
 };

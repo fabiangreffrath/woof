@@ -317,9 +317,9 @@ static choice_layout_t ChoiceLayout(const mn_item_t *item)
     l.max = ItemMax(item);
     l.num_choices = l.max - l.min + 1;
 
-    if (item->choice_width > 0)
+    if (item->choice_size > 0)
     {
-        l.text_w = item->choice_width * 8;
+        l.text_w = item->choice_size * 8;
     }
     else
     {

@@ -97,9 +97,10 @@ struct mn_item_s
     const char **choices;
     int num_choices;
     int slider_size;
-    int choice_width;
+    int choice_size;
     uint32_t flags;
-    const char *desc;
+    const char *description;
+    const char *instruction;
     const char *suffix;
     void (*action)(void);
     mn_menu_t *submenu;
@@ -226,24 +227,29 @@ struct mn_menu_s
 #define MN_GAP(gap)   {.type = MN_ITEM_SKIP, .height = (gap)}
 #define MN_TITLE(txt) {.label = (txt), .type = MN_ITEM_TITLE}
 
-#define MN_TOGGLE(lbl, key) \
-    {.label = (lbl), .cfg = (key), .type = MN_ITEM_TOGGLE}
+#define MN_TOGGLE(lbl, key, desc) \
+    {.label = (lbl),              \
+     .cfg = (key),                \
+     .type = MN_ITEM_TOGGLE,      \
+     .description = (desc)}
 
-#define MN_CHOICE(lbl, key, strs, width) \
-    {.label = (lbl),                     \
-     .cfg = (key),                       \
-     .type = MN_ITEM_CHOICE,             \
-     .choices = (strs),                  \
-     .num_choices = arrlen(strs),        \
-     .choice_width = (width)}
-#define MN_CHOICE_ACT(lbl, key, strs, width, act) \
-    {.label = (lbl),                              \
-     .cfg = (key),                                \
-     .type = MN_ITEM_CHOICE,                      \
-     .choices = (strs),                           \
-     .num_choices = arrlen(strs),                 \
-     .choice_width = (width),                     \
-     .action = (act)}
+#define MN_CHOICE(lbl, key, strs, size, desc) \
+    {.label = (lbl),                          \
+     .cfg = (key),                            \
+     .type = MN_ITEM_CHOICE,                  \
+     .choices = (strs),                       \
+     .num_choices = arrlen(strs),             \
+     .choice_size = (size),                   \
+     .description = (desc)}
+#define MN_CHOICE_ACT(lbl, key, strs, size, act, desc) \
+    {.label = (lbl),                                   \
+     .cfg = (key),                                     \
+     .type = MN_ITEM_CHOICE,                           \
+     .choices = (strs),                                \
+     .num_choices = arrlen(strs),                      \
+     .choice_size = (size),                            \
+     .action = (act),                                  \
+     .description = (desc)}
 
 typedef enum
 {
@@ -292,8 +298,8 @@ void MN_DisableItemInternal(boolean condition, mn_menu_t *menu,
                             const char *names[], int size);
 #define MN_DisableItem(condition, menu, ...)                                   \
     MN_DisableItemInternal((condition), (menu), (const char *[]){__VA_ARGS__}, \
-                         sizeof((const char *[]){__VA_ARGS__})               \
-                             / sizeof(const char *))
+                           sizeof((const char *[]){__VA_ARGS__})               \
+                               / sizeof(const char *))
 
 void MN_BindMenuVariables(void);
 
