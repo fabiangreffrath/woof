@@ -981,44 +981,19 @@ static boolean InputClick(mn_item_t *item, int x, int y)
     return true;
 }
 
-static void WeaponDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
-{
-    char buffer[8];
-
-    M_snprintf(buffer, sizeof(buffer), "%d", OptionValue(item));
-    DrawValueString(ctx, buffer);
-}
-
-static boolean WeaponRespond(mn_item_t *item, menu_action_t action, int ch)
-{
-    if (action == MENU_ENTER)
-    {
-        MN_ContainerEndEdit();
-        return true;
-    }
-
-    if (ch >= '1' && ch <= '9')
-    {
-        OptionSetValue(item, ch - '0');
-    }
-
-    return true;
-}
-
 static const mn_item_ops_t title_ops = {TitleDraw, TitleRespond};
 static const mn_item_ops_t toggle_ops = {ToggleDraw, ToggleRespond};
 static const mn_item_ops_t number_ops = {NumberDraw, NumberRespond};
-static const mn_item_ops_t choice_ops = {
-    ChoiceDrawCrosshair, ChoiceRespond, .click = ChoiceClick, .hover = ChoiceHover
+static const mn_item_ops_t choice_ops = {ChoiceDrawCrosshair, ChoiceRespond,
+    .click = ChoiceClick, .hover = ChoiceHover
 };
-static const mn_item_ops_t slider_ops = {
-    SliderDraw, SliderRespond, .drag = SliderDrag
+static const mn_item_ops_t slider_ops = {SliderDraw, SliderRespond,
+    .drag = SliderDrag
 };
 static const mn_item_ops_t action_ops = {ActionDraw, ActionRespond};
 static const mn_item_ops_t reset_ops = {ResetDraw, ResetRespond};
 static const mn_item_ops_t input_ops = {InputDraw, InputRespond,
                                         .click = InputClick};
-static const mn_item_ops_t weapon_ops = {WeaponDraw, WeaponRespond};
 
 static void BindItem(mn_item_t *item)
 {
@@ -1054,9 +1029,6 @@ static void BindItem(mn_item_t *item)
         case MN_ITEM_INPUT:
             item->ops = &input_ops;
             break;
-        case MN_ITEM_WEAPON:
-            item->ops = &weapon_ops;
-            break;
         default:
             item->ops = NULL;
             break;
@@ -1090,11 +1062,6 @@ static void BindItem(mn_item_t *item)
 
 void MN_BindMenu(mn_menu_t *menu)
 {
-    if (menu->init)
-    {
-        return;
-    }
-
     for (int i = 0; i < menu->num_pages; ++i)
     {
         mn_page_t *page = &menu->pages[i];
@@ -1104,7 +1071,6 @@ void MN_BindMenu(mn_menu_t *menu)
             BindItem(item);
         }
     }
-    menu->init = true;
 }
 
 static mn_menu_t *all_menus[] = {
@@ -1121,12 +1087,17 @@ static mn_menu_t *all_menus[] = {
     &options_menu,
 };
 
-static void OptionsBind(void)
+static void UpdateWeaponSlotItems(void);
+
+void MN_OptionsInit(void)
 {
     for (int i = 0; i < arrlen(all_menus); ++i)
     {
         MN_BindMenu(all_menus[i]);
     }
+    MN_OptionsInitFreeLook();
+    MN_OptionsUpdateWeaponSlotLabels();
+    UpdateWeaponSlotItems();
 }
 
 static void OptionsResetPage(void)
@@ -1182,7 +1153,6 @@ static void OptionsResetPage(void)
 
 void MN_OptionsOpen(void)
 {
-    OptionsBind();
     MN_ContainerOpen(&options_menu);
 }
 
@@ -1579,8 +1549,6 @@ void MN_OptionsUpdateGyroAcceleration(void)
     I_ResetGamepad();
 }
 
-// !!! TODO
-#if 0
 static void DrawGyroCalibration(void)
 {
     switch (I_GetGyroCalibrationState())
@@ -1589,8 +1557,7 @@ static void DrawGyroCalibration(void)
             break;
 
         case GYRO_CALIBRATION_STARTING:
-            //block_input = true;
-            DrawNotification("Starting calibration...", CR_GRAY, false);
+            MN_DrawNotification("Starting calibration...", CR_GRAY, false);
             I_UpdateGyroCalibrationState();
             if (I_GetGyroCalibrationState() == GYRO_CALIBRATION_ACTIVE)
             {
@@ -1599,7 +1566,7 @@ static void DrawGyroCalibration(void)
             break;
 
         case GYRO_CALIBRATION_ACTIVE:
-            DrawNotification("Calibrating, please wait...", CR_GRAY, false);
+            MN_DrawNotification("Calibrating, please wait...", CR_GRAY, false);
             I_UpdateGyroCalibrationState();
             if (I_GetGyroCalibrationState() == GYRO_CALIBRATION_COMPLETE)
             {
@@ -1608,17 +1575,22 @@ static void DrawGyroCalibration(void)
             break;
 
         case GYRO_CALIBRATION_COMPLETE:
-            DrawNotification("Calibration complete!", CR_GREEN, false);
+            MN_DrawNotification("Calibration complete!", CR_GREEN, false);
             I_UpdateGyroCalibrationState();
             if (I_GetGyroCalibrationState() == GYRO_CALIBRATION_INACTIVE)
             {
                 M_StartSound(sfx_mnucls);
-                //block_input = false;
             }
             break;
     }
 }
-#endif
+
+void MN_DrawGyroPage(const mn_menu_t *menu, const mn_page_t *page)
+{
+    (void)menu;
+    (void)page;
+    DrawGyroCalibration();
+}
 
 char slot_labels[NUM_WS_SLOTS * NUM_WS_WEAPS][WS_BUF_SIZE];
 

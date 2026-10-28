@@ -45,6 +45,7 @@ extern mn_menu_t options_menu;
 
 void MN_BindMenu(mn_menu_t *menu);
 
+void MN_OptionsInit(void);
 void MN_OptionsOpen(void);
 
 void MN_GetResolutionScaleStrings(mn_item_t *item);
@@ -81,6 +82,8 @@ void MN_GetGyroAccelStrings(mn_item_t *item);
 void MN_OptionsUpdateGyroSteadying(void);
 void MN_OptionsUpdateGyroAcceleration(void);
 void MN_OptionsUpdateAllGamepadItems(void);
+
+void MN_DrawGyroPage(const mn_menu_t *menu, const mn_page_t *page);
 
 #include "ws_stuff.h"
 #define WS_BUF_SIZE 80

@@ -625,8 +625,7 @@ static void ActivateItem(mn_menu_t *menu, int index, boolean mouse)
         return;
     }
 
-    if (item->type == MN_ITEM_NUMBER || item->type == MN_ITEM_INPUT
-        || item->type == MN_ITEM_WEAPON)
+    if (item->type == MN_ITEM_NUMBER || item->type == MN_ITEM_INPUT)
     {
         menu->active_item = item;
 
@@ -886,11 +885,6 @@ boolean MN_ContainerBindInput(mn_item_t *item)
 
                 if (M_InputActivated(other->input_id))
                 {
-                    if (other->flags & MN_ITEM_KEEP)
-                    {
-                        return true;
-                    }
-
                     M_InputRemoveActivated(other->input_id);
                 }
             }
@@ -1586,10 +1580,6 @@ static void DrawInstructions(const mn_menu_t *menu)
         M_snprintf(buffer, sizeof(buffer), "[ %s ] Back", BackKeyName(pad));
         text = buffer;
     }
-    else if (item->instruction && menu->hint_rect.w <= 0)
-    {
-        text = item->instruction;
-    }
     else if (menu->active_item)
     {
         switch (item->type)
@@ -1600,10 +1590,6 @@ static void DrawInstructions(const mn_menu_t *menu)
 
             case MN_ITEM_INPUT:
                 text = "Press key or button to bind/unbind";
-                break;
-
-            case MN_ITEM_WEAPON:
-                text = "Enter weapon number";
                 break;
 
             default:
@@ -1656,7 +1642,7 @@ static void DrawInstructions(const mn_menu_t *menu)
                     SCREENHEIGHT - 15, cr_shaded, NULL, text);
 }
 
-static void DrawNotification(const char *text, int color, boolean blink)
+void MN_DrawNotification(const char *text, int color, boolean blink)
 {
     patch_t *patch = V_CachePatchName("M_VBOX", PU_CACHE);
     int x = (SCREENWIDTH - patch->width) / 2;
@@ -1704,7 +1690,7 @@ void MN_ContainerDrawer(void)
 
     if (menu->confirm)
     {
-        DrawNotification(menu->confirm_text, CR_RED, true);
+        MN_DrawNotification(menu->confirm_text, CR_RED, true);
     }
 }
 

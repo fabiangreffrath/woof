@@ -40,7 +40,6 @@ typedef enum
     MN_ITEM_CHOICE,
     MN_ITEM_SLIDER,
     MN_ITEM_INPUT,
-    MN_ITEM_WEAPON,
     MN_ITEM_ACTION,
     MN_ITEM_RESET,
     MN_ITEM_SUBMENU,
@@ -51,20 +50,14 @@ typedef enum
 
 enum
 {
-    MN_ITEM_DISABLED = (1u << 0),
-    MN_ITEM_WARN_LEVEL = (1u << 1),
-    MN_ITEM_WARN_PROGRAM = (1u << 2),
-    MN_ITEM_STRICT = (1u << 3),
-    MN_ITEM_BOOM = (1u << 4),
-    MN_ITEM_MBF = (1u << 5),
-    MN_ITEM_VANILLA = (1u << 6),
-    MN_ITEM_CENTER = (1u << 8),
-    MN_ITEM_KEEP= (1u << 9),
-    MN_ITEM_DEFER_ACTION = (1u << 10),
-    MN_ITEM_TWO_LINES = (1u << 11),
-    MN_ITEM_DIRECT_COORDS = (1u << 12),
-    MN_ITEM_DRAW_CROSSHAIR = (1u << 13),
-    MN_ITEM_HIDE_VALUE = (1u << 14),
+    MN_ITEM_WARN_LEVEL = (1u << 0),
+    MN_ITEM_WARN_PROGRAM = (1u << 1),
+    MN_ITEM_CENTER = (1u << 2),
+    MN_ITEM_DEFER_ACTION = (1u << 3),
+    MN_ITEM_TWO_LINES = (1u << 4),
+    MN_ITEM_DIRECT_COORDS = (1u << 5),
+    MN_ITEM_DRAW_CROSSHAIR = (1u << 6),
+    MN_ITEM_HIDE_VALUE = (1u << 7),
 };
 
 typedef struct mn_item_ops_s mn_item_ops_t;
@@ -100,7 +93,6 @@ struct mn_item_s
     int choice_size;
     uint32_t flags;
     const char *description;
-    const char *instruction;
     const char *suffix;
     void (*action)(void);
     mn_menu_t *submenu;
@@ -293,6 +285,8 @@ boolean MN_ContainerBindInput(mn_item_t *item);
 // returns the number of lines. Truncates a single line to the width.
 int MN_WrapText(char *buffer, int width);
 void MN_TruncateText(char *buffer, int width);
+
+void MN_DrawNotification(const char *text, int color, boolean blink);
 
 void MN_DisableItemInternal(boolean condition, mn_menu_t *menu,
                             const char *names[], int size);

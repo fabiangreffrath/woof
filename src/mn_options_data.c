@@ -304,8 +304,9 @@ static mn_item_t audio_general_items[] = {
     MN_CHOICE_ACT(
         "Sound Mode", "snd_module", sound_module_strings, 10,
         MN_OptionsSetSoundModule,
-        "Sound Mode:\n\nStandard: Basic stereo output.\nOpenAL 3D: 3D "
-        "positional audio.\nPC Speaker: Emulates PC speaker beeps."),
+        "Sound Mode:\n\nStandard: Basic stereo output.\n\n"
+        "OpenAL 3D: 3D positional audio.\n\n"
+        "PC Speaker: Emulates PC speaker beeps."),
     MN_TOGGLE_ACT(
         "  Headphones Mode", "snd_hrtf", MN_OptionsSetSoundModule,
         "Headphones Mode:\n\nEnables HRTF for better 3D audio on headphones."),
@@ -330,11 +331,11 @@ static mn_item_t audio_general_items[] = {
 };
 
 static mn_item_t equalizer_items[] = {
-    MN_CHOICE_ACT("Preset", "snd_equalizer", equalizer_preset_strings, 8,
-                  I_OAL_EqualizerPreset,
-                  "Preset:\n\nOff: No equalization.\nClassical: Enhanced "
-                  "dynamics.\nRock: Boosted lows and highs.\nVocal: Enhanced "
-                  "midrange.\nCustom: Manual settings below."),
+    MN_CHOICE_ACT("Preset", "snd_equalizer",
+        equalizer_preset_strings, 8, I_OAL_EqualizerPreset,
+        "Preset:\n\nOff: No equalization.\n\nClassical: Enhanced dynamics.\n\n"
+        "Rock: Boosted lows and highs.\n\nVocal: Enhanced midrange.\n\n"
+        "Custom: Manual settings below."),
     MN_SLIDER_ACT("  Preamp", "snd_eq_preamp", 8, I_OAL_EqualizerPreset,
                   "Preamp:\n\nOverall gain adjustment for all frequencies."),
     MN_SLIDER_ACT("  Low Gain", "snd_eq_low_gain", 8, I_OAL_EqualizerPreset,
@@ -411,8 +412,8 @@ static mn_item_t audio_advanced_items[] = {
     MN_CHOICE_ACT(
         "Native MIDI Reset Type", "midi_reset_type", native_midi_reset_strings,
         8, MN_OptionsSetMidiPlayer,
-        "Native MIDI Reset Type:\n\nNo SysEx: No reset sent.\nGM: General MIDI "
-        "reset.\nGS: Roland GS reset.\nXG: Yamaha XG reset."),
+        "Native MIDI Reset Type:\n\nNo SysEx: No reset sent.\n\n"
+        "GM: General MIDI reset.\n\nGS: Roland GS reset.\n\nXG: Yamaha XG reset."),
     MN_RESET,
     MN_END
 };
@@ -728,26 +729,24 @@ static mn_item_t gamepad_items[] = {
 static const char *gyro_space_strings[] = {"Local", "Player"};
 
 static mn_item_t advanced_gyro_items[] = {
-    MN_CHOICE_ACT(
-        "Gyro Orientation", "gyro_space", gyro_space_strings, 8, I_ResetGamepad,
-        "Gyro Orientation:\n\nLocal: Relative to controller orientation.\n"
+    MN_CHOICE_ACT("Gyro Orientation", "gyro_space",
+        gyro_space_strings, 8, I_ResetGamepad,
+        "Gyro Orientation:\n\nLocal: Relative to controller orientation.\n\n"
         "Player: Relative to player view direction."),
     // !!! TODO Local Roll
     MN_SLIDER_ACT_DYN("Gyro Steadying", "gyro_smooth_threshold",
         MN_GetGyroSensitivityStrings, 11, MN_OptionsUpdateGyroSteadying,
         "Gyro Steadying:\n\nSmooths small gyro movements for stability."),
     // !!! TODO Gyro Smoothing
-    MN_SLIDER_ACT_DYN(
-        "Gyro Acceleration", "gyro_acceleration",
+    MN_SLIDER_ACT_DYN("Gyro Acceleration", "gyro_acceleration",
         MN_GetGyroAccelStrings, 11, MN_OptionsUpdateGyroAcceleration,
         "Gyro Acceleration:\n\nIncreases sensitivity for fast movements."),
-    MN_SLIDER_ACT(
-        "  Lower Threshold", "gyro_accel_min_threshold", 11, I_ResetGamepad,
+    MN_SLIDER_ACT("  Lower Threshold", "gyro_accel_min_threshold", 11, I_ResetGamepad,
         "Lower Threshold:\n\nMinimum speed for acceleration to begin."),
-    MN_SLIDER_ACT(
-        "  Upper Threshold", "gyro_accel_max_threshold", 11, I_ResetGamepad,
+    MN_SLIDER_ACT("  Upper Threshold", "gyro_accel_max_threshold", 11, I_ResetGamepad,
         "Upper Threshold:\n\nMaximum speed for full acceleration."),
-    MN_RESET, MN_END};
+    MN_RESET, MN_END
+};
 
 mn_page_t advanced_gyro_pages[] = {
     {.items = advanced_gyro_items}
@@ -775,33 +774,25 @@ static const char *gyro_action_strings[] = {
 };
 
 static mn_item_t gyro_items[] = {
-    MN_TOGGLE_ACT(
-        "Gyro Aiming", "gyro_enable", MN_OptionsUpdateGyroAiming,
+    MN_TOGGLE_ACT("Gyro Aiming", "gyro_enable", MN_OptionsUpdateGyroAiming,
         "Gyro Aiming:\n\nEnables motion-controlled aiming using gyroscope."),
-    MN_CHOICE_ACT(
-        "Gyro Button Action", "gyro_button_action", gyro_action_strings, 18,
-        I_ResetGamepad, NULL),
-    MN_CHOICE_ACT(
-        "Camera Stick Action", "gyro_stick_action",
-        gyro_action_strings, 18, I_ResetGamepad,
-        "Camera Stick Action:\n\nSame options as Gyro Button Action, "
-        "triggered by camera stick."),
+    MN_CHOICE_ACT("Gyro Button", "gyro_button_action",
+                  gyro_action_strings, 16, I_ResetGamepad, NULL),
+    MN_CHOICE_ACT("Camera Stick", "gyro_stick_action",
+                  gyro_action_strings, 16, I_ResetGamepad, NULL),
     MN_SUBMENU("Advanced Options", &advanced_gyro_menu),
-    MN_SLIDER_ACT_DYN(
-        "Turn Sensitivity", "gyro_turn_sensitivity",
+    MN_SLIDER_ACT_DYN("Turn Sensitivity", "gyro_turn_sensitivity",
         MN_GetGyroSensitivityStrings, 11, I_ResetGamepad,
         "Turn Sensitivity:\n\nHorizontal gyro aiming sensitivity."),
-    MN_SLIDER_ACT_DYN(
-        "Look Sensitivity", "gyro_look_sensitivity",
+    MN_SLIDER_ACT_DYN("Look Sensitivity", "gyro_look_sensitivity",
         MN_GetGyroSensitivityStrings, 11, I_ResetGamepad,
         "Look Sensitivity:\n\nVertical gyro aiming sensitivity."),
     MN_CHOICE_ACT("Freelook", "freelook_mode", freelook_strings, 8,
         MN_OptionsUpdateFreeLookMode, FREELOOK_DESC),
     {.label = "Calibrate Gyro",
-       .type = MN_ITEM_ACTION,
-       .action = I_UpdateGyroCalibrationState,
-       .instruction = "Place gamepad on a flat surface",
-       .description = "Calibrate Gyro:\n\nCalibrates the gyroscope. Place "
+     .type = MN_ITEM_ACTION,
+     .action = I_UpdateGyroCalibrationState,
+     .description = "Calibrate Gyro:\n\nCalibrates the gyroscope. Place "
                     "controller on a flat surface."},
     MN_RESET,
     MN_END
@@ -860,7 +851,7 @@ static mn_item_t slots_items[] = {
 static mn_page_t controls_pages[] = {
     {.tab = "Mouse / Keyboard", .items = mouse_keyboard_items},
     {.tab = "Gamepad", .items = gamepad_items},
-    {.tab = "Gyro", .items = gyro_items},
+    {.tab = "Gyro", .items = gyro_items, .draw = MN_DrawGyroPage},
     {.tab = "Slots", .items = slots_items},
 };
 
