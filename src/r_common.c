@@ -69,20 +69,15 @@ static int JobThreadRun(void *data)
             return 0;
         }
 
-        // Drain: after a single wake-up, consume every job the producer
-        // has already published.  This amortizes one semaphore round-trip
-        // across a whole burst of jobs.
-        int pos = I_AtomicLoad(&worker->readpos);
-        while (I_AtomicLoad(&worker->writepos) != pos)
-        {
-            const job_t job = worker->queue[pos & JOB_QUEUE_MASK];
-            I_AtomicIncrement(&worker->readpos, 1);
-            pos++;
+        const int pos = I_AtomicLoad(&worker->readpos);
 
-            job.func(job.userdata);
+        const job_t job = worker->queue[pos & JOB_QUEUE_MASK];
 
-            I_SemaphoreRelease(donesem);
-        }
+        I_AtomicIncrement(&worker->readpos, 1);
+
+        job.func(job.userdata);
+
+        I_SemaphoreRelease(donesem);
     }
 }
 
