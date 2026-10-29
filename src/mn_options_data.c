@@ -29,12 +29,14 @@
 #include "i_video.h"
 #include "m_input.h"
 #include "mn_container.h"
-#include "mn_internal.h"
+#include "mn_common.h"
 #include "mn_options.h"
 #include "r_data.h"
 #include "r_draw.h"
 #include "r_plane.h"
 #include "r_sky.h"
+
+#define MN_MENU_WIDTH 500
 
 #define MN_RESET \
     {.label = "", .type = MN_ITEM_RESET, .flags = MN_ITEM_DIRECT_COORDS}
@@ -166,11 +168,13 @@ const char *gamma_strings[] = {
 };
 
 static mn_item_t display_items[] = {
-    MN_CHOICE_ACT("Window Mode", "fullscreen", window_mode_strings, 10,
-                  MN_OptionsUpdateFullscreen,
-                  "Window Mode:\n\nWindowed: Runs in a resizable window.\n\nBorderless: Fullscreen borderless window."),
-    MN_TOGGLE_ACT("Vertical Sync", "use_vsync", I_ToggleVsync,
-                  "Vertical Sync:\n\nSynchronizes frame rate with monitor refresh rate to prevent tearing."),
+    MN_CHOICE_ACT("Window Mode", "fullscreen",
+        window_mode_strings, 14, MN_OptionsUpdateFullscreen,
+        "Window Mode:\n\nWindowed: Runs in a resizable window.\n\n"
+        "Borderless: Fullscreen borderless window."),
+    MN_TOGGLE_ACT(
+        "Vertical Sync", "use_vsync", I_ToggleVsync,
+        "Vertical Sync:\n\nSynchronizes frame rate with monitor refresh rate."),
     MN_END
 };
 
@@ -183,7 +187,7 @@ mn_menu_t display_menu = {
     .title_text = "Display",
     .background = "FLOOR4_6",
     .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
-    .layout = {.max_width = MN_PX(500)},
+    .layout = {.max_width = MN_PX(MN_MENU_WIDTH)},
     .pages = display_pages,
     .num_pages = arrlen(display_pages)
 };
@@ -191,8 +195,8 @@ mn_menu_t display_menu = {
 static mn_item_t video_general_items[] = {
     MN_SUBMENU("Display Options", &display_menu),
     MN_SLIDER_ACT_DYN_DEFER(
-        "Resolution Scale", "resolution_scale", MN_GetResolutionScaleStrings,
-        11, MN_OptionsUpdateResolutionScale,
+        "Resolution Scale", "resolution_scale",
+        MN_GetResolutionScaleStrings, 11, MN_OptionsUpdateResolutionScale,
         "Resolution Scale:\n\nScales the internal rendering resolution.\nLower "
         "values improve performance."),
     MN_TOGGLE_ACT(
@@ -200,8 +204,8 @@ static mn_item_t video_general_items[] = {
         "Dynamic Resolution:\n\nAutomatically adjusts resolution "
         "scale to maintain target FPS."),
     MN_CHOICE_ACT(
-        "Pixel Scaling", "smooth_scaling", pixel_scaling_strings, 8,
-        MN_OptionsResetVideo,
+        "Pixel Scaling", "smooth_scaling",
+        pixel_scaling_strings, 8, MN_OptionsResetVideo,
         "Pixel Scaling:\n\nSharp: Preserves details, but may look uneven.\n\n"
         "Smooth: Even pixels, but may look softer."),
     MN_CHOICE_ACT_DEFER(
@@ -372,7 +376,7 @@ mn_menu_t equalizer_menu = {
     .title_text = "Equalizer",
     .background = "FLOOR4_6",
     .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
-    .layout = {.max_width = MN_PX(500)},
+    .layout = {.max_width = MN_PX(MN_MENU_WIDTH)},
     .pages = equalizer_pages,
     .num_pages = arrlen(equalizer_pages)
 };
@@ -401,13 +405,12 @@ static mn_item_t audio_advanced_items[] = {
     MN_TOGGLE_ACT("Auto Gain", "auto_gain", MN_OptionsResetAutoGain,
         "Auto Gain:\n\nAutomatically normalizes music volume across tracks."),
 #if defined(HAVE_FLUIDSYNTH)
-    MN_SLIDER_ACT_SUFFIX("  FluidSynth Gain", "fl_gain", 8,
-                         MN_OptionsUpdateMusicVolume, "dB",
-                         "FluidSynth Gain:\n\nAdjusts FluidSynth synthesizer "
-                         "volume in decibels."),
+    MN_SLIDER_ACT_SUFFIX(
+        "  FluidSynth Gain", "fl_gain", 8, MN_OptionsUpdateMusicVolume, "dB",
+        "FluidSynth Gain:\n\nAdjusts FluidSynth synthesizer volume in decibels."),
 #endif
-    MN_SLIDER_ACT_SUFFIX("  OPL3 Gain", "opl_gain", 8,
-        MN_OptionsUpdateMusicVolume, "dB",
+    MN_SLIDER_ACT_SUFFIX(
+        "  OPL3 Gain", "opl_gain", 8, MN_OptionsUpdateMusicVolume, "dB",
         "OPL3 Gain:\n\nAdjusts OPL3 FM synthesis volume in decibels."),
     MN_CHOICE_ACT(
         "Native MIDI Reset Type", "midi_reset_type", native_midi_reset_strings,
@@ -428,8 +431,7 @@ mn_menu_t video_menu = {
     .title_text = "Video",
     .background = "FLOOR4_6",
     .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
-    .layout = {.max_width = MN_PX(500)},
-    .item_spacing = 1,
+    .layout = {.max_width = MN_PX(MN_MENU_WIDTH)},
     .pages = video_pages,
     .num_pages = arrlen(video_pages),
 };
@@ -444,7 +446,7 @@ mn_menu_t audio_menu = {
     .title_text = "Audio",
     .background = "FLOOR4_6",
     .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
-    .layout = {.max_width = MN_PX(500)},
+    .layout = {.max_width = MN_PX(MN_MENU_WIDTH)},
     .pages = audio_pages,
     .num_pages = arrlen(audio_pages),
 };
@@ -585,7 +587,7 @@ mn_menu_t input_bindings_menu = {
     .title_text = "Input Bindings",
     .background = "FLOOR4_6",
     .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
-    .layout = {.max_width = MN_PX(500)},
+    .layout = {.max_width = MN_PX(MN_MENU_WIDTH)},
     .pages = input_bindings_pages,
     .num_pages = arrlen(input_bindings_pages),
 };
@@ -600,18 +602,18 @@ static mn_item_t mouse_keyboard_items[] = {
     MN_SUBMENU("Input Bindings", &input_bindings_menu),
     MN_GAP(6),
     MN_TITLE("Mouse"),
-    MN_SLIDER_ACT("Turn Sensitivity", "mouse_sensitivity", 11,
-                  G_UpdateMouseVariables,
-                  "Turn Sensitivity:\n\nHorizontal mouse turning speed."),
-    MN_SLIDER_ACT("Look Sensitivity", "mouse_sensitivity_y_look", 11,
-                  G_UpdateMouseVariables,
-                  "Look Sensitivity:\n\nVertical mouse looking speed."),
+    MN_SLIDER_ACT(
+        "Turn Sensitivity", "mouse_sensitivity", 11, G_UpdateMouseVariables,
+        "Turn Sensitivity:\n\nHorizontal mouse turning speed."),
+    MN_SLIDER_ACT(
+        "Look Sensitivity", "mouse_sensitivity_y_look", 11, G_UpdateMouseVariables,
+        "Look Sensitivity:\n\nVertical mouse looking speed."),
     MN_SLIDER_ACT(
         "Move Sensitivity", "mouse_sensitivity_y", 11, G_UpdateMouseVariables,
         "Move Sensitivity:\n\nVertical mouse movement speed (forward/back)."),
-    MN_SLIDER_ACT("Strafe Sensitivity", "mouse_sensitivity_strafe", 11,
-                  G_UpdateMouseVariables,
-                  "Strafe Sensitivity:\n\nHorizontal mouse strafing speed."),
+    MN_SLIDER_ACT(
+        "Strafe Sensitivity", "mouse_sensitivity_strafe", 11, G_UpdateMouseVariables,
+        "Strafe Sensitivity:\n\nHorizontal mouse strafing speed."),
     MN_GAP(6),
     MN_CHOICE_ACT("Freelook", "freelook_mode", freelook_strings, 8,
                   MN_OptionsUpdateFreeLookMode, FREELOOK_DESC),
@@ -645,8 +647,8 @@ static mn_item_t advanced_gamepad_items[] = {
     MN_CHOICE_ACT(
         "Movement Type", "joy_movement_type", movement_type_strings, 14,
         I_ResetGamepad,
-        "Movement Type:\n\nNormalized: Consistent speed in all "
-        "directions.\nFaster Diagonals: Original Doom diagonal speed boost."),
+        "Movement Type:\n\nNormalized: Consistent speed in all directions.\n\n"
+        "Faster Diagonals: Original Doom diagonal speed boost."),
     MN_SLIDER_ACT_DYN(
         "Forward Sensitivity", "joy_forward_sensitivity",
         MN_GetMovementSensitivityStrings, 8, I_ResetGamepad,
@@ -655,19 +657,18 @@ static mn_item_t advanced_gamepad_items[] = {
         "Strafe Sensitivity", "joy_strafe_sensitivity",
         MN_GetMovementSensitivityStrings, 8, I_ResetGamepad,
         "Strafe Sensitivity:\n\nLeft stick strafe movement sensitivity."),
-    MN_SLIDER_ACT("Extra Turn Speed", "joy_outer_turn_speed", 11,
-                  MN_OptionsUpdateGamepad,
-                  "Extra Turn Speed:\n\nAdditional turn speed when stick is at "
-                  "outer edge."),
+    MN_SLIDER_ACT(
+        "Extra Turn Speed", "joy_outer_turn_speed", 11, MN_OptionsUpdateGamepad,
+        "Extra Turn Speed:\n\nAdditional turn speed when stick is at outer edge."),
     MN_SLIDER_ACT_DYN(
-        "  Extra Ramp Time", "joy_outer_ramp_time", MN_GetMsTimeStrings, 8,
-        I_ResetGamepad,
+        "  Extra Ramp Time", "joy_outer_ramp_time",
+        MN_GetMsTimeStrings, 8, I_ResetGamepad,
         "Extra Ramp Time:\n\nTime to reach extra turn speed at outer edge."),
-    MN_SLIDER_ACT_STR("Response Curve", "joy_camera_curve", curve_strings, 8,
-                      I_ResetGamepad,
-                      "Response Curve:\n\nLinear: Direct stick-to-turn "
-                      "mapping.\nSquared/Cubed: Exponential curves for "
-                      "precision.\n1.1-2.9: Custom exponential curves."),
+    MN_SLIDER_ACT_STR(
+        "Response Curve", "joy_camera_curve", curve_strings, 8, I_ResetGamepad,
+        "Response Curve:\n\nLinear: Direct stick-to-turn mapping.\n\n"
+        "Squared/Cubed: Exponential curves for precision.\n\n"
+        "1.1-2.9: Custom exponential curves."),
     MN_RESET,
     MN_END
 };
@@ -757,7 +758,7 @@ mn_menu_t advanced_gyro_menu = {
     .title_text = "Advanced Gyro",
     .background = "FLOOR4_6",
     .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
-    .layout = {.max_width = MN_PX(500)},
+    .layout = {.max_width = MN_PX(MN_MENU_WIDTH)},
     .pages = advanced_gyro_pages,
     .num_pages = arrlen(advanced_gyro_pages)
 };
@@ -816,15 +817,13 @@ static const char *weapon_slots_selection_strings[] = {
 static mn_item_t slots_items[] = {
     MN_CHOICE_ACT(
         "Enable Slots", "weapon_slots_activation",
-        weapon_slots_activation_strings, 12,
-        MN_OptionsUpdateWeaponSlotActivation,
+        weapon_slots_activation_strings, 12, MN_OptionsUpdateWeaponSlotActivation,
         "Enable Slots:\n\nOff: Weapon slots disabled.\n\n"
         "Hold \"Last\": Activate by holding Last Weapon key.\n\n"
         "Always On: Slots always active."),
     MN_CHOICE_ACT(
         "Select Slots", "weapon_slots_selection",
-        weapon_slots_selection_strings, 12,
-        MN_OptionsUpdateWeaponSlotSelection,
+        weapon_slots_selection_strings, 12, MN_OptionsUpdateWeaponSlotSelection,
         "Select Slots:\n\nD-Pad: Use D-Pad for slot selection.\n\n"
         "Face Buttons: Use face buttons.\n\n"
         "1-4 Keys: Use number keys 1-4."),
@@ -860,7 +859,7 @@ mn_menu_t controls_menu = {
     .title_text = "Controls",
     .background = "FLOOR4_6",
     .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
-    .layout = {.max_width = MN_PX(500)},
+    .layout = {.max_width = MN_PX(MN_MENU_WIDTH)},
     .pages = controls_pages,
     .num_pages = arrlen(controls_pages),
 };
@@ -888,7 +887,7 @@ static mn_item_t statusbar_items[] = {
     MN_GAP(6),
     MN_TITLE("Widgets"),
     MN_CHOICE_ACT("Show Level Stats", "hud_level_stats", show_widgets_strings,
-        8, MN_OptionsUpdateStatsFormatItem, NULL),
+                  8, MN_OptionsUpdateStatsFormatItem, NULL),
     MN_CHOICE("Show Level Time", "hud_level_time", show_widgets_strings, 8, NULL),
     MN_CHOICE("Show Player Coords", "hud_player_coords",
               show_adv_widgets_strings, 8, NULL),
@@ -996,7 +995,7 @@ mn_menu_t interface_menu = {
     .title_text = "Interface",
     .background = "FLOOR4_6",
     .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
-    .layout = {.max_width = MN_PX(500)},
+    .layout = {.max_width = MN_PX(MN_MENU_WIDTH)},
     .pages = interface_pages,
     .num_pages = arrlen(interface_pages),
 };
@@ -1054,7 +1053,7 @@ mn_menu_t gameplay_menu = {
     .title_text = "Gameplay",
     .background = "FLOOR4_6",
     .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
-    .layout = {.max_width = MN_PX(500)},
+    .layout = {.max_width = MN_PX(MN_MENU_WIDTH)},
     .pages = gameplay_pages,
     .num_pages = arrlen(gameplay_pages),
 };

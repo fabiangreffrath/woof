@@ -30,7 +30,7 @@
 #include "m_misc.h"
 #include "mn_container.h"
 #include "mn_font.h"
-#include "mn_internal.h"
+#include "mn_common.h"
 #include "mn_menu.h"
 #include "mn_saveload.h"
 #include "mn_snapshot.h"

@@ -36,7 +36,7 @@
 #include "m_misc.h"
 #include "mn_container.h"
 #include "mn_font.h"
-#include "mn_internal.h"
+#include "mn_common.h"
 #include "mn_menu.h"
 #include "mn_options.h"
 #include "p_mobj.h"
@@ -1087,6 +1087,8 @@ static mn_menu_t *all_menus[] = {
     &options_menu,
 };
 
+static void UpdateGamepadItems(void);
+static void UpdateGyroItems(void);
 static void UpdateWeaponSlotItems(void);
 
 void MN_OptionsInit(void)
@@ -1095,6 +1097,9 @@ void MN_OptionsInit(void)
     {
         MN_BindMenu(all_menus[i]);
     }
+
+    UpdateGamepadItems();
+    UpdateGyroItems();
     MN_OptionsInitFreeLook();
     MN_OptionsUpdateWeaponSlotLabels();
     UpdateWeaponSlotItems();
@@ -1495,7 +1500,7 @@ static void UpdateGyroItems(void)
 
 void MN_OptionsUpdateGyroAiming(void)
 {
-    UpdateGamepadItems(); // Update "Gyro Options" and freelook.
+    UpdateGamepadItems();
     UpdateGyroItems();
     I_SetSensorsEnabled(I_GyroEnabled());
     I_ResetGamepad();
@@ -1723,7 +1728,6 @@ void MN_GetScreenSizeStrings(mn_item_t *item)
 
 void MN_OptionsUpdateAllGamepadItems(void)
 {
-    // !!! TODO selectstrings[str_gamepad_device] = GetGamepadDeviceStrings();
     MN_OptionsUpdateWeaponSlotSelection();
     UpdateGamepadItems();
     UpdateGyroItems();

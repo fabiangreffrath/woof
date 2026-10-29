@@ -13,8 +13,8 @@
 //  GNU General Public License for more details.
 //
 
-#ifndef MN_INTERNAL_H
-#define MN_INTERNAL_H
+#ifndef MN_COMMON_H
+#define MN_COMMON_H
 
 typedef struct
 {

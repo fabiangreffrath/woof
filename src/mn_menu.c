@@ -22,7 +22,6 @@
 //
 //-----------------------------------------------------------------------------
 
-#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -44,21 +43,16 @@
 #include "i_timer.h"
 #include "i_video.h"
 #include "m_input.h"
-#include "m_io.h"
-#include "m_json.h"
 #include "m_misc.h"
 #include "m_swap.h"
 #include "mn_font.h"
 #include "mn_container.h"
 #include "mn_csmenu.h"
-#include "mn_internal.h"
+#include "mn_common.h"
 #include "mn_menu.h"
 #include "mn_options.h"
 #include "mn_saveload.h"
-#include "mn_snapshot.h"
-#include "p_saveg.h"
 #include "r_defs.h"
-#include "r_draw.h"
 #include "r_main.h"
 #include "s_sound.h"
 #include "sounds.h"
@@ -71,7 +65,6 @@
 #include "wi_stuff.h"
 #include "z_zone.h"
 
-#include "miniz.h"
 
 // [crispy] remove DOS reference from the game quit confirmation dialogs
 #ifndef _WIN32
@@ -165,7 +158,7 @@ short whichSkull;              // which skull to draw (he blinks)
 
 // graphic name of skulls
 
-char skullName[2][/*8*/ 9] = {"M_SKULL1", "M_SKULL2"};
+static char skullName[2][/*8*/ 9] = {"M_SKULL1", "M_SKULL2"};
 
 static menu_t *currentMenu; // current menudef
 

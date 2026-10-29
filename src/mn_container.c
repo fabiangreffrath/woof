@@ -27,7 +27,7 @@
 #include "m_misc.h"
 #include "mn_container.h"
 #include "mn_font.h"
-#include "mn_internal.h"
+#include "mn_common.h"
 #include "mn_menu.h"
 #include "sounds.h"
 #include "v_palette.h"
@@ -1252,7 +1252,8 @@ static void DrawTabs(const mn_menu_t *menu)
 static void DrawItemLabel(const mn_item_t *item, const mn_draw_ctx_t *ctx,
                           int label_x)
 {
-    if (item->type == MN_ITEM_TITLE || item->type == MN_ITEM_SKIP)
+    if (item->type == MN_ITEM_TITLE || item->type == MN_ITEM_SKIP
+        || item->type == MN_ITEM_RESET)
     {
         return;
     }

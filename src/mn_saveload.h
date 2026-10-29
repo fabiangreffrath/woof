@@ -15,7 +15,7 @@
 #define MN_SAVELOAD_H
 
 #include "doomtype.h"
-#include "mn_internal.h"
+#include "mn_common.h"
 
 #define SAVE_SLOTS_PER_PAGE 8
 #define SAVE_PAGES          8

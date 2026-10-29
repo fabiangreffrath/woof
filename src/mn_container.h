@@ -15,7 +15,7 @@
 #define MN_CONTAINER_H
 
 #include "doomtype.h"
-#include "mn_internal.h"
+#include "mn_common.h"
 
 #define MN_SPC        9
 #define MN_SPC_ITEM   (MN_SPC + 3)
