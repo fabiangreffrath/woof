@@ -964,7 +964,7 @@ static mn_item_t automap_items[] = {
     MN_TITLE("Modes"),
     MN_TOGGLE("Follow Player", "followplayer", NULL),
     MN_TOGGLE("Rotate Automap", "automaprotate", NULL),
-    MN_CHOICE("Overlay Automap", "automapoverlay", overlay_strings, 6, NULL),
+    MN_CHOICE("Overlay Automap", "automapoverlay", overlay_strings, 8, NULL),
     MN_GAP(6),
     MN_TOGGLE("Show Minimap", "minimap", NULL),
     MN_SLIDER_ACT_STR(
@@ -975,11 +975,11 @@ static mn_item_t automap_items[] = {
     MN_GAP(6),
     MN_TITLE("Miscellaneous"),
     MN_CHOICE_ACT(
-        "Color Preset", "mapcolor_preset", automap_preset_strings, 6,
+        "Color Preset", "mapcolor_preset", automap_preset_strings, 8,
         AM_ColorPreset, NULL),
     MN_TOGGLE("Show Found Secrets Only", "map_secret_after", NULL),
     MN_CHOICE("Color Keyed Doors", "map_keyed_door", automap_keyed_door_strings,
-              6, NULL),
+              8, NULL),
     MN_RESET,
     MN_END};
 
