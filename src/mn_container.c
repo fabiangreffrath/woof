@@ -431,7 +431,12 @@ static void SelectFirst(mn_menu_t *menu)
 {
     mn_page_t *page = &menu->pages[menu->page];
 
-    page->selected = FirstNavigable(page);
+    // Only select first item if no valid selection is preserved
+    if (page->selected < 0 || page->selected >= page->num_items
+        || !IsNavigable(&page->items[page->selected]))
+    {
+        page->selected = FirstNavigable(page);
+    }
     MN_ContainerEnsureVisible(&page->items[page->selected]);
 }
 
@@ -489,7 +494,6 @@ static void CancelActiveItem(mn_menu_t *menu)
 
 static void ResetMenuState(mn_menu_t *menu)
 {
-    menu->page = 0;
     menu->hover = -1;
     menu->help_hover = -1;
     menu->active_item = NULL;
@@ -502,7 +506,6 @@ static void ResetMenuState(mn_menu_t *menu)
     {
         mn_page_t *page = &menu->pages[i];
 
-        page->selected = 0;
         page->scroll = 0;
         page->scroll_target = 0;
     }
