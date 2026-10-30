@@ -32,6 +32,7 @@
 #include "info.h"
 #include "m_cheat.h"
 #include "m_fixed.h"
+#include "p_jump.h"
 #include "p_map.h"
 #include "p_mobj.h"
 #include "p_pspr.h"
@@ -210,6 +211,8 @@ void P_MovePlayer (player_t* player)
   mo->angle += IntToFixed(cmd->angleturn);
   onground = mo->z <= mo->floorz;
   player->ticangle += IntToFixed(cmd->ticangleturn);
+
+  P_PlayerJump(player, onground);
 
   // killough 10/98:
   //

@@ -40,6 +40,7 @@ enum
     input_gyro,
     input_use,
     input_fire,
+    input_jump,
     input_prevweapon,
     input_nextweapon,
 

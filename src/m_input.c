@@ -735,6 +735,7 @@ void M_BindInputVariables(void)
     BIND_INPUT(input_gyro, "Gyro button");
     BIND_INPUT(input_use, "Open a door, use a switch");
     BIND_INPUT(input_fire, "Fire current weapon");
+    BIND_INPUT(input_jump, "Jump");
     BIND_INPUT(input_prevweapon, "Cycle to the previous weapon");
     BIND_INPUT(input_nextweapon, "Cycle to the next weapon");
 
