@@ -41,6 +41,7 @@ extern stream_module_t stream_fl_module;
 extern stream_module_t stream_snd_module;
 extern stream_module_t stream_xmp_module;
 extern stream_module_t stream_mp3_module;
+extern stream_module_t stream_clap_module;
 
 boolean I_OAL_InitStream(void);
 

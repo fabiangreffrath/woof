@@ -22,6 +22,10 @@ if(NOT MINIMP3_INCLUDE_DIRS)
     set(MINIMP3_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
 endif()
 
+if(NOT CLAP_INCLUDE_DIRS)
+    set(CLAP_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
+endif()
+
 if(NOT miniz_FOUND)
     add_library(miniz STATIC miniz/miniz.c)
     target_woof_settings(miniz)

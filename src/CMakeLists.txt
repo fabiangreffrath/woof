@@ -66,6 +66,7 @@ set(WOOF_SOURCES
     hu_crosshair.c         hu_crosshair.h
     hu_obituary.c          hu_obituary.h
     i_3dsound.c
+    i_clapmusic.c
     i_endoom.c             i_endoom.h
     i_exit.c               i_exit.h
     i_flickstick.c         i_flickstick.h
@@ -246,6 +247,8 @@ target_link_libraries(
 )
 
 target_include_directories(woof PRIVATE "${MINIMP3_INCLUDE_DIRS}/minimp3")
+
+target_include_directories(woof PRIVATE "${CLAP_INCLUDE_DIRS}")
 
 # Some platforms require standard libraries to be linked against.
 if(HAVE_LIBM)

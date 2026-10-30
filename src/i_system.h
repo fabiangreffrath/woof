@@ -92,6 +92,12 @@ const char *I_GetPlatform(void);
 void I_SetMetadata(const char *appname, const char *appversion,
                    const char *appidentifier);
 
+void *I_LoadObject(const char *path);
+
+void I_UnloadObject(void *handle);
+
+void *I_LoadFunction(void *handle, const char *name);
+
 #endif
 
 //----------------------------------------------------------------------------

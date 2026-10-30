@@ -296,15 +296,20 @@ Copyright:
  © 2025 Zokum.  
 License: [CC BY-SA](https://creativecommons.org/licenses/by-sa/4.0/)
 
-Files: `third-party/libebur128/*`  
-Copyright:  
- © 2011 Jan Kokemüller.  
-License: [MIT](https://opensource.org/licenses/MIT)
-
 Files: `third-party/base64/*`  
 Copyright:  
  © 2002-2012 Jouni Malinen.  
 License: [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
+
+Files: `third-paty/clap/*`  
+Copyright:  
+ © 2021 Alexandre BIQUE.  
+License: [MIT](https://opensource.org/licenses/MIT)
+
+Files: `third-party/libebur128/*`  
+Copyright:  
+ © 2011 Jan Kokemüller.  
+License: [MIT](https://opensource.org/licenses/MIT)
 
 Files: `third-party/md5/*`  
 License: public-domain
