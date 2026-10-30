@@ -628,9 +628,9 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
   spryscale = vis->scale;
   sprtopscreen = centeryfrac - FixedMul(dc_texturemid,spryscale);
 
-  // [Alaux] Try copying columns of opaque sprites with 10% or more repetition
+  // [Alaux] Try copying columns of opaque sprites with 20% or more repetition
   const boolean try_copy_column =
-    dc_iscale <= FRACUNIT*9/10 && vis->colormap[0] && !tranmap;
+    dc_iscale <= FRACUNIT*5/6 && vis->colormap[0] && !tranmap;
 
   int lastcolumn = -1;
 
