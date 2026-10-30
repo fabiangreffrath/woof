@@ -33,40 +33,36 @@
 
 #include "d_demoloop.h"
 
-// Support for DeHackEd Text substitution, fixes PL2.WAD
-#define DEH_MUSIC_LUMP(buffer, mus_id) \
-            M_snprintf(buffer, sizeof buffer, "d_%s", S_music[mus_id].name);
-
 // Doom
 static demoloop_entry_t demoloop_registered[] = {
-    { "TITLEPIC", "D_INTRO",  170, TYPE_ART,  wipe_Default },
-    { "DEMO1",    "",         0,   TYPE_DEMO, wipe_Default },
-    { "CREDIT",   "",         200, TYPE_ART,  wipe_Default },
-    { "DEMO2",    "",         0,   TYPE_DEMO, wipe_Default },
-    { "HELP2",    "",         200, TYPE_ART,  wipe_Default },
-    { "DEMO3",    "",         0,   TYPE_DEMO, wipe_Default },
+    { "TITLEPIC", mus_intro, 170, TYPE_ART,  wipe_Default },
+    { "DEMO1",    mus_None,  0,   TYPE_DEMO, wipe_Default },
+    { "CREDIT",   mus_None,  200, TYPE_ART,  wipe_Default },
+    { "DEMO2",    mus_None,  0,   TYPE_DEMO, wipe_Default },
+    { "HELP2",    mus_None,  200, TYPE_ART,  wipe_Default },
+    { "DEMO3",    mus_None,  0,   TYPE_DEMO, wipe_Default },
 };
 
 // Ultimate Doom
 static demoloop_entry_t demoloop_retail[] = {
-    { "TITLEPIC", "D_INTRO",  170, TYPE_ART,  wipe_Default },
-    { "DEMO1",    "",         0,   TYPE_DEMO, wipe_Default },
-    { "CREDIT",   "",         200, TYPE_ART,  wipe_Default },
-    { "DEMO2",    "",         0,   TYPE_DEMO, wipe_Default },
-    { "CREDIT",   "",         200, TYPE_ART,  wipe_Default },
-    { "DEMO3",    "",         0,   TYPE_DEMO, wipe_Default },
-    { "DEMO4",    "",         0,   TYPE_DEMO, wipe_Default },
+    { "TITLEPIC", mus_intro, 170, TYPE_ART,  wipe_Default },
+    { "DEMO1",    mus_None,  0,   TYPE_DEMO, wipe_Default },
+    { "CREDIT",   mus_None,  200, TYPE_ART,  wipe_Default },
+    { "DEMO2",    mus_None,  0,   TYPE_DEMO, wipe_Default },
+    { "CREDIT",   mus_None,  200, TYPE_ART,  wipe_Default },
+    { "DEMO3",    mus_None,  0,   TYPE_DEMO, wipe_Default },
+    { "DEMO4",    mus_None,  0,   TYPE_DEMO, wipe_Default },
 };
 
 // Doom II & Final Doom
 static demoloop_entry_t demoloop_commercial[] = {
-    { "TITLEPIC", "D_DM2TTL", 385, TYPE_ART,  wipe_Default },
-    { "DEMO1",    "",         0,   TYPE_DEMO, wipe_Default },
-    { "CREDIT",   "",         200, TYPE_ART,  wipe_Default },
-    { "DEMO2",    "",         0,   TYPE_DEMO, wipe_Default },
-    { "TITLEPIC", "D_DM2TTL", 385, TYPE_ART,  wipe_Default },
-    { "DEMO3",    "",         0,   TYPE_DEMO, wipe_Default },
-    { "DEMO4",    "",         0,   TYPE_DEMO, wipe_Default },
+    { "TITLEPIC", mus_dm2ttl, 385, TYPE_ART,  wipe_Default },
+    { "DEMO1",    mus_None,   0,   TYPE_DEMO, wipe_Default },
+    { "CREDIT",   mus_None,   200, TYPE_ART,  wipe_Default },
+    { "DEMO2",    mus_None,   0,   TYPE_DEMO, wipe_Default },
+    { "TITLEPIC", mus_dm2ttl, 385, TYPE_ART,  wipe_Default },
+    { "DEMO3",    mus_None,   0,   TYPE_DEMO, wipe_Default },
+    { "DEMO4",    mus_None,   0,   TYPE_DEMO, wipe_Default },
 };
 
 demoloop_t demoloop = NULL;
@@ -98,7 +94,7 @@ static boolean ParseSecondaryLump(json_t *json, demoloop_entry_t *entry)
     if (secondary_lump == NULL || secondary_lump[0] == '\0')
     {
         // Secondary lump is optional.
-        entry->secondary_lump[0] = '\0';
+        entry->no_switch = true;
     }
     else
     {
@@ -215,15 +211,11 @@ static void GetDefaultDemoLoop(GameMode_t mode)
     {
         case shareware:
         case registered:
-            DEH_MUSIC_LUMP(demoloop_registered[0].secondary_lump, mus_intro)
-
             demoloop = demoloop_registered;
             demoloop_count = arrlen(demoloop_registered);
             break;
 
         case retail:
-            DEH_MUSIC_LUMP(demoloop_retail[0].secondary_lump, mus_intro)
-
             if (pwad_help2)
             {
                 M_CopyLumpName(demoloop_retail[4].primary_lump, "HELP2");
@@ -234,9 +226,6 @@ static void GetDefaultDemoLoop(GameMode_t mode)
             break;
 
         case commercial:
-            DEH_MUSIC_LUMP(demoloop_commercial[0].secondary_lump, mus_dm2ttl)
-            DEH_MUSIC_LUMP(demoloop_commercial[4].secondary_lump, mus_dm2ttl)
-
             demoloop = demoloop_commercial;
             demoloop_count = arrlen(demoloop_commercial);
 

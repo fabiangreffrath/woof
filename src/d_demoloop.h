@@ -22,6 +22,7 @@
 #define _D_DEMOLOOP_
 
 #include "f_wipe.h"
+#include "sounds.h"
 
 // Screen graphic or DEMO lump.
 typedef enum
@@ -33,11 +34,13 @@ typedef enum
 // Individual demoloop units.
 typedef struct
 {
-    char      primary_lump[9];   // Screen graphic or DEMO lump.
-    char      secondary_lump[9]; // Music lump for screen graphic.
-    int       duration;          // Game tics.
-    dl_type_t type;
-    wipefx_t  outro_wipe;
+    char        primary_lump[9];   // Screen graphic or DEMO lump.
+    musicenum_t music_id;
+    int         duration;          // Game tics.
+    dl_type_t   type;
+    wipefx_t    outro_wipe;
+    boolean     no_switch;         // No music switch.
+    char        secondary_lump[9]; // Music lump for screen graphic.
 } demoloop_entry_t;
 
 typedef demoloop_entry_t* demoloop_t;
