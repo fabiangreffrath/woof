@@ -918,7 +918,7 @@ static rendercontext_t rendercontexts[MAX_RENDER_CONTEXTS];
 static int ActiveContexts(void)
 {
     // Disable when resolution is low
-    if (video.height < SCREENHEIGHT * 3)
+    if (video.height < SCREENHEIGHT * 2)
     {
         return 1;
     }
