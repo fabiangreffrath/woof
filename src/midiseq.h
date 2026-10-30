@@ -11,6 +11,9 @@
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
+//
+// DESCRIPTION:
+//      MIDI/MUS song sequencing and native MIDI output.
 
 #ifndef MIDISEQ_H
 #define MIDISEQ_H
@@ -18,82 +21,67 @@
 #include "doomtype.h"
 #include "midifile.h"
 
-typedef struct
-{
-    midi_track_iter_t *iter;
-    unsigned int elapsed_time;
-    unsigned int saved_elapsed_time;
-    boolean end_of_track;
-    boolean saved_end_of_track;
-    boolean emidi_include_track;
-    boolean emidi_program;
-    boolean emidi_volume;
-    int emidi_loop_count;
-} midi_track_t;
+typedef struct midi_track_s midi_track_t;
 
-typedef struct
-{
-    void *lump_data;
-    int lump_length;
-    midi_file_t *file;
-    midi_track_t *tracks;
-    unsigned int elapsed_time;
-    unsigned int saved_elapsed_time;
-    unsigned int num_tracks;
-    boolean looping;
-    boolean ff_loop;
-    boolean ff_restart;
-    boolean rpg_loop;
-} midiseq_t;
-
-typedef enum
-{
-    STATE_STARTUP,
-    STATE_PLAYING,
-    STATE_PAUSING,
-    STATE_WAITING,
-    STATE_STOPPED,
-    STATE_PAUSED
-} midi_state_t;
+// The next song event and the absolute playback time at which it must be
+// played. The sequencer does not own a clock, the caller drives it: wall clock
+// time for realtime output, a sample clock for streaming synths.
 
 typedef struct
 {
     midi_event_t *event;
     midi_track_t *track;
+    uint64_t time_us;
 } midi_position_t;
 
-extern midiseq_t midiseq;
+// Receives every event that must be played. Meta events, EMIDI control
+// messages and events of tracks excluded by EMIDI are handled by the sequencer
+// itself and never reach the handler.
 
-// Tempo control variables
+typedef void (*midi_event_handler_t)(const midi_event_t *event);
 
-extern unsigned int ticks_per_beat;
-extern unsigned int us_per_beat;
+void MIDISeq_SetEventHandler(midi_event_handler_t handler);
 
-extern float volume_factor;
+// Handler for native MIDI output.
 
-boolean MIDISeq_RegisterSong(void);
+void MIDISeq_NativeEventHandler(const midi_event_t *event);
 
-extern midi_state_t midi_state;
+// Song loading. RegisterSong() unregisters the previous song.
 
-extern void (*MIDISeq_ProcessEvent)(const midi_event_t *event, midi_track_t *track);
+boolean MIDISeq_RegisterSong(void *data, int length);
 
-void MIDISeq_ResetDevice(void);
+void MIDISeq_UnregisterSong(void);
+
+// Playback control. Play() rewinds the song to the beginning.
+//
+// A backend drives the sequencer with its own clock:
+//
+//     MIDISeq_Play(looping);
+//
+//     while (MIDISeq_NextEvent(&position))
+//     {
+//         WaitUntil(position.time_us);
+//         MIDISeq_SendEvent(&position);
+//     }
+//
+// Realtime output waits on the wall clock, streaming synths render the frames
+// between the current position and position.time_us.
+
+void MIDISeq_Play(boolean looping);
+
+boolean MIDISeq_NextEvent(midi_position_t *position);
+
+void MIDISeq_SendEvent(const midi_position_t *position);
+
+// Native MIDI device control.
+
+void MIDISeq_SetVolumeFactor(float factor);
+
+void MIDISeq_ResetDevice(boolean startup);
 
 void MIDISeq_SendNotesSoundOff(void);
 
-midi_state_t MIDISeq_NextEvent(midi_position_t *position);
-
-void MIDISeq_SetComplevel(void);
-
 void MIDISeq_UpdateVolume(void);
-
-uint64_t MIDISeq_TicksToUS(uint32_t ticks);
-
-void MIDISeq_RestartTimer(uint64_t offset);
-
-void MIDISeq_PauseTimer(void);
-
-uint64_t MIDISeq_CurrentTime(void);
 
 void MIDISeq_BindVariables(void);
 

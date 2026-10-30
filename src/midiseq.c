@@ -11,27 +11,30 @@
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
+//
+// DESCRIPTION:
+//      MIDI/MUS song sequencing and native MIDI output.
 
 #include <limits.h>
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "doomtype.h"
 #include "i_printf.h"
 #include "i_sound.h"
+#include "i_timer.h"
 #include "m_config.h"
 #include "memio.h"
 #include "midifallback.h"
 #include "midifile.h"
 #include "midiseq.h"
 #include "midiout.h"
-#include "i_timer.h"
 #include "mus2mid.h"
 
-// Tempo control variables
-
-unsigned int ticks_per_beat;
-unsigned int us_per_beat;
+//---------------------------------------------------------------------------
+// Settings
+//---------------------------------------------------------------------------
 
 enum
 {
@@ -81,45 +84,50 @@ static const byte ff_loopEnd[] =
     'l', 'o', 'o', 'p', 'E', 'n', 'd'
 };
 
-static boolean allow_bank_select;
-
-static boolean channel_used[MIDI_CHANNELS_PER_TRACK];
-static byte channel_volume[MIDI_CHANNELS_PER_TRACK];
-float volume_factor = 0.0f;
-static uint16_t master_volume;
-
-midi_state_t midi_state;
-
 #define EMIDI_DEVICE EMIDI_DEVICE_GENERAL_MIDI
 
-static uint64_t start_time, pause_time;
+//---------------------------------------------------------------------------
+// Tempo
+//---------------------------------------------------------------------------
 
-uint64_t MIDISeq_TicksToUS(uint32_t ticks)
+static unsigned int ticks_per_beat = 1;
+static unsigned int us_per_beat = MIDI_DEFAULT_TEMPO;
+
+static uint64_t TicksToUS(unsigned int ticks)
 {
     return (uint64_t)ticks * us_per_beat / ticks_per_beat;
 }
 
-void MIDISeq_RestartTimer(uint64_t offset)
+static void UpdateTempo(const midi_event_t *event)
 {
-    if (pause_time)
-    {
-        start_time += (I_GetTimeUS() - pause_time);
-        pause_time = 0;
-    }
-    else
-    {
-        start_time = I_GetTimeUS() - offset;
-    }
+    const byte *data = event->data.meta.data;
+    us_per_beat = (data[0] << 16) | (data[1] << 8) | data[2];
 }
 
-void MIDISeq_PauseTimer(void)
-{
-    pause_time = I_GetTimeUS();
-}
+//---------------------------------------------------------------------------
+// Native MIDI output
+//---------------------------------------------------------------------------
 
-uint64_t MIDISeq_CurrentTime(void)
+static boolean channel_used[MIDI_CHANNELS_PER_TRACK];
+static byte channel_volume[MIDI_CHANNELS_PER_TRACK];
+static uint16_t master_volume;
+static float volume_factor = 1.0f;
+
+// Bank select is dropped for devices that run in General MIDI mode.
+
+static boolean AllowBankSelect(void)
 {
-    return I_GetTimeUS() - start_time;
+    switch (midi_complevel)
+    {
+        case COMP_VANILLA:
+            return false;
+
+        case COMP_FULL:
+            return true;
+
+        default:
+            return midi_reset_type != RESET_TYPE_GM;
+    }
 }
 
 // Sends a channel message with the second parameter overridden to zero. Only
@@ -186,7 +194,7 @@ static void SendProgramChange(byte channel, byte program)
 
 static void SendBankSelectMSB(byte channel, byte value)
 {
-    if (allow_bank_select)
+    if (AllowBankSelect())
     {
         if (midi_ctf)
         {
@@ -204,7 +212,7 @@ static void SendBankSelectMSB(byte channel, byte value)
 
 static void SendBankSelectLSB(byte channel, byte value)
 {
-    if (allow_bank_select)
+    if (AllowBankSelect())
     {
         if (midi_ctf)
         {
@@ -234,13 +242,6 @@ static void SendNullRPN(const midi_event_t *event)
     SendControlChange(channel, MIDI_CONTROLLER_RPN_LSB, MIDI_RPN_NULL);
     SendControlChange(channel, MIDI_CONTROLLER_RPN_MSB, MIDI_RPN_NULL);
     channel_used[channel] = true;
-}
-
-static void UpdateTempo(const midi_event_t *event)
-{
-    byte *data = event->data.meta.data;
-    us_per_beat = (data[0] << 16) | (data[1] << 8) | data[2];
-    MIDISeq_RestartTimer(MIDISeq_TicksToUS(midiseq.elapsed_time));
 }
 
 // Writes a master volume message. The value is scaled by the volume slider.
@@ -327,9 +328,7 @@ static void ResetVolume(void)
 
 void MIDISeq_SendNotesSoundOff(void)
 {
-    int i;
-
-    for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
+    for (int i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
     {
         SendControlChange(i, MIDI_CONTROLLER_ALL_NOTES_OFF, 0);
         SendControlChange(i, MIDI_CONTROLLER_ALL_SOUND_OFF, 0);
@@ -341,9 +340,7 @@ void MIDISeq_SendNotesSoundOff(void)
 
 static void ResetNoSysEx(void)
 {
-    int i;
-
-    for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
+    for (int i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
     {
         // Reset commonly used controllers.
         SendControlChange(i, MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
@@ -361,9 +358,7 @@ static void ResetNoSysEx(void)
 
 static void ResetPitchBendSensitivity(void)
 {
-    int i;
-
-    for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
+    for (int i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
     {
         // Set RPN MSB/LSB to pitch bend sensitivity.
         SendControlChange(i, MIDI_CONTROLLER_RPN_LSB, MIDI_RPN_PITCH_BEND_SENS_LSB);
@@ -395,7 +390,7 @@ static void ResetDelayBytes(uint32_t length)
 // Resets the MIDI device. Call this function before each song starts and once
 // at shut down.
 
-void MIDISeq_ResetDevice(void)
+void MIDISeq_ResetDevice(boolean startup)
 {
     // For notes/sound off called prior to this function.
     ResetDelayBytes(96);
@@ -440,7 +435,7 @@ void MIDISeq_ResetDevice(void)
 
     // Reset volume (initial playback or on shutdown if no SysEx reset).
     // Scale by slider on initial playback, max on shutdown.
-    if (midi_state == STATE_STARTUP)
+    if (startup)
     {
         ResetVolume();
         ResetDelayBytes(48);
@@ -459,6 +454,11 @@ void MIDISeq_ResetDevice(void)
     }
 
     memset(channel_used, 0, sizeof(channel_used));
+}
+
+void MIDISeq_SetVolumeFactor(float factor)
+{
+    volume_factor = factor;
 }
 
 static void SendSysExMsg(const midi_event_t *event)
@@ -541,164 +541,12 @@ static void SendSysExMsg(const midi_event_t *event)
     }
 }
 
-// Sets a Final Fantasy or RPG Maker loop point.
+// Native MIDI processing for the vanilla (DMX MPU-401) compatibility level.
 
-static void SetLoopPoint(void)
-{
-    unsigned int i;
-
-    for (i = 0; i < midiseq.num_tracks; ++i)
-    {
-        MIDI_SetLoopPoint(midiseq.tracks[i].iter);
-        midiseq.tracks[i].saved_end_of_track = midiseq.tracks[i].end_of_track;
-        midiseq.tracks[i].saved_elapsed_time = midiseq.tracks[i].elapsed_time;
-    }
-    midiseq.saved_elapsed_time = midiseq.elapsed_time;
-}
-
-// Checks if the MIDI meta message contains a Final Fantasy loop marker.
-
-static void CheckFFLoop(const midi_event_t *event)
-{
-    if (event->data.meta.length == sizeof(ff_loopStart)
-        && !memcmp(event->data.meta.data, ff_loopStart, sizeof(ff_loopStart)))
-    {
-        SetLoopPoint();
-        midiseq.ff_loop = true;
-    }
-    else if (midiseq.ff_loop && event->data.meta.length == sizeof(ff_loopEnd)
-             && !memcmp(event->data.meta.data, ff_loopEnd, sizeof(ff_loopEnd)))
-    {
-        midiseq.ff_restart = true;
-    }
-}
-
-static void SendEMIDI(const midi_event_t *event, midi_track_t *track)
-{
-    unsigned int i;
-    int count;
-
-    switch (event->data.channel.param1)
-    {
-        case EMIDI_CONTROLLER_TRACK_DESIGNATION:
-            break;
-
-        case EMIDI_CONTROLLER_TRACK_EXCLUSION:
-            if (midiseq.rpg_loop)
-            {
-                SetLoopPoint();
-            }
-            break;
-
-        case EMIDI_CONTROLLER_PROGRAM_CHANGE:
-            if (track->emidi_program)
-            {
-                SendProgramChange(event->data.channel.channel,
-                                  event->data.channel.param2);
-            }
-            break;
-
-        case EMIDI_CONTROLLER_VOLUME:
-            if (track->emidi_volume)
-            {
-                SendVolumeMsg(event);
-            }
-            break;
-
-        case EMIDI_CONTROLLER_LOOP_BEGIN:
-            count = event->data.channel.param2;
-            count = (count == 0) ? (-1) : count;
-            track->emidi_loop_count = count;
-            MIDI_SetLoopPoint(track->iter);
-            break;
-
-        case EMIDI_CONTROLLER_LOOP_END:
-            if (event->data.channel.param2 == EMIDI_LOOP_FLAG)
-            {
-                if (track->emidi_loop_count != 0)
-                {
-                    MIDI_RestartAtLoopPoint(track->iter);
-                }
-
-                if (track->emidi_loop_count > 0)
-                {
-                    track->emidi_loop_count--;
-                }
-            }
-            break;
-
-        case EMIDI_CONTROLLER_GLOBAL_LOOP_BEGIN:
-            count = event->data.channel.param2;
-            count = (count == 0) ? (-1) : count;
-            for (i = 0; i < midiseq.num_tracks; ++i)
-            {
-                midiseq.tracks[i].emidi_loop_count = count;
-                MIDI_SetLoopPoint(midiseq.tracks[i].iter);
-                midiseq.tracks[i].saved_end_of_track = midiseq.tracks[i].end_of_track;
-                midiseq.tracks[i].saved_elapsed_time = midiseq.tracks[i].elapsed_time;
-            }
-            midiseq.saved_elapsed_time = midiseq.elapsed_time;
-            break;
-
-        case EMIDI_CONTROLLER_GLOBAL_LOOP_END:
-            if (event->data.channel.param2 == EMIDI_LOOP_FLAG)
-            {
-                for (i = 0; i < midiseq.num_tracks; ++i)
-                {
-                    if (midiseq.tracks[i].emidi_loop_count != 0)
-                    {
-                        MIDI_RestartAtLoopPoint(midiseq.tracks[i].iter);
-                        midiseq.tracks[i].end_of_track = midiseq.tracks[i].saved_end_of_track;
-                        midiseq.tracks[i].elapsed_time = midiseq.tracks[i].saved_elapsed_time;
-                        midiseq.elapsed_time = midiseq.saved_elapsed_time;
-                        MIDISeq_RestartTimer(MIDISeq_TicksToUS(midiseq.elapsed_time));
-                    }
-
-                    if (midiseq.tracks[i].emidi_loop_count > 0)
-                    {
-                        midiseq.tracks[i].emidi_loop_count--;
-                    }
-                }
-            }
-            break;
-    }
-}
-
-static void ProcessMetaEvent(const midi_event_t *event, midi_track_t *track)
-{
-    switch (event->data.meta.type)
-    {
-        case MIDI_META_END_OF_TRACK:
-            track->end_of_track = true;
-            break;
-
-        case MIDI_META_SET_TEMPO:
-            UpdateTempo(event);
-            break;
-
-        case MIDI_META_MARKER:
-            if (midi_complevel != COMP_VANILLA)
-            {
-                CheckFFLoop(event);
-            }
-            break;
-
-        default:
-            break;
-    }
-}
-
-// ProcessEvent function for vanilla (DMX MPU-401) compatibility level. Do not
-// call this function directly. See the ProcessEvent function pointer.
-
-static void ProcessEvent_Vanilla(const midi_event_t *event, midi_track_t *track)
+static void ProcessEvent_Vanilla(const midi_event_t *event)
 {
     switch (event->event_type)
     {
-        case MIDI_EVENT_META:
-            ProcessMetaEvent(event, track);
-            break;
-
         case MIDI_EVENT_CONTROLLER:
             switch (event->data.channel.param1)
             {
@@ -765,31 +613,10 @@ static void ProcessEvent_Vanilla(const midi_event_t *event, midi_track_t *track)
     }
 }
 
-// ProcessEvent function for standard and full MIDI compatibility levels. Do not
-// call this function directly. See the ProcessEvent function pointer.
+// Native MIDI processing for the standard and full compatibility levels.
 
-static void ProcessEvent_Standard(const midi_event_t *event,
-                                  midi_track_t *track)
+static void ProcessEvent_Standard(const midi_event_t *event)
 {
-    switch ((int)event->event_type)
-    {
-        case MIDI_EVENT_SYSEX:
-            if (midi_complevel == COMP_FULL)
-            {
-                SendSysExMsg(event);
-            }
-            return;
-
-        case MIDI_EVENT_META:
-            ProcessMetaEvent(event, track);
-            return;
-    }
-
-    if (!track->emidi_include_track)
-    {
-        return;
-    }
-
     switch (event->event_type)
     {
         case MIDI_EVENT_CONTROLLER:
@@ -809,10 +636,7 @@ static void ProcessEvent_Standard(const midi_event_t *event,
                     break;
 
                 case MIDI_CONTROLLER_VOLUME_MSB:
-                    if (!track->emidi_volume)
-                    {
-                        SendVolumeMsg(event);
-                    }
+                    SendVolumeMsg(event);
                     break;
 
                 case MIDI_CONTROLLER_VOLUME_LSB:
@@ -887,17 +711,6 @@ static void ProcessEvent_Standard(const midi_event_t *event,
                     }
                     break;
 
-                case EMIDI_CONTROLLER_TRACK_DESIGNATION:
-                case EMIDI_CONTROLLER_TRACK_EXCLUSION:
-                case EMIDI_CONTROLLER_PROGRAM_CHANGE:
-                case EMIDI_CONTROLLER_VOLUME:
-                case EMIDI_CONTROLLER_LOOP_BEGIN:
-                case EMIDI_CONTROLLER_LOOP_END:
-                case EMIDI_CONTROLLER_GLOBAL_LOOP_BEGIN:
-                case EMIDI_CONTROLLER_GLOBAL_LOOP_END:
-                    SendEMIDI(event, track);
-                    break;
-
                 case MIDI_CONTROLLER_RESET_ALL_CTRLS:
                     // MS GS Wavetable Synth resets volume if param2 isn't zero.
                     // Per MIDI 1.0 Spec, param2 must be zero.
@@ -936,11 +749,8 @@ static void ProcessEvent_Standard(const midi_event_t *event,
             break;
 
         case MIDI_EVENT_PROGRAM_CHANGE:
-            if (!track->emidi_program)
-            {
-                SendProgramChange(event->data.channel.channel,
-                                  event->data.channel.param1);
-            }
+            SendProgramChange(event->data.channel.channel,
+                              event->data.channel.param1);
             break;
 
         case MIDI_EVENT_AFTERTOUCH:
@@ -962,56 +772,350 @@ static void ProcessEvent_Standard(const midi_event_t *event,
     }
 }
 
-// Function pointer determined by the desired MIDI compatibility level. Set
-// during initialization by the main thread, then called from the MIDI thread
-// only.
+void MIDISeq_NativeEventHandler(const midi_event_t *event)
+{
+    if (event->event_type == MIDI_EVENT_SYSEX)
+    {
+        SendSysExMsg(event);
+        return;
+    }
 
-void (*MIDISeq_ProcessEvent)(const midi_event_t *event,
-                             midi_track_t *track) = ProcessEvent_Standard;
+    if (midi_complevel == COMP_VANILLA)
+    {
+        ProcessEvent_Vanilla(event);
+    }
+    else
+    {
+        ProcessEvent_Standard(event);
+    }
+}
+
+//---------------------------------------------------------------------------
+// Song state
+//---------------------------------------------------------------------------
+
+struct midi_track_s
+{
+    midi_track_iter_t *iter;
+    unsigned int elapsed_time;
+    unsigned int saved_elapsed_time;
+    boolean end_of_track;
+    boolean saved_end_of_track;
+    boolean emidi_include_track;
+    boolean emidi_program;
+    boolean emidi_volume;
+    int emidi_loop_count;
+};
+
+typedef struct
+{
+    midi_file_t *file;
+    midi_track_t *tracks;
+    unsigned int num_tracks;
+    unsigned int elapsed_time;
+    unsigned int saved_elapsed_time;
+    uint64_t time_us;
+    boolean looping;
+    boolean ff_loop;
+    boolean ff_restart;
+    boolean rpg_loop;
+} midi_song_t;
+
+static midi_song_t song;
+
+static midi_event_handler_t event_handler;
+
+// Sets a Final Fantasy or RPG Maker loop point.
+
+static void SetLoopPoint(void)
+{
+    if (song.num_tracks == 0)
+    {
+        return;
+    }
+
+    for (unsigned int i = 0; i < song.num_tracks; ++i)
+    {
+        MIDI_SetLoopPoint(song.tracks[i].iter);
+        song.tracks[i].saved_end_of_track = song.tracks[i].end_of_track;
+        song.tracks[i].saved_elapsed_time = song.tracks[i].elapsed_time;
+    }
+    song.saved_elapsed_time = song.elapsed_time;
+}
+
+// Checks if the MIDI meta message contains a Final Fantasy loop marker.
+
+static void CheckFFLoop(const midi_event_t *event)
+{
+    if (event->data.meta.length == sizeof(ff_loopStart)
+        && !memcmp(event->data.meta.data, ff_loopStart, sizeof(ff_loopStart)))
+    {
+        SetLoopPoint();
+        song.ff_loop = true;
+    }
+    else if (song.ff_loop && event->data.meta.length == sizeof(ff_loopEnd)
+             && !memcmp(event->data.meta.data, ff_loopEnd, sizeof(ff_loopEnd)))
+    {
+        song.ff_restart = true;
+    }
+}
+
+static void ProcessMetaEvent(const midi_event_t *event, midi_track_t *track)
+{
+    switch (event->data.meta.type)
+    {
+        case MIDI_META_END_OF_TRACK:
+            track->end_of_track = true;
+            break;
+
+        case MIDI_META_SET_TEMPO:
+            UpdateTempo(event);
+            break;
+
+        case MIDI_META_MARKER:
+            if (midi_complevel != COMP_VANILLA)
+            {
+                CheckFFLoop(event);
+            }
+            break;
+
+        default:
+            break;
+    }
+}
+
+// Passes a channel event to the backend.
+
+static void DispatchEvent(const midi_event_t *event)
+{
+    channel_used[event->data.channel.channel] = true;
+
+    event_handler(event);
+}
+
+static void SendEMIDIProgramChange(const midi_event_t *event)
+{
+    midi_event_t program = *event;
+
+    program.event_type = MIDI_EVENT_PROGRAM_CHANGE;
+    program.data.channel.param1 = event->data.channel.param2;
+
+    DispatchEvent(&program);
+}
+
+static void SendEMIDIVolume(const midi_event_t *event)
+{
+    midi_event_t volume = *event;
+
+    volume.event_type = MIDI_EVENT_CONTROLLER;
+    volume.data.channel.param1 = MIDI_CONTROLLER_VOLUME_MSB;
+    volume.data.channel.param2 = event->data.channel.param2;
+
+    DispatchEvent(&volume);
+}
+
+// Handles EMIDI control messages. Returns true if the event was consumed.
+
+static boolean ProcessEMIDI(const midi_event_t *event, midi_track_t *track)
+{
+    const unsigned int param2 = event->data.channel.param2;
+    int count;
+
+    switch (event->data.channel.param1)
+    {
+        case EMIDI_CONTROLLER_TRACK_DESIGNATION:
+            return true;
+
+        case EMIDI_CONTROLLER_TRACK_EXCLUSION:
+            if (song.rpg_loop)
+            {
+                SetLoopPoint();
+            }
+            return true;
+
+        case EMIDI_CONTROLLER_PROGRAM_CHANGE:
+            if (track->emidi_program)
+            {
+                SendEMIDIProgramChange(event);
+            }
+            return true;
+
+        case EMIDI_CONTROLLER_VOLUME:
+            if (track->emidi_volume)
+            {
+                SendEMIDIVolume(event);
+            }
+            return true;
+
+        case EMIDI_CONTROLLER_LOOP_BEGIN:
+            count = (param2 == 0) ? -1 : param2;
+            track->emidi_loop_count = count;
+            MIDI_SetLoopPoint(track->iter);
+            return true;
+
+        case EMIDI_CONTROLLER_LOOP_END:
+            if (param2 == EMIDI_LOOP_FLAG)
+            {
+                if (track->emidi_loop_count != 0)
+                {
+                    MIDI_RestartAtLoopPoint(track->iter);
+                }
+
+                if (track->emidi_loop_count > 0)
+                {
+                    track->emidi_loop_count--;
+                }
+            }
+            return true;
+
+        case EMIDI_CONTROLLER_GLOBAL_LOOP_BEGIN:
+            count = (param2 == 0) ? -1 : param2;
+            for (unsigned int i = 0; i < song.num_tracks; ++i)
+            {
+                song.tracks[i].emidi_loop_count = count;
+                MIDI_SetLoopPoint(song.tracks[i].iter);
+                song.tracks[i].saved_end_of_track =
+                    song.tracks[i].end_of_track;
+                song.tracks[i].saved_elapsed_time =
+                    song.tracks[i].elapsed_time;
+            }
+            song.saved_elapsed_time = song.elapsed_time;
+            return true;
+
+        case EMIDI_CONTROLLER_GLOBAL_LOOP_END:
+            if (param2 == EMIDI_LOOP_FLAG)
+            {
+                for (unsigned int i = 0; i < song.num_tracks; ++i)
+                {
+                    if (song.tracks[i].emidi_loop_count != 0)
+                    {
+                        MIDI_RestartAtLoopPoint(song.tracks[i].iter);
+                        song.tracks[i].end_of_track =
+                            song.tracks[i].saved_end_of_track;
+                        song.tracks[i].elapsed_time =
+                            song.tracks[i].saved_elapsed_time;
+                        song.elapsed_time = song.saved_elapsed_time;
+                    }
+
+                    if (song.tracks[i].emidi_loop_count > 0)
+                    {
+                        song.tracks[i].emidi_loop_count--;
+                    }
+                }
+            }
+            return true;
+    }
+
+    return false;
+}
+
+// Sequencer level event processing. Meta events, EMIDI control messages and
+// events of excluded tracks are handled here, the rest is passed to the
+// backend.
+
+static void ProcessEvent(const midi_event_t *event, midi_track_t *track)
+{
+    switch (event->event_type)
+    {
+        case MIDI_EVENT_META:
+            ProcessMetaEvent(event, track);
+            return;
+
+        case MIDI_EVENT_SYSEX:
+            if (midi_complevel == COMP_FULL)
+            {
+                event_handler(event);
+            }
+            return;
+
+        default:
+            break;
+    }
+
+    if (midi_complevel != COMP_VANILLA)
+    {
+        if (!track->emidi_include_track)
+        {
+            return;
+        }
+
+        if (event->event_type == MIDI_EVENT_CONTROLLER)
+        {
+            if (ProcessEMIDI(event, track))
+            {
+                return;
+            }
+
+            if (event->data.channel.param1 == MIDI_CONTROLLER_VOLUME_MSB
+                && track->emidi_volume)
+            {
+                return;
+            }
+        }
+        else if (event->event_type == MIDI_EVENT_PROGRAM_CHANGE
+                 && track->emidi_program)
+        {
+            return;
+        }
+    }
+
+    DispatchEvent(event);
+}
+
+void MIDISeq_SetEventHandler(midi_event_handler_t handler)
+{
+    event_handler = handler;
+}
+
+void MIDISeq_SendEvent(const midi_position_t *position)
+{
+    ProcessEvent(position->event, position->track);
+}
+
+//---------------------------------------------------------------------------
+// Sequencer
+//---------------------------------------------------------------------------
 
 // Restarts a song that uses a Final Fantasy or RPG Maker loop point.
 
 static void RestartLoop(void)
 {
-    unsigned int i;
-
-    for (i = 0; i < midiseq.num_tracks; ++i)
+    if (song.num_tracks == 0)
     {
-        MIDI_RestartAtLoopPoint(midiseq.tracks[i].iter);
-        midiseq.tracks[i].end_of_track = midiseq.tracks[i].saved_end_of_track;
-        midiseq.tracks[i].elapsed_time = midiseq.tracks[i].saved_elapsed_time;
+        return;
     }
-    midiseq.elapsed_time = midiseq.saved_elapsed_time;
-    MIDISeq_RestartTimer(MIDISeq_TicksToUS(midiseq.elapsed_time));
+
+    for (unsigned int i = 0; i < song.num_tracks; ++i)
+    {
+        MIDI_RestartAtLoopPoint(song.tracks[i].iter);
+        song.tracks[i].end_of_track = song.tracks[i].saved_end_of_track;
+        song.tracks[i].elapsed_time = song.tracks[i].saved_elapsed_time;
+    }
+    song.elapsed_time = song.saved_elapsed_time;
 }
 
 // Resets the controllers and volume for each channel, similar to vanilla Doom.
 
 static void ResetControllersVolume(void)
 {
-    if (midi_sysex_volume)
+    midi_event_t event = {0};
+
+    event.event_type = MIDI_EVENT_CONTROLLER;
+    event.data.channel.param2 = 0;
+
+    for (int i = 0; i < MIDI_CHANNELS_PER_TRACK; i++)
     {
-        for (int i = 0; i < MIDI_CHANNELS_PER_TRACK; i++)
+        if (channel_used[i])
         {
-            if (channel_used[i])
-            {
-                SendControlChange(i, MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
-                SendControlChange(i, MIDI_CONTROLLER_VOLUME_MSB,
-                                  MIDI_DEFAULT_VOLUME);
-                channel_used[i] = false;
-            }
-        }
-    }
-    else
-    {
-        for (int i = 0; i < MIDI_CHANNELS_PER_TRACK; i++)
-        {
-            if (channel_used[i])
-            {
-                SendControlChange(i, MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
-                SendManualVolumeMsg(i, MIDI_DEFAULT_VOLUME);
-                channel_used[i] = false;
-            }
+            event.data.channel.channel = i;
+            event.data.channel.param1 = MIDI_CONTROLLER_RESET_ALL_CTRLS;
+            event_handler(&event);
+
+            event.data.channel.param1 = MIDI_CONTROLLER_VOLUME_MSB;
+            event.data.channel.param2 = MIDI_DEFAULT_VOLUME;
+            event_handler(&event);
+
+            channel_used[i] = false;
         }
     }
 }
@@ -1020,105 +1124,126 @@ static void ResetControllersVolume(void)
 
 static void RestartTracks(void)
 {
-    unsigned int i;
-
-    for (i = 0; i < midiseq.num_tracks; ++i)
+    for (unsigned int i = 0; i < song.num_tracks; ++i)
     {
-        MIDI_RestartIterator(midiseq.tracks[i].iter);
-        midiseq.tracks[i].elapsed_time = 0;
-        midiseq.tracks[i].end_of_track = false;
-        midiseq.tracks[i].emidi_loop_count = 0;
+        MIDI_RestartIterator(song.tracks[i].iter);
+        song.tracks[i].elapsed_time = 0;
+        song.tracks[i].end_of_track = false;
+        song.tracks[i].emidi_loop_count = 0;
     }
-    midiseq.elapsed_time = 0;
-    MIDISeq_RestartTimer(0);
+    song.elapsed_time = 0;
 }
 
-// Get the next event from the MIDI file, process it or return if the delta
-// time is > 0.
-
-midi_state_t MIDISeq_NextEvent(midi_position_t *position)
+void MIDISeq_Play(boolean looping)
 {
-    midi_event_t *event = NULL;
-    midi_track_t *track = NULL;
-    unsigned int min_time = UINT_MAX;
-    unsigned int delta_time;
+    song.looping = looping;
+    song.saved_elapsed_time = 0;
+    song.time_us = 0;
+    song.ff_loop = false;
+    song.ff_restart = false;
 
-    // Find next event across all tracks.
-    for (int i = 0; i < midiseq.num_tracks; ++i)
+    RestartTracks();
+}
+
+// Get the next event from the MIDI file. Events with a delta time of zero are
+// processed immediately, the first event with a positive delta time is stored
+// in the position together with the time it must be played at.
+
+boolean MIDISeq_NextEvent(midi_position_t *position)
+{
+    for (;;)
     {
-        if (!midiseq.tracks[i].end_of_track)
+        midi_event_t *event = NULL;
+        midi_track_t *track = NULL;
+        unsigned int min_time = UINT_MAX;
+        unsigned int delta_ticks;
+
+        // Find next event across all tracks.
+        for (unsigned int i = 0; i < song.num_tracks; ++i)
         {
-            unsigned int time = midiseq.tracks[i].elapsed_time
-                                + MIDI_GetDeltaTime(midiseq.tracks[i].iter);
-            if (time < min_time)
+            if (!song.tracks[i].end_of_track)
             {
-                min_time = time;
-                track = &midiseq.tracks[i];
+                const unsigned int time =
+                    song.tracks[i].elapsed_time
+                    + MIDI_GetDeltaTime(song.tracks[i].iter);
+
+                if (time < min_time)
+                {
+                    min_time = time;
+                    track = &song.tracks[i];
+                }
             }
         }
-    }
 
-    // No more events. Restart or stop song.
-    if (track == NULL)
-    {
-        if (midiseq.elapsed_time)
+        // No more events. Restart or stop the song.
+        if (track == NULL)
         {
-            if (midiseq.ff_restart || midiseq.rpg_loop)
+            if (song.elapsed_time)
             {
-                midiseq.ff_restart = false;
-                RestartLoop();
-                return STATE_PLAYING;
+                if (song.ff_restart || song.rpg_loop)
+                {
+                    song.ff_restart = false;
+                    RestartLoop();
+                    continue;
+                }
+                else if (song.looping)
+                {
+                    ResetControllersVolume();
+                    RestartTracks();
+                    continue;
+                }
             }
-            else if (midiseq.looping)
-            {
-                ResetControllersVolume();
-                RestartTracks();
-                return STATE_PLAYING;
-            }
+            return false;
         }
-        return STATE_STOPPED;
+
+        // The playback time is accumulated from the event deltas, so it keeps
+        // running across loop restarts and tempo changes.
+        const uint64_t previous_time_us = TicksToUS(song.elapsed_time);
+
+        track->elapsed_time = min_time;
+        delta_ticks = min_time - song.elapsed_time;
+        song.elapsed_time = min_time;
+
+        if (!MIDI_GetNextEvent(track->iter, &event))
+        {
+            track->end_of_track = true;
+            continue;
+        }
+
+        // Restart FF loop after sending all events that share same
+        // ticks_per_beat.
+        if (song.ff_restart && MIDI_GetDeltaTime(track->iter) > 0)
+        {
+            song.ff_restart = false;
+            RestartLoop();
+            continue;
+        }
+
+        if (!delta_ticks)
+        {
+            ProcessEvent(event, track);
+            continue;
+        }
+
+        song.time_us += TicksToUS(min_time) - previous_time_us;
+
+        position->event = event;
+        position->track = track;
+        position->time_us = song.time_us;
+
+        return true;
     }
-
-    track->elapsed_time = min_time;
-    delta_time = min_time - midiseq.elapsed_time;
-    midiseq.elapsed_time = min_time;
-
-    if (!MIDI_GetNextEvent(track->iter, &event))
-    {
-        track->end_of_track = true;
-        return STATE_PLAYING;
-    }
-
-    // Restart FF loop after sending all events that share same ticks_per_beat.
-    if (midiseq.ff_restart && MIDI_GetDeltaTime(track->iter) > 0)
-    {
-        midiseq.ff_restart = false;
-        RestartLoop();
-        return STATE_PLAYING;
-    }
-
-    if (!delta_time)
-    {
-        MIDISeq_ProcessEvent(event, track);
-        return STATE_PLAYING;
-    }
-
-    position->track = track;
-    position->event = event;
-    return STATE_WAITING;
 }
 
 static void InitEMIDI(void)
 {
-    unsigned int i;
-
-    for (i = 0; i < midiseq.num_tracks; i++)
+    for (unsigned int i = 0; i < song.num_tracks; i++)
     {
-        midi_track_t *track = &midiseq.tracks[i];
+        midi_track_t *track = &song.tracks[i];
         unsigned int elapsed_time = 0;
         boolean designated = false;
 
-        while (1)
+        for (;;)
         {
             midi_event_t *event;
 
@@ -1174,87 +1299,84 @@ static void InitEMIDI(void)
             }
         }
 
-        MIDI_RestartIterator(midiseq.tracks[i].iter);
+        MIDI_RestartIterator(song.tracks[i].iter);
     }
 }
 
-boolean MIDISeq_RegisterSong(void)
+void MIDISeq_UnregisterSong(void)
 {
-    if (IsMid(midiseq.lump_data, midiseq.lump_length))
+    if (song.tracks)
     {
-        midiseq.file = MIDI_LoadFile(midiseq.lump_data, midiseq.lump_length);
+        for (unsigned int i = 0; i < song.num_tracks; ++i)
+        {
+            MIDI_FreeIterator(song.tracks[i].iter);
+        }
+        free(song.tracks);
+    }
+
+    if (song.file)
+    {
+        MIDI_FreeFile(song.file);
+    }
+
+    memset(&song, 0, sizeof(song));
+
+    ticks_per_beat = 1;
+    us_per_beat = MIDI_DEFAULT_TEMPO;
+}
+
+boolean MIDISeq_RegisterSong(void *data, int length)
+{
+    MIDISeq_UnregisterSong();
+
+    if (IsMid(data, length))
+    {
+        song.file = MIDI_LoadFile(data, length);
     }
     else
     {
         // Assume a MUS file and try to convert
-        MEMFILE *instream;
-        MEMFILE *outstream;
+        MEMFILE *instream = mem_fopen_read(data, length);
+        MEMFILE *outstream = mem_fopen_write();
         void *outbuf;
         size_t outbuf_len;
-
-        instream = mem_fopen_read(midiseq.lump_data, midiseq.lump_length);
-        outstream = mem_fopen_write();
 
         if (mus2mid(instream, outstream) == 0)
         {
             mem_get_buf(outstream, &outbuf, &outbuf_len);
-            midiseq.file = MIDI_LoadFile(outbuf, outbuf_len);
-        }
-        else
-        {
-            midiseq.file = NULL;
+            song.file = MIDI_LoadFile(outbuf, outbuf_len);
         }
 
         mem_fclose(instream);
         mem_fclose(outstream);
     }
 
-    if (midiseq.file == NULL)
+    if (song.file == NULL)
     {
-        I_Printf(VB_ERROR, "I_MID_RegisterSong: Failed to load MID.");
+        I_Printf(VB_ERROR, "MIDISeq_RegisterSong: Failed to load song.");
         return false;
     }
 
-    ticks_per_beat = MIDI_GetFileTimeDivision(midiseq.file);
+    ticks_per_beat = MIDI_GetFileTimeDivision(song.file);
     us_per_beat = MIDI_DEFAULT_TEMPO;
 
-    midiseq.num_tracks = MIDI_NumTracks(midiseq.file);
-    midiseq.tracks = calloc(midiseq.num_tracks, sizeof(midi_track_t));
-    for (uint16_t i = 0; i < midiseq.num_tracks; i++)
+    song.num_tracks = MIDI_NumTracks(song.file);
+    song.tracks = calloc(song.num_tracks, sizeof(midi_track_t));
+
+    for (unsigned int i = 0; i < song.num_tracks; ++i)
     {
-        midiseq.tracks[i].iter = MIDI_IterateTrack(midiseq.file, i);
-        midiseq.tracks[i].emidi_include_track = true;
+        song.tracks[i].iter = MIDI_IterateTrack(song.file, i);
+        song.tracks[i].emidi_include_track = true;
     }
 
-    midiseq.rpg_loop = MIDI_RPGLoop(midiseq.file);
+    song.rpg_loop = MIDI_RPGLoop(song.file);
 
-    if (!midiseq.rpg_loop)
+    if (!song.rpg_loop)
     {
         InitEMIDI();
     }
 
     return true;
-}
-
-void MIDISeq_SetComplevel(void)
-{
-    switch (midi_complevel)
-    {
-        case COMP_VANILLA:
-            MIDISeq_ProcessEvent = ProcessEvent_Vanilla;
-            allow_bank_select = false;
-            break;
-
-        case COMP_STANDARD:
-            MIDISeq_ProcessEvent = ProcessEvent_Standard;
-            allow_bank_select = (midi_reset_type != RESET_TYPE_GM);
-            break;
-
-        case COMP_FULL:
-            MIDISeq_ProcessEvent = ProcessEvent_Standard;
-            allow_bank_select = true;
-            break;
-    }
 }
 
 void MIDISeq_BindVariables(void)

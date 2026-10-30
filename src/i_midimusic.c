@@ -13,10 +13,9 @@
 // GNU General Public License for more details.
 //
 // DESCRIPTION:
-//
+//      Native MIDI backend.
 
 #include <math.h>
-#include <stdlib.h>
 
 #include "doomtype.h"
 #include "i_printf.h"
@@ -26,8 +25,16 @@
 #include "m_array.h"
 #include "m_config.h"
 #include "midiout.h"
-#include "midifile.h"
 #include "midiseq.h"
+
+typedef enum
+{
+    STATE_STARTUP,
+    STATE_PLAYING,
+    STATE_PAUSING,
+    STATE_STOPPED,
+    STATE_PAUSED
+} midi_state_t;
 
 static thread_t *player_thread_handle;
 static mutex_t *music_lock;
@@ -35,13 +42,46 @@ static atomicint_t player_thread_running;
 
 static boolean music_initialized;
 
-midiseq_t midiseq;
+static midi_state_t midi_state;
+static midi_state_t old_state;
+
+static void *song_data;
+static int song_length;
+static boolean song_looping;
+
+// Wall clock of the current song, excluding paused time.
+
+static uint64_t start_time, pause_time;
+
+static void RestartTimer(uint64_t offset)
+{
+    if (pause_time)
+    {
+        start_time += (I_GetTimeUS() - pause_time);
+        pause_time = 0;
+    }
+    else
+    {
+        start_time = I_GetTimeUS() - offset;
+    }
+}
+
+static void PauseTimer(void)
+{
+    pause_time = I_GetTimeUS();
+}
+
+static uint64_t CurrentTime(void)
+{
+    return I_GetTimeUS() - start_time;
+}
 
 static int PlayerThread(void *unused)
 {
     I_SetCurrentThreadPriority();
 
-    midi_position_t position = {0};
+    midi_position_t position;
+    boolean pending = false;
     boolean sleep = false;
 
     while (I_AtomicLoad(&player_thread_running))
@@ -60,39 +100,43 @@ static int PlayerThread(void *unused)
         switch (midi_state)
         {
             case STATE_STARTUP:
-                if (!MIDISeq_RegisterSong())
+                if (!MIDISeq_RegisterSong(song_data, song_length))
                 {
                     midi_state = STATE_STOPPED;
                     break;
                 }
-                MIDISeq_ResetDevice();
+                MIDISeq_ResetDevice(true);
+                MIDISeq_Play(song_looping);
+                RestartTimer(0);
                 midi_state = STATE_PLAYING;
-                MIDISeq_RestartTimer(0);
                 break;
 
             case STATE_PLAYING:
-                midi_state = MIDISeq_NextEvent(&position);
+                if (!pending)
+                {
+                    if (!MIDISeq_NextEvent(&position))
+                    {
+                        midi_state = STATE_STOPPED;
+                        break;
+                    }
+                    pending = true;
+                }
+
+                if ((int64_t)position.time_us - (int64_t)CurrentTime() > 1000)
+                {
+                    sleep = true;
+                    break;
+                }
+
+                MIDISeq_SendEvent(&position);
+                pending = false;
                 break;
 
             case STATE_PAUSING:
                 // Send notes/sound off to prevent hanging notes.
                 MIDISeq_SendNotesSoundOff();
-                MIDISeq_PauseTimer();
+                PauseTimer();
                 midi_state = STATE_PAUSED;
-                break;
-
-            case STATE_WAITING:
-                {
-                    int64_t remaining_time =
-                        MIDISeq_TicksToUS(midiseq.elapsed_time) - MIDISeq_CurrentTime();
-                    if (remaining_time > 1000)
-                    {
-                        sleep = true;
-                        break;
-                    }
-                    MIDISeq_ProcessEvent(position.event, position.track);
-                    midi_state = STATE_PLAYING;
-                }
                 break;
 
             case STATE_STOPPED:
@@ -148,6 +192,8 @@ static boolean I_MID_InitMusic(int device)
         return false;
     }
 
+    MIDISeq_SetEventHandler(MIDISeq_NativeEventHandler);
+
     music_initialized = true;
 
     I_Printf(VB_INFO, "MIDI Init: Using '%s'.", midi_devices[device]);
@@ -157,14 +203,12 @@ static boolean I_MID_InitMusic(int device)
 
 static int midi_gain = 100;
 
-static midi_state_t old_state;
-
 // MIDI CC#7 volume formula (GM Level 1 Developer Guidelines, page 9).
 #define MIDI_DB_TO_GAIN(db) powf(10.0f, (db) / 40.0f)
 
 static void UpdateVolumeFactor(int volume)
 {
-    volume_factor = volume / 15.0f * MIDI_DB_TO_GAIN(midi_gain);
+    MIDISeq_SetVolumeFactor(volume / 15.0f * MIDI_DB_TO_GAIN(midi_gain));
 }
 
 static void I_MID_SetMusicVolume(int volume)
@@ -204,7 +248,7 @@ static void I_MID_PlaySong(void *handle, boolean looping)
     }
 
     I_AtomicExchange(&player_thread_running, 1);
-    midiseq.looping = looping;
+    song_looping = looping;
     midi_state = STATE_STARTUP;
     music_lock = I_MutexCreate();
     player_thread_handle = I_ThreadCreate(PlayerThread, "MIDI", NULL);
@@ -233,7 +277,7 @@ static void I_MID_ResumeSong(void *handle)
     I_MutexLock(music_lock);
     if (midi_state == STATE_PAUSED)
     {
-        MIDISeq_RestartTimer(0);
+        RestartTimer(0);
         midi_state = old_state;
     }
     I_MutexUnlock(music_lock);
@@ -261,8 +305,8 @@ static void *I_MID_RegisterSong(void *data, int len)
         return NULL;
     }
 
-    midiseq.lump_data = data;
-    midiseq.lump_length = len;
+    song_data = data;
+    song_length = len;
 
     return (void *)1;
 }
@@ -274,31 +318,10 @@ static void I_MID_UnRegisterSong(void *handle)
         return;
     }
 
-    if (midiseq.tracks)
-    {
-        unsigned int i;
-        for (i = 0; i < midiseq.num_tracks; ++i)
-        {
-            MIDI_FreeIterator(midiseq.tracks[i].iter);
-            midiseq.tracks[i].iter = NULL;
-        }
-        free(midiseq.tracks);
-        midiseq.tracks = NULL;
-    }
-    if (midiseq.file)
-    {
-        MIDI_FreeFile(midiseq.file);
-        midiseq.file = NULL;
-    }
-    midiseq.lump_data = NULL;
-    midiseq.lump_length = 0;
-    midiseq.elapsed_time = 0;
-    midiseq.saved_elapsed_time = 0;
-    midiseq.num_tracks = 0;
-    midiseq.looping = false;
-    midiseq.ff_loop = false;
-    midiseq.ff_restart = false;
-    midiseq.rpg_loop = false;
+    MIDISeq_UnregisterSong();
+
+    song_data = NULL;
+    song_length = 0;
 }
 
 static void I_MID_ShutdownMusic(void)
@@ -311,7 +334,7 @@ static void I_MID_ShutdownMusic(void)
     I_MID_StopSong(NULL);
     I_MID_UnRegisterSong(NULL);
 
-    MIDISeq_ResetDevice();
+    MIDISeq_ResetDevice(false);
 
     MIDI_CloseDevice();
 
