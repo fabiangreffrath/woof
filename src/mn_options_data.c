@@ -298,11 +298,8 @@ static const char *percent_strings[] = {
 };
 
 static mn_item_t audio_general_items[] = {
-    MN_SLIDER_ACT("Sound Volume", "sfx_volume", 8, MN_OptionsUpdateSfxVolume,
-                  "Sound Volume:\n\nAdjusts the volume of sound effects."),
-    MN_SLIDER_ACT("Music Volume", "music_volume", 8,
-                  MN_OptionsUpdateMusicVolume,
-                  "Music Volume:\n\nAdjusts the volume of background music."),
+    MN_SLIDER_ACT("Sound Volume", "sfx_volume", 8, MN_OptionsUpdateSfxVolume, NULL),
+    MN_SLIDER_ACT("Music Volume", "music_volume", 8, MN_OptionsUpdateMusicVolume, NULL),
     MN_GAP(6),
     MN_TITLE("Output"),
     MN_CHOICE_ACT(
@@ -328,8 +325,7 @@ static mn_item_t audio_general_items[] = {
      .getchoices = MN_GetMidiPlayerStrings,
      .choice_size = 18,
      .action = MN_OptionsSetMidiPlayer,
-     .flags = MN_ITEM_DEFER_ACTION | MN_ITEM_TWO_LINES,
-     .description = "MIDI Player:\n\nSelects the MIDI playback device."},
+     .flags = MN_ITEM_DEFER_ACTION | MN_ITEM_TWO_LINES},
     MN_RESET,
     MN_END
 };

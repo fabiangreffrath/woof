@@ -74,11 +74,7 @@ boolean MN_MenuIsShaded(void);
 
 void MN_CloseMenu(void);
 
-extern const char *skill_strings[];
-
 void M_SaveAutoSave(void);
-
-void MN_InitFreeLook(void);
 
 void M_StartSound(int sound_id);
 
