@@ -30,6 +30,7 @@
 #include "m_config.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 // Define the number of buffers and buffer size (in milliseconds) to use. 4
 // buffers with 4096 samples each gives a nice per-chunk size, and lets the
