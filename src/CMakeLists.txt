@@ -120,6 +120,7 @@ set(WOOF_SOURCES
     midifallback.c         midifallback.h
     midifile.c             midifile.h
     midiout.c              midiout.h
+    midiseq.c              midiseq.h
     mus2mid.c              mus2mid.h
     nano_bsp.c             nano_bsp.h
     nw_client.c            nw_client.h
