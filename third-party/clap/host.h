@@ -1,28 +1,3 @@
-/*
- * CLAP - CLever Audio Plugin
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~
- *
- * Copyright (c) 2014...2022 Alexandre BIQUE <bique.alexandre@gmail.com>
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
-
 #pragma once
 
 #include "version.h"
@@ -32,18 +7,43 @@ extern "C" {
 #endif
 
 typedef struct clap_host {
-    clap_version_t clap_version;
-    void *host_data;
+   clap_version_t clap_version; // initialized to CLAP_VERSION
 
-    const char *name;
-    const char *vendor;
-    const char *url;
-    const char *version;
+   void *host_data; // reserved pointer for the host
 
-    const void *(CLAP_ABI *get_extension)(const struct clap_host *host, const char *extension_id);
-    void(CLAP_ABI *request_restart)(const struct clap_host *host);
-    void(CLAP_ABI *request_process)(const struct clap_host *host);
-    void(CLAP_ABI *request_callback)(const struct clap_host *host);
+   // name and version are mandatory.
+   const char *name;    // eg: "Bitwig Studio"
+   const char *vendor;  // eg: "Bitwig GmbH"
+   const char *url;     // eg: "https://bitwig.com"
+   const char *version; // eg: "4.3", see plugin.h for advice on how to format the version
+
+   // Query an extension, returns null if not supported.
+   // The returned pointer is owned by the host and is valid until after the call to plugin->destroy()
+   // It is forbidden to call it before plugin->init().
+   // You can call it within plugin->init() call, and after.
+   // [thread-safe]
+   const void *(CLAP_ABI *get_extension)(const struct clap_host *host, const char *extension_id);
+
+   // Request the host to deactivate and then reactivate the plugin.
+   // The operation may be delayed by the host.
+   // [thread-safe]
+   void(CLAP_ABI *request_restart)(const struct clap_host *host);
+
+   // Request the host to activate and start processing the plugin.
+   // This is useful if you have external IO and need to wake up the plugin from "sleep".
+   // [thread-safe]
+   void(CLAP_ABI *request_process)(const struct clap_host *host);
+
+   // Request the host to schedule a call to plugin->on_main_thread(plugin) on the main thread.
+   // This callback should be called as soon as practicable, usually in the host application's next
+   // available main thread time slice. Typically callbacks occur within 33ms / 30hz.
+   // Despite this guidance, plugins should not make assumptions about the exactness of timing for
+   // a main thread callback, but hosts should endeavour to be prompt. For example, in high load
+   // situations the environment may starve the gui/main thread in favor of audio processing,
+   // leading to substantially longer latencies for the callback than the indicative times given
+   // here.
+   // [thread-safe]
+   void(CLAP_ABI *request_callback)(const struct clap_host *host);
 } clap_host_t;
 
 #ifdef __cplusplus

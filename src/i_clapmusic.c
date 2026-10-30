@@ -12,7 +12,7 @@
 // GNU General Public License for more details.
 //
 // DESCRIPTION:
-//      CLAP plugin host for MIDI music playback (Nuked-SC55 support)
+//      CLAP plugin host for MIDI music playback
 //
 
 #include <stddef.h>
@@ -23,6 +23,7 @@
 
 #include "d_iwad.h"
 #include "doomtype.h"
+#include "i_glob.h"
 #include "i_oalstream.h"
 #include "i_printf.h"
 #include "i_sound.h"
@@ -34,7 +35,6 @@
 #define CLAP_MAX_FRAMES     8192
 #define CLAP_BUFFER_SAMPLES 4096
 
-static const char *clap_plugin_name = "Nuked-SC55.clap";
 static const char *music_format;
 
 typedef struct
@@ -78,6 +78,7 @@ typedef struct
 typedef struct
 {
     clap_plugin_instance_t *plugin;
+    clap_library_t *library;
     clap_event_list_t event_list;
 
     midi_position_t position;
@@ -94,9 +95,31 @@ typedef struct
 
 static clap_stream_t clap_stream = {0};
 static boolean clap_initialized = false;
-static const char **clap_devices = NULL;
+static const char **clap_plugins = NULL;
 
 static clap_host_t clap_host;
+
+static const void *ClapHostGetExtension(const clap_host_t *host, const char *extension_id)
+{
+    (void)host;
+    (void)extension_id;
+    return NULL;
+}
+
+static void ClapHostRequestRestart(const clap_host_t *host)
+{
+    (void)host;
+}
+
+static void ClapHostRequestProcess(const clap_host_t *host)
+{
+    (void)host;
+}
+
+static void ClapHostRequestCallback(const clap_host_t *host)
+{
+    (void)host;
+}
 
 static void InitClapHost(void)
 {
@@ -106,17 +129,91 @@ static void InitClapHost(void)
     clap_host.vendor = "The Woof Project Team";
     clap_host.url = "https://github.com/fabiangreffrath/woof";
     clap_host.version = "1.0";
-    clap_host.get_extension = NULL;
-    clap_host.request_restart = NULL;
-    clap_host.request_process = NULL;
-    clap_host.request_callback = NULL;
+    clap_host.get_extension = ClapHostGetExtension;
+    clap_host.request_restart = ClapHostRequestRestart;
+    clap_host.request_process = ClapHostRequestProcess;
+    clap_host.request_callback = ClapHostRequestCallback;
 }
 
 static void I_CLAP_CloseStream(void);
 
+static boolean LoadClapLibrary(clap_library_t *lib, const char *path);
+
+static void ScanPluginsDir(const char *dir)
+{
+    I_Printf(VB_DEBUG, "Scanning for CLAP plugins in %s", dir);
+
+    glob_t *glob = I_StartMultiGlob(dir, GLOB_FLAG_NOCASE | GLOB_FLAG_SORTED,
+                                    "*.clap");
+
+    while (1)
+    {
+        const char *filename = I_NextGlob(glob);
+
+        if (filename == NULL)
+        {
+            break;
+        }
+
+        array_push(clap_plugins, M_StringDuplicate(filename));
+    }
+
+    I_EndGlob(glob);
+}
+
+static void GetClapPlugins(void)
+{
+    if (array_size(clap_plugins))
+    {
+        return;
+    }
+
+    const constructed_dir_t constructed_dirs[] = {
+        {D_DoomPrefDir, "plugins", NULL, true},
+        {D_DoomExeDir, "plugins", D_DoomPrefDir},
+#if !defined(_WIN32)
+        {M_DataDir, "plugins"},
+        {NULL, "/usr/lib/clap"},
+        {NULL, "/usr/local/lib/clap"},
+        {D_DoomExeDir, "../share/" PROJECT_SHORTNAME "/plugins"},
+#endif
+    };
+
+    for (int i = 0; i < arrlen(constructed_dirs); ++i)
+    {
+        const constructed_dir_t d = constructed_dirs[i];
+
+        if (d.check_func && d.func && d.check_func() == d.func())
+        {
+            continue;
+        }
+
+        if (d.func && d.dir)
+        {
+            char *dir = M_StringJoin(d.func(), DIR_SEPARATOR_S, d.dir);
+            ScanPluginsDir(dir);
+            free(dir);
+        }
+        else if (d.dir)
+        {
+            ScanPluginsDir(d.dir);
+        }
+        else if (d.func)
+        {
+            ScanPluginsDir(d.func());
+        }
+    }
+}
+    
 static boolean LoadClapLibrary(clap_library_t *lib, const char *path)
 {
     lib->handle = I_LoadObject(path);
+
+    if (!lib->handle)
+    {
+        I_Printf(VB_ERROR, "CLAP: Failed to load plugin library '%s'", path);
+        return false;
+    }
 
     lib->entry = I_LoadFunction(lib->handle, "clap_entry");
     if (!lib->entry)
@@ -521,8 +618,6 @@ static clap_output_events_t clap_output_events = {
 
 static boolean I_CLAP_InitStream(int device)
 {
-    (void)device;
-
     if (clap_initialized)
     {
         return true;
@@ -530,29 +625,27 @@ static boolean I_CLAP_InitStream(int device)
 
     InitClapHost();
 
-    char *plugin_path = M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, "plugins",
-                                     DIR_SEPARATOR_S, clap_plugin_name);
-    if (!plugin_path)
+    GetClapPlugins();
+
+    if (device >= array_size(clap_plugins))
     {
-        I_Printf(VB_ERROR, "CLAP: Failed to determine plugin path");
+        I_Printf(VB_ERROR, "CLAP: Invalid plugin device index %d", device);
         return false;
     }
+
+    const char *plugin_path = clap_plugins[device];
 
     clap_library_t *lib = calloc(1, sizeof(clap_library_t));
     if (!lib)
     {
-        free(plugin_path);
         return false;
     }
 
     if (!LoadClapLibrary(lib, plugin_path))
     {
         free(lib);
-        free(plugin_path);
         return false;
     }
-
-    free(plugin_path);
 
     uint32_t plugin_count = lib->factory->get_plugin_count(lib->factory);
     boolean found = false;
@@ -569,8 +662,6 @@ static boolean I_CLAP_InitStream(int device)
         boolean has_instrument = false;
         boolean has_synthesizer = false;
         boolean has_stereo = false;
-
-        Printf("%s", desc->name);
 
         if (desc->features)
         {
@@ -606,12 +697,13 @@ static boolean I_CLAP_InitStream(int device)
 
     if (!found)
     {
-        I_Printf(VB_ERROR, "CLAP: No suitable instrument plugin found");
+        I_Printf(VB_ERROR, "CLAP: No suitable instrument plugin found in '%s'", plugin_path);
         UnloadClapLibrary(lib);
         free(lib);
         return false;
     }
 
+    clap_stream.library = lib;
     ClapEventListInit(&clap_stream.event_list);
     clap_initialized = true;
 
@@ -655,7 +747,23 @@ static void I_CLAP_ShutdownStream(void)
         clap_stream.plugin = NULL;
     }
 
+    if (clap_stream.library)
+    {
+        UnloadClapLibrary(clap_stream.library);
+        free(clap_stream.library);
+        clap_stream.library = NULL;
+    }
+
     ClapEventListFree(&clap_stream.event_list);
+    
+    // Free the plugin list
+    for (int i = 0; i < array_size(clap_plugins); ++i)
+    {
+        free((char *)clap_plugins[i]);
+    }
+    array_free(clap_plugins);
+    clap_plugins = NULL;
+
     clap_initialized = false;
 }
 
@@ -858,7 +966,15 @@ static const char **I_CLAP_DeviceList(void)
         return devices;
     }
 
-    array_push(devices, "CLAP: Nuked-SC55");
+    GetClapPlugins();
+
+    for (int i = 0; i < array_size(clap_plugins); ++i)
+    {
+        char *name = M_StringDuplicate(M_BaseName(clap_plugins[i]));
+        array_push(devices, M_StringJoin("CLAP: ", name));
+        free(name);
+    }
+
     return devices;
 }
 

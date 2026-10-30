@@ -244,11 +244,10 @@ target_link_libraries(
             sha1
             opl
             textscreen
+            clap
 )
 
 target_include_directories(woof PRIVATE "${MINIMP3_INCLUDE_DIRS}/minimp3")
-
-target_include_directories(woof PRIVATE "${CLAP_INCLUDE_DIRS}")
 
 # Some platforms require standard libraries to be linked against.
 if(HAVE_LIBM)
