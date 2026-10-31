@@ -25,6 +25,7 @@
 #include "i_sound.h"
 #include "m_config.h"
 #include "mn_menu.h"
+#include "mn_options.h"
 
 #define EQF(T, ptr) ((ALFUNC(T, ptr)) != NULL)
 
@@ -322,11 +323,11 @@ void I_OAL_EqualizerPreset(void)
 
     snd_equalizer = default_equalizer;
     I_OAL_SetEqualizer();
-    MN_UpdateEqualizerItems();
+    MN_OptionsEqualizerPreset();
 }
 
 #define BIND_NUM_EQ(name, default_name, v, a, b, help) \
-    M_BindNum(#name, &default_name, &name, (v), (a), (b), ss_eq, wad_no, help)
+    M_BindNum(#name, &default_name, &name, (v), (a), (b), wad_no, help)
 
 void I_BindEqualizerVariables(void)
 {

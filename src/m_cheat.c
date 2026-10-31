@@ -35,11 +35,9 @@
 #include "g_umapinfo.h"
 #include "info.h"
 #include "m_cheat.h"
-#include "m_array.h"
 #include "m_fixed.h"
 #include "m_input.h"
 #include "m_misc.h"
-#include "mn_menu.h"
 #include "p_action.h"
 #include "p_inter.h"
 #include "p_map.h"
@@ -79,8 +77,6 @@ static void cheat_clev0(void);
 static void cheat_mypos(void);
 static void cheat_comp(char *buf);
 static void cheat_comp0(void);
-static void cheat_skill(char *buf);
-static void cheat_skill0(void);
 static void cheat_friction(void);
 static void cheat_pushers(void);
 static void cheat_tran(void);
@@ -207,12 +203,6 @@ cheat_sequence_t cheats_table[] = {
 
   {"comp",    NULL,                   not_net | not_demo | not_menu,
    {.v = cheat_comp0} },
-
-  {"skill",    NULL,                  not_net | not_demo | not_menu,
-   {.s = cheat_skill}, -1 },
-
-  {"skill",    NULL,                  not_net | not_demo | not_menu,
-   {.v = cheat_skill0} },
 
   {"killem",     NULL,                not_net | not_demo,
    {.v = cheat_massacre} },   // jff 2/01/98 kill all monsters
@@ -737,24 +727,6 @@ static void cheat_friction(void)
   displaymsg(            // Ty 03/27/98 - *not* externalized
     (variable_friction = !variable_friction) ? "Variable Friction enabled" :
                                                "Variable Friction disabled");
-}
-
-static void cheat_skill0(void)
-{
-  displaymsg("Skill: %s", skill_strings[gameskill]);
-}
-
-static void cheat_skill(char *buf)
-{
-  int skill = buf[0] - '0';
-
-  if (skill >= 1 && skill <= num_og_skills)
-  {
-    gameskill = skill - 1;
-    displaymsg("Next Level Skill: %s", skill_strings[gameskill]);
-
-    G_RefreshGameSkill();
-  }
 }
 
 // Pusher cheat

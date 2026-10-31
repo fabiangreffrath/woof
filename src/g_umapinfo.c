@@ -31,6 +31,7 @@
 #include "m_misc.h"
 #include "m_scanner.h"
 #include "m_swap.h"
+#include "mn_font.h"
 #include "mn_menu.h"
 #include "p_spec.h"
 #include "p_tick.h"

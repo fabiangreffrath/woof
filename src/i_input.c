@@ -36,7 +36,7 @@
 #include "m_config.h"
 #include "m_input.h"
 #include "m_misc.h"
-#include "mn_menu.h"
+#include "mn_options.h"
 
 #define AXIS_BUTTON_DEADZONE (SDL_JOYSTICK_AXIS_MAX / 3)
 
@@ -504,7 +504,7 @@ void I_InitGamepad(void)
             }
             else
             {
-                MN_UpdateAllGamepadItems();
+                MN_OptionsUpdateAllGamepadItems();
             }
         }
 
@@ -512,7 +512,7 @@ void I_InitGamepad(void)
     }
     else
     {
-        MN_UpdateAllGamepadItems();
+        MN_OptionsUpdateAllGamepadItems();
     }
 
     last_joy_device = joy_device;
@@ -534,7 +534,7 @@ static boolean CheckActiveGamepad(void)
             {
                 joy_device = i + 1;
                 last_joy_device = joy_device;
-                MN_UpdateAllGamepadItems();
+                MN_OptionsUpdateAllGamepadItems();
                 active_gamepad = true;
                 break;
             }
@@ -600,7 +600,7 @@ void I_OpenGamepad(SDL_JoystickID instance_id)
                  SDL_GetError());
     }
 
-    MN_UpdateAllGamepadItems();
+    MN_OptionsUpdateAllGamepadItems();
 }
 
 void I_CloseGamepad(SDL_JoystickID instance_id)
@@ -625,7 +625,7 @@ void I_CloseGamepad(SDL_JoystickID instance_id)
         }
     }
 
-    MN_UpdateAllGamepadItems();
+    MN_OptionsUpdateAllGamepadItems();
 }
 
 void I_UpdateGamepadDevice(boolean gamepad_input)
@@ -647,7 +647,7 @@ void I_UpdateGamepadDevice(boolean gamepad_input)
     }
     else
     {
-        MN_UpdateAllGamepadItems();
+        MN_OptionsUpdateAllGamepadItems();
     }
 }
 

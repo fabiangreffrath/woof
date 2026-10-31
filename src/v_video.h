@@ -71,6 +71,10 @@ void V_ScaleRect(vrect_t *rect);
 int V_ScaleX(int x);
 int V_ScaleY(int y);
 
+// Vertical clipping for UI drawing.
+void V_SetClipY(int top, int bottom);
+void V_ResetClipY(void);
+
 // Allocates buffer screens, call before R_Init.
 void V_Init(void);
 
@@ -94,6 +98,12 @@ extern crop_t no_crop;
 // On-screen patch drawing functions for specific purposes
 
 void V_DrawPatch(
+    int x,
+    int y,
+    const patch_t *patch
+);
+
+void V_DrawPatchDirect(
     int x,
     int y,
     const patch_t *patch

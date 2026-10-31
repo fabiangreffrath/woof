@@ -61,18 +61,6 @@ void MN_AddEpisode(const char *map, const char *gfx, const char *txt, char key);
 void MN_ClearEpisodes(void);
 
 void MN_ForcedLoadGame(const char *msg); // killough 5/15/98: forced loadgames
-void MN_SetupResetMenu(void);
-void MN_UpdateFreeLook(void);
-void MN_UpdateAllGamepadItems(void);
-void MN_UpdateEqualizerItems(void);
-void MN_UpdateAdvancedSoundItems(boolean toggle);
-void MN_SetHUFontKerning(void);
-void MN_DisableVoxelsRenderingItem(void);
-void MN_DisableBrightmapsItem(void);
-void MN_UpdateDynamicResolutionItem(void);
-void MN_DisableResolutionScaleItem(void);
-void MN_UpdateFpsLimitItem(void);
-void MN_UpdateHudAnchoringItem(void);
 
 typedef enum
 {
@@ -84,44 +72,11 @@ typedef enum
 extern backdrop_t menu_backdrop;
 boolean MN_MenuIsShaded(void);
 
-extern int savepage;
-
-extern const char *skill_strings[];
-extern const char *widescreen_strings[];
+void MN_CloseMenu(void);
 
 void M_SaveAutoSave(void);
 
-void MN_InitMenuStrings(void);
-void MN_InitFreeLook(void);
-
-boolean MN_StartsWithMapIdentifier(char *str);
-
-int MN_StringWidth(const char *string);
-int MN_GetPixelWidth(const char *ch);
-void MN_DrawString(int cx, int cy, int color, const char *ch);
-
 void M_StartSound(int sound_id);
-
-void MN_BindMenuVariables(void);
-
-extern boolean csmenu_skill;
-
-typedef struct csmenu_s
-{
-    boolean fastparm;
-    boolean respawnparm;
-    boolean nomonsters;
-    boolean coopspawns;
-    boolean pistolstart;
-    boolean halfplayerdamage;
-    boolean doubleammo;
-    boolean aggromonsters;
-    int helperdogs;
-} csmenu_t;
-
-extern csmenu_t csmenu;
-
-void M_InitCustomSkill(void);
 
 #endif
 

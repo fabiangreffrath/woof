@@ -22,6 +22,7 @@
 #include "i_timer.h"
 #include "m_config.h"
 #include "m_input.h"
+#include "mn_options.h"
 #include "r_main.h"
 #include "ws_stuff.h"
 
@@ -226,6 +227,7 @@ void WS_Init(void)
     WS_UpdateSelection();
     WS_UpdateSlots();
     WS_Reset();
+    MN_OptionsUpdateWeaponSlotLabels();
 }
 
 //
@@ -738,21 +740,18 @@ weapontype_t WS_SlotWeapon(void)
 // WS_BindVariables
 //
 
-#define BIND_NUM_WEAP(name, v, a, b, help) \
-    M_BindNum(#name, &name, NULL, (v), (a), (b), ss_weap, wad_no, help)
-
-#define BIND_SLOT(name, v, help) \
-    BIND_NUM_WEAP(name, (v), WS_TYPE_NONE, NUM_WS_TYPES - 1, help)
-
 void WS_BindVariables(void)
 {
-    BIND_NUM_WEAP(weapon_slots_activation,
+    BIND_NUM(weapon_slots_activation,
         WS_OFF, WS_OFF, NUM_WS_ACTIVATION - 1,
         "Weapon slots activation (0 = Off; 1 = Hold \"Last\"; 2 = Always On)");
 
-    BIND_NUM_WEAP(weapon_slots_selection,
+    BIND_NUM(weapon_slots_selection,
         WS_SELECT_DPAD, WS_SELECT_DPAD, NUM_WS_SELECT - 1,
         "Weapon slots selection (0 = D-Pad; 1 = Face Buttons; 2 = 1-4 Keys)");
+
+#define BIND_SLOT(name, v, help) \
+    BIND_NUM(name, (v), WS_TYPE_NONE, NUM_WS_TYPES - 1, help)
 
     BIND_SLOT(weapon_slots_1_1, WS_TYPE_SSG,      "Slot 1, weapon 1");
     BIND_SLOT(weapon_slots_1_2, WS_TYPE_SHOTGUN,  "Slot 1, weapon 2");
@@ -769,4 +768,5 @@ void WS_BindVariables(void)
     BIND_SLOT(weapon_slots_4_1, WS_TYPE_CHAINGUN, "Slot 4, weapon 1");
     BIND_SLOT(weapon_slots_4_2, WS_TYPE_PISTOL,   "Slot 4, weapon 2");
     BIND_SLOT(weapon_slots_4_3, WS_TYPE_NONE,     "Slot 4, weapon 3");
+#undef BIND_SLOT
 }
