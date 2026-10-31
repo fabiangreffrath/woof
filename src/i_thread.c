@@ -83,3 +83,29 @@ int I_AtomicDecrement(atomicint_t *atomic, int val)
 {
     return SDL_AddAtomicInt((SDL_AtomicInt *)atomic, -val);
 }
+
+mutex_t *I_MutexCreate(void)
+{
+    return SDL_CreateMutex();
+}
+
+void I_MutexLock(mutex_t *mutex)
+{
+    SDL_LockMutex(mutex);
+}
+
+void I_MutexUnlock(mutex_t *mutex)
+{
+    SDL_UnlockMutex(mutex);
+}
+
+void I_MutexDestroy(mutex_t *mutex)
+{
+    SDL_DestroyMutex(mutex);
+}
+
+void I_SetCurrentThreadPriority(void)
+{
+    SDL_SetCurrentThreadPriority(SDL_THREAD_PRIORITY_TIME_CRITICAL);
+}
+

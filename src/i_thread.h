@@ -47,4 +47,16 @@ int I_AtomicIncrement(atomicint_t *atomic, int val);
 
 int I_AtomicDecrement(atomicint_t *atomic, int val);
 
+typedef struct SDL_Mutex mutex_t;
+
+mutex_t *I_MutexCreate(void);
+
+void I_MutexLock(mutex_t *mutex);
+
+void I_MutexUnlock(mutex_t *mutex);
+
+void I_MutexDestroy(mutex_t *mutex);
+
+void I_SetCurrentThreadPriority(void);
+
 #endif

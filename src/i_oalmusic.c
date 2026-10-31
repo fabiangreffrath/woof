@@ -14,21 +14,23 @@
 // DESCRIPTION:
 //
 
-#include <SDL3/SDL.h>
 #include "al.h"
 #include "alc.h"
 #include "alext.h"
 #include "ebur128.h"
-
-#include <stdlib.h>
 
 #include "doomtype.h"
 #include "i_oalcommon.h"
 #include "i_oalstream.h"
 #include "i_printf.h"
 #include "i_sound.h"
+#include "i_timer.h"
+#include "i_thread.h"
 #include "m_array.h"
 #include "m_config.h"
+
+#include <stdlib.h>
+#include <string.h>
 
 // Define the number of buffers and buffer size (in milliseconds) to use. 4
 // buffers with 4096 samples each gives a nice per-chunk size, and lets the
@@ -42,6 +44,7 @@ static stream_module_t *all_modules[] =
     &stream_fl_module,
 #endif
     &stream_opl_module,
+    &stream_clap_module,
 #if defined (HAVE_SNDFILE)
     &stream_snd_module,
 #endif
@@ -68,6 +71,7 @@ static stream_module_t *midi_modules[] =
     &stream_fl_module,
 #endif
     &stream_opl_module,
+    &stream_clap_module
 };
 
 static stream_module_t *active_module;
@@ -95,8 +99,8 @@ typedef struct
 
 static stream_player_t player;
 
-static SDL_Thread *player_thread_handle;
-static SDL_AtomicInt player_thread_running;
+static thread_t *player_thread_handle;
+static atomicint_t player_thread_running;
 
 static boolean music_initialized;
 
@@ -348,18 +352,18 @@ static boolean StartPlayer(void)
 
 static int PlayerThread(void *unused)
 {
-    SDL_SetCurrentThreadPriority(SDL_THREAD_PRIORITY_TIME_CRITICAL);
+    I_SetCurrentThreadPriority();
 
     StartPlayer();
 
-    while (SDL_GetAtomicInt(&player_thread_running))
+    while (I_AtomicLoad(&player_thread_running))
     {
         if (!UpdatePlayer())
         {
-            SDL_SetAtomicInt(&player_thread_running, 0);
+            I_AtomicExchange(&player_thread_running, 0);
         }
 
-        SDL_Delay(1);
+        I_Sleep(1);
     }
 
     return 0;
@@ -522,21 +526,21 @@ static void I_OAL_PlaySong(void *handle, boolean looping)
         }
     }
 
-    SDL_SetAtomicInt(&player_thread_running, 1);
-    player_thread_handle = SDL_CreateThread(PlayerThread, NULL, NULL);
+    I_AtomicExchange(&player_thread_running, 1);
+    player_thread_handle = I_ThreadCreate(PlayerThread, "OAL Music", NULL);
 }
 
 static void I_OAL_StopSong(void *handle)
 {
-    if (!music_initialized || !SDL_GetAtomicInt(&player_thread_running))
+    if (!music_initialized || !I_AtomicLoad(&player_thread_running))
     {
         return;
     }
 
     alSourceStop(player.source);
 
-    SDL_SetAtomicInt(&player_thread_running, 0);
-    SDL_WaitThread(player_thread_handle, NULL);
+    I_AtomicExchange(&player_thread_running, 0);
+    I_ThreadJoin(player_thread_handle);
 
     if (alGetError() != AL_NO_ERROR)
     {

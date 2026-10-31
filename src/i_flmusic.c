@@ -39,7 +39,8 @@ typedef fluid_long_long_t fluid_int_t;
 #include "m_io.h"
 #include "m_misc.h"
 #include "memio.h"
-#include "mus2mid.h"
+#include "mididevice.h"
+#include "midiseq.h"
 #include "w_wad.h"
 #include "z_zone.h"
 
@@ -60,7 +61,15 @@ static int fl_note_cut;
 
 static fluid_synth_t *synth = NULL;
 static fluid_settings_t *settings = NULL;
-static fluid_player_t *player = NULL;
+
+// The sequencer is driven by the audio stream: the song position is the number
+// of frames rendered since the start of playback.
+
+static boolean song_loaded;
+static midi_position_t position;
+static uint64_t song_frames;
+static boolean event_pending;
+static boolean song_finished;
 
 static const char **soundfonts = NULL;
 static int interp_method;
@@ -257,6 +266,8 @@ static void I_FL_Log_Debug(int level, const char *message, void *data)
     I_Printf(VB_DEBUG, "FluidSynth: \"%s\"", message);
 }
 
+static void I_FL_EventHandler(const midi_event_t *event);
+
 static boolean I_FL_InitStream(int device)
 {
     int sf_id;
@@ -351,68 +362,84 @@ static boolean I_FL_InitStream(int device)
     I_Printf(VB_INFO, "FluidSynth Init: Using '%s'.",
              lumpnum >= 0 ? "SNDFONT lump" : soundfonts[device]);
 
+    MIDISeq_SetEventHandler(I_FL_EventHandler);
+
     return true;
 }
 
 static const char *music_format = "Unknown";
 
+// Maps a song event onto the synthesizer. Unlike native MIDI output, the events
+// are sent as is: FluidSynth is a General MIDI synth which handles bank select
+// and instrument fallback itself.
+
+static void I_FL_EventHandler(const midi_event_t *event)
+{
+    if (event->event_type == MIDI_EVENT_SYSEX)
+    {
+        // SysEx is disabled for the synth, see "synth.device-id".
+        return;
+    }
+
+    const int channel = event->data.channel.channel;
+
+    switch (event->event_type)
+    {
+        case MIDI_EVENT_NOTE_OFF:
+            fluid_synth_noteoff(synth, channel, event->data.channel.param1);
+            break;
+        case MIDI_EVENT_NOTE_ON:
+            fluid_synth_noteon(synth, channel, event->data.channel.param1,
+                               event->data.channel.param2);
+            break;
+        case MIDI_EVENT_CONTROLLER:
+            fluid_synth_cc(synth, channel, event->data.channel.param1,
+                           event->data.channel.param2);
+            break;
+        case MIDI_EVENT_PROGRAM_CHANGE:
+            fluid_synth_program_change(synth, channel,
+                                       event->data.channel.param1);
+            break;
+        case MIDI_EVENT_PITCH_BEND:
+            fluid_synth_pitch_bend(synth, channel,
+                                   event->data.channel.param1
+                                       | (event->data.channel.param2 << 7));
+            break;
+        case MIDI_EVENT_CHAN_AFTERTOUCH:
+            fluid_synth_channel_pressure(synth, channel,
+                                         event->data.channel.param1);
+            break;
+        case MIDI_EVENT_AFTERTOUCH:
+            fluid_synth_key_pressure(synth, channel,
+                                     event->data.channel.param1,
+                                     event->data.channel.param2);
+            break;
+        default:
+            break;
+    }
+}
+
 static boolean I_FL_OpenStream(void *data, ALsizei size, ALenum *format,
                                ALsizei *freq, ALsizei *frame_size)
 {
-    if (!IsMid(data, size) && !IsMus(data, size))
-    {
-        return false;
-    }
-
     if (!synth)
     {
         return false;
     }
 
-    int result = FLUID_FAILED;
-
-    player = new_fluid_player(synth);
-
-    if (player == NULL)
+    if (!IsMid(data, size) && !IsMus(data, size))
     {
-        I_Printf(VB_ERROR, "FluidSynth: Failed to initialize player.");
         return false;
     }
 
-    if (IsMid(data, size))
+    if (!MIDISeq_RegisterSong(data, size))
     {
-        result = fluid_player_add_mem(player, data, size);
-        music_format = "MIDI (FluidSynth)";
-    }
-    else
-    {
-        // Assume a MUS file and try to convert
-        MEMFILE *instream;
-        MEMFILE *outstream;
-        void *outbuf;
-        size_t outbuf_len;
-
-        instream = mem_fopen_read(data, size);
-        outstream = mem_fopen_write();
-
-        if (mus2mid(instream, outstream) == 0)
-        {
-            mem_get_buf(outstream, &outbuf, &outbuf_len);
-            result = fluid_player_add_mem(player, outbuf, outbuf_len);
-        }
-
-        mem_fclose(instream);
-        mem_fclose(outstream);
-        music_format = "MUS (FluidSynth)";
-    }
-
-    if (result != FLUID_OK)
-    {
-        delete_fluid_player(player);
-        player = NULL;
-        I_Printf(VB_ERROR, "FluidSynth: Failed to load in-memory song.");
         return false;
     }
+
+    music_format = IsMid(data, size) ? "MIDI (FluidSynth)" : "MUS (FluidSynth)";
+
+    song_loaded = true;
 
     *format = AL_FORMAT_STEREO_FLOAT32;
     *freq = SND_SAMPLERATE;
@@ -421,16 +448,76 @@ static boolean I_FL_OpenStream(void *data, ALsizei size, ALenum *format,
     return true;
 }
 
-static int I_FL_FillStream(void *buffer, int buffer_samples)
+static uint64_t USToFrames(uint64_t us)
 {
-    int result;
+    return (us * SND_SAMPLERATE + 500000) / 1000000;
+}
 
-    result = fluid_synth_write_float(synth, buffer_samples, buffer, 0, 2,
-                                     buffer, 1, 2);
-
-    if (result != FLUID_OK)
+static void RenderFrames(float *buffer, int frames)
+{
+    if (fluid_synth_write_float(synth, frames, buffer, 0, 2, buffer, 1, 2)
+        != FLUID_OK)
     {
         I_Printf(VB_ERROR, "FluidSynth: Error generating audio");
+    }
+}
+
+// Renders the stream, sending the song events to the synth at the exact frame
+// at which they are due.
+
+static int I_FL_FillStream(void *buffer, int buffer_samples)
+{
+    if (!synth)
+    {
+        memset(buffer, 0, buffer_samples * 2 * sizeof(float));
+        return buffer_samples;
+    }
+
+    float *out = buffer;
+    int frames_left = buffer_samples;
+
+    while (frames_left > 0)
+    {
+        if (!event_pending && !song_finished)
+        {
+            if (MIDISeq_NextEvent(&position))
+            {
+                event_pending = true;
+            }
+            else
+            {
+                song_finished = true;
+            }
+        }
+
+        int frames = frames_left;
+
+        if (event_pending)
+        {
+            const uint64_t event_frame = USToFrames(position.time_us);
+
+            if (event_frame > song_frames)
+            {
+                const uint64_t wait = event_frame - song_frames;
+
+                if (wait < (uint64_t)frames)
+                {
+                    frames = (int)wait;
+                }
+            }
+            else
+            {
+                MIDISeq_SendEvent(&position);
+                event_pending = false;
+                continue;
+            }
+        }
+
+        RenderFrames(out, frames);
+
+        out += frames * 2;
+        song_frames += frames;
+        frames_left -= frames;
     }
 
     return buffer_samples;
@@ -438,30 +525,39 @@ static int I_FL_FillStream(void *buffer, int buffer_samples)
 
 static void I_FL_PlayStream(boolean looping)
 {
-    if (!player)
+    if (!synth || !song_loaded)
     {
         return;
     }
 
     fluid_synth_set_interp_method(synth, -1, interp_method);
-    fluid_player_set_loop(player, looping ? -1 : 1);
-    fluid_player_play(player);
+
+    // The output volume is applied by OpenAL, not by the sequencer.
+    MIDIDevice_SetVolumeFactor(1.0f);
+
+    fluid_synth_system_reset(synth);
+
+    MIDISeq_Play(looping);
+
+    song_frames = 0;
+    event_pending = false;
+    song_finished = false;
 }
 
 static void I_FL_CloseStream(void)
 {
-    if (!player || !synth)
+    if (!synth)
     {
         return;
     }
 
-    fluid_player_stop(player);
+    MIDISeq_UnregisterSong();
+    song_loaded = false;
+    event_pending = false;
+    song_finished = true;
 
     fluid_synth_program_reset(synth);
     fluid_synth_system_reset(synth);
-
-    delete_fluid_player(player);
-    player = NULL;
 }
 
 static void I_FL_ShutdownStream(void)
