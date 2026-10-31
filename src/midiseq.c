@@ -13,66 +13,29 @@
 // GNU General Public License for more details.
 //
 // DESCRIPTION:
-//      MIDI/MUS song sequencing and native MIDI output.
+//      MIDI/MUS song sequencing.
 
 #include <limits.h>
-#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "doomtype.h"
 #include "i_printf.h"
 #include "i_sound.h"
-#include "i_timer.h"
 #include "m_config.h"
 #include "memio.h"
-#include "midifallback.h"
 #include "midifile.h"
 #include "midiseq.h"
-#include "midiout.h"
 #include "mus2mid.h"
 
 //---------------------------------------------------------------------------
 // Settings
 //---------------------------------------------------------------------------
 
-enum
-{
-    RESET_TYPE_NO_SYSEX,
-    RESET_TYPE_GM,
-    RESET_TYPE_GS,
-    RESET_TYPE_XG,
-    RESET_NUM,
-};
+// The compatibility level also changes how the song is sequenced: the vanilla
+// level ignores EMIDI and Final Fantasy loop markers.
 
-enum
-{
-    COMP_VANILLA,
-    COMP_STANDARD,
-    COMP_FULL,
-    COMP_NUM,
-};
-
-static int midi_complevel = COMP_STANDARD;
-static int midi_reset_type = RESET_TYPE_GM;
-static int midi_reset_delay = -1;
-static boolean midi_ctf = true;
-static boolean midi_sysex_volume = false;
-
-static const byte gm_system_on[] =
-{
-    0xF0, 0x7E, 0x7F, 0x09, 0x01, 0xF7
-};
-
-static const byte gs_reset[] =
-{
-    0xF0, 0x41, 0x10, 0x42, 0x12, 0x40, 0x00, 0x7F, 0x00, 0x41, 0xF7
-};
-
-static const byte xg_system_on[] =
-{
-    0xF0, 0x43, 0x10, 0x4C, 0x00, 0x00, 0x7E, 0x00, 0xF7
-};
+static int midi_complevel = MIDI_COMP_STANDARD;
 
 static const byte ff_loopStart[] =
 {
@@ -102,692 +65,6 @@ static void UpdateTempo(const midi_event_t *event)
 {
     const byte *data = event->data.meta.data;
     us_per_beat = (data[0] << 16) | (data[1] << 8) | data[2];
-}
-
-//---------------------------------------------------------------------------
-// Native MIDI output
-//---------------------------------------------------------------------------
-
-static boolean channel_used[MIDI_CHANNELS_PER_TRACK];
-static byte channel_volume[MIDI_CHANNELS_PER_TRACK];
-static uint16_t master_volume;
-static float volume_factor = 1.0f;
-
-// Bank select is dropped for devices that run in General MIDI mode.
-
-static boolean AllowBankSelect(void)
-{
-    switch (midi_complevel)
-    {
-        case COMP_VANILLA:
-            return false;
-
-        case COMP_FULL:
-            return true;
-
-        default:
-            return midi_reset_type != RESET_TYPE_GM;
-    }
-}
-
-// Sends a channel message with the second parameter overridden to zero. Only
-// use this function for events that require special handling.
-
-static void SendChannelMsgZero(const midi_event_t *event)
-{
-    const byte message[] = {event->event_type | event->data.channel.channel,
-                            event->data.channel.param1, 0};
-    MIDI_SendShortMsg(message, sizeof(message));
-    channel_used[event->data.channel.channel] = true;
-}
-
-static void SendChannelMsg(const midi_event_t *event, boolean use_param2)
-{
-    if (use_param2)
-    {
-        const byte message[] = {event->event_type | event->data.channel.channel,
-                                event->data.channel.param1,
-                                event->data.channel.param2};
-        MIDI_SendShortMsg(message, sizeof(message));
-    }
-    else
-    {
-        const byte message[] = {event->event_type | event->data.channel.channel,
-                                event->data.channel.param1};
-        MIDI_SendShortMsg(message, sizeof(message));
-    }
-
-    channel_used[event->data.channel.channel] = true;
-}
-
-static void SendControlChange(byte channel, byte number, byte value)
-{
-    const byte message[] = {MIDI_EVENT_CONTROLLER | channel, number, value};
-    MIDI_SendShortMsg(message, sizeof(message));
-}
-
-// Writes a MIDI program change message. If applicable, emulates capital tone
-// fallback (CTF) to fix invalid instruments.
-
-static void SendProgramChange(byte channel, byte program)
-{
-    byte message[] = {MIDI_EVENT_PROGRAM_CHANGE | channel, program};
-
-    if (midi_ctf)
-    {
-        const midi_fallback_t fallback = MIDI_ProgramFallback(channel, program);
-
-        if (fallback.type == FALLBACK_DRUMS)
-        {
-            message[1] = fallback.value;
-        }
-        else if (fallback.type == FALLBACK_BANK_MSB)
-        {
-            SendControlChange(channel, MIDI_CONTROLLER_BANK_SELECT_MSB,
-                              fallback.value);
-        }
-    }
-
-    MIDI_SendShortMsg(message, sizeof(message));
-    channel_used[channel] = true;
-}
-
-static void SendBankSelectMSB(byte channel, byte value)
-{
-    if (AllowBankSelect())
-    {
-        if (midi_ctf)
-        {
-            MIDI_UpdateBankMSB(channel, value);
-        }
-    }
-    else
-    {
-        value = 0;
-    }
-
-    SendControlChange(channel, MIDI_CONTROLLER_BANK_SELECT_MSB, value);
-    channel_used[channel] = true;
-}
-
-static void SendBankSelectLSB(byte channel, byte value)
-{
-    if (AllowBankSelect())
-    {
-        if (midi_ctf)
-        {
-            const midi_fallback_t fallback =
-                MIDI_BankLSBFallback(channel, value);
-
-            if (fallback.type == FALLBACK_BANK_LSB)
-            {
-                value = fallback.value;
-            }
-        }
-    }
-    else
-    {
-        value = 0;
-    }
-
-    SendControlChange(channel, MIDI_CONTROLLER_BANK_SELECT_LSB, value);
-    channel_used[channel] = true;
-}
-
-// Writes an RPN message set to NULL (0x7F). Prevents accidental data entry.
-
-static void SendNullRPN(const midi_event_t *event)
-{
-    const byte channel = event->data.channel.channel;
-    SendControlChange(channel, MIDI_CONTROLLER_RPN_LSB, MIDI_RPN_NULL);
-    SendControlChange(channel, MIDI_CONTROLLER_RPN_MSB, MIDI_RPN_NULL);
-    channel_used[channel] = true;
-}
-
-// Writes a master volume message. The value is scaled by the volume slider.
-
-static void SendMasterVolumeMsg(uint16_t volume)
-{
-    uint32_t scaled_volume = lroundf((float)volume * volume_factor);
-    scaled_volume = MIN(scaled_volume, MIDI_DEFAULT_MASTER_VOLUME);
-
-    const byte lsb = scaled_volume & 0x7F;
-    const byte msb = (scaled_volume >> 7) & 0x7F;
-    const byte data[] = {0xF0, 0x7F, 0x7F, 0x04, 0x01, lsb, msb, 0xF7};
-    MIDI_SendLongMsg(data, sizeof(data));
-
-    master_volume = volume;
-}
-
-// Writes a MIDI volume message. The value is scaled by the volume slider.
-
-static void SendManualVolumeMsg(byte channel, byte volume)
-{
-    unsigned int scaled_volume;
-
-    scaled_volume = lroundf((float)volume * volume_factor);
-    scaled_volume = MIN(scaled_volume, 127);
-
-    SendControlChange(channel, MIDI_CONTROLLER_VOLUME_MSB, scaled_volume);
-
-    channel_volume[channel] = volume;
-}
-
-static void SendVolumeMsg(const midi_event_t *event)
-{
-    if (midi_sysex_volume)
-    {
-        SendChannelMsg(event, true);
-    }
-    else
-    {
-        SendManualVolumeMsg(event->data.channel.channel,
-                            event->data.channel.param2);
-    }
-
-    channel_used[event->data.channel.channel] = true;
-}
-
-// Sets each channel to its saved volume level, scaled by the volume slider.
-
-void MIDISeq_UpdateVolume(void)
-{
-    if (midi_sysex_volume)
-    {
-        SendMasterVolumeMsg(master_volume);
-    }
-    else
-    {
-        for (int i = 0; i < MIDI_CHANNELS_PER_TRACK; i++)
-        {
-            SendManualVolumeMsg(i, channel_volume[i]);
-        }
-    }
-}
-
-// Sets each channel to the default volume level, scaled by the volume slider.
-
-static void ResetVolume(void)
-{
-    if (midi_sysex_volume)
-    {
-        SendMasterVolumeMsg(MIDI_DEFAULT_MASTER_VOLUME);
-    }
-    else
-    {
-        for (int i = 0; i < MIDI_CHANNELS_PER_TRACK; i++)
-        {
-            SendManualVolumeMsg(i, MIDI_DEFAULT_VOLUME);
-        }
-    }
-}
-
-// Writes "notes off" and "sound off" messages for each channel. Some devices
-// may support only one or the other. Held notes (sustained, etc.) are released
-// to prevent hanging notes.
-
-void MIDISeq_SendNotesSoundOff(void)
-{
-    for (int i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
-    {
-        SendControlChange(i, MIDI_CONTROLLER_ALL_NOTES_OFF, 0);
-        SendControlChange(i, MIDI_CONTROLLER_ALL_SOUND_OFF, 0);
-    }
-}
-
-// Resets commonly used controllers. This is only for a reset type of "No SysEx"
-// for devices that don't support SysEx resets.
-
-static void ResetNoSysEx(void)
-{
-    for (int i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
-    {
-        // Reset commonly used controllers.
-        SendControlChange(i, MIDI_CONTROLLER_RESET_ALL_CTRLS, 0);
-        SendControlChange(i, MIDI_CONTROLLER_PAN, 64);
-        SendControlChange(i, MIDI_CONTROLLER_BANK_SELECT_MSB, 0);
-        SendControlChange(i, MIDI_CONTROLLER_BANK_SELECT_LSB, 0);
-        SendProgramChange(i, 0);
-        SendControlChange(i, MIDI_CONTROLLER_REVERB, 40);
-        SendControlChange(i, MIDI_CONTROLLER_CHORUS, 0);
-    }
-}
-
-// Resets the pitch bend sensitivity for each channel. This must be sent during
-// a reset due to an MS GS Wavetable Synth bug.
-
-static void ResetPitchBendSensitivity(void)
-{
-    for (int i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
-    {
-        // Set RPN MSB/LSB to pitch bend sensitivity.
-        SendControlChange(i, MIDI_CONTROLLER_RPN_LSB, MIDI_RPN_PITCH_BEND_SENS_LSB);
-        SendControlChange(i, MIDI_CONTROLLER_RPN_MSB, MIDI_RPN_MSB);
-
-        // Reset pitch bend sensitivity to +/- 2 semitones and 0 cents.
-        SendControlChange(i, MIDI_CONTROLLER_DATA_ENTRY_MSB, 2);
-        SendControlChange(i, MIDI_CONTROLLER_DATA_ENTRY_LSB, 0);
-
-        // Set RPN MSB/LSB to null value after data entry.
-        SendControlChange(i, MIDI_CONTROLLER_RPN_LSB, MIDI_RPN_NULL);
-        SendControlChange(i, MIDI_CONTROLLER_RPN_MSB, MIDI_RPN_NULL);
-    }
-}
-
-// Wait time based on bytes sent to the device. For compatibility with hardware
-// devices (e.g. SC-55).
-
-static void ResetDelayBytes(uint32_t length)
-{
-    if (midi_reset_delay == -1)
-    {
-        // MIDI transfer period is 320 us per byte (MIDI 1.0 Electrical Spec
-        // Update CA-033, page 2).
-        I_SleepUS(320 * length);
-    }
-}
-
-// Resets the MIDI device. Call this function before each song starts and once
-// at shut down.
-
-void MIDISeq_ResetDevice(boolean startup)
-{
-    // For notes/sound off called prior to this function.
-    ResetDelayBytes(96);
-
-    if (midi_ctf)
-    {
-        MIDI_ResetFallback();
-    }
-
-    switch (midi_reset_type)
-    {
-        case RESET_TYPE_NO_SYSEX:
-            ResetNoSysEx();
-            ResetDelayBytes(320);
-            break;
-
-        case RESET_TYPE_GS:
-            MIDI_SendLongMsg(gs_reset, sizeof(gs_reset));
-            ResetDelayBytes(sizeof(gs_reset));
-            break;
-
-        case RESET_TYPE_XG:
-            MIDI_SendLongMsg(xg_system_on, sizeof(xg_system_on));
-            ResetDelayBytes(sizeof(xg_system_on));
-            break;
-
-        default:
-            MIDI_SendLongMsg(gm_system_on, sizeof(gm_system_on));
-            ResetDelayBytes(sizeof(gm_system_on));
-            break;
-    }
-
-    // Roland/Yamaha require an additional ~50 ms to execute a SysEx reset.
-    if (midi_reset_delay == -1 && midi_reset_type != RESET_TYPE_NO_SYSEX)
-    {
-        I_Sleep(60);
-    }
-
-    // MS GS Wavetable Synth doesn't reset pitch bend sensitivity.
-    ResetPitchBendSensitivity();
-    ResetDelayBytes(288);
-
-    // Reset volume (initial playback or on shutdown if no SysEx reset).
-    // Scale by slider on initial playback, max on shutdown.
-    if (startup)
-    {
-        ResetVolume();
-        ResetDelayBytes(48);
-    }
-    else if (midi_reset_type == RESET_TYPE_NO_SYSEX)
-    {
-        volume_factor = 1.0f;
-        ResetVolume();
-        ResetDelayBytes(48);
-    }
-
-    // Send delay after reset. This is for hardware devices only (e.g. SC-55).
-    if (midi_reset_delay > 0)
-    {
-        I_Sleep(midi_reset_delay);
-    }
-
-    memset(channel_used, 0, sizeof(channel_used));
-}
-
-void MIDISeq_SetVolumeFactor(float factor)
-{
-    volume_factor = factor;
-}
-
-static void SendSysExMsg(const midi_event_t *event)
-{
-    const byte *data = event->data.sysex.data;
-    const unsigned int length = event->data.sysex.length;
-
-    switch (event->data.sysex.type)
-    {
-        case MIDI_SYSEX_RESET:
-            if (midi_ctf)
-            {
-                MIDI_ResetFallback();
-            }
-            MIDI_SendLongMsg(data, length);
-            ResetVolume();
-            memset(channel_used, 0, sizeof(channel_used));
-            break;
-
-        case MIDI_SYSEX_MASTER_VOLUME:
-            if (midi_sysex_volume)
-            {
-                const uint16_t volume =
-                    ((data[6] & 0x7F) << 7) | (data[5] & 0x7F);
-                SendMasterVolumeMsg(volume);
-            }
-            else
-            {
-                MIDI_SendLongMsg(data, length);
-            }
-            break;
-
-        case MIDI_SYSEX_MASTER_VOLUME_ROLAND:
-            if (midi_sysex_volume)
-            {
-                const uint16_t volume = (data[8] & 0x7F) << 7;
-                SendMasterVolumeMsg(volume);
-            }
-            else
-            {
-                MIDI_SendLongMsg(data, length);
-            }
-            break;
-
-        case MIDI_SYSEX_MASTER_VOLUME_YAMAHA:
-            if (midi_sysex_volume)
-            {
-                const uint16_t volume = (data[7] & 0x7F) << 7;
-                SendMasterVolumeMsg(volume);
-            }
-            else
-            {
-                MIDI_SendLongMsg(data, length);
-            }
-            break;
-
-        case MIDI_SYSEX_RHYTHM_PART:
-            if (midi_ctf)
-            {
-                MIDI_UpdateDrumMap(event->data.sysex.channel, data[8]);
-            }
-            // Fall through.
-
-        case MIDI_SYSEX_OTHER:
-            MIDI_SendLongMsg(data, length);
-            break;
-
-        case MIDI_SYSEX_PART_LEVEL:
-            if (midi_sysex_volume)
-            {
-                MIDI_SendLongMsg(data, length);
-            }
-            else
-            {
-                // Replace SysEx part level message with channel volume message.
-                SendManualVolumeMsg(event->data.sysex.channel, data[8]);
-            }
-            channel_used[event->data.sysex.channel] = true;
-            break;
-    }
-}
-
-// Native MIDI processing for the vanilla (DMX MPU-401) compatibility level.
-
-static void ProcessEvent_Vanilla(const midi_event_t *event)
-{
-    switch (event->event_type)
-    {
-        case MIDI_EVENT_CONTROLLER:
-            switch (event->data.channel.param1)
-            {
-                case MIDI_CONTROLLER_BANK_SELECT_MSB:
-                    // DMX has broken bank select support and runs in GM mode.
-                    // Actual behavior (MSB is okay):
-                    //SendBankSelectMSB(event->data.channel.channel,
-                    //                  event->data.channel.param2);
-                    SendBankSelectMSB(event->data.channel.channel, 0);
-                    break;
-
-                case MIDI_CONTROLLER_BANK_SELECT_LSB:
-                    // DMX has broken bank select support and runs in GM mode.
-                    // Actual behavior (LSB is sent as MSB!):
-                    //SendBankSelectMSB(event->data.channel.channel,
-                    //                  event->data.channel.param2);
-                    SendBankSelectLSB(event->data.channel.channel, 0);
-                    break;
-
-                case MIDI_CONTROLLER_MODULATION:
-                case MIDI_CONTROLLER_PAN:
-                case MIDI_CONTROLLER_EXPRESSION:
-                case MIDI_CONTROLLER_HOLD1_PEDAL:
-                case MIDI_CONTROLLER_SOFT_PEDAL:
-                case MIDI_CONTROLLER_REVERB:
-                case MIDI_CONTROLLER_CHORUS:
-                    SendChannelMsg(event, true);
-                    break;
-
-                case MIDI_CONTROLLER_VOLUME_MSB:
-                    SendVolumeMsg(event);
-                    break;
-
-                case MIDI_CONTROLLER_RESET_ALL_CTRLS:
-                    // MS GS Wavetable Synth resets volume if param2 isn't zero.
-                    // Per MIDI 1.0 Spec, param2 must be zero.
-                    SendChannelMsgZero(event);
-                    break;
-
-                case MIDI_CONTROLLER_ALL_SOUND_OFF:
-                case MIDI_CONTROLLER_ALL_NOTES_OFF:
-                    // Per MIDI 1.0 Spec, param2 must be zero.
-                    SendChannelMsgZero(event);
-                    break;
-
-                default:
-                    break;
-            }
-            break;
-
-        case MIDI_EVENT_NOTE_OFF:
-        case MIDI_EVENT_NOTE_ON:
-        case MIDI_EVENT_PITCH_BEND:
-            SendChannelMsg(event, true);
-            break;
-
-        case MIDI_EVENT_PROGRAM_CHANGE:
-            SendProgramChange(event->data.channel.channel,
-                              event->data.channel.param1);
-            break;
-
-        default:
-            break;
-    }
-}
-
-// Native MIDI processing for the standard and full compatibility levels.
-
-static void ProcessEvent_Standard(const midi_event_t *event)
-{
-    switch (event->event_type)
-    {
-        case MIDI_EVENT_CONTROLLER:
-            switch (event->data.channel.param1)
-            {
-                case MIDI_CONTROLLER_MODULATION:
-                case MIDI_CONTROLLER_DATA_ENTRY_MSB:
-                case MIDI_CONTROLLER_PAN:
-                case MIDI_CONTROLLER_EXPRESSION:
-                case MIDI_CONTROLLER_DATA_ENTRY_LSB:
-                case MIDI_CONTROLLER_HOLD1_PEDAL:
-                case MIDI_CONTROLLER_SOFT_PEDAL:
-                case MIDI_CONTROLLER_REVERB:
-                case MIDI_CONTROLLER_CHORUS:
-                case MIDI_CONTROLLER_POLY_MODE_OFF:
-                    SendChannelMsg(event, true);
-                    break;
-
-                case MIDI_CONTROLLER_VOLUME_MSB:
-                    SendVolumeMsg(event);
-                    break;
-
-                case MIDI_CONTROLLER_VOLUME_LSB:
-                    break;
-
-                case MIDI_CONTROLLER_BANK_SELECT_MSB:
-                    SendBankSelectMSB(event->data.channel.channel,
-                                      event->data.channel.param2);
-                    break;
-
-                case MIDI_CONTROLLER_BANK_SELECT_LSB:
-                    SendBankSelectLSB(event->data.channel.channel,
-                                      event->data.channel.param2);
-                    break;
-
-                case MIDI_CONTROLLER_NRPN_LSB:
-                case MIDI_CONTROLLER_NRPN_MSB:
-                    if (midi_complevel == COMP_FULL)
-                    {
-                        SendChannelMsg(event, true);
-                    }
-                    else
-                    {
-                        // MS GS Wavetable Synth nulls RPN for any NRPN.
-                        SendNullRPN(event);
-                    }
-                    break;
-
-                case MIDI_CONTROLLER_RPN_LSB:
-                    switch (event->data.channel.param2)
-                    {
-                        case MIDI_RPN_PITCH_BEND_SENS_LSB:
-                        case MIDI_RPN_FINE_TUNING_LSB:
-                        case MIDI_RPN_COARSE_TUNING_LSB:
-                        case MIDI_RPN_NULL:
-                            SendChannelMsg(event, true);
-                            break;
-
-                        default:
-                            if (midi_complevel == COMP_FULL)
-                            {
-                                SendChannelMsg(event, true);
-                            }
-                            else
-                            {
-                                // MS GS Wavetable Synth ignores other RPNs.
-                                SendNullRPN(event);
-                            }
-                            break;
-                    }
-                    break;
-
-                case MIDI_CONTROLLER_RPN_MSB:
-                    switch (event->data.channel.param2)
-                    {
-                        case MIDI_RPN_MSB:
-                        case MIDI_RPN_NULL:
-                            SendChannelMsg(event, true);
-                            break;
-
-                        default:
-                            if (midi_complevel == COMP_FULL)
-                            {
-                                SendChannelMsg(event, true);
-                            }
-                            else
-                            {
-                                // MS GS Wavetable Synth ignores other RPNs.
-                                SendNullRPN(event);
-                            }
-                            break;
-                    }
-                    break;
-
-                case MIDI_CONTROLLER_RESET_ALL_CTRLS:
-                    // MS GS Wavetable Synth resets volume if param2 isn't zero.
-                    // Per MIDI 1.0 Spec, param2 must be zero.
-                    SendChannelMsgZero(event);
-                    break;
-
-                case MIDI_CONTROLLER_ALL_SOUND_OFF:
-                case MIDI_CONTROLLER_ALL_NOTES_OFF:
-                case MIDI_CONTROLLER_POLY_MODE_ON:
-                    // Per MIDI 1.0 Spec, param2 must be zero.
-                    SendChannelMsgZero(event);
-                    break;
-
-                case MIDI_CONTROLLER_OMNI_MODE_OFF:
-                case MIDI_CONTROLLER_OMNI_MODE_ON:
-                    if (midi_complevel == COMP_FULL)
-                    {
-                        // Per MIDI 1.0 Spec, param2 must be zero.
-                        SendChannelMsgZero(event);
-                    }
-                    break;
-
-                default:
-                    if (midi_complevel == COMP_FULL)
-                    {
-                        SendChannelMsg(event, true);
-                    }
-                    break;
-            }
-            break;
-
-        case MIDI_EVENT_NOTE_OFF:
-        case MIDI_EVENT_NOTE_ON:
-        case MIDI_EVENT_PITCH_BEND:
-            SendChannelMsg(event, true);
-            break;
-
-        case MIDI_EVENT_PROGRAM_CHANGE:
-            SendProgramChange(event->data.channel.channel,
-                              event->data.channel.param1);
-            break;
-
-        case MIDI_EVENT_AFTERTOUCH:
-            if (midi_complevel == COMP_FULL)
-            {
-                SendChannelMsg(event, true);
-            }
-            break;
-
-        case MIDI_EVENT_CHAN_AFTERTOUCH:
-            if (midi_complevel == COMP_FULL)
-            {
-                SendChannelMsg(event, false);
-            }
-            break;
-
-        default:
-            break;
-    }
-}
-
-void MIDISeq_NativeEventHandler(const midi_event_t *event)
-{
-    if (event->event_type == MIDI_EVENT_SYSEX)
-    {
-        SendSysExMsg(event);
-        return;
-    }
-
-    if (midi_complevel == COMP_VANILLA)
-    {
-        ProcessEvent_Vanilla(event);
-    }
-    else
-    {
-        ProcessEvent_Standard(event);
-    }
 }
 
 //---------------------------------------------------------------------------
@@ -824,6 +101,16 @@ typedef struct
 static midi_song_t song;
 
 static midi_event_handler_t event_handler;
+
+// Channels that received events. Reset controllers and volume are sent for
+// these channels when the song loops.
+
+static boolean channel_used[MIDI_CHANNELS_PER_TRACK];
+
+int MIDISeq_GetComplevel(void)
+{
+    return midi_complevel;
+}
 
 // Sets a Final Fantasy or RPG Maker loop point.
 
@@ -873,7 +160,7 @@ static void ProcessMetaEvent(const midi_event_t *event, midi_track_t *track)
             break;
 
         case MIDI_META_MARKER:
-            if (midi_complevel != COMP_VANILLA)
+            if (midi_complevel != MIDI_COMP_VANILLA)
             {
                 CheckFFLoop(event);
             }
@@ -884,11 +171,20 @@ static void ProcessMetaEvent(const midi_event_t *event, midi_track_t *track)
     }
 }
 
-// Passes a channel event to the backend.
+// Passes a playable event to the backend.
 
 static void DispatchEvent(const midi_event_t *event)
 {
-    channel_used[event->data.channel.channel] = true;
+    if (event->event_type < MIDI_EVENT_SYSEX)
+    {
+        channel_used[event->data.channel.channel] = true;
+    }
+    else if (event->event_type == MIDI_EVENT_SYSEX
+             && event->data.sysex.type == MIDI_SYSEX_RESET)
+    {
+        // The device state has been reset, do not reset it again on a loop.
+        memset(channel_used, 0, sizeof(channel_used));
+    }
 
     event_handler(event);
 }
@@ -1010,29 +306,18 @@ static boolean ProcessEMIDI(const midi_event_t *event, midi_track_t *track)
 }
 
 // Sequencer level event processing. Meta events, EMIDI control messages and
-// events of excluded tracks are handled here, the rest is passed to the
+// events of excluded tracks are handled here, everything else is passed to the
 // backend.
 
 static void ProcessEvent(const midi_event_t *event, midi_track_t *track)
 {
-    switch (event->event_type)
+    if (event->event_type == MIDI_EVENT_META)
     {
-        case MIDI_EVENT_META:
-            ProcessMetaEvent(event, track);
-            return;
-
-        case MIDI_EVENT_SYSEX:
-            if (midi_complevel == COMP_FULL)
-            {
-                event_handler(event);
-            }
-            return;
-
-        default:
-            break;
+        ProcessMetaEvent(event, track);
+        return;
     }
 
-    if (midi_complevel != COMP_VANILLA)
+    if (midi_complevel != MIDI_COMP_VANILLA)
     {
         if (!track->emidi_include_track)
         {
@@ -1141,6 +426,8 @@ void MIDISeq_Play(boolean looping)
     song.time_us = 0;
     song.ff_loop = false;
     song.ff_restart = false;
+
+    memset(channel_used, 0, sizeof(channel_used));
 
     RestartTracks();
 }
@@ -1381,14 +668,6 @@ boolean MIDISeq_RegisterSong(void *data, int length)
 
 void MIDISeq_BindVariables(void)
 {
-    BIND_NUM(midi_complevel, COMP_STANDARD, 0, COMP_NUM - 1,
+    BIND_NUM(midi_complevel, MIDI_COMP_STANDARD, 0, MIDI_COMP_NUM - 1,
         "[Native MIDI] Compatibility level (0 = Vanilla; 1 = Standard; 2 = Full)");
-    BIND_NUM(midi_reset_type, RESET_TYPE_GM, 0, RESET_NUM - 1,
-        "[Native MIDI] Reset type (0 = No SysEx; 1 = GM; 2 = GS; 3 = XG)");
-    BIND_NUM(midi_reset_delay, -1, -1, 2000,
-        "[Native MIDI] Delay after reset (-1 = Auto; 0 = None; 1-2000 = Milliseconds)");
-    BIND_BOOL(midi_ctf, true,
-        "[Native MIDI] Fix invalid instruments by emulating SC-55 capital tone fallback");
-    BIND_BOOL(midi_sysex_volume, false,
-        "[Native MIDI] Use SysEx messages to control volume");
 }

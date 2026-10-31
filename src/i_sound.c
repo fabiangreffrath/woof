@@ -55,9 +55,9 @@ static music_module_t *music_modules[] =
 {
 #if defined(HAVE_ALSA)
     &music_oal_module,
-    &music_mid_module,
+    &music_native_module,
 #else
-    &music_mid_module,
+    &music_native_module,
     &music_oal_module,
 #endif
 };

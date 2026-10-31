@@ -39,6 +39,7 @@ typedef fluid_long_long_t fluid_int_t;
 #include "m_io.h"
 #include "m_misc.h"
 #include "memio.h"
+#include "mididevice.h"
 #include "midiseq.h"
 #include "w_wad.h"
 #include "z_zone.h"
@@ -532,7 +533,7 @@ static void I_FL_PlayStream(boolean looping)
     fluid_synth_set_interp_method(synth, -1, interp_method);
 
     // The output volume is applied by OpenAL, not by the sequencer.
-    MIDISeq_SetVolumeFactor(1.0f);
+    MIDIDevice_SetVolumeFactor(1.0f);
 
     fluid_synth_system_reset(synth);
 

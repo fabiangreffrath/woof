@@ -76,8 +76,8 @@ set(WOOF_SOURCES
     i_input.c              i_input.h
     i_main.c
     i_mbfsound.c
-    i_midimusic.c
     i_minimp3.c
+    i_nativemusic.c
                            i_oalcommon.h
     i_oalequalizer.c       i_oalequalizer.h
     i_oalmusic.c
@@ -118,6 +118,7 @@ set(WOOF_SOURCES
                            m_swap.h
                            m_vector.h
     memio.c                memio.h
+    mididevice.c           mididevice.h
     midifallback.c         midifallback.h
     midifile.c             midifile.h
     midiout.c              midiout.h

@@ -13,7 +13,7 @@
 // GNU General Public License for more details.
 //
 // DESCRIPTION:
-//      MIDI/MUS song sequencing and native MIDI output.
+//      MIDI/MUS song sequencing.
 
 #ifndef MIDISEQ_H
 #define MIDISEQ_H
@@ -22,6 +22,17 @@
 #include "midifile.h"
 
 typedef struct midi_track_s midi_track_t;
+
+// The compatibility level also changes how the song is sequenced: the vanilla
+// level ignores EMIDI and Final Fantasy loop markers.
+
+typedef enum
+{
+    MIDI_COMP_VANILLA,
+    MIDI_COMP_STANDARD,
+    MIDI_COMP_FULL,
+    MIDI_COMP_NUM,
+} midi_complevel_t;
 
 // The next song event and the absolute playback time at which it must be
 // played. The sequencer does not own a clock, the caller drives it: wall clock
@@ -34,17 +45,16 @@ typedef struct
     uint64_t time_us;
 } midi_position_t;
 
-// Receives every event that must be played. Meta events, EMIDI control
-// messages and events of tracks excluded by EMIDI are handled by the sequencer
-// itself and never reach the handler.
+// Receives every playable event: channel messages and SysEx. Meta events,
+// EMIDI control messages and events of tracks excluded by EMIDI are handled by
+// the sequencer itself and never reach the handler. SysEx filtering (e.g. by
+// compatibility level) is up to the handler.
 
 typedef void (*midi_event_handler_t)(const midi_event_t *event);
 
 void MIDISeq_SetEventHandler(midi_event_handler_t handler);
 
-// Handler for native MIDI output.
-
-void MIDISeq_NativeEventHandler(const midi_event_t *event);
+int MIDISeq_GetComplevel(void);
 
 // Song loading. RegisterSong() unregisters the previous song.
 
@@ -72,16 +82,6 @@ void MIDISeq_Play(boolean looping);
 boolean MIDISeq_NextEvent(midi_position_t *position);
 
 void MIDISeq_SendEvent(const midi_position_t *position);
-
-// Native MIDI device control.
-
-void MIDISeq_SetVolumeFactor(float factor);
-
-void MIDISeq_ResetDevice(boolean startup);
-
-void MIDISeq_SendNotesSoundOff(void);
-
-void MIDISeq_UpdateVolume(void);
 
 void MIDISeq_BindVariables(void);
 

@@ -192,7 +192,7 @@ typedef struct
 } music_module_t;
 
 extern music_module_t music_oal_module;
-extern music_module_t music_mid_module;
+extern music_module_t music_native_module;
 
 boolean I_InitMusic(void);
 void I_ShutdownMusic(void);

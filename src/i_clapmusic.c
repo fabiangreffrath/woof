@@ -30,6 +30,7 @@
 #include "i_system.h"
 #include "m_array.h"
 #include "m_misc.h"
+#include "mididevice.h"
 #include "midiseq.h"
 
 #define CLAP_MAX_FRAMES     8192
@@ -65,7 +66,11 @@ typedef struct
 {
     uint8_t *data;
     int len;
-    uint32_t sample_offset;
+    union
+    {
+        clap_event_midi_t midi;
+        clap_event_midi_sysex_t sysex;
+    } event;
 } clap_midi_event_t;
 
 typedef struct
@@ -506,6 +511,11 @@ static void ClapEventListAddMsg(clap_event_list_t *list,
                                 const uint8_t *msg, int len,
                                 uint32_t sample_offset)
 {
+    if (len <= 0)
+    {
+        return;
+    }
+
     if (list->count >= list->capacity)
     {
         int new_capacity = list->capacity ? list->capacity * 2 : 256;
@@ -515,14 +525,41 @@ static void ClapEventListAddMsg(clap_event_list_t *list,
         list->capacity = new_capacity;
     }
 
-    clap_midi_event_t *ev = &list->events[list->count++];
-    ev->sample_offset = sample_offset;
-    ev->len = len;
+    clap_midi_event_t *ev = &list->events[list->count];
     ev->data = malloc(len);
-    if (ev->data)
+    if (!ev->data)
     {
-        memcpy(ev->data, msg, len);
+        return;
     }
+    memcpy(ev->data, msg, len);
+    ev->len = len;
+
+    if (msg[0] == 0xF0)
+    {
+        clap_event_midi_sysex_t *sev = &ev->event.sysex;
+        memset(sev, 0, sizeof(*sev));
+        sev->header.size = sizeof(*sev);
+        sev->header.time = sample_offset;
+        sev->header.space_id = CLAP_CORE_EVENT_SPACE_ID;
+        sev->header.type = CLAP_EVENT_MIDI_SYSEX;
+        sev->buffer = ev->data;
+        sev->size = len;
+    }
+    else
+    {
+        clap_event_midi_t *mev = &ev->event.midi;
+        memset(mev, 0, sizeof(*mev));
+        mev->header.size = sizeof(*mev);
+        mev->header.time = sample_offset;
+        mev->header.space_id = CLAP_CORE_EVENT_SPACE_ID;
+        mev->header.type = CLAP_EVENT_MIDI;
+        for (int i = 0; i < len && i < 3; ++i)
+        {
+            mev->data[i] = ev->data[i];
+        }
+    }
+
+    list->count++;
 }
 
 static void ClapEventListFree(clap_event_list_t *list)
@@ -552,51 +589,14 @@ ClapInputEventsGet(const struct clap_input_events *list, uint32_t index)
         return NULL;
     }
 
-    static clap_event_midi_t midi_events[256];
-    static clap_event_midi_sysex_t sysex_events[16];
-
     clap_midi_event_t *ev = &evlist->events[index];
 
-    if (ev->len > 0 && ev->data[0] == 0xF0)
+    if (ev->data[0] == 0xF0)
     {
-        clap_event_midi_sysex_t *sev = &sysex_events[index % 16];
-        sev->header.size = sizeof(clap_event_midi_sysex_t);
-        sev->header.time = ev->sample_offset;
-        sev->header.space_id = CLAP_CORE_EVENT_SPACE_ID;
-        sev->header.type = CLAP_EVENT_MIDI_SYSEX;
-        sev->header.flags = 0;
-        sev->port_index = 0;
-        sev->buffer = ev->data;
-        sev->size = ev->len;
-        return (const clap_event_header_t *)sev;
+        return (const clap_event_header_t *)&ev->event.sysex;
     }
-    else
-    {
-        clap_event_midi_t *mev = &midi_events[index % 256];
-        mev->header.size = sizeof(clap_event_midi_t);
-        mev->header.time = ev->sample_offset;
-        mev->header.space_id = CLAP_CORE_EVENT_SPACE_ID;
-        mev->header.type = CLAP_EVENT_MIDI;
-        mev->header.flags = 0;
-        mev->port_index = 0;
-        if (ev->len >= 1)
-        {
-            mev->data[0] = ev->data[0];
-        }
-        if (ev->len >= 2)
-        {
-            mev->data[1] = ev->data[1];
-        }
-        if (ev->len >= 3)
-        {
-            mev->data[2] = ev->data[2];
-        }
-        else
-        {
-            mev->data[2] = 0;
-        }
-        return (const clap_event_header_t *)mev;
-    }
+
+    return (const clap_event_header_t *)&ev->event.midi;
 }
 
 static bool ClapOutputEventsTryPush(const struct clap_output_events *list,
@@ -607,9 +607,11 @@ static bool ClapOutputEventsTryPush(const struct clap_output_events *list,
     return false;
 }
 
-static clap_input_events_t clap_input_events = {.ctx = NULL,
-                                                .size = ClapInputEventsSize,
-                                                .get = ClapInputEventsGet};
+static clap_input_events_t clap_input_events = {
+    .ctx = NULL,
+    .size = ClapInputEventsSize,
+    .get = ClapInputEventsGet
+};
 
 static clap_output_events_t clap_output_events = {
     .ctx = NULL,
@@ -755,7 +757,7 @@ static void I_CLAP_ShutdownStream(void)
     }
 
     ClapEventListFree(&clap_stream.event_list);
-    
+
     // Free the plugin list
     for (int i = 0; i < array_size(clap_plugins); ++i)
     {
@@ -764,26 +766,31 @@ static void I_CLAP_ShutdownStream(void)
     array_free(clap_plugins);
     clap_plugins = NULL;
 
+    MIDIDevice_SetSink(NULL);
+
     clap_initialized = false;
 }
 
-static void I_CLAP_EventHandler(const midi_event_t *event)
+static void I_CLAP_SendShortMsg(const byte *message, unsigned int length)
 {
-    if (event->event_type == MIDI_EVENT_SYSEX)
-    {
-        ClapEventListAddMsg(&clap_stream.event_list,
-                                 event->data.sysex.data,
-                                 event->data.sysex.length, 0);
-    }
-    else
-    {
-        uint8_t msg[3];
-        msg[0] = event->data.channel.channel | event->event_type;
-        msg[1] = event->data.channel.param1;
-        msg[2] = event->data.channel.param2;
-        ClapEventListAddMsg(&clap_stream.event_list, msg, 3, 0);
-    }
+    ClapEventListAddMsg(&clap_stream.event_list, message, length, 0);
 }
+
+static void I_CLAP_SendLongMsg(const byte *message, unsigned int length)
+{
+    ClapEventListAddMsg(&clap_stream.event_list, message, length, 0);
+}
+
+// The plugin processes all events of a block at once, there is no need to
+// wait for it to execute a reset.
+
+static const midi_output_sink_t clap_sink =
+{
+    I_CLAP_SendShortMsg,
+    I_CLAP_SendLongMsg,
+    NULL,
+    NULL,
+};
 
 static boolean I_CLAP_OpenStream(void *data, ALsizei size, ALenum *format,
                                  ALsizei *freq, ALsizei *frame_size)
@@ -805,7 +812,8 @@ static boolean I_CLAP_OpenStream(void *data, ALsizei size, ALenum *format,
 
     music_format = IsMid(data, size) ? "MIDI (CLAP)" : "MUS (CLAP)";
 
-    MIDISeq_SetEventHandler(I_CLAP_EventHandler);
+    MIDIDevice_SetSink(&clap_sink);
+    MIDISeq_SetEventHandler(MIDIDevice_HandleEvent);
 
     clap_stream.format = AL_FORMAT_STEREO_FLOAT32;
     clap_stream.freq = 32000;
@@ -906,7 +914,7 @@ static int I_CLAP_FillStream(void *buffer, int frames)
                 *out++ = temp_right[i];
             }
 
-            clap_stream.event_list.count = 0;
+            ClapEventListClear(&clap_stream.event_list);
             clap_stream.song_frames += frames_to_process;
             frames_left -= frames_to_process;
         }
@@ -931,6 +939,12 @@ static void I_CLAP_PlayStream(boolean looping)
     // Reset the plugin state before starting new playback (clears buffers,
     // kills voices)
     clap_stream.plugin->plugin->reset(clap_stream.plugin->plugin);
+
+    // The output volume is applied by OpenAL, not by the sequencer.
+    MIDIDevice_SetVolumeFactor(1.0f);
+
+    // The device reset messages are queued and sent with the first block.
+    MIDIDevice_Reset(true);
 
     MIDISeq_Play(looping);
 

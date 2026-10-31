@@ -24,6 +24,7 @@
 #include "i_timer.h"
 #include "m_array.h"
 #include "m_config.h"
+#include "mididevice.h"
 #include "midiout.h"
 #include "midiseq.h"
 
@@ -35,6 +36,16 @@ typedef enum
     STATE_STOPPED,
     STATE_PAUSED
 } midi_state_t;
+
+static const midi_output_sink_t midi_sink =
+{
+    MIDI_SendShortMsg,
+    MIDI_SendLongMsg,
+    I_SleepUS,
+    I_Sleep,
+};
+
+static void I_MID_EventHandler(const midi_event_t *event);
 
 static thread_t *player_thread_handle;
 static mutex_t *music_lock;
@@ -105,7 +116,7 @@ static int PlayerThread(void *unused)
                     midi_state = STATE_STOPPED;
                     break;
                 }
-                MIDISeq_ResetDevice(true);
+                MIDIDevice_Reset(true);
                 MIDISeq_Play(song_looping);
                 RestartTimer(0);
                 midi_state = STATE_PLAYING;
@@ -134,7 +145,7 @@ static int PlayerThread(void *unused)
 
             case STATE_PAUSING:
                 // Send notes/sound off to prevent hanging notes.
-                MIDISeq_SendNotesSoundOff();
+                MIDIDevice_SendNotesSoundOff();
                 PauseTimer();
                 midi_state = STATE_PAUSED;
                 break;
@@ -192,7 +203,8 @@ static boolean I_MID_InitMusic(int device)
         return false;
     }
 
-    MIDISeq_SetEventHandler(MIDISeq_NativeEventHandler);
+    MIDIDevice_SetSink(&midi_sink);
+    MIDISeq_SetEventHandler(I_MID_EventHandler);
 
     music_initialized = true;
 
@@ -208,7 +220,7 @@ static int midi_gain = 100;
 
 static void UpdateVolumeFactor(int volume)
 {
-    MIDISeq_SetVolumeFactor(volume / 15.0f * MIDI_DB_TO_GAIN(midi_gain));
+    MIDIDevice_SetVolumeFactor(volume / 15.0f * MIDI_DB_TO_GAIN(midi_gain));
 }
 
 static void I_MID_SetMusicVolume(int volume)
@@ -221,7 +233,7 @@ static void I_MID_SetMusicVolume(int volume)
 
     I_MutexLock(music_lock);
     UpdateVolumeFactor(volume);
-    MIDISeq_UpdateVolume();
+    MIDIDevice_UpdateVolume();
     I_MutexUnlock(music_lock);
 }
 
@@ -237,7 +249,7 @@ static void I_MID_StopSong(void *handle)
     I_MutexDestroy(music_lock);
 
     // Send notes/sound off to prevent hanging notes.
-    MIDISeq_SendNotesSoundOff();
+    MIDIDevice_SendNotesSoundOff();
 }
 
 static void I_MID_PlaySong(void *handle, boolean looping)
@@ -334,9 +346,11 @@ static void I_MID_ShutdownMusic(void)
     I_MID_StopSong(NULL);
     I_MID_UnRegisterSong(NULL);
 
-    MIDISeq_ResetDevice(false);
+    MIDIDevice_Reset(false);
 
     MIDI_CloseDevice();
+
+    MIDIDevice_SetSink(NULL);
 
     music_initialized = false;
 }
@@ -358,13 +372,36 @@ static const char *I_MID_MusicFormat(void)
     return music_format;
 }
 
+// SysEx is dropped before the full compatibility level, so that the device
+// stays in the mode selected by the reset type.
+
+static void I_MID_EventHandler(const midi_event_t *event)
+{
+    switch (event->event_type)
+    {
+        case MIDI_EVENT_SYSEX:
+        case MIDI_EVENT_SYSEX_SPLIT:
+            if (MIDISeq_GetComplevel() != MIDI_COMP_FULL)
+            {
+                return;
+            }
+            break;
+
+        default:
+            break;
+    }
+
+    MIDIDevice_HandleEvent(event);
+}
+
 static void I_MID_BindVariables(void)
 {
     MIDISeq_BindVariables();
+    MIDIDevice_BindVariables();
     BIND_NUM(midi_gain, 0, -20, 0, "[Native MIDI] Gain [dB]");
 }
 
-music_module_t music_mid_module =
+music_module_t music_native_module =
 {
     I_MID_InitMusic,
     I_MID_ShutdownMusic,
