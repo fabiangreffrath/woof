@@ -180,6 +180,7 @@ static void GetClapPlugins(void)
         {M_DataDir, "plugins"},
         {NULL, "/usr/lib/clap"},
         {NULL, "/usr/local/lib/clap"},
+        {NULL, "~/.clap"},
         {D_DoomExeDir, "../share/" PROJECT_SHORTNAME "/plugins"},
 #endif
     };
