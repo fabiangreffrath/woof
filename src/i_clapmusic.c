@@ -140,8 +140,6 @@ static void InitClapHost(void)
     clap_host.request_callback = ClapHostRequestCallback;
 }
 
-static void I_CLAP_CloseStream(void);
-
 static boolean LoadClapLibrary(clap_library_t *lib, const char *path);
 
 static void ScanPluginsDir(const char *dir)
@@ -619,6 +617,47 @@ static clap_output_events_t clap_output_events = {
     .try_push = ClapOutputEventsTryPush
 };
 
+static void ClapStreamProcess(int frames, float *output_buffer)
+{
+    if (!clap_stream.plugin || !clap_stream.plugin->active)
+    {
+        return;
+    }
+
+    static float temp_left[CLAP_BUFFER_SAMPLES];
+    static float temp_right[CLAP_BUFFER_SAMPLES];
+    float *temp_channels[2] = {temp_left, temp_right};
+
+    clap_stream.plugin->process.frames_count = frames;
+    clap_stream.plugin->process.steady_time = -1;
+    clap_stream.plugin->process.transport = NULL;
+    clap_stream.plugin->process.in_events = &clap_input_events;
+    clap_stream.plugin->process.out_events = &clap_output_events;
+    clap_input_events.ctx = &clap_stream.event_list;
+    clap_output_events.ctx = &clap_stream.event_list;
+
+    clap_stream.plugin->audio_out.data32 = temp_channels;
+    clap_stream.plugin->audio_out.channel_count = 2;
+    clap_stream.plugin->audio_out.constant_mask = 0;
+    clap_stream.plugin->process.audio_outputs = &clap_stream.plugin->audio_out;
+    clap_stream.plugin->process.audio_outputs_count = 1;
+
+    clap_stream.plugin->plugin->process(clap_stream.plugin->plugin,
+                                        &clap_stream.plugin->process);
+
+    if (output_buffer)
+    {
+        for (int i = 0; i < frames; ++i)
+        {
+            *output_buffer++ = temp_left[i];
+            *output_buffer++ = temp_right[i];
+        }
+    }
+
+    ClapEventListClear(&clap_stream.event_list);
+    clap_stream.song_frames += frames;
+}
+
 static boolean I_CLAP_InitStream(int device)
 {
     if (clap_initialized)
@@ -722,14 +761,17 @@ static void I_CLAP_CloseStream(void)
 
     MIDISeq_UnregisterSong();
 
-    if (clap_stream.plugin)
+    if (clap_stream.plugin && clap_stream.plugin->active)
     {
+        MIDIDevice_SendNotesSoundOff();
+
+        ClapStreamProcess(1, NULL);
+
         // Reset the plugin state (clears buffers, kills voices) but keep it
         // active
         clap_stream.plugin->plugin->reset(clap_stream.plugin->plugin);
     }
 
-    ClapEventListClear(&clap_stream.event_list);
     clap_stream.song_frames = 0;
     clap_stream.event_pending = false;
     clap_stream.song_finished = true;
@@ -881,42 +923,8 @@ static int I_CLAP_FillStream(void *buffer, int frames)
 
         if (frames_to_process > 0)
         {
-            // Create temporary deinterleaved output buffers for the plugin
-            // The plugin expects separate channel buffers (non-interleaved)
-            static float temp_left[CLAP_BUFFER_SAMPLES];
-            static float temp_right[CLAP_BUFFER_SAMPLES];
-            float *temp_channels[2] = {temp_left, temp_right};
-
-            clap_stream.plugin->process.frames_count = frames_to_process;
-            clap_stream.plugin->process.steady_time = -1;
-            clap_stream.plugin->process.transport = NULL;
-            clap_stream.plugin->process.in_events = &clap_input_events;
-            clap_stream.plugin->process.out_events = &clap_output_events;
-            clap_input_events.ctx = &clap_stream.event_list;
-            clap_output_events.ctx = &clap_stream.event_list;
-
-            // Set up output buffers to point to our temporary deinterleaved
-            // buffers
-            clap_stream.plugin->audio_out.data32 = temp_channels;
-            clap_stream.plugin->audio_out.channel_count = 2;
-            clap_stream.plugin->audio_out.constant_mask = 0;
-            clap_stream.plugin->process.audio_outputs =
-                &clap_stream.plugin->audio_out;
-            clap_stream.plugin->process.audio_outputs_count = 1;
-
-            clap_stream.plugin->plugin->process(clap_stream.plugin->plugin,
-                                                &clap_stream.plugin->process);
-
-            // Interleave the stereo output from temporary buffers to the OpenAL
-            // buffer
-            for (int i = 0; i < frames_to_process; ++i)
-            {
-                *out++ = temp_left[i];
-                *out++ = temp_right[i];
-            }
-
-            ClapEventListClear(&clap_stream.event_list);
-            clap_stream.song_frames += frames_to_process;
+            ClapStreamProcess(frames_to_process, out);
+            out += frames_to_process * 2;
             frames_left -= frames_to_process;
         }
     }
