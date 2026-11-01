@@ -16,7 +16,6 @@
 //   System interface for music.
 //
 
-#include <stdlib.h>
 #include <string.h>
 
 #include "opl.h"
@@ -29,15 +28,12 @@
 #include "m_config.h"
 #include "m_io.h"
 #include "m_swap.h"
-#include "memio.h"
+#include "mididevice.h"
 #include "midifile.h"
-#include "mus2mid.h"
+#include "midiseq.h"
 #include "w_wad.h"
 #include "z_zone.h"
 
-// #define OPL_MIDI_DEBUG
-
-#define MAXMIDLENGTH           (96 * 1024)
 #define GENMIDI_NUM_INSTRS     128
 #define GENMIDI_NUM_PERCUSSION 47
 
@@ -105,15 +101,6 @@ typedef struct
     int bend;
 
 } opl_channel_data_t;
-
-// Data associated with a track that is currently playing.
-
-typedef struct
-{
-    // Track iterator used to read new events.
-
-    midi_track_iter_t *iter;
-} opl_track_data_t;
 
 typedef struct opl_voice_s opl_voice_t;
 
@@ -315,7 +302,6 @@ typedef enum
 static opl_driver_ver_t opl_drv_ver = opl_doom_1_9;
 static boolean music_initialized = false;
 
-// static boolean musicpaused = false;
 static int start_music_volume;
 static int current_music_volume;
 
@@ -340,18 +326,6 @@ static int num_opl_voices;
 
 static opl_channel_data_t channels[MIDI_CHANNELS_PER_TRACK];
 
-// Track data for playing tracks:
-
-static opl_track_data_t *tracks;
-static unsigned int num_tracks = 0;
-static unsigned int running_tracks = 0;
-static boolean song_looping;
-
-// Tempo control variables
-
-static unsigned int ticks_per_beat;
-static unsigned int us_per_beat;
-
 // Mini-log of recently played percussion instruments:
 
 static uint8_t last_perc[PERCUSSION_LOG_LEN];
@@ -369,6 +343,13 @@ int num_opl_chips = 1;
 // used by DMX due to a bug.
 
 static boolean opl_stereo_correct = false;
+
+// Song state driven by midiseq:
+
+static midi_position_t position;
+static boolean event_pending;
+static boolean song_finished;
+static uint64_t song_frames;
 
 // Load instrument table from GENMIDI lump:
 
@@ -687,8 +668,7 @@ static void VoiceKeyOff(opl_voice_t *voice)
                       voice->freq >> 8);
 }
 
-static opl_channel_data_t *TrackChannelForEvent(opl_track_data_t *track,
-                                                midi_event_t *event)
+static opl_channel_data_t *TrackChannelForEvent(const midi_event_t *event)
 {
     unsigned int channel_num = event->data.channel.channel;
 
@@ -709,13 +689,13 @@ static opl_channel_data_t *TrackChannelForEvent(opl_track_data_t *track,
 
 // Get the frequency that we should be using for a voice.
 
-static void KeyOffEvent(opl_track_data_t *track, midi_event_t *event)
+static void KeyOffEvent(const midi_event_t *event)
 {
     opl_channel_data_t *channel;
     int i;
     unsigned int key;
 
-    channel = TrackChannelForEvent(track, event);
+    channel = TrackChannelForEvent(event);
     key = event->data.channel.param1;
 
     // Turn off voices being used to play this key.
@@ -964,11 +944,12 @@ static void VoiceKeyOn(opl_channel_data_t *channel, genmidi_instr_t *instrument,
     UpdateVoiceFrequency(voice);
 }
 
-static void KeyOnEvent(opl_track_data_t *track, midi_event_t *event)
+static void KeyOnEvent(const midi_event_t *event)
 {
     genmidi_instr_t *instrument;
     opl_channel_data_t *channel;
-    unsigned int note, key, volume, voicenum;
+    unsigned int note, key, volume;
+    unsigned int voicenum;
     boolean double_voice;
 
     note = event->data.channel.param1;
@@ -980,12 +961,12 @@ static void KeyOnEvent(opl_track_data_t *track, midi_event_t *event)
     // key off.
     if (volume <= 0)
     {
-        KeyOffEvent(track, event);
+        KeyOffEvent(event);
         return;
     }
 
     // The channel.
-    channel = TrackChannelForEvent(track, event);
+    channel = TrackChannelForEvent(event);
 
     // Percussion channel is treated differently.
     if (event->data.channel.channel == 9)
@@ -1071,14 +1052,14 @@ static void KeyOnEvent(opl_track_data_t *track, midi_event_t *event)
     }
 }
 
-static void ProgramChangeEvent(opl_track_data_t *track, midi_event_t *event)
+static void ProgramChangeEvent(const midi_event_t *event)
 {
     opl_channel_data_t *channel;
     int instrument;
 
     // Set the instrument used on this channel.
 
-    channel = TrackChannelForEvent(track, event);
+    channel = TrackChannelForEvent(event);
     instrument = event->data.channel.param1;
     channel->instrument = &main_instrs[instrument];
 
@@ -1177,13 +1158,13 @@ static void AllNotesOff(opl_channel_data_t *channel, unsigned int param)
     }
 }
 
-static void ControllerEvent(opl_track_data_t *track, midi_event_t *event)
+static void ControllerEvent(const midi_event_t *event)
 {
     opl_channel_data_t *channel;
     unsigned int controller;
     unsigned int param;
 
-    channel = TrackChannelForEvent(track, event);
+    channel = TrackChannelForEvent(event);
     controller = event->data.channel.param1;
     param = event->data.channel.param2;
 
@@ -1209,7 +1190,7 @@ static void ControllerEvent(opl_track_data_t *track, midi_event_t *event)
 
 // Process a pitch bend event.
 
-static void PitchBendEvent(opl_track_data_t *track, midi_event_t *event)
+static void PitchBendEvent(const midi_event_t *event)
 {
     opl_channel_data_t *channel;
     int i;
@@ -1221,7 +1202,7 @@ static void PitchBendEvent(opl_track_data_t *track, midi_event_t *event)
     // Update the channel bend value.  Only the MSB of the pitch bend
     // value is considered: this is what Doom does.
 
-    channel = TrackChannelForEvent(track, event);
+    channel = TrackChannelForEvent(event);
     channel->bend = event->data.channel.param2 - 64;
 
     // Update all voices for this channel.
@@ -1251,82 +1232,31 @@ static void PitchBendEvent(opl_track_data_t *track, midi_event_t *event)
     }
 }
 
-static void MetaSetTempo(unsigned int tempo)
-{
-    OPL_AdjustCallbacks((float)us_per_beat / tempo);
-    us_per_beat = tempo;
-}
+// midiseq event handler: routes every dispatched event to the OPL backend.
+// Meta events are handled internally by midiseq and never reach this handler.
 
-// Process a meta event.
-
-static void MetaEvent(opl_track_data_t *track, midi_event_t *event)
-{
-    byte *data = event->data.meta.data;
-    unsigned int data_len = event->data.meta.length;
-
-    switch (event->data.meta.type)
-    {
-        // Things we can just ignore.
-
-        case MIDI_META_SEQUENCE_NUMBER:
-        case MIDI_META_TEXT:
-        case MIDI_META_COPYRIGHT:
-        case MIDI_META_TRACK_NAME:
-        case MIDI_META_INSTR_NAME:
-        case MIDI_META_LYRICS:
-        case MIDI_META_MARKER:
-        case MIDI_META_CUE_POINT:
-        case MIDI_META_SEQUENCER_SPECIFIC:
-            break;
-
-        case MIDI_META_SET_TEMPO:
-            if (data_len == 3)
-            {
-                MetaSetTempo((data[0] << 16) | (data[1] << 8) | data[2]);
-            }
-            break;
-
-        // End of track - actually handled when we run out of events in the
-        // track, see below.
-
-        case MIDI_META_END_OF_TRACK:
-            break;
-
-        default:
-            I_Printf(VB_DEBUG, "Unknown MIDI meta event type: %u",
-                     event->data.meta.type);
-            break;
-    }
-}
-
-// Process a MIDI event from a track.
-
-static void ProcessEvent(opl_track_data_t *track, midi_event_t *event)
+static void I_OPL_EventHandler(const midi_event_t *event)
 {
     switch (event->event_type)
     {
         case MIDI_EVENT_NOTE_OFF:
-            KeyOffEvent(track, event);
+            KeyOffEvent(event);
             break;
 
         case MIDI_EVENT_NOTE_ON:
-            KeyOnEvent(track, event);
+            KeyOnEvent(event);
             break;
 
         case MIDI_EVENT_CONTROLLER:
-            ControllerEvent(track, event);
+            ControllerEvent(event);
             break;
 
         case MIDI_EVENT_PROGRAM_CHANGE:
-            ProgramChangeEvent(track, event);
+            ProgramChangeEvent(event);
             break;
 
         case MIDI_EVENT_PITCH_BEND:
-            PitchBendEvent(track, event);
-            break;
-
-        case MIDI_EVENT_META:
-            MetaEvent(track, event);
+            PitchBendEvent(event);
             break;
 
         // SysEx events can be ignored.
@@ -1341,89 +1271,11 @@ static void ProcessEvent(opl_track_data_t *track, midi_event_t *event)
     }
 }
 
-static void ScheduleTrack(opl_track_data_t *track);
-static void InitChannel(opl_channel_data_t *channel);
+// Convert microseconds to OPL sample frames.
 
-// Restart a song from the beginning.
-
-static void RestartSong(void *unused)
+static uint64_t USToFrames(uint64_t us)
 {
-    unsigned int i;
-
-    running_tracks = num_tracks;
-
-    start_music_volume = current_music_volume;
-
-    for (i = 0; i < num_tracks; ++i)
-    {
-        MIDI_RestartIterator(tracks[i].iter);
-        ScheduleTrack(&tracks[i]);
-    }
-
-    for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
-    {
-        InitChannel(&channels[i]);
-    }
-}
-
-// Callback function invoked when another event needs to be read from
-// a track.
-
-static void TrackTimerCallback(void *arg)
-{
-    opl_track_data_t *track = arg;
-    midi_event_t *event;
-
-    // Get the next event and process it.
-
-    if (!MIDI_GetNextEvent(track->iter, &event))
-    {
-        return;
-    }
-
-    ProcessEvent(track, event);
-
-    // End of track?
-
-    if (event->event_type == MIDI_EVENT_META
-        && event->data.meta.type == MIDI_META_END_OF_TRACK)
-    {
-        --running_tracks;
-
-        // When all tracks have finished, restart the song.
-        // Don't restart the song immediately, but wait for 5ms
-        // before triggering a restart.  Otherwise it is possible
-        // to construct an empty MIDI file that causes the game
-        // to lock up in an infinite loop. (5ms should be short
-        // enough not to be noticeable by the listener).
-
-        if (running_tracks <= 0 && song_looping)
-        {
-            OPL_SetCallback(5000, RestartSong, NULL);
-        }
-
-        return;
-    }
-
-    // Reschedule the callback for the next event in the track.
-
-    ScheduleTrack(track);
-}
-
-static void ScheduleTrack(opl_track_data_t *track)
-{
-    unsigned int nticks;
-    uint64_t us;
-
-    // Get the number of microseconds until the next event.
-
-    nticks = MIDI_GetDeltaTime(track->iter);
-    us = ((uint64_t)nticks * us_per_beat) / ticks_per_beat;
-
-    // Set a timer to be invoked when the next event is
-    // ready to play.
-
-    OPL_SetCallback(us, TrackTimerCallback, track);
+    return (us * OPL_SAMPLE_RATE + 500000) / 1000000;
 }
 
 // Initialize a channel.
@@ -1441,20 +1293,6 @@ static void InitChannel(opl_channel_data_t *channel)
     }
     channel->pan = 0x30;
     channel->bend = 0;
-}
-
-// Start a MIDI track playing:
-
-static void StartTrack(midi_file_t *file, unsigned int track_num)
-{
-    opl_track_data_t *track;
-
-    track = &tracks[track_num];
-    track->iter = MIDI_IterateTrack(file, track_num);
-
-    // Schedule the first event.
-
-    ScheduleTrack(track);
 }
 
 static boolean I_OPL_InitStream(int device)
@@ -1508,14 +1346,10 @@ static boolean I_OPL_InitStream(int device)
 
     InitVoices();
 
-    tracks = NULL;
-    num_tracks = 0;
     music_initialized = true;
 
     return true;
 }
-
-static midi_file_t *midifile;
 
 static const char *music_format = "Unknown";
 
@@ -1535,38 +1369,17 @@ static boolean I_OPL_OpenStream(void *data, ALsizei size, ALenum *format,
     // [crispy] remove MID file size limit
     if (IsMid(data, size) /* && size < MAXMIDLENGTH */)
     {
-        midifile = MIDI_LoadFile(data, size);
         music_format = "MIDI (OPL)";
     }
     else
     {
-        // Assume a MUS file and try to convert
-        MEMFILE *instream;
-        MEMFILE *outstream;
-        void *outbuf;
-        size_t outbuf_len;
-
-        instream = mem_fopen_read(data, size);
-        outstream = mem_fopen_write();
-
-        if (mus2mid(instream, outstream) == 0)
-        {
-            mem_get_buf(outstream, &outbuf, &outbuf_len);
-            midifile = MIDI_LoadFile(outbuf, outbuf_len);
-        }
-        else
-        {
-            midifile = NULL;
-        }
-
-        mem_fclose(instream);
-        mem_fclose(outstream);
         music_format = "MUS (OPL)";
     }
 
-    if (midifile == NULL)
+    MIDISeq_SetEventHandler(I_OPL_EventHandler);
+
+    if (!MIDISeq_RegisterSong(data, size))
     {
-        I_Printf(VB_ERROR, "I_OPL_RegisterSong: Failed to load MID.");
         return false;
     }
 
@@ -1581,52 +1394,84 @@ static boolean I_OPL_OpenStream(void *data, ALsizei size, ALenum *format,
 
 static void I_OPL_PlayStream(boolean looping)
 {
-    unsigned int i;
-
     if (!music_initialized)
     {
         return;
     }
 
-    I_OPL_SetMusicVolume(127);
-
-    // Allocate track data.
-
-    tracks = malloc(MIDI_NumTracks(midifile) * sizeof(opl_track_data_t));
-
-    num_tracks = MIDI_NumTracks(midifile);
-    running_tracks = num_tracks;
-    song_looping = looping;
-
-    ticks_per_beat = MIDI_GetFileTimeDivision(midifile);
-
-    // Default is 120 bpm.
-    // TODO: this is wrong
-
-    us_per_beat = MIDI_DEFAULT_TEMPO;
-
-    start_music_volume = current_music_volume;
-
-    for (i = 0; i < num_tracks; ++i)
-    {
-        StartTrack(midifile, i);
-    }
-
-    for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
+    for (int i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
     {
         InitChannel(&channels[i]);
     }
+
+    I_OPL_SetMusicVolume(127);
+
+    start_music_volume = current_music_volume;
+
+    // The output volume is applied by OpenAL, not by the sequencer.
+    MIDIDevice_SetVolumeFactor(1.0f);
+
+    MIDISeq_Play(looping);
+
+    song_frames = 0;
+    event_pending = false;
+    song_finished = false;
 }
 
 static int I_OPL_FillStream(void *buffer, int buffer_samples)
 {
-    return OPL_FillBuffer(buffer, buffer_samples);
+    byte *out = buffer;
+    int frames_left = buffer_samples;
+
+    while (frames_left > 0)
+    {
+        if (!event_pending && !song_finished)
+        {
+            if (MIDISeq_NextEvent(&position))
+            {
+                event_pending = true;
+            }
+            else
+            {
+                song_finished = true;
+            }
+        }
+
+        int frames = frames_left;
+
+        if (event_pending)
+        {
+            const uint64_t event_frame = USToFrames(position.time_us);
+
+            if (event_frame > song_frames)
+            {
+                const uint64_t wait = event_frame - song_frames;
+
+                if (wait < (uint64_t)frames)
+                {
+                    frames = (int)wait;
+                }
+            }
+            else
+            {
+                MIDISeq_SendEvent(&position);
+                event_pending = false;
+                continue;
+            }
+        }
+
+        OPL_FillBuffer(out, frames);
+
+        out += frames * 4;
+        song_frames += frames;
+        frames_left -= frames;
+    }
+
+    return buffer_samples;
 }
 
 static void I_OPL_CloseStream(void)
 {
-    unsigned int i;
-
     if (!music_initialized)
     {
         return;
@@ -1638,28 +1483,16 @@ static void I_OPL_CloseStream(void)
 
     // Free all voices.
 
-    for (i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
+    for (int i = 0; i < MIDI_CHANNELS_PER_TRACK; ++i)
     {
         AllNotesOff(&channels[i], 0);
     }
 
-    // Free all track data.
+    MIDISeq_UnregisterSong();
 
-    for (i = 0; i < num_tracks; ++i)
-    {
-        MIDI_FreeIterator(tracks[i].iter);
-    }
-
-    free(tracks);
-
-    tracks = NULL;
-    num_tracks = 0;
-
-    if (midifile)
-    {
-        MIDI_FreeFile(midifile);
-        midifile = NULL;
-    }
+    song_frames = 0;
+    event_pending = false;
+    song_finished = true;
 }
 
 // Shutdown music
