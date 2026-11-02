@@ -631,8 +631,10 @@ static void ChoiceDrawCrosshair(const mn_item_t *item, const mn_draw_ctx_t *ctx)
         patch_t *patch =
             V_CachePatchName(crosshair_lumps[current_idx], PU_CACHE);
 
-        int x = ctx->x + 105 - SHORT(patch->width) / 2;
-        int y = ctx->y + MN_SPC_CHOICE / 2 - SHORT(patch->height) / 2 - 1;
+        const mn_menu_t *menu = MN_ContainerGetCurrentMenu();
+
+        int x = menu->hint_rect.x + menu->hint_rect.w / 3 - SHORT(patch->width) / 2;
+        int y = 50;
 
         V_DrawPatchTranslated(x, y, patch, xlat[hud_crosshair_color].table);
     }

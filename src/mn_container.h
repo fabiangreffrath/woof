@@ -269,6 +269,8 @@ void MN_ContainerEnsureVisible(mn_item_t *item);
 void MN_ContainerRefresh(void);
 void MN_ContainerEndEdit(void);
 
+mn_menu_t *MN_ContainerGetCurrentMenu(void);
+
 // The index of the item the help text and the preview refer to: the
 // mouse-hovered one in mouse mode, otherwise the keyboard-selected one.
 int MN_ContainerHighlightedIndex(const mn_menu_t *menu);

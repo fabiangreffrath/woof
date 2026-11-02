@@ -52,6 +52,11 @@ int warning_about_changes, print_warning_about_changes;
 
 static menu_help_t menu_help;
 
+mn_menu_t *MN_ContainerGetCurrentMenu(void)
+{
+    return active_menu;
+}
+
 static byte MenuColor(int cr, boolean shaded)
 {
     const byte index =
