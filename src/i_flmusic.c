@@ -369,10 +369,6 @@ static boolean I_FL_InitStream(int device)
 
 static const char *music_format = "Unknown";
 
-// Maps a song event onto the synthesizer. Unlike native MIDI output, the events
-// are sent as is: FluidSynth is a General MIDI synth which handles bank select
-// and instrument fallback itself.
-
 static void I_FL_EventHandler(const midi_event_t *event)
 {
     if (event->event_type == MIDI_EVENT_SYSEX)

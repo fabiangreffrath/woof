@@ -793,11 +793,11 @@ void MIDIDevice_HandleEvent(const midi_event_t *event)
 void MIDIDevice_BindVariables(void)
 {
     BIND_NUM(midi_reset_type, RESET_TYPE_GM, 0, RESET_NUM - 1,
-        "[Native MIDI] Reset type (0 = No SysEx; 1 = GM; 2 = GS; 3 = XG)");
+        "[MIDI] Reset type (0 = No SysEx; 1 = GM; 2 = GS; 3 = XG)");
     BIND_NUM(midi_reset_delay, -1, -1, 2000,
-        "[Native MIDI] Delay after reset (-1 = Auto; 0 = None; 1-2000 = Milliseconds)");
+        "[MIDI] Delay after reset (-1 = Auto; 0 = None; 1-2000 = Milliseconds)");
     BIND_BOOL(midi_ctf, true,
-        "[Native MIDI] Fix invalid instruments by emulating SC-55 capital tone fallback");
+        "[MIDI] Fix invalid instruments by emulating SC-55 capital tone fallback");
     BIND_BOOL(midi_sysex_volume, false,
-        "[Native MIDI] Use SysEx messages to control volume");
+        "[MIDI] Use SysEx messages to control volume");
 }

@@ -669,5 +669,5 @@ boolean MIDISeq_RegisterSong(void *data, int length)
 void MIDISeq_BindVariables(void)
 {
     BIND_NUM(midi_complevel, MIDI_COMP_STANDARD, 0, MIDI_COMP_NUM - 1,
-        "[Native MIDI] Compatibility level (0 = Vanilla; 1 = Standard; 2 = Full)");
+        "[MIDI] Compatibility level (0 = Vanilla; 1 = Standard; 2 = Full)");
 }
