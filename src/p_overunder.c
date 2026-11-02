@@ -133,11 +133,28 @@ boolean P_CheckOverUnderHeight(const mobj_t *const a, const mobj_t *const b)
            || (a->z <= b->z + b->height && b->z <= a->z + a->height);
 }
 
+// Returns true for the active player when it is more than a step above its
+// floor without horizontal momentum, since P_XYMovement refreshes its floor
+// otherwise.
+static boolean hovering_player(const mobj_t *const mo)
+{
+    return CRITICAL(overunder) != OVERUNDER_OFF && mo->player
+           && mo->player->mo == mo && !(mo->momx | mo->momy)
+           && mo->z - mo->floorz > STEP_HEIGHT;
+}
+
+// Returns true if mo has links or is a hovering player, so that its floor and
+// ceiling must be refreshed this tic.
+boolean P_NeedsOverUnderUpdate(const mobj_t *const mo)
+{
+    return mo->below_thing || mo->above_thing || hovering_player(mo);
+}
+
 // Drops links that no longer hold and recomputes floor and ceiling so that mo
 // can fall. Called once per tic for things that have links.
 void P_UpdateOverUnder(mobj_t *mo)
 {
-    if (linked_below(mo) == mo->below_thing
+    if (!hovering_player(mo) && linked_below(mo) == mo->below_thing
         && P_LinkedAbove(mo) == mo->above_thing)
     {
         return;

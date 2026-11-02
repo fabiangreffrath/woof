@@ -790,6 +790,13 @@ void G_BuildTiccmd(ticcmd_t* cmd)
       dclick = false;
     }
 
+    // Jumping is not part of the demo format, so it must never be active in
+    // demos or netgames.
+    if (CRITICAL(M_InputGameActive(input_jump)))
+    {
+        cmd->jump = 1;
+    }
+
   // Toggle between the top 2 favorite weapons.                   // phares
   // If not currently aiming one of these, switch to              // phares
   // the favorite. Only switch if you possess the weapon.         // phares
@@ -1532,6 +1539,7 @@ static void G_PlayerFinishLevel(int player)
   p->slope = 0;
   p->recoilpitch = p->oldrecoilpitch = 0;
   p->ticangle = p->oldticangle = 0;
+  p->jumptics = 0;
 }
 
 // [crispy] format time for level statistics
