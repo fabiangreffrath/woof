@@ -542,6 +542,10 @@ static void I_OAL_StopSong(void *handle)
     I_AtomicExchange(&player_thread_running, 0);
     I_ThreadJoin(player_thread_handle);
 
+    // Drop the prebuffered audio of the stopped song, it must not be heard
+    // again when the next song starts playing.
+    alSourcei(player.source, AL_BUFFER, 0);
+
     if (alGetError() != AL_NO_ERROR)
     {
         I_Printf(VB_ERROR, "I_OAL_StopSong: Error stopping playback.");

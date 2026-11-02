@@ -761,16 +761,12 @@ static void I_CLAP_CloseStream(void)
 
     MIDISeq_UnregisterSong();
 
-    if (clap_stream.plugin && clap_stream.plugin->active)
-    {
-        MIDIDevice_SendNotesSoundOff();
+    // The plugin is silenced at the start of the next song instead: this
+    // function runs on the main thread, while process() and reset() belong to
+    // the audio thread, and the device needs to run for a while to execute the
+    // notes off messages.
 
-        ClapStreamProcess(1, NULL);
-
-        // Reset the plugin state (clears buffers, kills voices) but keep it
-        // active
-        clap_stream.plugin->plugin->reset(clap_stream.plugin->plugin);
-    }
+    ClapEventListClear(&clap_stream.event_list);
 
     clap_stream.song_frames = 0;
     clap_stream.event_pending = false;
@@ -824,15 +820,48 @@ static void I_CLAP_SendLongMsg(const byte *message, unsigned int length)
     ClapEventListAddMsg(&clap_stream.event_list, message, length, 0);
 }
 
-// The plugin processes all events of a block at once, there is no need to
-// wait for it to execute a reset.
+// Renders and discards audio to advance the timeline of the plugin. Hardware
+// emulation plugins keep the state of the emulated device between songs and
+// execute the queued messages at the device's serial MIDI rate, so the reset
+// sequence needs the same pause between the messages as on a real MIDI cable
+// and the same time to be executed.
+
+static void ClapAdvanceTime(int frames)
+{
+    while (frames > 0)
+    {
+        const int chunk = MIN(frames, CLAP_BUFFER_SAMPLES);
+        ClapStreamProcess(chunk, NULL);
+        frames -= chunk;
+    }
+}
+
+static void I_CLAP_DelayUS(uint64_t us)
+{
+    if (!clap_stream.freq)
+    {
+        return;
+    }
+
+    ClapAdvanceTime((int)((us * clap_stream.freq + 500000) / 1000000));
+}
+
+static void I_CLAP_DelayMS(int ms)
+{
+    if (!clap_stream.freq)
+    {
+        return;
+    }
+
+    ClapAdvanceTime((int)((int64_t)ms * clap_stream.freq / 1000));
+}
 
 static const midi_output_sink_t clap_sink =
 {
     I_CLAP_SendShortMsg,
     I_CLAP_SendLongMsg,
-    NULL,
-    NULL,
+    I_CLAP_DelayUS,
+    I_CLAP_DelayMS,
 };
 
 static boolean I_CLAP_OpenStream(void *data, ALsizei size, ALenum *format,
@@ -862,6 +891,21 @@ static boolean I_CLAP_OpenStream(void *data, ALsizei size, ALenum *format,
     clap_stream.freq = 32000;
     clap_stream.frame_size = 2 * sizeof(float);
     clap_stream.channels = 2;
+
+    // Activation happens here, on the main thread, and not on the audio thread.
+
+    if (!clap_stream.plugin->active)
+    {
+        if (!clap_stream.plugin->plugin->activate(clap_stream.plugin->plugin,
+                                                  clap_stream.freq, 1,
+                                                  CLAP_MAX_FRAMES))
+        {
+            I_Printf(VB_ERROR, "CLAP: Plugin activation failed");
+            MIDISeq_UnregisterSong();
+            return false;
+        }
+        clap_stream.plugin->active = true;
+    }
 
     *format = clap_stream.format;
     *freq = clap_stream.freq;
@@ -934,38 +978,9 @@ static int I_CLAP_FillStream(void *buffer, int frames)
 
 static void I_CLAP_PlayStream(boolean looping)
 {
-    if (!clap_initialized || !clap_stream.plugin)
+    if (!clap_initialized || !clap_stream.plugin || !clap_stream.plugin->active)
     {
         return;
-    }
-
-    clap_stream.looping = looping;
-    clap_stream.song_frames = 0;
-    clap_stream.event_pending = false;
-    clap_stream.song_finished = false;
-    ClapEventListClear(&clap_stream.event_list);
-
-    // Reset the plugin state before starting new playback (clears buffers,
-    // kills voices)
-    clap_stream.plugin->plugin->reset(clap_stream.plugin->plugin);
-
-    // The output volume is applied by OpenAL, not by the sequencer.
-    MIDIDevice_SetVolumeFactor(1.0f);
-
-    // The device reset messages are queued and sent with the first block.
-    MIDIDevice_Reset(true);
-
-    MIDISeq_Play(looping);
-
-    if (!clap_stream.plugin->active)
-    {
-        if (!clap_stream.plugin->plugin->activate(clap_stream.plugin->plugin,
-                                                  32000.0, 1, CLAP_MAX_FRAMES))
-        {
-            I_Printf(VB_ERROR, "CLAP: Plugin activation failed");
-            return;
-        }
-        clap_stream.plugin->active = true;
     }
 
     if (!clap_stream.plugin->processing)
@@ -978,6 +993,31 @@ static void I_CLAP_PlayStream(boolean looping)
         }
         clap_stream.plugin->processing = true;
     }
+
+    clap_stream.looping = looping;
+    clap_stream.event_pending = false;
+    clap_stream.song_finished = false;
+    ClapEventListClear(&clap_stream.event_list);
+
+    // A hardware emulation plugin keeps the state of the emulated device
+    // between songs, including the voices still sounding and the queued MIDI
+    // input. Kill the voices, then send the notes/sound off and the reset
+    // messages with the device's own timing, so that all of it is executed
+    // before the first event of the new song is played.
+
+    clap_stream.plugin->plugin->reset(clap_stream.plugin->plugin);
+
+    // The output volume is applied by OpenAL, not by the sequencer.
+    MIDIDevice_SetVolumeFactor(1.0f);
+
+    MIDIDevice_SendNotesSoundOff();
+    MIDIDevice_Reset(true);
+
+    MIDISeq_Play(looping);
+
+    // The device reset was rendered on the emulated timeline, the song starts
+    // at frame zero.
+    clap_stream.song_frames = 0;
 }
 
 static const char **I_CLAP_DeviceList(void)
