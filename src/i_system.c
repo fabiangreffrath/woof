@@ -259,6 +259,29 @@ void I_SetMetadata(const char *appname, const char *appversion,
     SDL_SetAppMetadata(appname, appversion, appidentifier);
 }
 
+void *I_LoadObject(const char *path)
+{
+    void *obj = SDL_LoadObject(path);
+    if (!obj)
+    {
+        I_Error("Failed to load library '%s': %s", path, SDL_GetError());
+    }
+    return obj;
+}
+
+void I_UnloadObject(void *handle)
+{
+    if (handle)
+    {
+        SDL_UnloadObject(handle);
+    }
+}
+
+void *I_LoadFunction(void *handle, const char *name)
+{
+    return SDL_LoadFunction(handle, name);
+}
+
 //----------------------------------------------------------------------------
 //
 // $Log: i_system.c,v $
