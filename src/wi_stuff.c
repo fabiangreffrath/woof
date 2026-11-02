@@ -31,7 +31,7 @@
 #include "m_misc.h"
 #include "m_random.h"
 #include "m_swap.h"
-#include "mn_menu.h"
+#include "mn_font.h"
 #include "r_defs.h"
 #include "s_sound.h"
 #include "st_sbardef.h"

@@ -1332,35 +1332,30 @@ void R_InitAnyRes(void)
 
 void R_BindRenderVariables(void)
 {
-  BIND_NUM_GENERAL(extra_level_brightness, 0, 0, 4, "Level brightness");
-  BIND_NUM_GENERAL(fuzzmode, FUZZ_BLOCKY, FUZZ_BLOCKY, FUZZ_ORIGINAL,
+  BIND_NUM(extra_level_brightness, 0, 0, 4, "Level brightness");
+  BIND_NUM(fuzzmode, FUZZ_BLOCKY, FUZZ_BLOCKY, FUZZ_ORIGINAL,
     "Partial Invisibility (0 = Blocky; 1 = Refraction; 2 = Shadow, 3 = Original)");
-  BIND_BOOL_GENERAL(stretchsky, false, "Stretch short skies");
-  M_BindNum("sky_projection", &sky_projection, NULL,
-            SKYPROJ_VANILLA, SKYPROJ_VANILLA, NUM_SKYPROJS-1, ss_gen, wad_no,
-            "Sky projection (0 = Vanilla; 1 = Linear; 2 = Cylindrical)");
-  BIND_BOOL_GENERAL(r_swirl, false, "Swirling animated flats");
+  BIND_BOOL(stretchsky, false, "Stretch short skies");
+  BIND_NUM(sky_projection, SKYPROJ_VANILLA, SKYPROJ_VANILLA, NUM_SKYPROJS-1,
+    "Sky projection (0 = Vanilla; 1 = Linear; 2 = Cylindrical)");
+  BIND_BOOL(r_swirl, false, "Swirling animated flats");
   M_BindBool("voxels_rendering", &default_voxels_rendering, &voxels_rendering,
-             true, ss_none, wad_no, "Allow voxel models");
-  BIND_NUM_GENERAL(invul_mode, INVUL_MBF, INVUL_VANILLA, INVUL_GRAY,
+             true, wad_no, "Allow voxel models");
+  BIND_NUM(invul_mode, INVUL_MBF, INVUL_VANILLA, INVUL_GRAY,
     "Invulnerability effect (0 = Vanilla; 1 = MBF; 2 = Gray)");
   BIND_BOOL(flashing_hom, true, "Enable flashing of the HOM indicator");
-  M_BindNum("screenblocks", &screenblocks, NULL, 10, 3,
-            UL, ss_stat, wad_no, "Size of game-world screen");
+  BIND_NUM(screenblocks, 10, 3, UL, "Size of game-world screen");
   BIND_NUM(default_max_pitch_angle, 32, 30, 60, "Maximum view pitch angle");
 
-  M_BindBool("translucency", &translucency, NULL, true, ss_gen, wad_yes,
+  M_BindBool("translucency", &translucency, NULL, true, wad_yes,
              "Translucency for some things");
-
-  M_BindBool("flipcorpses", &flipcorpses, NULL, false, ss_enem, wad_no,
-             "Randomly mirrored death animations");
-
+  BIND_BOOL(flipcorpses, false, "Randomly mirrored death animations");
   BIND_BOOL(draw_nearby_sprites, true,
     "Draw sprites overlapping into visible sectors");
 
   // [MT] multithreaded rendering
   M_BindNum("render_contexts", &num_render_contexts, NULL, 0, 0,
-            MAX_RENDER_CONTEXTS, ss_gen, wad_no,
+            MAX_RENDER_CONTEXTS, wad_no,
             "Parallel render contexts (0 = one per CPU core, 1 = single-threaded)");
   BIND_BOOL(render_loadbalancing, true,
             "Load-balance render contexts by previous frame times");

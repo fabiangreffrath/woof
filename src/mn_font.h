@@ -27,4 +27,16 @@ boolean MN_DrawFon2String(int x, int y, byte *cr, const char *str);
 
 int MN_GetFon2PixelWidth(const char *str);
 
+void MN_DrawStringCR(int cx, int cy, byte *cr1, byte *cr2, const char *ch);
+
+void MN_DrawString(int cx, int cy, int color, const char *ch);
+
+int MN_StringHeight(const char *ch);
+
+int MN_StringWidth(const char *ch);
+
+int MN_GetPixelWidth(const char *ch);
+
+void MN_SetHUFontKerning(void);
+
 #endif

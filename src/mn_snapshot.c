@@ -35,29 +35,29 @@ static const char snapshot_str[] = "WOOF_SNAPSHOT";
 static const int snapshot_len = arrlen(snapshot_str);
 static const int snapshot_size = (SCREENWIDTH * SCREENHEIGHT) * sizeof(pixel_t);
 
-static pixel_t *snapshots[10];
+// The menu shows a single snapshot at a time, so only one is kept loaded.
+static pixel_t *snapshot;
 static pixel_t *current_snapshot;
-static char savegametimes[10][32];
 
 const int MN_SnapshotDataSize(void)
 {
     return snapshot_len + snapshot_size;
 }
 
-void MN_ResetSnapshot(int i)
+void MN_ResetSnapshot(void)
 {
-    if (snapshots[i])
+    if (snapshot)
     {
-        free(snapshots[i]);
-        snapshots[i] = NULL;
+        free(snapshot);
+        snapshot = NULL;
     }
 }
 
 // [FG] try to read snapshot data from the end of a savegame file
 
-boolean MN_ReadSnapshot(int i, const byte *buf, int len, boolean decode)
+boolean MN_ReadSnapshot(const byte *buf, int len, boolean decode)
 {
-    MN_ResetSnapshot(i);
+    MN_ResetSnapshot();
 
     if (buf == NULL || len <= 0)
     {
@@ -69,7 +69,7 @@ boolean MN_ReadSnapshot(int i, const byte *buf, int len, boolean decode)
     {
         byte *str;
 
-        if ((snapshots[i] = malloc(snapshot_size * sizeof(**snapshots))) == NULL)
+        if ((snapshot = malloc(snapshot_size * sizeof(*snapshot))) == NULL)
         {
             return false;
         }
@@ -86,7 +86,7 @@ boolean MN_ReadSnapshot(int i, const byte *buf, int len, boolean decode)
             return false;
         }
 
-        if (memcpy(snapshots[i], str, snapshot_size) == NULL)
+        if (memcpy(snapshot, str, snapshot_size) == NULL)
         {
             free(str);
             return false;
@@ -108,46 +108,18 @@ boolean MN_ReadSnapshot(int i, const byte *buf, int len, boolean decode)
             return false;
         }
 
-        if ((snapshots[i] = malloc(snapshot_size * sizeof(**snapshots))) == NULL)
+        if ((snapshot = malloc(snapshot_size * sizeof(*snapshot))) == NULL)
         {
             return false;
         }
 
-        if (memcpy(snapshots[i], str + snapshot_len, snapshot_size) == NULL)
+        if (memcpy(snapshot, str + snapshot_len, snapshot_size) == NULL)
         {
             return false;
         }
     }
 
     return true;
-}
-
-void MN_ReadSavegameTime(int i, char *name)
-{
-    time_t mtime = (time_t)M_FileMTime(name);
-
-    if (mtime == 0)
-    {
-        savegametimes[i][0] = '\0';
-    }
-    else
-    {
-// [FG] suppress the most useless compiler warning ever
-#if defined(__GNUC__)
-#  pragma GCC diagnostic push
-#  pragma GCC diagnostic ignored "-Wformat-y2k"
-#endif
-        strftime(savegametimes[i], sizeof(savegametimes[i]), "%x %X",
-                 localtime(&mtime));
-#if defined(__GNUC__)
-#  pragma GCC diagnostic pop
-#endif
-    }
-}
-
-char *MN_GetSavegameTime(int i)
-{
-    return savegametimes[i];
 }
 
 // [FG] take a snapshot in SCREENWIDTH*SCREENHEIGHT resolution, i.e.
@@ -165,7 +137,7 @@ static void TakeSnapshot(void)
 
     if (!current_snapshot)
     {
-        current_snapshot = malloc(snapshot_size * sizeof(**snapshots));
+        current_snapshot = malloc(snapshot_size * sizeof(*current_snapshot));
     }
 
     pixel_t *p = current_snapshot;
@@ -206,12 +178,12 @@ char *MN_WriteSnapshot(byte *p)
     return NULL;
 }
 
-// [FG] draw snapshot for the n'th savegame, if no snapshot is found
+// [FG] draw the snapshot, if none is loaded
 //      fill the area with palette index 0 (i.e. mostly black)
 
-boolean MN_DrawSnapshot(int n, int x, int y, int w, int h)
+boolean MN_DrawSnapshot(int x, int y, int w, int h)
 {
-    if (!snapshots[n])
+    if (!snapshot)
     {
         V_FillRect(x, y, w, h, playpal_global->black);
         return false;
@@ -238,7 +210,7 @@ boolean MN_DrawSnapshot(int n, int x, int y, int w, int h)
     for (destx = 0, srcx = 0; destx < rect.sw; destx++, srcx += step_x)
     {
         destcol = dest + (destx * video.height);
-        srcline = snapshots[n] + (srcx >> FRACBITS);
+        srcline = snapshot + (srcx >> FRACBITS);
 
         for (desty = 0, srcy = 0; desty < rect.sh; desty++, srcy += step_y)
         {

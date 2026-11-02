@@ -488,49 +488,46 @@ static void RefreshSettings(void)
     I_RefreshGyroSettings();
 }
 
-#define BIND_NUM_PADADV(name, v, a, b, help) \
-    M_BindNum(#name, &name, NULL, (v), (a), (b), ss_padadv, wad_no, help)
-
 void I_BindGamepadVariables(void)
 {
     BIND_BOOL(joy_enable, true, "Enable gamepad");
-    BIND_NUM_GENERAL(joy_device, 1, 0, UL, "Gamepad device (do not modify)");
+    BIND_NUM(joy_device, 1, 0, UL, "Gamepad device (do not modify)");
     BIND_NUM(joy_platform, PLATFORM_AUTO, PLATFORM_AUTO, NUM_PLATFORMS - 1,
         "Gamepad platform (0 = Auto; 1 = Xbox 360; 2 = Xbox One/Series; "
         "3 = Playstation 3; 4 = Playstation 4; 5 = Playstation 5; 6 = Switch)");
     BIND_NUM(joy_confirm, CONFIRM_AUTO, CONFIRM_AUTO, CONFIRM_EAST,
         "Confirm/cancel button preference (0 = Auto; 1 = South/East; "
         "2 = East/South)");
-    BIND_NUM_PADADV(joy_stick_layout, LAYOUT_DEFAULT, 0, NUM_LAYOUTS - 1,
+    BIND_NUM(joy_stick_layout, LAYOUT_DEFAULT, 0, NUM_LAYOUTS - 1,
         "Analog stick layout (0 = Off; 1 = Default; 2 = Southpaw; 3 = Legacy; "
         "4 = Legacy Southpaw; 5 = Flick Stick; 6 = Flick Stick Southpaw)");
-    BIND_NUM_PADADV(joy_forward_sensitivity, 10, 0, 40,
+    BIND_NUM(joy_forward_sensitivity, 10, 0, 40,
         "Forward sensitivity (0 = 0.0x; 40 = 4.0x)");
-    BIND_NUM_PADADV(joy_strafe_sensitivity, 10, 0, 40,
+    BIND_NUM(joy_strafe_sensitivity, 10, 0, 40,
         "Strafe sensitivity (0 = 0.0x; 40 = 4.0x)");
-    BIND_NUM_GENERAL(joy_turn_speed, DEFAULT_SPEED, 0, 720,
+    BIND_NUM(joy_turn_speed, DEFAULT_SPEED, 0, 720,
         "Turn speed [degrees/second]");
-    BIND_NUM_GENERAL(joy_look_speed, DEFAULT_SPEED * 9 / 16, 0, 720,
+    BIND_NUM(joy_look_speed, DEFAULT_SPEED * 9 / 16, 0, 720,
         "Look speed [degrees/second]");
-    BIND_NUM_PADADV(joy_outer_turn_speed, 0, 0, 720,
+    BIND_NUM(joy_outer_turn_speed, 0, 0, 720,
         "Extra turn speed at outer deadzone [degrees/second]");
     BIND_NUM(joy_outer_look_speed, 0, 0, 720,
         "Extra look speed at outer deadzone [degrees/second]");
-    BIND_NUM_PADADV(joy_outer_ramp_time, 20, 0, 100,
+    BIND_NUM(joy_outer_ramp_time, 20, 0, 100,
         "Ramp time for extra speed (0 = Instant; 100 = 1000 ms)");
-    BIND_NUM_PADADV(joy_movement_type, 1, 0, 1,
+    BIND_NUM(joy_movement_type, 1, 0, 1,
         "Movement type (0 = Normalized; 1 = Faster Diagonals)");
     BIND_NUM(joy_movement_curve, 10, 10, 30,
         "Movement response curve (10 = Linear; 20 = Squared; 30 = Cubed)");
-    BIND_NUM_PADADV(joy_camera_curve, 20, 10, 30,
+    BIND_NUM(joy_camera_curve, 20, 10, 30,
         "Camera response curve (10 = Linear; 20 = Squared; 30 = Cubed)");
     BIND_NUM(joy_movement_deadzone_type, 1, 0, 1,
         "Movement deadzone type (0 = Axial; 1 = Radial)");
     BIND_NUM(joy_camera_deadzone_type, 1, 0, 1,
         "Camera deadzone type (0 = Axial; 1 = Radial)");
-    BIND_NUM_GENERAL(joy_movement_inner_deadzone, 15, 0, 50,
+    BIND_NUM(joy_movement_inner_deadzone, 15, 0, 50,
         "Movement inner deadzone [percent]");
-    BIND_NUM_GENERAL(joy_camera_inner_deadzone, 15, 0, 50,
+    BIND_NUM(joy_camera_inner_deadzone, 15, 0, 50,
         "Camera inner deadzone [percent]");
     BIND_NUM(joy_movement_outer_deadzone, 2, 0, 30,
         "Movement outer deadzone [percent]");
@@ -544,6 +541,6 @@ void I_BindGamepadVariables(void)
         "Invert strafe axis");
     BIND_BOOL(joy_invert_turn, false,
         "Invert turn axis");
-    BIND_BOOL_GENERAL(joy_invert_look, false,
+    BIND_BOOL(joy_invert_look, false,
         "Invert look axis");
 }

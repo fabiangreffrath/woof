@@ -72,7 +72,9 @@
 #include "m_config.h"
 #include "m_input.h"
 #include "m_io.h"
+#include "mn_font.h"
 #include "mn_menu.h"
+#include "mn_options.h"
 #include "m_misc.h"
 #include "m_swap.h"
 #include "nw_client.h"
@@ -2378,8 +2380,7 @@ void D_DoomMain(void)
   I_UpdateDiscordPresence("Playing", gamedescription);
   I_InitKeyboard();
 
-  MN_InitMenuStrings();
-  MN_InitFreeLook();
+  MN_OptionsInit();
 
   // Auto save slot is 255 for -loadgame command.
   if (startloadgame == 255 && !demorecording && gameaction != ga_playdemo
@@ -2441,25 +2442,24 @@ void D_DoomMain(void)
 
 void D_BindMiscVariables(void)
 {
-  BIND_BOOL_GENERAL(quit_prompt, true, "Show quit prompt");
-  BIND_BOOL_GENERAL(quit_sound, false, "Play quit sound");
-  BIND_NUM_GENERAL(show_endoom, ENDOOM_OFF, ENDOOM_OFF, ENDOOM_ALWAYS,
+  BIND_BOOL(quit_prompt, true, "Show quit prompt");
+  BIND_BOOL(quit_sound, false, "Play quit sound");
+  BIND_NUM(show_endoom, ENDOOM_OFF, ENDOOM_OFF, ENDOOM_ALWAYS,
     "Show ENDOOM screen (0 = Off; 1 = PWAD Only; 2 = Always)");
-  BIND_BOOL_GENERAL(demobar, true, "Show demo progress bar");
+  BIND_BOOL(demobar, true, "Show demo progress bar");
 
   M_BindNum(
-    "screen_melt", &screen_wipe, NULL, wipe_Melt, wipe_None, wipe_Fizzle, ss_gen, wad_no,
+    "screen_melt", &screen_wipe, NULL, wipe_Melt, wipe_None, wipe_Fizzle, wad_no,
     "Screen wipe effect (0 = None; 1 = Melt; 2 = Crossfade; 3 = Fizzlefade)");
 
-  BIND_NUM_GENERAL(palette_changes, PAL_CHANGE_ON, PAL_CHANGE_OFF, PAL_CHANGE_REDUCED,
+  BIND_NUM(palette_changes, PAL_CHANGE_ON, PAL_CHANGE_OFF, PAL_CHANGE_REDUCED,
     "Palette changes when taking damage or picking up items (0 = Off; 1 = On; 2 = Reduced)");
-  BIND_NUM_GENERAL(organize_savefiles, -1, -1, 1,
+  BIND_NUM(organize_savefiles, -1, -1, 1,
     "Organize save files");
   M_BindStr("nw_player_name", &nw_player_name, DEFAULT_PLAYER_NAME, wad_no,
     "Network setup player name");
 
-  M_BindBool("colored_blood", &colored_blood, NULL, false, ss_enem, wad_no,
-             "Allow colored blood");
+  BIND_BOOL(colored_blood, false, "Allow colored blood");
 }
 
 //----------------------------------------------------------------------------
