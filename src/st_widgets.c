@@ -1095,76 +1095,57 @@ void ST_UpdateWidget(sbarelem_t *elem, player_t *player)
 
 void ST_BindHUDVariables(void)
 {
-  M_BindNum("hud_level_stats", &hud_level_stats, NULL,
-            HUD_WIDGET_OFF, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
-            ss_stat, wad_no,
-            "Show level stats (kills, items, and secrets) widget (1 = On automap; "
-            "2 = On HUD; 3 = Always)");
-  M_BindNum("hud_stats_format", &hud_stats_format, NULL,
-            STATSFORMAT_RATIO, STATSFORMAT_RATIO, STATSFORMAT_COUNT,
-            ss_stat, wad_no,
-            "Format of level stats (0 = Ratio; 1 = Boolean; 2 = Percent; 3 = Remaining; 4 = Count)");
-  M_BindNum("hud_level_time", &hud_level_time, NULL,
-            HUD_WIDGET_OFF, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
-            ss_stat, wad_no,
-            "Show level time widget (1 = On automap; 2 = On HUD; 3 = Always)");
-  M_BindNum("hud_player_coords", &hud_player_coords, NULL,
-            HUD_WIDGET_AUTOMAP, HUD_WIDGET_OFF, HUD_WIDGET_ADVANCED,
-            ss_stat, wad_no,
-            "Show player coordinates widget (1 = On automap; 2 = On HUD; 3 = Always; 4 = Advanced)");
-  M_BindBool("hud_command_history", &hud_command_history, NULL, false, ss_stat,
-             wad_no, "Show command history widget");
-  BIND_NUM(hud_command_history_size, 10, 1, HU_MAXMESSAGES,
-           "Number of commands to display for command history widget");
-  BIND_BOOL(hud_hide_empty_commands, true,
-            "Hide empty commands from command history widget");
-  M_BindBool("hud_time_use", &hud_time_use, NULL, false, ss_stat, wad_no,
-             "Show split time when pressing the use-button");
-  M_BindNum("hud_widget_font", &hud_widget_font, NULL,
-            HUD_WIDGET_AUTOMAP, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
-            ss_stat, wad_no,
-            "Use standard Doom font for widgets (1 = On automap; 2 = On HUD; 3 "
-            "= Always)");
+    BIND_NUM(hud_level_stats, HUD_WIDGET_OFF, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
+        "Show level stats (kills, items, and secrets) widget (1 = On automap; "
+        "2 = On HUD; 3 = Always)");
+    BIND_NUM(hud_stats_format, STATSFORMAT_RATIO, STATSFORMAT_RATIO, STATSFORMAT_COUNT,
+        "Format of level stats (0 = Ratio; 1 = Boolean; 2 = Percent; 3 = Remaining; 4 = Count)");
+    BIND_NUM(hud_level_time, HUD_WIDGET_OFF, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
+        "Show level time widget (1 = On automap; 2 = On HUD; 3 = Always)");
+    BIND_NUM(hud_player_coords, HUD_WIDGET_AUTOMAP, HUD_WIDGET_OFF, HUD_WIDGET_ADVANCED,
+        "Show player coordinates widget (1 = On automap; 2 = On HUD; 3 = "
+        "Always; 4 = Advanced)");
+    BIND_BOOL(hud_command_history, false, "Show command history widget");
+    BIND_NUM(hud_command_history_size, 10, 1, HU_MAXMESSAGES,
+        "Number of commands to display for command history widget");
+    BIND_BOOL(hud_hide_empty_commands, true,
+        "Hide empty commands from command history widget");
+    BIND_BOOL(hud_time_use, false,
+        "Show split time when pressing the use-button");
+    BIND_NUM(hud_widget_font, HUD_WIDGET_AUTOMAP, HUD_WIDGET_OFF, HUD_WIDGET_ALWAYS,
+        "Use standard Doom font for widgets (1 = On automap; 2 = On HUD; 3 "
+        "= Always)");
 
-  M_BindNum("hudcolor_titl", &hudcolor_titl, NULL,
-            CR_GOLD, CR_BRICK, CR_NONE, ss_none, wad_yes,
-            "Color range used for automap level title");
-  M_BindNum("hudcolor_xyco", &hudcolor_xyco, NULL,
-            CR_GREEN, CR_BRICK, CR_NONE, ss_none, wad_yes,
-            "Color range used for automap coordinates");
+    M_BindNum("hudcolor_titl", &hudcolor_titl, NULL, CR_GOLD, CR_BRICK, CR_NONE,
+        wad_yes, "Color range used for automap level title");
+    M_BindNum("hudcolor_xyco", &hudcolor_xyco, NULL, CR_GREEN, CR_BRICK, CR_NONE,
+        wad_yes, "Color range used for automap coordinates");
 
-  BIND_BOOL(show_messages, true, "Show messages");
-  M_BindNum("hud_secret_message", &hud_secret_message, NULL,
-            SECRETMESSAGE_ON, SECRETMESSAGE_OFF, SECRETMESSAGE_COUNT,
-            ss_stat, wad_no,
-            "Announce revealed secrets (0 = Off; 1 = On; 2 = Count)");
-  M_BindBool("hud_map_announce", &hud_map_announce, NULL,
-            false, ss_stat, wad_no, "Announce map titles");
-  M_BindBool("show_toggle_messages", &show_toggle_messages, NULL,
-            true, ss_stat, wad_no, "Show toggle messages");
-  M_BindBool("show_pickup_messages", &show_pickup_messages, NULL,
-             true, ss_stat, wad_no, "Show pickup messages");
-  M_BindBool("show_obituary_messages", &show_obituary_messages, NULL,
-             true, ss_stat, wad_no, "Show obituaries");
-  BIND_NUM(hudcolor_obituary, CR_GRAY, CR_BRICK, CR_NONE,
-           "Color range used for obituaries");
-  M_BindBool("message_centered", &message_centered, NULL,
-             false, ss_stat, wad_no, "Center messages horizontally");
-  M_BindBool("message_colorized", &message_colorized, NULL,
-             false, ss_stat, wad_no, "Colorize player messages");
+    BIND_BOOL(show_messages, true, "Show messages");
+    BIND_NUM(hud_secret_message, SECRETMESSAGE_ON, SECRETMESSAGE_OFF, SECRETMESSAGE_COUNT,
+        "Announce revealed secrets (0 = Off; 1 = On; 2 = Count)");
+    BIND_BOOL(hud_map_announce, false, "Announce map titles");
+    BIND_BOOL(show_toggle_messages, true, "Show toggle messages");
+    BIND_BOOL(show_pickup_messages, true, "Show pickup messages");
+    BIND_BOOL(show_obituary_messages, true, "Show obituaries");
+    BIND_NUM(hudcolor_obituary, CR_GRAY, CR_BRICK, CR_NONE,
+        "Color range used for obituaries");
+    BIND_BOOL(message_centered, false, "Center messages horizontally");
+    BIND_BOOL(message_colorized, false, "Colorize player messages");
 
 #define BIND_CHAT(num)                                                     \
     M_BindStr("chatmacro" #num, &chat_macros[(num)], HUSTR_CHATMACRO##num, \
               wad_yes, "Chat string associated with " #num " key")
 
-  BIND_CHAT(0);
-  BIND_CHAT(1);
-  BIND_CHAT(2);
-  BIND_CHAT(3);
-  BIND_CHAT(4);
-  BIND_CHAT(5);
-  BIND_CHAT(6);
-  BIND_CHAT(7);
-  BIND_CHAT(8);
-  BIND_CHAT(9);
+    BIND_CHAT(0);
+    BIND_CHAT(1);
+    BIND_CHAT(2);
+    BIND_CHAT(3);
+    BIND_CHAT(4);
+    BIND_CHAT(5);
+    BIND_CHAT(6);
+    BIND_CHAT(7);
+    BIND_CHAT(8);
+    BIND_CHAT(9);
+#undef BIND_CHAT
 }

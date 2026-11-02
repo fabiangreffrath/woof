@@ -358,18 +358,18 @@ double G_CalcMouseVert(float mousey)
 
 void G_BindMouseVariables(void)
 {
-    BIND_NUM_GENERAL(mouse_sensitivity, 15, 0, UL,
+    BIND_NUM(mouse_sensitivity, 15, 0, UL,
         "Horizontal mouse sensitivity for turning");
-    BIND_NUM_GENERAL(mouse_sensitivity_y, 15, 0, UL,
+    BIND_NUM(mouse_sensitivity_y, 15, 0, UL,
         "Vertical mouse sensitivity for moving");
-    BIND_NUM_GENERAL(mouse_sensitivity_strafe, 15, 0, UL,
+    BIND_NUM(mouse_sensitivity_strafe, 15, 0, UL,
         "Horizontal mouse sensitivity for strafing");
-    BIND_NUM_GENERAL(mouse_sensitivity_y_look, 15, 0, UL,
+    BIND_NUM(mouse_sensitivity_y_look, 15, 0, UL,
         "Vertical mouse sensitivity for looking");
-    BIND_NUM_GENERAL(mouse_acceleration, 0, 0, 40,
+    BIND_NUM(mouse_acceleration, 0, 0, 40,
         "Mouse acceleration (0 = 1.0; 40 = 5.0)");
     BIND_NUM(mouse_acceleration_threshold, 10, 0, 32,
         "Mouse acceleration threshold");
-    BIND_BOOL_GENERAL(mouse_y_invert, false,
+    BIND_BOOL(mouse_y_invert, false,
         "Invert vertical mouse axis");
 }

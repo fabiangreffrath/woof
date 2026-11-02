@@ -52,8 +52,9 @@
 #include "m_input.h"
 #include "m_io.h"
 #include "m_misc.h"
-#include "mn_internal.h"
-#include "mn_menu.h"
+#include "mn_container.h"
+#include "mn_csmenu.h"
+#include "mn_options.h"
 #include "r_main.h"
 #include "s_sound.h"
 #include "st_stuff.h"
@@ -77,20 +78,19 @@ static boolean config_help; // jff 3/3/98
 default_t *defaults = NULL;
 
 void M_BindNum(const char *name, void *location, void *current,
-               int default_val, int min_val, int max_val,
-               ss_types screen, wad_allowed_t wad,
+               int default_val, int min_val, int max_val, wad_allowed_t wad,
                const char *help)
 {
     default_t item = { name, {.i = location}, {.i = current},
                        {.number = default_val}, {min_val, max_val},
-                       number, screen, wad, help };
+                       number, wad, help };
     array_push(defaults, item);
 }
 
 void M_BindMenuNum(const char *name, void *location, int min_val, int max_val)
 {
     default_t item = { name, {.i = location}, {0}, {0}, {min_val, max_val},
-                       menu, ss_none, wad_no, NULL };
+                       menu, wad_no, NULL };
     array_push(defaults, item);
 }
 
@@ -100,25 +100,23 @@ void M_BindMenuBool(const char *name, boolean *location)
 }
 
 void M_BindBool(const char *name, boolean *location, boolean *current,
-                boolean default_val, ss_types screen, wad_allowed_t wad,
-                const char *help)
+                boolean default_val, wad_allowed_t wad, const char *help)
 {
-    M_BindNum(name, location, current, (int)default_val, 0, 1,
-              screen, wad, help);
+    M_BindNum(name, location, current, (int)default_val, 0, 1, wad, help);
 }
 
 void M_BindStr(char *name, const char **location, const char *default_val,
                wad_allowed_t wad, const char *help)
 {
-    default_t item = { name, {.s = (char **)location}, {0}, {.string = default_val},
-                       {0}, string, ss_none, wad, help };
+    default_t item = { name, {.s = (char **)location}, {0},
+                       {.string = default_val}, {0}, string, wad, help };
     array_push(defaults, item);
 }
 
 void M_BindInput(const char *name, int input_id, const char *help)
 {
-    default_t item = { name, {0}, {0}, {0}, {UL,UL}, input, ss_keys, wad_no,
-                       help, input_id };
+    default_t item = { name, {0}, {0}, {0}, {UL,UL}, input, wad_no, help,
+                       input_id };
     array_push(defaults, item);
 }
 
@@ -135,6 +133,8 @@ void M_InitConfig(void)
     I_BindEqualizerVariables();
 
     MN_BindMenuVariables();
+    MN_BindOptionsVariables();
+    MN_BindCSMenuVariables();
     D_BindMiscVariables();
     G_BindGameVariables();
     G_BindRewindVariables();
@@ -482,19 +482,16 @@ boolean M_ParseOption(const char *p, boolean wad)
         return 1;
     }
 
+    // !!! TODO
     // [FG] bind mapcolor options to the mapcolor preset menu item
+#if 0
     if (strncmp(name, "mapcolor_", 9) == 0
         || strcmp(name, "hudcolor_titl") == 0)
     {
         default_t *dp_preset = M_LookupDefault("mapcolor_preset");
         dp->setup_menu = dp_preset->setup_menu;
     }
-
-    if (demo_version < DV_MBF && dp->setup_menu
-        && !(dp->setup_menu->m_flags & S_COSMETIC))
-    {
-        return 1;
-    }
+#endif
 
     if (dp->type == string) // get a string default
     {
@@ -613,9 +610,9 @@ boolean M_ParseOption(const char *p, boolean wad)
         } while (scan);
     }
 
-    if (wad && dp->setup_menu)
+    if (wad)
     {
-        dp->setup_menu->m_flags |= S_DISABLE;
+        dp->disabled = true;
     }
 
     return 0; // Success
@@ -760,5 +757,11 @@ void M_LoadDefaults(void)
 boolean M_CheckIfDisabled(const char *name)
 {
     const default_t *dp = M_LookupDefault(name);
-    return dp->setup_menu->m_flags & S_DISABLE;
+
+    if (!dp)
+    {
+        return false;
+    }
+
+    return dp->disabled;
 }
