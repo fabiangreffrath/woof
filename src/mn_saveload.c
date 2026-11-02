@@ -72,6 +72,7 @@ static mn_item_t load_items[SAVE_ENTRY_COUNT + 1];
 static mn_item_t save_items[SAVE_ENTRY_COUNT + 1];
 
 static char descriptions[SAVE_ENTRY_COUNT][SAVE_STRING_SIZE];
+static char dates[SAVE_ENTRY_COUNT][32];
 static char times[SAVE_ENTRY_COUNT][32];
 static boolean loaded[SAVE_ENTRY_COUNT];
 static boolean exists[SAVE_ENTRY_COUNT];
@@ -201,6 +202,7 @@ static void ReadSaveGameTime(int entry, const char *name)
 
     if (mtime == 0)
     {
+        dates[entry][0] = '\0';
         times[entry][0] = '\0';
         return;
     }
@@ -210,7 +212,8 @@ static void ReadSaveGameTime(int entry, const char *name)
 #  pragma GCC diagnostic push
 #  pragma GCC diagnostic ignored "-Wformat-y2k"
 #endif
-    strftime(times[entry], sizeof(times[entry]), "%x %X", localtime(&mtime));
+    strftime(dates[entry], sizeof(dates[entry]), "%x", localtime(&mtime));
+    strftime(times[entry], sizeof(times[entry]), "%X", localtime(&mtime));
 #if defined(__GNUC__)
 #  pragma GCC diagnostic pop
 #endif
@@ -604,10 +607,18 @@ static void SlotPreview(const mn_menu_t *menu, const mn_page_t *page, int base)
                       y + height / 2 - MN_StringHeight(txt) / 2, CR_NONE, txt);
     }
 
-    txt = times[entry];
+    txt = dates[entry];
 
-    MN_DrawString(x + width / 2 - MN_GetPixelWidth(txt) / 2 - video.deltaw,
-                  y + height + MN_StringHeight(txt), CR_GOLD, txt);
+    int cx = x + width / 2 - MN_GetPixelWidth(txt) / 2 - video.deltaw;
+    int cy = y + height + MN_StringHeight(txt);
+
+    MN_DrawString(cx, cy, CR_GOLD, txt);
+
+    txt = times[entry];
+    cx = x + width / 2 - MN_GetPixelWidth(txt) / 2 - video.deltaw;
+    cy += MN_SPC;
+
+    MN_DrawString(cx, cy, CR_GOLD, txt);
 
     // [FG] draw the view border around the snapshot
     R_DrawBorder(x, y, width, height);

@@ -264,7 +264,7 @@ static mn_item_t video_graphics_items[] = {
     MN_CHOICE_ACT(
         "Invulnerability", "invul_mode", invul_mode_strings, 10, R_InvulMode,
         "Invulnerability:\n\nVanilla: Original inverse colors.\n\n"
-        "MBF: Dosen't affect skies.\n\nGray: Grayscale effect."),
+        "MBF: Doesn't affect skies.\n\nGray: Grayscale effect."),
     MN_CHOICE("Screen Flashes", "palette_changes", palette_changes_strings, 10,
               NULL),
     MN_TOGGLE("Swirling Flats", "r_swirl", NULL),
@@ -390,6 +390,7 @@ static mn_item_t audio_advanced_items[] = {
         "Output Limiter:\n\nPrevents audio clipping by limiting peak volume."),
     {.label = "Resampler",
      .cfg = "snd_resampler",
+     .type = MN_ITEM_CHOICE,
      .getchoices = MN_GetResamplerStrings,
      .choice_size = 18,
      .action = I_OAL_SetResampler,
