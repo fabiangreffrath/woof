@@ -118,8 +118,8 @@ void R_DrawColumn(void)
     const fixed_t fracstep = dc_iscale;
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
-    const byte *restrict source = dc_source;
-    const lighttable_t *restrict colormap = dc_colormap;
+    const byte *const restrict source = dc_source;
+    const lighttable_t *const restrict colormap = dc_colormap;
     int heightmask = dc_texheight - 1;
 
     if (dc_texheight & heightmask)
@@ -228,8 +228,8 @@ void R_DrawTLColumn(void)
     const fixed_t fracstep = dc_iscale;
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
-    const byte *restrict source = dc_source;
-    const lighttable_t *restrict colormap = dc_colormap;
+    const byte *const restrict source = dc_source;
+    const lighttable_t *const restrict colormap = dc_colormap;
     int heightmask = dc_texheight - 1;
 
     byte src;
@@ -317,8 +317,8 @@ void R_DrawSkyColumn(void)
     const fixed_t fracstep = dc_iscale;
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
-    const byte *restrict source = dc_source;
-    const lighttable_t *restrict colormap = dc_colormap;
+    const byte *const restrict source = dc_source;
+    const lighttable_t *const restrict colormap = dc_colormap;
     const byte skycolor = dc_skycolor;
 
     // Fill in the median color here
@@ -888,9 +888,9 @@ void R_DrawTranslatedColumn(void)
     const fixed_t fracstep = dc_iscale;
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
-    const byte *restrict source = dc_source;
-    const byte *restrict translation = dc_translation;
-    const lighttable_t *restrict colormap = dc_colormap;
+    const byte *const restrict source = dc_source;
+    const byte *const restrict translation = dc_translation;
+    const lighttable_t *const restrict colormap = dc_colormap;
     int heightmask = dc_texheight - 1;
 
     byte src;
@@ -1005,9 +1005,9 @@ void R_DrawTRTLColumn(void)
     const fixed_t fracstep = dc_iscale;
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
-    const byte *restrict source = dc_source;
-    const byte *restrict translation = dc_translation;
-    const lighttable_t *restrict colormap = dc_colormap;
+    const byte *const restrict source = dc_source;
+    const byte *const restrict translation = dc_translation;
+    const lighttable_t *const restrict colormap = dc_colormap;
     int heightmask = dc_texheight - 1;
 
     byte src;
