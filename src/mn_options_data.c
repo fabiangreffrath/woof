@@ -460,6 +460,7 @@ static mn_item_t input_bindings_action_items[] = {
     MN_INPUT("Turn Left", input_turnleft, m_scrn),
     MN_INPUT("Turn Right", input_turnright, m_scrn),
     MN_INPUT("180 Turn", input_reverse, m_scrn),
+    MN_INPUT("Jump", input_jump, m_scrn),
     MN_INPUT("Gyro", input_gyro, m_gyro),
     MN_GAP(6),
     MN_INPUT("Autorun", input_autorun, m_scrn),
