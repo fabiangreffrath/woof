@@ -35,6 +35,10 @@
     Things standing on other things are carried along by moving sectors.
     Monsters cannot hit things above or below them in melee if their heights do not overlap.
     The option is disabled in demos, netgames and strict mode.
+  - Added a "Jump" key binding (unbound by default) with ZDoom-style jumping.
+    Holding the key repeats the jump with a short delay after landing, and there is a little air control during a jump.
+    Jumping also works on top of other things with the "Move Over/Under Monsters" option.
+    It is disabled in demos, netgames and strict mode.
   - Add "Native MIDI Reset Type" to General->Audio->Music menu.
 
 * **Rendering:**

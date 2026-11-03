@@ -31,6 +31,7 @@
 #include "m_random.h"
 #include "p_ambient.h"
 #include "p_inter.h"
+#include "p_jump.h"
 #include "p_map.h"
 #include "p_overunder.h"
 #include "p_maputl.h"
@@ -597,6 +598,7 @@ floater:
 		oof = 1;
 	      }
 	    P_HitFloor(mo, oof); // [FG] play sound when hitting animated floor
+	    P_PlayerLanded(mo->player, oof);
 	    }
 	  mo->momz = 0;
 	}
@@ -783,7 +785,7 @@ void P_MobjThinker (mobj_t* mobj)
       mobj->oldangle = mobj->angle;
   }
 
-    if (mobj->below_thing || mobj->above_thing)
+    if (P_NeedsOverUnderUpdate(mobj))
     {
         P_UpdateOverUnder(mobj);
     }

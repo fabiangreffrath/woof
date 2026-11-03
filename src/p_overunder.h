@@ -34,6 +34,7 @@ extern struct mobj_s *tmbelow, *tmabove;
 boolean P_CanOverUnder(const struct mobj_s *a, const struct mobj_s *b);
 void P_SetOverUnderLinks(struct mobj_s *mo);
 void P_UnlinkOverUnder(struct mobj_s *mo);
+boolean P_NeedsOverUnderUpdate(const struct mobj_s *mo);
 void P_UpdateOverUnder(struct mobj_s *mo);
 struct mobj_s *P_LinkedAbove(const struct mobj_s *mo);
 boolean P_CheckOverUnderHeight(const struct mobj_s *a, const struct mobj_s *b);

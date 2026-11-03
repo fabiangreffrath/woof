@@ -212,6 +212,9 @@ typedef struct player_s
 
   weapontype_t nextweapon;
 
+  // Negative while in a jump, positive while waiting after landing.
+  int jumptics;
+
 } player_t;
 
 

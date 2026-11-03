@@ -35,6 +35,7 @@ typedef struct ticcmd_s
     short	consistancy;	// checks for net game
     byte	chatchar;
     byte	buttons;
+    byte jump; // Local only, not stored in demos or sent over the network.
 
     short pitch;
     short ticangleturn; // Local angle delta for composite input only.

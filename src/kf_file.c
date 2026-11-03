@@ -726,6 +726,7 @@ static void read_player_t(player_t *str, json_t *obj)
     str->lastweapon = JS_GetIntegerValue(obj, "lastweapon");
     str->nextweapon = JS_GetIntegerValue(obj, "nextweapon");
     str->switching = JS_GetIntegerValue(obj, "switching");
+    str->jumptics = JS_GetIntegerValue(obj, "jumptics");
 }
 
 static json_mut_t *write_player_t(player_t *str, json_mut_doc_t *doc)
@@ -837,6 +838,7 @@ static json_mut_t *write_player_t(player_t *str, json_mut_doc_t *doc)
     JS_SetInt(doc, obj, "lastweapon", str->lastweapon);
     JS_SetInt(doc, obj, "nextweapon", str->nextweapon);
     JS_SetInt(doc, obj, "switching", str->switching);
+    JS_SetInt(doc, obj, "jumptics", str->jumptics);
 
     return obj;
 }
