@@ -1174,22 +1174,22 @@ void R_AddSprites(sector_t* sec, int lightlevel_override)
         array_push(nearby_sprites, thing);
       }
     }
+  }
 
-    // [MT] wide sprites whose own subsector this context's slab-local BSP
-    // traversal never reaches (see R_SortMobj). The physical touching
-    // list above misses them because it is built from mobj->radius, not the
-    // sprite's visual extent.
-    if (sectmobj_head)
+  // [MT] wide sprites whose own subsector this context's slab-local BSP
+  // traversal never reaches (see R_SortMobj). The physical touching list above
+  // misses them because it is built from mobj->radius, not the sprite's visual
+  // extent. This is a renderer-only correction for the slab culling.
+  if (sectmobj_head)
+  {
+    for (int link = sectmobj_head[(int)(sec - sectors)]; link != -1;
+         link = sectmobj_next[link])
     {
-      for (int link = sectmobj_head[(int)(sec - sectors)]; link != -1;
-           link = sectmobj_next[link])
-      {
-        thing = sectmobj_thing[link];
+      thing = sectmobj_thing[link];
 
-        if (!thing->subsector->sector->rendervalidcount[r_context->index])
-        {
-          array_push(nearby_sprites, thing);
-        }
+      if (!thing->subsector->sector->rendervalidcount[r_context->index])
+      {
+        array_push(nearby_sprites, thing);
       }
     }
   }
