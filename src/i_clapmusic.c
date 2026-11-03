@@ -888,7 +888,7 @@ static boolean I_CLAP_OpenStream(void *data, ALsizei size, ALenum *format,
     MIDISeq_SetEventHandler(MIDIDevice_HandleEvent);
 
     clap_stream.format = AL_FORMAT_STEREO_FLOAT32;
-    clap_stream.freq = 32000;
+    clap_stream.freq = SND_SAMPLERATE;
     clap_stream.frame_size = 2 * sizeof(float);
     clap_stream.channels = 2;
 
