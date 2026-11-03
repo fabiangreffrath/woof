@@ -791,7 +791,12 @@ static void ActionDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
     {
         y += (item->height - MN_SPC) / 2;
     }
-    MN_DrawStringCR(x, y, xlat[CR_NONE].table, NULL, " . . .");
+
+    byte *cr = ctx->disabled   ? cr_dark
+               : ctx->selected ? xlat[CR_BRIGHT].table
+                               : xlat[CR_NONE].table;
+
+    MN_DrawStringCR(x, y, cr, NULL, " . . .");
 }
 
 static boolean ActionRespond(mn_item_t *item, menu_action_t action, int ch)
@@ -1490,7 +1495,8 @@ static void UpdateGyroItems(void)
     const boolean acceleration = (gamepad && gyro && I_GyroAcceleration());
     const boolean condition = (!gamepad || !gyro);
 
-    MN_DisableItem(!gamepad || !I_GyroSupported(), &controls_menu, "gyro_enable");
+    MN_DisableItem(!gamepad || !I_GyroSupported(), &controls_menu,
+                   "gyro_enable", "Advanced Gyro Options");
     MN_DisableItem(condition, &controls_menu, "gyro_button_action",
                    "gyro_stick_action", "gyro_turn_sensitivity",
                    "gyro_look_sensitivity", "Calibrate Gyro");
