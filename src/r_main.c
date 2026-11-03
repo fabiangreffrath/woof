@@ -1350,8 +1350,6 @@ void R_BindRenderVariables(void)
   M_BindBool("translucency", &translucency, NULL, true, wad_yes,
              "Translucency for some things");
   BIND_BOOL(flipcorpses, false, "Randomly mirrored death animations");
-  BIND_BOOL(draw_nearby_sprites, true,
-    "Draw sprites overlapping into visible sectors");
 
   // [MT] multithreaded rendering
   M_BindNum("render_contexts", &num_render_contexts, NULL, 0, 0,
