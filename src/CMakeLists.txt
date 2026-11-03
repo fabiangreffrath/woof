@@ -302,6 +302,11 @@ if(HAVE_DISCORD_RPC)
     target_link_libraries(woof PRIVATE DiscordRPC::discord-rpc)
 endif()
 
+target_compile_definitions(woof PRIVATE "THREADLOCAL=${WOOF_THREAD_LOCAL}")
+
+target_compile_definitions(woof PRIVATE
+    $<$<CONFIG:Debug,RelWithDebInfo>:RANGECHECK>)
+
 target_compile_definitions(woof PRIVATE
     $<IF:$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>,WOOF_DEBUG,WOOF_RELEASE>)
 
@@ -309,14 +314,9 @@ target_compile_definitions(woof PRIVATE
 #
 # Our defines are not namespaced, so we pass them at compile-time instead of
 # using config.h.
-if(WOOF_RANGECHECK)
-    target_compile_definitions(woof PRIVATE RANGECHECK)
-endif()
 if(WOOF_STRICT)
     target_compile_definitions(woof PRIVATE MBF_STRICT)
 endif()
-
-target_compile_definitions(woof PRIVATE "THREADLOCAL=${WOOF_THREAD_LOCAL}")
 
 # Setup tool
 set(SETUP_SOURCES
