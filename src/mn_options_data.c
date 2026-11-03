@@ -193,7 +193,6 @@ mn_menu_t display_menu = {
 };
 
 static mn_item_t video_general_items[] = {
-    MN_SUBMENU("Display Options", &display_menu),
     MN_SLIDER_ACT_DYN_DEFER(
         "Resolution Scale", "resolution_scale",
         MN_GetResolutionScaleStrings, 11, MN_OptionsUpdateResolutionScale,
@@ -218,6 +217,7 @@ static mn_item_t video_general_items[] = {
         "Target FPS", "fpslimit", NULL, MN_OptionsUpdateFPSLimit,
         "Target FPS:\n\nSets the maximum frame rate limit.\n\n"
         "Target frame rate for Dynamic Resolution scaling."),
+    MN_SUBMENU("Display Options", &display_menu),
     MN_GAP(12),
     MN_TITLE("Preferences"),
     MN_SLIDER_ACT(
@@ -778,7 +778,7 @@ static mn_item_t gyro_items[] = {
                   gyro_action_strings, 16, I_ResetGamepad, NULL),
     MN_CHOICE_ACT("Camera Stick", "gyro_stick_action",
                   gyro_action_strings, 16, I_ResetGamepad, NULL),
-    MN_SUBMENU("Advanced Options", &advanced_gyro_menu),
+    MN_SUBMENU("Advanced Gyro Options", &advanced_gyro_menu),
     MN_SLIDER_ACT_DYN("Turn Sensitivity", "gyro_turn_sensitivity",
         MN_GetGyroSensitivityStrings, 11, I_ResetGamepad,
         "Turn Sensitivity:\n\nHorizontal gyro aiming sensitivity."),
@@ -974,9 +974,9 @@ static mn_item_t automap_items[] = {
     MN_CHOICE_ACT(
         "Color Preset", "mapcolor_preset", automap_preset_strings, 8,
         AM_ColorPreset, NULL),
-    MN_TOGGLE("Show Found Secrets Only", "map_secret_after", NULL),
     MN_CHOICE("Color Keyed Doors", "map_keyed_door", automap_keyed_door_strings,
               8, NULL),
+    MN_TOGGLE("Show Found Secrets Only", "map_secret_after", NULL),
     MN_RESET,
     MN_END};
 
@@ -997,11 +997,13 @@ mn_menu_t interface_menu = {
     .num_pages = arrlen(interface_pages),
 };
 
-static const char *overunder_strings[] = {"Off", "Player only", "All"};
+static const char *death_use_action_strings[] = {"Default", "Last Save", "Nothing"};
+
+static const char *overunder_strings[] = {"Off", "Player", "All"};
 
 static mn_item_t gameplay_items[] = {
     MN_TOGGLE("Autosave", "autosave", NULL),
-    MN_TOGGLE("On Death Action", "death_use_action", NULL),
+    MN_CHOICE("On Death Action", "death_use_action", death_use_action_strings, 8, NULL),
     MN_GAP(6),
     MN_TITLE("Physics"),
     MN_CHOICE("Move Over/Under Monsters", "overunder", overunder_strings, 8, NULL),
@@ -1027,8 +1029,8 @@ static mn_item_t weapons_items[] = {
         "Weapon Bob:\n\nAmount of weapon sprite bobbing when moving."),
     MN_GAP(6),
     MN_CHOICE("Weapon Alignment", "center_weapon", center_weapon_strings, 8, NULL),
-    MN_TOGGLE("Hide Weapon", "hide_weapon", NULL),
     MN_TOGGLE("Weapon Recoil", "weapon_recoilpitch", NULL),
+    MN_TOGGLE("Hide Weapon", "hide_weapon", NULL),
     MN_GAP(6),
     MN_TOGGLE("Weapon Carousel", "weapon_carousel", NULL),
     MN_TOGGLE("Vanilla Weapon Cycle", "doom_weapon_cycle", NULL),
