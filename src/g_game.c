@@ -3576,6 +3576,38 @@ void G_WorldDone(void)
   MI_WinDisplay_t behavior = MI_PrepareFinale();
   if (behavior & WD_Victory)
   {
+
+    //!
+    // @category game
+    //
+    // Completing one episode leads to the next without interruption.
+    //
+
+    if (M_ParmExists("-chain_episodes"))
+    {
+      int epi, map;
+
+      MI_NextMap(&epi, &map);
+
+      if (epi != 1 || map != 1)
+      {
+        int i;
+
+        for (i = 0; i < MAXPLAYERS; ++i)
+        {
+          if (playeringame[i])
+          {
+            players[i].playerstate = PST_DEAD;
+          }
+        }
+
+        wminfo.nextep = epi - 1;
+        wminfo.next = map - 1;
+
+        return;
+      }
+    }
+
     gameaction = ga_victory;
     return;
   }
@@ -4911,6 +4943,11 @@ static size_t WriteCmdLineLump(MEMFILE *stream)
   if (M_CheckParm("-solo-net"))
   {
     mem_fputs(" -solo-net", stream);
+  }
+
+  if (M_CheckParm("-chain_episodes"))
+  {
+    mem_fputs(" -chain_episodes", stream);
   }
 
   for (i = 0; i < EMU_TOTAL; ++i)

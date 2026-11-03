@@ -9,6 +9,7 @@ static const char *params[] = {
 "-verbose",
 "-version",
 "-beta",
+"-chain_episodes",
 "-coop_spawns",
 "-dog",
 "-fast",
@@ -35,6 +36,7 @@ static const char *params[] = {
 "-dedicated",
 "-dm3",
 "-left",
+"-norollback",
 "-oldsync",
 "-privateserver",
 "-right",
@@ -48,7 +50,6 @@ static const char *params[] = {
 "-nodeh",
 "-nomapinfo",
 "-nooptions",
-"-norollback",
 "-reject_pad_with_ff",
 "-tranmap",
 "-levelstat",
@@ -120,6 +121,7 @@ Networking options: \n\
                       server and join it.\n\
   -connect <address>  Connect to a multiplayer server running on the given\n\
                       address.\n\
+  -norollback         Disable rollback netcode.\n\
   -privateserver      When running a server, don't register with the global\n\
                       master server. Implies -server.\n\
   -server             Start a multiplayer server, listening for connections.\n\
