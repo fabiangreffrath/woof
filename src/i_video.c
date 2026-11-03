@@ -1632,6 +1632,7 @@ void I_ResetScreen(void)
     I_UpdateHudAnchoring();
     CreateVideoBuffer();
     ResetLogicalSize();
+    MN_ContainerRelayout();
 
     SDL_SetTextureScaleMode(texture, smooth_scaling ? SDL_SCALEMODE_PIXELART
                                                     : SDL_SCALEMODE_NEAREST);
