@@ -25,7 +25,9 @@
 #include "info.h"
 #include "m_fixed.h"
 #include "m_misc.h"
+#include "mn_container.h"
 #include "mn_menu.h"
+#include "mn_options.h"
 #include "p_mobj.h"
 #include "r_defs.h"
 #include "r_draw.h"
@@ -276,7 +278,7 @@ void VX_Init (void)
 	if (!voxels_found)
 	{
 		voxels_rendering = false;
-		MN_DisableVoxelsRenderingItem();
+		MN_DisableItem(true, &video_menu, "voxels_rendering");
 		I_Printf(VB_INFO, "not found.");
 	}
 	else

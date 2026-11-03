@@ -20,12 +20,11 @@
 #include <math.h>
 #include <string.h>
 
-#include "d_main.h"
 #include "doomstat.h"
 #include "g_game.h"
 #include "m_array.h"
 #include "m_json.h"
-#include "mn_menu.h"
+#include "mn_csmenu.h"
 
 #include "g_skillinfo.h"
 

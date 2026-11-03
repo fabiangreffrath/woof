@@ -66,6 +66,7 @@ set(WOOF_SOURCES
     hu_crosshair.c         hu_crosshair.h
     hu_obituary.c          hu_obituary.h
     i_3dsound.c
+    i_clapmusic.c
     i_endoom.c             i_endoom.h
     i_exit.c               i_exit.h
     i_flickstick.c         i_flickstick.h
@@ -75,8 +76,8 @@ set(WOOF_SOURCES
     i_input.c              i_input.h
     i_main.c
     i_mbfsound.c
-    i_midimusic.c
     i_minimp3.c
+    i_nativemusic.c
                            i_oalcommon.h
     i_oalequalizer.c       i_oalequalizer.h
     i_oalmusic.c
@@ -108,18 +109,26 @@ set(WOOF_SOURCES
     m_io.c                 m_io.h
     m_json.c               m_json.h
     m_scanner.c            m_scanner.h
+    mn_container.c         mn_container.h
+                           mn_common.h
+    mn_csmenu.c            mn_csmenu.h
+    mn_csmenu_data.c
     mn_font.c              mn_font.h
     mn_menu.c              mn_menu.h
-    mn_setup.c             mn_internal.h
+    mn_options.c           mn_options.h
+    mn_options_data.c
+    mn_saveload.c          mn_saveload.h
+    mn_snapshot.c          mn_snapshot.h
     m_misc.c               m_misc.h
     m_random.c             m_random.h
-    mn_snapshot.c          mn_snapshot.h
                            m_swap.h
                            m_vector.h
     memio.c                memio.h
+    mididevice.c           mididevice.h
     midifallback.c         midifallback.h
     midifile.c             midifile.h
     midiout.c              midiout.h
+    midiseq.c              midiseq.h
     mus2mid.c              mus2mid.h
     nano_bsp.c             nano_bsp.h
     nw_client.c            nw_client.h
@@ -243,6 +252,7 @@ target_link_libraries(
             sha1
             opl
             textscreen
+            clap
 )
 
 target_include_directories(woof PRIVATE "${MINIMP3_INCLUDE_DIRS}/minimp3")

@@ -1132,8 +1132,6 @@ void R_SortMobj(mobj_t *mobj)
 // During BSP traversal, this adds sprites by sector.
 //
 
-boolean draw_nearby_sprites;
-
 // killough 9/18/98: add lightlevel as parameter, fixing underwater lighting
 void R_AddSprites(sector_t* sec, int lightlevel_override)
 {
@@ -1162,34 +1160,27 @@ void R_AddSprites(sector_t* sec, int lightlevel_override)
       R_ProjectSprite(thing, lightlevel_override);
   }
 
-  if (STRICTMODE(draw_nearby_sprites))
+  for (msecnode_t *n = sec->touching_thinglist; n; n = n->m_snext)
   {
-    for (msecnode_t *n = sec->touching_thinglist; n; n = n->m_snext)
-    {
-      thing = n->m_thing;
+    thing = n->m_thing;
 
-      // [FG] sprites in sector have already been projected
+    // [FG] sprites in sector have already been projected
+    if (!thing->subsector->sector->rendervalidcount[r_context->index])
+    {
+      array_push(nearby_sprites, thing);
+    }
+  }
+  
+  if (sectmobj_head)
+  {
+    for (int link = sectmobj_head[(int)(sec - sectors)]; link != -1;
+         link = sectmobj_next[link])
+    {
+      thing = sectmobj_thing[link];
+
       if (!thing->subsector->sector->rendervalidcount[r_context->index])
       {
         array_push(nearby_sprites, thing);
-      }
-    }
-
-    // [MT] wide sprites whose own subsector this context's slab-local BSP
-    // traversal never reaches (see R_SortMobj). The physical touching
-    // list above misses them because it is built from mobj->radius, not the
-    // sprite's visual extent.
-    if (sectmobj_head)
-    {
-      for (int link = sectmobj_head[(int)(sec - sectors)]; link != -1;
-           link = sectmobj_next[link])
-      {
-        thing = sectmobj_thing[link];
-
-        if (!thing->subsector->sector->rendervalidcount[r_context->index])
-        {
-          array_push(nearby_sprites, thing);
-        }
       }
     }
   }

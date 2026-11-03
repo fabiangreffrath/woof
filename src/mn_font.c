@@ -12,19 +12,20 @@
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //  GNU General Public License for more details.
-//
-// DESCRIPTION:
-//     Load and draw ZDoom FON2 fonts
 
 #include <stdlib.h>
 #include <string.h>
 
+#include "doomdef.h"
 #include "doomtype.h"
 #include "m_misc.h"
 #include "m_swap.h"
 #include "r_defs.h"
+#include "st_sbardef.h"
+#include "st_stuff.h"
 #include "v_palette.h"
 #include "v_patch.h"
+#include "v_trans.h"
 #include "v_video.h"
 #include "z_zone.h"
 
@@ -51,7 +52,7 @@ static int numchars;
 static int height;
 static int firstc;
 static boolean upper;
-static int kerning;
+static int fon2_kerning;
 
 #define FON2_SPACE 12
 
@@ -78,7 +79,7 @@ boolean MN_LoadFon2(const byte *gfx_data, int size)
 
     if (header->kerning)
     {
-        kerning = SHORT(*(int16_t *)p);
+        fon2_kerning = SHORT(*(int16_t *)p);
         p += 2;
     }
 
@@ -189,7 +190,7 @@ boolean MN_DrawFon2String(int x, int y, byte *cr, const char *str)
         if (chars[c].width)
         {
             V_DrawPatchTranslated(cx, y, chars[c].patch, cr);
-            cx += chars[c].width + kerning;
+            cx += chars[c].width + fon2_kerning;
         }
         else
         {
@@ -223,13 +224,158 @@ int MN_GetFon2PixelWidth(const char *str)
 
         if (chars[c].width)
         {
-            len += chars[c].width + kerning;
+            len += chars[c].width + fon2_kerning;
         }
         else
         {
             len += FON2_SPACE;
         }
     }
-    len -= kerning;
+    len -= fon2_kerning;
     return len;
+}
+
+static int kerning = 0;
+
+void MN_DrawStringCR(int cx, int cy, byte *cr1, byte *cr2, const char *ch)
+{
+    int w;
+    int c;
+
+    byte *cr = cr1;
+
+    while (*ch)
+    {
+        c = *ch++; // get next char
+
+        if (c == '\x1b' && *ch)
+        {
+            c = *ch++;
+            if (c >= '0' && c <= '0' + CR_NONE)
+            {
+                cr = xlat[c - '0'].table;
+            }
+            else if (c == '0' + CR_ORIG)
+            {
+                cr = cr1;
+            }
+            continue;
+        }
+
+        c = M_ToUpper(c) - HU_FONTSTART;
+        if (c < 0 || c >= HU_FONTSIZE || hu_font[c] == NULL)
+        {
+            cx += SPACEWIDTH; // space
+            continue;
+        }
+
+        w = SHORT(hu_font[c]->width);
+        if (cx + w > SCREENWIDTH + video.deltaw)
+        {
+            break;
+        }
+
+        patch_t *patch = hu_font[c];
+
+        // V_DrawpatchTranslated() will draw the string in the
+        // desired color, colrngs[color]
+        if (cr && cr2)
+        {
+            V_DrawPatchTranslatedTwice(cx, cy, patch, cr, cr2);
+        }
+        else
+        {
+            V_DrawPatchTranslated(cx, cy, patch, cr);
+        }
+
+        // The screen is cramped, so trim one unit from each
+        // character so they butt up against each other.
+        cx += w + kerning;
+    }
+}
+
+void MN_DrawString(int cx, int cy, int color, const char *ch)
+{
+    MN_DrawStringCR(cx, cy, xlat[color].table, NULL, ch);
+}
+
+int MN_GetPixelWidth(const char *ch)
+{
+    int len = 0;
+    int c;
+
+    while (*ch)
+    {
+        c = *ch++; // pick up next char
+
+        if (c == '\x1b') // skip color
+        {
+            if (*ch)
+            {
+                ch++;
+            }
+            continue;
+        }
+
+        c = M_ToUpper(c) - HU_FONTSTART;
+        if (c < 0 || c >= HU_FONTSIZE || hu_font[c] == NULL)
+        {
+            len += SPACEWIDTH; // space
+            continue;
+        }
+
+        len += SHORT(hu_font[c]->width);
+        len += kerning; // adjust so everything fits
+    }
+    len -= kerning; // replace what you took away on the last char only
+    return len;
+}
+
+int MN_StringHeight(const char *ch)
+{
+    int c, h = SHORT(hu_font[0]->height);
+    while (*ch)
+    {
+        c = *ch++;
+        if (c == '\n')
+        {
+            h += SHORT(hu_font[0]->height);
+        }
+    }
+    return h;
+}
+
+int MN_StringWidth(const char *ch)
+{
+    int c, w = 0;
+
+    while (*ch)
+    {
+        c = *ch++;
+        if (c == '\x1b') // skip code for color change
+        {
+            if (*ch)
+            {
+                ch++;
+            }
+            continue;
+        }
+        c = M_ToUpper(c) - HU_FONTSTART;
+        if (c < 0 || c >= HU_FONTSIZE || hu_font[c] == NULL)
+        {
+            w += SPACEWIDTH;
+            continue;
+        }
+        w += SHORT(hu_font[c]->width);
+    }
+
+    return w;
+}
+
+void MN_SetHUFontKerning(void)
+{
+    if (MN_StringWidth("abcdefghijklmnopqrstuvwxyz01234") > 230)
+    {
+        kerning = -1;
+    }
 }

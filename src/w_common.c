@@ -156,7 +156,13 @@ void W_Filter(w_module_t *module, w_handle_t handle)
     module->AddDir(handle, game_dir);
     free(game_dir);
 
-    char *dir = M_StringJoin("filter", DIR_SEPARATOR_S, D_GetIwadFilter());
+    const char *iwad_filter = D_GetIwadFilter();
+    if (!iwad_filter)
+    {
+        return;
+    }
+
+    char *dir = M_StringJoin("filter", DIR_SEPARATOR_S, iwad_filter);
     for (char *p = dir; *p; ++p)
     {
         if (*p == '.')

@@ -1,5 +1,12 @@
 ## New Features and Improvements
 
+* **Music:**
+  - Add support for CLAP plugins. Recommended plugin for perfect Roland SC-55 emulation: [Nuked-SC55-CLAP](https://github.com/johnnovak/Nuked-SC55-CLAP).
+  - Native MIDI features now work with all music backends:
+    - Full EMIDI support.
+    - RPG Maker and Final Fantasy loop points.
+    - Reset type, capital tone emulation, MIDI complevel and others are available for CLAP plugins. Documentation: [wiki](https://github.com/fabiangreffrath/woof/wiki/MIDI).
+
 * **Mod Support:**
   - Add support for optional menu and intermission sounds.
   - Add support for ambient sound definitions by SNDINFO lumps.

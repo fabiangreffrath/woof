@@ -23,6 +23,58 @@
 #include "doomdef.h"
 #include "doomtype.h"
 
+// phares 4/21/98: Moved from m_misc.c so m_menu.c could see it.
+//
+// killough 11/98: totally restructured
+
+// [FG] use a union of integer and string pointer to store config values,
+// instead of type-punning string pointers to integers which won't work on
+// 64-bit systems anyway
+
+typedef union
+{
+    char **s;
+    int *i;
+    const char *string;
+    int number;
+} config_t;
+
+typedef struct default_s
+{
+    const char *name;      // name
+    config_t location;     // default variable
+    config_t current;      // possible nondefault variable
+    config_t defaultvalue; // built-in default value
+
+    struct
+    {
+        int min;
+        int max;
+    } limit; // numerical limits
+
+    enum
+    {
+        number,
+        string,
+        input,
+        menu // menu only
+    } type; // type
+
+    wad_allowed_t wad_allowed; // whether it's allowed in wads
+    const char *help;          // description of parameter
+
+    int input_id;
+
+    // internal fields (initialized implicitly to 0) follow
+
+    struct default_s *first, *next;  // hash table pointers
+    int modified;                    // Whether it's been modified
+    config_t orig_default;           // Original default, if modified
+    boolean disabled;                // Disabled by an OPTIONS lump
+} default_t;
+
+extern default_t *defaults;
+
 void M_LoadDefaults(void);
 void M_SaveDefaults(void);
 struct default_s *M_LookupDefault(const char *name);     // killough 11/98
@@ -33,37 +85,18 @@ boolean M_CheckIfDisabled(const char *name);
 void M_InitConfig(void);
 
 void M_BindNum(const char *name, void *location, void *current,
-               int default_val, int min_val, int max_val,
-               ss_types screen, wad_allowed_t wad,
+               int default_val, int min_val, int max_val, wad_allowed_t wad,
                const char *help);
 
 #define BIND_NUM(name, v, a, b, help) \
-    M_BindNum(#name, &name, NULL, (v), (a), (b), ss_none, wad_no, help)
-
-#define BIND_NUM_GENERAL(name, v, a, b, help) \
-    M_BindNum(#name, &name, NULL, (v), (a), (b), ss_gen, wad_no, help)
-
-#define BIND_NUM_SFX(name, v, a, b, help) \
-    M_BindNum(#name, &name, NULL, (v), (a), (b), ss_sfx, wad_no, help)
-
-#define BIND_NUM_MUSIC(name, v, a, b, help) \
-    M_BindNum(#name, &name, NULL, (v), (a), (b), ss_music, wad_no, help)
+    M_BindNum(#name, &name, NULL, (v), (a), (b), wad_no, help)
 
 void M_BindBool(const char *name, boolean *location, boolean *current,
-                boolean default_val, ss_types screen, wad_allowed_t wad,
+                boolean default_val, wad_allowed_t wad,
                 const char *help);
 
 #define BIND_BOOL(name, v, help) \
-    M_BindBool(#name, &name, NULL, (v), ss_none, wad_no, help)
-
-#define BIND_BOOL_GENERAL(name, v, help) \
-    M_BindBool(#name, &name, NULL, (v), ss_gen, wad_no, help)
-
-#define BIND_BOOL_SFX(name, v, help) \
-    M_BindBool(#name, &name, NULL, (v), ss_sfx, wad_no, help)
-
-#define BIND_BOOL_MUSIC(name, v, help) \
-    M_BindBool(#name, &name, NULL, (v), ss_music, wad_no, help)
+    M_BindBool(#name, &name, NULL, (v), wad_no, help)
 
 void M_BindStr(char *name, const char **location, const char *default_val,
                wad_allowed_t wad, const char *help);
