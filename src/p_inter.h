@@ -21,6 +21,7 @@
 #define __P_INTER__
 
 #include "doomtype.h"
+#include "doomdef.h"
 #include "hu_obituary.h"
 
 struct player_s;
@@ -38,7 +39,14 @@ void P_DamageMobjBy(struct mobj_s *target, struct mobj_s *inflictor,
                     struct mobj_s *source, int damage, method_t method);
 #define P_DamageMobj(a, b, c, d) P_DamageMobjBy(a, b, c, d, MOD_None)
 
-extern int maxammo[], clipammo[];
+// Ammo info
+typedef struct
+{
+    int         maxammo;
+    int         clipammo;
+} ammoinfo_t;
+
+extern  ammoinfo_t    ammoinfo[NUMAMMO];
 
 #endif
 
