@@ -11,48 +11,51 @@
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //  GNU General Public License for more details.
 
-#include "params_table.h"
-#include "m_argv.h"
+#include "m_params.h"
+
 #include "i_printf.h"
+#include "m_argv.h"
+#include "m_io.h"
+#include "m_misc.h"
 
 #include <stdio.h>
 
-const param_def_t param_table[] = {
+static const param_def_t param_table[] = {
     { "-help", TypeFlag, SectionGeneral,
       "Print command line help and exit." },
     { "--help", TypeFlag, SectionGeneral,
       "Print command line help and exit." },
     { "-version", TypeFlag, SectionGeneral,
       "Print version information and exit." },
-    { "-generate-doc", TypeOptArg, SectionGeneral,
+    { "-doc", TypeOptArg, SectionGeneral,
       "Generate markdown documentation of command line parameters. Optional: [file] (default: cmdline.md)" },
     { "-devparm", TypeFlag, SectionDebug,
       "Developer mode. Enables extra debug output and features." },
     { "-beta", TypeFlag, SectionDebug,
       "Beta emulation mode. Requires betagrph.wad." },
     { "-config", TypeString, SectionGeneral,
-      "Specify a configuration file to load instead of the default. Argument: <file>" },
+      "Load main configuration from the specified file, instead of the default." },
     { "-nooptions", TypeFlag, SectionGeneral,
       "Do not load the default configuration file." },
     { "-file", TypeFileList, SectionGeneral,
-      "Load the specified PWAD files. Multiple files can be specified. Arguments: <files>..." },
+      "Load the specified PWAD files." },
     { "-iwad", TypeString, SectionGeneral,
-      "Specify an IWAD file to use. Argument: <file>" },
+      "Specify an IWAD file to use." },
     { "-save", TypeString, SectionGeneral,
-      "Specify a path from which to load and save games. If the directory does not exist then it will automatically be created. Argument: <directory>" },
+      "Specify a path from which to load and save games. If the directory does not exist then it will automatically be created." },
     { "-shotdir", TypeString, SectionGeneral,
-      "Specify a path to save screenshots. If the directory does not exist then it will automatically be created. Argument: <directory>" },
+      "Specify a path to save screenshots. If the directory does not exist then it will automatically be created." },
 
     { "-skill", TypeInt, SectionGame,
-      "Set the game skill, 1-5 (1: easiest, 5: hardest). A skill of 0 disables all monsters only in -complevel vanilla. Argument: <skill>" },
+      "Set the game skill, 1-5 (1: easiest, 5: hardest). A skill of 0 disables all monsters only in -complevel vanilla." },
     { "-uv", TypeFlag, SectionGame,
       "Alias to -skill 4 (Ultra-Violence)." },
     { "-nm", TypeFlag, SectionGame,
       "Alias to -skill 5 (Nightmare)." },
     { "-episode", TypeInt, SectionGame,
-      "Start playing on episode n (1-99). Argument: <n>" },
+      "Start playing on episode n (1-99)." },
     { "-warp", TypeOneOrTwoArgs, SectionGame,
-      "Start a game immediately, warping to ExMy (Doom 1) or MAPxy (Doom 2). Arguments: <x> <y>|<xy>" },
+      "Start a game immediately, warping to ExMy (Doom 1) or MAPxy (Doom 2)." },
     { "-wart", TypeOneOrTwoArgs, SectionGame,
       "Alias for -warp." },
     { "-nomonsters", TypeFlag, SectionGame,
@@ -68,24 +71,24 @@ const param_def_t param_table[] = {
     { "-coop_spawns", TypeFlag, SectionGame,
       "Start single player game with items spawns as in cooperative netgame." },
     { "-dog", TypeFlag, SectionGame,
-      "Enable dog companion (MBF feature)." },
+      "Enables a single helper dog." },
     { "-dogs", TypeOptArg, SectionGame,
-      "Enable dog companion with optional count (MBF feature). Optional argument: [n]" },
+      "Overrides the current number of helper dogs, setting it to n." },
     { "-turbo", TypeOptArg, SectionGame,
-      "Turbo mode. The player's speed is multiplied by x%. If unspecified, x defaults to 200. Values are rounded up to 10 and down to 400. Optional argument: [%]" },
+      "Turbo mode. The player's speed is multiplied by x%. If unspecified, x defaults to 200. Values are rounded up to 10 and down to 400." },
     { "-loadgame", TypeInt, SectionGame,
-      "Load the game on page p (0-7) in slot s (0-7). Use 255 to load an auto save. Argument: <ps>" },
+      "Load the game on page p (0-7) in slot s (0-7). Use 255 to load an auto save." },
     { "-chain_episodes", TypeFlag, SectionGame,
-      "Chain episodes together in single player." },
+      "Completing one episode leads to the next without interruption." },
     { "-gameversion", TypeString, SectionCompat,
-      "Emulate a specific version of Doom. Valid values are \"1.9\", \"ultimate\", \"final\", \"final2\", \"chex\". Requires -complevel vanilla. Argument: <version>" },
+      "Emulate a specific version of Doom. Valid values are \"1.9\", \"ultimate\", \"final\", \"final2\", \"chex\". Requires -complevel vanilla." },
 
     { "-server", TypeFlag, SectionNet,
       "Start a multiplayer server, listening for connections." },
     { "-dedicated", TypeFlag, SectionNet,
       "Start a dedicated server, routing packets but not participating in the game itself." },
     { "-connect", TypeString, SectionNet,
-      "Connect to a multiplayer server running on the given address. Argument: <address>" },
+      "Connect to a multiplayer server running on the given address." },
     { "-autojoin", TypeFlag, SectionNet,
       "Automatically search the local LAN for a multiplayer server and join it." },
     { "-privateserver", TypeFlag, SectionNet,
@@ -93,15 +96,15 @@ const param_def_t param_table[] = {
     { "-solo-net", TypeFlag, SectionNet,
       "Run a solo network game (for testing)." },
     { "-dup", TypeInt, SectionNet,
-      "Duplicate packets for network testing. Argument: <n>" },
+      "Reduce the resolution of the game by a factor of n, reducing the amount of network bandwidth needed." },
     { "-extratics", TypeInt, SectionNet,
-      "Extra tics for network testing. Argument: <n>" },
+      "Send n extra tics in every packet as insurance against dropped packets." },
     { "-port", TypeInt, SectionNet,
-      "Specify the network port to use. Argument: <port>" },
+      "Use the specified UDP port for communications, instead of the default (2342)." },
     { "-servername", TypeString, SectionNet,
-      "Set the server name for multiplayer. Argument: <name>" },
+      "When starting a network server, specify a name for the server." },
     { "-timer", TypeInt, SectionNet,
-      "For multiplayer games: exit each level after n minutes. Argument: <n>" },
+      "For multiplayer games: exit each level after n minutes." },
     { "-avg", TypeFlag, SectionNet,
       "Austin Virtual Gaming: end levels after 20 minutes." },
     { "-deathmatch", TypeFlag, SectionNet,
@@ -113,28 +116,24 @@ const param_def_t param_table[] = {
     { "-norollback", TypeFlag, SectionNet,
       "Disable rollback netcode." },
     { "-left", TypeFlag, SectionNet,
-      "Set player to left split-screen." },
-    { "-right", TypeFlag, SectionNet,
-      "Set player to right split-screen." },
-    { "-drone", TypeFlag, SectionNet,
-      "Run as a drone (no display)." },
+      "Run as the left screen in three screen mode." },
     { "-nodes", TypeInt, SectionNet,
-      "Number of nodes for network game. Argument: <n>" },
+      "Autostart the netgame when n nodes (clients) have joined the server." },
     { "-frags", TypeInt, SectionNet,
-      "Frag limit for deathmatch. Argument: <n>" },
+      "The -frags option allows you to deathmatch until one player achieves n frags, at which time the level ends and scores are displayed. If n is not specified the match is to 10 frags." },
 
     { "-playdemo", TypeString, SectionDemo,
-      "Play back the demo named demo.lmp. Argument: <demo>" },
+      "Play back the demo named demo.lmp." },
     { "-record", TypeString, SectionDemo,
-      "Record a demo named demo.lmp. Argument: <demo>" },
+      "Record a demo named demo.lmp." },
     { "-recordfrom", TypeTwoArgs, SectionDemo,
-      "Record a demo, loading from the given save slot. Equivalent to -loadgame <slot> -record <demo>. Arguments: <slot> <demo>" },
+      "Record a demo, loading from the given save slot. Equivalent to -loadgame <slot> -record <demo>." },
     { "-recordfromto", TypeTwoArgs, SectionDemo,
-      "Allows continuing <demo1> after it ends or when the user presses the join demo key, the result getting saved as <demo2>. Equivalent to -playdemo <demo1> -record <demo2>. Arguments: <demo1> <demo2>" },
+      "Allows continuing <demo1> after it ends or when the user presses the join demo key, the result getting saved as <demo2>. Equivalent to -playdemo <demo1> -record <demo2>." },
     { "-fastdemo", TypeString, SectionDemo,
-      "Plays the given demo as fast as possible. Argument: <demo>" },
+      "Plays the given demo as fast as possible." },
     { "-timedemo", TypeString, SectionDemo,
-      "Play back the demo named demo.lmp, determining the framerate of the screen. Argument: <demo>" },
+      "Play back the demo named demo.lmp, determining the framerate of the screen." },
     { "-levelstat", TypeFlag, SectionDemo,
       "Write level statistics upon exit to levelstat.txt." },
     { "-shorttics", TypeFlag, SectionDemo,
@@ -144,16 +143,16 @@ const param_def_t param_table[] = {
     { "-tas", TypeFlag, SectionDemo,
       "Lifts strict mode restrictions according to DSDA rules." },
     { "-skipsec", TypeString, SectionDemo,
-      "Skip min:sec time during viewing of the demo. \"-warp <x> -skipsec <min:sec>\" will skip min:sec time on level x. Argument: <min:sec>" },
+      "Skip min:sec time during viewing of the demo. \"-warp <x> -skipsec <min:sec>\" will skip min:sec time on level x." },
     { "-statdump", TypeOptArg, SectionDemo,
-      "Dump statistics to file. Use \"-\" for stdout. Optional argument: [file]" },
+      "Dump statistics information to the specified file on the levels that were played. The output from this option matches the output from statdump.exe (see ctrlapi.zip in the /idgames archive)." },
     { "-maxdemo", TypeInt, SectionDemo,
-      "Maximum demo size in bytes. Argument: <size>" },
+      "Sets the initial size of the demo recording buffer (KiB). This is no longer a hard limit, and the buffer will expand if the given limit is exceeded." },
     { "-dumptranmap", TypeTwoArgs, SectionDemo,
-      "Dump translation map to file. Arguments: <file> <map>" },
+      "Dump tranmap lump, given an alpha level (opacity percentage). Valid values are 0 through to 99." },
 
     { "-complevel", TypeString, SectionCompat,
-      "Emulate a specific version of Doom/Boom/MBF. Valid values are \"vanilla\", \"boom\", \"mbf\", \"mbf21\". Argument: <version>" },
+      "Emulate a specific version of Doom/Boom/MBF. Valid values are \"vanilla\", \"boom\", \"mbf\", \"mbf21\"." },
     { "-cl", TypeString, SectionCompat,
       "Alias for -complevel." },
     { "-nocheats", TypeFlag, SectionCompat,
@@ -178,14 +177,14 @@ const param_def_t param_table[] = {
     { "-nouncapped", TypeFlag, SectionVideo,
       "Disable uncapped framerate mode." },
     { "-1", TypeFlag, SectionVideo,
-      "Set render scale factor 1x." },
+      "Don't scale up the screen. Implies -window." },
     { "-2", TypeFlag, SectionVideo,
-      "Set render scale factor 2x." },
+      "Double up the screen to 2x its normal size. Implies -window." },
     { "-3", TypeFlag, SectionVideo,
-      "Set render scale factor 3x." },
+      "Triple up the screen to 3x its normal size. Implies -window." },
 
     { "-deh", TypeFileList, SectionMod,
-      "Load the given dehacked/bex patch(es). Arguments: <files>..." },
+      "Load the given dehacked/bex patch(es)." },
     { "-nodeh", TypeFlag, SectionMod,
       "Avoid loading DEHACKED lumps embedded into WAD files." },
     { "-noautoload", TypeFlag, SectionMod,
@@ -193,27 +192,25 @@ const param_def_t param_table[] = {
     { "-nomapinfo", TypeFlag, SectionMod,
       "Disable UMAPINFO loading." },
     { "-blockmap", TypeFlag, SectionMod,
-      "Rebuild blockmap." },
+      "Forces a (re-)building of the BLOCKMAP lumps for loaded maps." },
     { "-bsp", TypeFlag, SectionMod,
-      "Rebuild BSP." },
+      "Forces rebuilding of nodes." },
     { "-reject_pad_with_ff", TypeFlag, SectionMod,
       "Pad reject map with 0xFF." },
     { "-tranmap", TypeFlag, SectionMod,
-      "Force translation map rebuild." },
+      "Forces the (re-)building of the translucency table." },
 
     { "-setmem", TypeInt, SectionDebug,
-      "Set memory allocation limit in MB. Argument: <MB>" },
+      "Specify DOS version to emulate for NULL pointer dereference emulation. Supported versions are: dos622, dos71, dosbox. The default is to emulate DOS 7.1 (Windows 98)." },
     { "-nogui", TypeFlag, SectionDebug,
-      "Disable GUI error dialogs." },
+      "Don't pop up a GUI dialog box to show the error message." },
     { "-spechit", TypeInt, SectionDebug,
-      "Spechit overflow emulation. Argument: <n>" },
+      "Use the specified magic value when emulating spechit overruns." },
     { "-quiet", TypeFlag, SectionDebug,
       "Suppress non-error output." },
     { "-verbose", TypeFlag, SectionDebug,
       "Enable verbose output." },
 };
-
-const int param_table_size = arrlen(param_table);
 
 static const char *section_names[] = {
     [SectionGeneral] = "General options",
@@ -226,6 +223,18 @@ static const char *section_names[] = {
     [SectionDebug] = "Debug options",
 };
 
+const param_def_t *M_FindParam(const char *arg)
+{
+    for (int i = 0; i < arrlen(param_table); i++)
+    {
+        if (!strcasecmp(arg, param_table[i].name))
+        {
+            return &param_table[i];
+        }
+    }
+    return NULL;
+}
+
 const char *M_GetParamHelpString(void)
 {
     static char buffer[16384];
@@ -233,25 +242,50 @@ const char *M_GetParamHelpString(void)
     int remaining = sizeof(buffer);
     param_section_t current_section = -1;
 
-    p += snprintf(p, remaining, "Usage: woof [options]\n\n");
+    p += M_snprintf(p, remaining, "Usage: woof [options]\n\n");
     remaining = sizeof(buffer) - (p - buffer);
 
-    for (int i = 0; i < param_table_size; i++)
+    for (int i = 0; i < arrlen(param_table); i++)
     {
         const param_def_t *param = &param_table[i];
 
         if (param->section != current_section)
         {
             current_section = param->section;
-            p += snprintf(p, remaining, "\n%s:\n", section_names[current_section]);
+            p += M_snprintf(p, remaining, "\n%s:\n", section_names[current_section]);
             remaining = sizeof(buffer) - (p - buffer);
         }
 
-        p += snprintf(p, remaining, "  %s  %s\n", param->name, param->help);
+        // Build option signature with argument based on type
+        const char *arg = "";
+        switch (param->type)
+        {
+            case TypeString:
+            case TypeInt:
+            case TypeFloat:
+                arg = " <arg>";
+                break;
+            case TypeFileList:
+                arg = " <files>...";
+                break;
+            case TypeTwoArgs:
+                arg = " <arg1> <arg2>";
+                break;
+            case TypeOneOrTwoArgs:
+                arg = " <arg1> [<arg2>]";
+                break;
+            case TypeOptArg:
+                arg = " [<arg>]";
+                break;
+            default:
+                arg = "";
+                break;
+        }
+
+        p += M_snprintf(p, remaining, "  %s%s  %s\n", param->name, arg, param->help);
         remaining = sizeof(buffer) - (p - buffer);
     }
 
-    p += snprintf(p, remaining, "\nSee the wiki for a complete list of supported command line options.\n");
     return buffer;
 }
 
@@ -262,32 +296,70 @@ void M_PrintParamHelp(void)
 
 void M_GenerateParamMarkdown(const char *filename)
 {
-    FILE *f = fopen(filename, "w");
+    FILE *f = M_fopen(filename, "w");
     if (!f)
     {
         I_Printf(VB_ERROR, "Failed to open %s for writing", filename);
         return;
     }
 
-    fprintf(f, "# Command Line Parameters\n\n");
-    fprintf(f, "This document is auto-generated from the source code.\n\n");
+    // GitHub-friendly markdown
+    // For man page: pandoc -s -t man --metadata title="WOOF" --metadata section=6 --metadata date="DATE" file.md -o woof.6
+    fprintf(f, "# " PROJECT_NAME "\n\n");
+    fprintf(f, PROJECT_NAME " is a continuation of Lee Killough's Doom source port MBF targeted at modern systems\n\n");
+
+    fprintf(f, "## SYNOPSIS\n\n");
+    fprintf(f, "`%s` [*options*]\n\n", PROJECT_SHORTNAME);
+
+    fprintf(f, "## OPTIONS\n\n");
 
     param_section_t current_section = -1;
 
-    for (int i = 0; i < param_table_size; i++)
+    for (int i = 0; i < arrlen(param_table); i++)
     {
         const param_def_t *param = &param_table[i];
 
         if (param->section != current_section)
         {
             current_section = param->section;
-            fprintf(f, "## %s\n\n", section_names[current_section]);
+            fprintf(f, "### %s\n\n", section_names[current_section]);
         }
 
-        fprintf(f, "### `%s`\n\n", param->name);
-        fprintf(f, "%s\n\n", param->help);
-        fprintf(f, "---\n\n");
+        // Build option signature with argument based on type
+        char opt_sig[256];
+        const char *arg = "";
+        switch (param->type)
+        {
+            case TypeString:
+            case TypeInt:
+            case TypeFloat:
+                arg = " <arg>";
+                break;
+            case TypeFileList:
+                arg = " <files>...";
+                break;
+            case TypeTwoArgs:
+                arg = " <arg1> <arg2>";
+                break;
+            case TypeOneOrTwoArgs:
+                arg = " <arg1> [<arg2>]";
+                break;
+            case TypeOptArg:
+                arg = " [<arg>]";
+                break;
+            default:
+                arg = "";
+                break;
+        }
+        M_snprintf(opt_sig, sizeof(opt_sig), "`%s%s`", param->name, arg);
+
+        // Definition list format - works for both pandoc (man) and GitHub
+        fprintf(f, "**%s**\n", opt_sig);
+        fprintf(f, ":   %s\n\n", param->help);
     }
+
+    fprintf(f, "## SEE ALSO\n\n");
+    fprintf(f, "[Wiki](https://github.com/fabiangreffrath/woof/wiki)\n");
 
     fclose(f);
     I_Printf(VB_INFO, "Generated markdown documentation: %s", filename);

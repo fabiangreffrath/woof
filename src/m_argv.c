@@ -20,7 +20,8 @@
 #include "i_printf.h"
 #include "i_system.h"
 #include "m_argv.h"
-#include "params_table.h"
+#include "m_config.h"
+#include "m_params.h"
 
 #include <stdio.h>
 
@@ -93,18 +94,6 @@ int M_ParmArg2ToInt(int p)
     return ArgToInt(p, 2);
 }
 
-static const param_def_t *FindParam(const char *arg)
-{
-    for (int i = 0; i < param_table_size; i++)
-    {
-        if (!strcasecmp(arg, param_table[i].name))
-        {
-            return &param_table[i];
-        }
-    }
-    return NULL;
-}
-
 static int CountArgs(int p)
 {
     int count = 0;
@@ -174,9 +163,6 @@ static void ValidateArgs(int p, const param_def_t *param)
                         myargv[p]);
             }
             break;
-
-        case TypeSpecial:
-            break;
     }
 }
 
@@ -201,7 +187,7 @@ void M_CheckCommandLine(void)
                     myargv[p]);
         }
 
-        const param_def_t *param = FindParam(myargv[p]);
+        const param_def_t *param = M_FindParam(myargv[p]);
 
         if (!param)
         {

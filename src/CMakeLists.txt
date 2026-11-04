@@ -99,8 +99,8 @@ set(WOOF_SOURCES
     kf_memory.c
     m_arena.c              m_arena.h
     m_argv.c               m_argv.h
+    m_params.c             m_params.h
     m_array.c              m_array.h
-    params_table.c         params_table.h
     m_bbox.c               m_bbox.h
     m_cheat.c              m_cheat.h
     m_config.c             m_config.h
@@ -329,7 +329,7 @@ set(SETUP_SOURCES
     i_system.c              i_system.h
     i_timer.c               i_timer.h
     m_argv.c                m_argv.h
-    params_table.c          params_table.h
+    m_params.c              m_params.h
     m_array.h
     m_io.c                  m_io.h
     m_misc.c                m_misc.h

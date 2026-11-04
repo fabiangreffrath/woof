@@ -24,7 +24,6 @@ typedef enum
     TypeTwoArgs,
     TypeOneOrTwoArgs,
     TypeOptArg,
-    TypeSpecial,
 } param_type_t;
 
 typedef enum
@@ -47,8 +46,7 @@ typedef struct
     const char *help;
 } param_def_t;
 
-extern const param_def_t param_table[];
-extern const int param_table_size;
+const param_def_t *M_FindParam(const char *arg);
 
 const char *M_GetParamHelpString(void);
 void M_GenerateParamMarkdown(const char *filename);

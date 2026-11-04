@@ -1569,7 +1569,7 @@ void D_DoomMain(void)
     I_SafeExit(0);
   }
 
-  p = M_CheckParm("-generate-doc");
+  p = M_CheckParm("-doc");
   if (p)
   {
       const char *filename = (p < myargc - 1 && myargv[p + 1][0] != '-')
