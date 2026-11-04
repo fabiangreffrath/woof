@@ -36,7 +36,7 @@
 #include "r_plane.h"
 #include "r_sky.h"
 
-#define MN_MENU_WIDTH 500
+#define MN_LAYOUT {.max_width = MN_PX(500), .items_min_width = MN_PX(250)}
 
 #define MN_RESET \
     {.label = "", .type = ItemType_Reset, .flags = MN_ITEM_DIRECT_COORDS}
@@ -140,7 +140,7 @@ static mn_item_t display_items[] = {
     MN_END
 };
 
-mn_page_t display_pages[] = {
+static mn_page_t display_pages[] = {
     {.items = display_items}
 };
 
@@ -149,7 +149,7 @@ mn_menu_t display_menu = {
     .title_text = "Display",
     .background = "FLOOR4_6",
     .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
-    .layout = {.max_width = MN_PX(MN_MENU_WIDTH)},
+    .layout = MN_LAYOUT,
     .pages = display_pages,
     .num_pages = arrlen(display_pages)
 };
@@ -157,7 +157,7 @@ mn_menu_t display_menu = {
 static mn_item_t video_general_items[] = {
     MN_SLIDER_ACT_DYN_DEFER(
         "Resolution Scale", "resolution_scale",
-        MN_GetResolutionScaleStrings, 11, MN_OptionsUpdateResolutionScale,
+        MN_GetResolutionScaleStrings, 9, MN_OptionsUpdateResolutionScale,
         "Resolution Scale:\n\nScales the internal rendering resolution.\nLower "
         "values improve performance."),
     MN_TOGGLE_ACT(
@@ -189,7 +189,7 @@ static mn_item_t video_general_items[] = {
     MN_GAP(12),
     MN_TITLE("Preferences"),
     MN_SLIDER_ACT(
-        "Field of View", "fov", 11, MN_OptionsUpdateFOV,
+        "Field of View", "fov", 9, MN_OptionsUpdateFOV,
         "Field of View:\n\nAdjusts the horizontal viewing angle."),
     MN_SLIDER_ACT_STR(
         "Gamma Correction", "gamma2", gamma_strings, 8, V_ResetPalette,
@@ -340,7 +340,7 @@ mn_menu_t equalizer_menu = {
     .title_text = "Equalizer",
     .background = "FLOOR4_6",
     .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
-    .layout = {.max_width = MN_PX(MN_MENU_WIDTH)},
+    .layout = MN_LAYOUT,
     .pages = equalizer_pages,
     .num_pages = arrlen(equalizer_pages)
 };
@@ -396,7 +396,7 @@ mn_menu_t video_menu = {
     .title_text = "Video",
     .background = "FLOOR4_6",
     .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
-    .layout = {.max_width = MN_PX(MN_MENU_WIDTH)},
+    .layout = MN_LAYOUT,
     .pages = video_pages,
     .num_pages = arrlen(video_pages),
 };
@@ -411,7 +411,7 @@ mn_menu_t audio_menu = {
     .title_text = "Audio",
     .background = "FLOOR4_6",
     .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
-    .layout = {.max_width = MN_PX(MN_MENU_WIDTH)},
+    .layout = MN_LAYOUT,
     .pages = audio_pages,
     .num_pages = arrlen(audio_pages),
 };
@@ -553,7 +553,7 @@ mn_menu_t input_bindings_menu = {
     .title_text = "Input Bindings",
     .background = "FLOOR4_6",
     .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
-    .layout = {.max_width = MN_PX(MN_MENU_WIDTH)},
+    .layout = MN_LAYOUT,
     .pages = input_bindings_pages,
     .num_pages = arrlen(input_bindings_pages),
 };
@@ -648,7 +648,7 @@ mn_menu_t advanced_gamepad_menu = {
     .title_text = "Advanced Gamepad",
     .background = "FLOOR4_6",
     .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
-    .layout = {.max_width = MN_PX(500)},
+    .layout = MN_LAYOUT,
     .pages = advanced_gamepad_pages,
     .num_pages = arrlen(advanced_gamepad_pages)
 };
@@ -724,7 +724,7 @@ mn_menu_t advanced_gyro_menu = {
     .title_text = "Advanced Gyro",
     .background = "FLOOR4_6",
     .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
-    .layout = {.max_width = MN_PX(MN_MENU_WIDTH)},
+    .layout = MN_LAYOUT,
     .pages = advanced_gyro_pages,
     .num_pages = arrlen(advanced_gyro_pages)
 };
@@ -825,7 +825,7 @@ mn_menu_t controls_menu = {
     .title_text = "Controls",
     .background = "FLOOR4_6",
     .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
-    .layout = {.max_width = MN_PX(MN_MENU_WIDTH)},
+    .layout = MN_LAYOUT,
     .pages = controls_pages,
     .num_pages = arrlen(controls_pages),
 };
@@ -961,7 +961,7 @@ mn_menu_t interface_menu = {
     .title_text = "Interface",
     .background = "FLOOR4_6",
     .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
-    .layout = {.max_width = MN_PX(MN_MENU_WIDTH)},
+    .layout = MN_LAYOUT,
     .pages = interface_pages,
     .num_pages = arrlen(interface_pages),
 };
@@ -1021,7 +1021,7 @@ mn_menu_t gameplay_menu = {
     .title_text = "Gameplay",
     .background = "FLOOR4_6",
     .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
-    .layout = {.max_width = MN_PX(MN_MENU_WIDTH)},
+    .layout = MN_LAYOUT,
     .pages = gameplay_pages,
     .num_pages = arrlen(gameplay_pages),
 };

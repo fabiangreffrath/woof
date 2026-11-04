@@ -356,6 +356,14 @@ static void LayoutMenu(mn_menu_t *menu)
         hint_w = MAX(hint_w, hint_min);
         hint_w = CLAMP(hint_w, 0, MAX(0, width - gap));
 
+        // Check if items column would be too narrow
+        const int items_min =
+            ResolveLength(&menu->layout.items_min_width, width, 0);
+        if (items_min > 0 && width - hint_w - gap < items_min)
+        {
+            hint_w = 0;
+        }
+
         menu->hint_rect =
             (mrect_t){left + width - hint_w, top, hint_w, height};
         viewport_w = width - hint_w - gap;

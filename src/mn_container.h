@@ -176,6 +176,7 @@ typedef struct
     mn_length_t hint_width;
     mn_length_t hint_min_width;
     mn_length_t hint_max_width;
+    mn_length_t items_min_width;
     int hint_gap;
 } mn_layout_t;
 
