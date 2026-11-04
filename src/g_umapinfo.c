@@ -1487,7 +1487,7 @@ MI_Completion_t MI_PrepareIntermission(wbstartstruct_t *wminfo)
             return DC_Victory;
         }
 
-        wminfo->partime = gamemapinfo->partime;
+        wminfo->partime = gamemapinfo->partime * TICRATE;
         umapinfo_partimes = true;
 
         if (!wminfo->partime)
