@@ -75,8 +75,8 @@ typedef struct {
 // There was a lot of stuff grabbed wrong, so I changed it...
 //
 
-fixed_t pspritescale;
-fixed_t pspriteiscale;
+fixed_t pspritescale,  pspriteyscale;
+fixed_t pspriteiscale, pspriteyiscale;
 
 // [Woof!] optimization for drawing huge amount of drawsegs.
 // adapted from prboom-plus/src/r_things.c
@@ -622,11 +622,12 @@ void R_DrawVisSprite(vissprite_t *vis, int x1, int x2)
             :                               R_DrawColumn;
   }
 
-  dc_iscale = abs(vis->xiscale);
-  dc_texturemid = vis->texturemid;
+  dc_iscale = vis->yiscale;
   frac = vis->startfrac;
   spryscale = vis->scale;
-  sprtopscreen = centeryfrac - FixedMul(dc_texturemid,spryscale);
+  sprtopscreen = centeryfrac - FixedMul(vis->texturemid, vis->scale);
+
+  dc_texturemid = vis->texturemid;
 
   // [Alaux] Try copying columns of opaque sprites with 20% or more repetition
   const boolean try_copy_column =
@@ -686,7 +687,6 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
   spriteframe_t *sprframe;
   int       lump;
   vissprite_t *vis;
-  fixed_t   iscale;
   int heightsec;      // killough 3/27/98
 
   // [FG] moved declarations here
@@ -788,12 +788,19 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
       flip ^= (boolean) sprframe->flip[0];
     }
 
+  fixed_t yscale = xscale;
+
+  if (adjust_aspect)
+  {
+    yscale *= aspect_v_factor;
+  }
+
   txc = tx; // [FG] sprite center coordinate
 
   // calculate edges of the shape
   // [crispy] fix sprite offsets for mirrored sprites
   tx -= flip ? spritewidth[lump] - spriteoffset[lump] : spriteoffset[lump];
-  x1 = (centerxfrac + FixedMul64(tx,xscale)) >>FRACBITS;
+  x1 = (centerxfrac + FixedMul64(tx, xscale)) >>FRACBITS;
 
     // off the right side?
   if (x1 > viewwidth)
@@ -804,7 +811,7 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
   const int vx1 = x1 < 0 ? 0 : x1;
 
   tx +=  spritewidth[lump];
-  x2 = ((centerxfrac + FixedMul64(tx,xscale)) >> FRACBITS) - 1;
+  x2 = ((centerxfrac + FixedMul64(tx, xscale)) >> FRACBITS) - 1;
 
     // off the left side
     // [Alaux] Or past the left edge of the sprite
@@ -824,8 +831,8 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
   gzt = interpz + spritetopoffset[lump];
 
   // killough 4/9/98: clip things which are out of view due to height
-  if (interpz > (int64_t)viewz + FixedDiv(viewheightfrac, xscale) ||
-      gzt < (int64_t)viewz - FixedDiv(viewheightfrac - viewheight, xscale))
+  if (interpz > (int64_t)viewz + FixedDiv(viewheightfrac, yscale) ||
+      gzt < (int64_t)viewz - FixedDiv(viewheightfrac - viewheight, yscale))
     return;
 
   // killough 3/27/98: exclude things totally separated
@@ -862,7 +869,7 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
   vis->mobjflags = thing->flags;
   vis->mobjflags2 = thing->flags2;
   vis->mobjflags_extra = thing->flags_extra;
-  vis->scale = xscale;
+  vis->scale = yscale;
   vis->gx = interpx;
   vis->gy = interpy;
   vis->gz = interpz;
@@ -870,8 +877,9 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
   vis->texturemid = gzt - viewz;
   vis->x1 = cx1;
   vis->x2 = cx2;
-  iscale = FixedDiv(FRACUNIT, xscale);
   vis->color = thing->bloodcolor;
+
+  const fixed_t iscale = FixedDiv(FRACUNIT, xscale);
 
   if (flip)
     {
@@ -883,6 +891,8 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
       vis->startfrac = 0;
       vis->xiscale = iscale;
     }
+
+  vis->yiscale = FixedDiv(FRACUNIT, yscale);
 
   if (vis->x1 > x1)
     vis->startfrac += vis->xiscale*(vis->x1-x1);
@@ -920,7 +930,7 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
     lightnum = CLAMP(lightnum, 0, LIGHTLEVELS - 1);
 
     const int *const spritelightoffsets = scalelightoffset[lightnum];
-    const int index = R_GetLightIndex(xscale);
+    const int index = R_GetLightIndex(vis->scale);
 
     vis->colormap[0] = thiscolormap + spritelightoffsets[index];
     vis->colormap[1] = thiscolormap;
@@ -952,7 +962,7 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
   if (STRICTMODE(hud_crosshair_lockon) && thing == crosshair_target)
   {
     int x = (centerxfrac + FixedMul(txc, xscale)) >> FRACBITS;
-    int y = (centeryfrac + FixedMul(viewz - interpz - crosshair_target->actualheight / 2, xscale)) >> FRACBITS;
+    int y = (centeryfrac + FixedMul(viewz - interpz - crosshair_target->actualheight / 2, yscale)) >> FRACBITS;
     x = clampi(x, 0, viewwidth - 1);
     y = clampi(y, 0, viewheight - 1);
     HU_UpdateCrosshairLock(x, y);
@@ -1308,14 +1318,14 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
   tx = sx2 - 160*FRACUNIT; // [FG] centered weapon sprite
 
   tx -= spriteoffset[lump];
-  x1 = (centerxfrac + FixedMul (tx,pspritescale))>>FRACBITS;
+  x1 = (centerxfrac + FixedMul(tx, pspritescale)) >> FRACBITS;
 
   // off the right side
   if (x1 > viewwidth)
     return;
 
-  tx +=  spritewidth[lump];
-  x2 = ((centerxfrac + FixedMul (tx, pspritescale) ) >>FRACBITS) - 1;
+  tx += spritewidth[lump];
+  x2 = ((centerxfrac + FixedMul(tx, pspritescale)) >> FRACBITS) - 1;
 
   // off the left side
   if (x2 < 0)
@@ -1344,7 +1354,7 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
 
   vis->x1 = x1 < 0 ? 0 : x1;
   vis->x2 = x2 >= viewwidth ? viewwidth-1 : x2;
-  vis->scale = pspritescale;
+  vis->scale = pspriteyscale;
 
   if (flip)
     {
@@ -1356,6 +1366,8 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
       vis->xiscale = pspriteiscale;
       vis->startfrac = 0;
     }
+
+  vis->yiscale = pspriteyiscale;
 
   // [MT] adjust against the unclipped left edge (ox1)
   if (vis->x1 > ox1)
@@ -1424,7 +1436,7 @@ void R_DrawPSprite(pspdef_t *psp, int lightlevel_override)
   }
 
   // [crispy] free look
-  vis->texturemid += (centery - viewheight/2) * pspriteiscale;
+  vis->texturemid += (centery - viewheight/2) * pspriteyiscale;
 
   if (STRICTMODE(hide_weapon))
     return;

@@ -1178,59 +1178,53 @@ void MN_OptionsUpdateMusicVolume(void)
     S_SetMusicVolume(snd_MusicVolume);
 }
 
-static int resolution_scale, max_resolution_scale;
-#define RS_MENU_STEP 50
+static int resolution_scale;
 
 void MN_GetResolutionScaleStrings(mn_item_t *item)
 {
-    array_push(item->choices, "100%");
+    const resolution_scaling_t *const resolution_list = I_GetResolutionScaling();
+    const int num_res = array_size(resolution_list);
 
     resolution_scale = 0;
-    int val = SCREENHEIGHT * 2;
-    char buf[8];
-    int i;
 
-    for (i = 1; val < max_height_adjusted; ++i)
+    for (int i = 0;  i < num_res;  i++)
     {
-        if (val == current_video_height)
+        const boolean square_res = resolution_list[i].square;
+        const int base_height = square_res ? ACTUALHEIGHT : SCREENHEIGHT;
+
+        const int height = resolution_list[i].height;
+
+        char buf[16];
+
+        if (i < num_res - 1 || height <= SCREENHEIGHT)
         {
-            resolution_scale = i;
+            const int pct = 100 * height / base_height;
+            M_snprintf(buf, sizeof(buf), "%d%%", pct);
+        }
+        else
+        {
+            M_snprintf(buf, sizeof(buf), "Max");
         }
 
-        int pct = val * 100 / SCREENHEIGHT;
-        M_snprintf(buf, sizeof(buf), "%d%%", pct);
         array_push(item->choices, M_StringDuplicate(buf));
 
-        val += RS_MENU_STEP;
+        if (!(square_res ^ square_pixels))
+        {
+            if (height == current_video_height)
+            {
+                resolution_scale = i;
+            }
+        }
     }
-
-    max_resolution_scale = i;
-
-    if (current_video_height == max_height_adjusted)
-    {
-        resolution_scale = max_resolution_scale;
-    }
-
-    array_push(item->choices, "max");
 
     item->num_choices = array_size(item->choices);
 }
 
 void MN_OptionsUpdateResolutionScale(void)
 {
-    if (resolution_scale == max_resolution_scale)
-    {
-        current_video_height = max_height_adjusted;
-    }
-    else if (resolution_scale == 0)
-    {
-        current_video_height = SCREENHEIGHT;
-    }
-    else
-    {
-        current_video_height =
-            SCREENHEIGHT * 2 + (resolution_scale - 1) * RS_MENU_STEP;
-    }
+    const resolution_scaling_t *const resolution_list = I_GetResolutionScaling();
+
+    I_SetResolution(resolution_list[resolution_scale]);
 
     if (!dynamic_resolution)
     {

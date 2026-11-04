@@ -27,6 +27,7 @@
 
 #include <float.h>
 #include <limits.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -44,6 +45,7 @@
 #include "i_timer.h"
 #include "i_video.h"
 #include "m_argv.h"
+#include "m_array.h"
 #include "m_config.h"
 #include "m_fixed.h"
 #include "m_io.h"
@@ -75,9 +77,13 @@ fixed_t fractionaltic;
 
 boolean dynamic_resolution;
 
+#define DEFAULT_VIDEO_HEIGHT (ACTUALHEIGHT * 3)
+int default_video_height;
+
 int current_video_height;
 static int default_current_video_height;
 static int GetCurrentVideoHeight(void);
+boolean square_pixels;
 
 boolean uncapped;
 static boolean default_uncapped;
@@ -90,6 +96,7 @@ boolean setrefreshneeded;
 boolean toggle_fullscreen;
 
 static boolean use_vsync; // killough 2/8/98: controls whether vsync is called
+static boolean default_correct_aspect_ratio;
 boolean correct_aspect_ratio;
 static int fpslimit; // when uncapped, limit framerate to this value
 static boolean fullscreen;
@@ -130,10 +137,15 @@ static int scalefactor;
 static int actualheight;
 static int unscaled_actualheight;
 
+float aspect_v_factor;
+boolean adjust_aspect;
+
 static int max_video_width, max_video_height;
 static int max_width, max_height;
-int max_height_adjusted;
+static int max_height_adjusted;
 static float display_refresh_rate;
+
+#define MAX_HEIGHT_NONSQUARE() (max_height * SCREENHEIGHT / ACTUALHEIGHT)
 
 static boolean use_limiter;
 static float targetrefresh;
@@ -774,7 +786,7 @@ void I_DynamicResolution(void)
 
     static boolean needs_upscale;
 
-    #define DRS_STEP         (SCREENHEIGHT / 2)
+    #define DRS_STEP         (video.unscaledh / 2)
     #define DRS_DOWNSCALE_T1 1.08
     #define DRS_DOWNSCALE_T2 1.2   // 20% over target -> 2x step
     #define DRS_DOWNSCALE_T3 1.5   // 50% over target -> 3x step
@@ -1146,6 +1158,12 @@ static void SetWindowPosition(void)
     SDL_SyncWindow(screen);
 }
 
+void I_SetResolution(const resolution_scaling_t resolution)
+{
+    current_video_height = resolution.height;
+    square_pixels = resolution.square;
+}
+
 typedef struct
 {
     int w, h;
@@ -1191,10 +1209,6 @@ static aspect_ratio_t CurrentAspectRatio(void)
     {
         return (aspect_ratio_t){.w = 36, .h = 10};
     }
-    else if (w < ASPECT_RATIO_MIN * h)
-    {
-        return (aspect_ratio_t){.w = 4, .h = 3};
-    }
 
     return (aspect_ratio_t){.w = w, .h = h};
 }
@@ -1203,14 +1217,34 @@ static void ResetResolution(int height)
 {
     const aspect_ratio_t aspect_ratio = CurrentAspectRatio();
 
+    video.unscaledw = unscaled_actualheight * aspect_ratio.w / aspect_ratio.h;
+
+    // Support internal aspect ratios below 16:10
+    if (video.unscaledw < SCREENWIDTH)
+    {
+        int adjusted_screenheight =
+            ceilf((float) (video.unscaledh * SCREENWIDTH) / video.unscaledw);
+
+        adjusted_screenheight = (adjusted_screenheight + 1) & (int)~1;
+
+        aspect_v_factor = aspect_v_factor * adjusted_screenheight / video.unscaledh;
+        unscaled_actualheight = unscaled_actualheight * adjusted_screenheight / video.unscaledh;
+
+        height = MIN(max_height_adjusted, height * adjusted_screenheight / video.unscaledh);
+
+        video.unscaledh = adjusted_screenheight;
+        video.unscaledw = SCREENWIDTH;
+    }
+
     actualheight = correct_aspect_ratio ? (6 * height / 5) : height;
     video.height = height;
 
-    video.unscaledw = unscaled_actualheight * aspect_ratio.w / aspect_ratio.h;
     video.width = actualheight * aspect_ratio.w / aspect_ratio.h;
     video.width &= (int)~1;
 
     video.deltaw = (video.unscaledw - NONWIDEWIDTH) / 2;
+
+    adjust_aspect = aspect_v_factor != 1.0f;
 
     V_Init();
     R_InitVisplanesRes();
@@ -1338,15 +1372,10 @@ static void InitVideoParms(void)
     {
         if (correct_aspect_ratio && max_video_height < ACTUALHEIGHT)
         {
-            I_Error("The vertical resolution is too low, turn off the aspect "
-                    "ratio correction.");
+            I_Error("The vertical resolution is too low; increase it or turn "
+                    "off the aspect-ratio correction.");
         }
-        if (max_video_width < ASPECT_RATIO_MIN * max_video_height)
-        {
-            I_Printf(VB_ERROR, "Aspect ratio not supported, set other resolution");
-            max_video_width = mode->w;
-            max_video_height = mode->h;
-        }
+
         max_width = max_video_width;
         max_height = max_video_height;
     }
@@ -1356,16 +1385,7 @@ static void InitVideoParms(void)
         max_height = mode->h;
     }
 
-    if (correct_aspect_ratio)
-    {
-        max_height_adjusted = 5 * max_height / 6;
-        unscaled_actualheight = ACTUALHEIGHT;
-    }
-    else
-    {
-        max_height_adjusted = max_height;
-        unscaled_actualheight = SCREENHEIGHT;
-    }
+    default_video_height = MIN(DEFAULT_VIDEO_HEIGHT, MAX_HEIGHT_NONSQUARE());
 
     // SDL may report native refresh rate as zero.
     display_refresh_rate = mode->refresh_rate;
@@ -1524,15 +1544,83 @@ static void InitGraphicsMode(void)
     UpdateLimiter();
 }
 
+const resolution_scaling_t *I_GetResolutionScaling(void)
+{
+    static resolution_scaling_t *resolution_list = NULL;
+
+    if (!resolution_list)
+    {
+        array_push(resolution_list, ((resolution_scaling_t) { SCREENHEIGHT, false }));
+
+        if (SCREENHEIGHT * 2 >= MAX_HEIGHT_NONSQUARE())
+        {
+            // The maximum height is abnormally low;
+            // try adding one more resolution to match it
+            if (SCREENHEIGHT < MAX_HEIGHT_NONSQUARE())
+            {
+                array_push(resolution_list, ((resolution_scaling_t) { MAX_HEIGHT_NONSQUARE(), false }));
+            }
+
+            return resolution_list;
+        }
+
+        for (int i = 0; ; i++)
+        {
+            // Non-square pixels for resolutions < 300%,
+            // and square pixels for resolutions >= 300%
+            const boolean square_res = i > 3;
+
+            const int adjusted_max_height = square_res ? max_height : MAX_HEIGHT_NONSQUARE();
+            const int base_height = square_res ? ACTUALHEIGHT : SCREENHEIGHT;
+            const int step = base_height / 4;
+
+            int height = base_height * 2 + step * i;
+            height = MIN(height, adjusted_max_height);
+
+            array_push(resolution_list, ((resolution_scaling_t) { height, square_res }));
+
+            if (height >= max_height)
+            {
+                break;
+            }
+        }
+    }
+
+    return resolution_list;
+}
+
 static int GetCurrentVideoHeight(void)
 {
+    if (default_correct_aspect_ratio && square_pixels)
+    {
+        correct_aspect_ratio = false;
+        aspect_v_factor = 1.2f; // ACTUALHEIGHT / SCREENHEIGHT
+        video.unscaledh = ACTUALHEIGHT;
+    }
+    else {
+        correct_aspect_ratio = default_correct_aspect_ratio;
+        aspect_v_factor = 1.0f;
+        video.unscaledh = SCREENHEIGHT;
+    }
+
+    if (correct_aspect_ratio)
+    {
+        max_height_adjusted = MAX_HEIGHT_NONSQUARE();
+        unscaled_actualheight = ACTUALHEIGHT;
+    }
+    else
+    {
+        max_height_adjusted = max_height;
+        unscaled_actualheight = video.unscaledh;
+    }
+
     if (scalefactor > 0)
     {
-        current_video_height = scalefactor * SCREENHEIGHT;
+        current_video_height = scalefactor * video.unscaledh;
     }
 
     current_video_height =
-        CLAMP(current_video_height, SCREENHEIGHT, max_height_adjusted);
+        CLAMP(current_video_height, video.unscaledh, max_height_adjusted);
 
     return current_video_height;
 }
@@ -1573,7 +1661,7 @@ static void CreateVideoBuffer(void)
 
     int n = (scalefactor == 1 ? 1 : 2);
     SDL_SetWindowMinimumSize(screen, video.unscaledw * n,
-        correct_aspect_ratio ? ACTUALHEIGHT * n : SCREENHEIGHT * n);
+        correct_aspect_ratio ? ACTUALHEIGHT * n : video.unscaledh * n);
 
     if (!fullscreen)
     {
@@ -1692,10 +1780,12 @@ void I_QuitVideo(void)
 void I_BindVideoVariables(void)
 {
     M_BindNum("current_video_height", &default_current_video_height,
-              &current_video_height, 600, 200, UL, wad_no,
-              "Vertical resolution");
+              &current_video_height, DEFAULT_VIDEO_HEIGHT, SCREENHEIGHT,
+              UL, wad_no, "Vertical resolution");
+    BIND_BOOL(square_pixels, true, "Internal setting, do not change");
     BIND_BOOL(dynamic_resolution, true, "Dynamic resolution");
-    BIND_BOOL(correct_aspect_ratio, true, "Aspect ratio correction");
+    M_BindBool("correct_aspect_ratio", &default_correct_aspect_ratio, NULL,
+        true, wad_no, "Aspect-ratio correction");
     BIND_BOOL(fullscreen, true, "Fullscreen");
     BIND_BOOL(use_vsync, true,
         "Vertical sync to prevent display tearing");

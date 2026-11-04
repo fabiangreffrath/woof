@@ -765,6 +765,11 @@ static void do_draw_plane(visplane_t *pl)
 
     planeheight = abs(pl->height - viewz);
 
+    if (adjust_aspect)
+    {
+        planeheight *= aspect_v_factor;
+    }
+
     // No rows were marked for this plane.
     if (pl->maxy < 0)
     {
