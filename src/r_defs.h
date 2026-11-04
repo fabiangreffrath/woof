@@ -454,6 +454,7 @@ typedef struct vissprite_s
   fixed_t startfrac;           // horizontal position of x1
   fixed_t scale;
   fixed_t xiscale;             // negative if flipped
+  fixed_t yiscale;
   fixed_t texturemid;
   int patch;
   int mobjflags;

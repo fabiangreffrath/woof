@@ -39,8 +39,8 @@ extern THREADLOCAL int   *mfloorclip; // [FG] 32-bit integer math
 extern THREADLOCAL int   *mceilingclip; // [FG] 32-bit integer math
 extern THREADLOCAL fixed_t spryscale;
 extern THREADLOCAL int64_t sprtopscreen; // [FG] 64-bit integer math
-extern fixed_t pspritescale;
-extern fixed_t pspriteiscale;
+extern fixed_t pspritescale,  pspriteyscale;
+extern fixed_t pspriteiscale, pspriteyiscale;
 
 extern boolean flipcorpses;
 

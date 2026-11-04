@@ -69,7 +69,7 @@ const lighttable_t *fixedcolormap;
 int fixedcolormapoffset;
 int      centerx, centery;
 fixed_t  centerxfrac, centeryfrac;
-fixed_t  projection;
+fixed_t  projection, yprojection;
 fixed_t  skyiscale;
 fixed_t  viewx, viewy, viewz;
 angle_t  viewangle;
@@ -376,6 +376,16 @@ static void R_InitTextureMapping(void)
     projection = centerxfrac / slope;
   }
 
+  if (adjust_aspect)
+  {
+    yprojection = projection * aspect_v_factor;
+    lightfocallength *= aspect_v_factor;
+  }
+  else
+  {
+    yprojection = projection;
+  }
+
   for (i=0 ; i<FINEANGLES/2 ; i++)
     {
       int t;
@@ -507,7 +517,7 @@ static void R_SetupFreelook(void)
 
   if (viewpitch)
   {
-    dy = FixedMul(projection, -finetangent[(ANG90 - viewpitch) >> ANGLETOFINESHIFT]);
+    dy = FixedMul(yprojection, -finetangent[(ANG90 - viewpitch) >> ANGLETOFINESHIFT]);
   }
   else
   {
@@ -639,6 +649,16 @@ void R_ExecuteSetViewSize (void)
   while (FixedMul(pspriteiscale, pspritescale) < FRACUNIT)
     pspriteiscale++;
 
+  if (adjust_aspect)
+  {
+    pspriteyscale = pspritescale * aspect_v_factor;
+    pspriteyiscale = pspriteiscale / aspect_v_factor;
+  }
+  else {
+    pspriteyscale = pspritescale;
+    pspriteyiscale = pspriteiscale;
+  }
+
   if (custom_fov == FOV_DEFAULT)
   {
     skyiscale = FixedDiv(SCREENWIDTH, viewwidth_nonwide);
@@ -646,6 +666,11 @@ void R_ExecuteSetViewSize (void)
   else
   {
     skyiscale = tan(custom_fov * M_PI / 360.0) * SCREENWIDTH / viewwidth_nonwide * FRACUNIT;
+  }
+
+  if (adjust_aspect)
+  {
+    skyiscale /= aspect_v_factor;
   }
 
   for (i=0 ; i<viewwidth ; i++)

@@ -28,7 +28,19 @@
 #define FOV_MIN          60
 #define FOV_MAX          120
 #define ASPECT_RATIO_MAX 3.6 // Up to 32:9 aspect ratio.
-#define ASPECT_RATIO_MIN (4.0 / 3.0)
+
+typedef struct
+{
+    int height;
+    boolean square;
+} resolution_scaling_t;
+
+const resolution_scaling_t *I_GetResolutionScaling(void);
+void I_SetResolution(resolution_scaling_t resolution);
+
+extern float aspect_v_factor;
+
+extern boolean adjust_aspect;
 
 // Called by D_DoomMain,
 // determines the hardware configuration
@@ -49,9 +61,11 @@ void I_ToggleVsync(void); // [JN] Calls native SDL vsync toggle
 void I_DynamicResolution(void);
 void I_ResetDRS(void);
 
+extern int default_video_height;
+
 extern int current_video_height;
-extern int max_height_adjusted;
-#define DRS_MIN_HEIGHT 400
+extern boolean square_pixels;
+#define DRS_MIN_HEIGHT (video.unscaledh * 2)
 extern boolean dynamic_resolution;
 extern boolean uncapped;
 extern int fps;
