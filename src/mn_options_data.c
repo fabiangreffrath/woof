@@ -552,8 +552,8 @@ mn_menu_t input_bindings_menu = {
     .title_patch = "",
     .title_text = "Input Bindings",
     .background = "FLOOR4_6",
-    .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
-    .layout = MN_LAYOUT,
+    .flags = MN_MENU_CENTER_LAYOUT,
+    .layout = {.max_width = MN_PX(300)},
     .pages = input_bindings_pages,
     .num_pages = arrlen(input_bindings_pages),
 };
@@ -639,7 +639,7 @@ static mn_item_t advanced_gamepad_items[] = {
     MN_END
 };
 
-mn_page_t advanced_gamepad_pages[] = {
+static mn_page_t advanced_gamepad_pages[] = {
     {.items = advanced_gamepad_items}
 };
 
@@ -715,7 +715,7 @@ static mn_item_t advanced_gyro_items[] = {
     MN_RESET, MN_END
 };
 
-mn_page_t advanced_gyro_pages[] = {
+static mn_page_t advanced_gyro_pages[] = {
     {.items = advanced_gyro_items}
 };
 
@@ -814,7 +814,7 @@ static mn_item_t slots_items[] = {
 };
 
 static mn_page_t controls_pages[] = {
-    {.tab = "Mouse / Keyboard", .items = mouse_keyboard_items},
+    {.tab = "General", .items = mouse_keyboard_items},
     {.tab = "Gamepad", .items = gamepad_items},
     {.tab = "Gyro", .items = gyro_items, .draw = MN_DrawGyroPage},
     {.tab = "Slots", .items = slots_items},
