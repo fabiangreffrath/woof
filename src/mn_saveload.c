@@ -725,20 +725,20 @@ static void InitItems(void)
     for (int i = 0; i < SAVE_ENTRY_COUNT; ++i)
     {
         load_items[i] = (mn_item_t){.label = "",
-                                    .type = MN_ITEM_SAVESLOT,
+                                    .type = ItemType_SaveSlot,
                                     .height = SAVE_ROW_HEIGHT,
                                     .ops = &load_slot_ops};
 
         save_items[i] = (mn_item_t){
             .label = (i < SAVE_ENTRY_FIRST) ? NULL : "",
-            .type = (i < SAVE_ENTRY_FIRST) ? MN_ITEM_SKIP : MN_ITEM_SAVESLOT,
+            .type = (i < SAVE_ENTRY_FIRST) ? ItemType_Skip : ItemType_SaveSlot,
             .height = SAVE_ROW_HEIGHT,
             .ops = (i < SAVE_ENTRY_FIRST) ? NULL : &save_slot_ops,
         };
     }
 
-    load_items[SAVE_ENTRY_COUNT] = (mn_item_t){.type = MN_ITEM_END};
-    save_items[SAVE_ENTRY_COUNT] = (mn_item_t){.type = MN_ITEM_END};
+    load_items[SAVE_ENTRY_COUNT] = (mn_item_t){.type = ItemType_End};
+    save_items[SAVE_ENTRY_COUNT] = (mn_item_t){.type = ItemType_End};
 
     init = true;
 }

@@ -73,8 +73,8 @@ boolean MN_ContainerPointInside(const mrect_t *rect, int x, int y)
 
 static boolean IsNavigable(const mn_item_t *item)
 {
-    return item->type != MN_ITEM_END && item->type != MN_ITEM_TITLE
-           && item->type != MN_ITEM_SKIP;
+    return item->type != ItemType_End && item->type != ItemType_Title
+           && item->type != ItemType_Skip;
 }
 
 static boolean IsSelectable(const mn_item_t *item)
@@ -160,7 +160,7 @@ static void LayoutPage(mn_menu_t *menu, mn_page_t *page)
     int count = 0;
     int label_width = 0;
 
-    for (mn_item_t *item = page->items; item->type != MN_ITEM_END; ++item)
+    for (mn_item_t *item = page->items; item->type != ItemType_End; ++item)
     {
         count++;
 
@@ -172,11 +172,11 @@ static void LayoutPage(mn_menu_t *menu, mn_page_t *page)
 
         if (item->height == 0)
         {
-            if (item->type == MN_ITEM_SLIDER)
+            if (item->type == ItemType_Slider)
             {
                 item->height = MN_SPC_SLIDER;
             }
-            else if (item->type == MN_ITEM_CHOICE)
+            else if (item->type == ItemType_Choice)
             {
                 item->height = MN_SPC_CHOICE;
 
@@ -196,14 +196,14 @@ static void LayoutPage(mn_menu_t *menu, mn_page_t *page)
         item->rect.w = menu->viewport.w;
         item->rect.h = item->height;
 
-        if (item->type != MN_ITEM_TITLE && item->label)
+        if (item->type != ItemType_Title && item->label)
         {
             label_width = MAX(label_width, MN_GetPixelWidth(item->label));
         }
 
         y += item->height;
 
-        if ((item + 1)->type != MN_ITEM_END)
+        if ((item + 1)->type != ItemType_End)
         {
             y += menu->item_spacing;
         }
@@ -626,14 +626,14 @@ static void ActivateItem(mn_menu_t *menu, int index, boolean mouse)
         return;
     }
 
-    if (item->type == MN_ITEM_SUBMENU && item->submenu)
+    if (item->type == ItemType_SubMenu && item->submenu)
     {
         PushMenu(item->submenu);
         M_StartSound(sfx_mnuact);
         return;
     }
 
-    if (item->type == MN_ITEM_NUMBER || item->type == MN_ITEM_INPUT)
+    if (item->type == ItemType_Number || item->type == ItemType_Input)
     {
         menu->active_item = item;
 
@@ -644,7 +644,7 @@ static void ActivateItem(mn_menu_t *menu, int index, boolean mouse)
         return;
     }
 
-    if (item->type == MN_ITEM_CHOICE || item->type == MN_ITEM_SLIDER)
+    if (item->type == ItemType_Choice || item->type == ItemType_Slider)
     {
         if (mouse)
         {
@@ -669,8 +669,8 @@ static void ActivateItem(mn_menu_t *menu, int index, boolean mouse)
         item->ops->respond(item, MENU_ENTER, 0);
     }
 
-    if (item->type == MN_ITEM_ACTION || item->type == MN_ITEM_RESET
-        || item->type == MN_ITEM_TOGGLE)
+    if (item->type == ItemType_Action || item->type == ItemType_Reset
+        || item->type == ItemType_Toggle)
     {
         M_StartSound(sfx_mnusel);
     }
@@ -883,9 +883,9 @@ boolean MN_ContainerBindInput(mn_item_t *item)
         for (int p = 0; p < active_menu->num_pages; ++p)
         {
             for (mn_item_t *other = active_menu->pages[p].items;
-                 other->type != MN_ITEM_END; ++other)
+                 other->type != ItemType_End; ++other)
             {
-                if (other == item || other->type != MN_ITEM_INPUT
+                if (other == item || other->type != ItemType_Input
                     || other->group != item->group)
                 {
                     continue;
@@ -1151,7 +1151,7 @@ mn_container_result_t MN_ContainerMouseButton(int button, boolean down)
             return MN_CONTAINER_HANDLED;
         }
 
-        if (item->type == MN_ITEM_SLIDER && item->ops && item->ops->drag)
+        if (item->type == ItemType_Slider && item->ops && item->ops->drag)
         {
             menu->drag_item = item;
             item->ops->drag(item, last_mouse_x);
@@ -1260,8 +1260,8 @@ static void DrawTabs(const mn_menu_t *menu)
 static void DrawItemLabel(const mn_item_t *item, const mn_draw_ctx_t *ctx,
                           int label_x)
 {
-    if (item->type == MN_ITEM_TITLE || item->type == MN_ITEM_SKIP
-        || item->type == MN_ITEM_RESET)
+    if (item->type == ItemType_Title || item->type == ItemType_Skip
+        || item->type == ItemType_Reset)
     {
         return;
     }
@@ -1275,7 +1275,7 @@ static void DrawItemLabel(const mn_item_t *item, const mn_draw_ctx_t *ctx,
 
     // Save slots keep their description in the upper half of the row, above
     // the border strip, so the cursor has to follow the text.
-    if (item->height > MN_SPC && item->type != MN_ITEM_SAVESLOT)
+    if (item->height > MN_SPC && item->type != ItemType_SaveSlot)
     {
         y += (item->height - MN_SPC) / 2;
     }
@@ -1308,7 +1308,7 @@ static void DrawItems(const mn_menu_t *menu)
             continue;
         }
 
-        if (item->type == MN_ITEM_SKIP)
+        if (item->type == ItemType_Skip)
         {
             continue;
         }
@@ -1369,7 +1369,7 @@ static void DisableItem(boolean condition, mn_menu_t *menu, const char *name)
     {
         mn_page_t *page = &menu->pages[i];
 
-        for (mn_item_t *item = page->items; item->type != MN_ITEM_END; ++item)
+        for (mn_item_t *item = page->items; item->type != ItemType_End; ++item)
         {
             if ((item->cfg && !strcmp(item->cfg, name))
                 || (item->label && !strcmp(item->label, name)))
@@ -1593,11 +1593,11 @@ static void DrawInstructions(const mn_menu_t *menu)
     {
         switch (item->type)
         {
-            case MN_ITEM_NUMBER:
+            case ItemType_Number:
                 text = "Enter value";
                 break;
 
-            case MN_ITEM_INPUT:
+            case ItemType_Input:
                 text = "Press key or button to bind/unbind";
                 break;
 
@@ -1613,26 +1613,26 @@ static void DrawInstructions(const mn_menu_t *menu)
     {
         switch (item->type)
         {
-            case MN_ITEM_INPUT:
+            case ItemType_Input:
                 M_snprintf(buffer, sizeof(buffer),
                            "[ %s ] Change, [ %s ] Clear", ConfirmKeyName(pad),
                            pad ? M_GetPlatformName(GAMEPAD_NORTH)
                                : M_GetNameForKey(KEY_DEL));
                 break;
 
-            case MN_ITEM_RESET:
+            case ItemType_Reset:
                 M_snprintf(buffer, sizeof(buffer), "[ %s ] Restore defaults",
                            ConfirmKeyName(pad));
                 break;
 
-            case MN_ITEM_TOGGLE:
+            case ItemType_Toggle:
                 M_snprintf(buffer, sizeof(buffer), "[ %s ] Toggle",
                            ConfirmKeyName(pad));
                 break;
 
-            case MN_ITEM_ACTION:
-            case MN_ITEM_SUBMENU:
-            case MN_ITEM_SAVESLOT:
+            case ItemType_Action:
+            case ItemType_SubMenu:
+            case ItemType_SaveSlot:
                 M_snprintf(buffer, sizeof(buffer), "[ %s ] Select",
                            ConfirmKeyName(pad));
                 break;

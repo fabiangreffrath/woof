@@ -23,32 +23,32 @@
 #define MN_SPC_CHOICE (MN_SPC + 3)
 #define MN_MAX_TABS   16
 
-enum
+typedef enum
 {
     MN_MENU_CENTER = (1u << 0),
     MN_MENU_HINTS = (1u << 1),
 
     // Centers the whole layout box.
     MN_MENU_CENTER_LAYOUT = (1u << 2),
-};
+} mn_menu_flags_t;
 
 typedef enum
 {
-    MN_ITEM_TITLE,
-    MN_ITEM_TOGGLE,
-    MN_ITEM_NUMBER,
-    MN_ITEM_CHOICE,
-    MN_ITEM_SLIDER,
-    MN_ITEM_INPUT,
-    MN_ITEM_ACTION,
-    MN_ITEM_RESET,
-    MN_ITEM_SUBMENU,
-    MN_ITEM_SKIP,
-    MN_ITEM_SAVESLOT,
-    MN_ITEM_END
+    ItemType_Title,
+    ItemType_Toggle,
+    ItemType_Number,
+    ItemType_Choice,
+    ItemType_Slider,
+    ItemType_Input,
+    ItemType_Action,
+    ItemType_Reset,
+    ItemType_SubMenu,
+    ItemType_Skip,
+    ItemType_SaveSlot,
+    ItemType_End
 } mn_item_type_t;
 
-enum
+typedef enum
 {
     MN_ITEM_WARN_LEVEL = (1u << 0),
     MN_ITEM_WARN_PROGRAM = (1u << 1),
@@ -58,7 +58,7 @@ enum
     MN_ITEM_DIRECT_COORDS = (1u << 5),
     MN_ITEM_DRAW_CROSSHAIR = (1u << 6),
     MN_ITEM_HIDE_VALUE = (1u << 7),
-};
+} mn_item_flags_t;
 
 typedef struct mn_item_ops_s mn_item_ops_t;
 typedef struct mn_item_s mn_item_t;
@@ -87,11 +87,12 @@ struct mn_item_s
     const char *label;
     const char *cfg;
     mn_item_type_t type;
+    void (*get_choices)(mn_item_t *item);
     const char **choices;
     int num_choices;
     int slider_size;
     int choice_size;
-    uint32_t flags;
+    mn_item_flags_t flags;
     const char *description;
     const char *suffix;
     void (*action)(void);
@@ -100,7 +101,6 @@ struct mn_item_s
     int group;
 
     // Runtime part.
-    void (*getchoices)(mn_item_t *item);
     struct default_s *def;
     const mn_item_ops_t *ops;
     mrect_t rect;
@@ -184,7 +184,7 @@ struct mn_menu_s
     const char *title_patch;
     const char *title_text;
     const char *background;
-    uint32_t flags;
+    mn_menu_flags_t flags;
     int item_spacing;
     mn_layout_t layout;
     boolean init;
@@ -215,20 +215,20 @@ struct mn_menu_s
     void (*confirm_action)(void);
 };
 
-#define MN_END        {.type = MN_ITEM_END}
-#define MN_GAP(gap)   {.type = MN_ITEM_SKIP, .height = (gap)}
-#define MN_TITLE(txt) {.label = (txt), .type = MN_ITEM_TITLE}
+#define MN_END        {.type = ItemType_End}
+#define MN_GAP(gap)   {.type = ItemType_Skip, .height = (gap)}
+#define MN_TITLE(txt) {.label = (txt), .type = ItemType_Title}
 
 #define MN_TOGGLE(lbl, key, desc) \
     {.label = (lbl),              \
      .cfg = (key),                \
-     .type = MN_ITEM_TOGGLE,      \
+     .type = ItemType_Toggle,     \
      .description = (desc)}
 
 #define MN_CHOICE(lbl, key, strs, size, desc) \
     {.label = (lbl),                          \
      .cfg = (key),                            \
-     .type = MN_ITEM_CHOICE,                  \
+     .type = ItemType_Choice,                 \
      .choices = (strs),                       \
      .num_choices = arrlen(strs),             \
      .choice_size = (size),                   \
@@ -236,7 +236,7 @@ struct mn_menu_s
 #define MN_CHOICE_ACT(lbl, key, strs, size, act, desc) \
     {.label = (lbl),                                   \
      .cfg = (key),                                     \
-     .type = MN_ITEM_CHOICE,                           \
+     .type = ItemType_Choice,                          \
      .choices = (strs),                                \
      .num_choices = arrlen(strs),                      \
      .choice_size = (size),                            \

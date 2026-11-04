@@ -39,116 +39,78 @@
 #define MN_MENU_WIDTH 500
 
 #define MN_RESET \
-    {.label = "", .type = MN_ITEM_RESET, .flags = MN_ITEM_DIRECT_COORDS}
+    {.label = "", .type = ItemType_Reset, .flags = MN_ITEM_DIRECT_COORDS}
 
 #define MN_SUBMENU(lbl, menu) \
-    {.label = (lbl), .type = MN_ITEM_SUBMENU, .submenu = (menu)}
+    {.label = (lbl), .type = ItemType_SubMenu, .submenu = (menu)}
 
 #define MN_MENU(lbl, menu)        \
     {.label = (lbl),              \
-     .type = MN_ITEM_SUBMENU,     \
+     .type = ItemType_SubMenu,    \
      .submenu = (menu),           \
      .flags = MN_ITEM_HIDE_VALUE}
 
 #define MN_INPUT(lbl, id, grp) \
     {.label = (lbl),           \
      .cfg = #id,               \
-     .type = MN_ITEM_INPUT,    \
+     .type = ItemType_Input,   \
      .input_id = (id),         \
      .group = (grp)}
 
 #define MN_TOGGLE_ACT(lbl, key, act, desc) \
     {.label = (lbl),                       \
      .cfg = (key),                         \
-     .type = MN_ITEM_TOGGLE,               \
+     .type = ItemType_Toggle,              \
      .action = (act),                      \
      .description = (desc)}
 
 #define MN_NUMBER_ACT(lbl, key, sfx, act, desc) \
     {.label = (lbl),                            \
      .cfg = (key),                              \
-     .type = MN_ITEM_NUMBER,                    \
+     .type = ItemType_Number,                   \
      .suffix = (sfx),                           \
      .action = (act),                           \
      .description = (desc)}
 
-#define MN_CHOICE_ACT_DEFER(lbl, key, strs, size, act, desc) \
-    {.label = (lbl),                                         \
-     .cfg = (key),                                           \
-     .type = MN_ITEM_CHOICE,                                 \
-     .choices = (strs),                                      \
-     .num_choices = arrlen(strs),                            \
-     .choice_size = (size),                                  \
-     .action = (act),                                        \
-     .flags = MN_ITEM_DEFER_ACTION,                          \
-     .description = (desc)}
+#define MN_SLIDER_INTERNAL(label_, cfg_, get_choices_, choices_, num_choices_, \
+                           slider_size_, flags_, action_, suffix_, desc_)      \
+    {.label = (label_),                                                        \
+     .cfg = (cfg_),                                                            \
+     .type = ItemType_Slider,                                                  \
+     .get_choices = (get_choices_),                                            \
+     .choices = (choices_),                                                    \
+     .num_choices = (num_choices_),                                            \
+     .slider_size = (slider_size_),                                            \
+     .flags = (flags_),                                                        \
+     .action = (action_),                                                      \
+     .suffix = (suffix_),                                                      \
+     .description = (desc_)}
 
 #define MN_SLIDER(lbl, key, size, desc) \
-    {.label = (lbl),                    \
-     .cfg = (key),                      \
-     .type = MN_ITEM_SLIDER,            \
-     .slider_size = (size),             \
-     .description = (desc)}
-#define MN_SLIDER_STR(lbl, key, strs, size, desc) \
-    {.label = (lbl),                              \
-     .cfg = (key),                                \
-     .type = MN_ITEM_SLIDER,                      \
-     .choices = (strs),                           \
-     .num_choices = arrlen(strs),                 \
-     .slider_size = (size),                       \
-     .description = (desc)}
-#define MN_SLIDER_ACT(lbl, key, size, act, desc) \
-    {.label = (lbl),                             \
-     .cfg = (key),                               \
-     .type = MN_ITEM_SLIDER,                     \
-     .slider_size = (size),                      \
-     .action = (act),                            \
-     .description = (desc)}
-#define MN_SLIDER_ACT_SUFFIX(lbl, key, size, act, sfx, desc) \
-    {.label = (lbl),                                         \
-     .cfg = (key),                                           \
-     .type = MN_ITEM_SLIDER,                                 \
-     .slider_size = (size),                                  \
-     .suffix = (sfx),                                        \
-     .action = (act),                                        \
-     .description = (desc)}
-#define MN_SLIDER_ACT_STR(lbl, key, strs, size, act, desc) \
-    {.label = (lbl),                                       \
-     .cfg = (key),                                         \
-     .type = MN_ITEM_SLIDER,                               \
-     .choices = (strs),                                    \
-     .num_choices = arrlen(strs),                          \
-     .slider_size = (size),                                \
-     .action = (act),                                      \
-     .description = (desc)}
-#define MN_SLIDER_ACT_STR_DEFER(lbl, key, strs, size, act, desc) \
-    {.label = (lbl),                                             \
-     .cfg = (key),                                               \
-     .type = MN_ITEM_SLIDER,                                     \
-     .choices = (strs),                                          \
-     .num_choices = arrlen(strs),                                \
-     .slider_size = (size),                                      \
-     .action = (act),                                            \
-     .flags = MN_ITEM_DEFER_ACTION,                              \
-     .description = (desc)}
-#define MN_SLIDER_ACT_DYN(lbl, key, getstrs, size, act, desc) \
-    {.label = (lbl),                                          \
-     .cfg = (key),                                            \
-     .type = MN_ITEM_SLIDER,                                  \
-     .getchoices = (getstrs),                                 \
-     .slider_size = (size),                                   \
-     .action = (act),                                         \
-     .description = (desc)}
-#define MN_SLIDER_ACT_DYN_DEFER(lbl, key, getstrs, size, act, desc) \
-    {.label = (lbl),                                                \
-     .cfg = (key),                                                  \
-     .type = MN_ITEM_SLIDER,                                        \
-     .getchoices = (getstrs),                                       \
-     .slider_size = (size),                                         \
-     .action = (act),                                               \
-     .flags = MN_ITEM_DEFER_ACTION,                                 \
-     .description = (desc)}
+    MN_SLIDER_INTERNAL(lbl, key, NULL, NULL, 0, size, 0, NULL, NULL, desc)
 
+#define MN_SLIDER_STR(lbl, key, strs, size, desc) \
+    MN_SLIDER_INTERNAL(lbl, key, NULL, strs, arrlen(strs), size, 0, NULL, NULL, desc)
+
+#define MN_SLIDER_ACT(lbl, key, size, act, desc) \
+    MN_SLIDER_INTERNAL(lbl, key, NULL, NULL, 0, size, 0, act, NULL, desc)
+
+#define MN_SLIDER_ACT_SUFFIX(lbl, key, size, act, sfx, desc) \
+    MN_SLIDER_INTERNAL(lbl, key, NULL, NULL, 0, size, 0, act, sfx, desc)
+
+#define MN_SLIDER_ACT_STR(lbl, key, strs, size, act, desc) \
+    MN_SLIDER_INTERNAL(lbl, key, NULL, strs, arrlen(strs), size, 0, act, NULL, desc)
+
+#define MN_SLIDER_ACT_STR_DEFER(lbl, key, strs, size, act, desc) \
+    MN_SLIDER_INTERNAL(lbl, key, NULL, strs, arrlen(strs), size, \
+                       MN_ITEM_DEFER_ACTION, act, NULL, desc)
+
+#define MN_SLIDER_ACT_DYN(lbl, key, getstrs, size, act, desc) \
+    MN_SLIDER_INTERNAL(lbl, key, getstrs, NULL, 0, size, 0, act, NULL, desc)
+
+#define MN_SLIDER_ACT_DYN_DEFER(lbl, key, getstrs, size, act, desc) \
+    MN_SLIDER_INTERNAL(lbl, key, getstrs, NULL, 0, size, MN_ITEM_DEFER_ACTION, \
+                       act, NULL, desc)
 
 static const char *window_mode_strings[] = {"Windowed", "Borderless"};
 static const char *widescreen_strings[] = {
@@ -207,9 +169,15 @@ static mn_item_t video_general_items[] = {
         pixel_scaling_strings, 8, MN_OptionsResetVideo,
         "Pixel Scaling:\n\nSharp: Preserves details, but may look uneven.\n\n"
         "Smooth: Even pixels, but may look softer."),
-    MN_CHOICE_ACT_DEFER(
-        "Aspect Ratio", "widescreen", widescreen_strings, 8, MN_OptionsResetVideo,
-        "Aspect Ratio:\n\nAuto: Detects from resolution."),
+        {.label = "Aspect Ratio",
+         .cfg = "widescreen",
+         .type = ItemType_Choice,
+         .choices = widescreen_strings,
+         .num_choices = arrlen(widescreen_strings),
+         .choice_size = 8,
+         .action = MN_OptionsResetVideo,
+         .flags = MN_ITEM_DEFER_ACTION,
+         .description = "Aspect Ratio:\n\nAuto: Detects from resolution."},
     MN_TOGGLE_ACT(
         "Uncapped FPS", "uncapped", MN_OptionsUpdateFPSLimit,
         "Uncapped FPS:\n\nRemoves the original frame rate limit 35 FPS."),
@@ -321,8 +289,8 @@ static mn_item_t audio_general_items[] = {
     MN_GAP(20),
     {.label = "MIDI Player",
      .cfg = "midi_player_menu",
-     .type = MN_ITEM_CHOICE,
-     .getchoices = MN_GetMidiPlayerStrings,
+     .type = ItemType_Choice,
+     .get_choices = MN_GetMidiPlayerStrings,
      .choice_size = 18,
      .action = MN_OptionsSetMidiPlayer,
      .flags = MN_ITEM_DEFER_ACTION | MN_ITEM_TWO_LINES},
@@ -390,8 +358,8 @@ static mn_item_t audio_advanced_items[] = {
         "Output Limiter:\n\nPrevents audio clipping by limiting peak volume."),
     {.label = "Resampler",
      .cfg = "snd_resampler",
-     .type = MN_ITEM_CHOICE,
-     .getchoices = MN_GetResamplerStrings,
+     .type = ItemType_Choice,
+     .get_choices = MN_GetResamplerStrings,
      .choice_size = 18,
      .action = I_OAL_SetResampler,
      .flags = MN_ITEM_DEFER_ACTION,
@@ -688,8 +656,8 @@ mn_menu_t advanced_gamepad_menu = {
 static mn_item_t gamepad_items[] = {
     {.label = "Device",
      .cfg = "joy_device",
-     .type = MN_ITEM_CHOICE,
-     .getchoices = MN_GetGamepadDeviceStrings,
+     .type = ItemType_Choice,
+     .get_choices = MN_GetGamepadDeviceStrings,
      .choice_size = 16,
      .action = MN_OptionsUpdateGamepadDevice,
      .flags = MN_ITEM_DEFER_ACTION | MN_ITEM_TWO_LINES,
@@ -789,7 +757,7 @@ static mn_item_t gyro_items[] = {
     MN_CHOICE_ACT("Freelook", "freelook_mode", freelook_strings, 8,
         MN_OptionsUpdateFreeLookMode, FREELOOK_DESC),
     {.label = "Calibrate Gyro",
-     .type = MN_ITEM_ACTION,
+     .type = ItemType_Action,
      .action = I_UpdateGyroCalibrationState,
      .description = "Calibrate Gyro:\n\nCalibrates the gyroscope. Place "
                     "controller on a flat surface."},
@@ -800,8 +768,8 @@ static mn_item_t gyro_items[] = {
 #define MN_WEAPON_SLOT(i, key)              \
     {.label = slot_labels[i],               \
      .cfg = (key),                          \
-     .type = MN_ITEM_CHOICE,                \
-     .getchoices = MN_GetWeaponSlotStrings, \
+     .type = ItemType_Choice,               \
+     .get_choices = MN_GetWeaponSlotStrings,\
      .choice_size = 8,                      \
      .action = MN_OptionsUpdateWeaponSlots}
 
@@ -914,7 +882,7 @@ static const char *hudcolor_strings[] = {
 static mn_item_t crosshair_items[] = {
     {.label = "Crosshair",
      .cfg = "hud_crosshair",
-     .type = MN_ITEM_CHOICE,
+     .type = ItemType_Choice,
      .choices = crosshair_strings,
      .num_choices = HU_CROSSHAIRS,
      .choice_size = 12,

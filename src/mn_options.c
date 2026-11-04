@@ -1011,29 +1011,29 @@ static void BindItem(mn_item_t *item)
 
     switch (item->type)
     {
-        case MN_ITEM_TITLE:
+        case ItemType_Title:
             item->ops = &title_ops;
             break;
-        case MN_ITEM_TOGGLE:
+        case ItemType_Toggle:
             item->ops = &toggle_ops;
             break;
-        case MN_ITEM_NUMBER:
+        case ItemType_Number:
             item->ops = &number_ops;
             break;
-        case MN_ITEM_CHOICE:
+        case ItemType_Choice:
             item->ops = &choice_ops;
             break;
-        case MN_ITEM_SLIDER:
+        case ItemType_Slider:
             item->ops = &slider_ops;
             break;
-        case MN_ITEM_ACTION:
-        case MN_ITEM_SUBMENU:
+        case ItemType_Action:
+        case ItemType_SubMenu:
             item->ops = &action_ops;
             break;
-        case MN_ITEM_RESET:
+        case ItemType_Reset:
             item->ops = &reset_ops;
             break;
-        case MN_ITEM_INPUT:
+        case ItemType_Input:
             item->ops = &input_ops;
             break;
         default:
@@ -1051,13 +1051,13 @@ static void BindItem(mn_item_t *item)
         }
     }
 
-    if (item->getchoices)
+    if (item->get_choices)
     {
-        item->getchoices(item);
+        item->get_choices(item);
     }
 
     // Initialize rect dimensions from patch for direct-coords reset button
-    if (item->type == MN_ITEM_RESET)
+    if (item->type == ItemType_Reset)
     {
         patch_t *patch = V_CachePatchName("M_BUTT1", PU_CACHE);
         item->rect.x = 301;
@@ -1073,7 +1073,7 @@ void MN_BindMenu(mn_menu_t *menu)
     {
         mn_page_t *page = &menu->pages[i];
 
-        for (mn_item_t *item = page->items; item->type != MN_ITEM_END; ++item)
+        for (mn_item_t *item = page->items; item->type != ItemType_End; ++item)
         {
             BindItem(item);
         }
@@ -1121,7 +1121,7 @@ static void OptionsResetPage(void)
         return;
     }
 
-    for (mn_item_t *item = page->items; item->type != MN_ITEM_END; ++item)
+    for (mn_item_t *item = page->items; item->type != ItemType_End; ++item)
     {
         default_t *def = item->def;
 
