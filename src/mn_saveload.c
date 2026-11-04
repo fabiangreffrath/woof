@@ -679,6 +679,18 @@ static boolean SaveSlotRespond(mn_item_t *item, menu_action_t action, int ch)
 
     if (action == MENU_ENTER)
     {
+        if (editing && edit_entry == entry)
+        {
+            I_StopTextInput();
+            editing = false;
+
+            if (descriptions[entry][0])
+            {
+                SaveGameAtEntry(entry);
+            }
+            return true;
+        }
+
         StartEdit(entry);
         return true;
     }
