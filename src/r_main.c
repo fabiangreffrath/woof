@@ -435,6 +435,27 @@ static void R_InitTextureMapping(void)
 
   vx_clipangle = clipangle - ((fov << ANGLETOFINESHIFT) - ANG90);
   CalcMaxProjectSlope(fov);
+
+  // [RNR] distscale table for the per-column flat rasteriser.
+
+  if (distscale_size != viewwidth)
+  {
+    free(distscale);
+    distscale = malloc(viewwidth * sizeof(*distscale));
+    distscale_size = viewwidth;
+  }
+
+  for (i = 0; i < viewwidth; i++)
+  {
+    fixed_t cosadj = finecosine[xtoviewangle[i] >> ANGLETOFINESHIFT];
+
+    if (cosadj < 0)
+      cosadj = -cosadj;
+    else if (!cosadj) // extreme FOV guard; RNR has the same division
+      cosadj = 1;
+
+    distscale[i] = FixedDiv(FRACUNIT, cosadj);
+  }
 }
 
 //
@@ -619,23 +640,6 @@ void R_ExecuteSetViewSize (void)
   R_InitBuffer();       // killough 11/98
 
   R_InitTextureMapping();
-
-  // [RNR] distscale table for the per-column flat rasteriser.
-  if (distscale_size != viewwidth)
-  {
-    free(distscale);
-    distscale = malloc(viewwidth * sizeof(*distscale));
-    distscale_size = viewwidth;
-  }
-  for (i = 0; i < viewwidth; i++)
-  {
-    fixed_t cosadj = finecosine[xtoviewangle[i] >> ANGLETOFINESHIFT];
-    if (cosadj < 0)
-      cosadj = -cosadj;
-    if (!cosadj) // extreme FOV guard; RNR has the same division
-      cosadj = 1;
-    distscale[i] = FixedDiv(FRACUNIT, cosadj);
-  }
 
   R_SetupFreelook();
 
