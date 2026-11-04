@@ -51,6 +51,7 @@
   - Improved palettization of PNG graphics, and general color approximation in the engine.
   - Implemented transposed rendering for improved rendering performance in general.
   - Optimized rendering of sprites near the camera.
+  - Improved culling of sprites above and below the view (thanks to @JNechaevsky and @pvictress).
   - Added "Cylindrical" sky projection as a third option besides "Vanilla" and "Linear" (from Nugget Doom).
 
 * **Multiplayer:**
