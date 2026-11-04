@@ -114,15 +114,13 @@ void R_DrawColumn(void)
     }
 #endif
 
-    pixel_t *dest = xlookup[dc_x] + rowofs[dc_yl];
+    pixel_t *restrict dest = xlookup[dc_x] + rowofs[dc_yl];
     const fixed_t fracstep = dc_iscale;
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
-    const byte *const source = dc_source;
-    const lighttable_t *const colormap = dc_colormap;
+    const byte *const restrict source = dc_source;
+    const lighttable_t *const restrict colormap = dc_colormap;
     int heightmask = dc_texheight - 1;
-
-    byte src;
 
     if (dc_texheight & heightmask)
     {
@@ -141,29 +139,59 @@ void R_DrawColumn(void)
             }
         }
 
-        do
+        while (count >= 2)
         {
-            src = source[frac >> 16];
-            *dest++ = colormap[src];
-
+            dest[0] = colormap[source[frac >> FRACBITS]];
             if ((frac += fracstep) >= heightmask)
             {
                 frac -= heightmask;
             }
-
             if (frac < 0)
             {
                 frac += heightmask;
             }
-        } while (--count);
+
+            dest[1] = colormap[source[frac >> FRACBITS]];
+            if ((frac += fracstep) >= heightmask)
+            {
+                frac -= heightmask;
+            }
+            if (frac < 0)
+            {
+                frac += heightmask;
+            }
+
+            dest += 2;
+            count -= 2;
+        }
+
+        if (count)
+        {
+            *dest = colormap[source[frac >> FRACBITS]];
+        }
     }
     else
     {
-        UNROLL_LOOP_BY(2)
-        while (count--)
+        // Power of two, or a patch (heightmask == -1): four rows per
+        // iteration, so the loop branches once per four pixels instead of
+        // once per pixel.
+        while (count >= 4)
         {
-            src = source[(frac >> FRACBITS) & heightmask];
-            *dest++ = colormap[src];
+            dest[0] = colormap[source[(frac >> FRACBITS) & heightmask]];
+            frac += fracstep;
+            dest[1] = colormap[source[(frac >> FRACBITS) & heightmask]];
+            frac += fracstep;
+            dest[2] = colormap[source[(frac >> FRACBITS) & heightmask]];
+            frac += fracstep;
+            dest[3] = colormap[source[(frac >> FRACBITS) & heightmask]];
+            frac += fracstep;
+            dest += 4;
+            count -= 4;
+        }
+
+        while (count-- > 0)
+        {
+            *dest++ = colormap[source[(frac >> FRACBITS) & heightmask]];
             frac += fracstep;
         }
     }
@@ -196,12 +224,12 @@ void R_DrawTLColumn(void)
     }
 #endif
 
-    pixel_t *dest = xlookup[dc_x] + rowofs[dc_yl];
+    pixel_t *restrict dest = xlookup[dc_x] + rowofs[dc_yl];
     const fixed_t fracstep = dc_iscale;
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
-    const byte *const source = dc_source;
-    const lighttable_t *const colormap = dc_colormap;
+    const byte *const restrict source = dc_source;
+    const lighttable_t *const restrict colormap = dc_colormap;
     int heightmask = dc_texheight - 1;
 
     byte src;
@@ -242,13 +270,24 @@ void R_DrawTLColumn(void)
     }
     else
     {
-        UNROLL_LOOP_BY(2)
-        while (count--)
+        while (count >= 2)
+        {
+            src = source[(frac >> FRACBITS) & heightmask];
+            dest[0] = tranmap[(dest[0] << 8) + colormap[src]];
+            frac += fracstep;
+
+            src = source[(frac >> FRACBITS) & heightmask];
+            dest[1] = tranmap[(dest[1] << 8) + colormap[src]];
+            frac += fracstep;
+
+            dest += 2;
+            count -= 2;
+        }
+
+        if (count)
         {
             src = source[(frac >> FRACBITS) & heightmask];
             *dest = tranmap[(*dest << 8) + colormap[src]];
-            dest++;
-            frac += fracstep;
         }
     }
 }
@@ -273,13 +312,13 @@ void R_DrawSkyColumn(void)
     }
 #endif
 
-    pixel_t *dest = xlookup[dc_x] + rowofs[dc_yl];
+    pixel_t *restrict dest = xlookup[dc_x] + rowofs[dc_yl];
 
     const fixed_t fracstep = dc_iscale;
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
-    const byte *const source = dc_source;
-    const lighttable_t *const colormap = dc_colormap;
+    const byte *const restrict source = dc_source;
+    const lighttable_t *const restrict colormap = dc_colormap;
     const byte skycolor = dc_skycolor;
 
     // Fill in the median color here
@@ -378,11 +417,19 @@ void R_DrawSkyColumn(void)
     }
     else
     {
-        UNROLL_LOOP_BY(2)
-        while (count--)
+        while (count >= 2)
         {
-            *dest++ = colormap[source[(frac >> FRACBITS) & heightmask]];
+            dest[0] = colormap[source[(frac >> FRACBITS) & heightmask]];
             frac += fracstep;
+            dest[1] = colormap[source[(frac >> FRACBITS) & heightmask]];
+            frac += fracstep;
+            dest += 2;
+            count -= 2;
+        }
+
+        if (count)
+        {
+            *dest = colormap[source[(frac >> FRACBITS) & heightmask]];
         }
     }
 }
@@ -837,13 +884,13 @@ void R_DrawTranslatedColumn(void)
     }
 #endif
 
-    pixel_t *dest = xlookup[dc_x] + rowofs[dc_yl];
+    pixel_t *restrict dest = xlookup[dc_x] + rowofs[dc_yl];
     const fixed_t fracstep = dc_iscale;
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
-    const byte *const source = dc_source;
-    const byte *const translation = dc_translation;
-    const lighttable_t *const colormap = dc_colormap;
+    const byte *const restrict source = dc_source;
+    const byte *const restrict translation = dc_translation;
+    const lighttable_t *const restrict colormap = dc_colormap;
     int heightmask = dc_texheight - 1;
 
     byte src;
@@ -883,12 +930,24 @@ void R_DrawTranslatedColumn(void)
     }
     else
     {
-        UNROLL_LOOP_BY(2)
-        while (count--)
+        while (count >= 2)
         {
             src = source[(frac >> FRACBITS) & heightmask];
-            *dest++ = colormap[translation[src]];
+            dest[0] = colormap[translation[src]];
             frac += fracstep;
+
+            src = source[(frac >> FRACBITS) & heightmask];
+            dest[1] = colormap[translation[src]];
+            frac += fracstep;
+
+            dest += 2;
+            count -= 2;
+        }
+
+        if (count)
+        {
+            src = source[(frac >> FRACBITS) & heightmask];
+            *dest = colormap[translation[src]];
         }
     }
 }
@@ -942,19 +1001,16 @@ void R_DrawTRTLColumn(void)
     }
 #endif
 
-    pixel_t *dest = xlookup[dc_x] + rowofs[dc_yl];
+    pixel_t *restrict dest = xlookup[dc_x] + rowofs[dc_yl];
     const fixed_t fracstep = dc_iscale;
     fixed_t frac = dc_texturemid + (dc_yl - centery) * fracstep;
 
-    const byte *const source = dc_source;
-    const byte *const translation = dc_translation;
-    const lighttable_t *const colormap = dc_colormap;
+    const byte *const restrict source = dc_source;
+    const byte *const restrict translation = dc_translation;
+    const lighttable_t *const restrict colormap = dc_colormap;
     int heightmask = dc_texheight - 1;
 
     byte src;
-
-    #define SRCPIXEL \
-      tranmap[(*dest << 8) + colormap[translation[src]]]
 
     if (dc_texheight & heightmask)
     {
@@ -976,7 +1032,7 @@ void R_DrawTRTLColumn(void)
         do
         {
             src = source[frac >> 16];
-            *dest = SRCPIXEL;
+            *dest = tranmap[(*dest << 8) + colormap[translation[src]]];
             dest++;
 
             if ((frac += fracstep) >= heightmask)
@@ -992,17 +1048,26 @@ void R_DrawTRTLColumn(void)
     }
     else
     {
-        UNROLL_LOOP_BY(2)
-        while (count--)
+        while (count >= 2)
         {
             src = source[(frac >> FRACBITS) & heightmask];
-            *dest = SRCPIXEL;
-            dest++;
+            dest[0] = tranmap[(dest[0] << 8) + colormap[translation[src]]];
             frac += fracstep;
+
+            src = source[(frac >> FRACBITS) & heightmask];
+            dest[1] = tranmap[(dest[1] << 8) + colormap[translation[src]]];
+            frac += fracstep;
+
+            dest += 2;
+            count -= 2;
+        }
+
+        if (count)
+        {
+            src = source[(frac >> FRACBITS) & heightmask];
+            *dest = tranmap[(*dest << 8) + colormap[translation[src]]];
         }
     }
-
-    #undef SRCPIXEL
 }
 
 void R_InitBufferRes(void)

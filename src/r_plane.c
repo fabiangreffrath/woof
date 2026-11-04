@@ -301,7 +301,8 @@ static void R_PreparePlaneRows(const lighttable_t *const thiscolormap,
 // R_DrawSpan used (SoM).
 #define PLANESPOT(xf, yf) ((((yf) >> 10) & 0xFC0) | (((xf) >> 16) & 0x3F))
 
-static void R_RasterPlaneColumn(const byte *source, int x, int top, int bottom)
+static void R_RasterPlaneColumn(const byte *restrict source, int x, int top,
+                                int bottom)
 {
     int count = bottom - top;
     pixel_t *dest = xlookup[x] + rowofs[top]; // rows are contiguous (transposed)
@@ -339,7 +340,37 @@ static void R_RasterPlaneColumn(const byte *source, int x, int top, int bottom)
         const uint32_t xstep = (nextxfrac - xfrac) >> planeleaplog2;
         const uint32_t ystep = (nextyfrac - yfrac) >> planeleaplog2;
 
-        for (int i = 0; i < planeleap; i++)
+        // Four rows per iteration: the row step is independent of the sampled
+        // texel, so unrolling lets the compiler overlap the xfrac/yfrac
+        // increments instead of serialising them one row at a time.
+        int i = 0;
+
+        for (; i + 4 <= planeleap; i += 4)
+        {
+            dest[0] = planeraster[row].colormap[source[PLANESPOT(xfrac, yfrac)]];
+            row++;
+            xfrac += xstep;
+            yfrac += ystep;
+
+            dest[1] = planeraster[row].colormap[source[PLANESPOT(xfrac, yfrac)]];
+            row++;
+            xfrac += xstep;
+            yfrac += ystep;
+
+            dest[2] = planeraster[row].colormap[source[PLANESPOT(xfrac, yfrac)]];
+            row++;
+            xfrac += xstep;
+            yfrac += ystep;
+
+            dest[3] = planeraster[row].colormap[source[PLANESPOT(xfrac, yfrac)]];
+            row++;
+            xfrac += xstep;
+            yfrac += ystep;
+
+            dest += 4;
+        }
+
+        for (; i < planeleap; i++)
         {
             *dest++ =
                 planeraster[row].colormap[source[PLANESPOT(xfrac, yfrac)]];

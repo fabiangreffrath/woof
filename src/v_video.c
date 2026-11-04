@@ -118,11 +118,19 @@ static void DrawPatchColumn(const patch_column_t *patchcol)
     fixed_t frac = patchcol->frac + ((patchcol->y1 * fracstep) & FRACMASK);
     const byte *source = patchcol->source;
 
-    UNROLL_LOOP_BY(2)
-    while (count--)
+    while (count >= 2)
     {
-        *dest++ = source[frac >> FRACBITS];
+        dest[0] = source[frac >> FRACBITS];
         frac += fracstep;
+        dest[1] = source[frac >> FRACBITS];
+        frac += fracstep;
+        dest += 2;
+        count -= 2;
+    }
+
+    if (count)
+    {
+        *dest = source[frac >> FRACBITS];
     }
 }
 
@@ -148,11 +156,19 @@ static void DrawPatchColumnTR(const patch_column_t *patchcol)
     fixed_t frac = patchcol->frac + ((patchcol->y1 * fracstep) & FRACMASK);
     const byte *source = patchcol->source;
 
-    UNROLL_LOOP_BY(2)
-    while (count--)
+    while (count >= 2)
     {
-        *dest++ = translation[source[frac >> FRACBITS]];
+        dest[0] = translation[source[frac >> FRACBITS]];
         frac += fracstep;
+        dest[1] = translation[source[frac >> FRACBITS]];
+        frac += fracstep;
+        dest += 2;
+        count -= 2;
+    }
+
+    if (count)
+    {
+        *dest = translation[source[frac >> FRACBITS]];
     }
 }
 
@@ -178,11 +194,19 @@ static void DrawPatchColumnTRTR(const patch_column_t *patchcol)
     fixed_t frac = patchcol->frac + ((patchcol->y1 * fracstep) & FRACMASK);
     const byte *source = patchcol->source;
 
-    UNROLL_LOOP_BY(2)
-    while (count--)
+    while (count >= 2)
     {
-        *dest++ = translation2[translation[source[frac >> FRACBITS]]];
+        dest[0] = translation2[translation[source[frac >> FRACBITS]]];
         frac += fracstep;
+        dest[1] = translation2[translation[source[frac >> FRACBITS]]];
+        frac += fracstep;
+        dest += 2;
+        count -= 2;
+    }
+
+    if (count)
+    {
+        *dest = translation2[translation[source[frac >> FRACBITS]]];
     }
 }
 
@@ -208,12 +232,19 @@ static void DrawPatchColumnTL(const patch_column_t *patchcol)
     fixed_t frac = patchcol->frac + ((patchcol->y1 * fracstep) & FRACMASK);
     const byte *source = patchcol->source;
 
-    UNROLL_LOOP_BY(2)
-    while (count--)
+    while (count >= 2)
+    {
+        dest[0] = tranmap[(dest[0] << 8) + source[frac >> FRACBITS]];
+        frac += fracstep;
+        dest[1] = tranmap[(dest[1] << 8) + source[frac >> FRACBITS]];
+        frac += fracstep;
+        dest += 2;
+        count -= 2;
+    }
+
+    if (count)
     {
         *dest = tranmap[(*dest << 8) + source[frac >> FRACBITS]];
-        dest++;
-        frac += fracstep;
     }
 }
 
@@ -239,12 +270,19 @@ static void DrawPatchColumnTRTL(const patch_column_t *patchcol)
     fixed_t frac = patchcol->frac + ((patchcol->y1 * fracstep) & FRACMASK);
     const byte *source = patchcol->source;
 
-    UNROLL_LOOP_BY(2)
-    while (count--)
+    while (count >= 2)
+    {
+        dest[0] = tranmap[(dest[0] << 8) + translation[source[frac >> FRACBITS]]];
+        frac += fracstep;
+        dest[1] = tranmap[(dest[1] << 8) + translation[source[frac >> FRACBITS]]];
+        frac += fracstep;
+        dest += 2;
+        count -= 2;
+    }
+
+    if (count)
     {
         *dest = tranmap[(*dest << 8) + translation[source[frac >> FRACBITS]]];
-        dest++;
-        frac += fracstep;
     }
 }
 

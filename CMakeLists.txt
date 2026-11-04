@@ -28,7 +28,6 @@ option(ENABLE_HARDENING "Enable hardening flags" OFF)
 option(ENABLE_LTO "Enable link time optimization" OFF)
 option(ENABLE_FONTGEN "Generate textscreen font" OFF)
 
-option(WOOF_RANGECHECK "Enable bounds-checking of performance-sensitive functions" ON)
 option(WOOF_STRICT
        "Prefer original MBF code paths over demo compatiblity with PrBoom+" OFF)
 

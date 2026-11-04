@@ -142,16 +142,6 @@ inline static double clamp(double x, double min, double max)
   #define NORETURN
 #endif
 
-#if defined(__GNUC__) && !defined(__clang__)
-  #define PRAGMA(x) _Pragma(#x)
-  #define UNROLL_LOOP_BY(n) PRAGMA(GCC unroll n)
-#elif defined(__clang__)
-  #define PRAGMA(x) _Pragma(#x)
-  #define UNROLL_LOOP_BY(n) PRAGMA(clang loop unroll_count(n))
-#else
-  #define UNROLL_LOOP_BY(n)
-#endif
-
 #if defined(__has_feature)
   #if __has_feature(thread_sanitizer)
     #define NOSANITIZE_THREAD __attribute__((no_sanitize("thread")))
