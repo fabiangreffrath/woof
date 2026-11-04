@@ -830,10 +830,24 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
 
   gzt = interpz + spritetopoffset[lump];
 
+  // [Alaux] Calculate this early so we can perform height clipping
+  // using multiplications instead of divisions
+  const fixed_t yiscale = FixedDiv(FRACUNIT, yscale);
+
   // killough 4/9/98: clip things which are out of view due to height
-  if (interpz > (int64_t)viewz + FixedDiv(viewheightfrac, yscale) ||
-      gzt < (int64_t)viewz - FixedDiv(viewheightfrac - viewheight, yscale))
-    return;
+  // [Alaux] Improved, thanks to JNechaevsky and pvictress
+  {
+    const fixed_t gz = gzt - spriteheight[lump];
+
+    const int64_t
+      view_top    = viewz + FixedMul64(centeryfrac, yiscale),
+      view_bottom = viewz - FixedMul64(bottomydeltafrac, yiscale);
+
+    if (gzt < view_bottom || view_top < gz)
+    {
+      return;
+    }
+  }
 
   // killough 3/27/98: exclude things totally separated
   // from the viewer, by either water or fake ceilings
@@ -892,7 +906,7 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
       vis->xiscale = iscale;
     }
 
-  vis->yiscale = FixedDiv(FRACUNIT, yscale);
+  vis->yiscale = yiscale;
 
   if (vis->x1 > x1)
     vis->startfrac += vis->xiscale*(vis->x1-x1);
