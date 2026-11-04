@@ -17,10 +17,12 @@
 //-----------------------------------------------------------------------------
 
 #include "doomtype.h"
-#include <stdio.h>
-#include <string.h>
 #include "i_printf.h"
 #include "i_system.h"
+#include "m_argv.h"
+#include "params_table.h"
+
+#include <stdio.h>
 
 int    myargc;
 char **myargv;
@@ -35,20 +37,20 @@ char **myargv;
 
 int M_CheckParmWithArgs(const char *check, int num_args)
 {
-  int i;
+    for (int i = 1; i < myargc - num_args; i++)
+    {
+        if (!strcasecmp(check, myargv[i]))
+        {
+            return i;
+        }
+    }
 
-  for (i = 1; i < myargc - num_args; i++)
-  {
-    if (!strcasecmp(check, myargv[i]))
-      return i;
-  }
-
-  return 0;
+    return 0;
 }
 
 int M_CheckParm(const char *check)
 {
-  return M_CheckParmWithArgs(check, 0);
+    return M_CheckParmWithArgs(check, 0);
 }
 
 //
@@ -65,172 +67,183 @@ boolean M_ParmExists(const char *check)
 
 static int ArgToInt(int p, int arg)
 {
-  int result;
+    int result;
 
-  if (p + arg >= myargc)
-    I_Error("No parameter for '%s'.", myargv[p]);
+    if (p + arg >= myargc)
+    {
+        I_Error("No parameter for '%s'.", myargv[p]);
+    }
 
-  if (sscanf(myargv[p + arg], " %d", &result) != 1)
-    I_Error("Invalid parameter '%s' for %s, must be a number.", myargv[p + arg], myargv[p]);
+    if (sscanf(myargv[p + arg], " %d", &result) != 1)
+    {
+        I_Error("Invalid parameter '%s' for %s, must be a number.",
+                myargv[p + arg], myargv[p]);
+    }
 
-  return result;
+    return result;
 }
 
 int M_ParmArgToInt(int p)
 {
-  return ArgToInt(p, 1);
+    return ArgToInt(p, 1);
 }
 
 int M_ParmArg2ToInt(int p)
 {
-  return ArgToInt(p, 2);
+    return ArgToInt(p, 2);
 }
 
-
-#include "params.h"
-
-static int CheckArgs(int p)
+static const param_def_t *FindParam(const char *arg)
 {
-  int i;
-
-  ++p;
-
-  for (i = p; i < myargc; ++i)
-  {
-    if (myargv[i][0] == '-')
-      break;
-  }
-
-  if (i > p)
-    return i;
-
-  return 0;
+    for (int i = 0; i < param_table_size; i++)
+    {
+        if (!strcasecmp(arg, param_table[i].name))
+        {
+            return &param_table[i];
+        }
+    }
+    return NULL;
 }
 
-static int CheckNumArgs(int p, int num_args)
+static int CountArgs(int p)
 {
-  int i;
+    int count = 0;
+    ++p;
+    while (p < myargc && myargv[p][0] != '-')
+    {
+        ++count;
+        ++p;
+    }
+    return count;
+}
 
-  ++p;
+static void ValidateArgs(int p, const param_def_t *param)
+{
+    int num_args = CountArgs(p);
 
-  for (i = p; i < p + num_args && i < myargc; ++i)
-  {
-    if (myargv[i][0] == '-')
-      break;
-  }
+    switch (param->type)
+    {
+        case TypeFlag:
+            if (num_args > 0)
+            {
+                I_Error("Option '%s' does not take arguments.", myargv[p]);
+            }
+            break;
 
-  if (i == p + num_args)
-    return i;
+        case TypeString:
+        case TypeInt:
+        case TypeFloat:
+            if (num_args < 1)
+            {
+                I_Error("Option '%s' requires an argument.", myargv[p]);
+            }
+            if (num_args > 1)
+            {
+                I_Error("Option '%s' takes only one argument.", myargv[p]);
+            }
+            break;
 
-  return 0;
+        case TypeFileList:
+            if (num_args < 1)
+            {
+                I_Error("Option '%s' requires at least one file argument.",
+                        myargv[p]);
+            }
+            break;
+
+        case TypeTwoArgs:
+            if (num_args != 2)
+            {
+                I_Error("Option '%s' requires exactly two arguments.",
+                        myargv[p]);
+            }
+            break;
+
+        case TypeOneOrTwoArgs:
+            if (num_args < 1 || num_args > 2)
+            {
+                I_Error("Option '%s' requires one or two arguments.",
+                        myargv[p]);
+            }
+            break;
+
+        case TypeOptArg:
+            if (num_args > 1)
+            {
+                I_Error("Option '%s' takes at most one optional argument.",
+                        myargv[p]);
+            }
+            break;
+
+        case TypeSpecial:
+            break;
+    }
 }
 
 void M_CheckCommandLine(void)
 {
-  int p = 1;
+    int p = 1;
 
-  while (p < myargc)
-  {
-    int i;
-    int args = 0;
-
-    // skip response file
-    if (myargv[p][0] == '@')
+    while (p < myargc)
     {
-      ++p;
-      continue;
-    }
+        // skip response file
+        if (myargv[p][0] == '@')
+        {
+            ++p;
+            continue;
+        }
 
-    for (i = 0; i < arrlen(params_with_args); ++i)
-    {
-      if (!strcasecmp(myargv[p], "-file") ||
-          !strcasecmp(myargv[p], "-deh"))
-      {
-        args = -1;
-        break;
-      }
-      else if (!strcasecmp(myargv[p], "-warp") ||
-               !strcasecmp(myargv[p], "-recordfrom") ||
-               !strcasecmp(myargv[p], "-recordfromto") ||
-               !strcasecmp(myargv[p], "-dumptranmap"))
-      {
-        args = 2;
-        break;
-      }
-      else if (!strcasecmp(myargv[p], params_with_args[i]))
-      {
-        args = 1;
-        break;
-      }
-    }
+        // Must start with -
+        if (myargv[p][0] != '-')
+        {
+            I_Error("Unexpected argument '%s'. Expected an option starting "
+                    "with '-'.",
+                    myargv[p]);
+        }
 
-    if (args)
-    {
-      int check = args > 0 ? CheckNumArgs(p, args) : CheckArgs(p);
+        const param_def_t *param = FindParam(myargv[p]);
 
-      if (check)
-      {
-        p = check;
-      }
-      // -warp can have only one parameter
-      else if (!strcasecmp(myargv[p], "-warp"))
-      {
-        check = CheckNumArgs(p, 1);
-        if (check)
-          p = check;
+        if (!param)
+        {
+            I_Error("No such option '%s'.", myargv[p]);
+        }
+
+        ValidateArgs(p, param);
+
+        // Special handling for -file and -deh (variable number of args)
+        if (param->type == TypeFileList)
+        {
+            // Skip all file arguments until next option
+            ++p;
+            while (p < myargc && myargv[p][0] != '-')
+            {
+                ++p;
+            }
+        }
+        else if (param->type == TypeTwoArgs || param->type == TypeOneOrTwoArgs)
+        {
+            // Skip 1 or 2 arguments
+            int num_args = CountArgs(p);
+            p += 1 + num_args;
+        }
+        else if (param->type == TypeOptArg)
+        {
+            // Skip 0 or 1 argument
+            int num_args = CountArgs(p);
+            p += 1 + num_args;
+        }
         else
-          I_Error("No parameter for '-warp'.");
-      }
-      // -skipsec can be negative
-      else if (!strcasecmp(myargv[p], "-skipsec") && p + 1 < myargc)
-      {
-        float min, sec;
-        if (sscanf(myargv[p + 1], "%f:%f", &min, &sec) == 2 ||
-            sscanf(myargv[p + 1], "%f", &sec) == 1)
-          p += 2;
-        else
-          I_Error("No parameter for '-skipsec'.");
-      }
-      // -turbo has default value
-      else if (!strcasecmp(myargv[p], "-turbo"))
-      {
-        ++p;
-      }
-      // -dogs has default value
-      else if (!strcasecmp(myargv[p], "-dogs"))
-      {
-        ++p;
-      }
-      // -statdump and -dehout allow "-" parameter
-      else if ((!strcasecmp(myargv[p], "-statdump")) &&
-                p + 1 < myargc && !strcmp(myargv[p + 1], "-"))
-      {
-        p += 2;
-      }
-      else
-      {
-        I_Error("No parameter for '%s'.", myargv[p]);
-      }
-
-      continue;
+        {
+            // Skip the option and its required arguments
+            int num_args = CountArgs(p);
+            p += 1 + num_args;
+        }
     }
-
-    for (i = 0; i < arrlen(params); ++i)
-    {
-       if (!strcasecmp(myargv[p], params[i]))
-         break;
-    }
-
-    if (i == arrlen(params))
-      I_Error("No such option '%s'.", myargv[p]);
-
-    ++p;
-  }
 }
 
 void M_PrintHelpString(void)
 {
-  I_Printf(VB_ALWAYS, "%s", HELP_STRING);
+    I_Printf(VB_ALWAYS, "%s", M_GetParamHelpString());
 }
 
 //----------------------------------------------------------------------------
