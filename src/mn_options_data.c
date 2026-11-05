@@ -875,8 +875,8 @@ static mn_item_t statusbar_items[] = {
 
 static const char *crosshair_target_strings[] = {"Off", "Highlight", "Health"};
 static const char *hudcolor_strings[] = {
-    "BRICK",  "TAN",    "GRAY",  "GREEN", "BROWN",  "GOLD",  "RED", "BLUE",
-    "ORANGE", "YELLOW", "BLUE2", "BLACK", "PURPLE", "WHITE", "NONE"
+    "Brick",  "Tan",    "Gray",  "Green", "Brown",  "Gold",  "Red",    "Blue1",
+    "Orange", "Yellow", "Blue2", "Black", "Purple", "White", "Bright", "None"
 };
 
 static mn_item_t crosshair_items[] = {
@@ -896,8 +896,8 @@ static mn_item_t crosshair_items[] = {
         "Highlight: Colors crosshair on target.\n\n"
         "Health: Colors by target health percentage."),
     MN_TOGGLE("Lock On Target", "hud_crosshair_lockon", NULL),
-    MN_CHOICE("Default Color", "hud_crosshair_color", hudcolor_strings, 8, NULL),
-    MN_CHOICE("Highlight Color", "hud_crosshair_target_color", hudcolor_strings, 8, NULL),
+    MN_SLIDER_STR("Default Color", "hud_crosshair_color", hudcolor_strings, 8, NULL),
+    MN_SLIDER_STR("Highlight Color", "hud_crosshair_target_color", hudcolor_strings, 8, NULL),
     MN_RESET,
     MN_END
 };
