@@ -1208,7 +1208,7 @@ void MN_GetResolutionScaleStrings(mn_item_t *item)
 
         array_push(item->choices, M_StringDuplicate(buf));
 
-        if (!(square_res ^ square_pixels))
+        if (square_res == square_pixels)
         {
             if (height == current_video_height)
             {

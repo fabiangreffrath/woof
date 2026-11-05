@@ -654,7 +654,8 @@ void R_ExecuteSetViewSize (void)
     pspriteyscale = pspritescale * aspect_v_factor;
     pspriteyiscale = pspriteiscale / aspect_v_factor;
   }
-  else {
+  else
+  {
     pspriteyscale = pspritescale;
     pspriteyiscale = pspriteiscale;
   }
