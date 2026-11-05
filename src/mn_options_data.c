@@ -885,7 +885,7 @@ static mn_item_t crosshair_items[] = {
      .type = ItemType_Choice,
      .choices = crosshair_strings,
      .num_choices = HU_CROSSHAIRS,
-     .choice_size = 14,
+     .choice_size = 10,
      .action = MN_OptionsUpdateCrosshairItems,
      .flags = MN_ITEM_DRAW_CROSSHAIR},
     MN_TOGGLE("Color By Player Health", "hud_crosshair_health", NULL),
