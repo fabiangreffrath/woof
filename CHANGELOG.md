@@ -48,6 +48,7 @@
   - Implemented transposed rendering for improved rendering performance in general.
   - Optimized rendering of sprites near the camera.
   - Added "Cylindrical" sky projection as a third option besides "Vanilla" and "Linear" (from Nugget Doom).
+  - Improved rotation of voxel items.
 
 * **Multiplayer:**
   - Implemented rollback netcode: Processes local inputs instantly and predicts opponent actions, automatically rewinding and correcting the game state if a prediction is incorrect.
