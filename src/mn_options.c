@@ -289,7 +289,7 @@ enum
     CHOICE_SEG_W = 4,
     CHOICE_SEG_GAP = 2,
     CHOICE_MIN_VISIBLE = 2,
-    CHOICE_MAX_VISIBLE = 12,
+    CHOICE_MAX_VISIBLE = 32,
 };
 
 typedef struct
