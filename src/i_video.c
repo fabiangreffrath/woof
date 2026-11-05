@@ -1597,7 +1597,8 @@ static int GetCurrentVideoHeight(void)
         aspect_v_factor = 1.2f; // ACTUALHEIGHT / SCREENHEIGHT
         video.unscaledh = ACTUALHEIGHT;
     }
-    else {
+    else
+    {
         correct_aspect_ratio = default_correct_aspect_ratio;
         aspect_v_factor = 1.0f;
         video.unscaledh = SCREENHEIGHT;
