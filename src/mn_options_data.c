@@ -331,7 +331,7 @@ static mn_item_t equalizer_items[] = {
     MN_END
 };
 
-mn_page_t equalizer_pages[] = {
+static mn_page_t equalizer_pages[] = {
     {.items = equalizer_items}
 };
 
@@ -378,9 +378,9 @@ static mn_item_t audio_advanced_items[] = {
         "  OPL3 Gain", "opl_gain", 8, MN_OptionsUpdateMusicVolume, "dB",
         "OPL3 Gain:\n\nAdjusts OPL3 FM synthesis volume in decibels."),
     MN_CHOICE_ACT(
-        "Native MIDI Reset Type", "midi_reset_type", native_midi_reset_strings,
+        "MIDI Reset Type", "midi_reset_type", native_midi_reset_strings,
         8, MN_OptionsSetMidiPlayer,
-        "Native MIDI Reset Type:\n\nNo SysEx: No reset sent.\n\n"
+        "MIDI Reset Type:\n\nNo SysEx: No reset sent.\n\n"
         "GM: General MIDI reset.\n\nGS: Roland GS reset.\n\nXG: Yamaha XG reset."),
     MN_RESET,
     MN_END

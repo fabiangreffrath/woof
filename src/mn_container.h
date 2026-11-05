@@ -291,11 +291,10 @@ void MN_TruncateText(char *buffer, int width);
 
 void MN_DrawNotification(const char *text, int color, boolean blink);
 
-void MN_DisableItemInternal(boolean condition, mn_menu_t *menu,
-                            const char *names[], int size);
-#define MN_DisableItem(condition, menu, ...)                                   \
-    MN_DisableItemInternal((condition), (menu), (const char *[]){__VA_ARGS__}, \
-                           sizeof((const char *[]){__VA_ARGS__})               \
+void MN_DisableItemInternal(boolean condition, const char *names[], int size);
+#define MN_DisableItem(condition, ...)                                 \
+    MN_DisableItemInternal((condition), (const char *[]){__VA_ARGS__}, \
+                           sizeof((const char *[]){__VA_ARGS__})       \
                                / sizeof(const char *))
 
 void MN_BindMenuVariables(void);

@@ -278,7 +278,7 @@ void VX_Init (void)
 	if (!voxels_found)
 	{
 		voxels_rendering = false;
-		MN_DisableItem(true, &video_menu, "voxels_rendering");
+		MN_DisableItem(true, "voxels_rendering");
 		I_Printf(VB_INFO, "not found.");
 	}
 	else

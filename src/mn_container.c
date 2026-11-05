@@ -20,15 +20,18 @@
 
 #include "doomdef.h"
 #include "doomkeys.h"
+#include "doomtype.h"
 #include "i_gamepad.h"
 #include "i_system.h"
 #include "m_config.h"
 #include "m_input.h"
 #include "m_misc.h"
 #include "mn_container.h"
+#include "mn_csmenu.h"
 #include "mn_font.h"
 #include "mn_common.h"
 #include "mn_menu.h"
+#include "mn_options.h"
 #include "sounds.h"
 #include "v_palette.h"
 #include "v_patch.h"
@@ -1371,19 +1374,40 @@ static void DrawItems(const mn_menu_t *menu)
     }
 }
 
-static void DisableItem(boolean condition, mn_menu_t *menu, const char *name)
-{
-    for (int i = 0; i < menu->num_pages; ++i)
-    {
-        mn_page_t *page = &menu->pages[i];
+static mn_menu_t *all_menus[] = {
+    &display_menu,
+    &video_menu,
+    &audio_menu,
+    &equalizer_menu,
+    &controls_menu,
+    &advanced_gamepad_menu,
+    &advanced_gyro_menu,
+    &input_bindings_menu,
+    &interface_menu,
+    &gameplay_menu,
+    &options_menu,
 
-        for (mn_item_t *item = page->items; item->type != ItemType_End; ++item)
+    &csmenu_menu,
+};
+
+static void DisableItem(boolean condition, const char *name)
+{
+    for (int i = 0; i < arrlen(all_menus); ++i)
+    {
+        mn_menu_t *menu = all_menus[i];
+
+        for (int k = 0; k < menu->num_pages; ++k)
         {
-            if ((item->cfg && !strcmp(item->cfg, name))
-                || (item->label && !strcmp(item->label, name)))
+            mn_page_t *page = &menu->pages[k];
+
+            for (mn_item_t *item = page->items; item->type != ItemType_End; ++item)
             {
-                item->disabled = condition;
-                return;
+                if ((item->cfg && !strcmp(item->cfg, name))
+                    || (item->label && !strcmp(item->label, name)))
+                {
+                    item->disabled = condition;
+                    return;
+                }
             }
         }
     }
@@ -1391,12 +1415,11 @@ static void DisableItem(boolean condition, mn_menu_t *menu, const char *name)
     I_Error("%s not found.", name);
 }
 
-void MN_DisableItemInternal(boolean condition, mn_menu_t *menu,
-                            const char *names[], int size)
+void MN_DisableItemInternal(boolean condition, const char *names[], int size)
 {
     for (int i = 0; i < size; ++i)
     {
-        DisableItem(condition, menu, names[i]);
+        DisableItem(condition, names[i]);
     }
 }
 
