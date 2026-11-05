@@ -45,8 +45,9 @@
 
 * **Rendering:**
   - Adapt multithread renderer from Rum and Raisin Doom. Effective at high resolutions, expect 2-4 times performance increase on multicore CPU.
-  - Implemented support for square pixels: at high resolutions, the game is rendered at the final vertical resolution
-    instead of stretching the image artificially, improving image quality.
+  - Implemented support for square pixels: the Resolution Scale slider now has an additional "Native" setting
+    which renders the game at the final vertical resolution instead of stretching the image artificially,
+    improving image quality.
   - Implemented support for aspect ratios below 4:3, available through the "Auto" option of the Aspect Ratio setting.
   - Improved palettization of PNG graphics, and general color approximation in the engine.
   - Implemented transposed rendering for improved rendering performance in general.

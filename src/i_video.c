@@ -77,7 +77,7 @@ fixed_t fractionaltic;
 
 boolean dynamic_resolution;
 
-#define DEFAULT_VIDEO_HEIGHT (ACTUALHEIGHT * 3)
+#define DEFAULT_VIDEO_HEIGHT (SCREENHEIGHT * 3)
 int default_video_height;
 
 int current_video_height;
@@ -1564,26 +1564,24 @@ const resolution_scaling_t *I_GetResolutionScaling(void)
             return resolution_list;
         }
 
+        // Resolutions with stretched pixels
         for (int i = 0; ; i++)
         {
-            // Non-square pixels for resolutions < 300%,
-            // and square pixels for resolutions >= 300%
-            const boolean square_res = i > 3;
+            const int step = SCREENHEIGHT / 4;
 
-            const int adjusted_max_height = square_res ? max_height : MAX_HEIGHT_NONSQUARE();
-            const int base_height = square_res ? ACTUALHEIGHT : SCREENHEIGHT;
-            const int step = base_height / 4;
+            int height = SCREENHEIGHT * 2 + step * i;
+            height = MIN(height, MAX_HEIGHT_NONSQUARE());
 
-            int height = base_height * 2 + step * i;
-            height = MIN(height, adjusted_max_height);
+            array_push(resolution_list, ((resolution_scaling_t) { height, false }));
 
-            array_push(resolution_list, ((resolution_scaling_t) { height, square_res }));
-
-            if (height >= max_height)
+            if (height >= MAX_HEIGHT_NONSQUARE())
             {
                 break;
             }
         }
+
+        // Single resolution with square pixels (native)
+        array_push(resolution_list, ((resolution_scaling_t) { max_height, true }));
     }
 
     return resolution_list;
@@ -1783,7 +1781,7 @@ void I_BindVideoVariables(void)
     M_BindNum("current_video_height", &default_current_video_height,
               &current_video_height, DEFAULT_VIDEO_HEIGHT, SCREENHEIGHT,
               UL, wad_no, "Vertical resolution");
-    BIND_BOOL(square_pixels, true, "Internal setting, do not change");
+    BIND_BOOL(square_pixels, false, "Internal setting, do not change");
     BIND_BOOL(dynamic_resolution, true, "Dynamic resolution");
     M_BindBool("correct_aspect_ratio", &default_correct_aspect_ratio, NULL,
         true, wad_no, "Aspect-ratio correction");

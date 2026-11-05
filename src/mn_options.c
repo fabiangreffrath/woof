@@ -1203,7 +1203,7 @@ void MN_GetResolutionScaleStrings(mn_item_t *item)
         }
         else
         {
-            M_snprintf(buf, sizeof(buf), "Max");
+            M_snprintf(buf, sizeof(buf), "Native");
         }
 
         array_push(item->choices, M_StringDuplicate(buf));
