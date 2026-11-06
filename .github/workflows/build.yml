@@ -107,6 +107,9 @@ jobs:
               -DCMAKE_INSTALL_PREFIX=/usr
 
     steps:
+      - name: Install pandoc
+        uses: pandoc/actions/setup@v1
+
       - name: Developer Command Prompt (MSVC)
         if: runner.os == 'Windows' && matrix.config.type == 'vcpkg'
         uses: TheMrMilchmann/setup-msvc-dev@v4
