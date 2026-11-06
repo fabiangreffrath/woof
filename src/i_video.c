@@ -145,7 +145,10 @@ static int max_width, max_height;
 static int max_height_adjusted;
 static float display_refresh_rate;
 
-#define MAX_HEIGHT_NONSQUARE() (max_height * SCREENHEIGHT / ACTUALHEIGHT)
+static inline int MaxHeightNonSquare(void)
+{
+    return max_height * SCREENHEIGHT / ACTUALHEIGHT;
+}
 
 static boolean use_limiter;
 static float targetrefresh;
@@ -1385,7 +1388,7 @@ static void InitVideoParms(void)
         max_height = mode->h;
     }
 
-    default_video_height = MIN(DEFAULT_VIDEO_HEIGHT, MAX_HEIGHT_NONSQUARE());
+    default_video_height = MIN(DEFAULT_VIDEO_HEIGHT, MaxHeightNonSquare());
 
     // SDL may report native refresh rate as zero.
     display_refresh_rate = mode->refresh_rate;
@@ -1552,13 +1555,13 @@ const resolution_scaling_t *I_GetResolutionScaling(void)
     {
         array_push(resolution_list, ((resolution_scaling_t) { SCREENHEIGHT, false }));
 
-        if (SCREENHEIGHT * 2 >= MAX_HEIGHT_NONSQUARE())
+        if (SCREENHEIGHT * 2 >= MaxHeightNonSquare())
         {
             // The maximum height is abnormally low;
             // try adding one more resolution to match it
-            if (SCREENHEIGHT < MAX_HEIGHT_NONSQUARE())
+            if (SCREENHEIGHT < MaxHeightNonSquare())
             {
-                array_push(resolution_list, ((resolution_scaling_t) { MAX_HEIGHT_NONSQUARE(), false }));
+                array_push(resolution_list, ((resolution_scaling_t) { MaxHeightNonSquare(), false }));
             }
 
             return resolution_list;
@@ -1570,11 +1573,11 @@ const resolution_scaling_t *I_GetResolutionScaling(void)
             const int step = SCREENHEIGHT / 4;
 
             int height = SCREENHEIGHT * 2 + step * i;
-            height = MIN(height, MAX_HEIGHT_NONSQUARE());
+            height = MIN(height, MaxHeightNonSquare());
 
             array_push(resolution_list, ((resolution_scaling_t) { height, false }));
 
-            if (height >= MAX_HEIGHT_NONSQUARE())
+            if (height >= MaxHeightNonSquare())
             {
                 break;
             }
@@ -1604,7 +1607,7 @@ static int GetCurrentVideoHeight(void)
 
     if (correct_aspect_ratio)
     {
-        max_height_adjusted = MAX_HEIGHT_NONSQUARE();
+        max_height_adjusted = MaxHeightNonSquare();
         unscaled_actualheight = ACTUALHEIGHT;
     }
     else
