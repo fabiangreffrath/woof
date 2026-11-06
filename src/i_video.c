@@ -1781,7 +1781,8 @@ void I_BindVideoVariables(void)
     M_BindNum("current_video_height", &default_current_video_height,
               &current_video_height, DEFAULT_VIDEO_HEIGHT, SCREENHEIGHT,
               UL, wad_no, "Vertical resolution");
-    BIND_BOOL(square_pixels, false, "Internal setting, do not change");
+    BIND_BOOL(square_pixels, false,
+        "Don't stretch vertical resolution (square pixels)");
     BIND_BOOL(dynamic_resolution, true, "Dynamic resolution");
     M_BindBool("correct_aspect_ratio", &default_correct_aspect_ratio, NULL,
         true, wad_no, "Aspect-ratio correction");
