@@ -14,7 +14,9 @@ def extract_options(markdown_file):
         for line in f:
             match = re.match(r'^\*\*`(-[^`]+)`\*\*', line.strip())
             if match:
-                options.append(match.group(1))
+                # Strip arguments (everything after space)
+                opt = match.group(1).split()[0]
+                options.append(opt)
     return ' '.join(options)
 
 
@@ -26,6 +28,7 @@ def process_bash_completion(template_file, output_file, project_shortname, optio
     content = content.replace('@PROJECT_SHORTNAME@', project_shortname)
     content = content.replace('@content', options)
 
+    Path(output_file).parent.mkdir(parents=True, exist_ok=True)
     with open(output_file, 'w', encoding='utf-8') as f:
         f.write(content)
     return True
