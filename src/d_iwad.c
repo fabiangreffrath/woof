@@ -771,13 +771,6 @@ char *D_FindIWADFile(void)
 {
     char *result;
 
-    //!
-    // Specify an IWAD file to use.
-    //
-    // @arg <file>
-    // @help
-    //
-
     int iwadparm = M_CheckParmWithArgs("-iwad", 1);
 
     if (iwadparm)

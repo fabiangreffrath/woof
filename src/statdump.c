@@ -312,15 +312,6 @@ void StatDump(void)
     FILE *dumpfile;
     int i;
 
-    //!
-    // @category compat
-    // @arg <filename>
-    //
-    // Dump statistics information to the specified file on the levels
-    // that were played. The output from this option matches the output
-    // from statdump.exe (see ctrlapi.zip in the /idgames archive).
-    //
-
     i = M_CheckParm("-statdump");
 
     if (i > 0 && i < myargc - 1)

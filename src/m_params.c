@@ -105,11 +105,6 @@ static const param_def_t param_table[] = {
       "Implies -server." },
     { "-solo-net", TypeFlag, SectionNet,
       "Run a solo network game (for testing)." },
-    { "-dup", TypeInt, SectionNet,
-      "Reduce the resolution of the game by a factor of n, "
-      "reducing the amount of network bandwidth needed." },
-    { "-extratics", TypeInt, SectionNet,
-      "Send n extra tics in every packet as insurance against dropped packets." },
     { "-port", TypeInt, SectionNet,
       "Use the specified UDP port for communications, instead of the default (2342)." },
     { "-servername", TypeString, SectionNet,
@@ -128,6 +123,13 @@ static const param_def_t param_table[] = {
       "Weapons stay in place and all items respawn after 30 seconds." },
     { "-norollback", TypeFlag, SectionNet,
       "Disable rollback netcode." },
+    { "-oldsync", TypeFlag, SectionNet,
+      "Use original network client sync code rather than the improved sync code."},
+    { "-extratics", TypeInt, SectionNet,
+      "Send n extra tics in every packet as insurance against dropped packets." },
+    { "-dup", TypeInt, SectionNet,
+      "Reduce the resolution of the game by a factor of n, "
+      "reducing the amount of network bandwidth needed." },
     { "-left", TypeFlag, SectionNet,
       "Run as the left screen in three screen mode." },
     { "-nodes", TypeInt, SectionNet,
@@ -270,7 +272,7 @@ const char *M_GetParamHelpString(void)
     static char buffer[16384];
     char *p = buffer;
     int remaining = sizeof(buffer);
-    param_section_t current_section = -1;
+    param_section_t current_section = SectionNone;
 
     p += M_snprintf(p, remaining, "Usage: woof [options]\n\n");
     remaining = sizeof(buffer) - (p - buffer);
@@ -343,7 +345,7 @@ void M_GenerateParamMarkdown(const char *filename)
 
     fprintf(f, "## OPTIONS\n\n");
 
-    param_section_t current_section = -1;
+    param_section_t current_section = SectionNone;
 
     for (int i = 0; i < arrlen(param_table); i++)
     {

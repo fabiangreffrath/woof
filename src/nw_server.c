@@ -1450,13 +1450,6 @@ void NW_SV_SendQueryResponse(nw_addr_t *addr)
     querydata.gamemode = sv_gamemode;
     querydata.gamemission = sv_gamemission;
 
-    //!
-    // @category net
-    // @arg <name>
-    //
-    // When starting a network server, specify a name for the server.
-    //
-
     p = M_CheckParmWithArgs("-servername", 1);
 
     if (p > 0)
@@ -1957,14 +1950,6 @@ static void UpdateMasterServer(void)
 
 void NW_SV_RegisterWithMaster(void)
 {
-    //!
-    // @category net
-    // @help
-    //
-    // When running a server, don't register with the global master server.
-    // Implies -server.
-    //
-
     if (!M_CheckParm("-privateserver"))
     {
         master_server = NW_Query_ResolveMaster(server_context);

@@ -28,6 +28,7 @@ typedef enum
 
 typedef enum
 {
+    SectionNone = -1,
     SectionGeneral,
     SectionGame,
     SectionNet,

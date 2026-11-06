@@ -113,20 +113,10 @@ void I_InitPrintf(void)
     EnableVTMode();
 #endif
 
-    //!
-    //
-    // Print debugging info with maximum verbosity.
-    //
-
     if (M_ParmExists("-verbose"))
     {
         verbosity = VB_MAX;
     }
-
-    //!
-    //
-    // Print with minimum verbosity.
-    //
 
     if (M_ParmExists("-quiet"))
     {

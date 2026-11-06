@@ -19,11 +19,10 @@
 
 #include <SDL3/SDL_main.h>
 
-#include <stdlib.h>
 #include <locale.h>
+#include <stdlib.h>
 
 #include "config.h"
-#include "i_exit.h"
 #include "i_printf.h"
 #include "m_argv.h"
 
@@ -37,31 +36,26 @@ void D_DoomMain(void);
 
 int main(int argc, char **argv)
 {
-   myargc = argc;
-   myargv = argv;
+    myargc = argc;
+    myargv = argv;
 
-   // Print date and time in the Load/Save Game menus in the current locale
-   setlocale(LC_TIME, "");
+    // Print date and time in the Load/Save Game menus in the current locale
+    setlocale(LC_TIME, "");
 
-   I_Printf(VB_ALWAYS, "%s\n", PROJECT_STRING);
+    I_Printf(VB_ALWAYS, "%s\n", PROJECT_STRING);
 
-   //!
-   //
-   // Print the program version and exit.
-   //
-
-   if (M_ParmExists("-version") || M_ParmExists("--version"))
-   {
-      exit(0);
-   }
+    if (M_ParmExists("-version") || M_ParmExists("--version"))
+    {
+        exit(0);
+    }
 
 #if !defined(_WIN32)
-   I_Signal();
+    I_Signal();
 #endif
 
-   D_DoomMain();
+    D_DoomMain();
 
-   return 0;
+    return 0;
 }
 
 //----------------------------------------------------------------------------

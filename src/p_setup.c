@@ -939,12 +939,6 @@ boolean P_LoadReject(int lumpnum, int totallines)
             W_ReadLumpSize(lumpnum, rejectmatrix, minlength);
         }
 
-        //!
-        // @category mod
-        //
-        // Pad the remaining REJECT table space with 0xff.
-        //
-
         if (M_CheckParm("-reject_pad_with_ff"))
         {
             padvalue = 0xff;

@@ -108,11 +108,6 @@ void DSDH_MobjInfoInit(void)
 
     mobjinfo[MT_DOGS].flags_extra |= MFX_MIRROREDCORPSE;
 
-    //!
-    // @category game
-    //
-    // Press beta emulation mode (complevel mbf only).
-    //
     beta_emulation = M_CheckParm("-beta");
     if (beta_emulation)
     {

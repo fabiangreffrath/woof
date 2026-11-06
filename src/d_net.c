@@ -162,22 +162,9 @@ static void SaveGameSettings(nw_gamesettings_t *settings)
     settings->respawn_monsters = respawnparm;
     settings->timelimit = timelimit;
 
-    //!
-    // @category demo
-    //
-    // Record a high resolution "Doom 1.91" demo.
-    //
-
     longtics = (demo_compatibility && M_ParmExists("-longtics")) || mbf21;
 
     settings->lowres_turn = ((M_ParmExists("-record") && !longtics) ||
-
-    //!
-    // @category demo
-    // @help
-    //
-    // Play with low turning resolution to emulate demo recording.
-    //
 
     M_ParmExists("-shorttics") || shorttics);
 
@@ -190,23 +177,11 @@ static void InitConnectData(nw_connect_data_t *connect_data)
     connect_data->max_players = MAXPLAYERS;
     connect_data->drone = false;
 
-    //!
-    // @category net
-    //
-    // Run as the left screen in three screen mode.
-    //
-
     if (M_CheckParm("-left") > 0)
     {
         viewangleoffset = ANG90;
         connect_data->drone = true;
     }
-
-    //!
-    // @category net
-    //
-    // Run as the right screen in three screen mode.
-    //
 
     if (M_CheckParm("-right") > 0)
     {
@@ -246,14 +221,6 @@ void D_ConnectNetGame(void)
 
     InitConnectData(&connect_data);
     netgame = D_InitNetGame(&connect_data);
-
-    //!
-    // @category net
-    //
-    // Start the game playing as though in a netgame with a single
-    // player.  This can also be used to play back single player netgame
-    // demos.
-    //
 
     if (M_CheckParm("-solo-net") > 0)
     {
