@@ -26,6 +26,10 @@
 #include "i_printf.h"
 #include "m_argv.h"
 
+#if !defined(_WIN32)
+  #include "i_exit.h"
+#endif
+
 //
 // D_DoomMain()
 // Not a globally visible function, just included for source reference,
