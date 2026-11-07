@@ -137,7 +137,6 @@ static int scalefactor;
 static int actualheight;
 static int unscaled_actualheight;
 
-float aspect_v_factor;
 boolean adjust_aspect;
 
 static int max_video_width, max_video_height;
@@ -1230,7 +1229,7 @@ static void ResetResolution(int height)
 
         adjusted_screenheight = (adjusted_screenheight + 1) & (int)~1;
 
-        aspect_v_factor = aspect_v_factor * adjusted_screenheight / video.unscaledh;
+        video.aspect_v_factor = video.aspect_v_factor * adjusted_screenheight / video.unscaledh;
         unscaled_actualheight = unscaled_actualheight * adjusted_screenheight / video.unscaledh;
 
         height = MIN(max_height_adjusted, height * adjusted_screenheight / video.unscaledh);
@@ -1247,7 +1246,7 @@ static void ResetResolution(int height)
 
     video.deltaw = (video.unscaledw - NONWIDEWIDTH) / 2;
 
-    adjust_aspect = aspect_v_factor != 1.0f;
+    adjust_aspect = video.aspect_v_factor != FRACUNIT;
 
     V_Init();
     R_InitVisplanesRes();
@@ -1595,13 +1594,13 @@ static int GetCurrentVideoHeight(void)
     if (default_correct_aspect_ratio && square_pixels)
     {
         correct_aspect_ratio = false;
-        aspect_v_factor = 1.2f; // ACTUALHEIGHT / SCREENHEIGHT
+        video.aspect_v_factor = FRACUNIT * ACTUALHEIGHT / SCREENHEIGHT;
         video.unscaledh = ACTUALHEIGHT;
     }
     else
     {
         correct_aspect_ratio = default_correct_aspect_ratio;
-        aspect_v_factor = 1.0f;
+        video.aspect_v_factor = FRACUNIT;
         video.unscaledh = SCREENHEIGHT;
     }
 

@@ -38,8 +38,6 @@ typedef struct
 const resolution_scaling_t *I_GetResolutionScaling(void);
 void I_SetResolution(resolution_scaling_t resolution);
 
-extern float aspect_v_factor;
-
 extern boolean adjust_aspect;
 
 // Called by D_DoomMain,

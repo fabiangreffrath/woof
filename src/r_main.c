@@ -378,8 +378,8 @@ static void R_InitTextureMapping(void)
 
   if (adjust_aspect)
   {
-    yprojection = projection * aspect_v_factor;
-    lightfocallength *= aspect_v_factor;
+    yprojection = FixedMul(projection, video.aspect_v_factor);
+    lightfocallength = FixedMul(lightfocallength, video.aspect_v_factor);
   }
   else
   {
@@ -651,8 +651,8 @@ void R_ExecuteSetViewSize (void)
 
   if (adjust_aspect)
   {
-    pspriteyscale = pspritescale * aspect_v_factor;
-    pspriteyiscale = pspriteiscale / aspect_v_factor;
+    pspriteyscale = FixedMul(pspritescale, video.aspect_v_factor);
+    pspriteyiscale = FixedDiv(pspriteiscale, video.aspect_v_factor);
   }
   else
   {
@@ -671,7 +671,7 @@ void R_ExecuteSetViewSize (void)
 
   if (adjust_aspect)
   {
-    skyiscale /= aspect_v_factor;
+    skyiscale = FixedDiv(skyiscale, video.aspect_v_factor);
   }
 
   for (i=0 ; i<viewwidth ; i++)

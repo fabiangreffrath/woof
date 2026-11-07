@@ -767,7 +767,7 @@ static void do_draw_plane(visplane_t *pl)
 
     if (adjust_aspect)
     {
-        planeheight *= aspect_v_factor;
+        planeheight = FixedMul(planeheight, video.aspect_v_factor);
     }
 
     // No rows were marked for this plane.

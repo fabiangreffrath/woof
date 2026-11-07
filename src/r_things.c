@@ -792,7 +792,7 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
 
   if (adjust_aspect)
   {
-    yscale *= aspect_v_factor;
+    yscale = FixedMul(yscale, video.aspect_v_factor);
   }
 
   txc = tx; // [FG] sprite center coordinate
