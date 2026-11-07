@@ -63,7 +63,7 @@
 // the snapshot and the list, and the smallest useful snapshot width.
 #define SAVE_PREVIEW_EDGE      8
 #define SAVE_PREVIEW_GAP       16
-#define SAVE_PREVIEW_MIN_WIDTH (SCREENWIDTH / 4)
+#define SAVE_PREVIEW_MIN_WIDTH (SCREENWIDTH / 2)
 #define SAVE_PREVIEW_LIST_X \
     (SAVE_PREVIEW_EDGE + SAVE_PREVIEW_MIN_WIDTH + SAVE_PREVIEW_GAP)
 #define SAVE_TIME_HEIGHT 10
@@ -72,7 +72,6 @@ static mn_item_t load_items[SAVE_ENTRY_COUNT + 1];
 static mn_item_t save_items[SAVE_ENTRY_COUNT + 1];
 
 static char descriptions[SAVE_ENTRY_COUNT][SAVE_STRING_SIZE];
-static char dates[SAVE_ENTRY_COUNT][32];
 static char times[SAVE_ENTRY_COUNT][32];
 static boolean loaded[SAVE_ENTRY_COUNT];
 static boolean exists[SAVE_ENTRY_COUNT];
@@ -202,7 +201,6 @@ static void ReadSaveGameTime(int entry, const char *name)
 
     if (mtime == 0)
     {
-        dates[entry][0] = '\0';
         times[entry][0] = '\0';
         return;
     }
@@ -212,8 +210,7 @@ static void ReadSaveGameTime(int entry, const char *name)
 #  pragma GCC diagnostic push
 #  pragma GCC diagnostic ignored "-Wformat-y2k"
 #endif
-    strftime(dates[entry], sizeof(dates[entry]), "%x", localtime(&mtime));
-    strftime(times[entry], sizeof(times[entry]), "%X", localtime(&mtime));
+    strftime(times[entry], sizeof(times[entry]), "%x %X", localtime(&mtime));
 #if defined(__GNUC__)
 #  pragma GCC diagnostic pop
 #endif
@@ -607,18 +604,10 @@ static void SlotPreview(const mn_menu_t *menu, const mn_page_t *page, int base)
                       y + height / 2 - MN_StringHeight(txt) / 2, CR_NONE, txt);
     }
 
-    txt = dates[entry];
-
-    int cx = x + width / 2 - MN_GetPixelWidth(txt) / 2 - video.deltaw;
-    int cy = y + height + MN_StringHeight(txt);
-
-    MN_DrawString(cx, cy, CR_GOLD, txt);
-
     txt = times[entry];
-    cx = x + width / 2 - MN_GetPixelWidth(txt) / 2 - video.deltaw;
-    cy += MN_SPC;
 
-    MN_DrawString(cx, cy, CR_GOLD, txt);
+    MN_DrawString(x + width / 2 - MN_GetPixelWidth(txt) / 2 - video.deltaw,
+                  y + height + MN_StringHeight(txt), CR_GOLD, txt);
 
     // [FG] draw the view border around the snapshot
     R_DrawBorder(x, y, width, height);
@@ -690,6 +679,18 @@ static boolean SaveSlotRespond(mn_item_t *item, menu_action_t action, int ch)
 
     if (action == MENU_ENTER)
     {
+        if (editing && edit_entry == entry)
+        {
+            I_StopTextInput();
+            editing = false;
+
+            if (descriptions[entry][0])
+            {
+                SaveGameAtEntry(entry);
+            }
+            return true;
+        }
+
         StartEdit(entry);
         return true;
     }
@@ -724,27 +725,27 @@ static void InitItems(void)
 
     for (int i = 0; i < SAVE_ENTRY_COUNT; ++i)
     {
-        load_items[i] = (mn_item_t){.label = "",
-                                    .type = MN_ITEM_SAVESLOT,
-                                    .height = SAVE_ROW_HEIGHT,
-                                    .ops = &load_slot_ops};
+        load_items[i] = (mn_item_t){
+            .label = "",
+            .type = ItemType_SaveSlot,
+            .height = SAVE_ROW_HEIGHT,
+            .ops = &load_slot_ops
+        };
 
         save_items[i] = (mn_item_t){
             .label = (i < SAVE_ENTRY_FIRST) ? NULL : "",
-            .type = (i < SAVE_ENTRY_FIRST) ? MN_ITEM_SKIP : MN_ITEM_SAVESLOT,
+            .type = (i < SAVE_ENTRY_FIRST) ? ItemType_Skip : ItemType_SaveSlot,
             .height = SAVE_ROW_HEIGHT,
             .ops = (i < SAVE_ENTRY_FIRST) ? NULL : &save_slot_ops,
         };
     }
-
-    load_items[SAVE_ENTRY_COUNT] = (mn_item_t){.type = MN_ITEM_END};
-    save_items[SAVE_ENTRY_COUNT] = (mn_item_t){.type = MN_ITEM_END};
 
     init = true;
 }
 
 static mn_page_t load_page = {
     .items = load_items,
+    .num_items = SAVE_ENTRY_COUNT,
     .draw = LoadPreviewDraw,
     .pad_top = SAVE_EDGE_PADDING,
     .pad_bottom = SAVE_EDGE_PADDING,
@@ -752,6 +753,7 @@ static mn_page_t load_page = {
 
 static mn_page_t save_page = {
     .items = &save_items[SAVE_ENTRY_FIRST],
+    .num_items = SAVE_ENTRY_COUNT,
     .draw = SavePreviewDraw,
     .pad_top = SAVE_EDGE_PADDING,
     .pad_bottom = SAVE_EDGE_PADDING,
@@ -787,12 +789,11 @@ void MN_SaveLoadOpen(boolean save)
     delete_entry = -1;
 
     mn_menu_t *menu = save ? &save_menu : &load_menu;
-    const int avail = video.unscaledw > 0 ? video.unscaledw : SCREENWIDTH;
-    int left = (avail - SAVE_LIST_WIDTH) / 2;
+    int left = (video.unscaledw - SAVE_LIST_WIDTH) / 2;
 
     // Shift the list right on widescreen displays to make room for the
     // snapshot panel.
-    if (video.deltaw > 0)
+    if (video.deltaw > 0 && left >= SAVE_LIST_WIDTH / 2)
     {
         left = MAX(left, SAVE_PREVIEW_LIST_X);
     }

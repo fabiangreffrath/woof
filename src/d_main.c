@@ -72,7 +72,6 @@
 #include "m_config.h"
 #include "m_input.h"
 #include "m_io.h"
-#include "mn_font.h"
 #include "mn_menu.h"
 #include "mn_options.h"
 #include "m_misc.h"
@@ -2212,7 +2211,6 @@ void D_DoomMain(void)
 
   I_Printf(VB_INFO, "ST_Init: Init status bar.");
   ST_Init();
-  MN_SetHUFontKerning();
 
   // andrewj: voxel support
   I_Printf(VB_INFO, "VX_Init: ");

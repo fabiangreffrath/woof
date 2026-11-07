@@ -18,7 +18,7 @@
 #include "mn_common.h"
 
 #define SAVE_SLOTS_PER_PAGE 8
-#define SAVE_PAGES          8
+#define SAVE_PAGES          4
 #define SAVE_SLOT_COUNT     (SAVE_SLOTS_PER_PAGE * SAVE_PAGES)
 #define SAVE_STRING_SIZE    24
 

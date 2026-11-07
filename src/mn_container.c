@@ -20,15 +20,18 @@
 
 #include "doomdef.h"
 #include "doomkeys.h"
+#include "doomtype.h"
 #include "i_gamepad.h"
 #include "i_system.h"
 #include "m_config.h"
 #include "m_input.h"
 #include "m_misc.h"
 #include "mn_container.h"
+#include "mn_csmenu.h"
 #include "mn_font.h"
 #include "mn_common.h"
 #include "mn_menu.h"
+#include "mn_options.h"
 #include "sounds.h"
 #include "v_palette.h"
 #include "v_patch.h"
@@ -73,8 +76,7 @@ boolean MN_ContainerPointInside(const mrect_t *rect, int x, int y)
 
 static boolean IsNavigable(const mn_item_t *item)
 {
-    return item->type != MN_ITEM_END && item->type != MN_ITEM_TITLE
-           && item->type != MN_ITEM_SKIP;
+    return item->type != ItemType_Title && item->type != ItemType_Skip;
 }
 
 static boolean IsSelectable(const mn_item_t *item)
@@ -157,12 +159,11 @@ static void ClampScroll(const mn_menu_t *menu, mn_page_t *page)
 static void LayoutPage(mn_menu_t *menu, mn_page_t *page)
 {
     int y = page->pad_top;
-    int count = 0;
     int label_width = 0;
 
-    for (mn_item_t *item = page->items; item->type != MN_ITEM_END; ++item)
+    for (int i = 0; i < page->num_items; ++i)
     {
-        count++;
+        mn_item_t *item = &page->items[i];
 
         // Skip direct-coords items in layout calculations.
         if (item->flags & MN_ITEM_DIRECT_COORDS)
@@ -172,11 +173,11 @@ static void LayoutPage(mn_menu_t *menu, mn_page_t *page)
 
         if (item->height == 0)
         {
-            if (item->type == MN_ITEM_SLIDER)
+            if (item->type == ItemType_Slider)
             {
                 item->height = MN_SPC_SLIDER;
             }
-            else if (item->type == MN_ITEM_CHOICE)
+            else if (item->type == ItemType_Choice)
             {
                 item->height = MN_SPC_CHOICE;
 
@@ -196,20 +197,19 @@ static void LayoutPage(mn_menu_t *menu, mn_page_t *page)
         item->rect.w = menu->viewport.w;
         item->rect.h = item->height;
 
-        if (item->type != MN_ITEM_TITLE && item->label)
+        if (item->type != ItemType_Title && item->label)
         {
             label_width = MAX(label_width, MN_GetPixelWidth(item->label));
         }
 
         y += item->height;
 
-        if ((item + 1)->type != MN_ITEM_END)
+        if (i + 1 != page->num_items)
         {
             y += menu->item_spacing;
         }
     }
 
-    page->num_items = count;
     page->content_h = y + page->pad_bottom;
     page->label_width = label_width;
 
@@ -217,7 +217,7 @@ static void LayoutPage(mn_menu_t *menu, mn_page_t *page)
     {
         const int offset = (menu->viewport.h - y) / 2;
 
-        for (int i = 0; i < count; ++i)
+        for (int i = 0; i < page->num_items; ++i)
         {
             if (!(page->items[i].flags & MN_ITEM_DIRECT_COORDS))
             {
@@ -355,6 +355,14 @@ static void LayoutMenu(mn_menu_t *menu)
 
         hint_w = MAX(hint_w, hint_min);
         hint_w = CLAMP(hint_w, 0, MAX(0, width - gap));
+
+        // Check if items column would be too narrow
+        const int items_min =
+            ResolveLength(&menu->layout.items_min_width, width, 0);
+        if (items_min > 0 && width - hint_w - gap < items_min)
+        {
+            hint_w = 0;
+        }
 
         menu->hint_rect =
             (mrect_t){left + width - hint_w, top, hint_w, height};
@@ -626,14 +634,14 @@ static void ActivateItem(mn_menu_t *menu, int index, boolean mouse)
         return;
     }
 
-    if (item->type == MN_ITEM_SUBMENU && item->submenu)
+    if (item->type == ItemType_SubMenu && item->submenu)
     {
         PushMenu(item->submenu);
         M_StartSound(sfx_mnuact);
         return;
     }
 
-    if (item->type == MN_ITEM_NUMBER || item->type == MN_ITEM_INPUT)
+    if (item->type == ItemType_Number || item->type == ItemType_Input)
     {
         menu->active_item = item;
 
@@ -644,7 +652,7 @@ static void ActivateItem(mn_menu_t *menu, int index, boolean mouse)
         return;
     }
 
-    if (item->type == MN_ITEM_CHOICE || item->type == MN_ITEM_SLIDER)
+    if (item->type == ItemType_Choice || item->type == ItemType_Slider)
     {
         if (mouse)
         {
@@ -669,8 +677,8 @@ static void ActivateItem(mn_menu_t *menu, int index, boolean mouse)
         item->ops->respond(item, MENU_ENTER, 0);
     }
 
-    if (item->type == MN_ITEM_ACTION || item->type == MN_ITEM_RESET
-        || item->type == MN_ITEM_TOGGLE)
+    if (item->type == ItemType_Action || item->type == ItemType_Reset
+        || item->type == ItemType_Toggle)
     {
         M_StartSound(sfx_mnusel);
     }
@@ -882,10 +890,13 @@ boolean MN_ContainerBindInput(mn_item_t *item)
     {
         for (int p = 0; p < active_menu->num_pages; ++p)
         {
-            for (mn_item_t *other = active_menu->pages[p].items;
-                 other->type != MN_ITEM_END; ++other)
+            mn_page_t *page = &active_menu->pages[p];
+
+            for (int i = 0; i < page->num_items; ++i)
             {
-                if (other == item || other->type != MN_ITEM_INPUT
+                mn_item_t *other = &page->items[i];
+
+                if (other == item || other->type != ItemType_Input
                     || other->group != item->group)
                 {
                     continue;
@@ -1151,7 +1162,7 @@ mn_container_result_t MN_ContainerMouseButton(int button, boolean down)
             return MN_CONTAINER_HANDLED;
         }
 
-        if (item->type == MN_ITEM_SLIDER && item->ops && item->ops->drag)
+        if (item->type == ItemType_Slider && item->ops && item->ops->drag)
         {
             menu->drag_item = item;
             item->ops->drag(item, last_mouse_x);
@@ -1260,8 +1271,8 @@ static void DrawTabs(const mn_menu_t *menu)
 static void DrawItemLabel(const mn_item_t *item, const mn_draw_ctx_t *ctx,
                           int label_x)
 {
-    if (item->type == MN_ITEM_TITLE || item->type == MN_ITEM_SKIP
-        || item->type == MN_ITEM_RESET)
+    if (item->type == ItemType_Title || item->type == ItemType_Skip
+        || item->type == ItemType_Reset)
     {
         return;
     }
@@ -1275,7 +1286,7 @@ static void DrawItemLabel(const mn_item_t *item, const mn_draw_ctx_t *ctx,
 
     // Save slots keep their description in the upper half of the row, above
     // the border strip, so the cursor has to follow the text.
-    if (item->height > MN_SPC && item->type != MN_ITEM_SAVESLOT)
+    if (item->height > MN_SPC && item->type != ItemType_SaveSlot)
     {
         y += (item->height - MN_SPC) / 2;
     }
@@ -1308,7 +1319,7 @@ static void DrawItems(const mn_menu_t *menu)
             continue;
         }
 
-        if (item->type == MN_ITEM_SKIP)
+        if (item->type == ItemType_Skip)
         {
             continue;
         }
@@ -1363,19 +1374,42 @@ static void DrawItems(const mn_menu_t *menu)
     }
 }
 
-static void DisableItem(boolean condition, mn_menu_t *menu, const char *name)
-{
-    for (int i = 0; i < menu->num_pages; ++i)
-    {
-        mn_page_t *page = &menu->pages[i];
+static mn_menu_t *all_menus[] = {
+    &display_menu,
+    &video_menu,
+    &audio_menu,
+    &equalizer_menu,
+    &controls_menu,
+    &advanced_gamepad_menu,
+    &advanced_gyro_menu,
+    &input_bindings_menu,
+    &interface_menu,
+    &gameplay_menu,
+    &options_menu,
 
-        for (mn_item_t *item = page->items; item->type != MN_ITEM_END; ++item)
+    &csmenu_menu,
+};
+
+static void DisableItem(boolean condition, const char *name)
+{
+    for (int m = 0; m < arrlen(all_menus); ++m)
+    {
+        mn_menu_t *menu = all_menus[m];
+
+        for (int p = 0; p < menu->num_pages; ++p)
         {
-            if ((item->cfg && !strcmp(item->cfg, name))
-                || (item->label && !strcmp(item->label, name)))
+            mn_page_t *page = &menu->pages[p];
+
+            for (int i = 0; i < page->num_items; ++i)
             {
-                item->disabled = condition;
-                return;
+                mn_item_t *item = &page->items[i];
+
+                if ((item->cfg && !strcmp(item->cfg, name))
+                    || (item->label && !strcmp(item->label, name)))
+                {
+                    item->disabled = condition;
+                    return;
+                }
             }
         }
     }
@@ -1383,12 +1417,11 @@ static void DisableItem(boolean condition, mn_menu_t *menu, const char *name)
     I_Error("%s not found.", name);
 }
 
-void MN_DisableItemInternal(boolean condition, mn_menu_t *menu,
-                            const char *names[], int size)
+void MN_DisableItemInternal(boolean condition, const char *names[], int size)
 {
     for (int i = 0; i < size; ++i)
     {
-        DisableItem(condition, menu, names[i]);
+        DisableItem(condition, names[i]);
     }
 }
 
@@ -1593,11 +1626,11 @@ static void DrawInstructions(const mn_menu_t *menu)
     {
         switch (item->type)
         {
-            case MN_ITEM_NUMBER:
+            case ItemType_Number:
                 text = "Enter value";
                 break;
 
-            case MN_ITEM_INPUT:
+            case ItemType_Input:
                 text = "Press key or button to bind/unbind";
                 break;
 
@@ -1613,26 +1646,26 @@ static void DrawInstructions(const mn_menu_t *menu)
     {
         switch (item->type)
         {
-            case MN_ITEM_INPUT:
+            case ItemType_Input:
                 M_snprintf(buffer, sizeof(buffer),
                            "[ %s ] Change, [ %s ] Clear", ConfirmKeyName(pad),
                            pad ? M_GetPlatformName(GAMEPAD_NORTH)
                                : M_GetNameForKey(KEY_DEL));
                 break;
 
-            case MN_ITEM_RESET:
+            case ItemType_Reset:
                 M_snprintf(buffer, sizeof(buffer), "[ %s ] Restore defaults",
                            ConfirmKeyName(pad));
                 break;
 
-            case MN_ITEM_TOGGLE:
+            case ItemType_Toggle:
                 M_snprintf(buffer, sizeof(buffer), "[ %s ] Toggle",
                            ConfirmKeyName(pad));
                 break;
 
-            case MN_ITEM_ACTION:
-            case MN_ITEM_SUBMENU:
-            case MN_ITEM_SAVESLOT:
+            case ItemType_Action:
+            case ItemType_SubMenu:
+            case ItemType_SaveSlot:
                 M_snprintf(buffer, sizeof(buffer), "[ %s ] Select",
                            ConfirmKeyName(pad));
                 break;
