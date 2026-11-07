@@ -40,6 +40,8 @@ typedef struct
     int unscaledh;
     int deltaw;    // widescreen delta
 
+    fixed_t aspect_v_factor;
+
     fixed_t xscale; // x-axis scaling multiplier
     fixed_t yscale; // y-axis scaling multiplier
     fixed_t xstep;  // x-axis scaling step

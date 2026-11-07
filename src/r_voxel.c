@@ -550,7 +550,7 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 
 	if (adjust_aspect)
 	{
-		yscale *= aspect_v_factor;
+		yscale = FixedMul(yscale, video.aspect_v_factor);
 	}
 
 	switch (VX_RotateModeForThing (thing))
@@ -864,7 +864,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 
 		if (adjust_aspect)
 		{
-			scale *= aspect_v_factor;
+			scale = FixedMul(scale, video.aspect_v_factor);
 		}
 
 		iscale = FixedDiv (FRACUNIT, scale);
@@ -928,7 +928,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 
 				if (adjust_aspect)
 				{
-					wscale *= aspect_v_factor;
+					wscale = FixedMul(wscale, video.aspect_v_factor);
 				}
 			}
 
