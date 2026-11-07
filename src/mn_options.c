@@ -1759,6 +1759,7 @@ void MN_OptionsInit(void)
     UpdateGainItems();
     UpdateGamepadItems();
     UpdateGyroItems();
+    MN_OptionsUpdateCrosshairItems();
     MN_OptionsInitFreeLook();
     MN_OptionsUpdateWeaponSlotLabels();
     UpdateWeaponSlotItems();

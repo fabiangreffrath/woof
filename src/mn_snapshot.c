@@ -23,7 +23,6 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "m_fixed.h"
-#include "m_misc.h"
 #include "r_main.h"
 #include "v_palette.h"
 #include "st_stuff.h"
