@@ -37,7 +37,10 @@ typedef struct
     int width;
     int height;
     int unscaledw; // unscaled width with correction for widecreen
+    int unscaledh;
     int deltaw;    // widescreen delta
+
+    fixed_t aspect_v_factor;
 
     fixed_t xscale; // x-axis scaling multiplier
     fixed_t yscale; // y-axis scaling multiplier
