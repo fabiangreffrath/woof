@@ -554,8 +554,8 @@ void R_ExecuteSetViewSize (void)
 
   if (setblocks >= 10)
     {
-      ST_SetSTHeight();
       ST_UpdateStatusBar(); // let the new statusbar take effect
+      ST_SetSTHeight();
 
       scaledviewwidth_nonwide = NONWIDEWIDTH;
       scaledviewwidth = video.unscaledw;

@@ -157,6 +157,7 @@ static void TakeSnapshot(void)
     }
 
     R_SetViewSize(screenblocks = old_screenblocks);
+    R_ExecuteSetViewSize();
 }
 
 char *MN_WriteSnapshot(byte *p)
