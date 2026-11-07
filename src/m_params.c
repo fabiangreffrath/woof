@@ -274,7 +274,7 @@ const char *M_GetParamHelpString(void)
     int remaining = sizeof(buffer);
     param_section_t current_section = SectionNone;
 
-    p += M_snprintf(p, remaining, "Usage: woof [options]\n\n");
+    p += M_snprintf(p, remaining, "Usage: " PROJECT_SHORTNAME " [options]\n\n");
     remaining = sizeof(buffer) - (p - buffer);
 
     for (int i = 0; i < arrlen(param_table); i++)
@@ -289,7 +289,7 @@ const char *M_GetParamHelpString(void)
         }
 
         // Build option signature with argument based on type
-        const char *arg = "";
+        char *arg;
         switch (param->type)
         {
             case TypeString:
@@ -359,7 +359,7 @@ void M_GenerateParamMarkdown(const char *filename)
 
         // Build option signature with argument based on type
         char opt_sig[256];
-        const char *arg = "";
+        char *arg;
         switch (param->type)
         {
             case TypeString:
@@ -389,9 +389,6 @@ void M_GenerateParamMarkdown(const char *filename)
         fprintf(f, "**%s**\n", opt_sig);
         fprintf(f, ":   %s\n\n", param->help);
     }
-
-    fprintf(f, "## SEE ALSO\n\n");
-    fprintf(f, "[Wiki](https://github.com/fabiangreffrath/woof/wiki)\n");
 
     fclose(f);
     I_Printf(VB_INFO, "Generated markdown documentation: %s", filename);
