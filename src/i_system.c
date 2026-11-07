@@ -86,12 +86,6 @@ void I_ErrorInternal(const char *prefix, const char *error, ...)
 
 void I_ErrorMsg()
 {
-    //!
-    // @category obscure
-    //
-    // Don't pop up a GUI dialog box to show the error message.
-    //
-
     if (*errmsg && !M_CheckParm("-nogui") && !I_ConsoleStdout())
     {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, PROJECT_STRING,
@@ -176,15 +170,6 @@ boolean I_GetMemoryValue(unsigned int offset, void *value, int size)
         int p, i, val;
 
         firsttime = false;
-
-        //!
-        // @category compat
-        // @arg <version>
-        //
-        // Specify DOS version to emulate for NULL pointer dereference
-        // emulation.  Supported versions are: dos622, dos71, dosbox.
-        // The default is to emulate DOS 7.1 (Windows 98).
-        //
 
         p = M_CheckParmWithArgs("-setmem", 1);
 

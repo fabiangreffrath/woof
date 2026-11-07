@@ -139,11 +139,6 @@ static void InitializeSections(void)
 
 void DEH_Init(void) // [crispy] un-static
 {
-    //!
-    // @category mod
-    //
-    // Ignore cheats in dehacked files.
-    //
     if (M_CheckParm("-nocheats") > 0)
     {
         deh_apply_cheats = false;
@@ -454,13 +449,6 @@ void DEH_LoadLumpByName(const char *name)
 // Check the command line for -deh argument, and others.
 void DEH_ParseCommandLine(void)
 {
-    //!
-    // @category mod
-    // @arg <files>
-    // @help
-    //
-    // Load the given dehacked/bex patch(es).
-    //
     int p = M_CheckParm("-deh");
 
     if (p > 0)

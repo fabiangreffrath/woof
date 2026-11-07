@@ -355,22 +355,7 @@ void D_StartNetGame(nw_gamesettings_t *settings,
     settings->num_players = 1;
     settings->player_classes[0] = player_class;
 
-    //!
-    // @category net
-    //
-    // Use original network client sync code rather than the improved
-    // sync code.
-    //
-
     settings->new_sync = !M_ParmExists("-oldsync");
-
-    //!
-    // @category net
-    // @arg <n>
-    //
-    // Send n extra tics in every packet as insurance against dropped
-    // packets.
-    //
 
     i = M_CheckParmWithArgs("-extratics", 1);
 
@@ -382,14 +367,6 @@ void D_StartNetGame(nw_gamesettings_t *settings,
     {
         settings->extratics = 1;
     }
-
-    //!
-    // @category net
-    // @arg <n>
-    //
-    // Reduce the resolution of the game by a factor of n, reducing
-    // the amount of network bandwidth needed.
-    //
 
     i = M_CheckParmWithArgs("-dup", 1);
 
@@ -454,13 +431,6 @@ boolean D_InitNetGame(nw_connect_data_t *connect_data)
 
     player_class = connect_data->player_class;
 
-    //!
-    // @category net
-    // @help
-    //
-    // Start a multiplayer server, listening for connections.
-    //
-
     if (M_CheckParm("-server") > 0 || M_CheckParm("-privateserver") > 0)
     {
         NW_SV_Init();
@@ -474,14 +444,6 @@ boolean D_InitNetGame(nw_connect_data_t *connect_data)
     }
     else
     {
-        //!
-        // @category net
-        // @help
-        //
-        // Automatically search the local LAN for a multiplayer
-        // server and join it.
-        //
-
         i = M_CheckParm("-autojoin");
 
         if (i > 0)
@@ -493,15 +455,6 @@ boolean D_InitNetGame(nw_connect_data_t *connect_data)
                 I_Error("No server found on local LAN");
             }
         }
-
-        //!
-        // @arg <address>
-        // @category net
-        // @help
-        //
-        // Connect to a multiplayer server running on the given
-        // address.
-        //
 
         i = M_CheckParmWithArgs("-connect", 1);
 

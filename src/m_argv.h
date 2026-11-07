@@ -42,6 +42,8 @@ boolean M_ParmExists(const char *check);
 
 void M_CheckCommandLine(void);
 void M_PrintHelpString(void);
+const char *M_GetParamHelpString(void);
+void M_GenerateParamMarkdown(const char *filename);
 
 int M_ParmArgToInt(int p);
 int M_ParmArg2ToInt(int p);
