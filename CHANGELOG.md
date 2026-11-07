@@ -48,6 +48,7 @@
     which renders the game at the final vertical resolution instead of stretching the image artificially,
     improving image quality.
   - Implemented support for aspect ratios below 4:3, available through the "Auto" option of the Aspect Ratio setting.
+  - Improved accuracy of plane rendering.
   - Improved palettization of PNG graphics, and general color approximation in the engine.
   - Implemented transposed rendering for improved rendering performance in general.
   - Optimized rendering of sprites near the camera.
