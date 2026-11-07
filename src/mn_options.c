@@ -1069,12 +1069,14 @@ static void BindItem(mn_item_t *item)
 
 void MN_BindMenu(mn_menu_t *menu)
 {
-    for (int i = 0; i < menu->num_pages; ++i)
+    for (int p = 0; p < menu->num_pages; ++p)
     {
-        mn_page_t *page = &menu->pages[i];
+        mn_page_t *page = &menu->pages[p];
 
-        for (mn_item_t *item = page->items; item->type != ItemType_End; ++item)
+        for (int i = 0; i < page->num_items; ++i)
         {
+            mn_item_t *item = &page->items[i];
+
             BindItem(item);
         }
     }
@@ -1089,8 +1091,11 @@ static void OptionsResetPage(void)
         return;
     }
 
-    for (mn_item_t *item = page->items; item->type != ItemType_End; ++item)
+    //for (mn_item_t *item = page->items; item->type != ItemType_End; ++item)
+    for (int i = 0; i < page->num_items; ++i)
     {
+        mn_item_t *item = &page->items[i];
+
         default_t *def = item->def;
 
         if (def)

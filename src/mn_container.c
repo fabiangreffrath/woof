@@ -76,8 +76,7 @@ boolean MN_ContainerPointInside(const mrect_t *rect, int x, int y)
 
 static boolean IsNavigable(const mn_item_t *item)
 {
-    return item->type != ItemType_End && item->type != ItemType_Title
-           && item->type != ItemType_Skip;
+    return item->type != ItemType_Title && item->type != ItemType_Skip;
 }
 
 static boolean IsSelectable(const mn_item_t *item)
@@ -160,12 +159,11 @@ static void ClampScroll(const mn_menu_t *menu, mn_page_t *page)
 static void LayoutPage(mn_menu_t *menu, mn_page_t *page)
 {
     int y = page->pad_top;
-    int count = 0;
     int label_width = 0;
 
-    for (mn_item_t *item = page->items; item->type != ItemType_End; ++item)
+    for (int i = 0; i < page->num_items; ++i)
     {
-        count++;
+        mn_item_t *item = &page->items[i];
 
         // Skip direct-coords items in layout calculations.
         if (item->flags & MN_ITEM_DIRECT_COORDS)
@@ -206,13 +204,12 @@ static void LayoutPage(mn_menu_t *menu, mn_page_t *page)
 
         y += item->height;
 
-        if ((item + 1)->type != ItemType_End)
+        if (i + 1 != page->num_items)
         {
             y += menu->item_spacing;
         }
     }
 
-    page->num_items = count;
     page->content_h = y + page->pad_bottom;
     page->label_width = label_width;
 
@@ -220,7 +217,7 @@ static void LayoutPage(mn_menu_t *menu, mn_page_t *page)
     {
         const int offset = (menu->viewport.h - y) / 2;
 
-        for (int i = 0; i < count; ++i)
+        for (int i = 0; i < page->num_items; ++i)
         {
             if (!(page->items[i].flags & MN_ITEM_DIRECT_COORDS))
             {
@@ -893,9 +890,12 @@ boolean MN_ContainerBindInput(mn_item_t *item)
     {
         for (int p = 0; p < active_menu->num_pages; ++p)
         {
-            for (mn_item_t *other = active_menu->pages[p].items;
-                 other->type != ItemType_End; ++other)
+            mn_page_t *page = &active_menu->pages[p];
+
+            for (int i = 0; i < page->num_items; ++i)
             {
+                mn_item_t *other = &page->items[i];
+
                 if (other == item || other->type != ItemType_Input
                     || other->group != item->group)
                 {
@@ -1392,16 +1392,18 @@ static mn_menu_t *all_menus[] = {
 
 static void DisableItem(boolean condition, const char *name)
 {
-    for (int i = 0; i < arrlen(all_menus); ++i)
+    for (int m = 0; m < arrlen(all_menus); ++m)
     {
-        mn_menu_t *menu = all_menus[i];
+        mn_menu_t *menu = all_menus[m];
 
-        for (int k = 0; k < menu->num_pages; ++k)
+        for (int p = 0; p < menu->num_pages; ++p)
         {
-            mn_page_t *page = &menu->pages[k];
+            mn_page_t *page = &menu->pages[p];
 
-            for (mn_item_t *item = page->items; item->type != ItemType_End; ++item)
+            for (int i = 0; i < page->num_items; ++i)
             {
+                mn_item_t *item = &page->items[i];
+
                 if ((item->cfg && !strcmp(item->cfg, name))
                     || (item->label && !strcmp(item->label, name)))
                 {

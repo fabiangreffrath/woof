@@ -45,7 +45,6 @@ typedef enum
     ItemType_SubMenu,
     ItemType_Skip,
     ItemType_SaveSlot,
-    ItemType_End
 } mn_item_type_t;
 
 typedef enum
@@ -216,7 +215,6 @@ struct mn_menu_s
     void (*confirm_action)(void);
 };
 
-#define MN_END        {.type = ItemType_End}
 #define MN_GAP(gap)   {.type = ItemType_Skip, .height = (gap)}
 #define MN_TITLE(txt) {.label = (txt), .type = ItemType_Title}
 

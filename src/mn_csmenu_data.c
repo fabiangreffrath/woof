@@ -36,11 +36,10 @@ static mn_item_t csmenu_items[] = {
     {.label = "Start Game", .type = ItemType_Action,
      .flags = MN_ITEM_CENTER | MN_ITEM_HIDE_VALUE,
      .action = MN_CSMenuStartGame},
-    MN_END
 };
 
 static mn_page_t csmenu_pages[] = {
-    {.items = csmenu_items},
+    {.items = csmenu_items, .num_items = arrlen(csmenu_items)},
 };
 
 mn_menu_t csmenu_menu = {

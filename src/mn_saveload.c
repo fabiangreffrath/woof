@@ -725,10 +725,12 @@ static void InitItems(void)
 
     for (int i = 0; i < SAVE_ENTRY_COUNT; ++i)
     {
-        load_items[i] = (mn_item_t){.label = "",
-                                    .type = ItemType_SaveSlot,
-                                    .height = SAVE_ROW_HEIGHT,
-                                    .ops = &load_slot_ops};
+        load_items[i] = (mn_item_t){
+            .label = "",
+            .type = ItemType_SaveSlot,
+            .height = SAVE_ROW_HEIGHT,
+            .ops = &load_slot_ops
+        };
 
         save_items[i] = (mn_item_t){
             .label = (i < SAVE_ENTRY_FIRST) ? NULL : "",
@@ -738,14 +740,12 @@ static void InitItems(void)
         };
     }
 
-    load_items[SAVE_ENTRY_COUNT] = (mn_item_t){.type = ItemType_End};
-    save_items[SAVE_ENTRY_COUNT] = (mn_item_t){.type = ItemType_End};
-
     init = true;
 }
 
 static mn_page_t load_page = {
     .items = load_items,
+    .num_items = SAVE_ENTRY_COUNT,
     .draw = LoadPreviewDraw,
     .pad_top = SAVE_EDGE_PADDING,
     .pad_bottom = SAVE_EDGE_PADDING,
@@ -753,6 +753,7 @@ static mn_page_t load_page = {
 
 static mn_page_t save_page = {
     .items = &save_items[SAVE_ENTRY_FIRST],
+    .num_items = SAVE_ENTRY_COUNT,
     .draw = SavePreviewDraw,
     .pad_top = SAVE_EDGE_PADDING,
     .pad_bottom = SAVE_EDGE_PADDING,

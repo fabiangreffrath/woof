@@ -38,6 +38,9 @@
 
 #define MN_LAYOUT {.max_width = MN_PX(500), .items_min_width = MN_PX(250)}
 
+#define MN_TAB(tab_, items_) \
+    {.tab = (tab_), .items = (items_), .num_items = arrlen(items_)}
+
 #define MN_RESET \
     {.label = "", .type = ItemType_Reset, .flags = MN_ITEM_DIRECT_COORDS}
 
@@ -137,11 +140,10 @@ static mn_item_t display_items[] = {
     MN_TOGGLE_ACT(
         "Vertical Sync", "use_vsync", I_ToggleVsync,
         "Vertical Sync:\n\nSynchronizes frame rate with monitor refresh rate."),
-    MN_END
 };
 
 static mn_page_t display_pages[] = {
-    {.items = display_items}
+    {.items = display_items, .num_items = arrlen(display_items)}
 };
 
 mn_menu_t display_menu = {
@@ -199,8 +201,7 @@ static mn_item_t video_general_items[] = {
         "Extra Lighting", "extra_level_brightness", 8,
         "Extra Lighting:\n\nAdds constant light level to all sectors.\n"
         "Useful for dark maps."),
-    MN_RESET,
-    MN_END
+    MN_RESET
 };
 
 static const char *fuzzmode_strings[] = {
@@ -246,8 +247,7 @@ static mn_item_t video_graphics_items[] = {
         "Projection:\n\nVanilla: Original flat sky.\n\n"
         "Linear: Perspective-corrected.\n\n"
         "Cylindrical: Panoramic cylindrical mapping."),
-    MN_RESET,
-    MN_END
+    MN_RESET
 };
 
 static const char *sound_module_strings[] = {
@@ -294,8 +294,7 @@ static mn_item_t audio_general_items[] = {
      .choice_size = 18,
      .action = MN_OptionsSetMidiPlayer,
      .flags = MN_ITEM_DEFER_ACTION | MN_ITEM_TWO_LINES},
-    MN_RESET,
-    MN_END
+    MN_RESET
 };
 
 static mn_item_t equalizer_items[] = {
@@ -327,12 +326,11 @@ static mn_item_t equalizer_items[] = {
     MN_NUMBER_ACT("  High Cutoff", "snd_eq_high_cutoff", "Hz",
                   I_OAL_EqualizerPreset,
                   "High Cutoff:\n\nFrequency boundary for high band."),
-    MN_RESET,
-    MN_END
+    MN_RESET
 };
 
 static mn_page_t equalizer_pages[] = {
-    {.items = equalizer_items}
+    {.items = equalizer_items, .num_items = arrlen(equalizer_items)}
 };
 
 mn_menu_t equalizer_menu = {
@@ -382,13 +380,12 @@ static mn_item_t audio_advanced_items[] = {
         8, MN_OptionsSetMidiPlayer,
         "MIDI Reset Type:\n\nNo SysEx: No reset sent.\n\n"
         "GM: General MIDI reset.\n\nGS: Roland GS reset.\n\nXG: Yamaha XG reset."),
-    MN_RESET,
-    MN_END
+    MN_RESET
 };
 
 static mn_page_t video_pages[] = {
-    {.tab = "General",  .items = video_general_items  },
-    {.tab = "Graphics", .items = video_graphics_items }
+    MN_TAB("General", video_general_items),
+    MN_TAB("Graphics", video_graphics_items)
 };
 
 mn_menu_t video_menu = {
@@ -402,8 +399,8 @@ mn_menu_t video_menu = {
 };
 
 static mn_page_t audio_pages[] = {
-    {.tab = "General",  .items = audio_general_items  },
-    {.tab = "Advanced", .items = audio_advanced_items }
+    MN_TAB("General", audio_general_items),
+    MN_TAB("Advanced", audio_advanced_items),
 };
 
 mn_menu_t audio_menu = {
@@ -434,8 +431,7 @@ static mn_item_t input_bindings_action_items[] = {
     MN_INPUT("Autorun", input_autorun, m_scrn),
     MN_INPUT("Free Look", input_freelook, m_scrn),
     MN_INPUT("Vertmouse", input_novert, m_scrn),
-    MN_RESET,
-    MN_END
+    MN_RESET
 };
 
 static mn_item_t input_bindings_weapon_items[] = {
@@ -453,8 +449,7 @@ static mn_item_t input_bindings_weapon_items[] = {
     MN_GAP(6),
     MN_INPUT("Previous", input_prevweapon, m_scrn),
     MN_INPUT("Next", input_nextweapon, m_scrn),
-    MN_RESET,
-    MN_END
+    MN_RESET
 };
 
 static mn_item_t input_bindings_misc_items[] = {
@@ -473,8 +468,7 @@ static mn_item_t input_bindings_misc_items[] = {
     MN_GAP(6),
     MN_INPUT("Begin Chat", input_chat, m_scrn),
     MN_INPUT("Show Netgame Stats", input_netgame_stats, m_scrn),
-    MN_RESET,
-    MN_END
+    MN_RESET
 };
 
 static mn_item_t input_bindings_func_items[] = {
@@ -494,8 +488,7 @@ static mn_item_t input_bindings_func_items[] = {
     MN_INPUT("Clean Screenshot", input_clean_screenshot, m_scrn),
     MN_INPUT("Larger View", input_zoomin, m_scrn),
     MN_INPUT("Smaller View", input_zoomout, m_scrn),
-    MN_RESET,
-    MN_END
+    MN_RESET
 };
 
 static mn_item_t input_bindings_automap_items[] = {
@@ -515,8 +508,7 @@ static mn_item_t input_bindings_automap_items[] = {
     MN_INPUT("Clear Last Mark", input_map_clear, m_map),
     MN_INPUT("Full/Zoom", input_map_gobig, m_map),
     MN_INPUT("Grid", input_map_grid, m_map),
-    MN_RESET,
-    MN_END
+    MN_RESET
 };
 
 static mn_item_t input_bindings_cheat_items[] = {
@@ -535,17 +527,16 @@ static mn_item_t input_bindings_cheat_items[] = {
     MN_INPUT("Light Amplification", input_idbeholdl, m_scrn),
     MN_INPUT("No Target", input_notarget, m_scrn),
     MN_INPUT("Freeze", input_freeze, m_scrn),
-    MN_RESET,
-    MN_END
+    MN_RESET
 };
 
 static mn_page_t input_bindings_pages[] = {
-    {.tab = "Action",  .items = input_bindings_action_items  },
-    {.tab = "Weapon",  .items = input_bindings_weapon_items  },
-    {.tab = "Misc",    .items = input_bindings_misc_items    },
-    {.tab = "Func",    .items = input_bindings_func_items    },
-    {.tab = "Automap", .items = input_bindings_automap_items },
-    {.tab = "Cheats",  .items = input_bindings_cheat_items   }
+    MN_TAB("Action", input_bindings_action_items),
+    MN_TAB("Weapon", input_bindings_weapon_items),
+    MN_TAB("Misc", input_bindings_misc_items),
+    MN_TAB("Func", input_bindings_func_items),
+    MN_TAB("Automap", input_bindings_automap_items),
+    MN_TAB("Cheats", input_bindings_cheat_items),
 };
 
 mn_menu_t input_bindings_menu = {
@@ -586,8 +577,8 @@ static mn_item_t mouse_keyboard_items[] = {
     MN_TOGGLE_ACT("Invert Look", "mouse_y_invert", G_UpdateMouseVariables,
                   "Invert Look:\n\nInverts vertical mouse look direction."),
     MN_TOGGLE("Double-Click to \"Use\"", "dclick_use", NULL),
-    MN_RESET,
-    MN_END};
+    MN_RESET
+};
 
 static const char *layout_strings[] = {
     "Off",
@@ -635,12 +626,11 @@ static mn_item_t advanced_gamepad_items[] = {
         "Response Curve:\n\nLinear: Direct stick-to-turn mapping.\n\n"
         "Squared/Cubed: Exponential curves for precision.\n\n"
         "1.1-2.9: Custom exponential curves."),
-    MN_RESET,
-    MN_END
+    MN_RESET
 };
 
 static mn_page_t advanced_gamepad_pages[] = {
-    {.items = advanced_gamepad_items}
+    {.items = advanced_gamepad_items, .num_items = arrlen(advanced_gamepad_items)}
 };
 
 mn_menu_t advanced_gamepad_menu = {
@@ -689,8 +679,7 @@ static mn_item_t gamepad_items[] = {
         "Camera Deadzone", "joy_camera_inner_deadzone", 8, I_ResetGamepad, "%",
         "Camera Deadzone:\n\nInner deadzone for camera stick."),
     MN_SUBMENU("Advanced Options", &advanced_gamepad_menu),
-    MN_RESET,
-    MN_END
+    MN_RESET
 };
 
 static const char *gyro_space_strings[] = {"Local", "Player"};
@@ -712,11 +701,11 @@ static mn_item_t advanced_gyro_items[] = {
         "Lower Threshold:\n\nMinimum speed for acceleration to begin."),
     MN_SLIDER_ACT("  Upper Threshold", "gyro_accel_max_threshold", 11, I_ResetGamepad,
         "Upper Threshold:\n\nMaximum speed for full acceleration."),
-    MN_RESET, MN_END
+    MN_RESET
 };
 
 static mn_page_t advanced_gyro_pages[] = {
-    {.items = advanced_gyro_items}
+    {.items = advanced_gyro_items, .num_items = arrlen(advanced_gyro_items)}
 };
 
 mn_menu_t advanced_gyro_menu = {
@@ -761,8 +750,7 @@ static mn_item_t gyro_items[] = {
      .action = I_UpdateGyroCalibrationState,
      .description = "Calibrate Gyro:\n\nCalibrates the gyroscope. Place "
                     "controller on a flat surface."},
-    MN_RESET,
-    MN_END
+    MN_RESET
 };
 
 #define MN_WEAPON_SLOT(i, key)              \
@@ -809,15 +797,15 @@ static mn_item_t slots_items[] = {
     MN_WEAPON_SLOT(9, "weapon_slots_4_1"),
     MN_WEAPON_SLOT(10, "weapon_slots_4_2"),
     MN_WEAPON_SLOT(11, "weapon_slots_4_3"),
-    MN_RESET,
-    MN_END
+    MN_RESET
 };
 
 static mn_page_t controls_pages[] = {
-    {.tab = "General", .items = mouse_keyboard_items},
-    {.tab = "Gamepad", .items = gamepad_items},
-    {.tab = "Gyro", .items = gyro_items, .draw = MN_DrawGyroPage},
-    {.tab = "Slots", .items = slots_items},
+    MN_TAB("General", mouse_keyboard_items),
+    MN_TAB("Gamepad", gamepad_items),
+    {.tab = "Gyro", .items = gyro_items, .num_items = arrlen(gyro_items),
+     .draw = MN_DrawGyroPage},
+    MN_TAB("Slots", slots_items),
 };
 
 mn_menu_t controls_menu = {
@@ -869,8 +857,7 @@ static mn_item_t statusbar_items[] = {
     MN_TITLE("Status Bar"),
     MN_TOGGLE("Colored Numbers", "sts_colored_numbers", NULL),
     MN_TOGGLE("Solid Background", "st_solidbackground", NULL),
-    MN_RESET,
-    MN_END
+    MN_RESET
 };
 
 static const char *crosshair_target_strings[] = {"Off", "Highlight", "Health"};
@@ -898,8 +885,7 @@ static mn_item_t crosshair_items[] = {
     MN_TOGGLE("Lock On Target", "hud_crosshair_lockon", NULL),
     MN_SLIDER_STR("Default Color", "hud_crosshair_color", hudcolor_strings, 8, NULL),
     MN_SLIDER_STR("Highlight Color", "hud_crosshair_target_color", hudcolor_strings, 8, NULL),
-    MN_RESET,
-    MN_END
+    MN_RESET
 };
 
 static const char *secretmessage_strings[] = {"Off", "On", "Count",};
@@ -915,8 +901,7 @@ static mn_item_t messages_items[] = {
     MN_GAP(6),
     MN_TOGGLE("Center Messages", "message_centered", NULL),
     MN_TOGGLE("Colorize Messages", "message_colorized", NULL),
-    MN_RESET,
-    MN_END
+    MN_RESET
 };
 
 static const char *automap_thickness_strings[] = {
@@ -946,14 +931,14 @@ static mn_item_t automap_items[] = {
     MN_CHOICE("Color Keyed Doors", "map_keyed_door", automap_keyed_door_strings,
               8, NULL),
     MN_TOGGLE("Show Found Secrets Only", "map_secret_after", NULL),
-    MN_RESET,
-    MN_END};
+    MN_RESET
+};
 
 static mn_page_t interface_pages[] = {
-    {.tab = "General", .items = statusbar_items},
-    {.tab = "Crosshair", .items = crosshair_items},
-    {.tab = "Messages", .items = messages_items},
-    {.tab = "Automap", .items = automap_items},
+    MN_TAB("General", statusbar_items),
+    MN_TAB("Crosshair", crosshair_items),
+    MN_TAB("Messages", messages_items),
+    MN_TAB("Automap", automap_items),
 };
 
 mn_menu_t interface_menu = {
@@ -980,8 +965,7 @@ static mn_item_t gameplay_items[] = {
         "Auto Strafe 50", "autostrafe50", G_UpdateSideMove,
         "Auto Strafe 50:\n\nAutomatically applies SR50 turning for maximum speed."),
     MN_TOGGLE("Improved Hit Detection", "blockmapfix", NULL),
-    MN_RESET,
-    MN_END
+    MN_RESET
 };
 
 static const char *bobbing_pct_strings[] = {"0%", "25%", "50%", "75%", "100%"};
@@ -1006,14 +990,13 @@ static mn_item_t weapons_items[] = {
     MN_TOGGLE("Use Weapon Toggles", "doom_weapon_toggles", NULL),
     MN_GAP(6),
     MN_TOGGLE("Pre-Beta BFG", "classic_bfg", NULL),
-    MN_RESET,
-    MN_END
+    MN_RESET
 };
 
 static mn_page_t gameplay_pages[] = {
-    {.tab = "General", .items = gameplay_items},
-    {.tab = "Weapons", .items = weapons_items},
-    {.tab = "Automap", .items = automap_items},
+    MN_TAB("General", gameplay_items),
+    MN_TAB("Weapons", weapons_items),
+    MN_TAB("Automap", automap_items),
 };
 
 mn_menu_t gameplay_menu = {
@@ -1032,11 +1015,10 @@ static mn_item_t options_items[] = {
     MN_MENU("Controls", &controls_menu),
     MN_MENU("Gameplay", &gameplay_menu),
     MN_MENU("Interface", &interface_menu),
-    MN_END
 };
 
 static mn_page_t options_pages[] = {
-    {.items = options_items},
+    {.items = options_items, .num_items = arrlen(options_items)},
 };
 
 mn_menu_t options_menu = {
