@@ -77,7 +77,7 @@ localview_t localview;
 boolean raw_input;
 fixed_t  viewcos, viewsin;
 player_t *viewplayer;
-fixed_t  viewheightfrac; // [FG] sprite clipping optimizations
+fixed_t  bottomydeltafrac;
 int max_project_slope = 4;
 
 static fixed_t focallength, lightfocallength;
@@ -548,6 +548,8 @@ static void R_SetupFreelook(void)
   centery = viewheight / 2 + (dy >> FRACBITS);
   centeryfrac = centery << FRACBITS;
 
+  bottomydeltafrac = (viewheight - centery) << FRACBITS;
+
   for (i = 0; i < viewheight; i++)
   {
     dy = abs(IntToFixed(i - centery));
@@ -634,8 +636,6 @@ void R_ExecuteSetViewSize (void)
   centerxfrac = (viewwidth << FRACBITS) / 2;
   centerx = centerxfrac >> FRACBITS;
   centerxfrac_nonwide = (viewwidth_nonwide << FRACBITS) / 2;
-
-  viewheightfrac = viewheight << (FRACBITS + 1); // [FG] sprite clipping optimizations
 
   R_InitBuffer();       // killough 11/98
 
