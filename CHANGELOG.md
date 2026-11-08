@@ -41,6 +41,7 @@
     It is disabled in demos, netgames and strict mode.
   - Add "Native MIDI Reset Type" to General->Audio->Music menu.
   - Add support for the `-chain_episodes` command line parameter from DSDA-Doom.
+  - Add Sunlust MAP24 `comp_ledgeblock` fix to compatibality database
 
 * **Rendering:**
   - Adapt multithread renderer from Rum and Raisin Doom. Effective at high resolutions, expect 2-4 times performance increase on multicore CPU.
