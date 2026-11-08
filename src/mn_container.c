@@ -295,7 +295,7 @@ static void LayoutMenu(mn_menu_t *menu)
 
     // Coordinates are logical: the whole widescreen width is available,
     // with the non-widescreen part centered by video.deltaw.
-    const int avail = video.unscaledw > 0 ? video.unscaledw : SCREENWIDTH;
+    const int avail = video.unscaledw;
 
     // Margins and the layout bounds resolve percentages against the full
     // logical width, like CSS margins against the containing block.
