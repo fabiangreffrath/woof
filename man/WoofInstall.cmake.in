@@ -1,0 +1,55 @@
+# This script is stamped out by CMake and run at install time.
+
+set(PROJECT_NAME "@PROJECT_NAME@")
+set(PROJECT_SHORTNAME "@PROJECT_SHORTNAME@")
+set(CMAKE_CURRENT_SOURCE_DIR "@CMAKE_CURRENT_SOURCE_DIR@")
+set(CMAKE_CURRENT_BINARY_DIR "@CMAKE_CURRENT_BINARY_DIR@")
+set(Python3_EXECUTABLE "@Python3_EXECUTABLE@")
+set(PANDOC_EXECUTABLE "@PANDOC_EXECUTABLE@")
+set(BUILD_DATE "@BUILD_DATE@")
+
+if(Python3_EXECUTABLE AND PANDOC_EXECUTABLE)
+    # Generate markdown
+    execute_process(COMMAND
+        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/gen_params.py" markdown
+        "${CMAKE_CURRENT_BINARY_DIR}/cmdline.md" "${PROJECT_NAME}" "${PROJECT_SHORTNAME}"
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        RESULT_VARIABLE result
+    )
+    if(NOT result EQUAL 0)
+        message(FATAL_ERROR "Failed to generate markdown documentation")
+    endif()
+
+    # Generate man page
+    execute_process(COMMAND
+        "${PANDOC_EXECUTABLE}" -s -t man
+        --shift-heading-level-by=-1
+        --metadata section=6
+        --metadata date="${BUILD_DATE}"
+        --include-before-body="${CMAKE_CURRENT_SOURCE_DIR}/name.man"
+        --include-after-body="${CMAKE_CURRENT_SOURCE_DIR}/iwad_paths.man"
+        "${CMAKE_CURRENT_BINARY_DIR}/cmdline.md"
+        -o "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_SHORTNAME}.6"
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        RESULT_VARIABLE result
+    )
+    if(NOT result EQUAL 0)
+        message(FATAL_ERROR "Failed to generate man page")
+    endif()
+
+    # Generate bash completion
+    execute_process(COMMAND
+        "${CMAKE_COMMAND}" -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/bash-completion"
+    )
+    execute_process(COMMAND
+        "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/gen_params.py" bash-completion
+        "${CMAKE_CURRENT_BINARY_DIR}/bash-completion/${PROJECT_SHORTNAME}" "${PROJECT_SHORTNAME}"
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        RESULT_VARIABLE result
+    )
+    if(NOT result EQUAL 0)
+        message(FATAL_ERROR "Failed to generate bash completion")
+    endif()
+else()
+    message(WARNING "Python 3 or pandoc not found, skipping documentation generation at install time")
+endif()

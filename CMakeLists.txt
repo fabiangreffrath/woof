@@ -216,7 +216,7 @@ if(WITH_DISCORD_RPC)
 endif()
 
 # Python 3
-find_package(Python3 COMPONENTS Interpreter)
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
 
 configure_file(config.h.in config.h)
 

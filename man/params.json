@@ -1,0 +1,608 @@
+{
+  "sections": [
+    {
+      "name": "SectionGeneral",
+      "display_name": "General options"
+    },
+    {
+      "name": "SectionGame",
+      "display_name": "Game start options"
+    },
+    {
+      "name": "SectionNet",
+      "display_name": "Networking options"
+    },
+    {
+      "name": "SectionDemo",
+      "display_name": "Demo options"
+    },
+    {
+      "name": "SectionCompat",
+      "display_name": "Compatibility"
+    },
+    {
+      "name": "SectionVideo",
+      "display_name": "Video options"
+    },
+    {
+      "name": "SectionMod",
+      "display_name": "Dehacked and WAD merging"
+    },
+    {
+      "name": "SectionDebug",
+      "display_name": "Debug options"
+    }
+  ],
+  "parameters": [
+    {
+      "name": "-help",
+      "type": "TypeFlag",
+      "section": "SectionGeneral",
+      "help": "Print command line help and exit."
+    },
+    {
+      "name": "--help",
+      "type": "TypeFlag",
+      "section": "SectionGeneral",
+      "help": "Print command line help and exit."
+    },
+    {
+      "name": "-version",
+      "type": "TypeFlag",
+      "section": "SectionGeneral",
+      "help": "Print version information and exit."
+    },
+    {
+      "name": "-doc",
+      "type": "TypeOptArg",
+      "section": "SectionGeneral",
+      "help": "Generate markdown documentation of command line parameters. Optional: [file] (default: cmdline.md)"
+    },
+    {
+      "name": "-beta",
+      "type": "TypeFlag",
+      "section": "SectionGeneral",
+      "help": "Beta emulation mode. Requires betagrph.wad."
+    },
+    {
+      "name": "-config",
+      "type": "TypeString",
+      "section": "SectionGeneral",
+      "help": "Load main configuration from the specified file, instead of the default."
+    },
+    {
+      "name": "-nooptions",
+      "type": "TypeFlag",
+      "section": "SectionGeneral",
+      "help": "Do not load the default configuration file."
+    },
+    {
+      "name": "-nosound",
+      "type": "TypeFlag",
+      "section": "SectionGeneral",
+      "help": "Disable all sound output."
+    },
+    {
+      "name": "-nomusic",
+      "type": "TypeFlag",
+      "section": "SectionGeneral",
+      "help": "Disable music."
+    },
+    {
+      "name": "-nosfx",
+      "type": "TypeFlag",
+      "section": "SectionGeneral",
+      "help": "Disable sound effects."
+    },
+    {
+      "name": "-file",
+      "type": "TypeFileList",
+      "section": "SectionGeneral",
+      "help": "Load the specified PWAD files."
+    },
+    {
+      "name": "-iwad",
+      "type": "TypeString",
+      "section": "SectionGeneral",
+      "help": "Specify an IWAD file to use."
+    },
+    {
+      "name": "-save",
+      "type": "TypeString",
+      "section": "SectionGeneral",
+      "help": "Specify a path from which to load and save games. If the directory does not exist then it will automatically be created."
+    },
+    {
+      "name": "-shotdir",
+      "type": "TypeString",
+      "section": "SectionGeneral",
+      "help": "Specify a path to save screenshots. If the directory does not exist then it will automatically be created."
+    },
+    {
+      "name": "-skill",
+      "type": "TypeInt",
+      "section": "SectionGame",
+      "help": "Set the game skill, 1-5 (1: easiest, 5: hardest). A skill of 0 disables all monsters only in -complevel vanilla."
+    },
+    {
+      "name": "-uv",
+      "type": "TypeFlag",
+      "section": "SectionGame",
+      "help": "Alias to -skill 4 (Ultra-Violence)."
+    },
+    {
+      "name": "-nm",
+      "type": "TypeFlag",
+      "section": "SectionGame",
+      "help": "Alias to -skill 5 (Nightmare)."
+    },
+    {
+      "name": "-episode",
+      "type": "TypeInt",
+      "section": "SectionGame",
+      "help": "Start playing on episode n (1-99)."
+    },
+    {
+      "name": "-warp",
+      "type": "TypeOneOrTwoArgs",
+      "section": "SectionGame",
+      "help": "Start a game immediately, warping to ExMy (Doom 1) or MAPxy (Doom 2)."
+    },
+    {
+      "name": "-wart",
+      "type": "TypeOneOrTwoArgs",
+      "section": "SectionGame",
+      "help": "Alias for -warp."
+    },
+    {
+      "name": "-nomonsters",
+      "type": "TypeFlag",
+      "section": "SectionGame",
+      "help": "Disable monsters."
+    },
+    {
+      "name": "-nomo",
+      "type": "TypeFlag",
+      "section": "SectionGame",
+      "help": "Alias for -nomonsters."
+    },
+    {
+      "name": "-nocheats",
+      "type": "TypeFlag",
+      "section": "SectionGame",
+      "help": "Disable cheat codes."
+    },
+    {
+      "name": "-respawn",
+      "type": "TypeFlag",
+      "section": "SectionGame",
+      "help": "Monsters respawn after being killed."
+    },
+    {
+      "name": "-fast",
+      "type": "TypeFlag",
+      "section": "SectionGame",
+      "help": "Monsters move faster."
+    },
+    {
+      "name": "-pistolstart",
+      "type": "TypeFlag",
+      "section": "SectionGame",
+      "help": "Enables automatic pistol starts on each level."
+    },
+    {
+      "name": "-coop_spawns",
+      "type": "TypeFlag",
+      "section": "SectionGame",
+      "help": "Start single player game with items spawns as in cooperative netgame."
+    },
+    {
+      "name": "-dog",
+      "type": "TypeFlag",
+      "section": "SectionGame",
+      "help": "Enables a single helper dog."
+    },
+    {
+      "name": "-dogs",
+      "type": "TypeOptArg",
+      "section": "SectionGame",
+      "help": "Overrides the current number of helper dogs, setting it to n."
+    },
+    {
+      "name": "-turbo",
+      "type": "TypeOptArg",
+      "section": "SectionGame",
+      "help": "Turbo mode. The player's speed is multiplied by x%. If unspecified, x defaults to 200. Values are rounded up to 10 and down to 400."
+    },
+    {
+      "name": "-loadgame",
+      "type": "TypeInt",
+      "section": "SectionGame",
+      "help": "Load the game on page p (0-7) in slot s (0-7). Use 255 to load an auto save."
+    },
+    {
+      "name": "-chain_episodes",
+      "type": "TypeFlag",
+      "section": "SectionGame",
+      "help": "Completing one episode leads to the next without interruption."
+    },
+    {
+      "name": "-server",
+      "type": "TypeFlag",
+      "section": "SectionNet",
+      "help": "Start a multiplayer server, listening for connections."
+    },
+    {
+      "name": "-dedicated",
+      "type": "TypeFlag",
+      "section": "SectionNet",
+      "help": "Start a dedicated server, routing packets but not participating in the game itself."
+    },
+    {
+      "name": "-connect",
+      "type": "TypeString",
+      "section": "SectionNet",
+      "help": "Connect to a multiplayer server running on the given address."
+    },
+    {
+      "name": "-autojoin",
+      "type": "TypeFlag",
+      "section": "SectionNet",
+      "help": "Automatically search the local LAN for a multiplayer server and join it."
+    },
+    {
+      "name": "-privateserver",
+      "type": "TypeFlag",
+      "section": "SectionNet",
+      "help": "When running a server, don't register with the global master server. Implies -server."
+    },
+    {
+      "name": "-solo-net",
+      "type": "TypeFlag",
+      "section": "SectionNet",
+      "help": "Run a solo network game (for testing)."
+    },
+    {
+      "name": "-port",
+      "type": "TypeInt",
+      "section": "SectionNet",
+      "help": "Use the specified UDP port for communications, instead of the default (2342)."
+    },
+    {
+      "name": "-servername",
+      "type": "TypeString",
+      "section": "SectionNet",
+      "help": "When starting a network server, specify a name for the server."
+    },
+    {
+      "name": "-timer",
+      "type": "TypeInt",
+      "section": "SectionNet",
+      "help": "For multiplayer games: exit each level after n minutes."
+    },
+    {
+      "name": "-avg",
+      "type": "TypeFlag",
+      "section": "SectionNet",
+      "help": "Austin Virtual Gaming: end levels after 20 minutes."
+    },
+    {
+      "name": "-deathmatch",
+      "type": "TypeFlag",
+      "section": "SectionNet",
+      "help": "Start a deathmatch game."
+    },
+    {
+      "name": "-altdeath",
+      "type": "TypeFlag",
+      "section": "SectionNet",
+      "help": "Start a deathmatch 2.0 game. Weapons do not stay in place and all items respawn after 30 seconds."
+    },
+    {
+      "name": "-dm3",
+      "type": "TypeFlag",
+      "section": "SectionNet",
+      "help": "Start a deathmatch 3.0 game. Weapons stay in place and all items respawn after 30 seconds."
+    },
+    {
+      "name": "-norollback",
+      "type": "TypeFlag",
+      "section": "SectionNet",
+      "help": "Disable rollback netcode."
+    },
+    {
+      "name": "-oldsync",
+      "type": "TypeFlag",
+      "section": "SectionNet",
+      "help": "Use original network client sync code rather than the improved sync code."
+    },
+    {
+      "name": "-extratics",
+      "type": "TypeInt",
+      "section": "SectionNet",
+      "help": "Send n extra tics in every packet as insurance against dropped packets."
+    },
+    {
+      "name": "-dup",
+      "type": "TypeInt",
+      "section": "SectionNet",
+      "help": "Reduce the resolution of the game by a factor of n, reducing the amount of network bandwidth needed."
+    },
+    {
+      "name": "-left",
+      "type": "TypeFlag",
+      "section": "SectionNet",
+      "help": "Run as the left screen in three screen mode."
+    },
+    {
+      "name": "-nodes",
+      "type": "TypeInt",
+      "section": "SectionNet",
+      "help": "Autostart the netgame when n nodes (clients) have joined the server."
+    },
+    {
+      "name": "-frags",
+      "type": "TypeInt",
+      "section": "SectionNet",
+      "help": "The -frags option allows you to deathmatch until one player achieves n frags, at which time the level ends and scores are displayed. If n is not specified the match is to 10 frags."
+    },
+    {
+      "name": "-playdemo",
+      "type": "TypeString",
+      "section": "SectionDemo",
+      "help": "Play back the demo named demo.lmp."
+    },
+    {
+      "name": "-record",
+      "type": "TypeString",
+      "section": "SectionDemo",
+      "help": "Record a demo named demo.lmp."
+    },
+    {
+      "name": "-recordfrom",
+      "type": "TypeTwoArgs",
+      "section": "SectionDemo",
+      "help": "Record a demo, loading from the given save slot. Equivalent to -loadgame <slot> -record <demo>."
+    },
+    {
+      "name": "-recordfromto",
+      "type": "TypeTwoArgs",
+      "section": "SectionDemo",
+      "help": "Allows continuing <demo1> after it ends or when the user presses the join demo key, the result getting saved as <demo2>. Equivalent to -playdemo <demo1> -record <demo2>."
+    },
+    {
+      "name": "-fastdemo",
+      "type": "TypeString",
+      "section": "SectionDemo",
+      "help": "Plays the given demo as fast as possible."
+    },
+    {
+      "name": "-timedemo",
+      "type": "TypeString",
+      "section": "SectionDemo",
+      "help": "Play back the demo named demo.lmp, determining the framerate of the screen."
+    },
+    {
+      "name": "-levelstat",
+      "type": "TypeFlag",
+      "section": "SectionDemo",
+      "help": "Write level statistics upon exit to levelstat.txt."
+    },
+    {
+      "name": "-shorttics",
+      "type": "TypeFlag",
+      "section": "SectionDemo",
+      "help": "Play with low turning resolution to emulate demo recording."
+    },
+    {
+      "name": "-longtics",
+      "type": "TypeFlag",
+      "section": "SectionDemo",
+      "help": "Use high turning resolution for demo recording."
+    },
+    {
+      "name": "-tas",
+      "type": "TypeFlag",
+      "section": "SectionDemo",
+      "help": "Lifts strict mode restrictions according to DSDA rules."
+    },
+    {
+      "name": "-skipsec",
+      "type": "TypeString",
+      "section": "SectionDemo",
+      "help": "Skip min:sec time during viewing of the demo. \"-warp <x> -skipsec <min:sec>\" will skip min:sec time on level x."
+    },
+    {
+      "name": "-statdump",
+      "type": "TypeOptArg",
+      "section": "SectionDemo",
+      "help": "Dump statistics information to the specified file on the levels that were played. The output from this option matches the output from statdump.exe (see ctrlapi.zip in the /idgames archive)."
+    },
+    {
+      "name": "-maxdemo",
+      "type": "TypeInt",
+      "section": "SectionDemo",
+      "help": "Sets the initial size of the demo recording buffer (KiB). This is no longer a hard limit, and the buffer will expand if the given limit is exceeded."
+    },
+    {
+      "name": "-dumptranmap",
+      "type": "TypeTwoArgs",
+      "section": "SectionDemo",
+      "help": "Dump tranmap lump, given an alpha level (opacity percentage). Valid values are 0 through to 99."
+    },
+    {
+      "name": "-complevel",
+      "type": "TypeString",
+      "section": "SectionCompat",
+      "help": "Emulate a specific version of Doom/Boom/MBF. Valid values are \"vanilla\", \"boom\", \"mbf\", \"mbf21\"."
+    },
+    {
+      "name": "-cl",
+      "type": "TypeString",
+      "section": "SectionCompat",
+      "help": "Alias for -complevel."
+    },
+    {
+      "name": "-gameversion",
+      "type": "TypeString",
+      "section": "SectionCompat",
+      "help": "Emulate a specific version of Doom. Valid values are \"1.9\", \"ultimate\", \"final\", \"final2\", \"chex\". Requires -complevel vanilla."
+    },
+    {
+      "name": "-force_old_zdoom_nodes",
+      "type": "TypeFlag",
+      "section": "SectionCompat",
+      "help": "Force use of old ZDoom node builder."
+    },
+    {
+      "name": "-fullscreen",
+      "type": "TypeFlag",
+      "section": "SectionVideo",
+      "help": "Start in fullscreen mode."
+    },
+    {
+      "name": "-window",
+      "type": "TypeFlag",
+      "section": "SectionVideo",
+      "help": "Start in windowed mode."
+    },
+    {
+      "name": "-borderless",
+      "type": "TypeFlag",
+      "section": "SectionVideo",
+      "help": "Start in borderless windowed mode."
+    },
+    {
+      "name": "-noblit",
+      "type": "TypeFlag",
+      "section": "SectionVideo",
+      "help": "Disable blitting the screen."
+    },
+    {
+      "name": "-nodraw",
+      "type": "TypeFlag",
+      "section": "SectionVideo",
+      "help": "Disable rendering the screen entirely."
+    },
+    {
+      "name": "-nograbmouse",
+      "type": "TypeFlag",
+      "section": "SectionVideo",
+      "help": "Don't grab mouse cursor."
+    },
+    {
+      "name": "-uncapped",
+      "type": "TypeFlag",
+      "section": "SectionVideo",
+      "help": "Uncapped framerate mode."
+    },
+    {
+      "name": "-nouncapped",
+      "type": "TypeFlag",
+      "section": "SectionVideo",
+      "help": "Disable uncapped framerate mode."
+    },
+    {
+      "name": "-1",
+      "type": "TypeFlag",
+      "section": "SectionVideo",
+      "help": "Don't scale up the screen. Implies -window."
+    },
+    {
+      "name": "-2",
+      "type": "TypeFlag",
+      "section": "SectionVideo",
+      "help": "Double up the screen to 2x its normal size. Implies -window."
+    },
+    {
+      "name": "-3",
+      "type": "TypeFlag",
+      "section": "SectionVideo",
+      "help": "Triple up the screen to 3x its normal size. Implies -window."
+    },
+    {
+      "name": "-deh",
+      "type": "TypeFileList",
+      "section": "SectionMod",
+      "help": "Load the given dehacked/bex patch(es)."
+    },
+    {
+      "name": "-nodeh",
+      "type": "TypeFlag",
+      "section": "SectionMod",
+      "help": "Avoid loading DEHACKED lumps embedded into WAD files."
+    },
+    {
+      "name": "-noautoload",
+      "type": "TypeFlag",
+      "section": "SectionMod",
+      "help": "Disable auto-loading of .wad and .deh files."
+    },
+    {
+      "name": "-nomapinfo",
+      "type": "TypeFlag",
+      "section": "SectionMod",
+      "help": "Disable UMAPINFO loading."
+    },
+    {
+      "name": "-blockmap",
+      "type": "TypeFlag",
+      "section": "SectionMod",
+      "help": "Forces a (re-)building of the BLOCKMAP lumps for loaded maps."
+    },
+    {
+      "name": "-bsp",
+      "type": "TypeFlag",
+      "section": "SectionMod",
+      "help": "Forces rebuilding of nodes."
+    },
+    {
+      "name": "-reject_pad_with_ff",
+      "type": "TypeFlag",
+      "section": "SectionMod",
+      "help": "Pad reject map with 0xFF."
+    },
+    {
+      "name": "-tranmap",
+      "type": "TypeFlag",
+      "section": "SectionMod",
+      "help": "Forces the (re-)building of the translucency table."
+    },
+    {
+      "name": "-setmem",
+      "type": "TypeInt",
+      "section": "SectionDebug",
+      "help": "Specify DOS version to emulate for NULL pointer dereference emulation. Supported versions are: dos622, dos71, dosbox. The default is to emulate DOS 7.1 (Windows 98)."
+    },
+    {
+      "name": "-nogui",
+      "type": "TypeFlag",
+      "section": "SectionDebug",
+      "help": "Don't pop up a GUI dialog box to show the error message."
+    },
+    {
+      "name": "-spechit",
+      "type": "TypeInt",
+      "section": "SectionDebug",
+      "help": "Use the specified magic value when emulating spechit overruns."
+    },
+    {
+      "name": "-quiet",
+      "type": "TypeFlag",
+      "section": "SectionDebug",
+      "help": "Suppress non-error output."
+    },
+    {
+      "name": "-verbose",
+      "type": "TypeFlag",
+      "section": "SectionDebug",
+      "help": "Enable verbose output."
+    },
+    {
+      "name": "-devparm",
+      "type": "TypeFlag",
+      "section": "SectionDebug",
+      "help": "Developer mode. Enables extra debug output and features."
+    }
+  ]
+}
