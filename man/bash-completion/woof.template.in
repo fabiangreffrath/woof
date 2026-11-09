@@ -1,6 +1,6 @@
-# bash completion for @SHORTNAME@               -*- shell-script -*-
+# bash completion for @PROJECT_SHORTNAME@               -*- shell-script -*-
 
-_@SHORTNAME@()
+_@PROJECT_SHORTNAME@()
 {
     local cur prev words cword
     _init_completion || return
@@ -46,6 +46,6 @@ _@SHORTNAME@()
     fi
 } &&
 
-complete -F _@SHORTNAME@ @SHORTNAME@
+complete -F _@PROJECT_SHORTNAME@ @PROJECT_SHORTNAME@
 
 # ex: ts=4 sw=4 et filetype=sh

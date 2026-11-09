@@ -17,6 +17,11 @@ if(UNIX AND NOT APPLE)
         set(PARAMS_DUMP "${CMAKE_CURRENT_BINARY_DIR}/params_dump${CMAKE_EXECUTABLE_SUFFIX}")
         string(TIMESTAMP BUILD_DATE "%Y-%m-%d" UTC)
 
+        file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/bash-completion")
+        configure_file(${CMAKE_CURRENT_SOURCE_DIR}/bash-completion/woof.template.in
+            ${CMAKE_CURRENT_BINARY_DIR}/bash-completion/woof.template @ONLY
+        )
+
         configure_file(${CMAKE_CURRENT_SOURCE_DIR}/WoofInstall.cmake.in
             ${CMAKE_CURRENT_BINARY_DIR}/WoofInstall.cmake @ONLY
         )

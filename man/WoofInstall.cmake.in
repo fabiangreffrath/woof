@@ -60,9 +60,7 @@ endif()
 string(REPLACE "\n" ";" param_names "${param_names}")
 list(JOIN param_names " " param_names)
 
-file(READ "${CMAKE_CURRENT_SOURCE_DIR}/bash-completion/woof.template" completion)
-string(REPLACE "@SHORTNAME@" "${PROJECT_SHORTNAME}" completion "${completion}")
+file(READ "${CMAKE_CURRENT_BINARY_DIR}/bash-completion/woof.template" completion)
 string(REPLACE "@content" "${param_names}" completion "${completion}")
 
-file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/bash-completion")
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/bash-completion/${PROJECT_SHORTNAME}" "${completion}")
