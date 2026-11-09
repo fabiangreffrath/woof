@@ -154,7 +154,7 @@ static void M_ProgressBarEnd(void)
 }
 
 // needed for pre-rendering
-fixed_t   *spritewidth, *spriteoffset, *spritetopoffset;
+fixed_t   *spritewidth, *spriteheight, *spriteoffset, *spritetopoffset;
 
 //
 // MAPTEXTURE_T CACHING
@@ -904,6 +904,7 @@ void R_InitSpriteLumps(void)
   // clean up malloc-ing to use sizeof
 
   spritewidth = Z_Malloc(numspritelumps*sizeof*spritewidth, PU_STATIC, 0);
+  spriteheight = Z_Malloc(numspritelumps*sizeof*spriteheight, PU_STATIC, 0);
   spriteoffset = Z_Malloc(numspritelumps*sizeof*spriteoffset, PU_STATIC, 0);
   spritetopoffset =
     Z_Malloc(numspritelumps*sizeof*spritetopoffset, PU_STATIC, 0);
@@ -918,6 +919,7 @@ void R_InitSpriteLumps(void)
       // never call into the zone allocator while drawing in parallel.
       patch = V_CachePatchNum(firstspritelump+i, PU_STATIC);
       spritewidth[i] = IntToFixed(SHORT(patch->width));
+      spriteheight[i] = IntToFixed(SHORT(patch->height));
       spriteoffset[i] = IntToFixed(SHORT(patch->leftoffset));
       spritetopoffset[i] = IntToFixed(SHORT(patch->topoffset));
     }
