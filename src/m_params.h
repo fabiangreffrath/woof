@@ -50,7 +50,5 @@ typedef struct
 const param_def_t *M_FindParam(const char *arg);
 
 const char *M_GetParamHelpString(void);
-void M_GenerateParamMarkdown(const char *filename);
-void M_PrintParamHelp(void);
 
 #endif

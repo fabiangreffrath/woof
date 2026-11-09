@@ -215,9 +215,6 @@ if(WITH_DISCORD_RPC)
     endif()
 endif()
 
-# Python 3
-find_package(Python3 REQUIRED COMPONENTS Interpreter)
-
 configure_file(config.h.in config.h)
 
 if(WIN32)

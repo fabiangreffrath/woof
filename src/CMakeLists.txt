@@ -1,19 +1,5 @@
 include(WoofSettings)
 
-set(GEN_SCRIPT "${CMAKE_SOURCE_DIR}/man/gen_params.py")
-set(GEN_DIR "${CMAKE_CURRENT_BINARY_DIR}")
-set(GEN_HDR "${GEN_DIR}/m_params_table.h")
-
-# Generate parameter table header from JSON
-add_custom_command(
-    OUTPUT "${GEN_HDR}"
-    COMMAND "${Python3_EXECUTABLE}" "${GEN_SCRIPT}" table "${GEN_HDR}"
-    DEPENDS "${GEN_SCRIPT}" "${CMAKE_SOURCE_DIR}/man/params.json"
-    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/man"
-    COMMENT "Generating m_params_table.h from params.json"
-    VERBATIM
-)
-
 set(WOOF_SOURCES
     am_map.c               am_map.h
     am_def.c
@@ -229,12 +215,9 @@ set(WOOF_SOURCES
 )
 
 # Standard target definition
-add_executable(woof ${WOOF_SOURCES} "${GEN_HDR}")
+add_executable(woof ${WOOF_SOURCES})
 target_woof_settings(woof)
-target_include_directories(
-    woof
-    PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../" "${GEN_DIR}"
-)
+target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 
 if(WIN32)
     # Stamp out and compile resource file on Windows.
@@ -364,12 +347,9 @@ if(WIN32)
     list(APPEND SETUP_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/setup-res.rc")
 endif()
 
-add_executable(woof-setup WIN32 ${SETUP_SOURCES} "${GEN_HDR}")
+add_executable(woof-setup WIN32 ${SETUP_SOURCES})
 target_woof_settings(woof-setup)
-target_include_directories(
-    woof-setup
-    PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../" "${GEN_DIR}"
-)
+target_include_directories(woof-setup PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 
 target_link_libraries(
   woof-setup
