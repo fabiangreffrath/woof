@@ -32,6 +32,8 @@ struct event_s;
 // Called by main loop.
 boolean F_Responder(struct event_s *ev);
 
+boolean F_ShowCast(void);
+
 // Called by main loop.
 void F_Ticker (void);
 
