@@ -36,7 +36,7 @@ jobs:
               -DCMAKE_FIND_PACKAGE_PREFER_CONFIG=OFF
               -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON
 
-          - name: macOS Clang
+          - name: macOS arm64
             os: macos-latest
             shell: bash
             type: system
@@ -133,28 +133,27 @@ jobs:
 
       - name: Install dependencies (Linux)
         if: runner.os == 'Linux' && matrix.config.type == 'system'
-        run: |
-          sudo apt-get update
-          sudo apt-get install \
-            pandoc \
-            ninja-build \
-            libopenal-dev \
-            libebur128-dev \
-            libsndfile1-dev \
-            libfluidsynth-dev \
-            libxmp-dev
+        run: >-
+          sudo apt-get install -y
+          pandoc
+          ninja-build
+          libopenal-dev
+          libebur128-dev
+          libsndfile1-dev
+          libfluidsynth-dev
+          libxmp-dev
 
       - name: Install dependencies (Linux vcpkg)
         if: runner.os == 'Linux' && matrix.config.type == 'vcpkg'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential libtool autoconf-archive git make \
-          pkg-config cmake ninja-build gnome-desktop-testing libasound2-dev libpulse-dev \
-          libaudio-dev libfribidi-dev libjack-dev libsndio-dev libx11-dev libxext-dev \
-          libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxtst-dev \
-          libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
-          libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev \
-          libpipewire-0.3-dev libwayland-dev libdecor-0-dev liburing-dev \
+        run: >-
+          sudo apt-get install -y pandoc build-essential autoconf-archive
+          cmake ninja-build gnome-desktop-testing
+          libasound2-dev libpulse-dev libaudio-dev libfribidi-dev libjack-dev
+          libsndio-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev
+          libxfixes-dev libxi-dev libxss-dev libxtst-dev libxkbcommon-dev
+          libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev
+          libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev
+          libpipewire-0.3-dev libwayland-dev libdecor-0-dev liburing-dev
           libltdl-dev
 
       - name: Install CPack AppImage dependencies (Linux)
@@ -168,17 +167,17 @@ jobs:
 
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS' && matrix.config.type == 'system'
-        run: |
-          brew install \
-            sdl3 \
-            sdl3_net \
-            openal-soft \
-            libebur128 \
-            libsndfile \
-            fluid-synth \
-            libxmp \
-            yyjson \
-            libspng
+        run: >-
+          brew install
+          sdl3
+          sdl3_net
+          openal-soft
+          libebur128
+          libsndfile
+          fluid-synth
+          libxmp
+          yyjson
+          libspng
 
       - name: Install dependencies (MSYS2)
         if: matrix.config.shell == 'msys2 {0}'
@@ -331,5 +330,4 @@ jobs:
           name: Woof! ${{ env.VERSION }}
           bodyFile: CHANGELOG.md
           allowUpdates: true
-          artifacts: artifacts/AppImage/*,artifacts/Win-64/*,artifacts/Win-32/*,artifacts/Linux-ARM64/*,artifacts/MacOS-universal/*
-    
+          artifacts: artifacts/AppImage/*,artifacts/Win-64/*,artifacts/Win-32/*,artifacts/MacOS-universal/*
