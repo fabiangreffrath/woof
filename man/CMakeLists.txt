@@ -22,9 +22,8 @@ if(UNIX AND NOT APPLE)
 
     if(PANDOC_EXECUTABLE AND WOOF_HOST_C_COMPILER)
         set(PARAMS_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/../src/m_params.c")
-        set(PARAMS_DUMP "${CMAKE_CURRENT_BINARY_DIR}/params_dump_bin${CMAKE_EXECUTABLE_SUFFIX}")
+        set(PARAMS_DUMP "${CMAKE_CURRENT_BINARY_DIR}/params_dump${CMAKE_EXECUTABLE_SUFFIX}")
 
-        # m_params.c doubles as the parameter dumper when built standalone.
         if(CMAKE_CROSSCOMPILING)
             add_custom_command(
                 OUTPUT "${PARAMS_DUMP}"
@@ -34,26 +33,21 @@ if(UNIX AND NOT APPLE)
                         "${PARAMS_SOURCE}" -o "${PARAMS_DUMP}"
                         ${LDFLAGS_FOR_BUILD}
                 DEPENDS "${PARAMS_SOURCE}"
-                        "${CMAKE_CURRENT_SOURCE_DIR}/../src/m_params.h"
                 VERBATIM
             )
-            add_custom_target(params_dump_host ALL DEPENDS "${PARAMS_DUMP}")
+            add_custom_target(params_dump_gen ALL DEPENDS "${PARAMS_DUMP}")
         else()
-            add_executable(params_dump_host "${PARAMS_SOURCE}")
-            set_target_properties(
-                params_dump_host
-                PROPERTIES OUTPUT_NAME params_dump_bin
-            )
-            target_compile_definitions(params_dump_host PRIVATE PARAMS_DUMP)
+            add_executable(params_dump "${PARAMS_SOURCE}")
+            target_compile_definitions(params_dump PRIVATE PARAMS_DUMP)
             target_include_directories(
-                params_dump_host
+                params_dump
                 PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../src"
             )
             if(CFLAGS_FOR_BUILD)
-                target_compile_options(params_dump_host PRIVATE ${CFLAGS_FOR_BUILD})
+                target_compile_options(params_dump PRIVATE ${CFLAGS_FOR_BUILD})
             endif()
             if(LDFLAGS_FOR_BUILD)
-                target_link_options(params_dump_host PRIVATE ${LDFLAGS_FOR_BUILD})
+                target_link_options(params_dump PRIVATE ${LDFLAGS_FOR_BUILD})
             endif()
         endif()
 

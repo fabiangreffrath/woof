@@ -11,8 +11,8 @@
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //  GNU General Public License for more details.
 
-#ifndef PARAMS_TABLE_H
-#define PARAMS_TABLE_H
+#ifndef M_PARAMS_H
+#define M_PARAMS_H
 
 typedef enum
 {

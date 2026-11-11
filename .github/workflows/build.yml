@@ -347,19 +347,9 @@ jobs:
         run: |
           set -euo pipefail
 
-          echo "Downloaded artifacts:"
-          find artifacts -maxdepth 2 -type f
-
-          # Each artifact directory contains the CPack .zip
           unzip -q artifacts/MacOS-arm64/*.zip -d arm64
           unzip -q artifacts/MacOS-x64/*.zip   -d x64
 
-          echo "Unpacked arm64:"
-          ls -la arm64
-          echo "Unpacked x64:"
-          ls -la x64
-
-          # CPack zips unpack into a "Woof-<version>/" directory
           lipo arm64/Woof-*/woof       x64/Woof-*/woof       -create -output woof
           lipo arm64/Woof-*/woof-setup x64/Woof-*/woof-setup -create -output woof-setup
 

@@ -9,15 +9,6 @@ set(PANDOC_EXECUTABLE "@PANDOC_EXECUTABLE@")
 set(BUILD_DATE "@BUILD_DATE@")
 
 if(NOT EXISTS "${PARAMS_DUMP}")
-    # Multi-config generators place the executable in a per-config subdirectory.
-    file(GLOB CONFIG_DUMP "${CMAKE_CURRENT_BINARY_DIR}/*/params_dump")
-    list(LENGTH CONFIG_DUMP count)
-    if(count GREATER 0)
-        list(GET CONFIG_DUMP 0 PARAMS_DUMP)
-    endif()
-endif()
-
-if(NOT EXISTS "${PARAMS_DUMP}")
     message(FATAL_ERROR "params_dump not found, build the project before installing")
 endif()
 
