@@ -960,11 +960,14 @@ static mn_item_t gameplay_items[] = {
     MN_CHOICE("On Death Action", "death_use_action", death_use_action_strings, 8, NULL),
     MN_GAP(6),
     MN_TITLE("Physics"),
-    MN_CHOICE("Move Over/Under Monsters", "overunder", overunder_strings, 8, NULL),
+    MN_CHOICE("Over/Under Monsters", "overunder", overunder_strings, 8, NULL),
     MN_TOGGLE_ACT(
         "Auto Strafe 50", "autostrafe50", G_UpdateSideMove,
         "Auto Strafe 50:\n\nAutomatically applies SR50 turning for maximum speed."),
     MN_TOGGLE("Improved Hit Detection", "blockmapfix", NULL),
+    MN_GAP(6),
+    MN_TITLE("Compatibility"),
+    MN_TOGGLE("Emulate INTERCEPTS overflow", "emu_intercepts", NULL),
     MN_RESET
 };
 
