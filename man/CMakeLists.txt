@@ -16,6 +16,10 @@ if(UNIX AND NOT APPLE)
         endif()
     endif()
 
+    # respect CFLAGS_FOR_BUILD and LDFLAGS_FOR_BUILD for cross builds.
+    set(CFLAGS_FOR_BUILD "$ENV{CFLAGS_FOR_BUILD}")
+    set(LDFLAGS_FOR_BUILD "$ENV{LDFLAGS_FOR_BUILD}")
+
     if(PANDOC_EXECUTABLE AND WOOF_HOST_C_COMPILER)
         set(PARAMS_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/../src/m_params.c")
         set(PARAMS_DUMP "${CMAKE_CURRENT_BINARY_DIR}/params_dump_bin${CMAKE_EXECUTABLE_SUFFIX}")
@@ -25,8 +29,10 @@ if(UNIX AND NOT APPLE)
             add_custom_command(
                 OUTPUT "${PARAMS_DUMP}"
                 COMMAND "${WOOF_HOST_C_COMPILER}" -DPARAMS_DUMP
+                        ${CFLAGS_FOR_BUILD}
                         "-I${CMAKE_CURRENT_SOURCE_DIR}/../src"
                         "${PARAMS_SOURCE}" -o "${PARAMS_DUMP}"
+                        ${LDFLAGS_FOR_BUILD}
                 DEPENDS "${PARAMS_SOURCE}"
                         "${CMAKE_CURRENT_SOURCE_DIR}/../src/m_params.h"
                 VERBATIM
@@ -43,6 +49,12 @@ if(UNIX AND NOT APPLE)
                 params_dump_host
                 PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../src"
             )
+            if(CFLAGS_FOR_BUILD)
+                target_compile_options(params_dump_host PRIVATE ${CFLAGS_FOR_BUILD})
+            endif()
+            if(LDFLAGS_FOR_BUILD)
+                target_link_options(params_dump_host PRIVATE ${LDFLAGS_FOR_BUILD})
+            endif()
         endif()
 
         string(TIMESTAMP BUILD_DATE "%Y-%m-%d" UTC)
