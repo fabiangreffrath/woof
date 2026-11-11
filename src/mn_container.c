@@ -199,7 +199,16 @@ static void LayoutPage(mn_menu_t *menu, mn_page_t *page)
 
         if (item->type != ItemType_Title && item->label)
         {
-            label_width = MAX(label_width, MN_GetPixelWidth(item->label));
+            int w = 0;
+            if (item->flags & MN_ITEM_BIG_FONT)
+            {
+                w = MN_GetFon2PixelWidth(item->label);
+            }
+            if (!w)
+            {
+                w = MN_GetPixelWidth(item->label);
+            }
+            label_width = MAX(label_width, w);
         }
 
         y += item->height;
@@ -1294,6 +1303,14 @@ static void DrawItemLabel(const mn_item_t *item, const mn_draw_ctx_t *ctx,
     if (ctx->selected && whichSkull && menu_input != mouse_mode)
     {
         MN_DrawStringCR(label_x - 8, y, cr, NULL, ">");
+    }
+
+    if (item->flags & MN_ITEM_BIG_FONT)
+    {
+        if (MN_DrawFon2String(label_x, y, cr, item->label))
+        {
+            return;
+        }
     }
 
     MN_DrawStringCR(label_x, y, cr, NULL, item->label);

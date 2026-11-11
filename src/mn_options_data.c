@@ -51,7 +51,7 @@
     {.label = (lbl),              \
      .type = ItemType_SubMenu,    \
      .submenu = (menu),           \
-     .flags = MN_ITEM_HIDE_VALUE}
+     .flags = MN_ITEM_HIDE_VALUE | MN_ITEM_BIG_FONT }
 
 #define MN_INPUT(lbl, id, grp) \
     {.label = (lbl),           \

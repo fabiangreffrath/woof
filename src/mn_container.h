@@ -57,6 +57,7 @@ typedef enum
     MN_ITEM_DIRECT_COORDS = (1u << 5),
     MN_ITEM_DRAW_CROSSHAIR = (1u << 6),
     MN_ITEM_HIDE_VALUE = (1u << 7),
+    MN_ITEM_BIG_FONT = (1u << 8)
 } mn_item_flags_t;
 
 typedef struct mn_item_ops_s mn_item_ops_t;
