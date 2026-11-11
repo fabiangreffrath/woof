@@ -25,6 +25,7 @@
 #include "g_game.h"
 #include "g_umapinfo.h"
 #include "i_input.h"
+#include "i_system.h"
 #include "m_io.h"
 #include "m_json.h"
 #include "m_misc.h"
@@ -47,15 +48,15 @@
 #include "miniz.h"
 
 #define SAVE_SLOTS_PER_PAGE 8
-#define SAVE_PAGES          4
-#define SAVE_SLOT_COUNT     (SAVE_SLOTS_PER_PAGE * SAVE_PAGES)
+
+#define SAVE_PAGES_MIN 4
+#define SAVE_PAGES_MAX 8
 
 // The auto and quick saves are the first entries of the load list and are
 // skipped by the save list.
 #define SAVE_ENTRY_AUTO     0
 #define SAVE_ENTRY_QUICK    1
 #define SAVE_ENTRY_FIRST    2
-#define SAVE_ENTRY_COUNT    (SAVE_ENTRY_FIRST + SAVE_SLOT_COUNT)
 
 #define SAVE_ROW_HEIGHT   16
 #define SAVE_BORDER_CHARS 24
@@ -79,13 +80,20 @@
     (SAVE_PREVIEW_EDGE + SAVE_PREVIEW_MIN_WIDTH + SAVE_PREVIEW_GAP)
 #define SAVE_TIME_HEIGHT 10
 
-static mn_item_t load_items[SAVE_ENTRY_COUNT + 1];
-static mn_item_t save_items[SAVE_ENTRY_COUNT + 1];
+typedef struct
+{
+    char description[SAVE_STRING_SIZE];
+    char time[32];
+    boolean loaded;
+    boolean exists;
+} save_entry_t;
 
-static char descriptions[SAVE_ENTRY_COUNT][SAVE_STRING_SIZE];
-static char times[SAVE_ENTRY_COUNT][32];
-static boolean loaded[SAVE_ENTRY_COUNT];
-static boolean exists[SAVE_ENTRY_COUNT];
+static save_entry_t *entries;
+static int num_entries;
+static int entries_capacity;
+
+static mn_item_t *load_items;
+static mn_item_t *save_items;
 
 static int preview_entry = -1;
 static int delete_entry = -1;
@@ -99,6 +107,23 @@ static boolean edit_modified;
 static int edit_entry;
 static int edit_char_index;
 static char edit_old_string[SAVE_STRING_SIZE];
+
+// Grows the per-entry to `count` entries.
+static void ReserveEntries(int count)
+{
+    if (count <= entries_capacity)
+    {
+        return;
+    }
+
+    entries = I_Realloc(entries, count * sizeof(*entries));
+    load_items = I_Realloc(load_items, count * sizeof(*load_items));
+    save_items = I_Realloc(save_items, count * sizeof(*save_items));
+
+    memset(&entries[entries_capacity], 0,
+           (count - entries_capacity) * sizeof(*entries));
+    entries_capacity = count;
+}
 
 static void EntryFile(int entry, int *slot, int *page)
 {
@@ -118,6 +143,38 @@ static void EntryFile(int entry, int *slot, int *page)
         *slot = index % SAVE_SLOTS_PER_PAGE;
         *page = index / SAVE_SLOTS_PER_PAGE;
     }
+}
+
+static boolean SlotFileExists(int slot, int page)
+{
+    char *name = G_SaveGameName(slot, page);
+    boolean exists = M_FileExistsNotDir(name);
+    free(name);
+
+    if (!exists)
+    {
+        name = G_MBFSaveGameName(slot, page);
+        exists = M_FileExistsNotDir(name);
+        free(name);
+    }
+
+    return exists;
+}
+
+static int DetectSavePages(void)
+{
+    for (int page = SAVE_PAGES_MIN; page < SAVE_PAGES_MAX; ++page)
+    {
+        for (int slot = 0; slot < SAVE_SLOTS_PER_PAGE; ++slot)
+        {
+            if (SlotFileExists(slot, page))
+            {
+                return SAVE_PAGES_MAX;
+            }
+        }
+    }
+
+    return SAVE_PAGES_MIN;
 }
 
 // [FG] override savegame name if it already starts with a map identifier
@@ -208,11 +265,12 @@ static void EmptySaveString(char *name, int entry)
 
 static void ReadSaveGameTime(int entry, const char *name)
 {
+    char *time_str = entries[entry].time;
     const time_t mtime = (time_t)M_FileMTime(name);
 
     if (mtime == 0)
     {
-        times[entry][0] = '\0';
+        time_str[0] = '\0';
         return;
     }
 
@@ -221,7 +279,8 @@ static void ReadSaveGameTime(int entry, const char *name)
 #  pragma GCC diagnostic push
 #  pragma GCC diagnostic ignored "-Wformat-y2k"
 #endif
-    strftime(times[entry], sizeof(times[entry]), "%x %X", localtime(&mtime));
+    strftime(time_str, sizeof(entries[entry].time), "%x %X",
+             localtime(&mtime));
 #if defined(__GNUC__)
 #  pragma GCC diagnostic pop
 #endif
@@ -231,6 +290,7 @@ static void ReadSaveGameTime(int entry, const char *name)
 // and (optionally) screenshot.
 static void ReadSaveGameContents(int entry, boolean read_screenshot)
 {
+    save_entry_t *save = &entries[entry];
     int slot, page;
     EntryFile(entry, &slot, &page);
 
@@ -251,9 +311,9 @@ static void ReadSaveGameContents(int entry, boolean read_screenshot)
 
     if (!M_FileExistsNotDir(name))
     {
-        EmptySaveString(descriptions[entry], entry);
-        exists[entry] = false;
-        loaded[entry] = true;
+        EmptySaveString(save->description, entry);
+        save->exists = false;
+        save->loaded = true;
         free(name);
         return;
     }
@@ -266,9 +326,9 @@ static void ReadSaveGameContents(int entry, boolean read_screenshot)
 
     if (savegamesize < SAVE_STRING_SIZE)
     {
-        EmptySaveString(descriptions[entry], entry);
-        exists[entry] = false;
-        loaded[entry] = true;
+        EmptySaveString(save->description, entry);
+        save->exists = false;
+        save->loaded = true;
         Z_Free(save_p);
         return;
     }
@@ -322,7 +382,7 @@ static void ReadSaveGameContents(int entry, boolean read_screenshot)
     {
         const char *savegamestring = JS_GetStringValue(root, "savedescription");
 
-        M_snprintf(descriptions[entry], SAVE_STRING_SIZE, "%s",
+        M_snprintf(save->description, SAVE_STRING_SIZE, "%s",
                    savegamestring ? savegamestring : DEH_String(EMPTYSTRING));
 
         if (read_screenshot)
@@ -340,7 +400,7 @@ static void ReadSaveGameContents(int entry, boolean read_screenshot)
     }
     else
     {
-        M_snprintf(descriptions[entry], SAVE_STRING_SIZE, "%s",
+        M_snprintf(save->description, SAVE_STRING_SIZE, "%s",
                    (char *)savebuffer);
 
         if (read_screenshot
@@ -361,13 +421,13 @@ static void ReadSaveGameContents(int entry, boolean read_screenshot)
         savebuffer = save_p = NULL;
     }
 
-    exists[entry] = true;
-    loaded[entry] = true;
+    save->exists = true;
+    save->loaded = true;
 }
 
 static void EnsureLoaded(int entry)
 {
-    if (!loaded[entry])
+    if (!entries[entry].loaded)
     {
         ReadSaveGameContents(entry, false);
     }
@@ -400,12 +460,17 @@ void MN_LoadQuickSave(void)
 
 void MN_QuickSave(void)
 {
-    MN_SetDefaultSaveName(descriptions[SAVE_ENTRY_QUICK], "Quick");
-    G_SaveGame(1, QUICKSAVEPAGE, descriptions[SAVE_ENTRY_QUICK]);
+    // A quicksave can be made without the menu ever being opened.
+    ReserveEntries(SAVE_ENTRY_QUICK + 1);
+
+    char *description = entries[SAVE_ENTRY_QUICK].description;
+
+    MN_SetDefaultSaveName(description, "Quick");
+    G_SaveGame(1, QUICKSAVEPAGE, description);
 
     quicksave_used = true;
     cursor_load = SAVE_ENTRY_QUICK;
-    loaded[SAVE_ENTRY_QUICK] = false;
+    entries[SAVE_ENTRY_QUICK].loaded = false;
     preview_entry = -1;
 
     MN_CloseMenu();
@@ -422,10 +487,10 @@ static void SaveGameAtEntry(int entry)
     int slot, page;
     EntryFile(entry, &slot, &page);
 
-    G_SaveGame(slot, page, descriptions[entry]);
+    G_SaveGame(slot, page, entries[entry].description);
 
     cursor_load = entry;
-    loaded[entry] = false;
+    entries[entry].loaded = false;
     preview_entry = -1;
 
     MN_CloseMenu();
@@ -452,7 +517,7 @@ static void DeleteEntry(void)
         quicksave_used = false;
     }
 
-    loaded[delete_entry] = false;
+    entries[delete_entry].loaded = false;
     preview_entry = -1;
     delete_entry = -1;
 }
@@ -490,9 +555,11 @@ static boolean DigitJump(int base, int ch)
 
 static void StartEdit(int entry)
 {
+    char *description = entries[entry].description;
+
     if (menu_input == pad_mode)
     {
-        MN_SetDefaultSaveName(descriptions[entry], NULL);
+        MN_SetDefaultSaveName(description, NULL);
         SaveGameAtEntry(entry);
         M_StartSound(sfx_mnuact);
         return;
@@ -501,16 +568,16 @@ static void StartEdit(int entry)
     editing = true;
     edit_modified = false;
     edit_entry = entry;
-    M_StringCopy(edit_old_string, descriptions[entry], SAVE_STRING_SIZE);
+    M_StringCopy(edit_old_string, description, SAVE_STRING_SIZE);
 
-    if (!strcmp(descriptions[entry], DEH_String(EMPTYSTRING))
-        || MN_StartsWithMapIdentifier(descriptions[entry]))
+    if (!strcmp(description, DEH_String(EMPTYSTRING))
+        || MN_StartsWithMapIdentifier(description))
     {
-        descriptions[entry][0] = 0;
-        MN_SetDefaultSaveName(descriptions[entry], NULL);
+        description[0] = 0;
+        MN_SetDefaultSaveName(description, NULL);
     }
 
-    edit_char_index = strlen(descriptions[entry]);
+    edit_char_index = strlen(description);
 
     I_StartTextInput();
 
@@ -544,11 +611,12 @@ static void SlotDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx,
                         ? xlat[CR_GOLD].table
                         : xlat[CR_NONE].table;
 
-    MN_DrawStringCR(ctx->x + 8, y, text_cr, NULL, descriptions[entry]);
+    MN_DrawStringCR(ctx->x + 8, y, text_cr, NULL,
+                    entries[entry].description);
 
     if (editing && edit_entry == entry)
     {
-        const int width = MN_GetPixelWidth(descriptions[entry]);
+        const int width = MN_GetPixelWidth(entries[entry].description);
 
         MN_DrawString(ctx->x + 8 + width, y, CR_NONE, "_");
     }
@@ -566,7 +634,7 @@ static void SlotPreview(const mn_menu_t *menu, const mn_page_t *page, int base)
     const mn_item_t *item = &page->items[index];
     const int entry = index + base;
 
-    if (entry < 0 || entry >= SAVE_ENTRY_COUNT)
+    if (entry < 0 || entry >= num_entries)
     {
         return;
     }
@@ -615,7 +683,7 @@ static void SlotPreview(const mn_menu_t *menu, const mn_page_t *page, int base)
                       y + height / 2 - MN_StringHeight(txt) / 2, CR_NONE, txt);
     }
 
-    txt = times[entry];
+    txt = entries[entry].time;
 
     MN_DrawString(x + width / 2 - MN_GetPixelWidth(txt) / 2 - video.deltaw,
                   y + height + MN_StringHeight(txt), CR_GOLD, txt);
@@ -652,7 +720,7 @@ static boolean LoadSlotRespond(mn_item_t *item, menu_action_t action, int ch)
 
     if (action == MENU_ENTER)
     {
-        if (!exists[entry])
+        if (!entries[entry].exists)
         {
             M_StartSound(sfx_mnuerr);
             return true;
@@ -668,7 +736,7 @@ static boolean LoadSlotRespond(mn_item_t *item, menu_action_t action, int ch)
 
     if (action == MENU_CLEAR)
     {
-        if (exists[entry])
+        if (entries[entry].exists)
         {
             DeletePrompt(entry);
         }
@@ -695,7 +763,7 @@ static boolean SaveSlotRespond(mn_item_t *item, menu_action_t action, int ch)
             I_StopTextInput();
             editing = false;
 
-            if (descriptions[entry][0])
+            if (entries[entry].description[0])
             {
                 SaveGameAtEntry(entry);
             }
@@ -708,7 +776,7 @@ static boolean SaveSlotRespond(mn_item_t *item, menu_action_t action, int ch)
 
     if (action == MENU_CLEAR)
     {
-        if (exists[entry])
+        if (entries[entry].exists)
         {
             DeletePrompt(entry);
         }
@@ -725,46 +793,13 @@ static boolean SaveSlotRespond(mn_item_t *item, menu_action_t action, int ch)
 static const mn_item_ops_t load_slot_ops = {LoadSlotDraw, LoadSlotRespond};
 static const mn_item_ops_t save_slot_ops = {SaveSlotDraw, SaveSlotRespond};
 
-static void InitItems(void)
-{
-    static boolean init;
-
-    if (init)
-    {
-        return;
-    }
-
-    for (int i = 0; i < SAVE_ENTRY_COUNT; ++i)
-    {
-        load_items[i] = (mn_item_t){
-            .label = "",
-            .type = ItemType_SaveSlot,
-            .height = SAVE_ROW_HEIGHT,
-            .ops = &load_slot_ops
-        };
-
-        save_items[i] = (mn_item_t){
-            .label = (i < SAVE_ENTRY_FIRST) ? NULL : "",
-            .type = (i < SAVE_ENTRY_FIRST) ? ItemType_Skip : ItemType_SaveSlot,
-            .height = SAVE_ROW_HEIGHT,
-            .ops = (i < SAVE_ENTRY_FIRST) ? NULL : &save_slot_ops,
-        };
-    }
-
-    init = true;
-}
-
 static mn_page_t load_page = {
-    .items = load_items,
-    .num_items = SAVE_ENTRY_COUNT,
     .draw = LoadPreviewDraw,
     .pad_top = SAVE_EDGE_PADDING,
     .pad_bottom = SAVE_EDGE_PADDING,
 };
 
 static mn_page_t save_page = {
-    .items = &save_items[SAVE_ENTRY_FIRST],
-    .num_items = SAVE_SLOT_COUNT,
     .draw = SavePreviewDraw,
     .pad_top = SAVE_EDGE_PADDING,
     .pad_bottom = SAVE_EDGE_PADDING,
@@ -786,13 +821,43 @@ static mn_menu_t save_menu = {
     .num_pages = 1,
 };
 
+static void InitItems(int count)
+{
+    ReserveEntries(count);
+
+    for (int i = 0; i < count; ++i)
+    {
+        load_items[i] = (mn_item_t){
+            .label = "",
+            .type = ItemType_SaveSlot,
+            .height = SAVE_ROW_HEIGHT,
+            .ops = &load_slot_ops
+        };
+
+        save_items[i] = (mn_item_t){
+            .label = (i < SAVE_ENTRY_FIRST) ? NULL : "",
+            .type = (i < SAVE_ENTRY_FIRST) ? ItemType_Skip : ItemType_SaveSlot,
+            .height = SAVE_ROW_HEIGHT,
+            .ops = (i < SAVE_ENTRY_FIRST) ? NULL : &save_slot_ops,
+        };
+    }
+
+    load_page.items = load_items;
+    load_page.num_items = count;
+
+    save_page.items = &save_items[SAVE_ENTRY_FIRST];
+    save_page.num_items = count - SAVE_ENTRY_FIRST;
+
+    num_entries = count;
+}
+
 void MN_SaveLoadOpen(boolean save)
 {
-    InitItems();
+    InitItems(SAVE_ENTRY_FIRST + SAVE_SLOTS_PER_PAGE * DetectSavePages());
 
-    for (int i = 0; i < SAVE_ENTRY_COUNT; ++i)
+    for (int i = 0; i < num_entries; ++i)
     {
-        loaded[i] = false;
+        entries[i].loaded = false;
     }
 
     preview_entry = -1;
@@ -831,7 +896,7 @@ boolean MN_SaveLoadTextInput(const event_t *ev, menu_action_t action, int ch)
         return false;
     }
 
-    char *description = descriptions[edit_entry];
+    char *description = entries[edit_entry].description;
 
     if (ch == KEY_BACKSPACE)
     {
