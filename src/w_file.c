@@ -135,7 +135,8 @@ static boolean W_FILE_AddDir(w_handle_t handle, const char *base)
                     // The WAD image is intentionally not freed: added
                     // lumps point into it.
                     W_AddWadFromMemory(M_BaseName(filename), data,
-                                       (size_t)length, map_name);
+                                       (size_t)length, map_name,
+                                       handle.priority);
                 }
             }
             free(relpath);
@@ -204,7 +205,7 @@ static boolean W_FILE_AddDir(w_handle_t handle, const char *base)
             // The WAD image is intentionally not freed: added lumps
             // point into it.
             W_AddWadFromMemory(M_BaseName(wads[i]), data, (size_t)length,
-                               NULL);
+                               NULL, handle.priority);
         }
         else
         {

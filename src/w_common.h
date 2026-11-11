@@ -64,7 +64,7 @@ void W_ConvertSpriteName(char *name);
 // to map_name (ZDoom PK3: WADs under maps/ hold a single level, and the
 // file name determines the map name).
 void W_AddWadFromMemory(const char *name, const void *data, size_t data_size,
-                        const char *map_name);
+                        const char *map_name, int priority);
 
 // The file list of an archive or folder is sorted, so all files of one
 // directory are consecutive. W_DirSpecOfFile tracks the current directory run
