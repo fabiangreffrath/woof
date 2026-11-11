@@ -36,17 +36,6 @@ jobs:
               -DCMAKE_FIND_PACKAGE_PREFER_CONFIG=OFF
               -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON
 
-          - name: Linux cross arm64
-            os: ubuntu-26.04
-            shell: bash
-            cross: true
-            extra-options: >-
-              -DCMAKE_TOOLCHAIN_FILE=$GITHUB_WORKSPACE/cmake/toolchains/linux-arm64.cmake
-              -DWOOF_HOST_C_COMPILER=/usr/bin/gcc
-              -DWITH_DISCORD_RPC=ON
-              -DCMAKE_INSTALL_PREFIX=/usr
-              -DCMAKE_INSTALL_RPATH=$GITHUB_WORKSPACE/sdl3_net-install/lib
-
           - name: macOS Clang
             os: macos-latest
             shell: bash
@@ -75,16 +64,14 @@ jobs:
               -DCMAKE_INSTALL_PREFIX=/usr
 
           - name: macOS x64 (vcpkg)
-            os: macos-latest
+            os: macos-15-intel
             shell: bash
             type: vcpkg
-            cross: true
             triplet: x64-osx-release
             artifact-name: MacOS-x64
             artifact-path: build/*.zip
             extra-options: >-
               -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
-              -DCMAKE_OSX_ARCHITECTURES=x86_64
               -DVCPKG_TARGET_TRIPLET=x64-osx-release
               -DWITH_DISCORD_RPC=ON
               -DCMAKE_INSTALL_PREFIX=/usr
@@ -141,7 +128,7 @@ jobs:
         with:
           arch: ${{ matrix.config.arch }}
 
-      - name: Setup cmake
+      - name: Setup CMake
         uses: jwlawson/actions-setup-cmake@v2
 
       - name: Install dependencies (Linux)
@@ -156,26 +143,6 @@ jobs:
             libsndfile1-dev \
             libfluidsynth-dev \
             libxmp-dev
-
-      - name: Enable arm64 packages (Linux)
-        if: runner.os == 'Linux' && matrix.config.cross
-        run: |
-          sudo dpkg --add-architecture arm64
-          sudo apt-get update
-
-      - name: Install dependencies (Linux arm64)
-        if: runner.os == 'Linux' && matrix.config.cross
-        run: |
-          sudo apt-get install \
-            pandoc \
-            ninja-build \
-            crossbuild-essential-arm64 \
-            libsdl3-dev:arm64 \
-            libopenal-dev:arm64 \
-            libebur128-dev:arm64 \
-            libsndfile1-dev:arm64 \
-            libfluidsynth-dev:arm64 \
-            libxmp-dev:arm64
 
       - name: Install dependencies (Linux vcpkg)
         if: runner.os == 'Linux' && matrix.config.type == 'vcpkg'
@@ -243,27 +210,6 @@ jobs:
           version: 3-latest
           version-sdl-net: 3-latest
 
-      - name: Build SDL3_net (Linux arm64)
-        if: runner.os == 'Linux' && matrix.config.cross
-        run: |
-          git clone --depth 1 https://github.com/libsdl-org/SDL_net.git sdl3_net-src
-          cd sdl3_net-src
-
-          cmake -B build -G Ninja \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_TOOLCHAIN_FILE=$GITHUB_WORKSPACE/cmake/toolchains/linux-arm64.cmake \
-            -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/sdl3_net-install \
-            -DSDLNET_SAMPLES=OFF \
-            -DSDLNET_TESTS=OFF
-
-          cmake --build build
-          cmake --install build
-
-      - name: Point CMake to the local SDL3_net install (Linux arm64)
-        if: runner.os == 'Linux' && matrix.config.cross
-        run: |
-          echo "CMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/sdl3_net-install" >> $GITHUB_ENV
-
       - name: Restore vcpkg cache
         id: cache-vcpkg
         if: matrix.config.type == 'vcpkg'
@@ -278,7 +224,7 @@ jobs:
         run: >-
           cmake -B build -G Ninja
           -DCMAKE_BUILD_TYPE=Release
-          -DENABLE_WERROR=ON -DENABLE_LTO=ON
+          -DENABLE_WERROR=ON -DENABLE_HARDENING=ON -DENABLE_LTO=ON
           ${{ matrix.config.extra-options }}
 
       - name: Build
@@ -300,20 +246,18 @@ jobs:
 
       - name: Restore demotest cache
         id: cache-demotest
-        if: matrix.config.cross != true
         uses: actions/cache/restore@v6
         with:
           path: demotest/extract
           key: demotest-${{ hashFiles('demotest/config.toml') }}
 
       - name: Test
-        if: matrix.config.cross != true
         run: |
           cd demotest
           python demotest --jobs 4 --port ../build/src/woof
 
       - name: Save demotest cache
-        if: matrix.config.cross != true && steps.cache-demotest.outputs.cache-hit != 'true' && github.event_name == 'push' && github.ref == 'refs/heads/master'
+        if: steps.cache-demotest.outputs.cache-hit != 'true' && github.event_name == 'push' && github.ref == 'refs/heads/master'
         uses: actions/cache/save@v6
         with:
           path: demotest/extract
