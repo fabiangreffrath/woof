@@ -46,6 +46,17 @@
 
 #include "miniz.h"
 
+#define SAVE_SLOTS_PER_PAGE 8
+#define SAVE_PAGES          4
+#define SAVE_SLOT_COUNT     (SAVE_SLOTS_PER_PAGE * SAVE_PAGES)
+
+// The auto and quick saves are the first entries of the load list and are
+// skipped by the save list.
+#define SAVE_ENTRY_AUTO     0
+#define SAVE_ENTRY_QUICK    1
+#define SAVE_ENTRY_FIRST    2
+#define SAVE_ENTRY_COUNT    (SAVE_ENTRY_FIRST + SAVE_SLOT_COUNT)
+
 #define SAVE_ROW_HEIGHT   16
 #define SAVE_BORDER_CHARS 24
 #define SAVE_BORDER_WIDTH (SAVE_BORDER_CHARS * 8)
@@ -753,7 +764,7 @@ static mn_page_t load_page = {
 
 static mn_page_t save_page = {
     .items = &save_items[SAVE_ENTRY_FIRST],
-    .num_items = SAVE_ENTRY_COUNT,
+    .num_items = SAVE_SLOT_COUNT,
     .draw = SavePreviewDraw,
     .pad_top = SAVE_EDGE_PADDING,
     .pad_bottom = SAVE_EDGE_PADDING,
