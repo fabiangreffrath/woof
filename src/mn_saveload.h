@@ -17,17 +17,7 @@
 #include "doomtype.h"
 #include "mn_common.h"
 
-#define SAVE_SLOTS_PER_PAGE 8
-#define SAVE_PAGES          8
-#define SAVE_SLOT_COUNT     (SAVE_SLOTS_PER_PAGE * SAVE_PAGES)
-#define SAVE_STRING_SIZE    24
-
-// The auto and quick saves are the first entries of the load list and are
-// skipped by the save list.
-#define SAVE_ENTRY_AUTO     0
-#define SAVE_ENTRY_QUICK    1
-#define SAVE_ENTRY_FIRST    2
-#define SAVE_ENTRY_COUNT    (SAVE_ENTRY_FIRST + SAVE_SLOT_COUNT)
+#define SAVE_STRING_SIZE 24
 
 struct event_s;
 

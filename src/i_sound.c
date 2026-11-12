@@ -624,15 +624,6 @@ void I_SetSoundModule(void)
     MN_OptionsUpdateAdvancedSoundItems(snd_module != SND_MODULE_3D);
 }
 
-midiplayertype_t I_MidiPlayerType(void)
-{
-    if (active_module)
-    {
-        return active_module->I_MidiPlayerType();
-    }
-    return midiplayer_none;
-}
-
 void I_SetMidiPlayer(void)
 {
     if (nomusicparm)

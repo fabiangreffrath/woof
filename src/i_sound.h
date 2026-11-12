@@ -164,16 +164,6 @@ float I_GetSoundOffset(int handle);
 
 extern boolean auto_gain;
 
-typedef enum
-{
-    midiplayer_none,
-    midiplayer_native,
-    midiplayer_fluidsynth,
-    midiplayer_opl,
-} midiplayertype_t;
-
-midiplayertype_t I_MidiPlayerType(void);
-
 typedef struct
 {
     boolean (*I_InitMusic)(int device);
@@ -187,7 +177,6 @@ typedef struct
     void (*I_UnRegisterSong)(void *handle);
     const char **(*I_DeviceList)(void);
     void (*I_BindVariables)(void);
-    midiplayertype_t (*I_MidiPlayerType)(void);
     const char *(*I_MusicFormat)(void);
 } music_module_t;
 

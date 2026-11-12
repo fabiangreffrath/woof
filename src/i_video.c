@@ -52,7 +52,6 @@
 #include "m_misc.h"
 #include "mn_container.h"
 #include "mn_options.h"
-#include "mn_menu.h"
 #include "r_draw.h"
 #include "r_main.h"
 #include "r_plane.h"
@@ -1455,7 +1454,7 @@ static void InitVideoParms(void)
     {
         scalefactor = tmp_scalefactor;
         GetCurrentVideoHeight();
-        MN_DisableItem(true, &video_menu, "resolution_scale");
+        MN_DisableItem(true, "resolution_scale");
     }
 
     //!
@@ -1481,8 +1480,7 @@ static void InitVideoParms(void)
     }
 
     MN_OptionsUpdateFPSLimitItem();
-    MN_DisableItem(current_video_height <= DRS_MIN_HEIGHT, &video_menu,
-                   "dynamic_resolution");
+    MN_DisableItem(current_video_height <= DRS_MIN_HEIGHT, "dynamic_resolution");
 }
 
 static void InitGraphicsMode(void)
@@ -1709,7 +1707,7 @@ void I_UpdateHudAnchoring(void)
         st_wide_shift = video.deltaw;
     }
 
-    MN_DisableItem(!video.deltaw, &interface_menu, "hud_anchoring");
+    MN_DisableItem(!video.deltaw, "hud_anchoring");
 }
 
 void I_ResetScreen(void)

@@ -51,13 +51,11 @@ void MN_CSmenuSelectSkillLevel(void)
             break;
     }
 
-    MN_DisableItem(csmenu_skill == sk_baby, &csmenu_menu,
-                   "csmenu.halfplayerdamage");
+    MN_DisableItem(csmenu_skill == sk_baby, "csmenu.halfplayerdamage");
     MN_DisableItem(csmenu_skill == sk_baby || csmenu_skill == sk_nightmare,
-                   &csmenu_menu, "csmenu.doubleammo");
-    MN_DisableItem(csmenu_skill == sk_nightmare, &csmenu_menu,
-                   "csmenu.aggromonsters", "csmenu.fastparm",
-                   "csmenu.respawnparm");
+                   "csmenu.doubleammo");
+    MN_DisableItem(csmenu_skill == sk_nightmare, "csmenu.aggromonsters",
+                   "csmenu.fastparm", "csmenu.respawnparm");
 }
 
 void MN_CSMenuStartGame(void)
