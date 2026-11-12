@@ -1285,23 +1285,10 @@ static void UpdateUncapped(void)
 {
     uncapped = default_uncapped;
 
-    //!
-    // @category video
-    //
-    // Enables uncapped framerate.
-    //
-
     if (M_CheckParm("-uncapped"))
     {
         uncapped = true;
     }
-
-    //!
-    // @category video
-    //
-    // Disables uncapped framerate.
-    //
-
     else if (M_CheckParm("-nouncapped"))
     {
         uncapped = false;
@@ -1404,46 +1391,19 @@ static void InitVideoParms(void)
     {
         grabmouse = true;
     }
-
-    //!
-    // @category video
-    //
-    // Don't grab the mouse when running in windowed mode.
-    //
-
     else if (M_CheckParm("-nograbmouse"))
     {
         grabmouse = false;
     }
 
-    //!
-    // @category video
-    //
-    // Don't scale up the screen. Implies -window.
-    //
-
     if ((p = M_CheckParm("-1")))
     {
         tmp_scalefactor = 1;
     }
-
-    //!
-    // @category video
-    //
-    // Double up the screen to 2x its normal size. Implies -window.
-    //
-
     else if ((p = M_CheckParm("-2")))
     {
         tmp_scalefactor = 2;
     }
-
-    //!
-    // @category video
-    //
-    // Triple up the screen to 3x its normal size. Implies -window.
-    //
-
     else if ((p = M_CheckParm("-3")))
     {
         tmp_scalefactor = 3;
@@ -1457,23 +1417,10 @@ static void InitVideoParms(void)
         MN_DisableItem(true, "resolution_scale");
     }
 
-    //!
-    // @category video
-    //
-    // Run in a window.
-    //
-
     if (M_CheckParm("-window") || scalefactor > 0)
     {
         fullscreen = false;
     }
-
-    //!
-    // @category video
-    //
-    // Run in fullscreen mode.
-    //
-
     else if (M_CheckParm("-fullscreen"))
     {
         fullscreen = true;

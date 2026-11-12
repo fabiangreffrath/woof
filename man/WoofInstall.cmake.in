@@ -1,44 +1,57 @@
-# This script is stamped out by CMake and run by `make install`.
+# This script is stamped out by CMake and run at install time.
 
 set(PROJECT_NAME "@PROJECT_NAME@")
 set(PROJECT_SHORTNAME "@PROJECT_SHORTNAME@")
-set(PROJECT_SOURCE_DIR "@PROJECT_SOURCE_DIR@")
 set(CMAKE_CURRENT_SOURCE_DIR "@CMAKE_CURRENT_SOURCE_DIR@")
+set(CMAKE_CURRENT_BINARY_DIR "@CMAKE_CURRENT_BINARY_DIR@")
+set(PARAMS_DUMP "@PARAMS_DUMP@")
+set(PANDOC_EXECUTABLE "@PANDOC_EXECUTABLE@")
+set(BUILD_DATE "@BUILD_DATE@")
 
-set(Python3_EXECUTABLE "@Python3_EXECUTABLE@")
-
-if(Python3_EXECUTABLE)
-    execute_process(COMMAND
-        "${Python3_EXECUTABLE}" docgen -p CMDLINE.template
-        "${PROJECT_SOURCE_DIR}/src"
-        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-        OUTPUT_FILE "CMDLINE.txt")
-
-    if(UNIX AND NOT APPLE)
-        execute_process(COMMAND
-            "${Python3_EXECUTABLE}" docgen
-            -s "${PROJECT_NAME}" -z "${PROJECT_SHORTNAME}"
-            -m woof.template
-            "${PROJECT_SOURCE_DIR}/src"
-            WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-            OUTPUT_FILE "${PROJECT_SHORTNAME}.6")
-
-        execute_process(COMMAND
-            "${Python3_EXECUTABLE}" docgen
-            -s "${PROJECT_NAME}" -z "${PROJECT_SHORTNAME}"
-            -m setup.template
-            "${PROJECT_SOURCE_DIR}/setup"
-            WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-            OUTPUT_FILE "${PROJECT_SHORTNAME}-setup.6")
-
-        execute_process(COMMAND
-            "${Python3_EXECUTABLE}" docgen
-            -s "${PROJECT_NAME}" -z "${PROJECT_SHORTNAME}"
-            -b bash-completion/woof.template
-            "${PROJECT_SOURCE_DIR}/src"
-            WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-            OUTPUT_FILE "bash-completion/${PROJECT_SHORTNAME}")
-    endif()
-else()
-    message("Python 3 not found, can't run install scripts.")
+if(NOT EXISTS "${PARAMS_DUMP}")
+    message(FATAL_ERROR "params_dump not found, build the project before installing")
 endif()
+
+# Generate markdown
+execute_process(COMMAND
+    "${PARAMS_DUMP}" "${CMAKE_CURRENT_BINARY_DIR}/cmdline.md"
+    "${PROJECT_NAME}" "${PROJECT_SHORTNAME}"
+    RESULT_VARIABLE result
+)
+if(NOT result EQUAL 0)
+    message(FATAL_ERROR "Failed to generate markdown documentation")
+endif()
+
+# Generate man page
+execute_process(COMMAND
+    "${PANDOC_EXECUTABLE}" -s -t man
+    --shift-heading-level-by=-1
+    --metadata section=6
+    --metadata date=${BUILD_DATE}
+    --include-before-body=${CMAKE_CURRENT_SOURCE_DIR}/name.man
+    --include-after-body=${CMAKE_CURRENT_SOURCE_DIR}/iwad_paths.man
+    "${CMAKE_CURRENT_BINARY_DIR}/cmdline.md"
+    -o "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_SHORTNAME}.6"
+    RESULT_VARIABLE result
+)
+if(NOT result EQUAL 0)
+    message(FATAL_ERROR "Failed to generate man page")
+endif()
+
+# Generate bash completion
+execute_process(COMMAND "${PARAMS_DUMP}" --names
+    OUTPUT_VARIABLE param_names
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    RESULT_VARIABLE result
+)
+if(NOT result EQUAL 0)
+    message(FATAL_ERROR "Failed to list command line parameters")
+endif()
+
+string(REPLACE "\n" ";" param_names "${param_names}")
+list(JOIN param_names " " param_names)
+
+file(READ "${CMAKE_CURRENT_BINARY_DIR}/bash-completion/woof.template" completion)
+string(REPLACE "@content" "${param_names}" completion "${completion}")
+
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/bash-completion/${PROJECT_SHORTNAME}" "${completion}")

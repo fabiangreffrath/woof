@@ -1,0 +1,22 @@
+# This script is stamped out by CMake and run at install time for AppImage packaging.
+
+set(CMAKE_SOURCE_DIR "@CMAKE_SOURCE_DIR@")
+set(CMAKE_BINARY_DIR "@CMAKE_BINARY_DIR@")
+# CMAKE_INSTALL_PREFIX is set by CMake at install time (not expanded here)
+
+# Install woof.png at AppDir root for appimagetool
+file(COPY "${CMAKE_SOURCE_DIR}/data/woof.png" DESTINATION "${CMAKE_INSTALL_PREFIX}")
+
+# Include woof.pk3 from build directory
+file(COPY "${CMAKE_BINARY_DIR}/src/woof.pk3" DESTINATION "${CMAKE_INSTALL_PREFIX}")
+
+# Bundle runtime dependencies (shared libraries)
+# Use the installed executable path
+set(WOOF_EXECUTABLE "${CMAKE_INSTALL_PREFIX}/bin/woof")
+file(GET_RUNTIME_DEPENDENCIES
+    EXECUTABLES "${WOOF_EXECUTABLE}"
+    RESOLVED_DEPENDENCIES_VAR resolved_deps
+)
+foreach(dep ${resolved_deps})
+    file(COPY ${dep} DESTINATION "${CMAKE_INSTALL_PREFIX}/lib")
+endforeach()

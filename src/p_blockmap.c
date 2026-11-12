@@ -659,11 +659,6 @@ static bmap_format_t CheckBlockmapFormat(int lump, int lump_size)
         format = BMAP_XBM1;
     }
 
-    //!
-    // @category mod
-    //
-    // Forces a (re-)building of the BLOCKMAP lumps for loaded maps.
-    //
     force_rebuild |= M_ParmExists("-blockmap");
 
     // [FG] always rebuild too short blockmaps

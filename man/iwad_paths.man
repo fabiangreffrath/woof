@@ -1,3 +1,4 @@
+.SH IWAD SEARCH PATHS
 To play, an IWAD file is needed. This is a large file containing all of the
 levels, graphics, sound effects, music and other material that make up the
 game. IWAD files are named according to the game; the standard names are:

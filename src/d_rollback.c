@@ -97,13 +97,6 @@ void RB_Init(int consoleplayer)
 {
     RB_Shutdown();
 
-    //!
-    // @category net
-    // @help
-    //
-    // Disable rollback netcode.
-    //
-
     if (M_ParmExists("-norollback"))
     {
         return;

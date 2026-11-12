@@ -630,12 +630,6 @@ void M_LoadOptions(void)
 {
     int lump;
 
-    //!
-    // @category mod
-    //
-    // Avoid loading OPTIONS lumps embedded into WAD files.
-    //
-
     if (!M_CheckParm("-nooptions"))
     {
         lump = W_CheckNumForName("OPTIONS");
@@ -707,14 +701,6 @@ void M_LoadDefaults(void)
 
     if (!defaultfile)
     {
-        //!
-        // @arg <file>
-        // @vanilla
-        //
-        // Load main configuration from the specified file, instead of the
-        // default.
-        //
-
         if ((i = M_CheckParm("-config")) && i < myargc - 1)
         {
             defaultfile = strdup(myargv[i + 1]);

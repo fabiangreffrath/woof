@@ -33,7 +33,7 @@ _@PROJECT_SHORTNAME@()
         -gameversion)
             COMPREPLY=($(compgen -W "1.9 ultimate final hacx chex" -- "$cur"))
             ;;
-        -complevel)
+        -complevel|-cl)
             COMPREPLY=($(compgen -W "vanilla boom mbf mbf21" -- "$cur"))
             ;;
         -setmem)

@@ -276,23 +276,11 @@ void P_CheckBSPFormat_Binary(map_t *map)
     map->bsp_format = BSP_DOOMBSP;
     int size_subs = 0, size_nodes = 0;
 
-    //!
-    // @category mod
-    //
-    // Forces rebuilding of nodes.
-    //
-
     if (M_CheckParm("-bsp"))
     {
         map->bsp_format = BSP_NANO;
         return;
     }
-
-    //!
-    // @category mod
-    //
-    // Forces extended (non-GL) ZDoom nodes.
-    //
 
     if (!M_CheckParm("-force_old_zdoom_nodes"))
     {

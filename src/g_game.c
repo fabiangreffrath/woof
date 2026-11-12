@@ -351,13 +351,6 @@ void G_SetTimeScale(void)
 
     int time_scale = realtic_clock_rate;
 
-    //!
-    // @arg <n>
-    // @category game
-    //
-    // Increase or decrease game speed, percentage of normal.
-    //
-
     int p = M_CheckParmWithArgs("-speed", 1);
 
     if (p)
@@ -1638,13 +1631,6 @@ static void G_DoCompleted(void)
   int i;
 
   S_StopAmbientSounds();
-
-  //!
-  // @category demo
-  // @help
-  //
-  // Write level statistics upon exit to levelstat.txt
-  //
 
   if (M_CheckParm("-levelstat"))
   {
@@ -3585,12 +3571,6 @@ void G_WorldDone(void)
   if (behavior & WD_Victory)
   {
 
-    //!
-    // @category game
-    //
-    // Completing one episode leads to the next without interruption.
-    //
-
     if (M_ParmExists("-chain_episodes"))
     {
       int epi, map;
@@ -3649,23 +3629,9 @@ void G_DeferedInitNew(skill_t skill, int episode, int map)
 // killough 7/19/98: Marine's best friend :)
 static int G_GetHelpers(void)
 {
-  //!
-  // @category game
-  //
-  // Enables a single helper dog.
-  //
-
   int j = M_CheckParm ("-dog");
 
   if (!j)
-
-    //!
-    // @arg <n>
-    // @category game
-    //
-    // Overrides the current number of helper dogs, setting it to n.
-    //
-
     j = M_CheckParm ("-dogs");
   return j ? (j+1 < myargc && myargv[j+1][0] != '-') ? M_ParmArgToInt(j) : 1 : default_dogs;
 }
@@ -3917,12 +3883,6 @@ static void CheckDemoParams(boolean specified_complevel)
 
   if (use_recordfrom || M_CheckParmWithArgs("-record", 1))
   {
-    //!
-    // @category demo
-    // @help
-    //
-    // Lifts strict mode restrictions according to DSDA rules.
-    //
 
     strictmode = !M_ParmExists("-tas");
 
@@ -4019,26 +3979,10 @@ void G_ReloadDefaults(boolean keep_demover)
   {
     demo_version_t demover = DV_NONE;
 
-    //!
-    // @arg <version>
-    // @category compat
-    // @help
-    //
-    // Emulate a specific version of Doom/Boom/MBF. Valid values are
-    // "vanilla", "boom", "mbf", "mbf21".
-    //
-
     p = M_CheckParmWithArgs("-complevel", 1);
 
     if (!p)
     {
-    //!
-    // @arg <version>
-    // @category compat
-    // @help
-    //
-    // Alias to -complevel.
-    //
       p = M_CheckParmWithArgs("-cl", 1);
     }
 
@@ -4337,15 +4281,6 @@ void G_RecordDemo(const char *name)
   {
     M_snprintf(demoname, demoname_size, "%s-%05d.lmp", demoname_orig, j++);
   }
-
-  //!
-  // @arg <size>
-  // @category demo
-  // @vanilla
-  //
-  // Sets the initial size of the demo recording buffer (KiB). This is no longer a
-  // hard limit, and the buffer will expand if the given limit is exceeded.
-  //
 
   i = M_CheckParm ("-maxdemo");
   if (i && i<myargc-1)

@@ -2534,13 +2534,6 @@ static void SpechitOverrun(line_t *ld)
         // what base address we are going to use.
         // Allow a spechit value to be specified on the command line.
 
-        //!
-        // @category compat
-        // @arg <n>
-        //
-        // Use the specified magic value when emulating spechit overruns.
-        //
-
         p = M_CheckParmWithArgs("-spechit", 1);
 
         if (p > 0)

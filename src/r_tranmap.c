@@ -212,11 +212,6 @@ byte *R_NormalTranMap(int alpha, boolean force)
 
 void R_InitTranMap(void)
 {
-    //!
-    // @category mod
-    //
-    // Forces the (re-)building of the translucency table.
-    //
     const int force_rebuild = M_CheckParm("-tranmap");
     const int lump = W_CheckNumForName("TRANMAP");
 
@@ -234,13 +229,6 @@ void R_InitTranMap(void)
 
     I_Printf(VB_INFO, "Playpal checksum: %s", playpal_string);
 
-    //!
-    // @category mod
-    // @arg <alpha> <name>
-    //
-    // Dump tranmap lump, given an alpha level (opacity percentage).
-    // Valid values are 0 through to 99.
-    //
     const int p = M_CheckParmWithArgs("-dumptranmap", 2);
     if (p > 0)
     {

@@ -28,13 +28,15 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - name: Linux GCC
+          - name: Linux x64
             os: ubuntu-latest
             shell: bash
             type: system
-            extra-options: -DCMAKE_FIND_PACKAGE_PREFER_CONFIG=OFF
+            extra-options: >-
+              -DCMAKE_FIND_PACKAGE_PREFER_CONFIG=OFF
+              -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON
 
-          - name: macOS Clang
+          - name: macOS arm64
             os: macos-latest
             shell: bash
             type: system
@@ -48,7 +50,33 @@ jobs:
             artifact-name: MSYS2-UCRT64
             artifact-path: build/*.zip
 
-          - name: Linux GCC (vcpkg)
+          - name: macOS arm64 (vcpkg)
+            os: macos-latest
+            shell: bash
+            type: vcpkg
+            triplet: arm64-osx-release
+            artifact-name: MacOS-arm64
+            artifact-path: build/*.zip
+            extra-options: >-
+              -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+              -DVCPKG_TARGET_TRIPLET=arm64-osx-release
+              -DWITH_DISCORD_RPC=ON
+              -DCMAKE_INSTALL_PREFIX=/usr
+
+          - name: macOS x64 (vcpkg)
+            os: macos-15-intel
+            shell: bash
+            type: vcpkg
+            triplet: x64-osx-release
+            artifact-name: MacOS-x64
+            artifact-path: build/*.zip
+            extra-options: >-
+              -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+              -DVCPKG_TARGET_TRIPLET=x64-osx-release
+              -DWITH_DISCORD_RPC=ON
+              -DCMAKE_INSTALL_PREFIX=/usr
+
+          - name: Linux x64 (vcpkg)
             os: ubuntu-24.04
             shell: bash
             type: vcpkg
@@ -93,19 +121,6 @@ jobs:
               -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
               -DCMAKE_IGNORE_PATH="C:/Strawberry/perl/bin;C:/Strawberry/c/lib"
 
-          - name: macOS uni (vcpkg)
-            os: macos-latest
-            shell: bash
-            type: vcpkg
-            triplet: arm64-osx
-            artifact-name: MacOS-universal
-            artifact-path: build/*.zip
-            extra-options: >-
-              -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
-              -DVCPKG_TARGET_TRIPLET=arm64-osx
-              -DWITH_DISCORD_RPC=ON
-              -DCMAKE_INSTALL_PREFIX=/usr
-
     steps:
       - name: Developer Command Prompt (MSVC)
         if: runner.os == 'Windows' && matrix.config.type == 'vcpkg'
@@ -113,44 +128,56 @@ jobs:
         with:
           arch: ${{ matrix.config.arch }}
 
+      - name: Setup CMake
+        uses: jwlawson/actions-setup-cmake@v2
+
       - name: Install dependencies (Linux)
         if: runner.os == 'Linux' && matrix.config.type == 'system'
-        run: |
-          sudo apt-get update
-          sudo apt-get install \
-            ninja-build \
-            libopenal-dev \
-            libebur128-dev \
-            libsndfile1-dev \
-            libfluidsynth-dev \
-            libxmp-dev
+        run: >-
+          sudo apt-get install -y
+          pandoc
+          ninja-build
+          libopenal-dev
+          libebur128-dev
+          libsndfile1-dev
+          libfluidsynth-dev
+          libxmp-dev
 
       - name: Install dependencies (Linux vcpkg)
         if: runner.os == 'Linux' && matrix.config.type == 'vcpkg'
+        run: >-
+          sudo apt-get install -y pandoc build-essential autoconf-archive
+          cmake ninja-build gnome-desktop-testing
+          libasound2-dev libpulse-dev libaudio-dev libfribidi-dev libjack-dev
+          libsndio-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev
+          libxfixes-dev libxi-dev libxss-dev libxtst-dev libxkbcommon-dev
+          libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev
+          libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev
+          libpipewire-0.3-dev libwayland-dev libdecor-0-dev liburing-dev
+          libltdl-dev
+
+      - name: Install CPack AppImage dependencies (Linux)
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install build-essential libtool autoconf-archive git make \
-          pkg-config cmake ninja-build gnome-desktop-testing libasound2-dev libpulse-dev \
-          libaudio-dev libfribidi-dev libjack-dev libsndio-dev libx11-dev libxext-dev \
-          libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxtst-dev \
-          libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev libgles2-mesa-dev \
-          libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev \
-          libpipewire-0.3-dev libwayland-dev libdecor-0-dev liburing-dev \
-          libltdl-dev
+          sudo apt-get install -y patchelf libfuse2 desktop-file-utils
+          # Download appimagetool directly as it's not in the default repos
+          sudo wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage -O /usr/local/bin/appimagetool
+          sudo chmod +x /usr/local/bin/appimagetool
 
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS' && matrix.config.type == 'system'
-        run: |
-          brew install \
-            sdl3 \
-            sdl3_net \
-            openal-soft \
-            libebur128 \
-            libsndfile \
-            fluid-synth \
-            libxmp \
-            yyjson \
-            libspng
+        run: >-
+          brew install
+          sdl3
+          sdl3_net
+          openal-soft
+          libebur128
+          libsndfile
+          fluid-synth
+          libxmp
+          yyjson
+          libspng
 
       - name: Install dependencies (MSYS2)
         if: matrix.config.shell == 'msys2 {0}'
@@ -199,24 +226,8 @@ jobs:
           -DENABLE_WERROR=ON -DENABLE_HARDENING=ON -DENABLE_LTO=ON
           ${{ matrix.config.extra-options }}
 
-      - name: Configure macOS x64 (universal)
-        if: matrix.config.name == 'macOS uni (vcpkg)'
-        run: >-
-          cmake -B build-x64 -G Ninja
-          -DCMAKE_BUILD_TYPE=Release
-          -DENABLE_WERROR=ON -DENABLE_HARDENING=ON -DENABLE_LTO=ON
-          -DWITH_DISCORD_RPC=ON
-          -DCMAKE_OSX_ARCHITECTURES=x86_64
-          -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
-          -DVCPKG_TARGET_TRIPLET=x64-osx
-          -DCMAKE_INSTALL_PREFIX=/usr
-
       - name: Build
         run: cmake --build build
-
-      - name: Build macOS x64 (universal)
-        if: matrix.config.name == 'macOS uni (vcpkg)'
-        run: cmake --build build-x64
 
       - name: Delete old vcpkg cache
         continue-on-error: true
@@ -226,8 +237,6 @@ jobs:
         run: gh cache delete --repo ${{ github.repository }} ${{ steps.cache-vcpkg.outputs.cache-primary-key }}
 
       - name: Save vcpkg cache
-        # pull requests are restore-only: an entry saved from a PR is scoped to
-        # refs/pull/N/merge and is invisible to master and to other pull requests
         if: matrix.config.type == 'vcpkg' && github.event_name == 'push' && github.ref == 'refs/heads/master'
         uses: actions/cache/save@v6
         with:
@@ -253,16 +262,6 @@ jobs:
           path: demotest/extract
           key: demotest-${{ hashFiles('demotest/config.toml') }}
 
-      - name: Universal Package (macOS)
-        if: matrix.config.name == 'macOS uni (vcpkg)'
-        run: |
-          lipo build/src/woof build-x64/src/woof -create -output woof
-          lipo build/src/woof-setup build-x64/src/woof-setup -create -output woof-setup
-          rm build/src/woof
-          rm build/src/woof-setup
-          mv woof build/src
-          mv woof-setup build/src
-
       - name: Package
         run: |
           cd build
@@ -275,9 +274,43 @@ jobs:
           name: ${{ matrix.config.artifact-name }}
           path: ${{ matrix.config.artifact-path }}
 
+  macos-universal:
+    name: macOS Universal
+    needs: build
+    runs-on: macos-latest
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v8
+        with:
+          path: artifacts
+          pattern: MacOS-*
+          merge-multiple: false
+
+      - name: Create Universal Binary and Package
+        run: |
+          set -euo pipefail
+
+          unzip -q artifacts/MacOS-arm64/*.zip -d arm64
+          unzip -q artifacts/MacOS-x64/*.zip   -d x64
+
+          lipo arm64/Woof-*/woof       x64/Woof-*/woof       -create -output woof
+          lipo arm64/Woof-*/woof-setup x64/Woof-*/woof-setup -create -output woof-setup
+
+          cp -R arm64/Woof-* universal
+          mv -f woof       universal/woof
+          mv -f woof-setup universal/woof-setup
+
+          ( cd universal && zip -r ../woof-macos-universal.zip . )
+
+      - name: Upload Universal Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: MacOS-universal
+          path: woof-macos-universal.zip
+
   release:
     name: Release
-    needs: build
+    needs: [build, macos-universal]
     if: contains(github.ref, 'tags')
     runs-on: ubuntu-latest
     steps:

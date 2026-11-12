@@ -245,13 +245,6 @@ static void ParseCommandLineArgs(void)
 {
     int i;
 
-    //!
-    // @arg <n>
-    // @category net
-    //
-    // Autostart the netgame when n nodes (clients) have joined the server.
-    //
-
     i = M_CheckParmWithArgs("-nodes", 1);
     if (i > 0)
     {

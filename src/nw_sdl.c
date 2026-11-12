@@ -189,14 +189,6 @@ static boolean NW_SDL_InitClient(void)
         return true;
     }
 
-    //!
-    // @category net
-    // @arg <n>
-    //
-    // Use the specified UDP port for communications, instead of
-    // the default (2342).
-    //
-
     p = M_CheckParmWithArgs("-port", 1);
     if (p > 0)
     {
