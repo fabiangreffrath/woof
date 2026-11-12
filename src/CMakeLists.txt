@@ -116,10 +116,13 @@ set(WOOF_SOURCES
     mn_csmenu_data.c
     mn_font.c              mn_font.h
     mn_menu.c              mn_menu.h
+    mn_multiplayer.c       mn_multiplayer.h
+    mn_multiplayer_data.c
     mn_options.c           mn_options.h
     mn_options_data.c
     mn_saveload.c          mn_saveload.h
     mn_snapshot.c          mn_snapshot.h
+    mp_start.c             mp_start.h
     m_misc.c               m_misc.h
     m_random.c             m_random.h
                            m_swap.h

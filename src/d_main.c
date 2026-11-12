@@ -79,8 +79,11 @@
 #include "mn_font.h"
 #include "mn_menu.h"
 #include "mn_options.h"
+#include "mp_start.h"
 #include "nw_client.h"
 #include "nw_dedicated.h"
+#include "nw_sdl.h"
+#include "nw_server.h"
 #include "p_ambient.h"
 #include "p_setup.h"
 #include "r_defs.h"
@@ -266,8 +269,7 @@ void D_Display(void)
 
     wipe = false;
 
-    // save the current screen if about to wipe
-    if (gamestate != wipegamestate)
+    if (gamestate != wipegamestate && !MP_WaitScreenActive())
     {
         wipe = true;
         wipe_StartScreen(0, 0, video.width, video.height);
@@ -394,6 +396,9 @@ void D_Display(void)
 
     // menus go directly to the screen
     M_Drawer();  // menu is drawn even on top of everything
+
+    MP_DrawOverlay();
+
     NetUpdate(); // send out any new accumulation
 
     if (demobar && demoplayback)
@@ -1636,40 +1641,15 @@ void D_DoomMain(void)
 
     // jff 1/24/98 set both working and command line value of play parms
 
-    p = M_CheckParm("-nomonsters");
-
-    if (!p)
-    {
-        p = M_CheckParm("-nomo");
-    }
-
-    nomonsters = clnomonsters = p;
-
-    respawnparm = clrespawnparm = M_CheckParm("-respawn");
-
-    fastparm = clfastparm = M_CheckParm("-fast");
-    // jff 1/24/98 end of set to both working and command line value
+    // The play parms themselves are set below, after M_LoadDefaults(), so
+    // that the config file provides the defaults and -nomonsters, -fast,
+    // -respawn and -deathmatch still take precedence.
 
     pistolstart = clpistolstart = M_CheckParm("-pistolstart");
 
     coopspawns = clcoopspawns = M_CheckParm("-coop_spawns");
 
     devparm = M_CheckParm("-devparm");
-
-    if (M_CheckParm("-deathmatch"))
-    {
-        deathmatch = 1;
-    }
-
-    if (M_CheckParm("-altdeath"))
-    {
-        deathmatch = 2;
-    }
-
-    if (M_CheckParm("-dm3"))
-    {
-        deathmatch = 3;
-    }
 
     if (devparm)
     {
@@ -1871,6 +1851,55 @@ void D_DoomMain(void)
     I_PutChar(VB_INFO, '\n');
 
     M_LoadDefaults(); // load before initing other systems
+
+    // jff 1/24/98 set both working and command line value of play parms
+
+    p = M_CheckParm("-nomonsters");
+
+    if (!p)
+    {
+        p = M_CheckParm("-nomo");
+    }
+
+    if (p)
+    {
+        nomonsters = clnomonsters = true;
+    }
+    else
+    {
+        nomonsters = clnomonsters;
+    }
+
+    if (M_CheckParm("-respawn"))
+    {
+        respawnparm = clrespawnparm = true;
+    }
+    else
+    {
+        respawnparm = clrespawnparm;
+    }
+
+    if (M_CheckParm("-fast"))
+    {
+        fastparm = clfastparm = true;
+    }
+    else
+    {
+        fastparm = clfastparm;
+    }
+
+    if (M_CheckParm("-deathmatch"))
+    {
+        deathmatch = 1;
+    }
+    else if (M_CheckParm("-altdeath"))
+    {
+        deathmatch = 2;
+    }
+    else if (M_CheckParm("-dm3"))
+    {
+        deathmatch = 3;
+    }
 
     bodyquesize = default_bodyquesize; // killough 10/98
 
@@ -2240,6 +2269,8 @@ void D_DoomMain(void)
         // frame syncronous IO operations
         I_StartFrame();
 
+        MP_StartTick();
+
         TryRunTics(); // will run at least one tic
 
         // Update display, next frame, with current state.
@@ -2269,6 +2300,25 @@ void D_BindMiscVariables(void)
     BIND_NUM(organize_savefiles, -1, -1, 1, "Organize save files");
     M_BindStr("nw_player_name", &nw_player_name, DEFAULT_PLAYER_NAME, wad_no,
               "Network setup player name");
+
+    // Multiplayer game settings. The command line still takes precedence.
+
+    BIND_NUM(deathmatch, 0, 0, 3,
+             "Game type (0 = Co-operative; 1 = Deathmatch; "
+             "2 = Deathmatch 2.0; 3 = Deathmatch 3.0)");
+    BIND_NUM(timelimit, 0, 0, 99,
+             "Levels will end after this many minutes (0 = No limit)");
+    M_BindBool("nomonsters", &clnomonsters, NULL, false, wad_no,
+               "Monsters disabled (same as -nomonsters)");
+    M_BindBool("fastparm", &clfastparm, NULL, false, wad_no,
+               "Fast monsters (same as -fast)");
+    M_BindBool("respawnparm", &clrespawnparm, NULL, false, wad_no,
+               "Respawning monsters (same as -respawn)");
+    M_BindNum("port", &nw_port, NULL, 2342, 1, 65535, wad_no,
+              "UDP port for network games (same as -port)");
+    M_BindBool("privateserver", &nw_privateserver, NULL, false, wad_no,
+               "Do not register the server with the master server "
+               "(same as -privateserver)");
 
     BIND_BOOL(colored_blood, false, "Allow colored blood");
 }

@@ -52,6 +52,7 @@
 #include "mn_menu.h"
 #include "mn_options.h"
 #include "mn_saveload.h"
+#include "mp_start.h"
 #include "r_defs.h"
 #include "r_main.h"
 #include "s_sound.h"
@@ -2073,6 +2074,20 @@ boolean M_Responder(event_t *ev)
     // Save Game string input
 
     if (MN_SaveLoadTextInput(ev, action, ch))
+    {
+        return true;
+    }
+
+    // Menu text field input
+
+    if (MN_ContainerTextInput(ev, action, ch))
+    {
+        return true;
+    }
+
+    // Network game waiting screen
+
+    if (MP_Responder(action))
     {
         return true;
     }

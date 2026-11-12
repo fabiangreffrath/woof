@@ -588,8 +588,11 @@ void NW_Query_Init(void)
     {
         query_context = NW_NewContext();
         NW_AddModule(query_context, &nw_sdl_module);
-        nw_sdl_module.InitClient();
     }
+
+    // The socket may have been closed after a previous query, and the
+    // context is only created once.
+    nw_sdl_module.InitClient();
 
     free(targets);
     targets = NULL;

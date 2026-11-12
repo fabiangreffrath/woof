@@ -29,6 +29,7 @@
 #include "m_argv.h"
 #include "m_misc.h"
 #include "nw_defs.h"
+#include "nw_gui.h"
 #include "p_mobj.h"
 #include "tables.h"
 
@@ -222,11 +223,28 @@ void D_ConnectNetGame(void)
     InitConnectData(&connect_data);
     netgame = D_InitNetGame(&connect_data);
 
+    if (netgame)
+    {
+        NW_WaitForLaunch();
+    }
+
     if (M_CheckParm("-solo-net") > 0)
     {
         netgame = true;
         solonet = true;
     }
+}
+
+// Start a network game from the multiplayer menu. The waiting for launch
+// message is done by the caller, so that the main loop keeps running.
+
+boolean D_InitNetGameFromMenu(boolean server, const char *address)
+{
+    nw_connect_data_t connect_data;
+
+    InitConnectData(&connect_data);
+
+    return D_InitNetGameParams(server, address, false, &connect_data);
 }
 
 //

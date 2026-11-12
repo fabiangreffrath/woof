@@ -41,6 +41,8 @@
 // How often to re-resolve the address of the master server?
 #define MASTER_RESOLVE_PERIOD 8 * 60 * 60 /* 8 hours */
 
+boolean nw_privateserver;
+
 typedef enum
 {
     // waiting for the game to be "launched" (key player to press the start
@@ -1950,7 +1952,7 @@ static void UpdateMasterServer(void)
 
 void NW_SV_RegisterWithMaster(void)
 {
-    if (!M_CheckParm("-privateserver"))
+    if (!M_CheckParm("-privateserver") && !nw_privateserver)
     {
         master_server = NW_Query_ResolveMaster(server_context);
     }
@@ -2089,4 +2091,11 @@ void NW_SV_Shutdown(void)
 
         I_Sleep(1);
     }
+
+    // The server is stopped: NW_SV_Run() is called from the main loop every
+    // frame and must not touch the network after the socket is gone.
+
+    server_context = NULL;
+    master_server = NULL;
+    server_initialized = false;
 }

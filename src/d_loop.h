@@ -43,9 +43,20 @@ void TryRunTics(void);
 // Called at start of game loop to initialize timers
 void D_StartGameLoop(void);
 
+// Reset gametic/maketic, so that a network game can be started in the
+// middle of a session.
+void D_ResetTicState(void);
+
 // Initialize networking code and connect to server.
 
 boolean D_InitNetGame(nw_connect_data_t *connect_data);
+
+// Same, but with explicit parameters. A NULL connect_addr means that the
+// address is taken from the command line. When fatal is false, failures are
+// reported and false is returned instead of exiting.
+
+boolean D_InitNetGameParams(boolean server, const char *connect_addr,
+                            boolean fatal, nw_connect_data_t *connect_data);
 
 // Start game with specified settings. The structure will be updated
 // with the actual settings for the game.

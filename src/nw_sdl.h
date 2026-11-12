@@ -22,4 +22,11 @@
 
 extern nw_module_t nw_sdl_module;
 
+// Default port for network games, bound to the config file. The -port
+// command line parameter takes precedence.
+extern int nw_port;
+
+// Close the UDP socket, so that the module can be initialized again.
+void NW_ResetSocket(void);
+
 #endif /* #ifndef NW_SDL_H */

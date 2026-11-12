@@ -23,6 +23,8 @@
 #define MN_SPC_CHOICE (MN_SPC + 3)
 #define MN_MAX_TABS   16
 
+struct event_s;
+
 typedef enum
 {
     MN_MENU_CENTER = (1u << 0),
@@ -40,6 +42,7 @@ typedef enum
     ItemType_Choice,
     ItemType_Slider,
     ItemType_Input,
+    ItemType_Text,
     ItemType_Action,
     ItemType_Reset,
     ItemType_SubMenu,
@@ -57,7 +60,8 @@ typedef enum
     MN_ITEM_DIRECT_COORDS = (1u << 5),
     MN_ITEM_DRAW_CROSSHAIR = (1u << 6),
     MN_ITEM_HIDE_VALUE = (1u << 7),
-    MN_ITEM_BIG_FONT = (1u << 8)
+    MN_ITEM_BIG_FONT = (1u << 8),
+    MN_ITEM_INVERTED = (1u << 9)
 } mn_item_flags_t;
 
 typedef struct mn_item_ops_s mn_item_ops_t;
@@ -124,6 +128,11 @@ struct mn_item_ops_s
     void (*drag)(mn_item_t *item, int mouse_x);
     boolean (*click)(mn_item_t *item, int mouse_x, int mouse_y);
     void (*hover)(mn_item_t *item, int mouse_x, int mouse_y);
+
+    // Character input while the item is being edited, e.g. text fields.
+    // Called before the menu navigation keys, so it can consume them.
+    boolean (*text)(mn_item_t *item, const struct event_s *ev,
+                    menu_action_t action, int ch);
 };
 
 struct mn_page_s
@@ -214,10 +223,15 @@ struct mn_menu_s
     boolean confirm;
     const char *confirm_text;
     void (*confirm_action)(void);
+
+    void (*ticker)(mn_menu_t *menu);
 };
 
 #define MN_GAP(gap)   {.type = ItemType_Skip, .height = (gap)}
 #define MN_TITLE(txt) {.label = (txt), .type = ItemType_Title}
+
+#define MN_TAB(tab_, items_) \
+    {.tab = (tab_), .items = (items_), .num_items = arrlen(items_)}
 
 #define MN_TOGGLE(lbl, key, desc) \
     {.label = (lbl),              \
@@ -251,11 +265,15 @@ typedef enum
 } mn_container_result_t;
 
 void MN_ContainerOpen(mn_menu_t *menu);
+void MN_ContainerPushMenu(mn_menu_t *menu);
+void MN_ContainerPopMenu(void);
 void MN_ContainerClose(void);
 boolean MN_ContainerActive(void);
 mn_page_t *MN_ContainerCurrentPage(void);
 
 mn_container_result_t MN_ContainerResponder(menu_action_t action, int ch);
+boolean MN_ContainerTextInput(const struct event_s *ev, menu_action_t action,
+                              int ch);
 void MN_ContainerMouseMove(int x, int y);
 mn_container_result_t MN_ContainerMouseButton(int button, boolean down);
 mn_container_result_t MN_ContainerWheel(int delta);

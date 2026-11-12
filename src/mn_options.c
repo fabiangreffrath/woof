@@ -18,6 +18,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "d_event.h"
+#include "doomkeys.h"
 #include "doomstat.h"
 #include "doomtype.h"
 #include "g_game.h"
@@ -38,6 +40,7 @@
 #include "mn_font.h"
 #include "mn_common.h"
 #include "mn_menu.h"
+#include "mn_multiplayer.h"
 #include "mn_options.h"
 #include "p_mobj.h"
 #include "r_main.h"
@@ -166,7 +169,14 @@ static boolean TitleRespond(mn_item_t *item, menu_action_t action, int ch)
 
 static void ToggleDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
 {
-    DrawValueString(ctx, OptionValue(item) ? "ON" : "OFF");
+    boolean value = (OptionValue(item) != 0);
+
+    if (item->flags & MN_ITEM_INVERTED)
+    {
+        value = !value;
+    }
+
+    DrawValueString(ctx, value ? "ON" : "OFF");
 }
 
 static boolean ToggleRespond(mn_item_t *item, menu_action_t action, int ch)
@@ -280,6 +290,143 @@ static boolean NumberRespond(mn_item_t *item, menu_action_t action, int ch)
     }
 
     return true;
+}
+
+enum
+{
+    TEXT_EDIT_SIZE = 128
+};
+
+// Only one text field can be edited at a time, so a single static buffer is
+// enough.
+static char text_edit[TEXT_EDIT_SIZE];
+static int text_edit_len;
+
+static const char *TextValue(const mn_item_t *item)
+{
+    if (item->def && item->def->type == string && item->def->location.s)
+    {
+        return *item->def->location.s;
+    }
+
+    return "";
+}
+
+static void TextSetValue(mn_item_t *item, const char *value)
+{
+    if (!item->def || item->def->type != string || !item->def->location.s)
+    {
+        return;
+    }
+
+    free(*item->def->location.s);
+    *item->def->location.s = strdup(value);
+
+    MN_ContainerItemChanged(item);
+}
+
+static void TextDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
+{
+    char buffer[TEXT_EDIT_SIZE + 4];
+
+    if (item->gathering)
+    {
+        M_snprintf(buffer, sizeof(buffer), "%s_", text_edit);
+    }
+    else
+    {
+        M_snprintf(buffer, sizeof(buffer), "%s", TextValue(item));
+    }
+
+    DrawValueString(ctx, buffer);
+}
+
+static void TextBeginEdit(mn_item_t *item)
+{
+    M_StringCopy(text_edit, TextValue(item), sizeof(text_edit));
+    text_edit_len = strlen(text_edit);
+    item->gathering = true;
+    I_StartTextInput();
+}
+
+static void TextEndEdit(mn_item_t *item, boolean commit)
+{
+    if (!item->gathering)
+    {
+        return;
+    }
+
+    item->gathering = false;
+    I_StopTextInput();
+
+    if (commit)
+    {
+        TextSetValue(item, text_edit);
+    }
+
+    text_edit_len = 0;
+    MN_ContainerEndEdit();
+}
+
+static boolean TextRespond(mn_item_t *item, menu_action_t action, int ch)
+{
+    if (!item->gathering)
+    {
+        if (action == MENU_ENTER)
+        {
+            TextBeginEdit(item);
+            return true;
+        }
+
+        return false;
+    }
+
+    if (action == MENU_ENTER)
+    {
+        TextEndEdit(item, true);
+    }
+    else if (action == MENU_ESCAPE)
+    {
+        TextEndEdit(item, false);
+    }
+
+    return true;
+}
+
+static boolean TextInput(mn_item_t *item, const struct event_s *ev,
+                         menu_action_t action, int ch)
+{
+    if (!item->gathering)
+    {
+        return false;
+    }
+
+    // Only character input is consumed here: Enter and Escape are still
+    // handled by TextRespond.
+    if (ch == KEY_BACKSPACE)
+    {
+        if (text_edit_len > 0)
+        {
+            text_edit[--text_edit_len] = '\0';
+        }
+
+        return true;
+    }
+
+    if (ev->type == ev_text)
+    {
+        const int chr = ev->data1.i;
+
+        if (chr >= ' ' && chr <= '~' && text_edit_len < TEXT_EDIT_SIZE - 1)
+        {
+            text_edit[text_edit_len++] = chr;
+            text_edit[text_edit_len] = '\0';
+        }
+
+        return true;
+    }
+
+    return false;
 }
 
 enum
@@ -1001,6 +1148,8 @@ static const mn_item_ops_t action_ops = {ActionDraw, ActionRespond};
 static const mn_item_ops_t reset_ops = {ResetDraw, ResetRespond};
 static const mn_item_ops_t input_ops = {InputDraw, InputRespond,
                                         .click = InputClick};
+static const mn_item_ops_t text_ops = {TextDraw, TextRespond,
+                                       .text = TextInput};
 
 static void BindItem(mn_item_t *item)
 {
@@ -1035,6 +1184,9 @@ static void BindItem(mn_item_t *item)
             break;
         case ItemType_Input:
             item->ops = &input_ops;
+            break;
+        case ItemType_Text:
+            item->ops = &text_ops;
             break;
         default:
             item->ops = NULL;
@@ -1138,6 +1290,10 @@ static void OptionsResetPage(void)
 
 void MN_OptionsOpen(void)
 {
+    // Starting or joining a network game replaces the current game, so the
+    // multiplayer menu is only available outside of a network game.
+    MN_DisableItem(netgame || demoplayback || demorecording, "Multiplayer");
+
     MN_ContainerOpen(&options_menu);
 }
 
@@ -1746,6 +1902,7 @@ static mn_menu_t *all_menus[] = {
     &interface_menu,
     &gameplay_menu,
     &options_menu,
+    &multiplayer_menu,
 };
 
 void MN_OptionsInit(void)
@@ -1762,6 +1919,7 @@ void MN_OptionsInit(void)
     MN_OptionsInitFreeLook();
     MN_OptionsUpdateWeaponSlotLabels();
     UpdateWeaponSlotItems();
+    MN_MultiplayerInit();
 
     MN_SetHUFontKerning();
 }

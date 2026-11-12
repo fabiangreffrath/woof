@@ -37,6 +37,8 @@
 
 #define DEFAULT_PORT 2342
 
+int nw_port = DEFAULT_PORT;
+
 static boolean initted = false;
 static int port = DEFAULT_PORT;
 static NET_DatagramSocket *udpsocket;
@@ -190,10 +192,7 @@ static boolean NW_SDL_InitClient(void)
     }
 
     p = M_CheckParmWithArgs("-port", 1);
-    if (p > 0)
-    {
-        port = M_ParmArgToInt(p);
-    }
+    port = p > 0 ? M_ParmArgToInt(p) : nw_port;
 
     if (!NW_SDL_InitSocket(0))
     {
@@ -213,10 +212,7 @@ static boolean NW_SDL_InitServer(void)
     }
 
     p = M_CheckParmWithArgs("-port", 1);
-    if (p > 0)
-    {
-        port = M_ParmArgToInt(p);
-    }
+    port = p > 0 ? M_ParmArgToInt(p) : nw_port;
 
     if (!NW_SDL_InitSocket(port))
     {
@@ -231,6 +227,13 @@ static void NW_SDL_SendPacket(nw_addr_t *addr, nw_packet_t *packet)
     addrpair_t *entry;
     NET_Address *address = NULL;
     Uint16 send_port = port;
+
+    // A context may still be referenced after the socket was closed; there
+    // is nothing to send in that case.
+    if (!initted || udpsocket == NULL)
+    {
+        return;
+    }
 
     if (addr != &nw_broadcast_addr)
     {
@@ -268,6 +271,13 @@ static void NW_SDL_SendPacket(nw_addr_t *addr, nw_packet_t *packet)
 static boolean NW_SDL_RecvPacket(nw_addr_t **addr, nw_packet_t **packet)
 {
     NET_Datagram *dgram;
+
+    // A context may still be polled after the socket was closed; treat it
+    // as "no packet" instead of a fatal error.
+    if (!initted || udpsocket == NULL)
+    {
+        return false;
+    }
 
     if (!NET_ReceiveDatagram(udpsocket, &dgram))
     {
@@ -373,6 +383,21 @@ static void NW_SDL_Shutdown(void)
     udpsocket = NULL;
 
     NET_Quit();
+
+    initted = false;
+}
+
+// Drop the socket but keep SDL_net initialized, so that the module can be
+// initialized again with a different role or port.
+void NW_ResetSocket(void)
+{
+    if (!initted)
+    {
+        return;
+    }
+
+    NET_DestroyDatagramSocket(udpsocket);
+    udpsocket = NULL;
 
     initted = false;
 }
