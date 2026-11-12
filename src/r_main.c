@@ -69,7 +69,7 @@ const lighttable_t *fixedcolormap;
 int fixedcolormapoffset;
 int      centerx, centery;
 fixed_t  centerxfrac, centeryfrac;
-fixed_t  projection;
+fixed_t  projection, yprojection;
 fixed_t  skyiscale;
 fixed_t  viewx, viewy, viewz;
 angle_t  viewangle;
@@ -77,7 +77,7 @@ localview_t localview;
 boolean raw_input;
 fixed_t  viewcos, viewsin;
 player_t *viewplayer;
-fixed_t  viewheightfrac; // [FG] sprite clipping optimizations
+fixed_t  bottomydeltafrac;
 int max_project_slope = 4;
 
 static fixed_t focallength, lightfocallength;
@@ -376,6 +376,16 @@ static void R_InitTextureMapping(void)
     projection = centerxfrac / slope;
   }
 
+  if (adjust_aspect)
+  {
+    yprojection = FixedMul(projection, video.aspect_v_factor);
+    lightfocallength = FixedMul(lightfocallength, video.aspect_v_factor);
+  }
+  else
+  {
+    yprojection = projection;
+  }
+
   for (i=0 ; i<FINEANGLES/2 ; i++)
     {
       int t;
@@ -425,6 +435,27 @@ static void R_InitTextureMapping(void)
 
   vx_clipangle = clipangle - ((fov << ANGLETOFINESHIFT) - ANG90);
   CalcMaxProjectSlope(fov);
+
+  // [RNR] distscale table for the per-column flat rasteriser.
+
+  if (distscale_size != viewwidth)
+  {
+    free(distscale);
+    distscale = malloc(viewwidth * sizeof(*distscale));
+    distscale_size = viewwidth;
+  }
+
+  for (i = 0; i < viewwidth; i++)
+  {
+    fixed_t cosadj = finecosine[xtoviewangle[i] >> ANGLETOFINESHIFT];
+
+    if (cosadj < 0)
+      cosadj = -cosadj;
+    else if (!cosadj) // extreme FOV guard; RNR has the same division
+      cosadj = 1;
+
+    distscale[i] = FixedDiv(FRACUNIT, cosadj);
+  }
 }
 
 //
@@ -507,7 +538,7 @@ static void R_SetupFreelook(void)
 
   if (viewpitch)
   {
-    dy = FixedMul(projection, -finetangent[(ANG90 - viewpitch) >> ANGLETOFINESHIFT]);
+    dy = FixedMul(yprojection, -finetangent[(ANG90 - viewpitch) >> ANGLETOFINESHIFT]);
   }
   else
   {
@@ -517,9 +548,11 @@ static void R_SetupFreelook(void)
   centery = viewheight / 2 + (dy >> FRACBITS);
   centeryfrac = centery << FRACBITS;
 
+  bottomydeltafrac = (viewheight - centery) << FRACBITS;
+
   for (i = 0; i < viewheight; i++)
   {
-    dy = abs(IntToFixed(i - centery) + FRACUNIT / 2);
+    dy = abs(IntToFixed(i - centery));
     yslope[i] = FixedDiv(projection, dy);
   }
 }
@@ -604,28 +637,9 @@ void R_ExecuteSetViewSize (void)
   centerx = centerxfrac >> FRACBITS;
   centerxfrac_nonwide = (viewwidth_nonwide << FRACBITS) / 2;
 
-  viewheightfrac = viewheight << (FRACBITS + 1); // [FG] sprite clipping optimizations
-
   R_InitBuffer();       // killough 11/98
 
   R_InitTextureMapping();
-
-  // [RNR] distscale table for the per-column flat rasteriser.
-  if (distscale_size != viewwidth)
-  {
-    free(distscale);
-    distscale = malloc(viewwidth * sizeof(*distscale));
-    distscale_size = viewwidth;
-  }
-  for (i = 0; i < viewwidth; i++)
-  {
-    fixed_t cosadj = finecosine[xtoviewangle[i] >> ANGLETOFINESHIFT];
-    if (cosadj < 0)
-      cosadj = -cosadj;
-    if (!cosadj) // extreme FOV guard; RNR has the same division
-      cosadj = 1;
-    distscale[i] = FixedDiv(FRACUNIT, cosadj);
-  }
 
   R_SetupFreelook();
 
@@ -639,6 +653,17 @@ void R_ExecuteSetViewSize (void)
   while (FixedMul(pspriteiscale, pspritescale) < FRACUNIT)
     pspriteiscale++;
 
+  if (adjust_aspect)
+  {
+    pspriteyscale = FixedMul(pspritescale, video.aspect_v_factor);
+    pspriteyiscale = FixedDiv(pspriteiscale, video.aspect_v_factor);
+  }
+  else
+  {
+    pspriteyscale = pspritescale;
+    pspriteyiscale = pspriteiscale;
+  }
+
   if (custom_fov == FOV_DEFAULT)
   {
     skyiscale = FixedDiv(SCREENWIDTH, viewwidth_nonwide);
@@ -646,6 +671,11 @@ void R_ExecuteSetViewSize (void)
   else
   {
     skyiscale = tan(custom_fov * M_PI / 360.0) * SCREENWIDTH / viewwidth_nonwide * FRACUNIT;
+  }
+
+  if (adjust_aspect)
+  {
+    skyiscale = FixedDiv(skyiscale, video.aspect_v_factor);
   }
 
   for (i=0 ; i<viewwidth ; i++)

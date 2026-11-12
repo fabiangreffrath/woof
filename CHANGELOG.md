@@ -41,12 +41,19 @@
     It is disabled in demos, netgames and strict mode.
   - Add "Native MIDI Reset Type" to General->Audio->Music menu.
   - Add support for the `-chain_episodes` command line parameter from DSDA-Doom.
+  - Add Sunlust MAP24 `comp_ledgeblock` fix to compatibility database
 
 * **Rendering:**
   - Adapt multithread renderer from Rum and Raisin Doom. Effective at high resolutions, expect 2-4 times performance increase on multicore CPU.
+  - Implemented support for square pixels: the Resolution Scale slider now has an additional "Native" setting
+    which renders the game at the final vertical resolution instead of stretching the image artificially,
+    improving image quality.
+  - Implemented support for aspect ratios below 4:3, available through the "Auto" option of the Aspect Ratio setting.
+  - Improved accuracy of plane rendering.
   - Improved palettization of PNG graphics, and general color approximation in the engine.
   - Implemented transposed rendering for improved rendering performance in general.
   - Optimized rendering of sprites near the camera.
+  - Improved culling of sprites above and below the view (thanks to @JNechaevsky and @pvictress).
   - Added "Cylindrical" sky projection as a third option besides "Vanilla" and "Linear" (from Nugget Doom).
 
 * **Multiplayer:**

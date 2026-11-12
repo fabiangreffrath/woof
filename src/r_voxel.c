@@ -278,7 +278,7 @@ void VX_Init (void)
 	if (!voxels_found)
 	{
 		voxels_rendering = false;
-		MN_DisableItem(true, &video_menu, "voxels_rendering");
+		MN_DisableItem(true, "voxels_rendering");
 		I_Printf(VB_INFO, "not found.");
 	}
 	else
@@ -546,6 +546,13 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 		xscale = FixedDiv (projection, ty);
 	}
 
+	fixed_t yscale = xscale;
+
+	if (adjust_aspect)
+	{
+		yscale = FixedMul(yscale, video.aspect_v_factor);
+	}
+
 	switch (VX_RotateModeForThing (thing))
 	{
 		case 1:
@@ -656,7 +663,7 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 	vis->mobjflags = thing->flags;
 	vis->mobjflags2 = thing->flags2;
 	vis->mobjflags_extra = thing->flags_extra;
-	vis->scale = xscale;
+	vis->scale = yscale;
 
 	vis->gx  = gx;
 	vis->gy  = gy;
@@ -694,7 +701,7 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 		lightnum = CLAMP(lightnum, 0, LIGHTLEVELS - 1);
 
 		const int *const spritelightoffsets = scalelightoffset[lightnum];
-		const int index = R_GetLightIndex(xscale);
+		const int index = R_GetLightIndex(yscale);
 
 		vis->colormap[0] = thiscolormap + spritelightoffsets[index];
 		vis->colormap[1] = thiscolormap;
@@ -710,7 +717,7 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 	if (STRICTMODE(hud_crosshair_lockon) && thing == crosshair_target)
 	{
 		int x = (centerxfrac + FixedMul(tx, xscale)) >> FRACBITS;
-		int y = (centeryfrac + FixedMul(viewz - gz - crosshair_target->actualheight / 2, xscale)) >> FRACBITS;
+		int y = (centeryfrac + FixedMul(viewz - gz - crosshair_target->actualheight / 2, yscale)) >> FRACBITS;
 		x = clampi(x, 0, viewwidth - 1);
 		y = clampi(y, 0, viewheight - 1);
 		HU_UpdateCrosshairLock(x, y);
@@ -855,6 +862,11 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 		else
 			scale = A_xscale + FixedMul (B_xscale - A_xscale, FixedDiv (ux - Ax, Bx - Ax));
 
+		if (adjust_aspect)
+		{
+			scale = FixedMul(scale, video.aspect_v_factor);
+		}
+
 		iscale = FixedDiv (FRACUNIT, scale);
 
 		const byte * slab = &v->data[ofs1];
@@ -913,6 +925,11 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 					wscale = D_xscale + FixedMul (C_xscale - D_xscale, FixedDiv (ux - Dx, Cx - Dx));
 				else
 					wscale = A_xscale + FixedMul (D_xscale - A_xscale, FixedDiv (ux - Ax, Dx - Ax));
+
+				if (adjust_aspect)
+				{
+					wscale = FixedMul(wscale, video.aspect_v_factor);
+				}
 			}
 
 			if (has_top)

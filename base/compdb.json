@@ -248,6 +248,16 @@
         ]
       },
       {
+        "name": "sunlust_map24",
+        "md5": "9a3cececedade91ebdb86c5e48f9bbb0",
+        "options": [
+          {
+            "name": "comp_ledgeblock",
+            "value": 0
+          }
+        ]
+      },
+      {
         "name": "sunlust_map30",
         "md5": "41efe03223e41935849f64114c5cb471",
         "options": [

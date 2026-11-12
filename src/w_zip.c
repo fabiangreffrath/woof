@@ -64,7 +64,7 @@ static void AddWad(w_handle_t handle, int index, boolean is_map)
 
     // The WAD image is intentionally not freed: added lumps point into it.
     W_AddWadFromMemory(M_BaseName(stat.m_filename), data, stat.m_uncomp_size,
-                       is_map ? map_name : NULL);
+                       is_map ? map_name : NULL, handle.priority);
 }
 
 // [ZDoom PK3] Load a base directory in a single pass over the sorted

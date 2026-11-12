@@ -237,7 +237,7 @@ static boolean IsMapLumpName(const char *name)
 }
 
 void W_AddWadFromMemory(const char *name, const void *data, size_t data_size,
-                        const char *map_name)
+                        const char *map_name, int priority)
 {
     wadinfo_t header;
 
@@ -326,6 +326,7 @@ void W_AddWadFromMemory(const char *name, const void *data, size_t data_size,
             item.size = size;
             item.data = (const byte *)data + position;
             item.wad_file = wadname;
+            item.handle.priority = priority;
             array_push(lumpinfo, item);
             numlumps++;
         }
@@ -350,6 +351,7 @@ void W_AddWadFromMemory(const char *name, const void *data, size_t data_size,
             item.size = size;
             item.data = (const byte *)data + position;
             item.wad_file = wadname;
+            item.handle.priority = priority;
             array_push(lumpinfo, item);
         }
     }

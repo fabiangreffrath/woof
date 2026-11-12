@@ -170,6 +170,24 @@ static void R_FreeVisplanes(void)
 
 static void R_AllocPlaneBuffers(void)
 {
+    // RNR spantype selection: clamp(round(log2(height * 0.02)), 2..4),
+    // written out with integer thresholds (2^2.5*50 ~= 283, 2^3.5*50 ~= 566).
+    if (video.height < 283)
+    {
+        planeleap = 4;
+        planeleaplog2 = 2;
+    }
+    else if (video.height < 566)
+    {
+        planeleap = 8;
+        planeleaplog2 = 3;
+    }
+    else
+    {
+        planeleap = 16;
+        planeleaplog2 = 4;
+    }
+
     if (plane_buffers_width >= video.width
         && plane_buffers_height >= video.height)
     {
@@ -191,24 +209,6 @@ static void R_AllocPlaneBuffers(void)
     openings = I_Realloc(openings, maxopenings * sizeof(*openings));
 
     memset(openings, 0, maxopenings * sizeof(*openings));
-
-    // RNR spantype selection: clamp(round(log2(height * 0.02)), 2..4),
-    // written out with integer thresholds (2^2.5*50 ~= 283, 2^3.5*50 ~= 566).
-    if (video.height < 283)
-    {
-        planeleap = 4;
-        planeleaplog2 = 2;
-    }
-    else if (video.height < 566)
-    {
-        planeleap = 8;
-        planeleaplog2 = 3;
-    }
-    else
-    {
-        planeleap = 16;
-        planeleaplog2 = 4;
-    }
 }
 
 //
@@ -795,6 +795,11 @@ static void do_draw_plane(visplane_t *pl)
     }
 
     planeheight = abs(pl->height - viewz);
+
+    if (adjust_aspect)
+    {
+        planeheight = FixedMul(planeheight, video.aspect_v_factor);
+    }
 
     // No rows were marked for this plane.
     if (pl->maxy < 0)
