@@ -47,7 +47,7 @@ static const byte ff_loopEnd[] =
     'l', 'o', 'o', 'p', 'E', 'n', 'd'
 };
 
-#define EMIDI_DEVICE EMIDI_DEVICE_GENERAL_MIDI
+static emidi_device_t emidi_device = EMIDI_DEVICE_GENERAL_MIDI;
 
 //---------------------------------------------------------------------------
 // Tempo
@@ -553,7 +553,7 @@ static void InitEMIDI(void)
                 switch (event->data.channel.param1)
                 {
                     case EMIDI_CONTROLLER_TRACK_DESIGNATION:
-                        if (dev == EMIDI_DEVICE_ALL || dev == EMIDI_DEVICE)
+                        if (dev == EMIDI_DEVICE_ALL || dev == emidi_device)
                         {
                             designated = true;
                             track->emidi_include_track = true;
@@ -566,7 +566,7 @@ static void InitEMIDI(void)
                         break;
 
                     case EMIDI_CONTROLLER_TRACK_EXCLUSION:
-                        if (dev == EMIDI_DEVICE_ALL || dev == EMIDI_DEVICE)
+                        if (dev == EMIDI_DEVICE_ALL || dev == emidi_device)
                         {
                             track->emidi_include_track = false;
                         }
@@ -610,6 +610,13 @@ void MIDISeq_UnregisterSong(void)
 
     ticks_per_beat = 1;
     us_per_beat = MIDI_DEFAULT_TEMPO;
+
+    emidi_device = EMIDI_DEVICE_GENERAL_MIDI;
+}
+
+void MIDISeq_SetEMIDIDevice(emidi_device_t device)
+{
+    emidi_device = device;
 }
 
 boolean MIDISeq_RegisterSong(void *data, int length)
