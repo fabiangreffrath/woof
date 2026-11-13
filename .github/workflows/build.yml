@@ -80,16 +80,17 @@ jobs:
             os: ubuntu-24.04
             shell: bash
             type: vcpkg
-            triplet: x64-linux-release
+            triplet: x64-linux-dynamic-release
             artifact-name: AppImage
             artifact-path: |-
               build/*.AppImage
               build/*.zsync
             extra-options: >-
               -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
-              -DVCPKG_TARGET_TRIPLET=x64-linux-release
+              -DVCPKG_TARGET_TRIPLET=x64-linux-dynamic-release
               -DWITH_DISCORD_RPC=ON
-              -DCMAKE_INSTALL_PREFIX=/usr
+              -DVCPKG_INSTALLED_DIR="/opt/vcpkg_installed"
+              -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON
 
           - name: MSVC x64 (vcpkg)
             os: windows-2022
