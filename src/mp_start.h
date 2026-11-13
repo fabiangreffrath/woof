@@ -30,6 +30,10 @@ void MP_DrawOverlay(void);
 
 boolean MP_WaitScreenActive(void);
 
+// Called by the display code after the screen wipe has finished; a network
+// game started from the menu resyncs its tic clock here.
+void MP_AfterStartWipe(void);
+
 // Menu keys while the waiting screen is up.
 boolean MP_Responder(menu_action_t action);
 

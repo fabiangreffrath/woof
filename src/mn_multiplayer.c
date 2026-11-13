@@ -367,13 +367,13 @@ void MP_JoinGame(void)
         return;
     }
 
-    if (selected_server >= 0 && selected_server < num_servers
-        && !servers[selected_server].compatible)
-    {
-        UpdateStatus();
-        M_StartSound(sfx_mnuerr);
-        return;
-    }
+    // if (selected_server >= 0 && selected_server < num_servers
+    //     && !servers[selected_server].compatible)
+    // {
+    //     UpdateStatus();
+    //     M_StartSound(sfx_mnuerr);
+    //     return;
+    // }
 
     FillCommonRequest();
 

@@ -54,6 +54,7 @@ static boolean waiting;
 static boolean is_server;
 static boolean launch_sent;
 static boolean reopen_menu;
+static boolean start_wipe_pending;
 
 static char wait_message[128];
 
@@ -296,9 +297,29 @@ static void MP_FinishStart(void)
 
     G_ClearInput();
     G_InitNew(startskill, startepisode, startmap, false);
+
+    // Players are spawned by the first tic, and the view is not rendered
+    // while gametic is zero, so the level would not be drawn for the start
+    // wipe without this.
+    D_RunFirstTic();
+
     D_StartGameLoop();
 
+    // The wipe freezes the loop for a while; the tic clock is resynced
+    // afterwards, otherwise all that time is replayed as a burst of tics
+    // and the level starts in the middle of the weapon raise.
+    start_wipe_pending = true;
+
     I_Printf(VB_INFO, "Multiplayer: game started");
+}
+
+void MP_AfterStartWipe(void)
+{
+    if (start_wipe_pending)
+    {
+        start_wipe_pending = false;
+        D_StartGameLoop();
+    }
 }
 
 static void MP_Abort(void)
@@ -326,6 +347,10 @@ static void MP_Abort(void)
 
 void MP_StartTick(void)
 {
+    // A start wipe always happens right after this, so a pending flag here
+    // means that the wipe was skipped.
+    start_wipe_pending = false;
+
     if (reopen_menu)
     {
         reopen_menu = false;

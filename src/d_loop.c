@@ -55,6 +55,9 @@ typedef struct
 // instead for better responsiveness of the menu when we're stuck.
 #define MAX_NETGAME_STALL_TICS 5
 
+// How long to wait for the first tic of a game started from the menu.
+#define FIRST_TIC_TIMEOUT_MS 2000
+
 //
 // gametic is the tic about to (or currently being) run
 // maketic is the tic that hasn't had control made for it yet
@@ -328,6 +331,29 @@ void D_ResetTicState(void)
     gametic = 0;
     maketic = 0;
     lasttime = 0;
+}
+
+// The clock is put one tic behind instead of using the stale command line
+// startup behaviour (where lasttime is zero and a whole backlog of tics is
+// built at once): the level then starts at its first frame, and only one
+// ticcmd is sent to the server to get the game going.
+
+void D_RunFirstTic(void)
+{
+    const uint32_t start = I_GetTimeMS();
+
+    lasttime = GetAdjustedTime() / ticdup - 1;
+
+    while (gametic == 0
+           && (int)(I_GetTimeMS() - start) < FIRST_TIC_TIMEOUT_MS)
+    {
+        TryRunTics();
+
+        if (gametic == 0)
+        {
+            I_Sleep(1);
+        }
+    }
 }
 
 //

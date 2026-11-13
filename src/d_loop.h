@@ -47,6 +47,10 @@ void D_StartGameLoop(void);
 // middle of a session.
 void D_ResetTicState(void);
 
+// Run the first tic of a freshly started game, so that the level can be
+// rendered. Waits for the server tic when running a network game.
+void D_RunFirstTic(void);
+
 // Initialize networking code and connect to server.
 
 boolean D_InitNetGame(nw_connect_data_t *connect_data);

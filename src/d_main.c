@@ -430,6 +430,8 @@ void D_Display(void)
         M_Drawer();       // menu is drawn even on top of wipes
         I_FinishUpdate(); // page flip or blit buffer
     } while (!done);
+
+    MP_AfterStartWipe();
 }
 
 //
