@@ -610,8 +610,6 @@ void MIDISeq_UnregisterSong(void)
 
     ticks_per_beat = 1;
     us_per_beat = MIDI_DEFAULT_TEMPO;
-
-    emidi_device = EMIDI_DEVICE_GENERAL_MIDI;
 }
 
 void MIDISeq_SetEMIDIDevice(emidi_device_t device)

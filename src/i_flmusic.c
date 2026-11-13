@@ -428,6 +428,8 @@ static boolean I_FL_OpenStream(void *data, ALsizei size, ALenum *format,
         return false;
     }
 
+    MIDISeq_SetEMIDIDevice(EMIDI_DEVICE_GENERAL_MIDI);
+
     if (!MIDISeq_RegisterSong(data, size))
     {
         return false;
