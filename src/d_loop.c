@@ -20,6 +20,7 @@
 
 #include "d_event.h"
 #include "d_loop.h"
+#include "d_net.h"
 #include "d_rollback.h"
 #include "d_ticcmd.h"
 #include "doomdef.h"
@@ -31,8 +32,8 @@
 #include "i_video.h"
 #include "m_argv.h"
 #include "m_fixed.h"
+#include "mp_start.h"
 #include "nw_client.h"
-#include "nw_gui.h"
 #include "nw_io.h"
 #include "nw_loop.h"
 #include "nw_query.h"
@@ -53,6 +54,9 @@ typedef struct
 // Vanilla Doom used 20 for this value, but we use a smaller value
 // instead for better responsiveness of the menu when we're stuck.
 #define MAX_NETGAME_STALL_TICS 5
+
+// How long to wait for the first tic of a game started from the menu.
+#define FIRST_TIC_TIMEOUT_MS 2000
 
 //
 // gametic is the tic about to (or currently being) run
@@ -83,8 +87,10 @@ static int skiptics = 0;
 
 // Reduce the bandwidth needed by sampling game input less and transmitting
 // less.  If ticdup is 2, sample half normal, 3 = one third normal, etc.
+// The clock runs on the title screen while a network game waits for the
+// launch message, before the server settings arrive, so it is never zero.
 
-int ticdup;
+int ticdup = 1;
 
 // Amount to offset the timer for game sync.
 
@@ -183,7 +189,10 @@ static boolean BuildNewTic(void)
     memset(&cmd, 0, sizeof(ticcmd_t));
     G_BuildTiccmd(&cmd);
 
-    if (nw_client_connected)
+    // While waiting for the game to start, the connected client runs on
+    // its own: its ticcmds must not reach the server yet.
+
+    if (nw_client_connected && !MP_WaitScreenActive())
     {
         NW_CL_SendTiccmd(&cmd, maketic);
     }
@@ -315,6 +324,40 @@ void D_StartGameLoop(void)
     lasttime = GetAdjustedTime() / ticdup;
 }
 
+// Restart the tic clock. Needed when a network game begins in the middle of a
+// session: the server's tic numbering starts at zero, so gametic and maketic
+// have to as well.
+
+void D_ResetTicState(void)
+{
+    gametic = 0;
+    maketic = 0;
+    lasttime = 0;
+}
+
+// The clock is put one tic behind instead of using the stale command line
+// startup behaviour (where lasttime is zero and a whole backlog of tics is
+// built at once): the level then starts at its first frame, and only one
+// ticcmd is sent to the server to get the game going.
+
+void D_RunFirstTic(void)
+{
+    const uint32_t start = I_GetTimeMS();
+
+    lasttime = GetAdjustedTime() / ticdup - 1;
+
+    while (gametic == 0
+           && (int)(I_GetTimeMS() - start) < FIRST_TIC_TIMEOUT_MS)
+    {
+        TryRunTics();
+
+        if (gametic == 0)
+        {
+            I_Sleep(1);
+        }
+    }
+}
+
 //
 // Block until the game start message is received from the server.
 //
@@ -421,17 +464,35 @@ void D_StartNetGame(nw_gamesettings_t *settings,
 
 boolean D_InitNetGame(nw_connect_data_t *connect_data)
 {
+    boolean server = M_CheckParm("-server") > 0
+                     || M_CheckParm("-privateserver") > 0;
+
+    return D_InitNetGameParams(server, NULL, true, connect_data);
+}
+
+// Connect to a server or start one. When fatal is false, connection
+// failures are reported and false is returned instead of exiting.
+
+boolean D_InitNetGameParams(boolean server, const char *connect_addr,
+                            boolean fatal, nw_connect_data_t *connect_data)
+{
     boolean result = false;
     nw_addr_t *addr = NULL;
     int i;
 
     // Call D_QuitNetGame on exit:
 
-    I_AtExit(D_QuitNetGame, true);
+    static boolean exit_handler_registered;
+
+    if (!exit_handler_registered)
+    {
+        I_AtExit(D_QuitNetGame, true);
+        exit_handler_registered = true;
+    }
 
     player_class = connect_data->player_class;
 
-    if (M_CheckParm("-server") > 0 || M_CheckParm("-privateserver") > 0)
+    if (server)
     {
         NW_SV_Init();
         NW_SV_AddModule(&nw_loop_server_module);
@@ -441,6 +502,23 @@ boolean D_InitNetGame(nw_connect_data_t *connect_data)
         nw_loop_client_module.InitClient();
         addr = nw_loop_client_module.ResolveAddress(NULL);
         NW_ReferenceAddress(addr);
+    }
+    else if (connect_addr != NULL)
+    {
+        nw_sdl_module.InitClient();
+        addr = nw_sdl_module.ResolveAddress(connect_addr);
+        NW_ReferenceAddress(addr);
+
+        if (addr == NULL)
+        {
+            if (fatal)
+            {
+                I_Error("Unable to resolve '%s'\n", connect_addr);
+            }
+
+            I_Printf(VB_WARNING, "Unable to resolve '%s'", connect_addr);
+            return false;
+        }
     }
     else
     {
@@ -452,7 +530,13 @@ boolean D_InitNetGame(nw_connect_data_t *connect_data)
 
             if (addr == NULL)
             {
-                I_Error("No server found on local LAN");
+                if (fatal)
+                {
+                    I_Error("No server found on local LAN");
+                }
+
+                I_Printf(VB_WARNING, "No server found on local LAN");
+                return false;
             }
         }
 
@@ -466,7 +550,13 @@ boolean D_InitNetGame(nw_connect_data_t *connect_data)
 
             if (addr == NULL)
             {
-                I_Error("Unable to resolve '%s'\n", myargv[i + 1]);
+                if (fatal)
+                {
+                    I_Error("Unable to resolve '%s'\n", myargv[i + 1]);
+                }
+
+                I_Printf(VB_WARNING, "Unable to resolve '%s'", myargv[i + 1]);
+                return false;
             }
         }
     }
@@ -480,17 +570,21 @@ boolean D_InitNetGame(nw_connect_data_t *connect_data)
 
         if (!NW_CL_Connect(addr, connect_data))
         {
-            I_Error("Failed to connect to %s:\n%s\n",
-                    NW_AddrToString(addr), nw_client_reject_reason);
+            if (fatal)
+            {
+                I_Error("Failed to connect to %s:\n%s\n",
+                        NW_AddrToString(addr), nw_client_reject_reason);
+            }
+
+            I_Printf(VB_WARNING, "Failed to connect to %s:\n%s",
+                     NW_AddrToString(addr), nw_client_reject_reason);
+            NW_ReleaseAddress(addr);
+            return false;
         }
 
         I_Printf(VB_INFO, "D_InitNetGame: Connected to %s",
                  NW_AddrToString(addr));
         NW_ReleaseAddress(addr);
-
-        // Wait for launch message received from server.
-
-        NW_WaitForLaunch();
 
         result = true;
     }
@@ -541,7 +635,10 @@ static int GetLowTic(void)
 
     lowtic = maketic;
 
-    if (nw_client_connected)
+    // Until the launch message arrives, the client is not part of the game
+    // yet and keeps running on its own tic clock.
+
+    if (nw_client_connected && !MP_WaitScreenActive())
     {
         if (drone || recvtic < lowtic)
         {
@@ -692,7 +789,7 @@ static void SinglePlayerClear(ticcmd_set_t *set)
 // TryRunTics
 //
 
-void RunTic(ticcmd_t *cmds, boolean *ingame);
+void D_RunTic(ticcmd_t *cmds, boolean *ingame);
 
 //
 // Rollback variant of TryRunTics(). The simulation runs ahead of the
@@ -731,7 +828,7 @@ static void TryRunTicsRollback(void)
 
                 memcpy(local_playeringame, ingame, sizeof(local_playeringame));
 
-                RunTic(cmds, ingame);
+                D_RunTic(cmds, ingame);
                 gametic += ticdup;
             }
 
@@ -792,7 +889,7 @@ static void TryRunTicsRollback(void)
 
         memcpy(local_playeringame, ingame, sizeof(local_playeringame));
 
-        RunTic(cmds, ingame);
+        D_RunTic(cmds, ingame);
         gametic += ticdup;
 
         NetUpdate(); // check for new console commands
@@ -812,7 +909,8 @@ void TryRunTics(void)
     int availabletics;
     int counts;
 
-    if (rollback_enabled && nw_client_connected && !drone)
+    if (rollback_enabled && nw_client_connected && !drone
+        && !MP_WaitScreenActive())
     {
         TryRunTicsRollback();
         return;
@@ -948,7 +1046,7 @@ void TryRunTics(void)
 
             memcpy(local_playeringame, set->ingame, sizeof(local_playeringame));
 
-            RunTic(set->cmds, set->ingame);
+            D_RunTic(set->cmds, set->ingame);
             gametic++;
 
             // modify command for duplicated tics

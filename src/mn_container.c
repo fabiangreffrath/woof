@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "d_event.h"
 #include "doomdef.h"
 #include "doomkeys.h"
 #include "doomtype.h"
@@ -31,6 +32,7 @@
 #include "mn_font.h"
 #include "mn_common.h"
 #include "mn_menu.h"
+#include "mn_multiplayer.h"
 #include "mn_options.h"
 #include "sounds.h"
 #include "v_palette.h"
@@ -399,7 +401,11 @@ void MN_ContainerRelayout(void)
 
     mn_page_t *page = &active_menu->pages[active_menu->page];
     EnsureValidSelection(active_menu, active_menu->page);
-    MN_ContainerEnsureVisible(&page->items[page->selected]);
+
+    if (page->num_items > 0)
+    {
+        MN_ContainerEnsureVisible(&page->items[page->selected]);
+    }
 }
 
 void MN_ContainerEnsureVisible(mn_item_t *item)
@@ -459,7 +465,11 @@ static void SelectFirst(mn_menu_t *menu)
     {
         page->selected = FirstNavigable(page);
     }
-    MN_ContainerEnsureVisible(&page->items[page->selected]);
+
+    if (page->num_items > 0)
+    {
+        MN_ContainerEnsureVisible(&page->items[page->selected]);
+    }
 }
 
 static void MoveSelection(mn_menu_t *menu, int direction)
@@ -516,6 +526,9 @@ static void CancelActiveItem(mn_menu_t *menu)
 
 static void ResetMenuState(mn_menu_t *menu)
 {
+    // An item left in edit mode by a previous visit must not stay active.
+    CancelActiveItem(menu);
+
     menu->hover = -1;
     menu->help_hover = -1;
     menu->active_item = NULL;
@@ -650,7 +663,8 @@ static void ActivateItem(mn_menu_t *menu, int index, boolean mouse)
         return;
     }
 
-    if (item->type == ItemType_Number || item->type == ItemType_Input)
+    if (item->type == ItemType_Number || item->type == ItemType_Input
+        || item->type == ItemType_Text)
     {
         menu->active_item = item;
 
@@ -805,6 +819,16 @@ void MN_ContainerClose(void)
     menu_depth = 0;
 }
 
+void MN_ContainerPushMenu(mn_menu_t *menu)
+{
+    PushMenu(menu);
+}
+
+void MN_ContainerPopMenu(void)
+{
+    PopMenu();
+}
+
 boolean MN_ContainerActive(void)
 {
     return active_menu != NULL;
@@ -920,6 +944,24 @@ boolean MN_ContainerBindInput(mn_item_t *item)
     }
 
     return M_InputAddActivated(item->input_id);
+}
+
+boolean MN_ContainerTextInput(const struct event_s *ev, menu_action_t action,
+                              int ch)
+{
+    if (!active_menu || !active_menu->active_item)
+    {
+        return false;
+    }
+
+    mn_item_t *item = active_menu->active_item;
+
+    if (!item->ops || !item->ops->text)
+    {
+        return false;
+    }
+
+    return item->ops->text(item, ev, action, ch);
 }
 
 mn_container_result_t MN_ContainerResponder(menu_action_t action, int ch)
@@ -1223,6 +1265,11 @@ void MN_ContainerTicker(void)
         return;
     }
 
+    if (active_menu->ticker)
+    {
+        active_menu->ticker(active_menu);
+    }
+
     mn_page_t *page = &active_menu->pages[active_menu->page];
 
     if (page->scroll != page->scroll_target)
@@ -1403,6 +1450,7 @@ static mn_menu_t *all_menus[] = {
     &interface_menu,
     &gameplay_menu,
     &options_menu,
+    &multiplayer_menu,
 
     &csmenu_menu,
 };
@@ -1647,6 +1695,10 @@ static void DrawInstructions(const mn_menu_t *menu)
                 text = "Enter value";
                 break;
 
+            case ItemType_Text:
+                text = "Enter text";
+                break;
+
             case ItemType_Input:
                 text = "Press key or button to bind/unbind";
                 break;
@@ -1677,6 +1729,11 @@ static void DrawInstructions(const mn_menu_t *menu)
 
             case ItemType_Toggle:
                 M_snprintf(buffer, sizeof(buffer), "[ %s ] Toggle",
+                           ConfirmKeyName(pad));
+                break;
+
+            case ItemType_Text:
+                M_snprintf(buffer, sizeof(buffer), "[ %s ] Edit",
                            ConfirmKeyName(pad));
                 break;
 

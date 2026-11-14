@@ -41,6 +41,10 @@
 // How often to re-resolve the address of the master server?
 #define MASTER_RESOLVE_PERIOD 8 * 60 * 60 /* 8 hours */
 
+boolean nw_privateserver;
+
+const char *nw_servername;
+
 typedef enum
 {
     // waiting for the game to be "launched" (key player to press the start
@@ -459,16 +463,16 @@ static void NW_SV_SendWaitingData(nw_client_t *client)
         if (client_range == RANGE_LOCALHOST || client_range == RANGE_PRIVATE
          || i == wait_data.consoleplayer || player_range == RANGE_LOCALHOST)
         {
-            M_StringCopy(wait_data.player_addrs[i], addr, MAXPLAYERNAME);
+            M_StringCopy(wait_data.player_addrs[i], addr, MAX_ADDRESS);
         }
         else if (player_range == RANGE_PRIVATE)
         {
-            M_snprintf(wait_data.player_addrs[i], MAXPLAYERNAME,
+            M_snprintf(wait_data.player_addrs[i], MAX_ADDRESS,
                        "[LAN player]");
         }
         else
         {
-            M_snprintf(wait_data.player_addrs[i], MAXPLAYERNAME,
+            M_snprintf(wait_data.player_addrs[i], MAX_ADDRESS,
                        "[address hidden]");
         }
     }
@@ -1456,6 +1460,10 @@ void NW_SV_SendQueryResponse(nw_addr_t *addr)
     {
         querydata.description = myargv[p + 1];
     }
+    else if (nw_servername != NULL && nw_servername[0] != '\0')
+    {
+        querydata.description = nw_servername;
+    }
     else
     {
         querydata.description = "Unnamed server";
@@ -1950,7 +1958,7 @@ static void UpdateMasterServer(void)
 
 void NW_SV_RegisterWithMaster(void)
 {
-    if (!M_CheckParm("-privateserver"))
+    if (!M_CheckParm("-privateserver") && !nw_privateserver)
     {
         master_server = NW_Query_ResolveMaster(server_context);
     }
@@ -2089,4 +2097,11 @@ void NW_SV_Shutdown(void)
 
         I_Sleep(1);
     }
+
+    // The server is stopped: NW_SV_Run() is called from the main loop every
+    // frame and must not touch the network after the socket is gone.
+
+    server_context = NULL;
+    master_server = NULL;
+    server_initialized = false;
 }

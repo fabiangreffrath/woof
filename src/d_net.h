@@ -1,4 +1,5 @@
 //
+// Copyright(C) 1993-1996 Id Software, Inc.
 // Copyright(C) 2005-2014 Simon Howard
 //
 // This program is free software; you can redistribute it and/or
@@ -11,20 +12,23 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
+// DESCRIPTION:
+//  DOOM Network game communication and protocol,
+//  all OS independend parts.
+//
 
-#ifndef TESTCONFIG_H
-#define TESTCONFIG_H
+#ifndef D_NET_H
+#define D_NET_H
 
+#include "d_ticcmd.h"
 #include "doomtype.h"
 
-typedef struct execute_context_s execute_context_t;
+void D_RunTic(ticcmd_t *cmds, boolean *ingame);
 
-execute_context_t *NewExecuteContext(void);
-void AddCmdLineParameter(execute_context_t *context, const char *s, ...) PRINTF_ATTR(2, 3);
-void PassThroughArguments(execute_context_t *context);
-int ExecuteDoom(execute_context_t *context);
-int FindInstalledIWADs(void);
-boolean OpenFolder(const char *path);
+void D_ConnectNetGame(void);
 
-#endif /* #ifndef TESTCONFIG_H */
+boolean D_InitNetGameFromMenu(boolean server, const char *address);
 
+void D_CheckNetGame(void);
+
+#endif

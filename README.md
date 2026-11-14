@@ -260,12 +260,6 @@ Copyright:
  © 2026 DragonKnightKX.  
 License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/)
 
-Files: `data/setup.ico, data/woof-setup.png, setup/setup_icon.c`  
-Copyright:  
- © 2026 Julia Nechaevskaya;  
- © 2026 Terraformer9x.  
-License: [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/)
-
 Files: `data/io.github.fabiangreffrath.woof.metainfo.*`  
 Copyright:  
  © 2023-2024 Fabian Greffrath.  

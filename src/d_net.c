@@ -13,8 +13,8 @@
 // GNU General Public License for more details.
 //
 // DESCRIPTION:
-//	DOOM Network game communication and protocol,
-//	all OS independend parts.
+//  DOOM Network game communication and protocol,
+//  all OS independend parts.
 //
 
 #include "d_loop.h"
@@ -28,6 +28,7 @@
 #include "i_printf.h"
 #include "m_argv.h"
 #include "m_misc.h"
+#include "mp_start.h"
 #include "nw_defs.h"
 #include "p_mobj.h"
 #include "tables.h"
@@ -66,7 +67,7 @@ static void PlayerQuitGame(player_t *player)
 
 void D_DoAdvanceDemo(void);
 
-void RunTic(ticcmd_t *cmds, boolean *ingame)
+void D_RunTic(ticcmd_t *cmds, boolean *ingame)
 {
     unsigned int i;
 
@@ -222,6 +223,11 @@ void D_ConnectNetGame(void)
     InitConnectData(&connect_data);
     netgame = D_InitNetGame(&connect_data);
 
+    if (netgame)
+    {
+        MP_WaitForLaunch();
+    }
+
     if (M_CheckParm("-solo-net") > 0)
     {
         netgame = true;
@@ -229,13 +235,33 @@ void D_ConnectNetGame(void)
     }
 }
 
+// Start a network game from the multiplayer menu. The waiting for launch
+// message is done by the caller, so that the main loop keeps running.
+
+boolean D_InitNetGameFromMenu(boolean server, const char *address)
+{
+    nw_connect_data_t connect_data;
+
+    InitConnectData(&connect_data);
+
+    return D_InitNetGameParams(server, address, false, &connect_data);
+}
+
 //
 // D_CheckNetGame
 // Works out player numbers among the net participants
 //
-void D_CheckNetGame (void)
+
+void D_CheckNetGame(void)
 {
     nw_gamesettings_t settings;
+
+    // The launch message has not arrived yet: the settings are exchanged
+    // when the game actually starts, from MP_StartTick().
+    if (MP_WaitScreenActive())
+    {
+        return;
+    }
 
     if (netgame)
     {

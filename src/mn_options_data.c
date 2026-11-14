@@ -30,6 +30,7 @@
 #include "m_input.h"
 #include "mn_container.h"
 #include "mn_common.h"
+#include "mn_multiplayer.h"
 #include "mn_options.h"
 #include "r_data.h"
 #include "r_draw.h"
@@ -37,9 +38,6 @@
 #include "r_sky.h"
 
 #define MN_LAYOUT {.max_width = MN_PX(500), .items_min_width = MN_PX(250)}
-
-#define MN_TAB(tab_, items_) \
-    {.tab = (tab_), .items = (items_), .num_items = arrlen(items_)}
 
 #define MN_RESET \
     {.label = "", .type = ItemType_Reset, .flags = MN_ITEM_DIRECT_COORDS}
@@ -1018,6 +1016,7 @@ static mn_item_t options_items[] = {
     MN_MENU("Controls", &controls_menu),
     MN_MENU("Gameplay", &gameplay_menu),
     MN_MENU("Interface", &interface_menu),
+    MN_MENU("Multiplayer", &multiplayer_menu),
 };
 
 static mn_page_t options_pages[] = {

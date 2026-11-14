@@ -22,4 +22,11 @@
 
 extern nw_module_t nw_sdl_module;
 
+// Module used for server queries only: it has a socket of its own, so that
+// searching for servers does not interfere with a game in progress.
+extern nw_module_t nw_sdl_query_module;
+
+// Close the UDP socket, so that the module can be initialized again.
+void NW_ResetSocket(void);
+
 #endif /* #ifndef NW_SDL_H */
