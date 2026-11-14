@@ -124,6 +124,7 @@ typedef enum
     CHOICE_VALUE = 0,
 } mchoice_t;
 
+// NOLINTBEGIN(clang-analyzer-optin.performance.Padding)
 typedef struct
 {
     short status; // 0 = no cursor here, 1 = ok, 2 = arrows ok
@@ -139,6 +140,7 @@ typedef struct
     mrect_t rect;
     mflags_t flags;
 } menuitem_t;
+// NOLINTEND(clang-analyzer-optin.performance.Padding)
 
 typedef struct menu_s
 {
