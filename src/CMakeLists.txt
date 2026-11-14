@@ -139,7 +139,6 @@ set(WOOF_SOURCES
     nw_common.c            nw_common.h
     nw_dedicated.c         nw_dedicated.h
                            nw_defs.h
-    nw_gui.c               nw_gui.h
     nw_io.c                nw_io.h
     nw_loop.c              nw_loop.h
     nw_packet.c            nw_packet.h
@@ -329,49 +328,6 @@ if(WOOF_STRICT)
     target_compile_definitions(woof PRIVATE MBF_STRICT)
 endif()
 
-# Setup tool
-set(SETUP_SOURCES
-    d_iwad.c                d_iwad.h
-    i_exit.c                i_exit.h
-    i_main.c
-    i_printf.c              i_printf.h
-    i_system.c              i_system.h
-    i_timer.c               i_timer.h
-    m_argv.c                m_argv.h
-    m_params.c              m_params.h
-    m_array.h
-    m_io.c                  m_io.h
-    m_misc.c                m_misc.h
-    nw_io.c                 nw_io.h
-    nw_packet.c             nw_packet.h
-    nw_query.c              nw_query.h
-    nw_sdl.c                nw_sdl.h
-    nw_structrw.c           nw_structrw.h
-    z_zone.c                z_zone.h
-)
-
-if(WIN32)
-    # Stamp out and compile resource file on Windows.
-    configure_file(setup-res.rc.in "${CMAKE_CURRENT_BINARY_DIR}/setup-res.rc")
-    list(APPEND SETUP_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/setup-res.rc")
-endif()
-
-add_executable(woof-setup WIN32 ${SETUP_SOURCES})
-target_woof_settings(woof-setup)
-target_include_directories(woof-setup PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
-
-target_link_libraries(
-  woof-setup
-  PRIVATE SDL3::SDL3
-          SDL3_net::SDL3_net
-          textscreen
-          setup
-)
-
-if(MSVC)
-    target_link_options(woof-setup PRIVATE "/MANIFEST:NO")
-endif()
-
 # Base file
 add_dependencies(woof woof-base)
 
@@ -390,7 +346,7 @@ endif()
 if(WIN32)
     if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.21 AND NOT VCPKG_TOOLCHAIN)
         install(
-            TARGETS woof woof-setup
+            TARGETS woof
             RUNTIME_DEPENDENCIES
                 PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
                 POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
@@ -398,8 +354,8 @@ if(WIN32)
             RUNTIME DESTINATION .
         )
     else()
-        install(TARGETS woof woof-setup RUNTIME DESTINATION .)
+        install(TARGETS woof RUNTIME DESTINATION .)
     endif()
 else()
-    install(TARGETS woof woof-setup RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+    install(TARGETS woof RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()

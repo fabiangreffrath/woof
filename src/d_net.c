@@ -28,8 +28,8 @@
 #include "i_printf.h"
 #include "m_argv.h"
 #include "m_misc.h"
+#include "mp_start.h"
 #include "nw_defs.h"
-#include "nw_gui.h"
 #include "p_mobj.h"
 #include "tables.h"
 
@@ -225,7 +225,7 @@ void D_ConnectNetGame(void)
 
     if (netgame)
     {
-        NW_WaitForLaunch();
+        MP_WaitForLaunch();
     }
 
     if (M_CheckParm("-solo-net") > 0)
@@ -254,6 +254,13 @@ boolean D_InitNetGameFromMenu(boolean server, const char *address)
 void D_CheckNetGame (void)
 {
     nw_gamesettings_t settings;
+
+    // The launch message has not arrived yet: the settings are exchanged
+    // when the game actually starts, from MP_StartTick().
+    if (MP_WaitScreenActive())
+    {
+        return;
+    }
 
     if (netgame)
     {

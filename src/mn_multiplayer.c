@@ -15,10 +15,7 @@
 //  In-game multiplayer menu: create and join network games.
 //
 
-#include <string.h>
-
 #include "d_englsh.h"
-#include "d_main.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "m_config.h"
@@ -33,9 +30,7 @@
 #include "nw_defs.h"
 #include "nw_io.h"
 #include "nw_query.h"
-#include "nw_sdl.h"
 #include "nw_server.h"
-#include "sounds.h"
 #include "v_palette.h"
 #include "v_trans.h"
 
@@ -291,9 +286,7 @@ static void QueryCallback(nw_addr_t *addr, nw_querydata_t *data,
 
     // A server with no players reports an undetermined game mode: it has
     // not adopted a game yet and takes the mode and mission of the first
-    // client that connects. Requiring an exact match here would reject
-    // every idle server, which is what most servers in the internet list
-    // are.
+    // client that connects.
     server->compatible =
         data->num_players == 0 || data->gamemode == indetermined
         || (data->gamemode == gamemode && data->gamemission == gamemission);

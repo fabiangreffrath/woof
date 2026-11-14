@@ -16,16 +16,14 @@
 //  in-game waiting screen (there is no textscreen here).
 //
 
-#include <string.h>
-
 #include "d_loop.h"
 #include "d_main.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "g_game.h"
 #include "i_printf.h"
-#include "i_timer.h"
 #include "i_video.h"
+#include "m_argv.h"
 #include "m_misc.h"
 #include "mn_container.h"
 #include "mn_font.h"
@@ -103,6 +101,17 @@ void MP_RequestClear(void)
 boolean MP_WaitScreenActive(void)
 {
     return waiting;
+}
+
+void MP_WaitForLaunch(void)
+{
+    is_server = M_CheckParm("-server") > 0 || M_CheckParm("-privateserver") > 0;
+    launch_sent = false;
+
+    nw_client_received_wait_data = false;
+    nw_waiting_for_launch = true;
+
+    waiting = true;
 }
 
 // Back to the title screen, dropping whatever was running before.

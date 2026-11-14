@@ -1588,19 +1588,6 @@ void D_DoomMain(void)
         I_SafeExit(0);
     }
 
-#ifdef __linux__
-
-    if (M_ParmExists("-setup"))
-    {
-        char *setup_path = M_StringJoin(D_DoomExeDir(), DIR_SEPARATOR_S,
-                                        PROJECT_SHORTNAME "-setup");
-        char *args[] = {setup_path, NULL};
-        execv(setup_path, args);
-        I_SafeExit(1);
-    }
-
-#endif
-
     // [FG] initialize logging verbosity early to decide
     //      if the following lines will get printed or not
 
@@ -2212,7 +2199,10 @@ void D_DoomMain(void)
     }
     else if (!singledemo) // killough 12/98
     {
-        if (autostart || netgame)
+        // While a network game waits for the launch message the level is
+        // loaded by MP_StartTick(); the title screen is only a background
+        // for the waiting screen.
+        if (!MP_WaitScreenActive() && (autostart || netgame))
         {
             G_InitNew(startskill, startepisode, startmap, false);
             // [crispy] no need to write a demo header in demo continue mode

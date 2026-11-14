@@ -33,7 +33,6 @@
 #include "m_fixed.h"
 #include "mp_start.h"
 #include "nw_client.h"
-#include "nw_gui.h"
 #include "nw_io.h"
 #include "nw_loop.h"
 #include "nw_query.h"
@@ -87,8 +86,10 @@ static int skiptics = 0;
 
 // Reduce the bandwidth needed by sampling game input less and transmitting
 // less.  If ticdup is 2, sample half normal, 3 = one third normal, etc.
+// The clock runs on the title screen while a network game waits for the
+// launch message, before the server settings arrive, so it is never zero.
 
-int ticdup;
+int ticdup = 1;
 
 // Amount to offset the timer for game sync.
 

@@ -54,6 +54,10 @@ void MP_RequestClear(void);
 // per frame at the top of the main loop.
 void MP_StartTick(void);
 
+// Shows the waiting screen after a command line connection. The game itself
+// is started by MP_StartTick() when the launch message arrives.
+void MP_WaitForLaunch(void);
+
 // Draws the waiting screen on top of everything else, if it is up.
 void MP_DrawWaitScreen(void);
 

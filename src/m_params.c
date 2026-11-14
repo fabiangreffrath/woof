@@ -202,6 +202,8 @@ static const param_def_t param_table[] = {
       "Enable verbose output." },
     { "-devparm", TypeFlag, SectionDebug,
       "Developer mode. Enables extra debug output and features." },
+    { "-netlog", TypeString, SectionDebug,
+      "Netcode log."},
 };
 
 #define PARAM_TABLE_SIZE (sizeof(param_table) / sizeof(param_table[0]))
