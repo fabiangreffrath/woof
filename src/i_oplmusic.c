@@ -1378,6 +1378,8 @@ static boolean I_OPL_OpenStream(void *data, ALsizei size, ALenum *format,
 
     MIDISeq_SetEventHandler(I_OPL_EventHandler);
 
+    MIDISeq_SetEMIDIDevice(EMIDI_DEVICE_SOUND_BLASTER);
+
     if (!MIDISeq_RegisterSong(data, size))
     {
         return false;
