@@ -74,6 +74,11 @@ boolean MN_MenuIsShaded(void);
 
 void MN_CloseMenu(void);
 
+// Shows a centered message. When input is true, the given routine is called
+// with the key that dismissed the message.
+
+void M_StartMessage(const char *string, void (*routine)(int), boolean input);
+
 void M_SaveAutoSave(void);
 
 void M_StartSound(int sound_id);

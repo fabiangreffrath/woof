@@ -22,9 +22,9 @@
 
 extern nw_module_t nw_sdl_module;
 
-// Default port for network games, bound to the config file. The -port
-// command line parameter takes precedence.
-extern int nw_port;
+// Module used for server queries only: it has a socket of its own, so that
+// searching for servers does not interfere with a game in progress.
+extern nw_module_t nw_sdl_query_module;
 
 // Close the UDP socket, so that the module can be initialized again.
 void NW_ResetSocket(void);

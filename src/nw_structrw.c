@@ -514,7 +514,7 @@ boolean NW_ReadWaitData(nw_packet_t *packet, nw_waitdata_t *data)
             return false;
         }
 
-        M_StringCopy(data->player_addrs[i], s, MAXPLAYERNAME);
+        M_StringCopy(data->player_addrs[i], s, MAX_ADDRESS);
     }
 
     return NW_ReadSHA1Sum(packet, data->wad_sha1sum)

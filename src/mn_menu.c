@@ -196,7 +196,6 @@ static void M_DrawSound(void);
 static void M_DrawThermo(int x, int y, int thermWidth, int thermDot, byte *cr);
 static void WriteTextCR(int x, int y, byte *cr, const char *string);
 static void WriteText(int x, int y, const char *string);
-static void M_StartMessage(const char *string, void (*routine)(int), boolean input);
 
 // phares 3/30/98
 // prototypes added to support Setup Menus and Extended HELP screens
@@ -638,12 +637,6 @@ static void M_DrawNewGame(void)
 
 static void M_NewGame(int choice)
 {
-    if (netgame && !demoplayback)
-    {
-        M_StartMessage(DEH_String(NEWGAME), NULL, false);
-        return;
-    }
-
     if (demorecording) // killough 5/26/98: exclude during demo recordings
     {
         M_StartMessage("you can't start a new game\n"
@@ -667,17 +660,32 @@ static int chosen_skill;
 
 static void FinishGameSelection(void)
 {
+    int episode;
+    int map;
+
     //jff 3/24/98 remember last skill selected
     // killough 10/98 moved to here
     default_skill = chosen_skill + 1;
 
     if (!EpiCustom)
     {
-        G_DeferedInitNew(chosen_skill, epiChoice + 1, 1);
+        episode = epiChoice + 1;
+        map = 1;
     }
     else
     {
-        G_DeferedInitNew(chosen_skill, EpiMenuEpi[epiChoice], EpiMenuMap[epiChoice]);
+        episode = EpiMenuEpi[epiChoice];
+        map = EpiMenuMap[epiChoice];
+    }
+
+    if (netgame)
+    {
+        // A network game is left by the main loop, outside of the menu code.
+        MP_RequestSingleGame(chosen_skill, episode, map);
+    }
+    else
+    {
+        G_DeferedInitNew(chosen_skill, episode, map);
     }
 
     M_ClearMenus();
@@ -1058,16 +1066,19 @@ static void M_EndGameResponse(int ch)
     currentMenu->lastOn = itemOn;
     S_EvictChannels();
     M_ClearMenus();
+
+    // A network game is left by the main loop, outside of the menu code.
+    if (netgame)
+    {
+        MP_RequestLeave();
+        return;
+    }
+
     D_StartTitle();
 }
 
 static void M_EndGame(int choice)
 {
-    if (netgame)
-    {
-        M_StartMessage(DEH_String(NETEND), NULL, false);
-        return;
-    }
     M_StartMessage(DEH_String(ENDGAME), M_EndGameResponse, true);
 }
 
@@ -2556,7 +2567,7 @@ void M_Drawer(void)
 // Message Routines
 //
 
-static void M_StartMessage(const char *string, void (*routine)(int), boolean input)
+void M_StartMessage(const char *string, void (*routine)(int), boolean input)
 {
     messageLastMenuActive = menuactive;
     messageToPrint = 1;

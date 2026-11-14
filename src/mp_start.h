@@ -20,13 +20,42 @@
 
 #include "doomtype.h"
 #include "mn_common.h"
+#include "nw_defs.h"
+
+typedef enum
+{
+    MP_REQUEST_NONE,
+    MP_REQUEST_CREATE,
+    MP_REQUEST_JOIN,
+    MP_REQUEST_SINGLE,
+    MP_REQUEST_LEAVE
+} mp_request_type_t;
+
+typedef struct
+{
+    mp_request_type_t type;
+    char address[MAX_ADDRESS];
+    int skill;
+    int episode;
+    int map;
+} mp_request_t;
+
+// Queue a request; it is handled by MP_StartTick(), outside of the menu code.
+
+void MP_RequestCreate(void);
+void MP_RequestJoin(const char *address);
+void MP_RequestSingleGame(int skill, int episode, int map);
+void MP_RequestLeave(void);
+
+boolean MP_RequestPending(void);
+void MP_RequestClear(void);
 
 // Handles a pending request and the waiting-for-launch state. Called once
 // per frame at the top of the main loop.
 void MP_StartTick(void);
 
-// Draws the waiting screen or a notification on top of everything else.
-void MP_DrawOverlay(void);
+// Draws the waiting screen on top of everything else, if it is up.
+void MP_DrawWaitScreen(void);
 
 boolean MP_WaitScreenActive(void);
 

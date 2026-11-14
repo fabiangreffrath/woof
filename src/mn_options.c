@@ -302,6 +302,19 @@ enum
 static char text_edit[TEXT_EDIT_SIZE];
 static int text_edit_len;
 
+// The maximum length of the text is taken from choice_size, as the width of
+// a choice (zero means the whole buffer).
+
+static int TextMaxLength(const mn_item_t *item)
+{
+    if (item->choice_size > 0 && item->choice_size < TEXT_EDIT_SIZE)
+    {
+        return item->choice_size;
+    }
+
+    return TEXT_EDIT_SIZE - 1;
+}
+
 static const char *TextValue(const mn_item_t *item)
 {
     if (item->def && item->def->type == string && item->def->location.s)
@@ -343,7 +356,9 @@ static void TextDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
 
 static void TextBeginEdit(mn_item_t *item)
 {
-    M_StringCopy(text_edit, TextValue(item), sizeof(text_edit));
+    const int max_length = TextMaxLength(item);
+
+    M_StringCopy(text_edit, TextValue(item), max_length + 1);
     text_edit_len = strlen(text_edit);
     item->gathering = true;
     I_StartTextInput();
@@ -416,8 +431,9 @@ static boolean TextInput(mn_item_t *item, const struct event_s *ev,
     if (ev->type == ev_text)
     {
         const int chr = ev->data1.i;
+        const int max_length = TextMaxLength(item);
 
-        if (chr >= ' ' && chr <= '~' && text_edit_len < TEXT_EDIT_SIZE - 1)
+        if (chr >= ' ' && chr <= '~' && text_edit_len < max_length)
         {
             text_edit[text_edit_len++] = chr;
             text_edit[text_edit_len] = '\0';
@@ -1290,9 +1306,10 @@ static void OptionsResetPage(void)
 
 void MN_OptionsOpen(void)
 {
-    // Starting or joining a network game replaces the current game, so the
-    // multiplayer menu is only available outside of a network game.
-    MN_DisableItem(netgame || demoplayback || demorecording, "Multiplayer");
+    // A network game can be left from the menu, so Multiplayer stays
+    // available during one; only demo playback and recording block it.
+
+    MN_DisableItem(demoplayback || demorecording, "Multiplayer");
 
     MN_ContainerOpen(&options_menu);
 }

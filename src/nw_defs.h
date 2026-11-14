@@ -39,6 +39,11 @@ typedef byte sha1_digest_t[20];
 
 #define MAXPLAYERNAME  30
 
+// Maximum length of a textual address, including an IPv6 address with a
+// port in brackets.
+
+#define MAX_ADDRESS    64
+
 // Networking and tick handling related.
 
 #define BACKUPTICS     128
@@ -275,7 +280,7 @@ typedef struct
     int is_controller;
     int consoleplayer;
     char player_names[NW_MAXPLAYERS][MAXPLAYERNAME];
-    char player_addrs[NW_MAXPLAYERS][MAXPLAYERNAME];
+    char player_addrs[NW_MAXPLAYERS][MAX_ADDRESS];
     sha1_digest_t wad_sha1sum;
     sha1_digest_t deh_sha1sum;
     int is_freedoom;

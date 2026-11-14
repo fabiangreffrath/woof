@@ -44,4 +44,8 @@ void NW_SV_RegisterWithMaster(void);
 // file. The -privateserver command line parameter takes precedence.
 extern boolean nw_privateserver;
 
+// Name of the server shown in server lists, bound to the config file. The
+// -servername command line parameter takes precedence.
+extern const char *nw_servername;
+
 #endif /* #ifndef NW_SERVER_H */

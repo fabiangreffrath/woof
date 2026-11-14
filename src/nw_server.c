@@ -43,6 +43,8 @@
 
 boolean nw_privateserver;
 
+const char *nw_servername;
+
 typedef enum
 {
     // waiting for the game to be "launched" (key player to press the start
@@ -461,16 +463,16 @@ static void NW_SV_SendWaitingData(nw_client_t *client)
         if (client_range == RANGE_LOCALHOST || client_range == RANGE_PRIVATE
          || i == wait_data.consoleplayer || player_range == RANGE_LOCALHOST)
         {
-            M_StringCopy(wait_data.player_addrs[i], addr, MAXPLAYERNAME);
+            M_StringCopy(wait_data.player_addrs[i], addr, MAX_ADDRESS);
         }
         else if (player_range == RANGE_PRIVATE)
         {
-            M_snprintf(wait_data.player_addrs[i], MAXPLAYERNAME,
+            M_snprintf(wait_data.player_addrs[i], MAX_ADDRESS,
                        "[LAN player]");
         }
         else
         {
-            M_snprintf(wait_data.player_addrs[i], MAXPLAYERNAME,
+            M_snprintf(wait_data.player_addrs[i], MAX_ADDRESS,
                        "[address hidden]");
         }
     }
@@ -1457,6 +1459,10 @@ void NW_SV_SendQueryResponse(nw_addr_t *addr)
     if (p > 0)
     {
         querydata.description = myargv[p + 1];
+    }
+    else if (nw_servername != NULL && nw_servername[0] != '\0')
+    {
+        querydata.description = nw_servername;
     }
     else
     {

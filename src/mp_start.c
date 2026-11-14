@@ -16,6 +16,8 @@
 //  in-game waiting screen (there is no textscreen here).
 //
 
+#include <string.h>
+
 #include "d_loop.h"
 #include "d_main.h"
 #include "doomdef.h"
@@ -39,13 +41,7 @@
 #include "v_trans.h"
 #include "v_video.h"
 
-#define MP_NOTICE_TICS (2 * TICRATE)
-
-// Connect to the given address, or start a server when server is true.
-// Unlike the command line startup, failures are not fatal: the client is
-// left disconnected and false is returned. On success the client waits for
-// the launch message while the main loop keeps running.
-
+// Start a network game from the multiplayer menu, or join one.
 boolean D_InitNetGameFromMenu(boolean server, const char *address);
 
 void D_CheckNetGame(void);
@@ -55,11 +51,50 @@ static boolean is_server;
 static boolean launch_sent;
 static boolean reopen_menu;
 static boolean start_wipe_pending;
+static boolean fail_pending;
 
 static char wait_message[128];
+static char fail_message[128];
 
-static char notice[128];
-static int notice_until;
+static mp_request_t request;
+
+static void DrawStatusScreen(const char *text);
+
+//
+// Requests
+//
+
+void MP_RequestCreate(void)
+{
+    request = (mp_request_t){.type = MP_REQUEST_CREATE};
+}
+
+void MP_RequestJoin(const char *address)
+{
+    request = (mp_request_t){.type = MP_REQUEST_JOIN};
+    M_StringCopy(request.address, address, sizeof(request.address));
+}
+
+void MP_RequestSingleGame(int skill, int episode, int map)
+{
+    request = (mp_request_t){.type = MP_REQUEST_SINGLE, .skill = skill,
+                             .episode = episode, .map = map};
+}
+
+void MP_RequestLeave(void)
+{
+    request = (mp_request_t){.type = MP_REQUEST_LEAVE};
+}
+
+boolean MP_RequestPending(void)
+{
+    return request.type != MP_REQUEST_NONE;
+}
+
+void MP_RequestClear(void)
+{
+    request = (mp_request_t){0};
+}
 
 //
 // State
@@ -68,12 +103,6 @@ static int notice_until;
 boolean MP_WaitScreenActive(void)
 {
     return waiting;
-}
-
-static void MP_Notice(const char *text)
-{
-    M_StringCopy(notice, text, sizeof(notice));
-    notice_until = I_GetTime() + MP_NOTICE_TICS;
 }
 
 // Back to the title screen, dropping whatever was running before.
@@ -94,6 +123,57 @@ static void MP_ReopenMenu(void)
     MN_StartControlPanel();
     MN_OptionsOpen();
     MN_ContainerPushMenu(&multiplayer_menu);
+}
+
+// Report a failure and go back to the menu: the message is shown once the
+// menu is up, so that dismissing it keeps the menu open.
+
+static void MP_Fail(const char *text)
+{
+    M_StringCopy(fail_message, text, sizeof(fail_message));
+    fail_pending = true;
+    reopen_menu = true;
+}
+
+static void MP_StopNetwork(void)
+{
+    if (nw_client_connected)
+    {
+        NW_CL_Disconnect();
+    }
+
+    if (is_server)
+    {
+        NW_SV_Shutdown();
+    }
+
+    NW_ResetSocket();
+
+    is_server = false;
+}
+
+// Leave the current network game, if any.
+
+static void MP_LeaveNetGame(void)
+{
+    if (!netgame && !nw_client_connected && !is_server)
+    {
+        return;
+    }
+
+    // Disconnecting may wait for the other side, so show something first.
+    if (!nodrawers)
+    {
+        DrawStatusScreen("Leaving the network game...");
+        I_FinishUpdate();
+    }
+
+    MP_StopNetwork();
+
+    netgame = false;
+    solonet = false;
+    deathmatch = 0;
+    timelimit = 0;
 }
 
 //
@@ -141,32 +221,31 @@ static void DrawWaitScreen(void)
 
     for (int i = 0; i < total; ++i)
     {
-        char buffer[64];
         char line[128];
+        char addr[MAX_ADDRESS];
 
         if (i < data->num_players)
         {
-            const boolean ready = i < data->ready_players;
-
             M_snprintf(line, sizeof(line), "%i. %s", i + 1,
                        data->player_names[i]);
-            M_snprintf(buffer, sizeof(buffer), "%s  %s", data->player_addrs[i],
-                       ready ? "Ready" : "");
+            M_StringCopy(addr, data->player_addrs[i], sizeof(addr));
         }
         else
         {
             M_snprintf(line, sizeof(line), "%i. Drone", i + 1);
-            buffer[0] = '\0';
+            addr[0] = '\0';
         }
 
-        MN_DrawString(left, y, CR_NONE, line);
+        // The name is green once the player is ready.
 
-        if (buffer[0])
+        MN_DrawString(left, y,
+                      (i < data->ready_players) ? CR_GREEN : CR_NONE, line);
+
+        if (addr[0] != '\0')
         {
-            const int width = MN_GetPixelWidth(buffer);
-            MN_DrawString(left + list_width - width, y,
-                          (i < data->ready_players) ? CR_GREEN : CR_GRAY,
-                          buffer);
+            MN_TruncateText(addr, list_width - 120);
+            MN_DrawString(left + list_width - MN_GetPixelWidth(addr), y,
+                          CR_GRAY, addr);
         }
 
         y += MN_SPC + 2;
@@ -174,27 +253,18 @@ static void DrawWaitScreen(void)
 
     y += MN_SPC;
 
-    if (data->is_controller)
-    {
-        DrawCentered(y, CR_GOLD, "Press [ Enter ] to start the game");
-    }
-    else
-    {
-        DrawCentered(y, CR_GRAY, "Waiting for the host to start the game");
-    }
+    DrawCentered(y, data->is_controller ? CR_GOLD : CR_GRAY,
+                 data->is_controller ? "Press [ Enter ] to start the game"
+                                     : "Waiting for the host to start the game");
 
     DrawCentered(SCREENHEIGHT - 40, CR_GRAY, "[ Esc ] Cancel");
 }
 
-void MP_DrawOverlay(void)
+void MP_DrawWaitScreen(void)
 {
     if (waiting)
     {
         DrawWaitScreen();
-    }
-    else if (notice_until > I_GetTime())
-    {
-        MN_DrawNotification(notice, CR_RED, false);
     }
 }
 
@@ -202,44 +272,22 @@ void MP_DrawOverlay(void)
 // Starting
 //
 
-static void ApplyRequestSettings(const mp_request_t *request)
+static void MP_BeginStart(const mp_request_t *pending)
 {
-    deathmatch = request->deathmatch;
-    startskill = request->skill;
-    startepisode = request->episode;
-    startmap = request->map;
-    timelimit = request->timelimit;
-    nomonsters = request->nomonsters;
-    fastparm = request->fast;
-    respawnparm = request->respawn;
-}
+    // Leave the current game first: MP_LeaveNetGame() needs to know whether
+    // this client is also the server of the game being left.
 
-static void MP_StopNetwork(void)
-{
-    if (nw_client_connected)
-    {
-        NW_CL_Disconnect();
-    }
+    MP_LeaveNetGame();
 
-    if (is_server)
-    {
-        NW_SV_Shutdown();
-    }
-
-    NW_ResetSocket();
-}
-
-static void MP_BeginStart(const mp_request_t *request)
-{
-    is_server = (request->type == MP_REQUEST_CREATE);
+    is_server = (pending->type == MP_REQUEST_CREATE);
     launch_sent = false;
 
     if (is_server)
     {
-        ApplyRequestSettings(request);
+        MP_ApplyCreateSettings();
 
         // The client socket may already be bound (server search); the server
-        // has to listen on the configured port.
+        // has to listen on its own port.
         NW_ResetSocket();
     }
 
@@ -249,27 +297,25 @@ static void MP_BeginStart(const mp_request_t *request)
     nw_waiting_for_launch = false;
 
     M_StringCopy(wait_message,
-                 is_server ? "Starting the server..." : "Connecting to the server...",
+                 is_server ? "Starting the server..."
+                           : "Connecting to the server...",
                  sizeof(wait_message));
 
     waiting = true;
 
     if (!nodrawers)
     {
-        MP_DrawOverlay();
+        MP_DrawWaitScreen();
         I_FinishUpdate();
     }
 
     if (!D_InitNetGameFromMenu(is_server,
-                               is_server ? NULL : request->address))
+                               is_server ? NULL : pending->address))
     {
         waiting = false;
-
         MP_StopNetwork();
-
-        reopen_menu = true;
-        MP_Notice(is_server ? "Could not start the server."
-                            : "Could not connect to the server.");
+        MP_Fail(is_server ? "Could not start the server."
+                          : "Could not connect to the server.");
         return;
     }
 
@@ -326,19 +372,11 @@ static void MP_Abort(void)
 {
     waiting = false;
 
-    // Disconnecting may wait for the other side, so show something first.
-    if (!nodrawers)
-    {
-        DrawStatusScreen("Leaving the game...");
-        I_FinishUpdate();
-    }
-
-    MP_StopNetwork();
+    MP_LeaveNetGame();
 
     MP_BackToTitle();
 
     reopen_menu = true;
-    MP_Notice("Network game cancelled.");
 }
 
 //
@@ -347,14 +385,21 @@ static void MP_Abort(void)
 
 void MP_StartTick(void)
 {
-    // A start wipe always happens right after this, so a pending flag here
-    // means that the wipe was skipped.
+    // A start wipe always happens right after a request, so a pending flag
+    // here means that the wipe was skipped.
     start_wipe_pending = false;
 
     if (reopen_menu)
     {
         reopen_menu = false;
         MP_ReopenMenu();
+
+        if (fail_pending)
+        {
+            fail_pending = false;
+            M_StartMessage(fail_message, NULL, false);
+        }
+
         return;
     }
 
@@ -363,10 +408,9 @@ void MP_StartTick(void)
         if (!nw_client_connected)
         {
             waiting = false;
-            MP_StopNetwork();
+            MP_LeaveNetGame();
             MP_BackToTitle();
-            reopen_menu = true;
-            MP_Notice("Lost connection to the server.");
+            MP_Fail("Lost connection to the server.");
             return;
         }
 
@@ -384,10 +428,29 @@ void MP_StartTick(void)
         return;
     }
 
-    mp_request_t request = *MP_RequestGet();
+    mp_request_t pending = request;
     MP_RequestClear();
 
-    MP_BeginStart(&request);
+    switch (pending.type)
+    {
+        case MP_REQUEST_LEAVE:
+            MP_LeaveNetGame();
+            MP_BackToTitle();
+            break;
+
+        case MP_REQUEST_SINGLE:
+            MP_LeaveNetGame();
+            G_DeferedInitNew(pending.skill, pending.episode, pending.map);
+            break;
+
+        case MP_REQUEST_CREATE:
+        case MP_REQUEST_JOIN:
+            MP_BeginStart(&pending);
+            break;
+
+        default:
+            break;
+    }
 }
 
 boolean MP_Responder(menu_action_t action)

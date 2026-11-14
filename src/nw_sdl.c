@@ -22,6 +22,7 @@
 #include <SDL3_net/SDL_net.h>
 
 #include "doomtype.h"
+#include "i_printf.h"
 #include "i_system.h"
 #include "m_argv.h"
 #include "m_misc.h"
@@ -36,8 +37,6 @@
 //
 
 #define DEFAULT_PORT 2342
-
-int nw_port = DEFAULT_PORT;
 
 static boolean initted = false;
 static int port = DEFAULT_PORT;
@@ -67,7 +66,8 @@ static void InitAddrTable(void)
 // it is added to the table.  A reference is taken on the address, which
 // is released again when the entry is freed.
 
-static nw_addr_t *FindAddress(NET_Address *address, Uint16 address_port)
+static nw_addr_t *FindAddress(NET_Address *address, Uint16 address_port,
+                              nw_module_t *module)
 {
     addrpair_t *new_entry;
     int empty_entry = -1;
@@ -80,7 +80,7 @@ static nw_addr_t *FindAddress(NET_Address *address, Uint16 address_port)
 
     for (i = 0; i < addr_table_size; ++i)
     {
-        if (addr_table[i] != NULL
+        if (addr_table[i] != NULL && addr_table[i]->nw_addr.module == module
             && NET_CompareAddresses(address, addr_table[i]->address) == 0
             && address_port == addr_table[i]->port)
         {
@@ -129,7 +129,7 @@ static nw_addr_t *FindAddress(NET_Address *address, Uint16 address_port)
     new_entry->port = address_port;
     new_entry->nw_addr.refcount = 0;
     new_entry->nw_addr.handle = new_entry;
-    new_entry->nw_addr.module = &nw_sdl_module;
+    new_entry->nw_addr.module = module;
 
     addr_table[empty_entry] = new_entry;
 
@@ -154,7 +154,7 @@ static void NW_SDL_FreeAddress(nw_addr_t *addr)
     I_Error("Attempted to remove an unused address!");
 }
 
-static boolean NW_SDL_InitSocket(Uint16 bind_port)
+static boolean NW_SDL_InitSocket(NET_DatagramSocket **sock, Uint16 bind_port)
 {
     SDL_PropertiesID props;
 
@@ -167,73 +167,23 @@ static boolean NW_SDL_InitSocket(Uint16 bind_port)
     SDL_SetBooleanProperty(props,
                            NET_PROP_DATAGRAM_SOCKET_ALLOW_BROADCAST_BOOLEAN,
                            true);
-    udpsocket = NET_CreateDatagramSocket(NULL, bind_port, props);
+    *sock = NET_CreateDatagramSocket(NULL, bind_port, props);
     SDL_DestroyProperties(props);
 
-    if (udpsocket == NULL)
-    {
-        return false;
-    }
+    //NET_SimulateDatagramPacketLoss(*sock, 5);
 
-    //NET_SimulateDatagramPacketLoss(udpsocket, 5);
-
-    initted = true;
-
-    return true;
+    return *sock != NULL;
 }
 
-static boolean NW_SDL_InitClient(void)
-{
-    int p;
+// Send and receive on an arbitrary socket: the game connection and the
+// server queries use different ones.
 
-    if (initted)
-    {
-        return true;
-    }
-
-    p = M_CheckParmWithArgs("-port", 1);
-    port = p > 0 ? M_ParmArgToInt(p) : nw_port;
-
-    if (!NW_SDL_InitSocket(0))
-    {
-        I_Error("Unable to open a socket: %s", SDL_GetError());
-    }
-
-    return true;
-}
-
-static boolean NW_SDL_InitServer(void)
-{
-    int p;
-
-    if (initted)
-    {
-        return true;
-    }
-
-    p = M_CheckParmWithArgs("-port", 1);
-    port = p > 0 ? M_ParmArgToInt(p) : nw_port;
-
-    if (!NW_SDL_InitSocket(port))
-    {
-        I_Error("Unable to bind to port %i: %s", port, SDL_GetError());
-    }
-
-    return true;
-}
-
-static void NW_SDL_SendPacket(nw_addr_t *addr, nw_packet_t *packet)
+static void SendPacketOn(NET_DatagramSocket *sock, Uint16 default_port,
+                         nw_addr_t *addr, nw_packet_t *packet)
 {
     addrpair_t *entry;
     NET_Address *address = NULL;
-    Uint16 send_port = port;
-
-    // A context may still be referenced after the socket was closed; there
-    // is nothing to send in that case.
-    if (!initted || udpsocket == NULL)
-    {
-        return;
-    }
+    Uint16 send_port = default_port;
 
     if (addr != &nw_broadcast_addr)
     {
@@ -261,27 +211,31 @@ static void NW_SDL_SendPacket(nw_addr_t *addr, nw_packet_t *packet)
     // Sending to a NULL address broadcasts the packet; the socket must
     // have been created with broadcast permission for this to work.
 
-    if (!NET_SendDatagram(udpsocket, address, send_port, packet->data,
+    if (!NET_SendDatagram(sock, address, send_port, packet->data,
                           (int)packet->len))
     {
-        I_Error("Error transmitting packet: %s", SDL_GetError());
+        // Not fatal: on Windows a pending ICMP error for a previous
+        // datagram can surface here as well. Dropping the packet is
+        // handled by the protocol timeouts.
+
+        I_Printf(VB_DEBUG, "send failed: %s", SDL_GetError());
     }
 }
 
-static boolean NW_SDL_RecvPacket(nw_addr_t **addr, nw_packet_t **packet)
+static boolean RecvPacketOn(NET_DatagramSocket *sock, nw_module_t *module,
+                            nw_addr_t **addr, nw_packet_t **packet)
 {
     NET_Datagram *dgram;
 
-    // A context may still be polled after the socket was closed; treat it
-    // as "no packet" instead of a fatal error.
-    if (!initted || udpsocket == NULL)
+    if (!NET_ReceiveDatagram(sock, &dgram))
     {
-        return false;
-    }
+        // Not fatal: Windows reports an ICMP port unreachable for a
+        // previous datagram (typically the LAN broadcast query when there
+        // are no servers) as a receive error. There is simply nothing to
+        // read this time.
 
-    if (!NET_ReceiveDatagram(udpsocket, &dgram))
-    {
-        I_Error("Error receiving packet: %s", SDL_GetError());
+        I_Printf(VB_DEBUG, "recv failed: %s", SDL_GetError());
+        return false;
     }
 
     // no packets received
@@ -299,11 +253,87 @@ static boolean NW_SDL_RecvPacket(nw_addr_t **addr, nw_packet_t **packet)
 
     // Address
 
-    *addr = FindAddress(dgram->addr, dgram->port);
+    *addr = FindAddress(dgram->addr, dgram->port, module);
 
     NET_DestroyDatagram(dgram);
 
     return true;
+}
+
+static boolean NW_SDL_InitClient(void)
+{
+    int p;
+
+    if (initted)
+    {
+        return true;
+    }
+
+    p = M_CheckParmWithArgs("-port", 1);
+
+    if (p > 0)
+    {
+        port = M_ParmArgToInt(p);
+    }
+
+    if (!NW_SDL_InitSocket(&udpsocket, 0))
+    {
+        I_Error("Unable to open a socket: %s", SDL_GetError());
+    }
+
+    initted = true;
+
+    return true;
+}
+
+static boolean NW_SDL_InitServer(void)
+{
+    int p;
+
+    if (initted)
+    {
+        return true;
+    }
+
+    p = M_CheckParmWithArgs("-port", 1);
+
+    if (p > 0)
+    {
+        port = M_ParmArgToInt(p);
+    }
+
+    if (!NW_SDL_InitSocket(&udpsocket, port))
+    {
+        I_Error("Unable to bind to port %i: %s", port, SDL_GetError());
+    }
+
+    initted = true;
+
+    return true;
+}
+
+static void NW_SDL_SendPacket(nw_addr_t *addr, nw_packet_t *packet)
+{
+    // A context may still be referenced after the socket was closed; there
+    // is nothing to send in that case.
+    if (!initted || udpsocket == NULL)
+    {
+        return;
+    }
+
+    SendPacketOn(udpsocket, port, addr, packet);
+}
+
+static boolean NW_SDL_RecvPacket(nw_addr_t **addr, nw_packet_t **packet)
+{
+    // A context may still be polled after the socket was closed; treat it
+    // as "no packet" instead of a fatal error.
+    if (!initted || udpsocket == NULL)
+    {
+        return false;
+    }
+
+    return RecvPacketOn(udpsocket, &nw_sdl_module, addr, packet);
 }
 
 static void NW_SDL_AddrToString(nw_addr_t *addr, char *buffer, int buffer_len)
@@ -320,42 +350,67 @@ static void NW_SDL_AddrToString(nw_addr_t *addr, char *buffer, int buffer_len)
         return;
     }
 
-    M_StringCopy(buffer, address, buffer_len);
-
     // If we are using the default port we just need to show the IP address,
     // but otherwise we need to include the port. This is important because
     // we use the string representation in the setup tool to provided an
-    // address to connect to.
-    if (entry->port != DEFAULT_PORT)
+    // address to connect to. IPv6 addresses are put in brackets, so that
+    // the port cannot be mistaken for a part of the address.
+    if (entry->port == DEFAULT_PORT)
     {
-        char portbuf[10];
-        M_snprintf(portbuf, sizeof(portbuf), ":%i", entry->port);
-        M_StringConcat(buffer, portbuf, buffer_len);
+        M_StringCopy(buffer, address, buffer_len);
     }
-}
-
-static nw_addr_t *NW_SDL_ResolveAddress(const char *address)
-{
-    NET_Address *nw_address;
-    char *addr_hostname;
-    int addr_port;
-    nw_addr_t *result = NULL;
-    char *colon;
-
-    colon = strchr(address, ':');
-
-    addr_hostname = M_StringDuplicate(address);
-    if (colon != NULL)
+    else if (strchr(address, ':') != NULL)
     {
-        addr_hostname[colon - address] = '\0';
-        addr_port = atoi(colon + 1);
+        M_snprintf(buffer, buffer_len, "[%s]:%i", address, entry->port);
     }
     else
     {
-        addr_port = port;
+        M_snprintf(buffer, buffer_len, "%s:%i", address, entry->port);
+    }
+}
+
+static nw_addr_t *ResolveAddressFor(nw_module_t *module, const char *address)
+{
+    NET_Address *nw_address;
+    char *addr_hostname;
+    char *host;
+    int addr_port = port;
+    nw_addr_t *result = NULL;
+
+    addr_hostname = M_StringDuplicate(address);
+    host = addr_hostname;
+
+    if (*host == '[')
+    {
+        // [address]:port
+
+        char *close = strchr(host, ']');
+
+        if (close != NULL)
+        {
+            *close = '\0';
+            ++host;
+
+            if (close[1] == ':')
+            {
+                addr_port = atoi(close + 2);
+            }
+        }
+    }
+    else
+    {
+        // host:port - but a bare IPv6 address also contains colons.
+
+        char *colon = strchr(host, ':');
+
+        if (colon != NULL && strchr(colon + 1, ':') == NULL)
+        {
+            *colon = '\0';
+            addr_port = atoi(colon + 1);
+        }
     }
 
-    nw_address = NET_ResolveHostname(addr_hostname);
+    nw_address = NET_ResolveHostname(host);
 
     free(addr_hostname);
 
@@ -363,13 +418,18 @@ static nw_addr_t *NW_SDL_ResolveAddress(const char *address)
     {
         if (NET_WaitUntilResolved(nw_address, -1) == NET_SUCCESS)
         {
-            result = FindAddress(nw_address, (Uint16)addr_port);
+            result = FindAddress(nw_address, (Uint16)addr_port, module);
         }
 
         NET_UnrefAddress(nw_address);
     }
 
     return result;
+}
+
+static nw_addr_t *NW_SDL_ResolveAddress(const char *address)
+{
+    return ResolveAddressFor(&nw_sdl_module, address);
 }
 
 static void NW_SDL_Shutdown(void)
@@ -402,6 +462,83 @@ void NW_ResetSocket(void)
     initted = false;
 }
 
+//
+// Server queries use a socket of their own: a search must not take packets
+// away from the game connection in progress, and query responses must not
+// be swallowed by the client/server code.
+//
+
+static NET_DatagramSocket *query_socket;
+static boolean query_initted;
+
+static boolean NW_Query_InitClient(void)
+{
+    int p;
+
+    if (query_initted)
+    {
+        return true;
+    }
+
+    // The port is also the destination of the LAN broadcast query.
+
+    p = M_CheckParmWithArgs("-port", 1);
+
+    if (p > 0)
+    {
+        port = M_ParmArgToInt(p);
+    }
+
+    if (!NW_SDL_InitSocket(&query_socket, 0))
+    {
+        I_Printf(VB_WARNING, "Unable to open a query socket: %s",
+                 SDL_GetError());
+        return false;
+    }
+
+    query_initted = true;
+
+    return true;
+}
+
+static void NW_Query_Shutdown(void)
+{
+    if (!query_initted)
+    {
+        return;
+    }
+
+    NET_DestroyDatagramSocket(query_socket);
+    query_socket = NULL;
+
+    query_initted = false;
+}
+
+static void NW_Query_SendPacket(nw_addr_t *addr, nw_packet_t *packet)
+{
+    if (!query_initted || query_socket == NULL)
+    {
+        return;
+    }
+
+    SendPacketOn(query_socket, port, addr, packet);
+}
+
+static boolean NW_Query_RecvPacket(nw_addr_t **addr, nw_packet_t **packet)
+{
+    if (!query_initted || query_socket == NULL)
+    {
+        return false;
+    }
+
+    return RecvPacketOn(query_socket, &nw_sdl_query_module, addr, packet);
+}
+
+static nw_addr_t *NW_Query_ResolveAddress(const char *address)
+{
+    return ResolveAddressFor(&nw_sdl_query_module, address);
+}
+
 // Complete module
 
 nw_module_t nw_sdl_module =
@@ -414,4 +551,16 @@ nw_module_t nw_sdl_module =
     NW_SDL_FreeAddress,
     NW_SDL_ResolveAddress,
     NW_SDL_Shutdown,
+};
+
+nw_module_t nw_sdl_query_module =
+{
+    NW_Query_InitClient,
+    NW_Query_InitClient,
+    NW_Query_SendPacket,
+    NW_Query_RecvPacket,
+    NW_SDL_AddrToString,
+    NW_SDL_FreeAddress,
+    NW_Query_ResolveAddress,
+    NW_Query_Shutdown,
 };

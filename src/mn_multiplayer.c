@@ -15,14 +15,12 @@
 //  In-game multiplayer menu: create and join network games.
 //
 
-#include <stdlib.h>
 #include <string.h>
 
-#include "d_iwad.h"
+#include "d_englsh.h"
 #include "d_main.h"
 #include "doomdef.h"
 #include "doomstat.h"
-#include "i_printf.h"
 #include "m_config.h"
 #include "m_misc.h"
 #include "mn_common.h"
@@ -30,6 +28,8 @@
 #include "mn_font.h"
 #include "mn_menu.h"
 #include "mn_multiplayer.h"
+#include "mp_start.h"
+#include "nw_client.h"
 #include "nw_defs.h"
 #include "nw_io.h"
 #include "nw_query.h"
@@ -43,7 +43,7 @@
 
 typedef struct
 {
-    char address[64];
+    char address[MAX_ADDRESS];
     char description[48];
     int ping;
     int players;
@@ -53,28 +53,73 @@ typedef struct
     boolean compatible;
 } mp_server_t;
 
-char mp_status_text[80] = "";
+// Create Game settings, bound to the config file. They are copied into the
+// game globals only when a network game is created, so that they cannot
+// affect single player games.
 
-// Values of the Create Game page, bound to the config file.
-
-static int mp_startskill;
-static int mp_startepisode = 1;
-static int mp_startmap = 1;
-static const char *mp_address;
+static int mp_deathmatch;
+static int mp_skill = 2;
+static int mp_episode = 1;
+static int mp_map = 1;
+static int mp_timelimit;
+static boolean mp_nomonsters;
+static boolean mp_fastparm;
+static boolean mp_respawnparm;
 
 static mp_server_t servers[MP_MAX_SERVERS];
 static int num_servers;
 static boolean rebuild_needed;
-
 static boolean query_active;
-
-static int selected_server = -1;
-
-static mp_request_t request;
 
 static mn_item_t server_items[MP_MAX_SERVERS];
 static mn_page_t server_page;
 static mn_menu_t server_list_menu;
+
+//
+// Config
+//
+
+void MN_BindMultiplayerVariables(void)
+{
+    M_BindStr("nw_player_name", &nw_player_name, DEFAULT_PLAYER_NAME, wad_no,
+              "Name shown to other players");
+    M_BindStr("servername", &nw_servername, "", wad_no,
+              "Name of the server shown in server lists");
+    M_BindBool("privateserver", &nw_privateserver, NULL, false, wad_no,
+               "Do not register the server with the master server");
+
+    M_BindNum("mp_deathmatch", &mp_deathmatch, NULL, 0, 0, 3, wad_no,
+              "Game type for new network games (0 = Co-operative; "
+              "1 = Deathmatch; 2 = Deathmatch 2.0; 3 = Deathmatch 3.0)");
+    M_BindNum("mp_skill", &mp_skill, NULL, 2, 0, 4, wad_no,
+              "Skill level for new network games (0 = Easiest; "
+              "4 = Nightmare)");
+    M_BindNum("mp_episode", &mp_episode, NULL, 1, 1, 9, wad_no,
+              "Episode to start new network games on");
+    M_BindNum("mp_map", &mp_map, NULL, 1, 1, 99, wad_no,
+              "Map to start new network games on");
+    M_BindNum("mp_timelimit", &mp_timelimit, NULL, 0, 0, 99, wad_no,
+              "Levels of new network games will end after this many minutes "
+              "(0 = No limit)");
+    M_BindBool("mp_nomonsters", &mp_nomonsters, NULL, false, wad_no,
+               "Disable monsters in new network games");
+    M_BindBool("mp_fastparm", &mp_fastparm, NULL, false, wad_no,
+               "Fast monsters in new network games");
+    M_BindBool("mp_respawnparm", &mp_respawnparm, NULL, false, wad_no,
+               "Respawning monsters in new network games");
+}
+
+void MP_ApplyCreateSettings(void)
+{
+    deathmatch = mp_deathmatch;
+    startskill = mp_skill;
+    startepisode = mp_episode;
+    startmap = mp_map;
+    timelimit = mp_timelimit;
+    nomonsters = mp_nomonsters;
+    fastparm = mp_fastparm;
+    respawnparm = mp_respawnparm;
+}
 
 //
 // Server list
@@ -87,60 +132,37 @@ static void RebuildServerItems(void)
     server_page.num_items = num_servers;
 }
 
-static void SetAddress(const char *text)
+static const char *MissionName(int mission)
 {
-    char *copy = M_StringDuplicate(text);
-
-    free((char *)mp_address);
-    mp_address = copy;
+    switch (mission)
+    {
+        case doom:
+            return "DOOM";
+        case doom2:
+            return "DOOM II";
+        case pack_tnt:
+            return "TNT: Evilution";
+        case pack_plut:
+            return "The Plutonia Experiment";
+        case pack_chex:
+            return "Chex Quest";
+        case pack_hacx:
+            return "Hacx";
+        case pack_rekkr:
+            return "Rekkr";
+        case pack_freedoom:
+            return "Freedoom";
+        default:
+            return "another game";
+    }
 }
 
-static void UpdateStatus(void)
+static byte *ItemColor(const mn_draw_ctx_t *ctx)
 {
-    if (selected_server < 0 || selected_server >= num_servers)
-    {
-        M_snprintf(mp_status_text, sizeof(mp_status_text), "No server selected.");
-        return;
-    }
-
-    const mp_server_t *server = &servers[selected_server];
-
-    if (server->compatible)
-    {
-        M_snprintf(mp_status_text, sizeof(mp_status_text), "IWAD matches: %s",
-                   server->description);
-    }
-    else
-    {
-        const iwad_t *iwad = NULL;
-        const iwad_t **found = D_GetIwads();
-
-        for (int i = 0; found[i]; ++i)
-        {
-            if (found[i]->mission == server->gamemission)
-            {
-                iwad = found[i];
-                break;
-            }
-        }
-
-        if (iwad)
-        {
-            M_snprintf(mp_status_text, sizeof(mp_status_text),
-                       "Requires %s: %s", iwad->description,
-                       server->description);
-        }
-        else
-        {
-            M_snprintf(mp_status_text, sizeof(mp_status_text),
-                       "Unknown game: %s", server->description);
-        }
-
-        free(found);
-    }
-
-    // Keep the line inside the menu box.
-    MN_TruncateText(mp_status_text, 400);
+    return ctx->disabled   ? cr_dark
+           : ctx->active   ? xlat[CR_GRAY].table
+           : ctx->selected ? xlat[CR_BRIGHT].table
+                           : xlat[CR_NONE].table;
 }
 
 static void ServerDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
@@ -157,15 +179,10 @@ static void ServerDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
     const int left = ctx->x;
     const int right = ctx->value_x + ctx->value_w;
 
-    byte *cr = ctx->disabled   ? cr_dark
-               : ctx->active   ? xlat[CR_GRAY].table
-               : ctx->selected ? xlat[CR_BRIGHT].table
-                               : xlat[CR_NONE].table;
-
     char stats[16];
     char ping[16];
     char name[64];
-    char addr[64];
+    char addr[MAX_ADDRESS];
 
     M_snprintf(stats, sizeof(stats), "%i/%i", server->players,
                server->max_players);
@@ -174,21 +191,40 @@ static void ServerDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
     const int ping_w = MN_GetPixelWidth(ping);
     const int stats_x = right - ping_w - 12 - MN_GetPixelWidth(stats);
 
-    // The name comes first, the address fills the space before the numbers.
-    const int name_w = MIN((right - left) * 2 / 5, 200);
-
     M_snprintf(name, sizeof(name), "%s", server->description);
-    MN_TruncateText(name, name_w);
-    MN_DrawStringCR(left, ctx->y, cr, NULL, name);
-
-    const int addr_x = left + name_w + 12;
-
-    M_StringCopy(addr, server->address, sizeof(addr));
-    MN_TruncateText(addr, MAX(0, stats_x - 8 - addr_x));
-    MN_DrawString(addr_x, ctx->y, CR_GRAY, addr);
+    MN_TruncateText(name, stats_x - 12 - left);
+    MN_DrawStringCR(left, ctx->y, ItemColor(ctx), NULL, name);
 
     MN_DrawString(stats_x, ctx->y, CR_GREEN, stats);
     MN_DrawString(right - ping_w, ctx->y, CR_GRAY, ping);
+
+    // The address goes on its own line: an IPv6 address does not fit next
+    // to the name. The game is appended, so that a server running another
+    // IWAD can be told apart before joining it. An idle server has not
+    // adopted a game yet and reports no meaningful mission.
+    char game[32] = "";
+
+    if (server->gamemode != indetermined)
+    {
+        M_snprintf(game, sizeof(game), "  %s",
+                   MissionName(server->gamemission));
+    }
+
+    M_snprintf(addr, sizeof(addr), "%s%s", server->address, game);
+    MN_TruncateText(addr, right - left);
+    MN_DrawString(left, ctx->y + MN_SPC, CR_GRAY, addr);
+}
+
+static void ShowMismatch(const mp_server_t *server)
+{
+    static char message[160];
+
+    M_snprintf(message, sizeof(message),
+               "This server runs a different game:\n\n%s\n\n"
+               "You are running %s.\n\n" PRESSKEY,
+               MissionName(server->gamemission), MissionName(gamemission));
+
+    M_StartMessage(message, NULL, false);
 }
 
 static boolean ServerRespond(mn_item_t *item, menu_action_t action, int ch)
@@ -205,10 +241,14 @@ static boolean ServerRespond(mn_item_t *item, menu_action_t action, int ch)
         return false;
     }
 
-    selected_server = index;
-    SetAddress(servers[index].address);
-    UpdateStatus();
-    MN_ContainerPopMenu();
+    if (!servers[index].compatible)
+    {
+        ShowMismatch(&servers[index]);
+        return true;
+    }
+
+    MP_RequestJoin(servers[index].address);
+    MN_CloseMenu();
     return true;
 }
 
@@ -221,7 +261,8 @@ static void ServerPageDraw(const mn_menu_t *menu, const mn_page_t *page)
         return;
     }
 
-    const char *text = query_active ? "Searching for servers..." : "No servers found.";
+    const char *text =
+        query_active ? "Searching for servers..." : "No servers found.";
 
     MN_DrawString((SCREENWIDTH - MN_GetPixelWidth(text)) / 2,
                   menu->viewport.y + menu->viewport.h / 2, CR_GRAY, text);
@@ -237,7 +278,8 @@ static void QueryCallback(nw_addr_t *addr, nw_querydata_t *data,
 
     mp_server_t *server = &servers[num_servers];
 
-    M_StringCopy(server->address, NW_AddrToString(addr), sizeof(server->address));
+    M_StringCopy(server->address, NW_AddrToString(addr),
+                 sizeof(server->address));
     M_StringCopy(server->description, data->description,
                  sizeof(server->description));
 
@@ -246,8 +288,15 @@ static void QueryCallback(nw_addr_t *addr, nw_querydata_t *data,
     server->max_players = data->max_players;
     server->gamemode = data->gamemode;
     server->gamemission = data->gamemission;
-    server->compatible = (data->gamemode == gamemode
-                          && data->gamemission == gamemission);
+
+    // A server with no players reports an undetermined game mode: it has
+    // not adopted a game yet and takes the mode and mission of the first
+    // client that connects. Requiring an exact match here would reject
+    // every idle server, which is what most servers in the internet list
+    // are.
+    server->compatible =
+        data->num_players == 0 || data->gamemode == indetermined
+        || (data->gamemode == gamemode && data->gamemission == gamemission);
 
     ++num_servers;
     rebuild_needed = true;
@@ -272,23 +321,22 @@ static void ServerListTicker(mn_menu_t *menu)
     }
 }
 
-static void StartQuery(int mode)
+static void StartQuery(int internet)
 {
     num_servers = 0;
-    selected_server = -1;
     rebuild_needed = false;
     query_active = true;
 
     server_page.num_items = 0;
-    server_list_menu.title_text = mode ? "Internet Servers" : "LAN Servers";
+    server_list_menu.title_text = internet ? "Internet Servers" : "LAN Servers";
 
-    if (mode)
+    if (internet)
     {
         if (!NW_StartMasterQuery())
         {
             query_active = false;
-            M_StringCopy(mp_status_text, "Failed to resolve the master server.",
-                         sizeof(mp_status_text));
+            M_StartMessage("Failed to resolve the master server.\n\n" PRESSKEY,
+                           NULL, false);
             return;
         }
     }
@@ -311,77 +359,12 @@ void MP_FindInternetServers(void)
 }
 
 //
-// Requests
+// Actions
 //
-
-boolean MP_RequestPending(void)
-{
-    return request.type != MP_REQUEST_NONE;
-}
-
-const mp_request_t *MP_RequestGet(void)
-{
-    return &request;
-}
-
-void MP_RequestClear(void)
-{
-    memset(&request, 0, sizeof(request));
-    request.type = MP_REQUEST_NONE;
-}
-
-static void FillCommonRequest(void)
-{
-    MP_RequestClear();
-
-    request.deathmatch = deathmatch;
-    request.timelimit = timelimit;
-    request.nomonsters = clnomonsters;
-    request.fast = clfastparm;
-    request.respawn = clrespawnparm;
-    request.port = nw_port;
-    request.privateserver = nw_privateserver;
-}
 
 void MP_CreateGame(void)
 {
-    FillCommonRequest();
-
-    request.type = MP_REQUEST_CREATE;
-    request.skill = mp_startskill;
-    request.episode = mp_startepisode;
-    request.map = mp_startmap;
-
-    I_Printf(VB_INFO, "Multiplayer: starting a %s game on port %i",
-             deathmatch ? "deathmatch" : "co-operative", nw_port);
-
-    MN_CloseMenu();
-}
-
-void MP_JoinGame(void)
-{
-    if (mp_address == NULL || *mp_address == '\0')
-    {
-        M_StringCopy(mp_status_text, "Enter a server address.", sizeof(mp_status_text));
-        M_StartSound(sfx_mnuerr);
-        return;
-    }
-
-    // if (selected_server >= 0 && selected_server < num_servers
-    //     && !servers[selected_server].compatible)
-    // {
-    //     UpdateStatus();
-    //     M_StartSound(sfx_mnuerr);
-    //     return;
-    // }
-
-    FillCommonRequest();
-
-    request.type = MP_REQUEST_JOIN;
-    M_StringCopy(request.address, mp_address, sizeof(request.address));
-
-    I_Printf(VB_INFO, "Multiplayer: connecting to %s", mp_address);
-
+    MP_RequestCreate();
     MN_CloseMenu();
 }
 
@@ -397,6 +380,7 @@ void MN_MultiplayerInit(void)
             .label = "",
             .type = ItemType_Action,
             .ops = &server_ops,
+            .height = 2 * MN_SPC,
         };
     }
 
@@ -415,18 +399,5 @@ void MN_MultiplayerInit(void)
     server_list_menu.ticker = ServerListTicker;
 
     // Episode only exists in the original DOOM.
-    MN_DisableItem(gamemode == commercial, "startepisode");
-}
-
-void MN_BindMultiplayerVariables(void)
-{
-    M_BindNum("startskill", &mp_startskill, NULL, 2, 0, 4, wad_no,
-              "Skill level for the next multiplayer game (0 = Easiest; "
-              "4 = Nightmare)");
-    M_BindNum("startepisode", &mp_startepisode, NULL, 1, 1, 9, wad_no,
-              "Episode to start the next multiplayer game on");
-    M_BindNum("startmap", &mp_startmap, NULL, 1, 1, 99, wad_no,
-              "Map to start the next multiplayer game on");
-    M_BindStr("connect_address", &mp_address, "", wad_no,
-              "Address of the server to connect to");
+    MN_DisableItem(gamemode == commercial, "mp_episode");
 }
