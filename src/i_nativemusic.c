@@ -320,6 +320,8 @@ static void *I_MID_RegisterSong(void *data, int len)
     song_data = data;
     song_length = len;
 
+    MIDISeq_SetEMIDIDevice(EMIDI_DEVICE_GENERAL_MIDI);
+
     return (void *)1;
 }
 

@@ -31,6 +31,7 @@
 #include "m_array.h"
 #include "m_misc.h"
 #include "mididevice.h"
+#include "midifile.h"
 #include "midiseq.h"
 
 #define CLAP_MAX_FRAMES     8192
@@ -876,6 +877,8 @@ static boolean I_CLAP_OpenStream(void *data, ALsizei size, ALenum *format,
     {
         return false;
     }
+
+    MIDISeq_SetEMIDIDevice(EMIDI_DEVICE_GENERAL_MIDI);
 
     if (!MIDISeq_RegisterSong(data, size))
     {

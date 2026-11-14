@@ -56,6 +56,8 @@ void MIDISeq_SetEventHandler(midi_event_handler_t handler);
 
 int MIDISeq_GetComplevel(void);
 
+void MIDISeq_SetEMIDIDevice(emidi_device_t device);
+
 // Song loading. RegisterSong() unregisters the previous song.
 
 boolean MIDISeq_RegisterSong(void *data, int length);

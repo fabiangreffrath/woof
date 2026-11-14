@@ -283,6 +283,12 @@ if(APPLE)
     )
 endif()
 
+# Fix static OpenAL Soft build
+get_target_property(OPENAL_DEFS OpenAL::OpenAL INTERFACE_COMPILE_DEFINITIONS)
+if(NOT WIN32 AND OPENAL_DEFS MATCHES "AL_LIBTYPE_STATIC")
+    target_link_libraries(woof PRIVATE c++)
+endif()
+
 if(HAVE_ALSA)
     target_include_directories(woof PRIVATE ${ALSA_INCLUDE_DIR})
     target_link_libraries(woof PRIVATE ALSA::ALSA)

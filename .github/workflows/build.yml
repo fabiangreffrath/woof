@@ -80,16 +80,17 @@ jobs:
             os: ubuntu-24.04
             shell: bash
             type: vcpkg
-            triplet: x64-linux-release
+            triplet: x64-linux-dynamic-release
             artifact-name: AppImage
             artifact-path: |-
               build/*.AppImage
               build/*.zsync
             extra-options: >-
               -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
-              -DVCPKG_TARGET_TRIPLET=x64-linux-release
+              -DVCPKG_TARGET_TRIPLET=x64-linux-dynamic-release
               -DWITH_DISCORD_RPC=ON
-              -DCMAKE_INSTALL_PREFIX=/usr
+              -DCMAKE_INSTALL_RPATH="$GITHUB_WORKSPACE/build/vcpkg_installed/x64-linux-dynamic-release/lib"
+              -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=ON
 
           - name: MSVC x64 (vcpkg)
             os: windows-2022
@@ -134,7 +135,7 @@ jobs:
       - name: Install dependencies (Linux)
         if: runner.os == 'Linux' && matrix.config.type == 'system'
         run: >-
-          sudo apt-get install -y
+          sudo apt-get update && sudo apt-get install -y
           pandoc
           ninja-build
           libopenal-dev
@@ -146,8 +147,8 @@ jobs:
       - name: Install dependencies (Linux vcpkg)
         if: runner.os == 'Linux' && matrix.config.type == 'vcpkg'
         run: >-
-          sudo apt-get install -y pandoc build-essential autoconf-archive
-          cmake ninja-build gnome-desktop-testing
+          sudo apt-get update && sudo apt-get install -y
+          pandoc build-essential autoconf-archive ninja-build gnome-desktop-testing
           libasound2-dev libpulse-dev libaudio-dev libfribidi-dev libjack-dev
           libsndio-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev
           libxfixes-dev libxi-dev libxss-dev libxtst-dev libxkbcommon-dev
