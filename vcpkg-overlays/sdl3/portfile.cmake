@@ -1,11 +1,12 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO libsdl-org/SDL
-    REF "release-${VERSION}"
-    SHA512 d815b28f72d60e4d83e31d878bcf2dd52089353637a4ffd0fd094deaafaaa5b5ee797caad9eeb952f6c28a2bbe26253092c294ce1aefbeb92d85469f35229ed1
+    REF c917ba60c16ed745604cafaeaa05ca902a7346d9
+    SHA512 3d93d89a566934b3497941d273c57739d5e92c5f92332534e5fee4f629dc345edac3b3eaed48cdc8f0a6d9da7777ffb9b11906287f74f9b43669ffbfd5b9e2d9
     HEAD_REF main
     PATCHES
         fix-freebsd.patch
+        splitfish.patch
 )
 
 string(COMPARE EQUAL "${VCPKG_LIBRARY_LINKAGE}" "static" SDL_STATIC)

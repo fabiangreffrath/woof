@@ -460,12 +460,6 @@ void I_InitGamepad(void)
         return;
     }
 
-#ifdef _WIN32
-    // Raw input is broken for XInput devices under Windows.
-    // https://github.com/libsdl-org/SDL/issues/13047
-    SDL_SetHint(SDL_HINT_JOYSTICK_RAWINPUT, "0");
-#endif
-
     // Enable gyro, rumble, and effects on Bluetooth PlayStation controllers
     // and gyro on Nintendo Switch controllers.
     SDL_SetHint(SDL_HINT_JOYSTICK_ENHANCED_REPORTS, "1");
