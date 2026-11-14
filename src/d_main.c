@@ -39,6 +39,7 @@
 #include "d_event.h"
 #include "d_iwad.h"
 #include "d_loop.h"
+#include "d_net.h"
 #include "d_main.h"
 #include "d_player.h"
 #include "d_ticcmd.h"
@@ -144,8 +145,6 @@ static boolean demobar;
 // [FG] colored blood and gibs
 static boolean colored_blood;
 
-void D_ConnectNetGame(void);
-void D_CheckNetGame(void);
 void D_ProcessEvents(void);
 void G_BuildTiccmd(ticcmd_t *cmd);
 void D_DoAdvanceDemo(void);

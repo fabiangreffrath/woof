@@ -20,6 +20,7 @@
 
 #include "d_event.h"
 #include "d_loop.h"
+#include "d_net.h"
 #include "d_rollback.h"
 #include "d_ticcmd.h"
 #include "doomdef.h"
@@ -788,7 +789,7 @@ static void SinglePlayerClear(ticcmd_set_t *set)
 // TryRunTics
 //
 
-void RunTic(ticcmd_t *cmds, boolean *ingame);
+void D_RunTic(ticcmd_t *cmds, boolean *ingame);
 
 //
 // Rollback variant of TryRunTics(). The simulation runs ahead of the
@@ -827,7 +828,7 @@ static void TryRunTicsRollback(void)
 
                 memcpy(local_playeringame, ingame, sizeof(local_playeringame));
 
-                RunTic(cmds, ingame);
+                D_RunTic(cmds, ingame);
                 gametic += ticdup;
             }
 
@@ -888,7 +889,7 @@ static void TryRunTicsRollback(void)
 
         memcpy(local_playeringame, ingame, sizeof(local_playeringame));
 
-        RunTic(cmds, ingame);
+        D_RunTic(cmds, ingame);
         gametic += ticdup;
 
         NetUpdate(); // check for new console commands
@@ -1045,7 +1046,7 @@ void TryRunTics(void)
 
             memcpy(local_playeringame, set->ingame, sizeof(local_playeringame));
 
-            RunTic(set->cmds, set->ingame);
+            D_RunTic(set->cmds, set->ingame);
             gametic++;
 
             // modify command for duplicated tics

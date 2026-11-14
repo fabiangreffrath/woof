@@ -10,7 +10,7 @@ set(WOOF_SOURCES
     d_iwad.c               d_iwad.h
     d_loop.c               d_loop.h
     d_main.c               d_main.h
-    d_net.c
+    d_net.c                d_net.h
                            d_player.h
     d_rollback.c           d_rollback.h
                            d_think.h

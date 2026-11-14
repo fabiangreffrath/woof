@@ -10,10 +10,6 @@
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //  GNU General Public License for more details.
-//
-// DESCRIPTION:
-//  Declarative tables for the multiplayer menu.
-//
 
 #include "doomdef.h"
 #include "doomstat.h"
@@ -112,29 +108,29 @@ static const char *game_type_strings[] = {
 };
 
 static mn_item_t create_items[] = {
-    MN_CHOICE("Game Type", "mp_deathmatch", game_type_strings, 15,
+    MN_CHOICE("Game Type", "deathmatch", game_type_strings, 15,
               "Game Type:\n\nCo-operative: Play the level together.\n\n"
               "Deathmatch: Fight other players.\n\n"
               "Deathmatch 2.0: Weapons stay, items respawn.\n\n"
               "Deathmatch 3.0: Weapons stay, items respawn, no ammo pickups."),
     {.label = "Skill",
-     .cfg = "mp_skill",
+     .cfg = "skill",
      .type = ItemType_Choice,
      .get_choices = MP_GetSkillStrings,
-     .choice_size = 22,
+     .choice_size = 18,
      .description = "Skill level for the new game."},
-    MN_NUM("Episode", "mp_episode", NULL,
+    MN_NUM("Episode", "episode", NULL,
            "Episode to start on (ignored for DOOM II and its add-ons)."),
-    MN_NUM("Level Warp", "mp_map", NULL, "Map to start on."),
+    MN_NUM("Level Warp", "map", NULL, "Map to start on."),
     MN_GAP(8),
     MN_TITLE("Rules"),
-    MN_NUM("Time Limit", "mp_timelimit", "min",
+    MN_NUM("Time Limit", "timelimit", "min",
            "Levels will end after this many minutes (0 = No limit)."),
-    MN_TOGGLE_INV("Monsters Enabled", "mp_nomonsters",
+    MN_TOGGLE_INV("Monsters Enabled", "nomonsters",
                   "Monsters Enabled:\n\nSpawn monsters in the level."),
-    MN_TOGGLE("Fast Monsters", "mp_fastparm",
+    MN_TOGGLE("Fast Monsters", "fastparm",
               "Fast Monsters:\n\nMonsters move and attack faster."),
-    MN_TOGGLE("Respawning Monsters", "mp_respawnparm",
+    MN_TOGGLE("Respawning Monsters", "respawnparm",
               "Respawning Monsters:\n\nKilled monsters come back to life."),
     MN_GAP(8),
     MN_TITLE("Server"),
@@ -156,7 +152,7 @@ static mn_item_t join_items[] = {
 };
 
 static mn_item_t config_items[] = {
-    MN_TEXT("Player Name", "nw_player_name", MAXPLAYERNAME - 1,
+    MN_TEXT("Player Name", "player_name", MAXPLAYERNAME - 1,
             "Player Name:\n\nName shown to other players."),
 };
 

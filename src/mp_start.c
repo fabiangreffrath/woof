@@ -13,11 +13,12 @@
 //
 // DESCRIPTION:
 //  Starting a network game requested from the multiplayer menu, and the
-//  in-game waiting screen (there is no textscreen here).
+//  in-game waiting screen.
 //
 
 #include "d_loop.h"
 #include "d_main.h"
+#include "d_net.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "g_game.h"
@@ -38,11 +39,6 @@
 #include "v_palette.h"
 #include "v_trans.h"
 #include "v_video.h"
-
-// Start a network game from the multiplayer menu, or join one.
-boolean D_InitNetGameFromMenu(boolean server, const char *address);
-
-void D_CheckNetGame(void);
 
 static boolean waiting;
 static boolean is_server;
