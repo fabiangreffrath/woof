@@ -24,6 +24,7 @@ typedef enum
     TypeTwoArgs,
     TypeOneOrTwoArgs,
     TypeOptArg,
+    TypeSkipCheck,
 } param_type_t;
 
 typedef enum

@@ -158,7 +158,7 @@ static const param_def_t param_table[] = {
       "Use high turning resolution for demo recording." },
     { "-tas", TypeFlag, SectionDemo,
       "Lifts strict mode restrictions according to DSDA rules." },
-    { "-skipsec", TypeString, SectionDemo,
+    { "-skipsec", TypeSkipCheck, SectionDemo,
       "Skip min:sec time during viewing of the demo. "
       "\"-warp <x> -skipsec <min:sec>\" will skip min:sec time on level x." },
     { "-statdump", TypeOptArg, SectionDemo,

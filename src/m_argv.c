@@ -20,7 +20,6 @@
 #include "i_printf.h"
 #include "i_system.h"
 #include "m_argv.h"
-#include "m_config.h"
 #include "m_params.h"
 
 #include <stdio.h>
@@ -162,6 +161,8 @@ static void ValidateArgs(int p, const param_def_t *param)
                 I_Error("Option '%s' takes at most one optional argument.",
                         myargv[p]);
             }
+            break;
+        case TypeSkipCheck:
             break;
     }
 }
