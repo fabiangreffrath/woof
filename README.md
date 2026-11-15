@@ -223,6 +223,11 @@ Copyright:
  © 2013 James Haley et al.  
 License: [GPL-3.0+](https://www.gnu.org/licenses/gpl-3.0)
 
+Files: `base/gamecontrollerdb.txt`  
+Copyright:  
+ © 1997-2025 Sam Lantinga.  
+License: [zlib](https://opensource.org/license/zlib)
+
 Files: `base/all-all/sprites/pls*, man/simplecpp`  
 Copyright:  
  © 2001-2019 Contributors to the Freedoom project.  

@@ -218,6 +218,7 @@ set(BASE_SOURCES
     cryellow.lmp
     declare.txt
     dmxopl.op2
+    gamecontrollerdb.txt
     sbardef.json
     sbhuddef.json
     skilldef.json

@@ -60,6 +60,9 @@
   - Implemented rollback netcode: Processes local inputs instantly and predicts opponent actions, automatically rewinding and correcting the game state if a prediction is incorrect.
   - Added IPv6 support.
 
+* **Input:**
+  - Added community database of SDL controller mappings (gamecontrollerdb.txt).
+
 ## Bug Fixes
 
 * Fixed setup desktop action exiting immediately when run from the AppImage
