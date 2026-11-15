@@ -239,6 +239,13 @@ struct mn_menu_s
      .type = ItemType_Toggle,     \
      .description = (desc)}
 
+#define MN_TEXT(lbl, key, size, desc) \
+    {.label = (lbl),                  \
+     .cfg = (key),                    \
+     .type = ItemType_Text,           \
+     .choice_size = (size),           \
+     .description = (desc)}
+
 #define MN_CHOICE(lbl, key, strs, size, desc) \
     {.label = (lbl),                          \
      .cfg = (key),                            \

@@ -39,13 +39,6 @@
      .flags = MN_ITEM_INVERTED,       \
      .description = (desc)}
 
-#define MN_TEXT(lbl, key, size, desc) \
-    {.label = (lbl),                  \
-     .cfg = (key),                    \
-     .type = ItemType_Text,           \
-     .choice_size = (size),           \
-     .description = (desc)}
-
 // The skill names follow the current IWAD, as the setup tool does.
 
 static const char *doom_skills[] = {
@@ -108,6 +101,8 @@ static const char *game_type_strings[] = {
 };
 
 static mn_item_t create_items[] = {
+    MN_TEXT("Player Name", "player_name", MAXPLAYERNAME - 1,
+            "Player Name:\n\nName shown to other players."),
     MN_CHOICE("Game Type", "deathmatch", game_type_strings, 15,
               "Game Type:\n\nCo-operative: Play the level together.\n\n"
               "Deathmatch: Fight other players.\n\n"
@@ -145,21 +140,18 @@ static mn_item_t create_items[] = {
 };
 
 static mn_item_t join_items[] = {
+    MN_TEXT("Player Name", "player_name", MAXPLAYERNAME - 1,
+            "Player Name:\n\nName shown to other players."),
+    MN_GAP(12),
     MN_ACTION("Find Server on Local Network", MP_FindLANServers,
               "Search the local network for compatible servers."),
     MN_ACTION("Find Server on Internet", MP_FindInternetServers,
               "Search the master server for compatible servers."),
 };
 
-static mn_item_t config_items[] = {
-    MN_TEXT("Player Name", "player_name", MAXPLAYERNAME - 1,
-            "Player Name:\n\nName shown to other players."),
-};
-
 static mn_page_t multiplayer_pages[] = {
     MN_TAB("Create Game", create_items),
     MN_TAB("Join Game", join_items),
-    MN_TAB("Configuration", config_items),
 };
 
 mn_menu_t multiplayer_menu = {

@@ -32,6 +32,7 @@
 #include "mn_common.h"
 #include "mn_multiplayer.h"
 #include "mn_options.h"
+#include "nw_defs.h"
 #include "r_data.h"
 #include "r_draw.h"
 #include "r_plane.h"
@@ -954,6 +955,8 @@ static const char *death_use_action_strings[] = {"Default", "Last Save", "Nothin
 static const char *overunder_strings[] = {"Off", "Player", "All"};
 
 static mn_item_t gameplay_items[] = {
+    MN_TEXT("Player Name", "player_name", MAXPLAYERNAME - 1,
+            "Player Name:\n\nName shown to other players."),
     MN_TOGGLE("Autosave", "autosave", NULL),
     MN_CHOICE("On Death Action", "death_use_action", death_use_action_strings, 8, NULL),
     MN_GAP(6),
