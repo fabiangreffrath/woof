@@ -57,7 +57,6 @@ void W_ExtractFileBase(const char *path, char *dest)
     if (++length == 9)
     {
       // [FG] remove length check
-      I_Printf (VB_DEBUG, "Filename base of %s >8 chars",path);
       break;
     }
     else

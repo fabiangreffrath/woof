@@ -21,6 +21,7 @@
 #include <string.h>
 
 #include "d_event.h"
+#include "d_iwad.h"
 #include "d_main.h"
 #include "doomkeys.h"
 #include "doomstat.h"
@@ -35,8 +36,10 @@
 #include "m_array.h"
 #include "m_config.h"
 #include "m_input.h"
+#include "m_io.h"
 #include "m_misc.h"
 #include "mn_options.h"
+#include "w_wad.h"
 
 #define AXIS_BUTTON_DEADZONE (SDL_JOYSTICK_AXIS_MAX / 3)
 
@@ -449,6 +452,33 @@ static SDL_JoystickID GetGamepadIDFromIndex(int device_index)
     return instance_id;
 }
 
+static void AddMappings(void)
+{
+    int num_mappings = 0;
+    const char *filename =
+        M_StringJoin(D_DoomPrefDir(), DIR_SEPARATOR_S, "gamecontrollerdb.txt");
+
+    if (M_FileExistsNotDir(filename))
+    {
+        num_mappings = SDL_AddGamepadMappingsFromFile(filename);
+    }
+    else
+    {
+        const int lumpnum = W_CheckNumForLongName("gamecontrollerdb.txt");
+        if (lumpnum >= 0)
+        {
+            void *lump = W_CacheLumpNum(lumpnum, PU_STATIC);
+            const int lumplen = W_LumpLength(lumpnum);
+            SDL_IOStream *src = SDL_IOFromMem(lump, lumplen);
+            num_mappings = SDL_AddGamepadMappingsFromIO(src, true);
+            Z_Free(lump);
+        }
+    }
+
+    I_Printf(VB_DEBUG, "Loaded %d mappings from gamecontrollerdb.txt",
+             MAX(0, num_mappings));
+}
+
 void I_OpenGamepad(SDL_JoystickID instance_id);
 
 void I_InitGamepad(void)
@@ -477,6 +507,8 @@ void I_InitGamepad(void)
                  SDL_GetError());
         return;
     }
+
+    AddMappings();
 
     DisableGamepadEvents();
     I_InitRumble();
