@@ -20,6 +20,7 @@
 // 4/25/98, 5/2/98 killough: reformatted, beautified
 
 #include <limits.h>
+#include <math.h>
 #include <string.h>
 
 #include "doomdata.h"
@@ -281,13 +282,6 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
 // CALLED: CORE LOOPING ROUTINE.
 //
 
-#define HEIGHTBITS 12
-#define HEIGHTUNIT (1<<HEIGHTBITS)
-
-static THREADLOCAL int heightbits  = HEIGHTBITS;
-static THREADLOCAL int heightunit  = HEIGHTUNIT;
-static THREADLOCAL int invhgtbits  = FRACBITS - HEIGHTBITS;
-
 static THREADLOCAL boolean didsolidcol; // True if at least one column was marked solid
 
 static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
@@ -301,7 +295,7 @@ static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
       const fixed_t fracscale = FloatToFixed(rw_scale);
 
       // mark floor / ceiling areas
-      int yh, yl = (FloatToFixed64(topfrac) + heightunit-1) >> heightbits;
+      int yh, yl = ceilf(topfrac);
 
       // no space above wall?
       int bottom, top = ceilingclip[rw_x]+1;
@@ -328,7 +322,7 @@ static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
             }
         }
 
-      yh = FloatToFixed64(bottomfrac) >> heightbits;
+      yh = bottomfrac;
 
       bottom = floorclip[rw_x]-1;
       if (yh > bottom)
@@ -384,7 +378,7 @@ static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
           if (toptexture)
             {
               // top wall
-              int mid = FloatToFixed64(pixhigh) >> heightbits;
+              int mid = pixhigh;
               pixhigh += pixhighstep;
 
               if (mid >= floorclip[rw_x])
@@ -414,7 +408,7 @@ static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
 
           if (bottomtexture)          // bottom wall
             {
-              int mid = (FloatToFixed64(pixlow) + heightunit-1) >> heightbits;
+              int mid = ceilf(pixlow);
               pixlow += pixlowstep;
 
               // no space above wall?
@@ -791,11 +785,9 @@ void R_StoreWallRange(const int start, const int stop)
     }
 
   // calculate incremental stepping values for texture edges
-  worldtop >>= invhgtbits;
-  worldbottom >>= invhgtbits;
 
   const float
-    segcentery = FixedToFloat(centeryfrac >> invhgtbits),
+    segcentery = centery,
     fworldtop = FixedToFloat(worldtop),
     fworldbottom = FixedToFloat(worldbottom);
 
@@ -807,9 +799,6 @@ void R_StoreWallRange(const int start, const int stop)
 
   if (backsector)
     {
-      worldhigh >>= invhgtbits;
-      worldlow >>= invhgtbits;
-
       if (worldhigh < worldtop)
         {
           const float fworldhigh = FixedToFloat(worldhigh);
