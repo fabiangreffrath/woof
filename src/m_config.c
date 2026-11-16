@@ -54,6 +54,7 @@
 #include "m_misc.h"
 #include "mn_container.h"
 #include "mn_csmenu.h"
+#include "mn_multiplayer.h"
 #include "mn_options.h"
 #include "r_main.h"
 #include "s_sound.h"
@@ -134,6 +135,7 @@ void M_InitConfig(void)
 
     MN_BindMenuVariables();
     MN_BindOptionsVariables();
+    MN_BindMultiplayerVariables();
     MN_BindCSMenuVariables();
     D_BindMiscVariables();
     G_BindGameVariables();

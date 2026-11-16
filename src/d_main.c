@@ -39,6 +39,7 @@
 #include "d_event.h"
 #include "d_iwad.h"
 #include "d_loop.h"
+#include "d_net.h"
 #include "d_main.h"
 #include "d_player.h"
 #include "d_ticcmd.h"
@@ -79,6 +80,7 @@
 #include "mn_font.h"
 #include "mn_menu.h"
 #include "mn_options.h"
+#include "mp_start.h"
 #include "nw_client.h"
 #include "nw_dedicated.h"
 #include "p_ambient.h"
@@ -143,8 +145,6 @@ static boolean demobar;
 // [FG] colored blood and gibs
 static boolean colored_blood;
 
-void D_ConnectNetGame(void);
-void D_CheckNetGame(void);
 void D_ProcessEvents(void);
 void G_BuildTiccmd(ticcmd_t *cmd);
 void D_DoAdvanceDemo(void);
@@ -266,8 +266,7 @@ void D_Display(void)
 
     wipe = false;
 
-    // save the current screen if about to wipe
-    if (gamestate != wipegamestate)
+    if (gamestate != wipegamestate && !MP_WaitScreenActive())
     {
         wipe = true;
         wipe_StartScreen(0, 0, video.width, video.height);
@@ -394,6 +393,9 @@ void D_Display(void)
 
     // menus go directly to the screen
     M_Drawer();  // menu is drawn even on top of everything
+
+    MP_DrawWaitScreen();
+
     NetUpdate(); // send out any new accumulation
 
     if (demobar && demoplayback)
@@ -425,6 +427,8 @@ void D_Display(void)
         M_Drawer();       // menu is drawn even on top of wipes
         I_FinishUpdate(); // page flip or blit buffer
     } while (!done);
+
+    MP_AfterStartWipe();
 }
 
 //
@@ -1583,19 +1587,6 @@ void D_DoomMain(void)
         I_SafeExit(0);
     }
 
-#ifdef __linux__
-
-    if (M_ParmExists("-setup"))
-    {
-        char *setup_path = M_StringJoin(D_DoomExeDir(), DIR_SEPARATOR_S,
-                                        PROJECT_SHORTNAME "-setup");
-        char *args[] = {setup_path, NULL};
-        execv(setup_path, args);
-        I_SafeExit(1);
-    }
-
-#endif
-
     // [FG] initialize logging verbosity early to decide
     //      if the following lines will get printed or not
 
@@ -2207,7 +2198,10 @@ void D_DoomMain(void)
     }
     else if (!singledemo) // killough 12/98
     {
-        if (autostart || netgame)
+        // While a network game waits for the launch message the level is
+        // loaded by MP_StartTick(); the title screen is only a background
+        // for the waiting screen.
+        if (!MP_WaitScreenActive() && (autostart || netgame))
         {
             G_InitNew(startskill, startepisode, startmap, false);
             // [crispy] no need to write a demo header in demo continue mode
@@ -2240,6 +2234,8 @@ void D_DoomMain(void)
         // frame syncronous IO operations
         I_StartFrame();
 
+        MP_StartTick();
+
         TryRunTics(); // will run at least one tic
 
         // Update display, next frame, with current state.
@@ -2267,9 +2263,6 @@ void D_BindMiscVariables(void)
              "Palette changes when taking damage or picking up items (0 = Off; "
              "1 = On; 2 = Reduced)");
     BIND_NUM(organize_savefiles, -1, -1, 1, "Organize save files");
-    M_BindStr("nw_player_name", &nw_player_name, DEFAULT_PLAYER_NAME, wad_no,
-              "Network setup player name");
-
     BIND_BOOL(colored_blood, false, "Allow colored blood");
 }
 

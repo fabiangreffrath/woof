@@ -7,11 +7,6 @@ file(
     ${staging_dir}/${CPACK_BIN_DIR}/woof
     ${packaged_dir}/woof
 )
-file(
-    COPY_FILE
-    ${staging_dir}/${CPACK_BIN_DIR}/woof-setup
-    ${packaged_dir}/woof-setup
-)
 
 file(
     COPY_FILE

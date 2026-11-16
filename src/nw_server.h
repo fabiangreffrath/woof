@@ -40,4 +40,12 @@ void NW_SV_AddModule(nw_module_t *module);
 
 void NW_SV_RegisterWithMaster(void);
 
+// Do not register the server with the master server, bound to the config
+// file. The -privateserver command line parameter takes precedence.
+extern boolean nw_privateserver;
+
+// Name of the server shown in server lists, bound to the config file. The
+// -servername command line parameter takes precedence.
+extern const char *nw_servername;
+
 #endif /* #ifndef NW_SERVER_H */

@@ -294,12 +294,10 @@ jobs:
           unzip -q artifacts/MacOS-arm64/*.zip -d arm64
           unzip -q artifacts/MacOS-x64/*.zip   -d x64
 
-          lipo arm64/Woof-*/woof       x64/Woof-*/woof       -create -output woof
-          lipo arm64/Woof-*/woof-setup x64/Woof-*/woof-setup -create -output woof-setup
+          lipo arm64/Woof-*/woof x64/Woof-*/woof -create -output woof
 
           cp -R arm64/Woof-* universal
           mv -f woof       universal/woof
-          mv -f woof-setup universal/woof-setup
 
           ( cd universal && zip -r ../woof-macos-universal.zip . )
 

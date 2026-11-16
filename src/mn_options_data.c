@@ -30,16 +30,15 @@
 #include "m_input.h"
 #include "mn_container.h"
 #include "mn_common.h"
+#include "mn_multiplayer.h"
 #include "mn_options.h"
+#include "nw_defs.h"
 #include "r_data.h"
 #include "r_draw.h"
 #include "r_plane.h"
 #include "r_sky.h"
 
 #define MN_LAYOUT {.max_width = MN_PX(500), .items_min_width = MN_PX(250)}
-
-#define MN_TAB(tab_, items_) \
-    {.tab = (tab_), .items = (items_), .num_items = arrlen(items_)}
 
 #define MN_RESET \
     {.label = "", .type = ItemType_Reset, .flags = MN_ITEM_DIRECT_COORDS}
@@ -951,19 +950,31 @@ mn_menu_t interface_menu = {
     .num_pages = arrlen(interface_pages),
 };
 
+static const char *bobbing_pct_strings[] = {"0%", "25%", "50%", "75%", "100%"};
+
 static const char *death_use_action_strings[] = {"Default", "Last Save", "Nothing"};
 
 static const char *overunder_strings[] = {"Off", "Player", "All"};
 
 static mn_item_t gameplay_items[] = {
+    MN_TITLE("Player"),
+    MN_TEXT(
+        "Player Name", "player_name", MAXPLAYERNAME - 1,
+        "Player Name:\n\nName shown to other players."),
+    MN_TOGGLE("Always Run", "autorun", NULL),
+    MN_TOGGLE_ACT(
+        "Always Strafe 50", "autostrafe50", G_UpdateSideMove,
+        "Always Strafe 50:\n\nAutomatically applies SR50 turning for maximum speed."),
+    MN_SLIDER_STR(
+        "View Bobbing", "view_bobbing_pct", bobbing_pct_strings, 8,
+        "View Bobbing:\n\nAmount of camera bobbing when moving."),
+    MN_GAP(6),
+    MN_TITLE("Preferences"),
     MN_TOGGLE("Autosave", "autosave", NULL),
     MN_CHOICE("On Death Action", "death_use_action", death_use_action_strings, 8, NULL),
     MN_GAP(6),
     MN_TITLE("Physics"),
     MN_CHOICE("Over/Under Monsters", "overunder", overunder_strings, 8, NULL),
-    MN_TOGGLE_ACT(
-        "Auto Strafe 50", "autostrafe50", G_UpdateSideMove,
-        "Auto Strafe 50:\n\nAutomatically applies SR50 turning for maximum speed."),
     MN_TOGGLE("Improved Hit Detection", "blockmapfix", NULL),
     MN_GAP(6),
     MN_TITLE("Compatibility"),
@@ -971,23 +982,19 @@ static mn_item_t gameplay_items[] = {
     MN_RESET
 };
 
-static const char *bobbing_pct_strings[] = {"0%", "25%", "50%", "75%", "100%"};
-
 static const char *center_weapon_strings[] = {"Off", "Centered", "Bobbing"};
 
 static mn_item_t weapons_items[] = {
-    MN_SLIDER_STR(
-        "View Bob", "view_bobbing_pct", bobbing_pct_strings, 8,
-        "View Bob:\n\nAmount of camera bobbing when moving."),
     MN_SLIDER_ACT_STR(
-        "Weapon Bob", "weapon_bobbing_pct", bobbing_pct_strings, 8,
+        "Weapon Bobbing", "weapon_bobbing_pct", bobbing_pct_strings, 8,
         MN_OptionsUpdateCenteredWeaponItem,
-        "Weapon Bob:\n\nAmount of weapon sprite bobbing when moving."),
+        "Weapon Bobbing:\n\nAmount of weapon sprite bobbing when moving."),
     MN_GAP(6),
     MN_CHOICE("Weapon Alignment", "center_weapon", center_weapon_strings, 8, NULL),
     MN_TOGGLE("Weapon Recoil", "weapon_recoilpitch", NULL),
     MN_TOGGLE("Hide Weapon", "hide_weapon", NULL),
     MN_GAP(6),
+    MN_TITLE("Switching"),
     MN_TOGGLE("Weapon Carousel", "weapon_carousel", NULL),
     MN_TOGGLE("Vanilla Weapon Cycle", "doom_weapon_cycle", NULL),
     MN_TOGGLE("Use Weapon Toggles", "doom_weapon_toggles", NULL),
@@ -1018,6 +1025,7 @@ static mn_item_t options_items[] = {
     MN_MENU("Controls", &controls_menu),
     MN_MENU("Gameplay", &gameplay_menu),
     MN_MENU("Interface", &interface_menu),
+    MN_MENU("Multiplayer", &multiplayer_menu),
 };
 
 static mn_page_t options_pages[] = {
