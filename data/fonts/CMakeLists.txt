@@ -4,7 +4,7 @@ set(INPUT_PNG "${CMAKE_CURRENT_SOURCE_DIR}/hauge-8x18-v1-6.png")
 set(SOURCE_H "${CMAKE_CURRENT_SOURCE_DIR}/normal.h")
 set(OUTPUT_H "${CMAKE_CURRENT_BINARY_DIR}/normal.h")
 
-if(Python3_EXECUTABLE)
+if(ENABLE_FONTGEN AND Python3_EXECUTABLE)
     set(CONVERT_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/convert-font")
 
     # Generate to build directory

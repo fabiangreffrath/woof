@@ -28,7 +28,7 @@
 #include "st_stuff.h"
 #include "v_video.h"
 
-#include "base64/base64.h"
+#include "base64.h"
 
 static const char snapshot_str[] = "WOOF_SNAPSHOT";
 static const int snapshot_len = arrlen(snapshot_str);

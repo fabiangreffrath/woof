@@ -257,14 +257,13 @@ target_link_libraries(
             pffft::pffft
             miniz::miniz
             spng::spng
+            minimp3
             base64
             md5
             sha1
             opl
             clap
 )
-
-target_include_directories(woof PRIVATE "${MINIMP3_INCLUDE_DIRS}/minimp3")
 
 # Some platforms require standard libraries to be linked against.
 if(HAVE_LIBM)
