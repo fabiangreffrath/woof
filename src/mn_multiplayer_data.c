@@ -101,8 +101,6 @@ static const char *game_type_strings[] = {
 };
 
 static mn_item_t create_items[] = {
-    MN_TEXT("Player Name", "player_name", MAXPLAYERNAME - 1,
-            "Player Name:\n\nName shown to other players."),
     MN_CHOICE("Game Type", "deathmatch", game_type_strings, 15,
               "Game Type:\n\nCo-operative: Play the level together.\n\n"
               "Deathmatch: Fight other players.\n\n"
@@ -140,11 +138,10 @@ static mn_item_t create_items[] = {
 };
 
 static mn_item_t join_items[] = {
-    MN_TEXT("Player Name", "player_name", MAXPLAYERNAME - 1,
-            "Player Name:\n\nName shown to other players."),
     MN_GAP(12),
     MN_ACTION("Find Server on Local Network", MP_FindLANServers,
               "Search the local network for compatible servers."),
+    MN_GAP(3),
     MN_ACTION("Find Server on Internet", MP_FindInternetServers,
               "Search the master server for compatible servers."),
 };
