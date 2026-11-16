@@ -254,7 +254,6 @@ target_link_libraries(
             md5
             sha1
             opl
-            textscreen
             clap
 )
 

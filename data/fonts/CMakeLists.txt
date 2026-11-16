@@ -13,5 +13,5 @@ if(Python3_EXECUTABLE)
         VERBATIM
     )
 
-    add_custom_target(textscreen-font DEPENDS ${OUTPUT_H})
+    add_custom_target(txtscreen-font DEPENDS ${OUTPUT_H})
 endif()
