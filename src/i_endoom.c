@@ -37,7 +37,7 @@ typedef struct
 #define TXT_SCREEN_W 80
 #define TXT_SCREEN_H 25
 
-#include "../data/fonts/normal.h"
+#include "data/fonts/normal.h"
 
 #define BLINK_PERIOD 250
 

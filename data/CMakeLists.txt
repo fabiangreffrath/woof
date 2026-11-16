@@ -11,6 +11,4 @@ if(UNIX AND NOT APPLE)
     install(FILES woof.png DESTINATION share/icons/hicolor/128x128/apps)
 endif()
 
-if(ENABLE_FONTGEN)
-    add_subdirectory(fonts)
-endif()
+add_subdirectory(fonts)
