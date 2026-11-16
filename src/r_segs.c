@@ -68,23 +68,23 @@ THREADLOCAL int      rw_stopx;
 static THREADLOCAL angle_t  rw_centerangle;
 static THREADLOCAL int32_t  rw_lightlevel;
 static THREADLOCAL fixed_t  rw_offset;
-static THREADLOCAL fixed_t  rw_scale;
-static THREADLOCAL fixed_t  rw_scalestep;
+static THREADLOCAL float    rw_scale;
+static THREADLOCAL float    rw_scalestep;
 static THREADLOCAL fixed_t  rw_midtexturemid;
 static THREADLOCAL fixed_t  rw_toptexturemid;
 static THREADLOCAL fixed_t  rw_bottomtexturemid;
-static THREADLOCAL int      worldtop;
-static THREADLOCAL int      worldbottom;
-static THREADLOCAL int      worldhigh;
-static THREADLOCAL int      worldlow;
-static THREADLOCAL int64_t  pixhigh; // [FG] 64-bit integer math
-static THREADLOCAL int64_t  pixlow; // [FG] 64-bit integer math
-static THREADLOCAL fixed_t  pixhighstep;
-static THREADLOCAL fixed_t  pixlowstep;
-static THREADLOCAL int64_t  topfrac; // [FG] 64-bit integer math
-static THREADLOCAL fixed_t  topstep;
-static THREADLOCAL int64_t  bottomfrac; // [FG] 64-bit integer math
-static THREADLOCAL fixed_t  bottomstep;
+static THREADLOCAL fixed_t  worldtop;
+static THREADLOCAL fixed_t  worldbottom;
+static THREADLOCAL fixed_t  worldhigh;
+static THREADLOCAL fixed_t  worldlow;
+static THREADLOCAL float    pixhigh;
+static THREADLOCAL float    pixlow;
+static THREADLOCAL float    pixhighstep;
+static THREADLOCAL float    pixlowstep;
+static THREADLOCAL float    topfrac;
+static THREADLOCAL float    topstep;
+static THREADLOCAL float    bottomfrac;
+static THREADLOCAL float    bottomstep;
 static THREADLOCAL int      *maskedtexturecol; // [FG] 32-bit integer math
 
 //
@@ -203,7 +203,9 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
   maskedtexturecol = ds->maskedtexturecol;
 
   rw_scalestep = ds->scalestep;
-  spryscale = ds->scale1 + (x1 - ds->x1)*rw_scalestep;
+
+  float fspryscale = FixedToFloat(ds->scale1) + (x1 - ds->x1) * rw_scalestep;
+
   mfloorclip = ds->sprbottomclip;
   mceilingclip = ds->sprtopclip;
 
@@ -224,10 +226,12 @@ void R_RenderMaskedSegRange(drawseg_t *ds, int x1, int x2)
   dc_texturemid += side->interprowoffset + side->offsety_mid;
 
   // draw the columns
-  for (dc_x = x1 ; dc_x <= x2 ; dc_x++, spryscale += rw_scalestep)
+  for (dc_x = x1 ; dc_x <= x2 ; dc_x++, fspryscale += rw_scalestep)
     if (maskedtexturecol[dc_x] != INT_MAX) // [FG] 32-bit integer math
       {
-        fixed_t column = maskedtexturecol[dc_x] + FixedToInt(side->offsetx_mid);
+        spryscale = FloatToFixed(fspryscale);
+
+        int column = maskedtexturecol[dc_x] + FixedToInt(side->offsetx_mid);
         // killough 11/98:
         CalculateLighting(thiscolormap, spryscale);
 
@@ -386,8 +390,10 @@ static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
 
   for ( ; rw_x < rw_stopx ; rw_x++)
     {
+      const fixed_t fracscale = FloatToFixed(rw_scale);
+
       // mark floor / ceiling areas
-      int yh, yl = (int)((topfrac+heightunit-1)>>heightbits); // [FG] 64-bit integer math
+      int yh, yl = (FloatToFixed64(topfrac) + heightunit-1) >> heightbits;
 
       // no space above wall?
       int bottom, top = ceilingclip[rw_x]+1;
@@ -414,7 +420,7 @@ static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
             }
         }
 
-      yh = (int)(bottomfrac>>heightbits); // [FG] 64-bit integer math
+      yh = FloatToFixed64(bottomfrac) >> heightbits;
 
       bottom = floorclip[rw_x]-1;
       if (yh > bottom)
@@ -444,7 +450,7 @@ static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
           texturecolumn = rw_offset-FixedMul(finetangent[angle],rw_distance);
           texturecolumn >>= FRACBITS;
           dc_x = rw_x;
-          dc_iscale = 0xffffffffu / (unsigned)rw_scale;
+          dc_iscale = 0xffffffffu / (unsigned) fracscale;
         }
 
       // draw the wall tiers
@@ -457,7 +463,7 @@ static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
           dc_texheight = textureheight[midtexture]>>FRACBITS; // killough
 
           SideLightLevel_Mid(curline->sidedef);
-          CalculateLighting(thiscolormap, rw_scale);
+          CalculateLighting(thiscolormap, fracscale);
 
           colfunc ();
 
@@ -470,7 +476,7 @@ static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
           if (toptexture)
             {
               // top wall
-              int mid = (int)(pixhigh>>heightbits); // [FG] 64-bit integer math
+              int mid = FloatToFixed64(pixhigh) >> heightbits;
               pixhigh += pixhighstep;
 
               if (mid >= floorclip[rw_x])
@@ -485,7 +491,7 @@ static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
                   dc_texheight = textureheight[toptexture]>>FRACBITS;//killough
 
                   SideLightLevel_Top(curline->sidedef);
-                  CalculateLighting(thiscolormap, rw_scale);
+                  CalculateLighting(thiscolormap, fracscale);
 
                   colfunc ();
 
@@ -500,7 +506,7 @@ static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
 
           if (bottomtexture)          // bottom wall
             {
-              int mid = (int)((pixlow+heightunit-1)>>heightbits); // [FG] 64-bit integer math
+              int mid = (FloatToFixed64(pixlow) + heightunit-1) >> heightbits;
               pixlow += pixlowstep;
 
               // no space above wall?
@@ -516,7 +522,7 @@ static void R_RenderSegLoop(const lighttable_t * const thiscolormap)
                   dc_texheight = textureheight[bottomtexture]>>FRACBITS; // killough
 
                   SideLightLevel_Bottom(curline->sidedef);
-                  CalculateLighting(thiscolormap, rw_scale);
+                  CalculateLighting(thiscolormap, fracscale);
 
                   colfunc ();
 
@@ -648,13 +654,16 @@ void R_StoreWallRange(const int start, const int stop)
   // guaranteed to be big enough
 
   // calculate scale at both ends and step
-  ds_p->scale1 = rw_scale =
-    R_ScaleFromGlobalAngle (viewangle + xtoviewangle[start]);
+  ds_p->scale1 = R_ScaleFromGlobalAngle (viewangle + xtoviewangle[start]);
+
+  rw_scale = FixedToFloat(ds_p->scale1);
 
   if (stop > start)
     {
       ds_p->scale2 = R_ScaleFromGlobalAngle (viewangle + xtoviewangle[stop]);
-      ds_p->scalestep = rw_scalestep = (ds_p->scale2-rw_scale) / (stop-start);
+
+      ds_p->scalestep = rw_scalestep =
+        FixedToFloat(ds_p->scale2 - ds_p->scale1) / (stop - start);
     }
   else
     ds_p->scale2 = ds_p->scale1;
@@ -891,11 +900,16 @@ void R_StoreWallRange(const int start, const int stop)
   worldtop >>= invhgtbits;
   worldbottom >>= invhgtbits;
 
-  topstep = -FixedMul (rw_scalestep, worldtop);
-  topfrac = ((int64_t)centeryfrac>>invhgtbits) - (((int64_t)worldtop*rw_scale)>>FRACBITS); // [FG] 64-bit integer math
+  const float
+    segcentery = FixedToFloat(centeryfrac >> invhgtbits),
+    fworldtop = FixedToFloat(worldtop),
+    fworldbottom = FixedToFloat(worldbottom);
 
-  bottomstep = -FixedMul (rw_scalestep,worldbottom);
-  bottomfrac = ((int64_t)centeryfrac>>invhgtbits) - (((int64_t)worldbottom*rw_scale)>>FRACBITS); // [FG] 64-bit integer math
+  topfrac = segcentery - (fworldtop * rw_scale);
+  topstep = -(rw_scalestep * fworldtop);
+
+  bottomfrac = segcentery - (fworldbottom * rw_scale);
+  bottomstep = -(rw_scalestep * fworldbottom);
 
   if (backsector)
     {
@@ -904,13 +918,17 @@ void R_StoreWallRange(const int start, const int stop)
 
       if (worldhigh < worldtop)
         {
-          pixhigh = ((int64_t)centeryfrac>>invhgtbits) - (((int64_t)worldhigh*rw_scale)>>FRACBITS); // [FG] 64-bit integer math
-          pixhighstep = -FixedMul (rw_scalestep,worldhigh);
+          const float fworldhigh = FixedToFloat(worldhigh);
+
+          pixhigh = segcentery - (fworldhigh * rw_scale);
+          pixhighstep = -(rw_scalestep * fworldhigh);
         }
       if (worldlow > worldbottom)
         {
-          pixlow = ((int64_t)centeryfrac>>invhgtbits) - (((int64_t)worldlow*rw_scale)>>FRACBITS); // [FG] 64-bit integer math
-          pixlowstep = -FixedMul (rw_scalestep,worldlow);
+          const float fworldlow = FixedToFloat(worldlow);
+
+          pixlow = segcentery - (fworldlow * rw_scale);
+          pixlowstep = -(rw_scalestep * fworldlow);
         }
     }
 
