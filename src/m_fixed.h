@@ -128,15 +128,85 @@ inline static int32_t div64_32(int64_t a, int32_t b)
 
 inline static fixed_t FixedDiv(fixed_t a, fixed_t b)
 {
-    const fixed_t abs_a = FixedAbs(a);
-    const fixed_t abs_b = FixedAbs(b);
-
-    if ((abs_a >> 14) >= abs_b)
+    if ((FixedAbs(a) >> (FRACBITS - 2)) >= FixedAbs(b))
     {
         return (a ^ b) < 0 ? INT32_MIN : INT32_MAX;
     }
 
     return div64_32(shiftleft64(a, FRACBITS), b);
+}
+
+typedef int64_t rend_fixed_t;
+
+#define RENDFRACBITS       20ll
+#define RENDFRACUNIT       (1ll << RENDFRACBITS)
+#define RENDFRACMASK       (RENDFRACUNIT - 1ll)
+
+#define RENDFRACTOFRACBITS (RENDFRACBITS - FRACBITS)
+
+inline static rend_fixed_t IntToRendFixed(int32_t x)
+{
+    return shiftleft64((rend_fixed_t)x, RENDFRACBITS);
+}
+
+inline static int32_t RendFixedToInt(rend_fixed_t x)
+{
+    return (int32_t)(x >> RENDFRACBITS);
+}
+
+inline static rend_fixed_t FixedToRendFixed(fixed_t x)
+{
+    return shiftleft64((rend_fixed_t)x, RENDFRACTOFRACBITS);
+}
+
+inline static fixed_t RendFixedToFixed(rend_fixed_t x)
+{
+    return (fixed_t)(x >> RENDFRACTOFRACBITS);
+}
+
+inline static rend_fixed_t DoubleToRendFixed(double x)
+{
+    return (rend_fixed_t)(x * RENDFRACUNIT);
+}
+
+inline static rend_fixed_t RendFixedAbs(rend_fixed_t val)
+{
+    const rend_fixed_t sign = val >> 63ll;
+
+    // unsigned subtraction: abs(INT64_MIN) wraps instead of overflowing
+    return (rend_fixed_t)(((uint64_t)(val ^ sign)) - (uint64_t)sign);
+}
+
+inline static rend_fixed_t RendFixedMul(rend_fixed_t a, rend_fixed_t b)
+{
+    // the full product of both operands must fit in 63 bits
+    return (a * b) >> RENDFRACBITS;
+}
+
+inline static rend_fixed_t RendFixedDiv(rend_fixed_t a, rend_fixed_t b)
+{
+    if ((RendFixedAbs(a) >> (RENDFRACBITS - 2)) >= RendFixedAbs(b))
+    {
+        return (a ^ b) < 0 ? INT64_MIN : INT64_MAX;
+    }
+
+    return shiftleft64(a, RENDFRACBITS) / b;
+}
+
+// Rounds to nearest whole number
+inline static rend_fixed_t RendFixedRound(rend_fixed_t a)
+{
+    return (a & ~RENDFRACMASK) + ((a & (1ll << (RENDFRACBITS - 1ll))) << 1ll);
+}
+
+inline static rend_fixed_t RendFixedFloor(rend_fixed_t a)
+{
+    return a & ~RENDFRACMASK;
+}
+
+inline static rend_fixed_t RendFixedCeil(rend_fixed_t a)
+{
+    return (a + RENDFRACMASK) & ~RENDFRACMASK;
 }
 
 #endif
