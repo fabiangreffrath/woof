@@ -138,9 +138,9 @@ inline static fixed_t FixedDiv(fixed_t a, fixed_t b)
 
 typedef int64_t rend_fixed_t;
 
-#define RENDFRACBITS       20ll
-#define RENDFRACUNIT       (1ll << RENDFRACBITS)
-#define RENDFRACMASK       (RENDFRACUNIT - 1ll)
+#define RENDFRACBITS       INT64_C(20)
+#define RENDFRACUNIT       (INT64_C(1) << RENDFRACBITS)
+#define RENDFRACMASK       (RENDFRACUNIT - INT64_C(1))
 
 #define RENDFRACTOFRACBITS (RENDFRACBITS - FRACBITS)
 
@@ -169,12 +169,11 @@ inline static rend_fixed_t DoubleToRendFixed(double x)
     return (rend_fixed_t)(x * RENDFRACUNIT);
 }
 
-inline static rend_fixed_t RendFixedAbs(rend_fixed_t val)
+inline static rend_fixed_t RendFixedAbs(rend_fixed_t x)
 {
-    const rend_fixed_t sign = val >> 63ll;
+    const uint64_t mask = UINT64_C(0) - ((uint64_t)x >> 63);
 
-    // unsigned subtraction: abs(INT64_MIN) wraps instead of overflowing
-    return (rend_fixed_t)(((uint64_t)(val ^ sign)) - (uint64_t)sign);
+    return (rend_fixed_t)(((uint64_t)x + mask) ^ mask);
 }
 
 inline static rend_fixed_t RendFixedMul(rend_fixed_t a, rend_fixed_t b)
@@ -191,22 +190,6 @@ inline static rend_fixed_t RendFixedDiv(rend_fixed_t a, rend_fixed_t b)
     }
 
     return shiftleft64(a, RENDFRACBITS) / b;
-}
-
-// Rounds to nearest whole number
-inline static rend_fixed_t RendFixedRound(rend_fixed_t a)
-{
-    return (a & ~RENDFRACMASK) + ((a & (1ll << (RENDFRACBITS - 1ll))) << 1ll);
-}
-
-inline static rend_fixed_t RendFixedFloor(rend_fixed_t a)
-{
-    return a & ~RENDFRACMASK;
-}
-
-inline static rend_fixed_t RendFixedCeil(rend_fixed_t a)
-{
-    return (a + RENDFRACMASK) & ~RENDFRACMASK;
 }
 
 #endif
