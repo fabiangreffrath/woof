@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15...4.0)
+cmake_minimum_required(VERSION 3.25...4.0)
 
 option(WITH_SNDFILE "Use libsndfile if available" ON)
 if(WITH_SNDFILE)
@@ -47,7 +47,12 @@ project(
     LANGUAGES C
 )
 
-set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_EXTENSIONS ON)
+
+# Generate compile_commands.json for clangd and other tooling.
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Set a default build type if none was specified
 set(default_build_type "RelWithDebInfo")
@@ -62,7 +67,7 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif()
 
 # Prevent in-tree builds.
-if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
+if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
     message(FATAL_ERROR "In-tree builds are not supported.")
 endif()
 
@@ -156,17 +161,12 @@ if(OPENAL_VERSION_STRING VERSION_GREATER_EQUAL "1.22.0")
     set(HAVE_AL_BUFFER_CALLBACK TRUE)
 endif()
 
-if(SndFile_VERSION VERSION_GREATER_EQUAL "1.1.0")
-   set(HAVE_SNDFILE_MPEG TRUE)
-endif()
-
 find_package(libebur128 QUIET)
 find_package(pffft QUIET)
 find_package(miniz QUIET)
 include(CMakeFindDependencyMacro) # spng config bug
 find_package(spng QUIET)
 find_package(yyjson QUIET)
-find_path(MINIMP3_INCLUDE_DIRS "minimp3/minimp3.h" NO_CACHE)
 find_package(clap QUIET)
 
 if(spng_FOUND)
@@ -241,7 +241,6 @@ set(BASE_PK3_PATH "${CMAKE_BINARY_DIR}/src/${BASE_PK3}")
 add_subdirectory(base)
 add_subdirectory(data)
 add_subdirectory(opl)
-add_subdirectory(textscreen)
 add_subdirectory(third-party)
 add_subdirectory(src)
 add_subdirectory(man)

@@ -3,7 +3,6 @@
   "dependencies": [
     "clap-cleveraudio",
     "libebur128",
-    "minimp3",
     "miniz",
     {
       "name": "openal-soft",
@@ -14,6 +13,7 @@
         }
       ]
     },
+    "pffft",
     {
       "name": "sdl3",
       "features": [

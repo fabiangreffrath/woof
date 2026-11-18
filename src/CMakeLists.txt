@@ -221,6 +221,13 @@ add_executable(woof ${WOOF_SOURCES})
 target_woof_settings(woof)
 target_include_directories(woof PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/../")
 
+# Depend on font generation (regenerates only when PNG changes, or copies
+# fallback)
+add_dependencies(woof generate-font)
+
+# Base file
+add_dependencies(woof woof-base)
+
 if(WIN32)
     # Stamp out and compile resource file on Windows.
     configure_file(resource.rc.in "${CMAKE_CURRENT_BINARY_DIR}/resource.rc")
@@ -250,15 +257,13 @@ target_link_libraries(
             pffft::pffft
             miniz::miniz
             spng::spng
+            minimp3
             base64
             md5
             sha1
             opl
-            textscreen
             clap
 )
-
-target_include_directories(woof PRIVATE "${MINIMP3_INCLUDE_DIRS}/minimp3")
 
 # Some platforms require standard libraries to be linked against.
 if(HAVE_LIBM)
@@ -327,9 +332,6 @@ target_compile_definitions(woof PRIVATE
 if(WOOF_STRICT)
     target_compile_definitions(woof PRIVATE MBF_STRICT)
 endif()
-
-# Base file
-add_dependencies(woof woof-base)
 
 if(MSVC OR APPLE)
     add_custom_command(

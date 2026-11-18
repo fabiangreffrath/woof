@@ -10,3 +10,5 @@ if(UNIX AND NOT APPLE)
             DESTINATION share/metainfo)
     install(FILES woof.png DESTINATION share/icons/hicolor/128x128/apps)
 endif()
+
+add_subdirectory(fonts)

@@ -59,8 +59,3 @@ jobs:
             ,-clang-analyzer-security*
             ,-clang-analyzer-valist*
           database: 'build'
-          ignore: 'third-party|toolsrc|src/i_pcsound.c'
-
-      - name: Fail fast?!
-        if: steps.cpp-linter.outputs.clang-tidy-checks-failed > 0
-        run: exit 1

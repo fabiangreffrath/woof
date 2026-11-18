@@ -283,14 +283,7 @@ Copyright:
  © 2010 David Bolton.  
 License: [GPL-2.0](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
 
-Files: `textscreen/*`  
-Copyright:  
- © 1993-1996 Id Software, Inc.;  
- © 2002-2004 The DOSBox Team;  
- © 2005-2017 Simon Howard.  
-License: [GPL-2.0+](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html)
-
-Files: `textscreen/fonts/hauge-8x18-v1-6.png`  
+Files: `data/fonts/hauge-8x18-v1-6.png`  
 Copyright:  
  © 2025 Zokum.  
 License: [CC BY-SA](https://creativecommons.org/licenses/by-sa/4.0/)
