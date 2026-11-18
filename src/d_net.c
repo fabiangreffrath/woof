@@ -20,6 +20,7 @@
 #include "d_loop.h"
 #include "d_main.h"
 #include "d_player.h"
+#include "d_rollback.h"
 #include "d_ticcmd.h"
 #include "doomdef.h"
 #include "doomstat.h"
@@ -53,15 +54,22 @@ static void PlayerQuitGame(player_t *player)
     exitmsg[7] += player_num;
 
     playeringame[player_num] = false;
-    displaymsg("%s", exitmsg);
     // [crispy] don't interpolate players who left the game
     player->mo->interp = false;
 
-    // TODO: check if it is sensible to do this:
+    // The quit is replayed when a rollback crosses it; only the first,
+    // forward run may notify the user or touch the demo recording.
 
-    if (demorecording)
+    if (!rollback_resim)
     {
-        G_CheckDemoStatus ();
+        displaymsg("%s", exitmsg);
+
+        // TODO: check if it is sensible to do this:
+
+        if (demorecording)
+        {
+            G_CheckDemoStatus();
+        }
     }
 }
 

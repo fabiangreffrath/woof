@@ -14,6 +14,7 @@
 #include "p_keyframe.h"
 
 #include "am_map.h"
+#include "d_event.h"
 #include "d_player.h"
 #include "d_think.h"
 #include "doomdef.h"
@@ -26,9 +27,11 @@
 #include "p_dirty.h"
 #include "p_map.h"
 #include "p_maputl.h"
+#include "p_mobj.h"
 #include "p_setup.h"
 #include "p_spec.h"
 #include "p_tick.h"
+#include "p_user.h"
 #include "r_state.h"
 #include "s_musinfo.h"
 #include "s_sound.h"
@@ -320,6 +323,12 @@ static void UnArchiveWorld(void)
 
 static void ArchivePlayState(keyframe_t *keyframe)
 {
+    // Global game state that the world and player snapshots do not
+    // cover. Resimulating a rollback must replay pause toggles and
+    // pending level transitions exactly once.
+
+    write32(paused, gamestate, gameaction, secretexit);
+
     // p_tick.h
     writex(&thinkercap, sizeof(thinkercap), 1);
     writex(thinkerclasscap, sizeof(thinker_t), NUMTHCLASS);
@@ -363,6 +372,22 @@ static void ArchivePlayState(keyframe_t *keyframe)
     keyframe->data->activeplats = M_ArenaCopy(keyframe->data->activeplats,
                                               activeplats_arena);
 
+    // Retriggerable buttons: their timers decide when a switch texture
+    // is restored and are advanced once per tic.
+
+    writex(buttonlist, sizeof(*buttonlist), MAXBUTTONS);
+
+    // p_mobj.h: deathmatch item respawn queue.
+
+    writex(itemrespawnque, sizeof(*itemrespawnque), ITEMQUESIZE);
+    writex(itemrespawntime, sizeof(*itemrespawntime), ITEMQUESIZE);
+    write32(iquehead, iquetail);
+
+    // p_user.h: view height when leaving the ground, which the pusher
+    // code reads through player->viewz.
+
+    write32(offgroundtics);
+
     // music
     write32(current_musicnum);
     writex(&musinfo, sizeof(musinfo), 1);
@@ -370,6 +395,11 @@ static void ArchivePlayState(keyframe_t *keyframe)
 
 static void UnArchivePlayState(const keyframe_t *keyframe)
 {
+    paused = read32();
+    gamestate = read32();
+    gameaction = read32();
+    secretexit = read32();
+
     // p_tick.h
     readx(&thinkercap, sizeof(thinkercap), 1);
     readx(thinkerclasscap, sizeof(thinker_t), NUMTHCLASS);
@@ -409,6 +439,19 @@ static void UnArchivePlayState(const keyframe_t *keyframe)
     activeplats = readp();
     M_ArenaRestore(activeceilings_arena, keyframe->data->activeceilings);
     M_ArenaRestore(activeplats_arena, keyframe->data->activeplats);
+
+    readx(buttonlist, sizeof(*buttonlist), MAXBUTTONS);
+
+    // p_mobj.h: deathmatch item respawn queue.
+
+    readx(itemrespawnque, sizeof(*itemrespawnque), ITEMQUESIZE);
+    readx(itemrespawntime, sizeof(*itemrespawntime), ITEMQUESIZE);
+    iquehead = read32();
+    iquetail = read32();
+
+    // p_user.h
+
+    offgroundtics = read32();
 
     // music
     current_musicnum = read32();
@@ -473,6 +516,13 @@ keyframe_t *P_SaveKeyframe(int tic)
     writex(playeringame, sizeof(playeringame[0]), MAXPLAYERS);
     write32(bodyqueslot, bodyquesize);
 
+    write32(bodyque_capacity);
+
+    if (bodyque_capacity > 0)
+    {
+        writex(bodyque, sizeof(*bodyque), bodyque_capacity);
+    }
+
     ArchivePlayers();
     ArchiveWorld();
     ArchivePlayState(keyframe);
@@ -504,6 +554,14 @@ void P_LoadKeyframe(const keyframe_t *keyframe)
     readx(playeringame, sizeof(playeringame[0]), MAXPLAYERS);
     bodyqueslot = read32();
     bodyquesize = read32();
+
+    const int saved_bodyque_capacity = read32();
+    G_ResizeBodyQueue(saved_bodyque_capacity);
+
+    if (saved_bodyque_capacity > 0)
+    {
+        readx(bodyque, sizeof(*bodyque), saved_bodyque_capacity);
+    }
 
     P_MapStart();
     UnArchivePlayers();

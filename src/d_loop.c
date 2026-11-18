@@ -822,6 +822,17 @@ static void TryRunTicsRollback(void)
                 ticcmd_t cmds[NW_MAXPLAYERS];
                 boolean ingame[NW_MAXPLAYERS];
 
+                // Once the game leaves the predictable state, only
+                // resimulate tics whose inputs are known. Applying a
+                // transition on top of predicted input would make it
+                // impossible to roll back across.
+
+                if (!RB_PredictionAllowed() && !RB_TicReceived(i))
+                {
+                    RB_DiscardTics(i, end_tic);
+                    break;
+                }
+
                 RB_PrepareTic(i, &ticdata[i % BACKUPTICS].cmds[localplayer],
                               cmds, ingame);
                 RB_MaybeSaveKeyframe(i);
@@ -861,6 +872,15 @@ static void TryRunTicsRollback(void)
         {
             NetUpdate();
 
+            // A rollback scheduled while waiting must be resolved
+            // before any further tic runs on top of the diverged
+            // state.
+
+            if (RB_NeedsRollback())
+            {
+                return;
+            }
+
             counts = RB_RunLimit() - gametic / ticdup;
 
             if (counts > 0)
@@ -877,11 +897,21 @@ static void TryRunTicsRollback(void)
         }
     }
 
-    while (counts--)
+    while (counts-- > 0)
     {
         const int tic = gametic / ticdup;
         ticcmd_t cmds[NW_MAXPLAYERS];
         boolean ingame[NW_MAXPLAYERS];
+
+        // The limit may have shrunk below the initial count, for
+        // example after the game left the predictable state. Never
+        // run a predicted tic once prediction is no longer allowed:
+        // a transition must only be applied to confirmed tics.
+
+        if (tic >= RB_RunLimit())
+        {
+            break;
+        }
 
         RB_PrepareTic(tic, &ticdata[tic % BACKUPTICS].cmds[localplayer],
                       cmds, ingame);
@@ -893,6 +923,14 @@ static void TryRunTicsRollback(void)
         gametic += ticdup;
 
         NetUpdate(); // check for new console commands
+
+        // Resolve a newly detected misprediction before running more
+        // tics; the next call will roll back first.
+
+        if (RB_NeedsRollback())
+        {
+            break;
+        }
     }
 
     // killough 3/16/98: change consoleplayer to displayplayer

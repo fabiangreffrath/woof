@@ -56,6 +56,7 @@ boolean P_EvaluateItemOwned(itemtype_t item, struct player_s *player);
 int P_GetPowerDuration(powertype_t power);
 
 extern boolean onground; // whether player is on ground or in air
+extern int offgroundtics; // how many frames the player has been in the air
 
 #endif // __P_USER__
 
