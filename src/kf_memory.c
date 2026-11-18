@@ -300,6 +300,7 @@ static void UnArchiveWorld(void)
     for (i = 0; i < count; ++i)
     {
         line_t *line = dirty_lines[i].line = lines + read32();
+        line->dirty = true;
         line->special = read16();
     }
 
@@ -313,6 +314,7 @@ static void UnArchiveWorld(void)
     for (i = 0; i < count; ++i)
     {
         side_t *side = dirty_sides[i].side = sides + read32();
+        side->dirty = true;
         side->toptexture = read16();
         side->bottomtexture = read16();
         side->midtexture = read16();
@@ -589,4 +591,18 @@ void P_FreeKeyframe(keyframe_t *keyframe)
 void P_DeleteKeyframe(keyframe_t *keyframe)
 {
     array_push(deleted, keyframe);
+}
+
+// Free every cached keyframe. Used when rewind history is reset
+// completely, so a subsequent level does not inherit the previous
+// map's keyframe buffers.
+
+void P_FreeKeyframePool(void)
+{
+    const int count = array_size(deleted);
+    for (int i = 0; i < count; ++i)
+    {
+        P_FreeKeyframe(deleted[i]);
+    }
+    array_free(deleted);
 }
