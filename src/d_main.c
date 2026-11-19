@@ -442,11 +442,37 @@ static demoloop_t demoloop_point;
 static demoloop_t demoloop_prev;
 
 //
-// D_PageTicker
+// D_StartWaitScreen
+//
+// Static screen shown while a network game waits for its launch
+// message. The wait screen draws its own FLOOR4_6 background; no
+// title page and no demo may run here, because demo playback resets
+// global game settings when it ends.
+
+void D_StartWaitScreen(void)
+{
+    gameaction = ga_nothing;
+    advancedemo = false;
+    demoplayback = false;
+    usergame = false;
+    paused = false;
+    gamestate = GS_NONE;
+    automapactive = false;
+    viewactive = false;
+
+    S_StopAmbientSounds();
+    S_StopMusic();
+}
+
 // Handles timing for warped projection
 //
 void D_PageTicker(void)
 {
+    if (MP_WaitScreenActive())
+    {
+        return;
+    }
+
     if (menuactive && !netgame && menu_pause_demos)
     {
         return;
@@ -497,6 +523,15 @@ void D_AdvanceDemoLoop(void)
 
 void D_DoAdvanceDemo(void)
 {
+    // Never start a title page or a demo while a network game is
+    // waiting for its launch message; only the wait screen may draw.
+
+    if (MP_WaitScreenActive())
+    {
+        advancedemo = false;
+        return;
+    }
+
     S_StopAmbientSounds();
 
     players[consoleplayer].playerstate = PST_LIVE; // not reborn
@@ -554,6 +589,12 @@ void D_DoAdvanceDemo(void)
 
 void D_StartTitle(void)
 {
+    if (MP_WaitScreenActive())
+    {
+        D_StartWaitScreen();
+        return;
+    }
+
     gameaction = ga_nothing;
     demosequence = -1;
     demoplayback = false;
@@ -2199,9 +2240,14 @@ void D_DoomMain(void)
     else if (!singledemo) // killough 12/98
     {
         // While a network game waits for the launch message the level is
-        // loaded by MP_StartTick(); the title screen is only a background
-        // for the waiting screen.
-        if (!MP_WaitScreenActive() && (autostart || netgame))
+        // loaded by MP_StartTick(). Show only the static wait screen: a
+        // title demo would reset netgame/deathmatch when it ends.
+
+        if (MP_WaitScreenActive())
+        {
+            D_StartWaitScreen();
+        }
+        else if (autostart || netgame)
         {
             G_InitNew(startskill, startepisode, startmap, false);
             // [crispy] no need to write a demo header in demo continue mode

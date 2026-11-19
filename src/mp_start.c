@@ -110,15 +110,36 @@ void MP_WaitForLaunch(void)
     waiting = true;
 }
 
-// Back to the title screen, dropping whatever was running before.
-static void MP_BackToTitle(void)
+// Drop whatever was running before and show either the title screen
+// or the static network wait screen.
+static void MP_BackToTitleScreen(boolean wait)
 {
     G_ClearInput();
     paused = false;
     gameaction = ga_nothing;
     automapactive = false;
     usergame = false;
-    D_StartTitle();
+
+    if (wait)
+    {
+        D_StartWaitScreen();
+    }
+    else
+    {
+        D_StartTitle();
+    }
+}
+
+// Back to the title screen, dropping whatever was running before.
+static void MP_BackToTitle(void)
+{
+    MP_BackToTitleScreen(false);
+}
+
+// Static background for a pending netgame launch: no title demo.
+static void MP_BackToWaitScreen(void)
+{
+    MP_BackToTitleScreen(true);
 }
 
 // Return to the Multiplayer menu, so that the settings can be fixed up and
@@ -296,7 +317,9 @@ static void MP_BeginStart(const mp_request_t *pending)
         NW_ResetSocket();
     }
 
-    MP_BackToTitle();
+    // The wait screen is static: starting the title screen here would begin
+    // a title demo, whose end resets the netgame settings.
+    MP_BackToWaitScreen();
 
     nw_client_received_wait_data = false;
     nw_waiting_for_launch = false;
