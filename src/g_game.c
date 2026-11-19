@@ -3205,13 +3205,18 @@ void G_Ticker(void)
 		  //
 		  // The comparison, however, is only valid on the forward
 		  // (non-resim) run of a confirmed tic.
-		  if (gametic > BACKUPTICS
+		  // The consistency ring spans a level load, but positions
+		  // from the previous level are reset and cannot be
+		  // compared. Start checking only after a full ring has
+		  // been recorded in the current level.
+
+		  if (gametic / ticdup - levelstarttic / ticdup > BACKUPTICS
 		      && !rollback_resim
 		      && RB_TicConfirmed(gametic / ticdup)
 		      && consistancy[i][buf] != cmd->consistancy)
-		    I_Error("Desync: player %i at tic %i (got %i, expected %i)",
+		    I_Error("Desync: player %i at tic %i (got %i, expected %i, levelstarttic %i)",
 			     i, gametic / ticdup, cmd->consistancy,
-			     consistancy[i][buf]);
+			     consistancy[i][buf], levelstarttic);
 		  if (players[i].mo)
 		    consistancy[i][buf] = players[i].mo->x;
 		  else
