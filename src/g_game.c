@@ -3205,12 +3205,14 @@ void G_Ticker(void)
 		  //
 		  // The comparison, however, is only valid on the forward
 		  // (non-resim) run of a confirmed tic.
-		  // The consistency ring spans a level load, but positions
-		  // from the previous level are reset and cannot be
-		  // compared. Start checking only after a full ring has
-		  // been recorded in the current level.
+		  // The consistency ring spans a level load and the
+		  // intermission that follows it, but positions are frozen
+		  // or reset there and cannot be compared. Check only on
+		  // level tics, and only after a full ring has been
+		  // recorded in the current level.
 
-		  if (gametic / ticdup - levelstarttic / ticdup > BACKUPTICS
+		  if (gamestate == GS_LEVEL
+		      && gametic / ticdup - levelstarttic / ticdup > BACKUPTICS
 		      && !rollback_resim
 		      && RB_TicConfirmed(gametic / ticdup)
 		      && consistancy[i][buf] != cmd->consistancy)
