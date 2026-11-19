@@ -179,13 +179,13 @@ void RB_ReceiveTic(int tic, ticcmd_t *ticcmds, boolean *players_mask)
 {
     const int slot = tic % BACKUPTICS;
 
-    // Never schedule a rollback across a committed transition or for
-    // a tic that belongs to a previous level: a level keyframe cannot
-    // be restored there, and the level load already resynchronized
-    // the state.
+    // Never schedule a rollback for a tic from a previous level. A
+    // confirmation for a level tic may arrive after the exit has
+    // already switched to intermission; that correction is still
+    // needed (intermission tics are never predicted, so only level
+    // tics reach the comparison below).
 
-    const boolean can_schedule =
-        gamestate == GS_LEVEL && tic >= levelstarttic;
+    const boolean can_schedule = tic >= levelstarttic;
 
     confirmed_tic[slot] = tic;
 
@@ -411,20 +411,20 @@ boolean RB_BeginRollback(int *start_tic, int *end_tic)
 
     rollback_pending = -1;
 
-    // A transition is already committed. Restoring a level keyframe
-    // here would put the game back into GS_LEVEL and undo it; the
-    // level load resynchronized the world anyway, so no correction is
-    // needed. This also covers targets from before the current level,
-    // whose keyframes are gone.
+    // A transition may already be in progress: a level tic whose
+    // confirmation arrived late still needs to be corrected, and a
+    // level keyframe resimulated up to the current tic reproduces the
+    // exit deterministically. Only targets from before the current
+    // level are stale (their keyframes are gone).
 
-    if (gamestate != GS_LEVEL || target < levelstarttic)
+    if (target < levelstarttic)
     {
         if (!rb_warned_stale)
         {
             I_Printf(VB_WARNING,
                      "Dropped stale rollback at tic %d "
-                     "(gamestate %d, levelstarttic %d)",
-                     target, gamestate, levelstarttic);
+                     "(levelstarttic %d)",
+                     target, levelstarttic);
             rb_warned_stale = true;
         }
 
