@@ -303,6 +303,7 @@ int RB_RunLimit(void)
 static void Predict(int tic, int player, ticcmd_t *cmd, boolean *ingame)
 {
     ticcmd_t last_cmd;
+    boolean repeated = false;
 
     memset(&last_cmd, 0, sizeof(last_cmd));
     *ingame = playeringame[player];
@@ -322,6 +323,7 @@ static void Predict(int tic, int player, ticcmd_t *cmd, boolean *ingame)
         {
             last_cmd = used_cmds[slot][player];
             *ingame = used_ingame[slot][player];
+            repeated = used_predicted[slot][player];
             break;
         }
     }
@@ -334,6 +336,15 @@ static void Predict(int tic, int player, ticcmd_t *cmd, boolean *ingame)
     }
 
     last_cmd.chatchar = 0;
+
+    // Repeat the turning rate for the first predicted tic only; a
+    // long gap would otherwise extrapolate a turn and make the
+    // correction visibly larger.
+
+    if (repeated)
+    {
+        last_cmd.angleturn = 0;
+    }
 
     // Local-only fields have no meaning for a remote player.
 

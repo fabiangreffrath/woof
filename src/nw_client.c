@@ -657,10 +657,10 @@ static void NW_CL_CheckResends(void)
         recvobj = &recvwindow[i];
 
         // if need_resend is true, this tic needs another retransmit
-        // request (300ms timeout)
+        // request (150ms timeout, inside the rollback prediction window)
 
         need_resend = !recvobj->active && recvobj->resend_time != 0
-                      && nowtime > recvobj->resend_time + 300;
+                      && nowtime > recvobj->resend_time + 150;
 
         // if no game data has been received in a long time, we may be in
         // a deadlock scenario where tics from the server have been lost, so

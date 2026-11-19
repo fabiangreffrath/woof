@@ -408,7 +408,10 @@ void D_StartNetGame(nw_gamesettings_t *settings,
     }
     else
     {
-        settings->extratics = 1;
+        // Two previous tics per packet survive two consecutive lost
+        // packets; one extra tic only survives a single loss.
+
+        settings->extratics = 2;
     }
 
     i = M_CheckParmWithArgs("-dup", 1);

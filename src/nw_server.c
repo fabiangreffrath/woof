@@ -1124,10 +1124,10 @@ static void NW_SV_CheckResends(nw_client_t *client)
         recvobj = &recvwindow[i][player];
 
         // if need_resend is true, this tic needs another retransmit
-        // request (300ms timeout)
+        // request (150ms timeout, inside the rollback prediction window)
 
         need_resend = !recvobj->active && recvobj->resend_time != 0
-                      && nowtime > recvobj->resend_time + 300;
+                      && nowtime > recvobj->resend_time + 150;
 
         if (need_resend)
         {
