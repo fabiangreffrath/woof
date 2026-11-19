@@ -1309,8 +1309,6 @@ void MN_OptionsOpen(void)
     // A network game can be left from the menu, so Multiplayer stays
     // available during one; only demo playback and recording block it.
 
-    MN_DisableItem(demoplayback || demorecording, "Multiplayer");
-
     MN_ContainerOpen(&options_menu);
 }
 

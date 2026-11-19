@@ -239,8 +239,7 @@ static void DrawWaitScreen(void)
 
     const nw_waitdata_t *data = &nw_client_wait_data;
 
-    const int total = MIN(data->num_players + data->num_drones,
-                          (int)arrlen(data->player_names));
+    const int total = MIN(data->num_players + data->num_drones, NW_MAXPLAYERS);
 
     const int list_width = 360;
     const int left = (SCREENWIDTH - list_width) / 2;
