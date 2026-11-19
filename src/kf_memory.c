@@ -288,6 +288,20 @@ static void UnArchiveWorld(void)
         sector->ceilingdata = readp();
         sector->thinglist = readp();
         sector->touching_thinglist = readp();
+
+        // Renderer interpolation state is not part of the snapshot.
+        // Never interpolate from values recorded before the rollback.
+
+        sector->oldfloorheight = sector->floorheight;
+        sector->oldceilingheight = sector->ceilingheight;
+        sector->old_floor_xoffs = sector->floor_xoffs;
+        sector->old_floor_yoffs = sector->floor_yoffs;
+        sector->old_ceiling_xoffs = sector->ceiling_xoffs;
+        sector->old_ceiling_yoffs = sector->ceiling_yoffs;
+        sector->oldfloorgametic = -1;
+        sector->oldceilgametic = -1;
+        sector->old_floor_offs_gametic = -1;
+        sector->old_ceil_offs_gametic = -1;
     }
 
     int count = read32();
@@ -309,6 +323,14 @@ static void UnArchiveWorld(void)
     for (i = count; i < oldcount; ++i)
     {
         P_CleanSide(&dirty_sides[i]);
+
+        side_t *side = dirty_sides[i].side;
+        if (side)
+        {
+            side->oldtextureoffset = side->textureoffset;
+            side->oldrowoffset = side->rowoffset;
+            side->oldgametic = -1;
+        }
     }
     array_resize(dirty_sides, count);
     for (i = 0; i < count; ++i)
@@ -320,6 +342,12 @@ static void UnArchiveWorld(void)
         side->midtexture = read16();
         side->textureoffset = read32();
         side->rowoffset = read32();
+
+        // See the sector interpolation note above.
+
+        side->oldtextureoffset = side->textureoffset;
+        side->oldrowoffset = side->rowoffset;
+        side->oldgametic = -1;
     }
 }
 
@@ -511,6 +539,7 @@ keyframe_t *P_SaveKeyframe(int tic)
     write8((gametic - boom_basetic) & 255);
 
     write32(leveltime,
+            oldleveltime,
             totalleveltimes,
             playback_tic,
             playback_totaltics);
@@ -549,6 +578,7 @@ void P_LoadKeyframe(const keyframe_t *keyframe)
     boom_basetic = gametic - read8();
 
     leveltime = read32();
+    oldleveltime = read32();
     totalleveltimes = read32();
     playback_tic = read32();
     playback_totaltics = read32();

@@ -56,6 +56,11 @@ static int rollback_pending = -1;
 
 static boolean rb_stalled = false;
 
+// Whether a rollback was dropped because it targeted a committed
+// transition or a previous level. Warn once per level, not per tic.
+
+static boolean rb_warned_stale = false;
+
 static keyframe_t *keyframes[BACKUPTICS];
 
 // The ticcmd sets that were actually used to run each tic.
@@ -91,6 +96,7 @@ void RB_Shutdown(void)
     rollback_resim = false;
     rollback_pending = -1;
     rb_stalled = false;
+    rb_warned_stale = false;
 }
 
 void RB_Init(int consoleplayer)
@@ -173,6 +179,14 @@ void RB_ReceiveTic(int tic, ticcmd_t *ticcmds, boolean *players_mask)
 {
     const int slot = tic % BACKUPTICS;
 
+    // Never schedule a rollback across a committed transition or for
+    // a tic that belongs to a previous level: a level keyframe cannot
+    // be restored there, and the level load already resynchronized
+    // the state.
+
+    const boolean can_schedule =
+        gamestate == GS_LEVEL && tic >= levelstarttic;
+
     confirmed_tic[slot] = tic;
 
     for (int i = 0; i < NW_MAXPLAYERS; ++i)
@@ -191,7 +205,8 @@ void RB_ReceiveTic(int tic, ticcmd_t *ticcmds, boolean *players_mask)
         // If this tic was already simulated using a prediction and the
         // confirmed data differs, schedule a rollback to it.
 
-        if (i < MAXPLAYERS && used_tic[slot] == tic && used_predicted[slot][i]
+        if (can_schedule && i < MAXPLAYERS && used_tic[slot] == tic
+            && used_predicted[slot][i]
             && (TiccmdDiffers(&used_cmds[slot][i], &ticcmds[i])
                 || used_ingame[slot][i] != players_mask[i]))
         {
@@ -396,6 +411,26 @@ boolean RB_BeginRollback(int *start_tic, int *end_tic)
 
     rollback_pending = -1;
 
+    // A transition is already committed. Restoring a level keyframe
+    // here would put the game back into GS_LEVEL and undo it; the
+    // level load resynchronized the world anyway, so no correction is
+    // needed. This also covers targets from before the current level,
+    // whose keyframes are gone.
+
+    if (gamestate != GS_LEVEL || target < levelstarttic)
+    {
+        if (!rb_warned_stale)
+        {
+            I_Printf(VB_WARNING,
+                     "Dropped stale rollback at tic %d "
+                     "(gamestate %d, levelstarttic %d)",
+                     target, gamestate, levelstarttic);
+            rb_warned_stale = true;
+        }
+
+        return false;
+    }
+
     // Find the newest keyframe at or before the mispredicted tic.
     // Keyframes are saved at a fixed interval while tics are run, so
     // one is always nearby.
@@ -410,6 +445,7 @@ boolean RB_BeginRollback(int *start_tic, int *end_tic)
         const int slot = t % BACKUPTICS;
 
         if (keyframes[slot] && keyframes[slot]->tic == t
+            && keyframes[slot]->tic >= levelstarttic
             && keyframes[slot]->episode == gameepisode
             && keyframes[slot]->map == gamemap)
         {
@@ -487,6 +523,12 @@ void RB_OnLevelLoad(void)
     for (int i = 0; i < BACKUPTICS; ++i)
     {
         FreeSlotKeyframe(i);
+        used_tic[i] = -1;
+
+        for (int j = 0; j < NW_MAXPLAYERS; ++j)
+        {
+            used_predicted[i][j] = false;
+        }
     }
 
     // The reload itself resynchronizes the state, so any divergence
@@ -494,4 +536,5 @@ void RB_OnLevelLoad(void)
 
     rollback_pending = -1;
     rb_stalled = false;
+    rb_warned_stale = false;
 }
