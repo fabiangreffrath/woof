@@ -55,6 +55,12 @@ boolean RB_TicReceived(int tic);
 
 boolean RB_PredictionAllowed(void);
 
+// Whether the raw input camera can be used. Unlike plain interpolation it
+// shows the local turns of tics the simulation has not reached yet, which
+// is only valid while rollback can carry the simulation over them.
+
+boolean RB_RawCameraAllowed(void);
+
 // Whether inputs may be predicted now: prediction must be allowed in
 // the current game state and a keyframe to roll back to must exist.
 

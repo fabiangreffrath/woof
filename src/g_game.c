@@ -663,7 +663,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   G_DemoSkipTics();
 
-  if (!uncapped || !raw_input)
+  if (!G_RawInputActive())
   {
     G_PrepMouseTiccmd();
     G_PrepGamepadTiccmd();

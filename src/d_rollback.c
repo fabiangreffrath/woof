@@ -253,6 +253,15 @@ boolean RB_PredictionAllowed(void)
            && gameaction == ga_nothing;
 }
 
+boolean RB_RawCameraAllowed(void)
+{
+    // Deliberately independent of the game state: the input functions are
+    // selected once per session, while the caller re-checks the state it
+    // renders in (see CheckLocalView).
+
+    return rollback_enabled;
+}
+
 boolean RB_CanPredict(void)
 {
     if (!RB_PredictionAllowed())

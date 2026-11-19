@@ -22,6 +22,7 @@
 #include "doomtype.h"
 #include "m_fixed.h"
 #include "nw_defs.h"
+#include "tables.h"
 
 // Callback function invoked while waiting for the netgame to start.
 // The callback is invoked when new players are ready. The callback
@@ -69,6 +70,10 @@ void D_StartNetGame(nw_gamesettings_t *settings,
                     netgame_startup_callback_t callback);
 
 void D_ReceiveTic(ticcmd_t *ticcmds, boolean *players_mask);
+
+// Sum the local player's turning and pitch from the tics that were built
+// but not simulated yet. Render-only; the newest few tics are used.
+void D_GetUnrunLocalInput(angle_t *angle, fixed_t *pitch);
 
 extern fixed_t offsetms;
 

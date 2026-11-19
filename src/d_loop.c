@@ -39,6 +39,7 @@
 #include "nw_query.h"
 #include "nw_sdl.h"
 #include "nw_server.h"
+#include "p_mobj.h"
 #include "s_sound.h"
 
 // The complete set of data for a particular tic.
@@ -203,6 +204,42 @@ static boolean BuildNewTic(void)
     ++maketic;
 
     return true;
+}
+
+// The raw camera draws the local input that is already in ticcmds but has
+// not been simulated yet. Only the newest tics are shown: at a high latency
+// the rest would put the aim far ahead of the world that is rendered.
+
+#define RB_CAMERA_LEAD_TICS 2
+
+void D_GetUnrunLocalInput(angle_t *angle, fixed_t *pitch)
+{
+    angle_t turn = 0;
+    fixed_t look = 0;
+    int first = gametic / ticdup;
+
+    if (localplayer >= 0 && localplayer < MAXPLAYERS)
+    {
+        if (maketic - first > RB_CAMERA_LEAD_TICS)
+        {
+            first = maketic - RB_CAMERA_LEAD_TICS;
+        }
+
+        for (int tic = first; tic < maketic; ++tic)
+        {
+            const ticcmd_t *cmd = &ticdata[tic % BACKUPTICS].cmds[localplayer];
+
+            // angleturn holds the whole turn of the tic; ticangleturn is the
+            // part that did not come through the raw input path.
+
+            turn += (angle_t)((uint32_t)(cmd->angleturn - cmd->ticangleturn)
+                              << FRACBITS);
+            look += (fixed_t)((uint32_t)cmd->pitch << FRACBITS);
+        }
+    }
+
+    *angle = turn;
+    *pitch = CLAMP(look, -max_pitch_angle, max_pitch_angle);
 }
 
 //

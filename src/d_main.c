@@ -168,7 +168,7 @@ void D_PostEvent(event_t *ev)
     switch (ev->type)
     {
         case ev_mouse:
-            if (uncapped && raw_input)
+            if (G_RawInputActive())
             {
                 G_MovementResponder(ev);
                 G_PrepMouseTiccmd();
@@ -177,7 +177,7 @@ void D_PostEvent(event_t *ev)
             break;
 
         case ev_joystick:
-            if (uncapped && raw_input)
+            if (G_RawInputActive())
             {
                 G_MovementResponder(ev);
                 G_PrepGamepadTiccmd();
@@ -186,7 +186,7 @@ void D_PostEvent(event_t *ev)
             break;
 
         case ev_gyro:
-            if (uncapped && raw_input)
+            if (G_RawInputActive())
             {
                 G_MovementResponder(ev);
                 G_PrepGyroTiccmd();
@@ -258,7 +258,7 @@ void D_Display(void)
         // [AM] Figure out how far into the current tic we're in as a fixed_t.
         fractionaltic = I_GetFracTime();
 
-        if (!menuactive && gamestate == GS_LEVEL && !paused && raw_input)
+        if (!menuactive && gamestate == GS_LEVEL && !paused && G_RawInputActive())
         {
             I_StartDisplay();
         }
