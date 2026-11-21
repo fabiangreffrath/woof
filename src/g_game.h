@@ -143,7 +143,11 @@ void G_ResizeBodyQueue(int size);
 
 extern boolean secretexit;
 
-extern byte *demo_p;
+// Position of demo_p inside the recording buffer, and its restoration. Used
+// by the keyframe to rewind the demo together with the world.
+
+int G_DemoPointerOffset(void);
+void G_SetDemoPointerOffset(int offset);
 
 #endif
 

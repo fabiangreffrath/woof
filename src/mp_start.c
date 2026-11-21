@@ -371,6 +371,15 @@ static void MP_FinishStart(void)
     G_ClearInput();
     G_InitNew(startskill, startepisode, startmap, false);
 
+    // The demo buffer is allocated when -record is parsed, but the header
+    // is written here: the netgame and the player names are only final
+    // after D_CheckNetGame().
+
+    if (demorecording)
+    {
+        G_BeginRecording();
+    }
+
     // Players are spawned by the first tic, and the view is not rendered
     // while gametic is zero, so the level would not be drawn for the start
     // wipe without this.

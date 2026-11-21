@@ -1494,9 +1494,30 @@ static void CheckDemoBuffer(size_t size)
 
 // Demo limits removed -- killough
 
+int G_DemoPointerOffset(void)
+{
+  if (demobuffer == NULL || demo_p < demobuffer)
+  {
+    return -1;
+  }
+
+  return (int)(demo_p - demobuffer);
+}
+
+void G_SetDemoPointerOffset(int offset)
+{
+  if (demobuffer != NULL && offset >= 0)
+  {
+    demo_p = demobuffer + offset;
+  }
+}
+
 static void G_WriteDemoTiccmd(ticcmd_t* cmd)
 {
-  if (M_InputGameActive(input_demo_quit)) // press to end demo recording
+  // Ending the recording is a one-time side effect: a resimulation only
+  // rewrites the bytes of the tics it replays.
+
+  if (!rollback_resim && M_InputGameActive(input_demo_quit)) // press to end demo recording
     G_CheckDemoStatus();
 
   demo_p[0] = cmd->forwardmove;

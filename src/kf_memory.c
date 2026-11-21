@@ -560,7 +560,7 @@ keyframe_t *P_SaveKeyframe(int tic)
     ArchiveRNG();
     ArchiveAutomap();
 
-    writep(demo_p);
+    write32(G_DemoPointerOffset());
 
     keyframe->data->buffer = buffer;
     keyframe->data->buffer_size = buffer_size;
@@ -603,7 +603,7 @@ void P_LoadKeyframe(const keyframe_t *keyframe)
     UnArchiveAutomap();
     P_MapEnd();
 
-    demo_p = readp();
+    G_SetDemoPointerOffset(read32());
 }
 
 void P_FreeKeyframe(keyframe_t *keyframe)
