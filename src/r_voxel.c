@@ -26,6 +26,7 @@
 #include "info.h"
 #include "m_fixed.h"
 #include "m_misc.h"
+#include "m_swap.h"
 #include "mn_container.h"
 #include "mn_menu.h"
 #include "mn_options.h"
@@ -139,16 +140,38 @@ static struct Voxel * VX_Decode (byte * p, int length)
 	// skip num_bytes
 	p += 4;
 
-	v->x_size = (int)p[0];  p += 4;
-	v->y_size = (int)p[0];  p += 4;
-	v->z_size = (int)p[0];  p += 4;
+	int temp;
+
+	// Dimensions are 4-byte little-endian integers
+
+	memcpy(&temp, p, sizeof(temp));
+	v->x_size = LONG(temp);
+	p += 4;
+
+	memcpy(&temp, p, sizeof(temp));
+	v->y_size = LONG(temp);
+	p += 4;
+
+	memcpy(&temp, p, sizeof(temp));
+	v->z_size = LONG(temp);
+	p += 4;
 
 	if (v->x_size == 0 || v->y_size == 0 || v->z_size == 0)
 		return NULL;
 
-	v->x_pivot = (p[0] << 8) | (p[1] << 16);  p += 4;
-	v->y_pivot = (p[0] << 8) | (p[1] << 16);  p += 4;
-	v->z_pivot = (p[0] << 8) | (p[1] << 16);  p += 4;
+	// Pivots are 4-byte little-endian 24.8 fixed-point values
+
+	memcpy(&temp, p, sizeof(temp));
+	v->x_pivot = shiftleft32(LONG(temp), FRACBITS - 8);
+	p += 4;
+
+	memcpy(&temp, p, sizeof(temp));
+	v->y_pivot = shiftleft32(LONG(temp), FRACBITS - 8);
+	p += 4;
+
+	memcpy(&temp, p, sizeof(temp));
+	v->z_pivot = shiftleft32(LONG(temp), FRACBITS - 8);
+	p += 4;
 
 	{
 		const fixed_t
