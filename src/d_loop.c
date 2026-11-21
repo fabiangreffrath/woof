@@ -173,11 +173,18 @@ static void UpdatePacing(void)
 
     const int depth = gametic / ticdup - RB_ConfirmTic();
 
+    // The first seconds of a level carry a transient backlog from the start
+    // wipe: the clients leave the wipe at different moments, so one of them
+    // begins with a batch of confirmations and a full prediction budget.
+
+    const boolean settling =
+        (gametic - levelstarttic) / ticdup < 2 * TICRATE;
+
     // Hysteresis: start above the target plus one tic but keep draining
     // down to the target, so jitter around it does not toggle the clock.
 
     const int limit = pace_active ? PACE_TARGET : PACE_TARGET + 1;
-    const boolean pace = depth > limit;
+    const boolean pace = !settling && depth > limit;
 
     I_SetTimeOffsetMS(pace_slow_ms);
 
