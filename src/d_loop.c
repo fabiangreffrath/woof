@@ -842,6 +842,11 @@ static void TryRunTicsRollback(void)
 {
     int counts;
 
+    // Report the prediction state even on frames that run no tic at all:
+    // a stalled client is exactly the interesting case.
+
+    RB_LogStats();
+
     // Build local input and pump the network. Received tics may
     // schedule a rollback.
 

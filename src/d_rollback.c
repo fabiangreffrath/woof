@@ -22,8 +22,10 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "i_printf.h"
+#include "i_timer.h"
 #include "m_argv.h"
 #include "nw_client.h"
+#include "nw_common.h"
 #include "nw_defs.h"
 #include "p_keyframe.h"
 #include "st_widgets.h"
@@ -77,6 +79,50 @@ static ticcmd_t confirmed_cmds[BACKUPTICS][NW_MAXPLAYERS];
 static boolean confirmed_ingame[BACKUPTICS][NW_MAXPLAYERS];
 static int confirmed_tic[BACKUPTICS];
 
+static int rb_stat_time;
+static int rb_stat_rollbacks;
+static int rb_stat_mismatches;
+static int rb_stat_resim;
+static int rb_stat_stalls;
+static int rb_stat_max_depth;
+
+void RB_LogStats(void)
+{
+    if (!rollback_enabled)
+    {
+        return;
+    }
+
+    const int now = I_GetTimeMS();
+    const int tic = gametic / ticdup;
+    const int depth = tic - rb_recvtic;
+
+    if (depth > rb_stat_max_depth)
+    {
+        rb_stat_max_depth = depth;
+    }
+
+    if (now - rb_stat_time < 1000)
+    {
+        return;
+    }
+
+    rb_stat_time = now;
+
+    NW_Log("rollback: depth=%d (%dms) max_depth=%d stalled=%d "
+           "tic=%d recvtic=%d maketic=%d rollbacks/s=%d mismatch/s=%d "
+           "resim_ticks/s=%d stalls/s=%d",
+           depth, depth * 1000 / TICRATE, rb_stat_max_depth, rb_stalled,
+           tic, rb_recvtic, maketic, rb_stat_rollbacks, rb_stat_mismatches,
+           rb_stat_resim, rb_stat_stalls);
+
+    rb_stat_rollbacks = 0;
+    rb_stat_mismatches = 0;
+    rb_stat_resim = 0;
+    rb_stat_stalls = 0;
+    rb_stat_max_depth = depth;
+}
+
 static void FreeSlotKeyframe(int slot)
 {
     if (keyframes[slot])
@@ -112,6 +158,12 @@ void RB_Init(int consoleplayer)
     rb_localplayer = consoleplayer;
     rb_recvtic = 0;
 
+    rb_stat_rollbacks = 0;
+    rb_stat_mismatches = 0;
+    rb_stat_resim = 0;
+    rb_stat_stalls = 0;
+    rb_stat_max_depth = 0;
+
     for (int i = 0; i < BACKUPTICS; ++i)
     {
         used_tic[i] = -1;
@@ -126,6 +178,7 @@ void RB_Init(int consoleplayer)
     if (ticdup != 1)
     {
         I_Printf(VB_WARNING, "Rollback requires -dup 1, using lockstep instead.");
+        NW_Log("rollback: disabled, ticdup=%d", ticdup);
         return;
     }
 
@@ -133,6 +186,11 @@ void RB_Init(int consoleplayer)
 
     I_Printf(VB_INFO, "Rollback netcode enabled, predicting up to %d tics.",
              RB_MAX_PREDICT);
+
+    NW_Log("rollback: enabled, max_predict=%d tics, keyframe_interval=%d tics",
+           RB_MAX_PREDICT, RB_KEYFRAME_INTERVAL);
+    NW_Log("rollback: depth is tics simulated ahead of the confirmed stream, "
+           "mismatch is mispredicted tics");
 }
 
 static void FreeOldKeyframes(void)
@@ -211,6 +269,8 @@ void RB_ReceiveTic(int tic, ticcmd_t *ticcmds, boolean *players_mask)
             && (TiccmdDiffers(&used_cmds[slot][i], &ticcmds[i])
                 || used_ingame[slot][i] != players_mask[i]))
         {
+            ++rb_stat_mismatches;
+
             if (rollback_pending < 0 || tic < rollback_pending)
             {
                 rollback_pending = tic;
@@ -304,6 +364,9 @@ int RB_RunLimit(void)
     if (rb_stalled && gametic / ticdup <= rb_recvtic)
     {
         rb_stalled = false;
+
+        NW_Log("rollback: resumed at tic %d, recvtic=%d",
+               gametic / ticdup, rb_recvtic);
     }
 
     limit = rb_recvtic + ((!rb_stalled && RB_CanPredict()) ? RB_MAX_PREDICT : 0);
@@ -501,6 +564,13 @@ boolean RB_BeginRollback(int *start_tic, int *end_tic)
                      "rollback stalled at tic %d: no keyframe in [%d, %d]",
                      target,
                      target - RB_KEYFRAME_INTERVAL - RB_MAX_PREDICT - 1, target);
+
+            NW_Log("rollback: stalled at tic %d, depth=%d, searched [%d, %d]",
+                   target, gametic / ticdup - rb_recvtic,
+                   target - RB_KEYFRAME_INTERVAL - RB_MAX_PREDICT - 1, target);
+
+            ++rb_stat_stalls;
+
             displaymsg("Rollback stalled: out of sync with the server");
         }
 
@@ -511,6 +581,9 @@ boolean RB_BeginRollback(int *start_tic, int *end_tic)
 
     *start_tic = keyframe_tic;
     *end_tic = gametic / ticdup;
+
+    ++rb_stat_rollbacks;
+    rb_stat_resim += *end_tic - keyframe_tic;
 
     // P_LoadKeyframe() derives boom_basetic from the current gametic,
     // so rewind gametic before restoring.

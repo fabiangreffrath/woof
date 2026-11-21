@@ -34,6 +34,8 @@ extern boolean rollback_resim;
 void RB_Init(int consoleplayer);
 void RB_Shutdown(void);
 
+void RB_LogStats(void);
+
 // Record a confirmed set of ticcmds received from the server.
 
 void RB_ReceiveTic(int tic, ticcmd_t *ticcmds, boolean *players_mask);
