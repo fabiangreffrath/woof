@@ -922,9 +922,9 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 
 			fixed_t top_z = spr->gzt - viewz - (top << FRACBITS);
 
-			fixed_t uy1 = centeryfrac - FixedMul (top_z, scale);
-			fixed_t uy2 = uy1 + (fixed_t) len * scale;
-			fixed_t uy0 = uy1;
+			int64_t uy1 = centeryfrac - FixedMul64 (top_z, scale);
+			int64_t uy2 = uy1 + (int64_t) len * scale;
+			int64_t uy0 = uy1;
 
 			// clip the slab vertically
 			if (uy1 >= clip_y2) uy1 = clip_y2;
@@ -974,7 +974,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 
 			if (has_top)
 			{
-				fixed_t uy = centeryfrac - FixedMul (top_z, wscale);
+				int64_t uy = centeryfrac - FixedMul64 (top_z, wscale);
 
 				uy = ((uy - 1) | FRACMASK) + 1;
 
@@ -991,7 +991,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 			}
 			else if (has_bottom)
 			{
-				fixed_t uy = centeryfrac - FixedMul (top_z - ((int)len << FRACBITS), wscale);
+				int64_t uy = centeryfrac - FixedMul64 (top_z - ((int)len << FRACBITS), wscale);
 
 				if (uy > clip_y2)
 					uy = clip_y2;
@@ -1007,7 +1007,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 
 			if (has_side)
 			{
-				fixed_t uy = ((uy1 - 1) | FRACMASK) + 1;
+				int64_t uy = ((uy1 - 1) | FRACMASK) + 1;
 
 				for (; uy <= uy2 ; uy += FRACUNIT)
 				{
