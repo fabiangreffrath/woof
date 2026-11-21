@@ -36,6 +36,11 @@ void RB_Shutdown(void);
 
 void RB_LogStats(void);
 
+// The next tic that has not been confirmed yet. `gametic / ticdup` minus
+// this value is how far the simulation runs ahead of the confirmed data.
+
+int RB_ConfirmTic(void);
+
 // Record a confirmed set of ticcmds received from the server.
 
 void RB_ReceiveTic(int tic, ticcmd_t *ticcmds, boolean *players_mask);

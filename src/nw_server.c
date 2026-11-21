@@ -1088,7 +1088,7 @@ static void NW_SV_SendResendRequest(nw_client_t *client, int start, int end)
     {
         index = i - recvwindow_start;
 
-        if (index >= BACKUPTICS)
+        if (index < 0 || index >= BACKUPTICS)
         {
             // Outside the range
 
@@ -1413,12 +1413,24 @@ static void NW_SV_ParseResendRequest(nw_packet_t *packet,
 
         if (i != cmd->seq)
         {
-            // We do not have the requested tic (any more)
-            // This is pretty fatal.  We could disconnect the client,
-            // but then again this could be a spoofed packet.  Just
-            // ignore it.
-            NW_Log("server: error: don't have tic %d any more, can't resend",
-                    i);
+            // We do not have this tic. Distinguish the two reasons: the
+            // tic was never sent yet (the server is still waiting for
+            // some player's ticcmd), or it has already been overwritten
+            // in the send queue. Only the latter is fatal; in both cases
+            // there is nothing to resend, and the client will keep asking
+            // until its own receive window moves.
+
+            if (i >= client->sendseq)
+            {
+                NW_Log("server: tic %d has not been sent yet, nothing to resend",
+                        i);
+            }
+            else
+            {
+                NW_Log("server: error: don't have tic %d any more, can't resend",
+                        i);
+            }
+
             return;
         }
     }
@@ -1792,9 +1804,20 @@ void NW_SV_CheckDeadlock(nw_client_t *client)
         // resends to break deadlock.
         if (i < BACKUPTICS && client->sendseq > client->acknowledged)
         {
+            // Only the tics still inside the send queue can be replayed:
+            // NW_SV_SendTics() aborts if a slot holds a different tic, and
+            // the send queue is a ring of BACKUPTICS entries.
+
+            int start = client->acknowledged;
+
+            if (client->sendseq - start > BACKUPTICS)
+            {
+                start = client->sendseq - BACKUPTICS;
+            }
+
             NW_Log("server: also resending tics %d-%d to break deadlock",
-                    client->acknowledged, client->sendseq - 1);
-            NW_SV_SendTics(client, client->acknowledged, client->sendseq - 1);
+                    start, client->sendseq - 1);
+            NW_SV_SendTics(client, start, client->sendseq - 1);
         }
     }
 }

@@ -34,6 +34,7 @@
 #include "m_fixed.h"
 #include "mp_start.h"
 #include "nw_client.h"
+#include "nw_common.h"
 #include "nw_io.h"
 #include "nw_loop.h"
 #include "nw_query.h"
@@ -113,12 +114,89 @@ static boolean local_playeringame[NW_MAXPLAYERS];
 
 static int player_class;
 
+//
+// Pacing
+//
+// The simulation always runs as far ahead of the confirmed stream as the
+// prediction budget allows, so after a stall the rollback depth and the
+// queue of built ticcmds both sit at their limits. Nothing brings them
+// down again on its own: the tics and the confirmations then advance at
+// the same rate, so the offset would last for the rest of the session.
+// While the depth is above PACE_TARGET the tic clock is retarded slightly,
+// which lets the confirmed stream catch up and drains the built inputs
+// along with it.
+//
+// The retardation is applied through I_SetTimeOffsetMS(), which moves the
+// clock that both I_GetTime() and I_GetFracTime() are derived from. That
+// keeps the tic boundaries and the interpolation phase in step: the
+// renderer treats a phase that passes a tic without the simulation
+// following it as a stall and drops interpolation.
+
+#define PACE_TARGET 2  // tics the simulation runs ahead of the confirmations
+#define PACE_RATE 5    // percent of the tic clock, about 1.75 tics per second
+
+static int pace_last_ms;
+static int pace_slow_ms;
+static int pace_frac;  // hundredths of a millisecond not yet applied
+static boolean pace_active;
+
+// Called once per frame, before any clock is read.
+
+static void UpdatePacing(void)
+{
+    const int now = I_GetTimeMS();
+    int delta = now - pace_last_ms;
+
+    pace_last_ms = now;
+
+    if (!rollback_enabled)
+    {
+        return;
+    }
+
+    // A wrapped clock or a suspended process is not a drain interval.
+
+    if (delta < 0 || delta > 1000)
+    {
+        delta = 0;
+    }
+
+    if (pace_active)
+    {
+        // A single frame is well under a millisecond of retardation, so
+        // the remainder is carried over instead of being truncated away.
+
+        pace_frac += delta * PACE_RATE;
+        pace_slow_ms += pace_frac / 100;
+        pace_frac %= 100;
+    }
+
+    const int depth = gametic / ticdup - RB_ConfirmTic();
+
+    // Hysteresis: start above the target plus one tic but keep draining
+    // down to the target, so jitter around it does not toggle the clock.
+
+    const int limit = pace_active ? PACE_TARGET : PACE_TARGET + 1;
+    const boolean pace = depth > limit;
+
+    I_SetTimeOffsetMS(pace_slow_ms);
+
+    if (pace != pace_active)
+    {
+        pace_active = pace;
+
+        NW_Log("network: pacing %s, depth=%d, retarded by %dms",
+               pace ? "on" : "off", depth, pace_slow_ms);
+    }
+}
+
 // 35 fps clock adjusted by offsetms milliseconds
 
 static int GetAdjustedTime(void)
 {
     // Use the adjustments from nw_client.c only if we are
-    // using the new sync mode.
+    // using the new sync mode. An active rollback paces the clock itself,
+    // through I_SetTimeOffsetMS().
 
     if (!rollback_enabled && new_sync && nw_client_connected)
     {
@@ -370,6 +448,13 @@ void D_ResetTicState(void)
     gametic = 0;
     maketic = 0;
     lasttime = 0;
+
+    pace_last_ms = I_GetTimeMS();
+    pace_slow_ms = 0;
+    pace_frac = 0;
+    pace_active = false;
+
+    I_SetTimeOffsetMS(0);
 }
 
 // The clock is put one tic behind instead of using the stale command line
@@ -842,9 +927,11 @@ static void TryRunTicsRollback(void)
 {
     int counts;
 
-    // Report the prediction state even on frames that run no tic at all:
-    // a stalled client is exactly the interesting case.
+    // Pace the tic clock and report the prediction state even on frames
+    // that run no tic at all: a stalled client is exactly the case both
+    // exist for.
 
+    UpdatePacing();
     RB_LogStats();
 
     // Build local input and pump the network. Received tics may

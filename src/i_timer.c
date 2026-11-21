@@ -77,6 +77,13 @@ static uint64_t GetPerfCounter_Scaled(void)
     return counter - basecounter_scaled;
 }
 
+static uint32_t time_offset_ms;
+
+void I_SetTimeOffsetMS(int offset)
+{
+    time_offset_ms = offset;
+}
+
 static uint32_t GetTimeMS_Scaled(void)
 {
     uint64_t counter;
@@ -88,7 +95,8 @@ static uint32_t GetTimeMS_Scaled(void)
         basecounter_scaled = counter;
     }
 
-    return ((counter - basecounter_scaled) * 1000ull) / basefreq;
+    return ((counter - basecounter_scaled) * 1000ull) / basefreq
+           - time_offset_ms;
 }
 
 int I_GetTime_RealTime(void)

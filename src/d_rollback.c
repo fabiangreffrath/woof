@@ -110,17 +110,22 @@ void RB_LogStats(void)
     rb_stat_time = now;
 
     NW_Log("rollback: depth=%d (%dms) max_depth=%d stalled=%d "
-           "tic=%d recvtic=%d maketic=%d rollbacks/s=%d mismatch/s=%d "
-           "resim_ticks/s=%d stalls/s=%d",
+           "tic=%d recvtic=%d maketic=%d queued=%d rollbacks/s=%d "
+           "mismatch/s=%d resim_ticks/s=%d stalls/s=%d",
            depth, depth * 1000 / TICRATE, rb_stat_max_depth, rb_stalled,
-           tic, rb_recvtic, maketic, rb_stat_rollbacks, rb_stat_mismatches,
-           rb_stat_resim, rb_stat_stalls);
+           tic, rb_recvtic, maketic, maketic - tic, rb_stat_rollbacks,
+           rb_stat_mismatches, rb_stat_resim, rb_stat_stalls);
 
     rb_stat_rollbacks = 0;
     rb_stat_mismatches = 0;
     rb_stat_resim = 0;
     rb_stat_stalls = 0;
     rb_stat_max_depth = depth;
+}
+
+int RB_ConfirmTic(void)
+{
+    return rb_recvtic;
 }
 
 static void FreeSlotKeyframe(int slot)
