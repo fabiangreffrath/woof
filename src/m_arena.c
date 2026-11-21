@@ -88,7 +88,7 @@ void *M_ArenaAlloc(arena_t *arena, size_t size, size_t align)
 {
     if (align > ARENA_ALIGN)
     {
-        I_Error("Invalid arena allocation: size %zu, align %zu", size, align);
+        I_Error("Invalid arena allocation: align %d", (int)align);
     }
 
     array_foreach_type(block, arena->deleted, block_t)
