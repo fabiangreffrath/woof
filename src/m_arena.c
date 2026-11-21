@@ -30,8 +30,7 @@
 typedef struct
 {
     void **ptrs;
-    int size;
-    int align;
+    uint32_t size;
 } block_t;
 
 // Every block is preceded by this header; the pointer returned to
@@ -45,7 +44,6 @@ typedef struct
 {
     uint32_t index;
     uint32_t size;
-    uint32_t align;
     uint32_t magic;
 } arena_header_t;
 
@@ -86,25 +84,23 @@ inline static void *DataOf(const arena_header_t *header)
     return (char *)header + ARENA_ALIGN;
 }
 
-void *M_ArenaAlloc(arena_t *arena, int size, int align)
+void *M_ArenaAlloc(arena_t *arena, size_t size, size_t align)
 {
-    if (size < 0 || align <= 0 || align > ARENA_ALIGN)
+    if (align > ARENA_ALIGN)
     {
-        I_Error("Invalid arena allocation: size %d, align %d", size, align);
+        I_Error("Invalid arena allocation: size %zu, align %zu", size, align);
     }
 
     array_foreach_type(block, arena->deleted, block_t)
     {
-        if (block->size == size && block->align == align)
+        if (block->size == size)
         {
             if (array_size(block->ptrs))
             {
                 void *ptr = array_pop(block->ptrs);
 #ifdef RANGECHECK
                 arena_header_t *header = HeaderOf(ptr);
-                if (header->magic != ARENA_MAGIC
-                    || header->size != (uint32_t)size
-                    || header->align != (uint32_t)align)
+                if (header->magic != ARENA_MAGIC || header->size != size)
                 {
                     I_Error("Corrupted arena free list");
                 }
@@ -156,7 +152,6 @@ void *M_ArenaAlloc(arena_t *arena, int size, int align)
     arena_header_t *header = (arena_header_t *)arena->beg;
     header->index = arena->next_index++;
     header->size = size;
-    header->align = align;
     header->magic = ARENA_MAGIC;
 
     void *ptr = DataOf(header);
@@ -194,24 +189,19 @@ void arena_free(arena_t *arena, void *ptr)
 
     array_foreach_type(block, arena->deleted, block_t)
     {
-        if (block->size == (int)header->size
-            && block->align == (int)header->align)
+        if (block->size == header->size)
         {
             array_push(block->ptrs, ptr);
             return;
         }
     }
 
-    block_t block = {
-        .ptrs = NULL,
-        .size = (int)header->size,
-        .align = (int)header->align
-    };
+    block_t block = {.ptrs = NULL, .size = header->size};
     array_push(block.ptrs, ptr);
     array_push(arena->deleted, block);
 }
 
-arena_t *M_ArenaInit(int reserve, int commit)
+arena_t *M_ArenaInit(size_t reserve, size_t commit)
 {
     arena_t *arena = calloc(1, sizeof(*arena));
 
@@ -264,20 +254,19 @@ struct arena_copy_s
 
 static block_t *CopyBlocks(const block_t *from)
 {
-    int numblocks = array_size(from);
-    if (!numblocks)
+    int size = array_size(from);
+    if (!size)
     {
         return NULL;
     }
 
     block_t *to = NULL;
-    array_grow(to, numblocks);
+    array_grow(to, size);
 
-    for (int i = 0; i < numblocks; ++i)
+    for (int i = 0; i < size; ++i)
     {
         to[i].ptrs = NULL;
         to[i].size = from[i].size;
-        to[i].align = from[i].align;
 
         array_copy(to[i].ptrs, from[i].ptrs);
     }

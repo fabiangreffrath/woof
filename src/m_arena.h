@@ -28,11 +28,11 @@ typedef struct arena_s arena_t;
 #define arena_alloc_num(arena, type, num) \
     (type *)M_ArenaAlloc(arena, sizeof(type) * (num), alignof(type))
 
-void *M_ArenaAlloc(arena_t *arena, int size, int align);
+void *M_ArenaAlloc(arena_t *arena, size_t size, size_t align);
 
 void arena_free(arena_t *arena, void *ptr);
 
-arena_t *M_ArenaInit(int reserve, int commit);
+arena_t *M_ArenaInit(size_t reserve, size_t commit);
 void M_ArenaClear(arena_t *arena);
 
 typedef struct arena_copy_s arena_copy_t;
