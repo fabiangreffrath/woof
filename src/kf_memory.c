@@ -186,13 +186,11 @@ static void UnArchivePlayers(void)
         {
             int num_visitedlevels = players[i].num_visitedlevels;
             level_t* visitedlevels = players[i].visitedlevels;
-            char *message = players[i].message;
 
             readx(&players[i], sizeof(player_t), 1);
 
             players[i].num_visitedlevels = num_visitedlevels;
             players[i].visitedlevels = visitedlevels;
-            players[i].message = message;
         }
     }
 }

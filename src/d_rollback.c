@@ -26,6 +26,7 @@
 #include "nw_client.h"
 #include "nw_defs.h"
 #include "p_keyframe.h"
+#include "st_widgets.h"
 
 // How many tics we are allowed to run ahead of the confirmed data.
 
@@ -214,6 +215,17 @@ void RB_ReceiveTic(int tic, ticcmd_t *ticcmds, boolean *players_mask)
             {
                 rollback_pending = tic;
             }
+        }
+
+        // Chat is a one-shot presentation event that TiccmdDiffers() ignores on
+        // purpose. A tic that was already run as a prediction therefore never
+        // applies the real character, so hand it to the chat display here,
+        // exactly once. ST_UpdateChatMessage() skips the resim replays.
+
+        if (i < MAXPLAYERS && used_tic[slot] == tic && used_predicted[slot][i]
+            && ticcmds[i].chatchar)
+        {
+            ST_RemoteChatChar(i, ticcmds[i].chatchar);
         }
     }
 

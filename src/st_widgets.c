@@ -18,6 +18,7 @@
 
 #include "d_event.h"
 #include "d_player.h"
+#include "d_rollback.h"
 #include "deh_strings.h"
 #include "doomdef.h"
 #include "doomkeys.h"
@@ -243,9 +244,54 @@ static boolean AddKeyToChatLine(chatline_t *line, char ch)
 
 #define HU_BROADCAST 5
 
+// A player's chat stream is a destination byte (HU_BROADCAST, or the
+// recipient's number + 1) followed by the message characters, so the
+// destination must survive between characters.
+
+static char chat_dest[MAXPLAYERS];
+
+static void ProcessChatChar(int p, char ch)
+{
+    if (ch <= HU_BROADCAST)
+    {
+        chat_dest[p] = ch;
+        return;
+    }
+
+    if (ch >= 'a' && ch <= 'z')
+    {
+        ch = (char)shiftxform[(unsigned char)ch];
+    }
+
+    if (AddKeyToChatLine(&lines[p], ch) && ch == KEY_ENTER)
+    {
+        if (lines[p].pos && (chat_dest[p] == consoleplayer + 1
+                             || chat_dest[p] == HU_BROADCAST))
+        {
+            M_snprintf(message_string, sizeof(message_string),
+                "%s%s", DEH_StringColorized(strings_players[p]), lines[p].string);
+
+            S_StartSoundPitch(0,
+                              gamemode == commercial ? sfx_radio
+                                                     : sfx_tink,
+                              PITCH_NONE);
+        }
+        ClearChatLine(&lines[p]);
+    }
+}
+
 void ST_UpdateChatMessage(void)
 {
-    static char chat_dest[MAXPLAYERS];
+    // A rollback resim replays the ticcmds of tics that were already
+    // simulated with a prediction. Their real chatchars were handed over
+    // by ST_RemoteChatChar() when the confirmation arrived, and a tic can
+    // be resimulated more than once, so replaying them here would show
+    // each message again.
+
+    if (rollback_resim)
+    {
+        return;
+    }
 
     for (int p = 0; p < MAXPLAYERS; p++)
     {
@@ -257,36 +303,26 @@ void ST_UpdateChatMessage(void)
         char ch = players[p].cmd.chatchar;
         if (p != consoleplayer && ch)
         {
-            if (ch <= HU_BROADCAST)
-            {
-                chat_dest[p] = ch;
-            }
-            else
-            {
-                if (ch >= 'a' && ch <= 'z')
-                {
-                    ch = (char)shiftxform[(unsigned char)ch];
-                }
-
-                if (AddKeyToChatLine(&lines[p], ch) && ch == KEY_ENTER)
-                {
-                    if (lines[p].pos && (chat_dest[p] == consoleplayer + 1
-                                         || chat_dest[p] == HU_BROADCAST))
-                    {
-                        M_snprintf(message_string, sizeof(message_string),
-                            "%s%s", DEH_StringColorized(strings_players[p]), lines[p].string);
-
-                        S_StartSoundPitch(0,
-                                          gamemode == commercial ? sfx_radio
-                                                                 : sfx_tink,
-                                          PITCH_NONE);
-                    }
-                    ClearChatLine(&lines[p]);
-                }
-            }
+            ProcessChatChar(p, ch);
             players[p].cmd.chatchar = 0;
         }
     }
+}
+
+// Chat is a one-shot event, so it cannot be delivered by the simulation:
+// a predicted ticcmd never carries it (Predict() zeroes chatchar) and the
+// rollback comparison ignores the field, so a tic that was already run as
+// a prediction would never show the real character. The rollback code
+// passes the confirmed character over as soon as it arrives instead.
+
+void ST_RemoteChatChar(int player, char ch)
+{
+    if (!ch || player < 0 || player >= MAXPLAYERS || player == consoleplayer)
+    {
+        return;
+    }
+
+    ProcessChatChar(player, ch);
 }
 
 static const char *chat_macros[] = {
