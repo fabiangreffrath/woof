@@ -39,6 +39,7 @@
 #include "nw_query.h"
 #include "nw_sdl.h"
 #include "nw_server.h"
+#include "p_mobj.h"
 #include "s_sound.h"
 
 // The complete set of data for a particular tic.
@@ -203,6 +204,42 @@ static boolean BuildNewTic(void)
     ++maketic;
 
     return true;
+}
+
+// The raw camera draws the local input that is already in ticcmds but has
+// not been simulated yet. Only the newest tics are shown: at a high latency
+// the rest would put the aim far ahead of the world that is rendered.
+
+#define RB_CAMERA_LEAD_TICS 2
+
+void D_GetUnrunLocalInput(angle_t *angle, fixed_t *pitch)
+{
+    angle_t turn = 0;
+    fixed_t look = 0;
+    int first = gametic / ticdup;
+
+    if (localplayer >= 0 && localplayer < MAXPLAYERS)
+    {
+        if (maketic - first > RB_CAMERA_LEAD_TICS)
+        {
+            first = maketic - RB_CAMERA_LEAD_TICS;
+        }
+
+        for (int tic = first; tic < maketic; ++tic)
+        {
+            const ticcmd_t *cmd = &ticdata[tic % BACKUPTICS].cmds[localplayer];
+
+            // angleturn holds the whole turn of the tic; ticangleturn is the
+            // part that did not come through the raw input path.
+
+            turn += (angle_t)((uint32_t)(cmd->angleturn - cmd->ticangleturn)
+                              << FRACBITS);
+            look += (fixed_t)((uint32_t)cmd->pitch << FRACBITS);
+        }
+    }
+
+    *angle = turn;
+    *pitch = CLAMP(look, -max_pitch_angle, max_pitch_angle);
 }
 
 //
@@ -408,7 +445,10 @@ void D_StartNetGame(nw_gamesettings_t *settings,
     }
     else
     {
-        settings->extratics = 1;
+        // Two previous tics per packet survive two consecutive lost
+        // packets; one extra tic only survives a single loss.
+
+        settings->extratics = 2;
     }
 
     i = M_CheckParmWithArgs("-dup", 1);
@@ -802,6 +842,11 @@ static void TryRunTicsRollback(void)
 {
     int counts;
 
+    // Report the prediction state even on frames that run no tic at all:
+    // a stalled client is exactly the interesting case.
+
+    RB_LogStats();
+
     // Build local input and pump the network. Received tics may
     // schedule a rollback.
 
@@ -821,6 +866,17 @@ static void TryRunTicsRollback(void)
             {
                 ticcmd_t cmds[NW_MAXPLAYERS];
                 boolean ingame[NW_MAXPLAYERS];
+
+                // Once the game leaves the predictable state, only
+                // resimulate tics whose inputs are known. Applying a
+                // transition on top of predicted input would make it
+                // impossible to roll back across.
+
+                if (!RB_PredictionAllowed() && !RB_TicReceived(i))
+                {
+                    RB_DiscardTics(i, end_tic);
+                    break;
+                }
 
                 RB_PrepareTic(i, &ticdata[i % BACKUPTICS].cmds[localplayer],
                               cmds, ingame);
@@ -861,6 +917,15 @@ static void TryRunTicsRollback(void)
         {
             NetUpdate();
 
+            // A rollback scheduled while waiting must be resolved
+            // before any further tic runs on top of the diverged
+            // state.
+
+            if (RB_NeedsRollback())
+            {
+                return;
+            }
+
             counts = RB_RunLimit() - gametic / ticdup;
 
             if (counts > 0)
@@ -877,11 +942,21 @@ static void TryRunTicsRollback(void)
         }
     }
 
-    while (counts--)
+    while (counts-- > 0)
     {
         const int tic = gametic / ticdup;
         ticcmd_t cmds[NW_MAXPLAYERS];
         boolean ingame[NW_MAXPLAYERS];
+
+        // The limit may have shrunk below the initial count, for
+        // example after the game left the predictable state. Never
+        // run a predicted tic once prediction is no longer allowed:
+        // a transition must only be applied to confirmed tics.
+
+        if (tic >= RB_RunLimit())
+        {
+            break;
+        }
 
         RB_PrepareTic(tic, &ticdata[tic % BACKUPTICS].cmds[localplayer],
                       cmds, ingame);
@@ -893,6 +968,14 @@ static void TryRunTicsRollback(void)
         gametic += ticdup;
 
         NetUpdate(); // check for new console commands
+
+        // Resolve a newly detected misprediction before running more
+        // tics; the next call will roll back first.
+
+        if (RB_NeedsRollback())
+        {
+            break;
+        }
     }
 
     // killough 3/16/98: change consoleplayer to displayplayer

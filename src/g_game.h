@@ -134,6 +134,13 @@ extern boolean haswolflevels;  //jff 4/18/98 wolf levels present
 
 extern int  bodyquesize, default_bodyquesize; // killough 2/8/98, 10/98
 
+// Expose for keyframes.
+extern struct mobj_s **bodyque;
+extern int bodyque_capacity;
+
+// Grow the corpse queue so that at least size entries are allocated.
+void G_ResizeBodyQueue(int size);
+
 extern boolean secretexit;
 
 extern byte *demo_p;

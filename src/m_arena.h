@@ -28,11 +28,11 @@ typedef struct arena_s arena_t;
 #define arena_alloc_num(arena, type, num) \
     (type *)M_ArenaAlloc(arena, sizeof(type) * (num), alignof(type))
 
-void *M_ArenaAlloc(arena_t *arena, int size, int align);
+void *M_ArenaAlloc(arena_t *arena, size_t size, size_t align);
 
 void arena_free(arena_t *arena, void *ptr);
 
-arena_t *M_ArenaInit(int reserve, int commit);
+arena_t *M_ArenaInit(size_t reserve, size_t commit);
 void M_ArenaClear(arena_t *arena);
 
 typedef struct arena_copy_s arena_copy_t;
@@ -42,8 +42,20 @@ arena_copy_t *M_ArenaCopy(arena_copy_t *copy, const arena_t *arena);
 void M_ArenaRestore(arena_t *arena, const arena_copy_t *copy);
 void M_ArenaFreeCopy(arena_copy_t *copy);
 
+// Index of a block in the arena, or -1 if the pointer does not belong
+// to this arena. Blocks on a free list keep their index.
+
 int M_ArenaTableIndex(const arena_t *arena, uintptr_t key);
+
+// Number of blocks allocated since the arena was last cleared,
+// including blocks currently on a free list.
+
 int M_ArenaTableSize(const arena_t *arena);
+
+// Get an array of pointers to every allocated block, ordered by first
+// allocation (that is, by M_ArenaTableIndex()). Blocks on a free list
+// are included.
+
 uintptr_t *M_ArenaTable(const arena_t *arena);
 
 #endif

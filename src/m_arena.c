@@ -15,6 +15,7 @@
 
 #include "m_arena.h"
 
+#include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -25,21 +26,29 @@
 
 #define M_ARRAY_INIT_CAPACITY 32
 #include "m_array.h"
-#include "m_hashmap.h"
 
 typedef struct
 {
     void **ptrs;
-    int size;
-    int align;
+    uint32_t size;
 } block_t;
+
+// Every block is preceded by this header; the pointer returned to
+// callers points just past it. The next header is at a stride derived
+// from the size, so the arena can be walked without a separate index.
+
+#define ARENA_ALIGN 16
+#define ARENA_MAGIC 0xA5A5C0DEu
 
 typedef struct
 {
-    int size;
-    int align;
-    int index;
-} hashmap_value_t;
+    uint32_t index;
+    uint32_t size;
+    uint32_t magic;
+} arena_header_t;
+
+static_assert(sizeof(arena_header_t) <= ARENA_ALIGN,
+              "arena header does not fit the alignment unit");
 
 struct arena_s
 {
@@ -50,18 +59,52 @@ struct arena_s
     char *end;
 
     block_t *deleted;
-    hashmap_t *hashmap;
+
+    uint32_t next_index;
+    uint32_t num_blocks;
 };
 
-void *M_ArenaAlloc(arena_t *arena, int size, int align)
+inline static size_t AlignUp(size_t value, size_t align)
 {
+    return (value + align - 1) & ~(align - 1);
+}
+
+inline static size_t BlockStride(size_t size)
+{
+    return ARENA_ALIGN + AlignUp(size, ARENA_ALIGN);
+}
+
+inline static arena_header_t *HeaderOf(const void *ptr)
+{
+    return (arena_header_t *)((char *)ptr - ARENA_ALIGN);
+}
+
+inline static void *DataOf(const arena_header_t *header)
+{
+    return (char *)header + ARENA_ALIGN;
+}
+
+void *M_ArenaAlloc(arena_t *arena, size_t size, size_t align)
+{
+    if (align > ARENA_ALIGN)
+    {
+        I_Error("Invalid arena allocation: align %d", (int)align);
+    }
+
     array_foreach_type(block, arena->deleted, block_t)
     {
-        if (block->size == size && block->align == align)
+        if (block->size == size)
         {
             if (array_size(block->ptrs))
             {
                 void *ptr = array_pop(block->ptrs);
+#ifdef RANGECHECK
+                arena_header_t *header = HeaderOf(ptr);
+                if (header->magic != ARENA_MAGIC || header->size != size)
+                {
+                    I_Error("Corrupted arena free list");
+                }
+#endif
                 memset(ptr, 0, size);
                 return ptr;
             }
@@ -72,11 +115,16 @@ void *M_ArenaAlloc(arena_t *arena, int size, int align)
         }
     }
 
-    ptrdiff_t padding = (align - ((uintptr_t)arena->beg & (align - 1))) & (align - 1);
+#ifdef RANGECHECK
+    if ((uintptr_t)arena->beg & (ARENA_ALIGN - 1))
+    {
+        I_Error("Arena buffer is not aligned");
+    }
+#endif
 
-    ptrdiff_t available = arena->end - arena->beg - padding;
+    const size_t needed = BlockStride(size);
 
-    while (available < 0 || size > available)
+    while (arena->end - arena->beg < (ptrdiff_t)needed)
     {
         ptrdiff_t buffer_size = arena->end - arena->buffer;
         ptrdiff_t new_buffer_size = buffer_size * 2;
@@ -99,18 +147,16 @@ void *M_ArenaAlloc(arena_t *arena, int size, int align)
         free(buffer);
 
         arena->end = arena->buffer + new_buffer_size;
-        available = arena->end - arena->beg - padding;
     }
 
-    void *ptr = arena->beg + padding;
-    arena->beg += padding + size;
+    arena_header_t *header = (arena_header_t *)arena->beg;
+    header->index = arena->next_index++;
+    header->size = size;
+    header->magic = ARENA_MAGIC;
 
-    hashmap_value_t value = {
-        .size = size,
-        .align = align,
-        .index = hashmap_size(arena->hashmap)
-    };
-    hashmap_put(arena->hashmap, (uintptr_t)ptr, &value);
+    void *ptr = DataOf(header);
+    arena->beg += needed;
+    arena->num_blocks++;
 
     memset(ptr, 0, size);
 
@@ -119,27 +165,43 @@ void *M_ArenaAlloc(arena_t *arena, int size, int align)
 
 void arena_free(arena_t *arena, void *ptr)
 {
-    hashmap_value_t *value = hashmap_get(arena->hashmap, (uintptr_t)ptr);
-    if (!value)
+    const uintptr_t key = (uintptr_t)ptr;
+
+    if (key < (uintptr_t)arena->buffer + ARENA_ALIGN
+        || key >= (uintptr_t)arena->beg)
     {
         I_Error("Freed a pointer not from arena");
     }
 
+    arena_header_t *header = HeaderOf(ptr);
+
+    if ((key & (ARENA_ALIGN - 1)) || header->magic != ARENA_MAGIC)
+    {
+        I_Error("Freed a pointer not from arena");
+    }
+
+#ifdef RANGECHECK
+    if (header->size > (uint32_t)(arena->beg - (char *)ptr))
+    {
+        I_Error("Corrupted arena block header");
+    }
+#endif
+
     array_foreach_type(block, arena->deleted, block_t)
     {
-        if (block->size == value->size && block->align == value->align)
+        if (block->size == header->size)
         {
             array_push(block->ptrs, ptr);
             return;
         }
     }
 
-    block_t block = {.ptrs = NULL, .size = value->size, .align = value->align};
+    block_t block = {.ptrs = NULL, .size = header->size};
     array_push(block.ptrs, ptr);
     array_push(arena->deleted, block);
 }
 
-arena_t *M_ArenaInit(int reserve, int commit)
+arena_t *M_ArenaInit(size_t reserve, size_t commit)
 {
     arena_t *arena = calloc(1, sizeof(*arena));
 
@@ -155,8 +217,6 @@ arena_t *M_ArenaInit(int reserve, int commit)
     }
     arena->beg = arena->buffer;
     arena->end = arena->beg + commit;
-
-    arena->hashmap = hashmap_init(1024, sizeof(hashmap_value_t));
 
     return arena;
 }
@@ -177,8 +237,8 @@ void M_ArenaClear(arena_t *arena)
     FreeBlocks(arena->deleted);
     arena->deleted = NULL;
 
-    hashmap_free(arena->hashmap);
-    arena->hashmap = hashmap_init(1024, sizeof(hashmap_value_t));
+    arena->next_index = 0;
+    arena->num_blocks = 0;
 }
 
 struct arena_copy_s
@@ -187,25 +247,26 @@ struct arena_copy_s
     size_t size;
 
     block_t *deleted;
-    hashmap_t *hashmap;
+
+    uint32_t next_index;
+    uint32_t num_blocks;
 };
 
 static block_t *CopyBlocks(const block_t *from)
 {
-    int numblocks = array_size(from);
-    if (!numblocks)
+    int size = array_size(from);
+    if (!size)
     {
         return NULL;
     }
 
     block_t *to = NULL;
-    array_grow(to, numblocks);
+    array_grow(to, size);
 
-    for (int i = 0; i < numblocks; ++i)
+    for (int i = 0; i < size; ++i)
     {
         to[i].ptrs = NULL;
         to[i].size = from[i].size;
-        to[i].align = from[i].align;
 
         array_copy(to[i].ptrs, from[i].ptrs);
     }
@@ -217,13 +278,18 @@ arena_copy_t *M_ArenaCreateCopy(const arena_t *arena)
 {
     arena_copy_t *copy = calloc(1, sizeof(*copy));
 
-    ptrdiff_t size = arena->beg - arena->buffer;
+    size_t size = (size_t)(arena->beg - arena->buffer);
     copy->size = size;
-    copy->buffer = malloc(size);
-    memcpy(copy->buffer, arena->buffer, size);
+
+    if (size > 0)
+    {
+        copy->buffer = malloc(size);
+        memcpy(copy->buffer, arena->buffer, size);
+    }
 
     copy->deleted = CopyBlocks(arena->deleted);
-    copy->hashmap = M_HashMapCopy(arena->hashmap);
+    copy->next_index = arena->next_index;
+    copy->num_blocks = arena->num_blocks;
 
     return copy;
 }
@@ -235,74 +301,116 @@ arena_copy_t *M_ArenaCopy(arena_copy_t *copy, const arena_t *arena)
         return M_ArenaCreateCopy(arena);
     }
 
-    ptrdiff_t size = arena->beg - arena->buffer;
+    size_t size = (size_t)(arena->beg - arena->buffer);
     if (copy->size < size)
     {
-        copy->size = size;
-        copy->buffer = I_Realloc(copy->buffer, copy->size);
+        copy->buffer = I_Realloc(copy->buffer, size);
     }
-    memcpy(copy->buffer, arena->buffer, size);
+
+    // The arena can shrink when a rollback restores an older keyframe,
+    // so the copy's logical size must shrink as well.
+
+    copy->size = size;
+
+    if (size > 0)
+    {
+        memcpy(copy->buffer, arena->buffer, size);
+    }
 
     if (copy->deleted)
     {
         array_free(copy->deleted);
     }
     copy->deleted = CopyBlocks(arena->deleted);
-    if (copy->hashmap)
-    {
-        hashmap_free(copy->hashmap);
-    }
-    copy->hashmap = M_HashMapCopy(arena->hashmap);
+    copy->next_index = arena->next_index;
+    copy->num_blocks = arena->num_blocks;
 
     return copy;
 }
 
 void M_ArenaRestore(arena_t *arena, const arena_copy_t *copy)
 {
+#ifdef RANGECHECK
+    if (copy->size & (ARENA_ALIGN - 1))
+    {
+        I_Error("Corrupted arena copy size");
+    }
+#endif
+
     arena->beg = arena->buffer + copy->size;
-    memcpy(arena->buffer, copy->buffer, copy->size);
+    if (copy->size > 0)
+    {
+        memcpy(arena->buffer, copy->buffer, copy->size);
+    }
 
     FreeBlocks(arena->deleted);
     arena->deleted = CopyBlocks(copy->deleted);
-    hashmap_free(arena->hashmap);
-    arena->hashmap = M_HashMapCopy(copy->hashmap);
+    arena->next_index = copy->next_index;
+    arena->num_blocks = copy->num_blocks;
 }
 
 void M_ArenaFreeCopy(arena_copy_t *copy)
 {
     FreeBlocks(copy->deleted);
-    hashmap_free(copy->hashmap);
     free(copy->buffer);
     free(copy);
 }
 
 int M_ArenaTableIndex(const arena_t *arena, uintptr_t key)
 {
-    hashmap_value_t *value = hashmap_get(arena->hashmap, key);
-    if (value)
+    if (key < (uintptr_t)(arena->buffer + ARENA_ALIGN)
+        || key >= (uintptr_t)arena->beg)
     {
-        return value->index;
+        return -1;
     }
-    return -1;
+
+    const arena_header_t *header =
+        (const arena_header_t *)((const char *)key - ARENA_ALIGN);
+
+    if (header->magic != ARENA_MAGIC)
+    {
+        return -1;
+    }
+
+    return (int)header->index;
 }
 
 int M_ArenaTableSize(const arena_t *arena)
 {
-    return hashmap_size(arena->hashmap);
+    return (int)arena->num_blocks;
 }
 
-// Get an ordered array of pointers to the allocated memory.
+// Get an array of pointers to every block ever allocated since the
+// arena was cleared, including blocks currently on a free list. The
+// array is ordered by the block index (first allocation order).
+
 uintptr_t *M_ArenaTable(const arena_t *arena)
 {
-    uintptr_t *table = calloc(hashmap_size(arena->hashmap), sizeof(*table));
+    uintptr_t *table = calloc(arena->num_blocks, sizeof(*table));
 
-    hashmap_iterator_t iter = hashmap_iterator(arena->hashmap);
-    uint64_t key;
-    hashmap_value_t *value;
-    while ((value = hashmap_next(&iter, &key)))
+    arena_header_t *header = (arena_header_t *)arena->buffer;
+
+    for (uint32_t i = 0; i < arena->num_blocks; ++i)
     {
-        table[value->index] = key;
+#ifdef RANGECHECK
+        if ((char *)header + ARENA_ALIGN > arena->beg
+            || header->magic != ARENA_MAGIC
+            || header->index >= arena->num_blocks)
+        {
+            I_Error("Corrupted arena block chain");
+        }
+#endif
+        table[header->index] = (uintptr_t)DataOf(header);
+        header = (arena_header_t *)((char *)header
+                                    + BlockStride(header->size));
     }
+
+#ifdef RANGECHECK
+    if ((char *)header != arena->beg)
+    {
+        I_Error("Corrupted arena block chain");
+    }
+#endif
 
     return table;
 }

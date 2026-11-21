@@ -240,6 +240,24 @@ int default_skill;               //note 1-based
 // killough 2/8/98: make corpse queue variable in size
 int    bodyqueslot, bodyquesize, default_bodyquesize; // killough 2/8/98, 10/98
 
+// Player corpse queue, indexed modulo bodyquesize. This is part of the
+// simulation state that rollback must be able to restore.
+mobj_t **bodyque;
+int bodyque_capacity;
+
+void G_ResizeBodyQueue(int size)
+{
+    if (size <= 0 || size <= bodyque_capacity)
+    {
+        return;
+    }
+
+    bodyque = Z_Realloc(bodyque, size * sizeof(*bodyque), PU_STATIC, 0);
+    memset(bodyque + bodyque_capacity, 0,
+           (size - bodyque_capacity) * sizeof(*bodyque));
+    bodyque_capacity = size;
+}
+
 static weapontype_t LastWeapon(void)
 {
     const weapontype_t weapon = players[consoleplayer].lastweapon;
@@ -645,7 +663,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   G_DemoSkipTics();
 
-  if (!uncapped || !raw_input)
+  if (!G_RawInputActive())
   {
     G_PrepMouseTiccmd();
     G_PrepGamepadTiccmd();
@@ -997,6 +1015,11 @@ static void G_DoLoadLevel(boolean from_savegame)
     displayplayer = consoleplayer;    // view the guy you are playing
   }
   gameaction = ga_nothing;
+
+  // Keyframes never span level loads: their data belongs to the
+  // previous level state and cannot be restored into this one.
+
+  RB_OnLevelLoad();
 
   // Set the initial listener parameters using the player's initial state.
   S_InitListener(players[displayplayer].mo);
@@ -3166,7 +3189,7 @@ void G_Ticker(void)
 	      // check for turbo cheats
 	      // killough 2/14/98, 2/20/98 -- only warn in netgames and demos
 
-	      if ((netgame || demoplayback) &&
+	      if (!rollback_resim && (netgame || demoplayback) &&
 		  cmd->forwardmove > TURBOTHRESHOLD &&
 		  !(gametic&31) && ((gametic>>5)&3) == i )
 		{
@@ -3182,13 +3205,20 @@ void G_Ticker(void)
 		  //
 		  // The comparison, however, is only valid on the forward
 		  // (non-resim) run of a confirmed tic.
-		  if (gametic > BACKUPTICS
+		  // The consistency ring spans a level load and the
+		  // intermission that follows it, but positions are frozen
+		  // or reset there and cannot be compared. Check only on
+		  // level tics, and only after a full ring has been
+		  // recorded in the current level.
+
+		  if (gamestate == GS_LEVEL
+		      && gametic / ticdup - levelstarttic / ticdup > BACKUPTICS
 		      && !rollback_resim
 		      && RB_TicConfirmed(gametic / ticdup)
 		      && consistancy[i][buf] != cmd->consistancy)
-		    I_Error("Desync: player %i at tic %i (got %i, expected %i)",
+		    I_Error("Desync: player %i at tic %i (got %i, expected %i, levelstarttic %i)",
 			     i, gametic / ticdup, cmd->consistancy,
-			     consistancy[i][buf]);
+			     consistancy[i][buf], levelstarttic);
 		  if (players[i].mo)
 		    consistancy[i][buf] = players[i].mo->x;
 		  else
@@ -3383,15 +3413,7 @@ static boolean G_CheckSpot(int playernum, mapthing_t *mthing)
 
   if (bodyquesize > 0)
     {
-      static mobj_t **bodyque;
-      static size_t queuesize;
-      if (queuesize < bodyquesize)
-	{
-	  bodyque = Z_Realloc(bodyque, bodyquesize*sizeof*bodyque, PU_STATIC, 0);
-	  memset(bodyque+queuesize, 0,
-		 (bodyquesize-queuesize)*sizeof*bodyque);
-	  queuesize = bodyquesize;
-	}
+      G_ResizeBodyQueue(bodyquesize);
       if (bodyqueslot >= bodyquesize)
 	P_RemoveMobj(bodyque[bodyqueslot % bodyquesize]);
       bodyque[bodyqueslot++ % bodyquesize] = players[playernum].mo;

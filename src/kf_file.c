@@ -36,6 +36,7 @@
 #include "p_setup.h"
 #include "p_spec.h"
 #include "p_tick.h"
+#include "p_user.h"
 #include "r_defs.h"
 #include "r_state.h"
 #include "z_zone.h"
@@ -2273,6 +2274,118 @@ static void UnArchiveButtons(json_t *root)
 }
 
 //
+// Item respawn queue (deathmatch)
+//
+
+static void ArchiveItemRespawn(json_mut_doc_t *doc, json_mut_t *root_mut)
+{
+    JS_SetInt(doc, root_mut, "iquehead", iquehead);
+    JS_SetInt(doc, root_mut, "iquetail", iquetail);
+
+    json_mut_t *respawnque_arr = JS_NewArray(doc);
+    for (int i = 0; i < ITEMQUESIZE; ++i)
+    {
+        JS_ArrayAddObject(doc, respawnque_arr,
+                          write_mapthing_t(&itemrespawnque[i], doc));
+    }
+    JS_SetArray(doc, root_mut, "itemrespawnque", respawnque_arr);
+
+    json_mut_t *respawntime_arr = JS_NewArray(doc);
+    for (int i = 0; i < ITEMQUESIZE; ++i)
+    {
+        JS_ArrayAddInt(doc, respawntime_arr, itemrespawntime[i]);
+    }
+    JS_SetArray(doc, root_mut, "itemrespawntime", respawntime_arr);
+}
+
+static void UnArchiveItemRespawn(json_t *root)
+{
+    iquehead = JS_GetIntegerValueDefault(root, "iquehead", iquehead);
+    iquetail = JS_GetIntegerValueDefault(root, "iquetail", iquetail);
+
+    json_t *respawnque_arr = JS_GetObject(root, "itemrespawnque");
+    if (JS_IsArray(respawnque_arr))
+    {
+        int count = JS_GetArraySize(respawnque_arr);
+        json_arr_iter_t *iter = JS_ArrayIterator(respawnque_arr);
+
+        for (int i = 0; i < ITEMQUESIZE; ++i)
+        {
+            if (i < count)
+            {
+                read_mapthing_t(&itemrespawnque[i], JS_ArrayNext(iter));
+            }
+            else
+            {
+                memset(&itemrespawnque[i], 0, sizeof(itemrespawnque[i]));
+            }
+        }
+
+        JS_ArrayIteratorFree(iter);
+    }
+
+    json_t *respawntime_arr = JS_GetObject(root, "itemrespawntime");
+    if (JS_IsArray(respawntime_arr))
+    {
+        int count = JS_GetArraySize(respawntime_arr);
+        json_arr_iter_t *iter = JS_ArrayIterator(respawntime_arr);
+
+        for (int i = 0; i < ITEMQUESIZE; ++i)
+        {
+            itemrespawntime[i] =
+                i < count ? JS_GetInteger(JS_ArrayNext(iter)) : 0;
+        }
+
+        JS_ArrayIteratorFree(iter);
+    }
+}
+
+//
+// Player corpse queue
+//
+
+static void ArchiveBodyQueue(json_mut_doc_t *doc, json_mut_t *root_mut)
+{
+    G_ResizeBodyQueue(bodyquesize);
+
+    json_mut_t *bodyque_arr = JS_NewArray(doc);
+    for (int i = 0; i < bodyquesize; ++i)
+    {
+        JS_ArrayAddInt(doc, bodyque_arr, getidx_mobj(bodyque[i]));
+    }
+    JS_SetArray(doc, root_mut, "bodyque", bodyque_arr);
+}
+
+static void UnArchiveBodyQueue(json_t *root)
+{
+    G_ResizeBodyQueue(bodyquesize);
+
+    // Older saves have no queue contents. Clear the slots instead of
+    // keeping pointers into the thinker arena that was just reloaded.
+
+    json_t *bodyque_arr = JS_GetObject(root, "bodyque");
+    int count = JS_IsArray(bodyque_arr) ? JS_GetArraySize(bodyque_arr) : 0;
+    json_arr_iter_t *iter = count > 0 ? JS_ArrayIterator(bodyque_arr) : NULL;
+
+    for (int i = 0; i < bodyquesize; ++i)
+    {
+        if (i < count)
+        {
+            bodyque[i] = getptr_mobj(JS_GetInteger(JS_ArrayNext(iter)));
+        }
+        else
+        {
+            bodyque[i] = NULL;
+        }
+    }
+
+    if (iter)
+    {
+        JS_ArrayIteratorFree(iter);
+    }
+}
+
+//
 // Automap
 //
 
@@ -2419,6 +2532,13 @@ void P_ArchiveKeyframe(json_mut_doc_t *doc, json_mut_t *root_mut)
     JS_SetArray(doc, root_mut, "playeringame", playeringame_arr);
     JS_SetInt(doc, root_mut, "bodyqueslot", bodyqueslot);
     JS_SetInt(doc, root_mut, "bodyquesize", bodyquesize);
+    ArchiveBodyQueue(doc, root_mut);
+
+    // p_mobj.h
+    ArchiveItemRespawn(doc, root_mut);
+
+    // p_user.h
+    JS_SetInt(doc, root_mut, "offgroundtics", offgroundtics);
 
     // p_spec.h
     ArchivePlayers(doc, root_mut);
@@ -2513,6 +2633,13 @@ void P_UnArchiveKeyframe(json_t *root)
     }
     bodyqueslot = JS_GetIntegerValueDefault(root, "bodyqueslot", bodyqueslot);
     bodyquesize = JS_GetIntegerValueDefault(root, "bodyquesize", bodyquesize);
+    UnArchiveBodyQueue(root);
+
+    // p_mobj.h
+    UnArchiveItemRespawn(root);
+
+    // p_user.h
+    offgroundtics = JS_GetIntegerValueDefault(root, "offgroundtics", 0);
 
     UnArchivePlayers(root);
     UnArchiveThinkers(thinkers_obj);

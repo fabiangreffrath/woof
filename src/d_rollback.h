@@ -34,6 +34,8 @@ extern boolean rollback_resim;
 void RB_Init(int consoleplayer);
 void RB_Shutdown(void);
 
+void RB_LogStats(void);
+
 // Record a confirmed set of ticcmds received from the server.
 
 void RB_ReceiveTic(int tic, ticcmd_t *ticcmds, boolean *players_mask);
@@ -44,7 +46,25 @@ void RB_ReceiveTic(int tic, ticcmd_t *ticcmds, boolean *players_mask);
 
 boolean RB_TicConfirmed(int tic);
 
-// Whether inputs may be predicted in the current game state.
+// True if all inputs for the given tic are known: it has been received
+// from the server, even if a rollback may still target it. Always true
+// when rollback is not in use.
+
+boolean RB_TicReceived(int tic);
+
+// Whether input prediction is allowed in the current game state,
+// ignoring whether a keyframe to roll back to is available.
+
+boolean RB_PredictionAllowed(void);
+
+// Whether the raw input camera can be used. Unlike plain interpolation it
+// shows the local turns of tics the simulation has not reached yet, which
+// is only valid while rollback can carry the simulation over them.
+
+boolean RB_RawCameraAllowed(void);
+
+// Whether inputs may be predicted now: prediction must be allowed in
+// the current game state and a keyframe to roll back to must exist.
 
 boolean RB_CanPredict(void);
 
@@ -58,8 +78,8 @@ int RB_RunLimit(void);
 void RB_PrepareTic(int tic, const ticcmd_t *local_cmd,
                    ticcmd_t *cmds, boolean *ingame);
 
-// Save a snapshot of the game state before running the given tic,
-// if a snapshot is due for it.
+// Save a keyframe of the game state before running the given tic,
+// if a keyframe is due for it.
 
 void RB_MaybeSaveKeyframe(int tic);
 
@@ -67,10 +87,22 @@ void RB_MaybeSaveKeyframe(int tic);
 
 boolean RB_NeedsRollback(void);
 
-// Restore the newest snapshot at or before the mispredicted tic and prepare for
+// Restore the newest keyframe at or before the mispredicted tic and prepare for
 // resimulation from *start_tic up to *end_tic. Returns false if the rollback
 // cannot be performed yet.
 
 boolean RB_BeginRollback(int *start_tic, int *end_tic);
+
+// Forget the recorded ticcmd sets for tics that were simulated before
+// a rollback but are not part of the resimulated range. Their stored
+// inputs must not be compared against confirmations later.
+
+void RB_DiscardTics(int start_tic, int end_tic);
+
+// Discard all keyrames and pending rollback state. Called whenever a
+// level is loaded or reloaded: keyfames never span level loads, and
+// the fresh level state does not depend on any earlier divergence.
+
+void RB_OnLevelLoad(void);
 
 #endif

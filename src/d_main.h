@@ -66,6 +66,11 @@ void D_PageDrawer(void);
 void D_AdvanceDemo(void);
 void D_StartTitle(void);
 
+// Static wait screen for a pending netgame launch: no title page and
+// no demo playback, so the demo cannot reset netgame settings.
+
+void D_StartWaitScreen(void);
+
 extern boolean advancedemo;
 
 #endif

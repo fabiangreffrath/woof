@@ -139,11 +139,11 @@ static mn_item_t create_items[] = {
 
 static mn_item_t join_items[] = {
     MN_GAP(12),
-    MN_ACTION("Find Server on Local Network", MP_FindLANServers,
-              "Search the local network for compatible servers."),
-    MN_GAP(3),
     MN_ACTION("Find Server on Internet", MP_FindInternetServers,
               "Search the master server for compatible servers."),
+    MN_GAP(3),
+    MN_ACTION("Find Server on Local Network", MP_FindLANServers,
+              "Search the local network for compatible servers."),
 };
 
 static mn_page_t multiplayer_pages[] = {

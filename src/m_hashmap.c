@@ -291,41 +291,6 @@ int hashmap_size(const hashmap_t *map)
     return map->size;
 }
 
-hashmap_t *M_HashMapCopy(const hashmap_t *from)
-{
-    hashmap_t *to = calloc(1, sizeof(hashmap_t));
-
-    to->key_type = from->key_type;
-    to->capacity = from->capacity;
-    to->values_capacity = from->values_capacity;
-    to->size = from->size;
-    to->value_size = from->value_size;
-    to->values_are_packed = from->values_are_packed;
-
-    to->entries = malloc(from->capacity * sizeof(hashmap_entry_t));
-    memcpy(to->entries, from->entries, from->capacity * sizeof(hashmap_entry_t));
-
-    if (from->key_type == KEY_TYPE_STRING)
-    {
-        for (int i = 0; i < to->capacity; i++)
-        {
-            if (to->entries[i].occupied)
-            {
-                to->entries[i].string_key =
-                    M_StringDuplicate(from->entries[i].string_key);
-            }
-        }
-    }
-
-    if (from->values_are_packed)
-    {
-        to->values = malloc(from->values_capacity * from->value_size);
-        memcpy(to->values, from->values, from->size * from->value_size);
-    }
-
-    return to;
-}
-
 hashmap_iterator_t hashmap_iterator(const hashmap_t *map)
 {
     hashmap_iterator_t iter;

@@ -68,6 +68,12 @@ void ST_AddLine(struct sbe_widget_s *widget, const char *string);
 void ST_UpdateWidget(struct sbarelem_s *elem, struct player_s *player);
 
 void ST_UpdateChatMessage(void);
+
+// Deliver a chat character of a remote player that the simulation will not
+// apply, because the tic carrying it was already run with a prediction.
+
+void ST_RemoteChatChar(int player, char ch);
+
 boolean ST_MessagesResponder(struct event_s *ev);
 
 char ST_DequeueChatChar(void);

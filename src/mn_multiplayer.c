@@ -88,7 +88,7 @@ void MN_BindMultiplayerVariables(void)
 {
     M_BindStr("player_name", &nw_player_name, DEFAULT_PLAYER_NAME, wad_no,
               "Name shown to other players");
-    M_BindStr("servername", &nw_servername, "", wad_no,
+    M_BindStr("servername", &nw_servername, "Default", wad_no,
               "Name of the server shown in server lists");
     M_BindBool("privateserver", &nw_privateserver, NULL, false, wad_no,
                "Do not register the server with the master server");
