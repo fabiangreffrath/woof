@@ -79,6 +79,9 @@
 * Fixed DEHACKED-related crashes caused by calling player sprite actions as thinker functions (e.g. Blues Brothers 2023)
 * Fixed mouse hit boxes for savegame entries in the Load Game / Save Game menus
 * Fixed some occurances of undefined behavior in the code that led to demo desyncs caused by compiler optimizations
+* Fixed visual glitches when passing far above/below voxel models
+* Fixed voxel models sometimes disappearing near edges of the screen
+* Fixed support for large voxel models and models with negative pivots
 * Fixed SDL3 MacOSX compile directive. (CMD+Enter for fullscreen, Linux Steam folder search, 'Woof! Setup' help URL)
 * Custom skill options no longer stay active on standard skills.
 * The `Enemies` > `Helper Dogs` menu option now works again.
