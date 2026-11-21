@@ -12,6 +12,7 @@
 // GNU General Public License for more details.
 //
 
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -25,6 +26,7 @@
 #include "info.h"
 #include "m_fixed.h"
 #include "m_misc.h"
+#include "m_swap.h"
 #include "mn_container.h"
 #include "mn_menu.h"
 #include "mn_options.h"
@@ -53,6 +55,10 @@ struct Voxel
 	fixed_t  x_pivot;
 	fixed_t  y_pivot;
 	fixed_t  z_pivot;
+
+	// [Alaux] How far the model can go behind the view plane
+	// before it's completely out of view
+	fixed_t  radius;
 
 	int  * offsets;
 	byte * data;
@@ -134,16 +140,50 @@ static struct Voxel * VX_Decode (byte * p, int length)
 	// skip num_bytes
 	p += 4;
 
-	v->x_size = (int)p[0];  p += 4;
-	v->y_size = (int)p[0];  p += 4;
-	v->z_size = (int)p[0];  p += 4;
+	int temp;
+
+	// Dimensions are 4-byte little-endian integers
+
+	memcpy(&temp, p, sizeof(temp));
+	v->x_size = LONG(temp);
+	p += 4;
+
+	memcpy(&temp, p, sizeof(temp));
+	v->y_size = LONG(temp);
+	p += 4;
+
+	memcpy(&temp, p, sizeof(temp));
+	v->z_size = LONG(temp);
+	p += 4;
 
 	if (v->x_size == 0 || v->y_size == 0 || v->z_size == 0)
 		return NULL;
 
-	v->x_pivot = (p[0] << 8) | (p[1] << 16);  p += 4;
-	v->y_pivot = (p[0] << 8) | (p[1] << 16);  p += 4;
-	v->z_pivot = (p[0] << 8) | (p[1] << 16);  p += 4;
+	// Pivots are 4-byte little-endian 24.8 fixed-point values
+
+	memcpy(&temp, p, sizeof(temp));
+	v->x_pivot = shiftleft32(LONG(temp), FRACBITS - 8);
+	p += 4;
+
+	memcpy(&temp, p, sizeof(temp));
+	v->y_pivot = shiftleft32(LONG(temp), FRACBITS - 8);
+	p += 4;
+
+	memcpy(&temp, p, sizeof(temp));
+	v->z_pivot = shiftleft32(LONG(temp), FRACBITS - 8);
+	p += 4;
+
+	{
+		const fixed_t
+			x_size = IntToFixed(v->x_size),
+			y_size = IntToFixed(v->y_size);
+
+		const fixed_t
+			x_radius = MAX(v->x_pivot, x_size - v->x_pivot),
+			y_radius = MAX(v->y_pivot, y_size - v->y_pivot);
+
+		v->radius = sqrt((int64_t) x_radius * x_radius + (int64_t) y_radius * y_radius);
+	}
 
 	// decode the offset values...
 	int xoffsets[260];
@@ -532,7 +572,7 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 	// thing is behind view plane?  if so, ignore it
 	if (ty < VX_MINZ)
 	{
-		if (ty < -64 * FRACUNIT)
+		if (ty < -v->radius)
 			return true;
 
 		xscale = (15000 * FRACUNIT) - ty;
@@ -540,7 +580,7 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 	else
 	{
 		// too far off the side?  if so, ignore it
-		if (ty > (64 * FRACUNIT) && abs(tx) / max_project_slope > ty)
+		if (ty > v->radius && abs(tx) / max_project_slope > ty)
 			return true;
 
 		xscale = FixedDiv (projection, ty);
@@ -882,9 +922,9 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 
 			fixed_t top_z = spr->gzt - viewz - (top << FRACBITS);
 
-			fixed_t uy1 = centeryfrac - FixedMul (top_z, scale);
-			fixed_t uy2 = uy1 + (fixed_t) len * scale;
-			fixed_t uy0 = uy1;
+			int64_t uy1 = centeryfrac - FixedMul64 (top_z, scale);
+			int64_t uy2 = uy1 + (int64_t) len * scale;
+			int64_t uy0 = uy1;
 
 			// clip the slab vertically
 			if (uy1 >= clip_y2) uy1 = clip_y2;
@@ -894,7 +934,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 			if (uy2 > clip_y2) uy2 = clip_y2;
 
 			boolean has_side = ((face & (ux > Bx ? B_face : A_face)) != 0
-                          && uy1 < clip_y2 && uy2 > clip_y1);
+			                    && uy1 < clip_y2 && uy2 > clip_y1);
 
 			// handle the fuzz effect for Spectres
 			if (shadow)
@@ -934,7 +974,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 
 			if (has_top)
 			{
-				fixed_t uy = centeryfrac - FixedMul (top_z, wscale);
+				int64_t uy = centeryfrac - FixedMul64 (top_z, wscale);
 
 				uy = ((uy - 1) | FRACMASK) + 1;
 
@@ -951,7 +991,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 			}
 			else if (has_bottom)
 			{
-				fixed_t uy = centeryfrac - FixedMul (top_z - ((int)len << FRACBITS), wscale);
+				int64_t uy = centeryfrac - FixedMul64 (top_z - ((int)len << FRACBITS), wscale);
 
 				if (uy > clip_y2)
 					uy = clip_y2;
@@ -967,7 +1007,7 @@ static void VX_DrawColumn (vissprite_t * spr, int x, int y)
 
 			if (has_side)
 			{
-				fixed_t uy = ((uy1 - 1) | FRACMASK) + 1;
+				int64_t uy = ((uy1 - 1) | FRACMASK) + 1;
 
 				for (; uy <= uy2 ; uy += FRACUNIT)
 				{
