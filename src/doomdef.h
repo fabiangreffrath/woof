@@ -133,6 +133,13 @@ typedef enum mapthing_options_e {
   MTF_SKILL3 = (1u << 18),
   MTF_SKILL4 = (1u << 19),
   MTF_SKILL5 = (1u << 20),
+
+  // Hexen map format
+  MTF_DORMANT     = (1u << 21),
+  MTF_TRANSLUCENT = (1u << 21),
+  MTF_INVISIBLE   = (1u << 22),
+  MTF_STANDSTILL  = (1u << 24),
+  MTF_COUNTSECRET = (1u << 25),
 } mapthing_options_t;
 
 //

@@ -92,8 +92,8 @@ typedef enum
     tc_flicker,
     tc_friction,
     tc_ambient,
-    tc_param_scroll_floor,
-    tc_param_scroll_ceiling,
+    tc_scroll_floor_param,
+    tc_scroll_ceiling_param,
     tc_none
 } thinker_class_t;
 
@@ -120,8 +120,8 @@ static actionf_p1 actions[] = {
     [tc_flicker] = T_FireFlickerAdapter,
     [tc_friction] = T_FrictionAdapter,
     [tc_ambient] = T_AmbientSoundAdapter,
-    [tc_param_scroll_floor] = T_ParamScrollFloorAdapter,
-    [tc_param_scroll_ceiling] = T_ParamScrollCeilingAdapter,
+    [tc_scroll_floor_param] = T_ScrollFloorAdapter_Param,
+    [tc_scroll_ceiling_param] = T_ScrollCeilingAdapter_Param,
     [tc_none] = NULL};
 
 // One entry per live thinker, built by PrepareArchiveThinkers() before saving
@@ -1815,8 +1815,8 @@ static void ArchiveThinkers(json_mut_doc_t *doc, json_mut_t *root_mut)
                 data = write_elevator_t(pointer->p.elevator, doc);
                 break;
             case tc_scroll:
-            case tc_param_scroll_floor:
-            case tc_param_scroll_ceiling:
+            case tc_scroll_floor_param:
+            case tc_scroll_ceiling_param:
                 data = write_scroll_t(pointer->p.scroll, doc);
                 break;
             case tc_pusher:
@@ -1894,8 +1894,8 @@ static void PrepareUnArchiveThinkers(json_t *thinkers)
                 pointer.p.elevator = arena_alloc(thinkers_arena, elevator_t);
                 break;
             case tc_scroll:
-            case tc_param_scroll_floor:
-            case tc_param_scroll_ceiling:
+            case tc_scroll_floor_param:
+            case tc_scroll_ceiling_param:
                 pointer.p.scroll = arena_alloc(thinkers_arena, scroll_t);
                 break;
             case tc_pusher:
@@ -1971,8 +1971,8 @@ static void UnArchiveThinkers(json_t *thinkers)
                 read_elevator_t(pointer->p.elevator, pointer->tc, data);
                 break;
             case tc_scroll:
-            case tc_param_scroll_floor:
-            case tc_param_scroll_ceiling:
+            case tc_scroll_floor_param:
+            case tc_scroll_ceiling_param:
                 read_scroll_t(pointer->p.scroll, pointer->tc, data);
                 break;
             case tc_pusher:

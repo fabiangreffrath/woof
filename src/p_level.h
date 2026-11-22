@@ -240,13 +240,42 @@ typedef enum linedef_flags_e
     // mbf21
     ML_BLOCKPLAYERS = (1u << 13),
 
+    // special is repeatable
+    ML_REPEATSPECIAL = (1u << 16),
+    // Monsters and players can activate
+    ML_MONSTERSCANACTIVATE = (1u << 17),
+    // Blocks everything
+    ML_BLOCKEVERYTHING = (1u << 18),
+
     // Masks
     ML_VANILLA = ML_BLOCKING | ML_BLOCKMONSTERS | ML_TWOSIDED | ML_DONTPEGTOP
         | ML_DONTPEGBOTTOM | ML_SECRET | ML_SOUNDBLOCK | ML_DONTDRAW
         | ML_MAPPED,
     ML_BOOM = ML_PASSUSE | ML_VANILLA,
     ML_MBF21 = ML_BLOCKPLAYERS | ML_BLOCKLANDMONSTERS | ML_RESERVED | ML_BOOM,
+
+    ML_HEXEN = ML_REPEATSPECIAL | ML_VANILLA,
+    ML_ZDOOM = ML_BLOCKEVERYTHING | ML_MONSTERSCANACTIVATE | ML_HEXEN,
 } linedef_flags_t;
+
+typedef enum spac_e
+{
+    SPAC_None = (0),
+    SPAC_Cross = (1u << 0),
+    SPAC_Use = (1u << 1),
+    SPAC_MCross = (1u << 2),
+    SPAC_Impact = (1u << 3),
+    SPAC_Push = (1u << 4),
+    SPAC_PCross = (1u << 5),
+    SPAC_UseThrough = (1u << 6),
+    SPAC_AnyCross = (1u << 7),
+    SPAC_MUse = (1u << 8),
+    SPAC_MPush = (1u << 9),
+    SPAC_UseBack = (1u << 10),
+    SPAC_Damage = (1u << 11),
+    SPAC_Death = (1u << 12),
+    SPAC_Walking = (1u << 13),
+} spac_t;
 
 // haleyjd 12/28/08: sector flags
 typedef enum sector_flags_e
@@ -274,9 +303,11 @@ typedef enum sector_flags_e
 
 extern map_t map;
 void P_LoadThings_Doom(map_t *map);
+void P_LoadThings_Hexen(map_t *map);
 void P_LoadThings_UDMF(map_t *map);
 
 void P_LoadMap_Doom(map_t *map);
+void P_LoadMap_Hexen(map_t *map);
 void P_LoadMap_UDMF(map_t *map);
 
 #endif // __P_LEVEL_H__

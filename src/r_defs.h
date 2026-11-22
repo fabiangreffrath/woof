@@ -23,6 +23,7 @@
 // Some more or less basic data types
 // we depend on.
 #include "m_fixed.h"
+#include "p_level.h"
 #include "tables.h"
 
 // We rely on the thinker data struct
@@ -278,8 +279,8 @@ typedef struct line_s
 {
   vertex_t *v1, *v2;     // Vertices, from v1 to v2.
   fixed_t dx, dy;        // Precalculated v2 - v1 for side checking.
-  // [FG] extended nodes
-  uint16_t flags;        // Animation related.
+  uint32_t flags;        // Animation related.
+  spac_t spac;           // Parameterized actions
   int16_t special;       // Special action
   int16_t id;            // Tag -> id/arg0 split
   int32_t args[5];       // Hexen-style parameterized actions

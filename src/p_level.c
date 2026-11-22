@@ -44,33 +44,32 @@
 #include <math.h>
 
 // A single Vertex.
-typedef struct PACKED_PREFIX
+typedef struct PACKED_PREFIX mapvertex_s
 {
     int16_t x, y;
 } PACKED_SUFFIX mapvertex_t;
 
 // A LineDef, as used for editing, and as input to the BSP builder.
-typedef struct PACKED_PREFIX
+typedef struct PACKED_PREFIX maplinedef_doom_s
 {
-    // [FG] extended nodes
     uint16_t v1;
     uint16_t v2;
     uint16_t flags;
     int16_t special;
     int16_t tag;
-    uint16_t sidenum[2]; // sidenum[1] will be -1 (NO_INDEX) if one sided
-} PACKED_SUFFIX maplinedef_t;
+    uint16_t sidenum[2];
+} PACKED_SUFFIX maplinedef_doom_t;
 
 // A SideDef, defining the visual appearance of a wall,
 // by setting textures and offsets.
-typedef struct PACKED_PREFIX
+typedef struct PACKED_PREFIX mapsidedef_s
 {
     int16_t textureoffset;
     int16_t rowoffset;
     char toptexture[8];
     char bottomtexture[8];
     char midtexture[8];
-    int16_t sector; // Front sector, towards viewer.
+    int16_t sector;
 } PACKED_SUFFIX mapsidedef_t;
 
 // Sector definition, from editing.
@@ -84,6 +83,62 @@ typedef struct PACKED_PREFIX
     int16_t special;
     int16_t tag;
 } PACKED_SUFFIX mapsector_t;
+
+//-----------------------------------------------------------------------------
+
+typedef struct PACKED_PREFIX maplinedef_hexen_s
+{
+    uint16_t v1;
+    uint16_t v2;
+    uint16_t flags;
+    byte special;
+    byte args[5];
+    uint16_t sidenum[2];
+} PACKED_SUFFIX maplinedef_hexen_t;
+
+typedef struct PACKED_PREFIX mapthing_hexen_s
+{
+    int16_t tid;
+    int16_t x;
+    int16_t y;
+    int16_t height;
+    int16_t angle;
+    int16_t type;
+    uint16_t options;
+    byte special;
+    byte args[5];
+} PACKED_SUFFIX mapthing_hexen_t;
+
+typedef enum linedef_flags_hexen_e
+{
+    HML_REPEATSPECIAL = (1u << 9),
+    HML_SPAC_MASK = (1u << 10) | (1u << 11) | (1u << 12),
+    ZML_MONSTERSCANACTIVATE = (1u << 13),
+    ZML_BLOCKPLAYERS = (1u << 14),
+    ZML_BLOCKEVERYTHING = (1u << 15),
+} linedef_flags_hexen_t;
+
+// must convert to mapthing_options_t
+typedef enum mapthing_options_hexen_e
+{
+    HTF_EASY = (1u << 0),
+    HTF_NORMAL = (1u << 1),
+    HTF_HARD = (1u << 2),
+    HTF_AMBUSH = (1u << 3),
+    HTF_DORMANT = (1u << 4),
+    HTF_FIGHTER = (1u << 5),
+    HTF_CLERIC = (1u << 6),
+    HTF_MAGE = (1u << 7),
+    HTF_GSINGLE = (1u << 8),
+    HTF_GCOOP = (1u << 9),
+    HTF_GDM = (1u << 10),
+
+    ZTF_TRANSLUCENT = (1u << 11),
+    ZTF_INVISIBLE = (1u << 12),
+    ZTF_FRIENDLY = (1u << 13),
+    ZTF_STANDSTILL = (1u << 14),
+    ZTF_COUNTSECRET = (1u << 15),
+} mapthing_options_hexen_t;
 
 //-----------------------------------------------------------------------------
 
@@ -281,7 +336,7 @@ static void LinedefCalculateProperties(line_t *const l)
     /* cph 2006/09/30 - fix sidedef errors right away.
      * cph 2002/07/20 - these errors are fatal if not fixed, so apply them
      * in compatibility mode - a desync is better than a crash! */
-    for (int j = 0; j < 2; j++)
+    for (size_t j = 0; j < 2; j++)
     {
         if (l->sidenum[j] != NO_INDEX && l->sidenum[j] >= numsides)
         {
@@ -344,7 +399,9 @@ static void SidedefInitInterpolation(side_t *const s)
     s->oldgametic = -1;
 }
 
-static void ProcessLinedefSpecial(line_t *const l)
+static void (*ProcessLinedefSpecial)(line_t *const l);
+
+static void ProcessLinedefSpecial_Classic(line_t *const l)
 {
     // killough 4/11/98: handle special types
     // killough 4/11/98: translucent 2s textures
@@ -361,6 +418,9 @@ static void ProcessLinedefSpecial(line_t *const l)
         }
         else
         {
+            // TODO:
+            // setup line IDs dynamically so we can call P_FindLineFromLineTag
+            // from whenever, without having to call P_InitTagLists
             for (size_t i = 0; i < numlines; i++)
             {
                 if (lines[i].id == l->args[0])
@@ -373,7 +433,36 @@ static void ProcessLinedefSpecial(line_t *const l)
     }
 }
 
-static void PostProcessLineDefs(map_t *map)
+static void ProcessLinedefSpecial_Param(line_t *const l)
+{
+    if (l->special == 208 /* TranslucentLine */)
+    {
+        const double alpha = CLAMP((l->args[1] / 256.0), 0.0, 1.0);
+        const byte *tranmap = GetNormalTranMap(alpha);
+
+        if (!l->args[0])
+        {
+            l->tranmap = tranmap;
+        }
+        else
+        {
+            // TODO:
+            // setup line IDs dynamically so we can call P_FindLineFromLineTag
+            // from whenever, without having to call P_InitTagLists
+            for (size_t i = 0; i < numlines; i++)
+            {
+                if (lines[i].id == l->args[0])
+                {
+                    lines[i].tranmap = tranmap;
+                }
+            }
+        }
+
+        l->special = 0;
+    }
+}
+
+static void PostProcessLinedefs(map_t *map)
 {
     for (size_t i = 0; i < numlines; i++)
     {
@@ -447,10 +536,19 @@ static int32_t GetTranmapOrTexture(int32_t *out, const char *texture_name)
     return texture_index;
 }
 
+static void (*ProcessSidedefs)(side_t *s, char *b, char *m, char *t);
+
+static void ProcessSidedefs_Param(side_t *s, char *b, char *m, char *t)
+{
+    s->midtexture = R_TextureNumForName(m);
+    s->toptexture = R_TextureNumForName(t);
+    s->bottomtexture = R_TextureNumForName(b);
+}
+
 // killough 4/4/98: allow sidedef texture names to be overloaded
 // killough 4/11/98: refined to allow colormaps to work as wall
 // textures if invalid as colormaps but valid as textures.
-static void ProcessSideDefs(side_t *s, char *b, char *m, char *t)
+static void ProcessSidedefs_Classic(side_t *s, char *b, char *m, char *t)
 {
     // clang-format off
     sector_t *sec = s->sector;
@@ -576,7 +674,7 @@ static void LoadSectors_Doom(map_t *map)
     Z_Free(data);
 }
 
-static void AllocateSideDefs_Doom(map_t *map)
+static void AllocateSidedefs_Doom(map_t *map)
 {
     numsides = W_LumpLength(map->sidedefs) / sizeof(mapsidedef_t);
     sides = arena_alloc_num(world_arena, side_t, numsides);
@@ -584,14 +682,14 @@ static void AllocateSideDefs_Doom(map_t *map)
 
 static void LoadLineDefs_Doom(map_t *map)
 {
-    numlines = W_LumpLength(map->linedefs) / sizeof(maplinedef_t);
+    numlines = W_LumpLength(map->linedefs) / sizeof(maplinedef_doom_t);
     lines = arena_alloc_num(world_arena, line_t, numlines);
-    maplinedef_t *data = W_CacheLumpNum(map->linedefs, PU_STATIC);
+    maplinedef_doom_t *data = W_CacheLumpNum(map->linedefs, PU_STATIC);
 
     for (size_t i = 0; i < numlines; i++)
     {
         line_t *l = &lines[i];
-        maplinedef_t *ml = &data[i];
+        maplinedef_doom_t *ml = &data[i];
 
         // [FG] extended nodes
         l->flags = USHORT(ml->flags);
@@ -624,7 +722,7 @@ static void LoadLineDefs_Doom(map_t *map)
     Z_Free(data);
 }
 
-static void LoadSideDefs_Doom(map_t *map)
+static void LoadSidedefs_Doom(map_t *map)
 {
     mapsidedef_t *data = W_CacheLumpNum(map->sidedefs, PU_STATIC);
 
@@ -650,7 +748,7 @@ static void LoadSideDefs_Doom(map_t *map)
         }
         s->sector = &sectors[sec];
 
-        ProcessSideDefs(s, ms->bottomtexture, ms->midtexture, ms->toptexture);
+        ProcessSidedefs(s, ms->bottomtexture, ms->midtexture, ms->toptexture);
     }
     Z_Free(data);
 }
@@ -679,6 +777,131 @@ void P_LoadThings_Doom(map_t *map)
         if (mt.options & MTF_EASY)   mt.options |= MTF_SKILL1 | MTF_SKILL2;
         if (mt.options & MTF_NORMAL) mt.options |= MTF_SKILL3;
         if (mt.options & MTF_HARD)   mt.options |= MTF_SKILL4 | MTF_SKILL5;
+        // clang-format on
+
+        ProcessMapThing(&mt);
+    }
+
+    Z_Free(data);
+}
+
+//-----------------------------------------------------------------------------
+
+// line activation
+#define HML_SPAC_SHIFT        10
+#define GET_SPAC_INDEX(flags) ((flags & HML_SPAC_MASK) >> HML_SPAC_SHIFT)
+
+static void LoadLinedefs_Hexen(map_t *map)
+{
+    int32_t spac_lookup[] = {SPAC_Cross,
+                             SPAC_Use,
+                             SPAC_MCross,
+                             SPAC_Impact,
+                             SPAC_Push,
+                             SPAC_PCross,
+                             SPAC_Use | SPAC_UseThrough,
+                             SPAC_Impact | SPAC_PCross};
+
+    byte *data = W_CacheLumpNum(map->linedefs, PU_STATIC);
+    numlines = W_LumpLength(map->linedefs) / sizeof(maplinedef_hexen_t);
+    lines = arena_alloc_num(world_arena, line_t, numlines);
+
+    for (size_t i = 0; i < numlines; i++)
+    {
+        maplinedef_hexen_t *ml = (maplinedef_hexen_t *)data + i;
+        line_t *l = lines + i;
+
+        l->special = ml->special;
+        l->args[0] = ml->args[0];
+        l->args[1] = ml->args[1];
+        l->args[2] = ml->args[2];
+        l->args[3] = ml->args[3];
+        l->args[4] = ml->args[4];
+
+        uint16_t v1 = USHORT(ml->v1);
+        uint16_t v2 = USHORT(ml->v2);
+        if (v1 >= numvertexes)
+        {
+            I_Error("linedef %zu's vertex 1 index is out of range", i);
+        }
+        l->v1 = &vertexes[v1];
+
+        if (v2 >= numvertexes)
+        {
+            I_Error("linedef %zu's vertex 2 index is out of range", i);
+        }
+        l->v2 = &vertexes[v2];
+
+        l->sidenum[0] = USHORT(ml->sidenum[0]);
+        l->sidenum[1] = USHORT(ml->sidenum[1]);
+
+        FIX_NO_INDEX(l->sidenum[0]);
+        FIX_NO_INDEX(l->sidenum[1]);
+
+        // Convert flags
+        linedef_flags_hexen_t flags = USHORT(ml->flags);
+        l->spac = spac_lookup[GET_SPAC_INDEX(flags)];
+        l->flags = (flags & ML_VANILLA);
+
+        // clang-format off
+        if (l->spac & SPAC_UseThrough)       l->flags |= ML_PASSUSE;
+        if (flags & HML_REPEATSPECIAL)       l->flags |= ML_REPEATSPECIAL;
+        if (flags & ZML_MONSTERSCANACTIVATE) l->flags |= ML_MONSTERSCANACTIVATE;
+        if (flags & ZML_BLOCKPLAYERS)        l->flags |= ML_BLOCKPLAYERS;
+        if (flags & ZML_BLOCKEVERYTHING)     l->flags |= ML_BLOCKING | ML_BLOCKEVERYTHING;
+        // clang-format on
+
+        LinedefCalculateProperties(l);
+    }
+    Z_Free(data);
+}
+
+#undef HML_SPAC_SHIFT
+#undef GET_SPAC_INDEX
+
+void P_LoadThings_Hexen(map_t *map)
+{
+    size_t numthings = W_LumpLength(map->things) / sizeof(mapthing_hexen_t);
+    byte *data = W_CacheLumpNum(map->things, PU_STATIC);
+
+    for (int i = 0; i < numthings; i++)
+    {
+        mapthing_t mt = {0};
+        mapthing_hexen_t *mtd = (mapthing_hexen_t *)data + i;
+        int16_t options = 0;
+
+        // Do spawn all other stuff.
+        mt.tid = SHORT(mtd->tid);
+        mt.x = IntToFixed(SHORT(mtd->x));
+        mt.y = IntToFixed(SHORT(mtd->y));
+        mt.height = IntToFixed(SHORT(mtd->height));
+        mt.angle = SHORT(mtd->angle);
+        mt.type = SHORT(mtd->type);
+        mt.special = mtd->special;
+        mt.args[0] = mtd->args[0];
+        mt.args[1] = mtd->args[1];
+        mt.args[2] = mtd->args[2];
+        mt.args[3] = mtd->args[3];
+        mt.args[4] = mtd->args[4];
+
+        // Convert flags
+        options = SHORT(mtd->options);
+        mt.options = (MTF_NOTSINGLE | MTF_NOTCOOP | MTF_NOTCOOP);
+
+        // clang-format off
+        if (options & HTF_EASY)   mt.options |= MTF_SKILL1 | MTF_SKILL2;
+        if (options & HTF_NORMAL) mt.options |= MTF_SKILL3;
+        if (options & HTF_HARD)   mt.options |= MTF_SKILL4 | MTF_SKILL5;
+
+        if (options & HTF_GSINGLE) mt.options &= ~MTF_NOTSINGLE;
+        if (options & HTF_GCOOP)   mt.options &= ~MTF_NOTCOOP;
+        if (options & HTF_GDM)     mt.options &= ~MTF_NOTDM;
+
+        if (options & ZTF_FRIENDLY)    mt.options |= MTF_FRIEND;
+        if (options & ZTF_TRANSLUCENT) mt.options |= MTF_TRANSLUCENT;
+        if (options & ZTF_INVISIBLE)   mt.options |= MTF_INVISIBLE;
+        if (options & ZTF_STANDSTILL)  mt.options |= MTF_STANDSTILL;
+        if (options & ZTF_COUNTSECRET) mt.options |= MTF_COUNTSECRET;
         // clang-format on
 
         ProcessMapThing(&mt);
@@ -745,39 +968,39 @@ static void LoadSectors_UDMF(map_t *map)
 
         if (us->scroll_floor_type && (us->scroll_floor_x || us->scroll_floor_y))
         {
-            Add_EESectorScroller(us->scroll_floor_type, i, false,
-                                 us->scroll_floor_x, us->scroll_floor_y);
+            Add_SectorScroller_EE(us->scroll_floor_type, i, false,
+                                  us->scroll_floor_x, us->scroll_floor_y);
         }
 
         if (us->scroll_ceil_type && (us->scroll_ceil_x || us->scroll_ceil_y))
         {
-            Add_EESectorScroller(us->scroll_floor_type, i, true,
-                                 us->scroll_floor_x, us->scroll_floor_y);
+            Add_SectorScroller_EE(us->scroll_floor_type, i, true,
+                                  us->scroll_floor_x, us->scroll_floor_y);
         }
 
         if (us->scrollfloormode && (us->xscrollfloor || us->yscrollfloor))
         {
-            Add_ParamSectorScroller(us->scrollfloormode, i, false,
-                                    DoubleToFixed(us->xscrollfloor),
-                                    DoubleToFixed(us->yscrollfloor));
+            Add_SectorScroller_Param(us->scrollfloormode, i, false,
+                                     DoubleToFixed(us->xscrollfloor),
+                                     DoubleToFixed(us->yscrollfloor));
         }
 
         if (us->scrollceilingmode && (us->xscrollceiling || us->yscrollceiling))
         {
-            Add_ParamSectorScroller(us->scrollceilingmode, i, true,
-                                    DoubleToFixed(us->xscrollceiling),
-                                    DoubleToFixed(us->yscrollceiling));
+            Add_SectorScroller_Param(us->scrollceilingmode, i, true,
+                                     DoubleToFixed(us->xscrollceiling),
+                                     DoubleToFixed(us->yscrollceiling));
         }
     }
 }
 
-static void AllocateSideDefs_UDMF(map_t *map)
+static void AllocateSidedefs_UDMF(map_t *map)
 {
     numsides = array_size(map->udmf_sidedefs);
     sides = arena_alloc_num(world_arena, side_t, numsides);
 }
 
-static void LoadLineDefs_UDMF(map_t *map)
+static void LoadLinedefs_UDMF(map_t *map)
 {
     numlines = array_size(map->udmf_linedefs);
     lines = arena_alloc_num(world_arena, line_t, numlines);
@@ -836,7 +1059,7 @@ static void LoadLineDefs_UDMF(map_t *map)
     }
 }
 
-static void LoadSideDefs_UDMF(map_t *map)
+static void LoadSidedefs_UDMF(map_t *map)
 {
     for (size_t i = 0; i < numsides; i++)
     {
@@ -893,8 +1116,8 @@ static void LoadSideDefs_UDMF(map_t *map)
                                DoubleToFixed(us->yscrollbottom));
         }
 
-        ProcessSideDefs(s, us->texturebottom, us->texturemiddle,
-                        us->texturetop);
+        ProcessSidedefs_Classic(s, us->texturebottom, us->texturemiddle,
+                                us->texturetop);
     }
 }
 
@@ -1022,19 +1245,22 @@ static boolean LoadReject(map_t *map)
 
 //-----------------------------------------------------------------------------
 
-void P_LoadMap_Doom(map_t *map)
+static void LoadCompiledData(map_t *map)
 {
-    // the original implementation used only low precision math
-    P_PointOnLineSide = P_PointOnLineSide_Classic;
-    P_PointOnDivlineSide = P_PointOnDivlineSide_Classic;
+    if (map->map_format == MAP_UDMF)
+    {
+        if (map->znodes < 0)
+        {
+            I_Error("Could not find ZNODES lump for UDMF map: %s.",
+                    lumpinfo[map->label].name);
+        }
 
-    // note: most of this ordering is important
-    LoadVertexes_Doom(map);
-    LoadSectors_Doom(map);
-    AllocateSideDefs_Doom(map); // <- This needs Sectors
-    LoadLineDefs_Doom(map);     // <- this needs allocated Sides
-    LoadSideDefs_Doom(map);     // <- this needs Lines
-    PostProcessLineDefs(map);   // <- this needs Sides
+        if (map->bsp_format < BSP_XNOD || map->bsp_format > BSP_ZGL3)
+        {
+            I_Error("Invalid format found on ZNODES lump for UDMF map: %s",
+                    lumpinfo[map->label].name);
+        }
+    }
 
     map->bmap_format = P_LoadBlockMap(map);
 
@@ -1066,38 +1292,64 @@ void P_LoadMap_Doom(map_t *map)
     map->reject_built = LoadReject(map);
 }
 
+void P_LoadMap_Doom(map_t *map)
+{
+    // the original implementation used only low precision math
+    P_PointOnLineSide = P_PointOnLineSide_Classic;
+    P_PointOnDivlineSide = P_PointOnDivlineSide_Classic;
+
+    ProcessSidedefs = ProcessSidedefs_Classic;
+    ProcessLinedefSpecial = ProcessLinedefSpecial_Classic;
+
+    // note: most of this ordering is important
+    LoadVertexes_Doom(map);
+    LoadSectors_Doom(map);
+    AllocateSidedefs_Doom(map); // <- This needs Sectors
+    LoadLineDefs_Doom(map);     // <- this needs allocated Sides
+    LoadSidedefs_Doom(map);     // <- this needs Lines
+    PostProcessLinedefs(map);   // <- this needs Sides
+    LoadCompiledData(map);
+}
+
+void P_LoadMap_Hexen(map_t *map)
+{
+    // zdoom uses precise variant
+    P_PointOnLineSide = P_PointOnLineSide_Precise;
+    P_PointOnDivlineSide = P_PointOnDivlineSide_Precise;
+
+    ProcessSidedefs = ProcessSidedefs_Param;
+    ProcessLinedefSpecial = ProcessLinedefSpecial_Param;
+
+    // note: most of this ordering is important
+    LoadVertexes_Doom(map);
+    LoadSectors_Doom(map);
+    AllocateSidedefs_Doom(map); // <- This needs Sectors
+    LoadLinedefs_Hexen(map);    // <- this needs allocated Sides
+    LoadSidedefs_Doom(map);     // <- this needs Lines
+    PostProcessLinedefs(map);   // <- this needs Sides
+    LoadCompiledData(map);
+}
+
 void P_LoadMap_UDMF(map_t *map)
 {
     // udmf requires higher precision math
     P_PointOnLineSide = P_PointOnLineSide_Precise;
     P_PointOnDivlineSide = P_PointOnDivlineSide_Precise;
 
-    if (map->znodes < 0)
-    {
-        I_Error("Could not find ZNODES lump for UDMF map: %s.",
-                lumpinfo[map->label].name);
-    }
-
-    if (map->bsp_format == BSP_NANO)
-    {
-        I_Error("Invalid format found on ZNODES lump for UDMF map: %s",
-                lumpinfo[map->label].name);
-    }
-
     P_ClearMemory_UDMF(map);
     P_ParseTextMap(map);
+
+    ProcessSidedefs = ProcessSidedefs_Classic;
+    ProcessLinedefSpecial = ProcessLinedefSpecial_Classic;
 
     // note: most of this ordering is important
     LoadVertexes_UDMF(map);
     LoadSectors_UDMF(map);
-    AllocateSideDefs_UDMF(map); // <- This needs Sectors
-    LoadLineDefs_UDMF(map);     // <- this needs allocated Sides
-    LoadSideDefs_UDMF(map);     // <- this needs Lines
-    PostProcessLineDefs(map);   // <- this needs Sides
-
-    map->bmap_format = P_LoadBlockMap(map);
-    P_LoadBSPTree_ZDBSP(map);
-    map->reject_built = LoadReject(map);
+    AllocateSidedefs_UDMF(map); // <- This needs Sectors
+    LoadLinedefs_UDMF(map);     // <- this needs allocated Sides
+    LoadSidedefs_UDMF(map);     // <- this needs Lines
+    PostProcessLinedefs(map);   // <- this needs Sides
+    LoadCompiledData(map);
 
     P_ClearMemory_UDMF(map);
 }

@@ -740,11 +740,11 @@ typedef struct {
 extern void Add_Scroller(scroller_t type, fixed_t dx, fixed_t dy,
                          int32_t control, int32_t affectee, int32_t accel);
 
-extern void Add_ParamSectorScroller(scroller_t type, int32_t affectee,
-                                    boolean isCeiling, fixed_t dx, fixed_t dy);
+extern void Add_SectorScroller_Param(scroller_t type, int32_t affectee,
+                                     boolean isCeiling, fixed_t dx, fixed_t dy);
 
-extern void Add_EESectorScroller(int32_t type, int32_t affectee,
-                                 boolean isCeiling, double x, double y);
+extern void Add_SectorScroller_EE(int32_t type, int32_t affectee,
+                                  boolean isCeiling, double x, double y);
 
 // phares 3/12/98: added new model of friction for ice/sludge effects
 
@@ -906,8 +906,8 @@ void T_FrictionAdapter(struct mobj_s *mobj); // phares 3/12/98: friction thinker
 
 void T_PusherAdapter(struct mobj_s *mobj); // phares 3/20/98: Push thinker
 
-void T_ParamScrollFloorAdapter(struct mobj_s *mobj);
-void T_ParamScrollCeilingAdapter(struct mobj_s *mobj);
+void T_ScrollFloorAdapter_Param(struct mobj_s *mobj);
+void T_ScrollCeilingAdapter_Param(struct mobj_s *mobj);
 
 ////////////////////////////////////////////////////////////////
 //

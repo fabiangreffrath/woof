@@ -3190,12 +3190,12 @@ static void T_ParamScrollCeiling(scroll_t *s)
   }
 }
 
-void T_ParamScrollFloorAdapter(mobj_t *mobj)
+void T_ScrollFloorAdapter_Param(mobj_t *mobj)
 {
     T_ParamScrollFloor((scroll_t *)mobj);
 }
 
-void T_ParamScrollCeilingAdapter(mobj_t *mobj)
+void T_ScrollCeilingAdapter_Param(mobj_t *mobj)
 {
     T_ParamScrollCeiling((scroll_t *)mobj);
 }
@@ -3235,12 +3235,12 @@ void Add_Scroller(scroller_t type, fixed_t dx, fixed_t dy, int32_t control,
   P_AddThinker(&s->thinker);
 }
 
-void Add_ParamSectorScroller(scroller_t type, int32_t affectee,
+void Add_SectorScroller_Param(scroller_t type, int32_t affectee,
                              boolean isCeiling, fixed_t dx, fixed_t dy)
 {
   scroll_t *s = arena_alloc(thinkers_arena, scroll_t);
-  s->thinker.function.p1 = isCeiling ? T_ParamScrollCeilingAdapter
-                                     : T_ParamScrollFloorAdapter;
+  s->thinker.function.p1 = isCeiling ? T_ScrollCeilingAdapter_Param
+                                     : T_ScrollFloorAdapter_Param;
   s->type = type;
   s->dx = dx;
   s->dy = dy;
@@ -3296,7 +3296,7 @@ static void Add_WallScroller(int64_t dx, int64_t dy, const line_t *l,
 // Eternity scrollers are weird...
 #define EE_SCROLLFACTOR 10
 
-void Add_EESectorScroller(int32_t type, int32_t affectee, boolean isCeiling, double x, double y)
+void Add_SectorScroller_EE(int32_t type, int32_t affectee, boolean isCeiling, double x, double y)
 {
   fixed_t dx = DoubleToFixed(x * EE_SCROLLFACTOR) >> SCROLL_SHIFT;
   fixed_t dy = DoubleToFixed(y * EE_SCROLLFACTOR) >> SCROLL_SHIFT;
