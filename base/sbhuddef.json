@@ -1,24 +1,25 @@
 {
   "type": "hud",
   "version": "1.0.0",
-  "data": {
+  "data":
+  {
     "hudfonts": [
       {
         "name": "Console",
-        "type": 2,
-        "stem": "STCFN"
+        "stem": "STCFN",
+        "type": 2
       },
       {
         "name": "Digits",
-        "type": 0,
-        "stem": "DIG"
+        "stem": "DIG",
+        "type": 0
       }
     ],
     "fullscreen_components": [
       {
         "component": {
           "x": 2,
-          "y": 8,
+          "y": 48,
           "alignment": 64,
           "tranmap": null,
           "translation": null,
@@ -33,7 +34,8 @@
           "children": [],
           "type": "stat_totals",
           "font": "Digits",
-          "vertical": true
+          "vertical": true,
+          "duration": 4.0
         }
       },
       {
@@ -54,7 +56,8 @@
           "children": [],
           "type": "time",
           "font": "Digits",
-          "vertical": false
+          "vertical": false,
+          "duration": 4.0
         }
       },
       {
@@ -75,7 +78,8 @@
           "children": [],
           "type": "coordinates",
           "font": "Digits",
-          "vertical": false
+          "vertical": false,
+          "duration": 4.0
         }
       },
       {
@@ -96,7 +100,8 @@
           "children": [],
           "type": "coordinates",
           "font": "Digits",
-          "vertical": true
+          "vertical": true,
+          "duration": 4.0
         }
       },
       {
@@ -111,7 +116,8 @@
           "children": [],
           "type": "fps_counter",
           "font": "Digits",
-          "vertical": false
+          "vertical": false,
+          "duration": 4.0
         }
       },
       {
@@ -126,7 +132,8 @@
           "children": [],
           "type": "render_stats",
           "font": "Digits",
-          "vertical": false
+          "vertical": false,
+          "duration": 4.0
         }
       },
       {
@@ -141,7 +148,8 @@
           "children": [],
           "type": "command_history",
           "font": "Digits",
-          "vertical": false
+          "vertical": false,
+          "duration": 4.0
         }
       },
       {
@@ -156,7 +164,8 @@
           "children": [],
           "type": "speedometer",
           "font": "Digits",
-          "vertical": false
+          "vertical": false,
+          "duration": 4.0
         }
       },
       {
@@ -213,7 +222,8 @@
                 "children": [],
                 "type": "chat",
                 "font": "Console",
-                "vertical": false
+                "vertical": false,
+                "duration": 4.0
               }
             },
             {
@@ -228,7 +238,8 @@
                 "children": [],
                 "width": 72,
                 "height": 60,
-                "background": 1
+                "background": 1,
+                "scale": 1.0
               }
             }
           ],
@@ -247,34 +258,21 @@
           "conditions": [
             {
               "condition": 19,
-              "param": 3,
+              "param": 2,
               "param2": 0
             }
           ],
           "children": [],
           "type": "level_title",
           "font": "Console",
-          "vertical": false
+          "vertical": false,
+          "duration": 4.0
         }
       },
       {
-        "carousel": {
-          "x": 0,
-          "y": 18,
-          "alignment": 0,
-          "tranmap": null,
-          "translation": null,
-          "translucency": false,
-          "conditions": [],
-          "children": []
-        }
-      }
-    ],
-    "components": [
-      {
         "list": {
           "x": 2,
-          "y": 0,
+          "y": 161,
           "alignment": 72,
           "tranmap": null,
           "translation": null,
@@ -299,7 +297,8 @@
                 "children": [],
                 "type": "time",
                 "font": "Digits",
-                "vertical": false
+                "vertical": false,
+                "duration": 4.0
               }
             },
             {
@@ -320,12 +319,369 @@
                 "children": [],
                 "type": "stat_totals",
                 "font": "Digits",
-                "vertical": false
+                "vertical": false,
+                "duration": 4.0
               }
             }
           ],
           "horizontal": false,
           "spacing": 0
+        }
+      },
+      {
+        "carousel": {
+          "x": 0,
+          "y": 18,
+          "alignment": 0,
+          "tranmap": null,
+          "translation": null,
+          "translucency": false,
+          "conditions": [],
+          "children": []
+        }
+      }
+    ],
+    "components": [
+      {
+        "component":
+        {
+          "alignment": 64,
+          "children": [],
+          "conditions": [
+            {
+              "condition": 19,
+              "param": 3,
+              "param2": 0
+            }
+          ],
+          "duration": 4.0,
+          "font": "Digits",
+          "tranmap": null,
+          "translation": null,
+          "translucency": false,
+          "type": "stat_totals",
+          "vertical": true,
+          "x": 2,
+          "y": -150
+        }
+      },
+      {
+        "component":
+        {
+          "alignment": 64,
+          "children": [],
+          "conditions": [
+            {
+              "condition": 19,
+              "param": 3,
+              "param2": 0
+            }
+          ],
+          "duration": 4.0,
+          "font": "Digits",
+          "tranmap": null,
+          "translation": null,
+          "translucency": false,
+          "type": "time",
+          "vertical": false,
+          "x": 2,
+          "y": -118
+        }
+      },
+      {
+        "component":
+        {
+          "alignment": 130,
+          "children": [],
+          "conditions": [
+            {
+              "condition": 19,
+              "param": 4,
+              "param2": 0
+            }
+          ],
+          "duration": 4.0,
+          "font": "Digits",
+          "tranmap": null,
+          "translation": null,
+          "translucency": false,
+          "type": "coordinates",
+          "vertical": false,
+          "x": 318,
+          "y": -160
+        }
+      },
+      {
+        "component":
+        {
+          "alignment": 128,
+          "children": [],
+          "conditions": [
+            {
+              "condition": 19,
+              "param": 3,
+              "param2": 0
+            }
+          ],
+          "duration": 4.0,
+          "font": "Digits",
+          "tranmap": null,
+          "translation": null,
+          "translucency": false,
+          "type": "coordinates",
+          "vertical": true,
+          "x": 256,
+          "y": -160
+        }
+      },
+      {
+        "component":
+        {
+          "alignment": 130,
+          "children": [],
+          "conditions": [],
+          "duration": 4.0,
+          "font": "Digits",
+          "tranmap": null,
+          "translation": null,
+          "translucency": false,
+          "type": "fps_counter",
+          "vertical": false,
+          "x": 318,
+          "y": -168
+        }
+      },
+      {
+        "component":
+        {
+          "alignment": 0,
+          "children": [],
+          "conditions": [],
+          "duration": 4.0,
+          "font": "Digits",
+          "tranmap": null,
+          "translation": null,
+          "translucency": false,
+          "type": "render_stats",
+          "vertical": false,
+          "x": 2,
+          "y": -160
+        }
+      },
+      {
+        "component":
+        {
+          "alignment": 138,
+          "children": [],
+          "conditions": [],
+          "duration": 4.0,
+          "font": "Digits",
+          "tranmap": null,
+          "translation": null,
+          "translucency": false,
+          "type": "command_history",
+          "vertical": false,
+          "x": 318,
+          "y": -1
+        }
+      },
+      {
+        "component":
+        {
+          "alignment": 9,
+          "children": [],
+          "conditions": [],
+          "duration": 4.0,
+          "font": "Digits",
+          "tranmap": null,
+          "translation": null,
+          "translucency": false,
+          "type": "speedometer",
+          "vertical": false,
+          "x": 160,
+          "y": -1
+        }
+      },
+      {
+        "component":
+        {
+          "alignment": 64,
+          "children": [],
+          "conditions": [],
+          "duration": 4.0,
+          "font": "Console",
+          "tranmap": null,
+          "translation": null,
+          "translucency": false,
+          "type": "message",
+          "vertical": false,
+          "x": 0,
+          "y": -168
+        }
+      },
+      {
+        "component":
+        {
+          "alignment": 1,
+          "children": [],
+          "conditions": [],
+          "duration": 2.5,
+          "font": "Console",
+          "tranmap": null,
+          "translation": null,
+          "translucency": false,
+          "type": "announce_level_title",
+          "vertical": false,
+          "x": 160,
+          "y": -116
+        }
+      },
+      {
+        "list":
+        {
+          "alignment": 64,
+          "children": [
+            {
+              "component":
+              {
+                "alignment": 0,
+                "children": [],
+                "conditions": [],
+                "duration": 4.0,
+                "font": "Console",
+                "tranmap": null,
+                "translation": "CRGOLD",
+                "translucency": false,
+                "type": "chat",
+                "vertical": false,
+                "x": 0,
+                "y": 0
+              }
+            },
+            {
+              "minimap":
+              {
+                "alignment": 0,
+                "background": 1,
+                "children": [],
+                "conditions": [],
+                "height": 60,
+                "scale": 1.0,
+                "tranmap": null,
+                "translation": null,
+                "translucency": false,
+                "width": 72,
+                "x": 2,
+                "y": 1
+              }
+            }
+          ],
+          "conditions": [],
+          "horizontal": false,
+          "spacing": 0,
+          "tranmap": null,
+          "translation": null,
+          "translucency": false,
+          "x": 0,
+          "y": -160
+        }
+      },
+      {
+        "component":
+        {
+          "alignment": 72,
+          "children": [],
+          "conditions": [
+            {
+              "condition": 19,
+              "param": 3,
+              "param2": 0
+            }
+          ],
+          "duration": 4.0,
+          "font": "Console",
+          "tranmap": null,
+          "translation": "CRGOLD",
+          "translucency": false,
+          "type": "level_title",
+          "vertical": false,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "list":
+        {
+          "alignment": 72,
+          "children": [
+            {
+              "component":
+              {
+                "alignment": 0,
+                "children": [],
+                "conditions": [
+                  {
+                    "condition": 19,
+                    "param": 4,
+                    "param2": 0
+                  }
+                ],
+                "duration": 4.0,
+                "font": "Digits",
+                "tranmap": null,
+                "translation": null,
+                "translucency": false,
+                "type": "time",
+                "vertical": false,
+                "x": 0,
+                "y": 0
+              }
+            },
+            {
+              "component":
+              {
+                "alignment": 0,
+                "children": [],
+                "conditions": [
+                  {
+                    "condition": 19,
+                    "param": 4,
+                    "param2": 0
+                  }
+                ],
+                "duration": 4.0,
+                "font": "Digits",
+                "tranmap": null,
+                "translation": null,
+                "translucency": false,
+                "type": "stat_totals",
+                "vertical": false,
+                "x": 0,
+                "y": 0
+              }
+            }
+          ],
+          "conditions": [],
+          "horizontal": false,
+          "spacing": 0,
+          "tranmap": null,
+          "translation": null,
+          "translucency": false,
+          "x": 2,
+          "y": 0
+        }
+      },
+      {
+        "carousel":
+        {
+          "alignment": 0,
+          "children": [],
+          "conditions": [],
+          "tranmap": null,
+          "translation": null,
+          "translucency": false,
+          "x": 0,
+          "y": -150
         }
       }
     ]

@@ -16,7 +16,6 @@
 #include <stdlib.h>
 
 #include "doomdef.h"
-#include "doomstat.h"
 #include "doomtype.h"
 #include "i_printf.h"
 #include "i_system.h"
@@ -734,32 +733,30 @@ sbardef_t *ST_ParseSbarDef(void)
     statusbar_t *statusbar;
     array_foreach(statusbar, out->statusbars)
     {
-        json_t *js_widgets = JS_GetObject(data, "fullscreen_components");
-        json_t *js_widget = NULL;
-        JS_ArrayForEach(js_widget, js_widgets)
+        if (statusbar->fullscreenrender)
         {
-            sbarelem_t elem = {0};
-            if (ParseSbarElem(js_widget, &elem))
+            json_t *js_widgets = JS_GetObject(data, "fullscreen_components");
+            json_t *js_widget = NULL;
+            JS_ArrayForEach(js_widget, js_widgets)
             {
-                if (!statusbar->fullscreenrender)
+                sbarelem_t elem = {0};
+                if (ParseSbarElem(js_widget, &elem))
                 {
-                    elem.y_pos -= SCREENHEIGHT - statusbar->height;
+                    array_push(statusbar->children, elem);
                 }
-                array_push(statusbar->children, elem);
             }
         }
-
-        js_widgets = JS_GetObject(data, "components");
-        JS_ArrayForEach(js_widget, js_widgets)
+        else
         {
-            sbarelem_t elem = {0};
-            if (ParseSbarElem(js_widget, &elem))
+            json_t *js_widgets = JS_GetObject(data, "components");
+            json_t *js_widget = NULL;
+            JS_ArrayForEach(js_widget, js_widgets)
             {
-                if (statusbar->fullscreenrender)
+                sbarelem_t elem = {0};
+                if (ParseSbarElem(js_widget, &elem))
                 {
-                    elem.y_pos += SCREENHEIGHT;
+                    array_push(statusbar->children, elem);
                 }
-                array_push(statusbar->children, elem);
             }
         }
     }
