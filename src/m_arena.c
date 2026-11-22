@@ -317,10 +317,7 @@ arena_copy_t *M_ArenaCopy(arena_copy_t *copy, const arena_t *arena)
         memcpy(copy->buffer, arena->buffer, size);
     }
 
-    if (copy->deleted)
-    {
-        array_free(copy->deleted);
-    }
+    FreeBlocks(copy->deleted);
     copy->deleted = CopyBlocks(arena->deleted);
     copy->next_index = arena->next_index;
     copy->num_blocks = arena->num_blocks;
