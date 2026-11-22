@@ -126,10 +126,6 @@ typedef struct
 
     // exponentially smoothed frame time for stable load balancing
     double smoothed_time;
-
-    // exponentially smoothed vissprite count of the last
-    // frame (rendered_vissprites)
-    double smoothed_sprites;
 } rendercontext_t;
 
 // TLS context currently being rendered by this thread.

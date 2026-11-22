@@ -974,21 +974,31 @@ boolean R_IsMultiThreaded(void)
 // R_RenderLoadBalance
 //
 // Each context's last frame time becomes a share of the view width; contexts
-// that took longer than their fair share shrink by up to a quarter of the
-// ideal share, faster ones grow.
+// that took longer than their fair share shrink, faster ones grow.
 //
+// The plan is applied at most once per LOADBALANCE_PERIOD frames, and only
+// when the imbalance is worth the move: shifting a boundary changes which
+// segments, planes and sprites a context touches, so a split that is good
+// enough is better left alone.
+//
+
+#define LOADBALANCE_PERIOD  1     // frames between two plans
+#define LOADBALANCE_BUDGET  0.25  // share of the ideal slab shifted per plan
+#define LOADBALANCE_TRIGGER 0.10  // imbalance below this is ignored
+
+static int loadbalance_frames;
 
 static void R_EvenContextSplit(int contexts)
 {
-    const int width = viewwidth / contexts;
     int start = 0;
 
     for (int i = 0; i < contexts; i++)
     {
+        const int end = ((i + 1) * viewwidth) / contexts;
+
         rendercontexts[i].startcol = start;
-        start += width;
-        rendercontexts[i].endcol =
-            (i == contexts - 1) ? viewwidth : MIN(start, viewwidth);
+        rendercontexts[i].endcol = (i == contexts - 1) ? viewwidth : end;
+        start = rendercontexts[i].endcol;
     }
 }
 
@@ -996,7 +1006,6 @@ static void R_RenderLoadBalance(int contexts)
 {
     const double idealpercentage = 1.0 / contexts;
     double total_smoothed_time = 0;
-    double total_smoothed_sprites = 0;
     double timepercentages[MAX_RENDER_CONTEXTS];
     double loadpercentages[MAX_RENDER_CONTEXTS];
     double widthpercentages[MAX_RENDER_CONTEXTS];
@@ -1011,12 +1020,6 @@ static void R_RenderLoadBalance(int contexts)
             0.9 * rendercontexts[i].smoothed_time
             + 0.1 * (double)rendercontexts[i].timetaken;
         total_smoothed_time += rendercontexts[i].smoothed_time;
-
-        // Same EMA over the last frame's vissprite count.
-        rendercontexts[i].smoothed_sprites =
-            0.9 * rendercontexts[i].smoothed_sprites
-            + 0.1 * (double)rendercontexts[i].rendered_vissprites;
-        total_smoothed_sprites += rendercontexts[i].smoothed_sprites;
     }
 
     if (total_smoothed_time <= 0)
@@ -1025,22 +1028,36 @@ static void R_RenderLoadBalance(int contexts)
         return;
     }
 
+    // The percentages below are relative to the widths we already have, so
+    // the first frame and a resize have to start from an even split.
+
+    int covered = 0;
+    for (int i = 0; i < contexts; i++)
+    {
+        covered += rendercontexts[i].endcol - rendercontexts[i].startcol;
+    }
+
+    if (covered != viewwidth)
+    {
+        R_EvenContextSplit(contexts);
+        return;
+    }
+
+    // Keep the current split in between plans.
+
+    if (++loadbalance_frames < LOADBALANCE_PERIOD)
+    {
+        return;
+    }
+
+    loadbalance_frames = 0;
+
     for (int i = 0; i < contexts; i++)
     {
         timepercentages[i] =
             rendercontexts[i].smoothed_time / total_smoothed_time;
 
-        // [MT] blend the sprite share into the load estimate: time still
-        // dominates (it measures all of the slab's work), the sprite count
-        // is a leading indicator of rasterization hot spots. Both shares
-        // sum to 1, so the blend does too.
         loadpercentages[i] = timepercentages[i];
-        if (total_smoothed_sprites > 0)
-        {
-            loadpercentages[i] = 0.75 * timepercentages[i]
-                                 + 0.25 * (rendercontexts[i].smoothed_sprites
-                                          / total_smoothed_sprites);
-        }
 
         if (loadpercentages[i] > idealpercentage)
         {
@@ -1052,8 +1069,21 @@ static void R_RenderLoadBalance(int contexts)
         }
     }
 
-    // shift up to a quarter of the ideal share from slow to fast contexts
-    const double totalshuffle = idealpercentage * 0.25;
+    // Give up on this plan if nothing is off by more than the trigger.
+
+    double worstpercentage = 0;
+    for (int i = 0; i < contexts; i++)
+    {
+        worstpercentage = MAX(worstpercentage, loadpercentages[i]);
+    }
+
+    if (worstpercentage <= idealpercentage * (1.0 + LOADBALANCE_TRIGGER))
+    {
+        return;
+    }
+
+    // shift up to LOADBALANCE_BUDGET of the ideal share from slow to fast
+    const double totalshuffle = idealpercentage * LOADBALANCE_BUDGET;
     double removeamount = totalshuffle / 2;
     double addamount = totalshuffle - removeamount;
 
@@ -1075,11 +1105,10 @@ static void R_RenderLoadBalance(int contexts)
         const double growamount =
             loadpercentages[i] > idealpercentage ? -removeamount : addamount;
 
-        // Hysteresis: only adjust if imbalance exceeds 10% of ideal share.
-        // This prevents slab boundaries from jittering due to timing noise.
+        // Hysteresis: only adjust if imbalance exceeds the trigger. This
+        // prevents slab boundaries from jittering due to timing noise.
         const double imbalance = fabs(loadpercentages[i] - idealpercentage);
-        const double hysteresis_threshold = idealpercentage * 0.10;
-        if (imbalance > hysteresis_threshold)
+        if (imbalance > idealpercentage * LOADBALANCE_TRIGGER)
         {
             widthpercentages[i] = oldwidthpercentage + growamount;
         }
@@ -1106,24 +1135,26 @@ static void R_RenderLoadBalance(int contexts)
         widthpercentages[i] /= totalpercentage;
     }
 
-    int currstart = 0;
-    int desiredwidth = 0;
-    for (int i = 0; i < contexts; i++)
-    {
-        desiredwidth = (int)(viewwidth * widthpercentages[i]);
-        if (desiredwidth <= 0)
-        {
-            R_EvenContextSplit(contexts);
-            return;
-        }
+    int start = 0;
+    double cumulative = 0.0;
 
-        rendercontexts[i].startcol = currstart;
-        currstart += desiredwidth;
-        rendercontexts[i].endcol = MIN(currstart, viewwidth);
+    for (int i = 0; i < contexts - 1; i++)
+    {
+        cumulative += widthpercentages[i];
+
+        int end = (int)lround(viewwidth * cumulative);
+
+        // At least one column for this context, and one left for every
+        // context that follows.
+
+        end = CLAMP(end, start + 1, viewwidth - (contexts - 1 - i));
+
+        rendercontexts[i].startcol = start;
+        rendercontexts[i].endcol = end;
+        start = end;
     }
 
-    currstart -= desiredwidth;
-    rendercontexts[contexts - 1].startcol = MAX(currstart, 0);
+    rendercontexts[contexts - 1].startcol = start;
     rendercontexts[contexts - 1].endcol = viewwidth;
 }
 
@@ -1343,7 +1374,6 @@ void R_InitRenderThreads(void)
         rendercontexts[i].index = i;
         rendercontexts[i].timetaken = 1;
         rendercontexts[i].smoothed_time = 1.0;
-        rendercontexts[i].smoothed_sprites = 0.0;
     }
 
     // Context 0 always renders on the calling thread, so the pool only needs
@@ -1351,8 +1381,10 @@ void R_InitRenderThreads(void)
     R_JobsInit(num_render_contexts - 1);
 
     // Frame scratch allocator: per-thread bump arena for small fixed-size
-    // per-frame.
-    R_FrameScratchInit(1024 * 1024);
+    // per-frame allocations.
+    // The only consumer is clipbot for now, 2 * viewwidth * sizeof(int) bytes
+
+    R_FrameScratchInit(MAX(64 * 1024, 2 * video.width * (int)sizeof(int)));
     I_AtExit(R_ShutdownRenderThreads, true);
 }
 

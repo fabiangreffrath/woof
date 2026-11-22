@@ -15,7 +15,7 @@
 #define R_COMMON_H
 
 // [MT] Maximum number of parallel render contexts (column slabs).
-#define MAX_RENDER_CONTEXTS 16
+#define MAX_RENDER_CONTEXTS 32
 
 // [MT] Maximum number of sectors one mobj's sprite bounding box is recorded
 // as overlapping, for the wide-sprite sector association used by the
