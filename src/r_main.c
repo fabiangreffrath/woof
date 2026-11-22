@@ -944,6 +944,8 @@ THREADLOCAL int r_worker_scratch_index = 0;
 
 static rendercontext_t rendercontexts[MAX_RENDER_CONTEXTS];
 
+#define MIN_SLAB_WIDTH 96
+
 // number of contexts usable this frame (pool size is fixed at init)
 static int ActiveContexts(void)
 {
@@ -953,7 +955,14 @@ static int ActiveContexts(void)
         return 1;
     }
 
-    return CLAMP(num_render_contexts, 1, R_JobsNumThreads() + 1);
+    const int contexts = CLAMP(num_render_contexts, 1, R_JobsNumThreads() + 1);
+
+    if (viewwidth > 0)
+    {
+        return MIN(contexts, MAX(1, viewwidth / MIN_SLAB_WIDTH));
+    }
+
+    return contexts;
 }
 
 boolean R_IsMultiThreaded(void)
