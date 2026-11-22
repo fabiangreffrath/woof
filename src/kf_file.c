@@ -416,7 +416,6 @@ static void read_mobj_t(mobj_t *str, thinker_class_t tc, json_t *obj)
     str->momx = JS_GetIntegerValue(obj, "momx");
     str->momy = JS_GetIntegerValue(obj, "momy");
     str->momz = JS_GetIntegerValue(obj, "momz");
-    str->validcount = JS_GetIntegerValue(obj, "validcount");
     str->type = JS_GetIntegerValue(obj, "type");
     JS_GetIdx(str->info, mobjinfo, obj, "info");
     str->tics = JS_GetIntegerValue(obj, "tics");
@@ -501,7 +500,6 @@ static json_mut_t *write_mobj_t(mobj_t *str, json_mut_doc_t *doc)
     JS_SetInt(doc, obj, "momx", str->momx);
     JS_SetInt(doc, obj, "momy", str->momy);
     JS_SetInt(doc, obj, "momz", str->momz);
-    JS_SetInt(doc, obj, "validcount", str->validcount);
     JS_SetInt(doc, obj, "type", str->type);
     JS_SetIdx(doc, obj, "info", str->info, mobjinfo);
     JS_SetInt(doc, obj, "tics", str->tics);
