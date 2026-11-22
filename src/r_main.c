@@ -456,6 +456,20 @@ static void R_InitTextureMapping(void)
 
     distscale[i] = FixedDiv(FRACUNIT, cosadj);
   }
+
+  if (custom_fov == FOV_DEFAULT)
+  {
+    skyiscale = FixedDiv(SCREENWIDTH, viewwidth_nonwide);
+  }
+  else
+  {
+    skyiscale = tan(custom_fov * M_PI / 360.0) * SCREENWIDTH / viewwidth_nonwide * FRACUNIT;
+  }
+
+  if (adjust_aspect)
+  {
+    skyiscale = FixedDiv(skyiscale, video.aspect_v_factor);
+  }
 }
 
 //
@@ -662,20 +676,6 @@ void R_ExecuteSetViewSize (void)
   {
     pspriteyscale = pspritescale;
     pspriteyiscale = pspriteiscale;
-  }
-
-  if (custom_fov == FOV_DEFAULT)
-  {
-    skyiscale = FixedDiv(SCREENWIDTH, viewwidth_nonwide);
-  }
-  else
-  {
-    skyiscale = tan(custom_fov * M_PI / 360.0) * SCREENWIDTH / viewwidth_nonwide * FRACUNIT;
-  }
-
-  if (adjust_aspect)
-  {
-    skyiscale = FixedDiv(skyiscale, video.aspect_v_factor);
   }
 
   for (i=0 ; i<viewwidth ; i++)
