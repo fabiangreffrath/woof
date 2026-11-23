@@ -1475,8 +1475,9 @@ void R_InitRenderThreads(void)
 {
     if (num_render_contexts <= 0 || num_render_contexts > MAX_RENDER_CONTEXTS)
     {
-        num_render_contexts =
-            CLAMP(I_ThreadGetHardwareCount(), 1, MAX_RENDER_CONTEXTS);
+        int logical = I_ThreadGetHardwareCount();
+        int reserved = logical >= 16 ? 2 : 0;
+        num_render_contexts = CLAMP(logical - reserved, 1, MAX_RENDER_CONTEXTS);
     }
 
     for (int i = 0; i < MAX_RENDER_CONTEXTS; i++)
