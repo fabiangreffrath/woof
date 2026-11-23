@@ -50,6 +50,7 @@
 #include "r_things.h"
 #include "r_voxel.h"
 #include "m_config.h"
+#include "m_profiler.h"
 #include "st_stuff.h"
 #include "v_palette.h"
 #include "v_flextran.h"
@@ -1168,6 +1169,8 @@ static void R_RenderLoadBalance(int contexts)
 
 void R_RenderViewContext(rendercontext_t *context)
 {
+    PROF_ZONE_BEGIN(ctx);
+
     const uint64_t starttime = I_GetTimeUS();
 
     r_context = context;
@@ -1213,6 +1216,8 @@ void R_RenderViewContext(rendercontext_t *context)
     R_DrawMasked();
 
     context->timetaken = I_GetTimeUS() - starttime;
+
+    PROF_ZONE_END(ctx);
 }
 
 // Job wrapper: userdata is the owning render context.

@@ -50,6 +50,7 @@
 #include "m_fixed.h"
 #include "m_io.h"
 #include "m_misc.h"
+#include "m_profiler.h"
 #include "mn_container.h"
 #include "mn_options.h"
 #include "r_draw.h"
@@ -904,6 +905,8 @@ void I_FinishUpdate(void)
     }
 
     SDL_RenderPresent(renderer);
+
+    PROF_FRAME_MARK;
 
     RestoreDiskBackground();
 

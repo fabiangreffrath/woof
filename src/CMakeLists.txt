@@ -317,6 +317,14 @@ if(HAVE_DISCORD_RPC)
     target_link_libraries(woof PRIVATE DiscordRPC::discord-rpc)
 endif()
 
+if(HAVE_TRACY)
+    target_link_libraries(woof PRIVATE Tracy::TracyClient)
+    target_compile_definitions(woof PRIVATE TRACY_ENABLE)
+    if(WIN32)
+        target_compile_definitions(woof PRIVATE TRACY_IMPORTS)
+    endif()
+endif()
+
 target_compile_definitions(woof PRIVATE "THREADLOCAL=${WOOF_THREAD_LOCAL}")
 
 target_compile_definitions(woof PRIVATE
