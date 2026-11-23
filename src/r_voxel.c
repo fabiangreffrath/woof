@@ -58,7 +58,7 @@ struct Voxel
 
 	// [Alaux] How far the model can go behind the view plane
 	// before it's completely out of view
-	fixed_t  radius;
+	fixed_t  circumradius;
 
 	int  * offsets;
 	byte * data;
@@ -182,7 +182,7 @@ static struct Voxel * VX_Decode (byte * p, int length)
 			x_radius = MAX(v->x_pivot, x_size - v->x_pivot),
 			y_radius = MAX(v->y_pivot, y_size - v->y_pivot);
 
-		v->radius = sqrt((int64_t) x_radius * x_radius + (int64_t) y_radius * y_radius);
+		v->circumradius = sqrt((int64_t) x_radius * x_radius + (int64_t) y_radius * y_radius);
 	}
 
 	// decode the offset values...
@@ -572,7 +572,7 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 	// thing is behind view plane?  if so, ignore it
 	if (ty < VX_MINZ)
 	{
-		if (ty < -v->radius)
+		if (ty < -v->circumradius)
 			return true;
 
 		xscale = (15000 * FRACUNIT) - ty;
@@ -580,7 +580,7 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 	else
 	{
 		// too far off the side?  if so, ignore it
-		if (ty > v->radius && abs(tx) / max_project_slope > ty)
+		if (ty > v->circumradius && abs(tx) / max_project_slope > ty)
 			return true;
 
 		xscale = FixedDiv (projection, ty);

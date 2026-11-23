@@ -202,7 +202,7 @@ static void saveg_read_mobj_t(mobj_t *str)
     str->momz = saveg_read32();
 
     // int validcount;
-    str->validcount = saveg_read32();
+    saveg_read32();
 
     // mobjtype_t type;
     str->type = saveg_read_enum();
