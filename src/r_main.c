@@ -1032,7 +1032,7 @@ static boolean flashing_hom;
 int autodetect_hom = 0; // killough 2/7/98: HOM autodetection flag
 
 // clang-format off
-void AutoDetectHOM(void)
+static void AutoDetectHOM(void)
 {
   // killough 2/10/98: add flashing red HOM indicators
   pixel_t c[47*47];
