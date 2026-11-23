@@ -308,9 +308,6 @@ typedef struct mobj_s
     fixed_t             momy;
     fixed_t             momz;
 
-    // If == validcount, already checked.
-    int                 validcount;
-
     mobjtype_t          type;
     mobjinfo_t*         info;   // &mobjinfo[mobj->type]
 

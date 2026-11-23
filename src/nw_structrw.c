@@ -509,7 +509,7 @@ boolean NW_ReadWaitData(nw_packet_t *packet, nw_waitdata_t *data)
 
         s = NW_ReadString(packet);
 
-        if (s == NULL || strlen(s) >= MAXPLAYERNAME)
+        if (s == NULL || strlen(s) >= MAX_ADDRESS)
         {
             return false;
         }

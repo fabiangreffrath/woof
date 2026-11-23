@@ -25,11 +25,14 @@
 #include <math.h>
 #include <stdint.h>
 
+#include "d_event.h"
 #include "d_loop.h"
 #include "d_player.h"
+#include "d_rollback.h"
 #include "doomdata.h"
 #include "doomdef.h"
 #include "doomstat.h"
+#include "g_input.h"
 #include "i_exit.h"
 #include "i_thread.h"
 #include "i_timer.h"
@@ -457,6 +460,20 @@ static void R_InitTextureMapping(void)
 
     distscale[i] = FixedDiv(FRACUNIT, cosadj);
   }
+
+  if (custom_fov == FOV_DEFAULT)
+  {
+    skyiscale = FixedDiv(SCREENWIDTH, viewwidth_nonwide);
+  }
+  else
+  {
+    skyiscale = tan(custom_fov * M_PI / 360.0) * SCREENWIDTH / viewwidth_nonwide * FRACUNIT;
+  }
+
+  if (adjust_aspect)
+  {
+    skyiscale = FixedDiv(skyiscale, video.aspect_v_factor);
+  }
 }
 
 //
@@ -665,20 +682,6 @@ void R_ExecuteSetViewSize (void)
     pspriteyiscale = pspriteiscale;
   }
 
-  if (custom_fov == FOV_DEFAULT)
-  {
-    skyiscale = FixedDiv(SCREENWIDTH, viewwidth_nonwide);
-  }
-  else
-  {
-    skyiscale = tan(custom_fov * M_PI / 360.0) * SCREENWIDTH / viewwidth_nonwide * FRACUNIT;
-  }
-
-  if (adjust_aspect)
-  {
-    skyiscale = FixedDiv(skyiscale, video.aspect_v_factor);
-  }
-
   for (i=0 ; i<viewwidth ; i++)
     {
       // thing clipping
@@ -747,8 +750,12 @@ static inline boolean CheckLocalView(const player_t *player)
     !player->mo->reactiontime &&
     // Don't use localview if a demo is playing.
     !demoplayback &&
-    // Don't use localview during a netgame (single-player or solo-net only).
-    (!netgame || solonet)
+    // Don't use localview during a netgame, except when rollback can catch
+    // the simulation up with the input that is shown ahead of it. A
+    // transition stops the simulation short of the built tics, so fall
+    // back to interpolation while one is pending.
+    (!netgame || solonet
+     || (RB_RawCameraAllowed() && gameaction == ga_nothing))
   );
 }
 
@@ -791,6 +798,7 @@ void R_SetupFrame (player_t *player)
   int cm;
   fixed_t pitch;
   const boolean use_localview = CheckLocalView(player);
+  const boolean raw_camera = use_localview && G_RawInputActive();
   const boolean camera_ready = (
     // Don't interpolate on the first tic of a level,
     // otherwise oldviewz might be garbage.
@@ -801,10 +809,44 @@ void R_SetupFrame (player_t *player)
     // Don't interpolate during a paused state
     leveltime > oldleveltime
   );
+  // The tic clock passes a tic even when the simulation cannot run one
+  // (confirmed input is missing). fractionaltic then wraps without gametic
+  // advancing, and interpolating old -> new again would oscillate.
+  static int last_gametic;
+  static fixed_t last_fractionaltic;
+  static boolean tic_stalled;
+
+  if (gametic != last_gametic)
+  {
+    tic_stalled = false;
+  }
+  else if (fractionaltic < last_fractionaltic)
+  {
+    tic_stalled = true;
+  }
+
+  last_gametic = gametic;
+  last_fractionaltic = fractionaltic;
+
+  // Nothing to interpolate: stay where the simulation is, but keep showing
+  // the local input that is built and waiting.
+  const boolean raw_stall = (
+    uncapped && raw_camera && tic_stalled &&
+    // The input is not applied while the game is held.
+    !paused && !menuactive &&
+    leveltime > 1 && player->mo->interp == true
+  );
+  angle_t pending_angle = 0;
+  fixed_t pending_pitch = 0;
+
+  if (raw_camera && rollback_enabled)
+  {
+    D_GetUnrunLocalInput(&pending_angle, &pending_pitch);
+  }
 
   viewplayer = player;
   // [AM] Interpolate the player camera if the feature is enabled.
-  if (uncapped && camera_ready)
+  if (uncapped && camera_ready && !raw_stall)
   {
     // Interpolate player camera from their old position to their current one.
     viewx = LerpFixed(player->mo->oldx, player->mo->x);
@@ -813,16 +855,16 @@ void R_SetupFrame (player_t *player)
 
     if (use_localview && CalcViewAngle)
     {
-      viewangle = CalcViewAngle(player);
+      viewangle = CalcViewAngle(player) + pending_angle;
     }
     else
     {
       viewangle = LerpAngle(player->mo->oldangle, player->mo->angle);
     }
 
-    if (use_localview && raw_input && !player->centering)
+    if (raw_camera && !player->centering)
     {
-      pitch = player->pitch + localview.pitch;
+      pitch = player->pitch + localview.pitch + pending_pitch;
       pitch = CLAMP(pitch, -max_pitch_angle, max_pitch_angle);
     }
     else
@@ -832,6 +874,30 @@ void R_SetupFrame (player_t *player)
 
     // [crispy] pitch is actual lookdir and weapon pitch
     pitch += LerpFixed(player->oldrecoilpitch, player->recoilpitch);
+  }
+  else if (uncapped && raw_stall)
+  {
+    // fractionaltic keeps moving while no tic runs, so neither the position
+    // nor oldticangle -> ticangle can be interpolated here: both would
+    // oscillate. Show the last completed tic plus the input that is built.
+
+    viewx = player->mo->x;
+    viewy = player->mo->y;
+    viewz = player->viewz;
+    viewangle = player->mo->angle + localview.angle + pending_angle;
+
+    if (!player->centering)
+    {
+      pitch = player->pitch + localview.pitch + pending_pitch;
+      pitch = CLAMP(pitch, -max_pitch_angle, max_pitch_angle);
+    }
+    else
+    {
+      pitch = player->pitch;
+    }
+
+    // [crispy] pitch is actual lookdir and weapon pitch
+    pitch += player->recoilpitch;
   }
   else
   {

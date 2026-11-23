@@ -20,17 +20,20 @@
 #include "d_loop.h"
 #include "d_main.h"
 #include "d_player.h"
+#include "d_rollback.h"
 #include "d_ticcmd.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
 #include "g_game.h"
+#include "g_input.h"
 #include "i_printf.h"
 #include "m_argv.h"
 #include "m_misc.h"
 #include "mp_start.h"
 #include "nw_defs.h"
 #include "p_mobj.h"
+#include "r_main.h"
 #include "tables.h"
 
 ticcmd_t *netcmds;
@@ -53,15 +56,22 @@ static void PlayerQuitGame(player_t *player)
     exitmsg[7] += player_num;
 
     playeringame[player_num] = false;
-    displaymsg("%s", exitmsg);
     // [crispy] don't interpolate players who left the game
     player->mo->interp = false;
 
-    // TODO: check if it is sensible to do this:
+    // The quit is replayed when a rollback crosses it; only the first,
+    // forward run may notify the user or touch the demo recording.
 
-    if (demorecording)
+    if (!rollback_resim)
     {
-        G_CheckDemoStatus ();
+        displaymsg("%s", exitmsg);
+
+        // TODO: check if it is sensible to do this:
+
+        if (demorecording)
+        {
+            G_CheckDemoStatus();
+        }
     }
 }
 
@@ -99,12 +109,6 @@ static void LoadGameSettings(nw_gamesettings_t *settings)
 {
     unsigned int i;
 
-    if (lowres_turn)
-    {
-        I_Printf(VB_WARNING, "NOTE: Turning resolution is reduced; this is probably "
-                "because there is a client recording a Vanilla demo.");
-    }
-
     for (i = 0; i < MAXPLAYERS; ++i)
     {
         playeringame[i] = i < settings->num_players;
@@ -137,11 +141,27 @@ static void LoadGameSettings(nw_gamesettings_t *settings)
     startskill = settings->skill;
     startloadgame = settings->loadgame;
     lowres_turn = settings->lowres_turn;
+
+    if (lowres_turn)
+    {
+        I_Printf(VB_WARNING, "NOTE: Turning resolution is reduced; this is probably "
+                "because there is a client recording a Vanilla demo.");
+    }
+
     nomonsters = settings->nomonsters;
     fastparm = settings->fast_monsters;
     respawnparm = settings->respawn_monsters;
     timelimit = settings->timelimit;
     consoleplayer = settings->consoleplayer;
+
+    // The angle and camera functions depend on the session settings and on
+    // whether rollback is available, which are only final now: a game
+    // launched from the wait screen skips D_CheckNetGame at startup and
+    // applies them here.
+
+    G_UpdateAngleFunctions();
+    G_UpdateLocalViewFunction();
+    R_UpdateViewAngleFunction();
 }
 
 // Save the game settings from global variables to the specified

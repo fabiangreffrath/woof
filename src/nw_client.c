@@ -181,7 +181,13 @@ static void UpdateClockSync(unsigned int seq, unsigned int remote_latency)
     else if (seq > send_queue[seq % BACKUPTICS].seq)
     {
         // We have received the ticcmd from the server before we have
-        // even sent ours
+        // even sent ours. The latency of this sample says nothing, but
+        // the condition itself does: our own tic stream is running
+        // behind the confirmed one, so the reported latency would be a
+        // misleading zero.
+
+        NW_Log("client: behind: ticcmd %u arrived, our send queue is at %u",
+                seq, send_queue[seq % BACKUPTICS].seq);
 
         latency = 0;
     }
@@ -657,10 +663,10 @@ static void NW_CL_CheckResends(void)
         recvobj = &recvwindow[i];
 
         // if need_resend is true, this tic needs another retransmit
-        // request (300ms timeout)
+        // request (150ms timeout, inside the rollback prediction window)
 
         need_resend = !recvobj->active && recvobj->resend_time != 0
-                      && nowtime > recvobj->resend_time + 300;
+                      && nowtime > recvobj->resend_time + 150;
 
         // if no game data has been received in a long time, we may be in
         // a deadlock scenario where tics from the server have been lost, so

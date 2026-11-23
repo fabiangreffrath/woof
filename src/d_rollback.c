@@ -22,16 +22,19 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "i_printf.h"
+#include "i_timer.h"
 #include "m_argv.h"
 #include "nw_client.h"
+#include "nw_common.h"
 #include "nw_defs.h"
 #include "p_keyframe.h"
+#include "st_widgets.h"
 
 // How many tics we are allowed to run ahead of the confirmed data.
 
 #define RB_MAX_PREDICT 8
 
-// A state snapshot is saved every this many tics.
+// A state keyframe is saved every this many tics.
 
 #define RB_KEYFRAME_INTERVAL 2
 
@@ -56,6 +59,11 @@ static int rollback_pending = -1;
 
 static boolean rb_stalled = false;
 
+// Whether a rollback was dropped because it targeted a committed
+// transition or a previous level. Warn once per level, not per tic.
+
+static boolean rb_warned_stale = false;
+
 static keyframe_t *keyframes[BACKUPTICS];
 
 // The ticcmd sets that were actually used to run each tic.
@@ -70,6 +78,55 @@ static int used_tic[BACKUPTICS];
 static ticcmd_t confirmed_cmds[BACKUPTICS][NW_MAXPLAYERS];
 static boolean confirmed_ingame[BACKUPTICS][NW_MAXPLAYERS];
 static int confirmed_tic[BACKUPTICS];
+
+static int rb_stat_time;
+static int rb_stat_rollbacks;
+static int rb_stat_mismatches;
+static int rb_stat_resim;
+static int rb_stat_stalls;
+static int rb_stat_max_depth;
+
+void RB_LogStats(void)
+{
+    if (!rollback_enabled)
+    {
+        return;
+    }
+
+    const int now = I_GetTimeMS();
+    const int tic = gametic / ticdup;
+    const int depth = tic - rb_recvtic;
+
+    if (depth > rb_stat_max_depth)
+    {
+        rb_stat_max_depth = depth;
+    }
+
+    if (now - rb_stat_time < 1000)
+    {
+        return;
+    }
+
+    rb_stat_time = now;
+
+    NW_Log("rollback: depth=%d (%dms) max_depth=%d stalled=%d "
+           "tic=%d recvtic=%d maketic=%d queued=%d rollbacks/s=%d "
+           "mismatch/s=%d resim_ticks/s=%d stalls/s=%d",
+           depth, depth * 1000 / TICRATE, rb_stat_max_depth, rb_stalled,
+           tic, rb_recvtic, maketic, maketic - tic, rb_stat_rollbacks,
+           rb_stat_mismatches, rb_stat_resim, rb_stat_stalls);
+
+    rb_stat_rollbacks = 0;
+    rb_stat_mismatches = 0;
+    rb_stat_resim = 0;
+    rb_stat_stalls = 0;
+    rb_stat_max_depth = depth;
+}
+
+int RB_ConfirmTic(void)
+{
+    return rb_recvtic;
+}
 
 static void FreeSlotKeyframe(int slot)
 {
@@ -91,6 +148,7 @@ void RB_Shutdown(void)
     rollback_resim = false;
     rollback_pending = -1;
     rb_stalled = false;
+    rb_warned_stale = false;
 }
 
 void RB_Init(int consoleplayer)
@@ -104,6 +162,12 @@ void RB_Init(int consoleplayer)
 
     rb_localplayer = consoleplayer;
     rb_recvtic = 0;
+
+    rb_stat_rollbacks = 0;
+    rb_stat_mismatches = 0;
+    rb_stat_resim = 0;
+    rb_stat_stalls = 0;
+    rb_stat_max_depth = 0;
 
     for (int i = 0; i < BACKUPTICS; ++i)
     {
@@ -119,6 +183,7 @@ void RB_Init(int consoleplayer)
     if (ticdup != 1)
     {
         I_Printf(VB_WARNING, "Rollback requires -dup 1, using lockstep instead.");
+        NW_Log("rollback: disabled, ticdup=%d", ticdup);
         return;
     }
 
@@ -126,6 +191,11 @@ void RB_Init(int consoleplayer)
 
     I_Printf(VB_INFO, "Rollback netcode enabled, predicting up to %d tics.",
              RB_MAX_PREDICT);
+
+    NW_Log("rollback: enabled, max_predict=%d tics, keyframe_interval=%d tics",
+           RB_MAX_PREDICT, RB_KEYFRAME_INTERVAL);
+    NW_Log("rollback: depth is tics simulated ahead of the confirmed stream, "
+           "mismatch is mispredicted tics");
 }
 
 static void FreeOldKeyframes(void)
@@ -159,9 +229,27 @@ static void FreeOldKeyframes(void)
     }
 }
 
+// Compare the fields of two ticcmds that affect the simulation.
+
+static boolean TiccmdDiffers(const ticcmd_t *a, const ticcmd_t *b)
+{
+    return a->forwardmove != b->forwardmove
+           || a->sidemove != b->sidemove
+           || a->angleturn != b->angleturn
+           || a->buttons != b->buttons;
+}
+
 void RB_ReceiveTic(int tic, ticcmd_t *ticcmds, boolean *players_mask)
 {
     const int slot = tic % BACKUPTICS;
+
+    // Never schedule a rollback for a tic from a previous level. A
+    // confirmation for a level tic may arrive after the exit has
+    // already switched to intermission; that correction is still
+    // needed (intermission tics are never predicted, so only level
+    // tics reach the comparison below).
+
+    const boolean can_schedule = tic >= levelstarttic;
 
     confirmed_tic[slot] = tic;
 
@@ -181,25 +269,28 @@ void RB_ReceiveTic(int tic, ticcmd_t *ticcmds, boolean *players_mask)
         // If this tic was already simulated using a prediction and the
         // confirmed data differs, schedule a rollback to it.
 
-        if (i < MAXPLAYERS && used_tic[slot] == tic && used_predicted[slot][i])
+        if (can_schedule && i < MAXPLAYERS && used_tic[slot] == tic
+            && used_predicted[slot][i]
+            && (TiccmdDiffers(&used_cmds[slot][i], &ticcmds[i])
+                || used_ingame[slot][i] != players_mask[i]))
         {
-            ticcmd_t *pred = &used_cmds[slot][i];
-            ticcmd_t *conf = &ticcmds[i];
-            boolean differs;
+            ++rb_stat_mismatches;
 
-            differs = pred->forwardmove != conf->forwardmove
-                   || pred->sidemove != conf->sidemove
-                   || pred->angleturn != conf->angleturn
-                   || pred->buttons != conf->buttons
-                   || used_ingame[slot][i] != players_mask[i];
-
-            if (differs)
+            if (rollback_pending < 0 || tic < rollback_pending)
             {
-                if (rollback_pending < 0 || tic < rollback_pending)
-                {
-                    rollback_pending = tic;
-                }
+                rollback_pending = tic;
             }
+        }
+
+        // Chat is a one-shot presentation event that TiccmdDiffers() ignores on
+        // purpose. A tic that was already run as a prediction therefore never
+        // applies the real character, so hand it to the chat display here,
+        // exactly once. ST_UpdateChatMessage() skips the resim replays.
+
+        if (i < MAXPLAYERS && used_tic[slot] == tic && used_predicted[slot][i]
+            && ticcmds[i].chatchar)
+        {
+            ST_RemoteChatChar(i, ticcmds[i].chatchar);
         }
     }
 
@@ -223,14 +314,39 @@ boolean RB_TicConfirmed(int tic)
     return tic < rb_recvtic - 1;
 }
 
+boolean RB_TicReceived(int tic)
+{
+    if (!rollback_enabled)
+    {
+        return true;
+    }
+
+    return tic < rb_recvtic;
+}
+
+boolean RB_PredictionAllowed(void)
+{
+    return rollback_enabled && gamestate == GS_LEVEL
+           && gameaction == ga_nothing;
+}
+
+boolean RB_RawCameraAllowed(void)
+{
+    // Deliberately independent of the game state: the input functions are
+    // selected once per session, while the caller re-checks the state it
+    // renders in (see CheckLocalView).
+
+    return rollback_enabled;
+}
+
 boolean RB_CanPredict(void)
 {
-    if (!rollback_enabled || gamestate != GS_LEVEL || gameaction != ga_nothing)
+    if (!RB_PredictionAllowed())
     {
         return false;
     }
 
-    // Prediction requires at least one snapshot to roll back to.
+    // Prediction requires at least one keyframe to roll back to.
 
     for (int i = 0; i < BACKUPTICS; ++i)
     {
@@ -253,6 +369,9 @@ int RB_RunLimit(void)
     if (rb_stalled && gametic / ticdup <= rb_recvtic)
     {
         rb_stalled = false;
+
+        NW_Log("rollback: resumed at tic %d, recvtic=%d",
+               gametic / ticdup, rb_recvtic);
     }
 
     limit = rb_recvtic + ((!rb_stalled && RB_CanPredict()) ? RB_MAX_PREDICT : 0);
@@ -273,6 +392,7 @@ int RB_RunLimit(void)
 static void Predict(int tic, int player, ticcmd_t *cmd, boolean *ingame)
 {
     ticcmd_t last_cmd;
+    boolean repeated = false;
 
     memset(&last_cmd, 0, sizeof(last_cmd));
     *ingame = playeringame[player];
@@ -292,6 +412,7 @@ static void Predict(int tic, int player, ticcmd_t *cmd, boolean *ingame)
         {
             last_cmd = used_cmds[slot][player];
             *ingame = used_ingame[slot][player];
+            repeated = used_predicted[slot][player];
             break;
         }
     }
@@ -304,6 +425,20 @@ static void Predict(int tic, int player, ticcmd_t *cmd, boolean *ingame)
     }
 
     last_cmd.chatchar = 0;
+
+    // Repeat the turning rate for the first predicted tic only; a
+    // long gap would otherwise extrapolate a turn and make the
+    // correction visibly larger.
+
+    if (repeated)
+    {
+        last_cmd.angleturn = 0;
+    }
+
+    // Local-only fields have no meaning for a remote player.
+
+    last_cmd.jump = 0;
+    last_cmd.ticangleturn = 0;
 
     *cmd = last_cmd;
 }
@@ -376,8 +511,28 @@ boolean RB_BeginRollback(int *start_tic, int *end_tic)
 
     rollback_pending = -1;
 
-    // Find the newest snapshot at or before the mispredicted tic.
-    // Snapshots are saved at a fixed interval while tics are run, so
+    // A transition may already be in progress: a level tic whose
+    // confirmation arrived late still needs to be corrected, and a
+    // level keyframe resimulated up to the current tic reproduces the
+    // exit deterministically. Only targets from before the current
+    // level are stale (their keyframes are gone).
+
+    if (target < levelstarttic)
+    {
+        if (!rb_warned_stale)
+        {
+            I_Printf(VB_WARNING,
+                     "Dropped stale rollback at tic %d "
+                     "(levelstarttic %d)",
+                     target, levelstarttic);
+            rb_warned_stale = true;
+        }
+
+        return false;
+    }
+
+    // Find the newest keyframe at or before the mispredicted tic.
+    // Keyframes are saved at a fixed interval while tics are run, so
     // one is always nearby.
 
     keyframe_t *keyframe = NULL;
@@ -389,7 +544,10 @@ boolean RB_BeginRollback(int *start_tic, int *end_tic)
     {
         const int slot = t % BACKUPTICS;
 
-        if (keyframes[slot] && keyframes[slot]->tic == t)
+        if (keyframes[slot] && keyframes[slot]->tic == t
+            && keyframes[slot]->tic >= levelstarttic
+            && keyframes[slot]->episode == gameepisode
+            && keyframes[slot]->map == gamemap)
         {
             keyframe = keyframes[slot];
             keyframe_tic = t;
@@ -403,12 +561,23 @@ boolean RB_BeginRollback(int *start_tic, int *end_tic)
         // the confirmed data. The divergence at `target` is left
         // uncorrected, so this must never happen in practice; if it
         // does, the client is now permanently out of sync with its
-        // peers and a lockstep peer will fail its consistency check.
+        // peers.
 
-        I_Printf(VB_WARNING,
-                 "rollback stalled at tic %d: no keyframe in [%d, %d]",
-                 target, target - RB_KEYFRAME_INTERVAL - RB_MAX_PREDICT - 1,
-                 target);
+        if (!rb_stalled)
+        {
+            I_Printf(VB_WARNING,
+                     "rollback stalled at tic %d: no keyframe in [%d, %d]",
+                     target,
+                     target - RB_KEYFRAME_INTERVAL - RB_MAX_PREDICT - 1, target);
+
+            NW_Log("rollback: stalled at tic %d, depth=%d, searched [%d, %d]",
+                   target, gametic / ticdup - rb_recvtic,
+                   target - RB_KEYFRAME_INTERVAL - RB_MAX_PREDICT - 1, target);
+
+            ++rb_stat_stalls;
+
+            displaymsg("Rollback stalled: out of sync with the server");
+        }
 
         rb_stalled = true;
 
@@ -417,6 +586,9 @@ boolean RB_BeginRollback(int *start_tic, int *end_tic)
 
     *start_tic = keyframe_tic;
     *end_tic = gametic / ticdup;
+
+    ++rb_stat_rollbacks;
+    rb_stat_resim += *end_tic - keyframe_tic;
 
     // P_LoadKeyframe() derives boom_basetic from the current gametic,
     // so rewind gametic before restoring.
@@ -433,4 +605,46 @@ boolean RB_BeginRollback(int *start_tic, int *end_tic)
     }
 
     return true;
+}
+
+void RB_DiscardTics(int start_tic, int end_tic)
+{
+    // These tics were run before the rollback but will not be
+    // resimulated now (their inputs are not confirmed yet). Invalidate
+    // the recorded data so that a later confirmation does not compare
+    // against a discarded simulation.
+
+    for (int t = start_tic; t < end_tic; ++t)
+    {
+        used_tic[t % BACKUPTICS] = -1;
+    }
+}
+
+void RB_OnLevelLoad(void)
+{
+    if (!rollback_enabled)
+    {
+        return;
+    }
+
+    // Keyframes from another map (or from before a reload) cannot be
+    // restored into the new level state.
+
+    for (int i = 0; i < BACKUPTICS; ++i)
+    {
+        FreeSlotKeyframe(i);
+        used_tic[i] = -1;
+
+        for (int j = 0; j < NW_MAXPLAYERS; ++j)
+        {
+            used_predicted[i][j] = false;
+        }
+    }
+
+    // The reload itself resynchronizes the state, so any divergence
+    // detected before it is irrelevant.
+
+    rollback_pending = -1;
+    rb_stalled = false;
+    rb_warned_stale = false;
 }

@@ -34,11 +34,13 @@
 #include "m_fixed.h"
 #include "mp_start.h"
 #include "nw_client.h"
+#include "nw_common.h"
 #include "nw_io.h"
 #include "nw_loop.h"
 #include "nw_query.h"
 #include "nw_sdl.h"
 #include "nw_server.h"
+#include "p_mobj.h"
 #include "s_sound.h"
 
 // The complete set of data for a particular tic.
@@ -112,12 +114,96 @@ static boolean local_playeringame[NW_MAXPLAYERS];
 
 static int player_class;
 
+//
+// Pacing
+//
+// The simulation always runs as far ahead of the confirmed stream as the
+// prediction budget allows, so after a stall the rollback depth and the
+// queue of built ticcmds both sit at their limits. Nothing brings them
+// down again on its own: the tics and the confirmations then advance at
+// the same rate, so the offset would last for the rest of the session.
+// While the depth is above PACE_TARGET the tic clock is retarded slightly,
+// which lets the confirmed stream catch up and drains the built inputs
+// along with it.
+//
+// The retardation is applied through I_SetTimeOffsetMS(), which moves the
+// clock that both I_GetTime() and I_GetFracTime() are derived from. That
+// keeps the tic boundaries and the interpolation phase in step: the
+// renderer treats a phase that passes a tic without the simulation
+// following it as a stall and drops interpolation.
+
+#define PACE_TARGET 2  // tics the simulation runs ahead of the confirmations
+#define PACE_RATE 5    // percent of the tic clock, about 1.75 tics per second
+
+static int pace_last_ms;
+static int pace_slow_ms;
+static int pace_frac;  // hundredths of a millisecond not yet applied
+static boolean pace_active;
+
+// Called once per frame, before any clock is read.
+
+static void UpdatePacing(void)
+{
+    const int now = I_GetTimeMS();
+    int delta = now - pace_last_ms;
+
+    pace_last_ms = now;
+
+    if (!rollback_enabled)
+    {
+        return;
+    }
+
+    // A wrapped clock or a suspended process is not a drain interval.
+
+    if (delta < 0 || delta > 1000)
+    {
+        delta = 0;
+    }
+
+    if (pace_active)
+    {
+        // A single frame is well under a millisecond of retardation, so
+        // the remainder is carried over instead of being truncated away.
+
+        pace_frac += delta * PACE_RATE;
+        pace_slow_ms += pace_frac / 100;
+        pace_frac %= 100;
+    }
+
+    const int depth = gametic / ticdup - RB_ConfirmTic();
+
+    // The first seconds of a level carry a transient backlog from the start
+    // wipe: the clients leave the wipe at different moments, so one of them
+    // begins with a batch of confirmations and a full prediction budget.
+
+    const boolean settling =
+        (gametic - levelstarttic) / ticdup < 2 * TICRATE;
+
+    // Hysteresis: start above the target plus one tic but keep draining
+    // down to the target, so jitter around it does not toggle the clock.
+
+    const int limit = pace_active ? PACE_TARGET : PACE_TARGET + 1;
+    const boolean pace = !settling && depth > limit;
+
+    I_SetTimeOffsetMS(pace_slow_ms);
+
+    if (pace != pace_active)
+    {
+        pace_active = pace;
+
+        NW_Log("network: pacing %s, depth=%d, retarded by %dms",
+               pace ? "on" : "off", depth, pace_slow_ms);
+    }
+}
+
 // 35 fps clock adjusted by offsetms milliseconds
 
 static int GetAdjustedTime(void)
 {
     // Use the adjustments from nw_client.c only if we are
-    // using the new sync mode.
+    // using the new sync mode. An active rollback paces the clock itself,
+    // through I_SetTimeOffsetMS().
 
     if (!rollback_enabled && new_sync && nw_client_connected)
     {
@@ -203,6 +289,42 @@ static boolean BuildNewTic(void)
     ++maketic;
 
     return true;
+}
+
+// The raw camera draws the local input that is already in ticcmds but has
+// not been simulated yet. Only the newest tics are shown: at a high latency
+// the rest would put the aim far ahead of the world that is rendered.
+
+#define RB_CAMERA_LEAD_TICS 2
+
+void D_GetUnrunLocalInput(angle_t *angle, fixed_t *pitch)
+{
+    angle_t turn = 0;
+    fixed_t look = 0;
+    int first = gametic / ticdup;
+
+    if (localplayer >= 0 && localplayer < MAXPLAYERS)
+    {
+        if (maketic - first > RB_CAMERA_LEAD_TICS)
+        {
+            first = maketic - RB_CAMERA_LEAD_TICS;
+        }
+
+        for (int tic = first; tic < maketic; ++tic)
+        {
+            const ticcmd_t *cmd = &ticdata[tic % BACKUPTICS].cmds[localplayer];
+
+            // angleturn holds the whole turn of the tic; ticangleturn is the
+            // part that did not come through the raw input path.
+
+            turn += (angle_t)((uint32_t)(cmd->angleturn - cmd->ticangleturn)
+                              << FRACBITS);
+            look += (fixed_t)((uint32_t)cmd->pitch << FRACBITS);
+        }
+    }
+
+    *angle = turn;
+    *pitch = CLAMP(look, -max_pitch_angle, max_pitch_angle);
 }
 
 //
@@ -333,6 +455,13 @@ void D_ResetTicState(void)
     gametic = 0;
     maketic = 0;
     lasttime = 0;
+
+    pace_last_ms = I_GetTimeMS();
+    pace_slow_ms = 0;
+    pace_frac = 0;
+    pace_active = false;
+
+    I_SetTimeOffsetMS(0);
 }
 
 // The clock is put one tic behind instead of using the stale command line
@@ -408,7 +537,10 @@ void D_StartNetGame(nw_gamesettings_t *settings,
     }
     else
     {
-        settings->extratics = 1;
+        // Two previous tics per packet survive two consecutive lost
+        // packets; one extra tic only survives a single loss.
+
+        settings->extratics = 2;
     }
 
     i = M_CheckParmWithArgs("-dup", 1);
@@ -802,6 +934,13 @@ static void TryRunTicsRollback(void)
 {
     int counts;
 
+    // Pace the tic clock and report the prediction state even on frames
+    // that run no tic at all: a stalled client is exactly the case both
+    // exist for.
+
+    UpdatePacing();
+    RB_LogStats();
+
     // Build local input and pump the network. Received tics may
     // schedule a rollback.
 
@@ -821,6 +960,17 @@ static void TryRunTicsRollback(void)
             {
                 ticcmd_t cmds[NW_MAXPLAYERS];
                 boolean ingame[NW_MAXPLAYERS];
+
+                // Once the game leaves the predictable state, only
+                // resimulate tics whose inputs are known. Applying a
+                // transition on top of predicted input would make it
+                // impossible to roll back across.
+
+                if (!RB_PredictionAllowed() && !RB_TicReceived(i))
+                {
+                    RB_DiscardTics(i, end_tic);
+                    break;
+                }
 
                 RB_PrepareTic(i, &ticdata[i % BACKUPTICS].cmds[localplayer],
                               cmds, ingame);
@@ -861,6 +1011,15 @@ static void TryRunTicsRollback(void)
         {
             NetUpdate();
 
+            // A rollback scheduled while waiting must be resolved
+            // before any further tic runs on top of the diverged
+            // state.
+
+            if (RB_NeedsRollback())
+            {
+                return;
+            }
+
             counts = RB_RunLimit() - gametic / ticdup;
 
             if (counts > 0)
@@ -877,11 +1036,21 @@ static void TryRunTicsRollback(void)
         }
     }
 
-    while (counts--)
+    while (counts-- > 0)
     {
         const int tic = gametic / ticdup;
         ticcmd_t cmds[NW_MAXPLAYERS];
         boolean ingame[NW_MAXPLAYERS];
+
+        // The limit may have shrunk below the initial count, for
+        // example after the game left the predictable state. Never
+        // run a predicted tic once prediction is no longer allowed:
+        // a transition must only be applied to confirmed tics.
+
+        if (tic >= RB_RunLimit())
+        {
+            break;
+        }
 
         RB_PrepareTic(tic, &ticdata[tic % BACKUPTICS].cmds[localplayer],
                       cmds, ingame);
@@ -893,6 +1062,14 @@ static void TryRunTicsRollback(void)
         gametic += ticdup;
 
         NetUpdate(); // check for new console commands
+
+        // Resolve a newly detected misprediction before running more
+        // tics; the next call will roll back first.
+
+        if (RB_NeedsRollback())
+        {
+            break;
+        }
     }
 
     // killough 3/16/98: change consoleplayer to displayplayer

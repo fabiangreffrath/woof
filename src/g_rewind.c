@@ -15,13 +15,14 @@
 #include "doomstat.h"
 #include "doomtype.h"
 #include "g_game.h"
+#include "i_printf.h"
 #include "i_timer.h"
 #include "m_config.h"
 #include "p_dirty.h"
 #include "p_keyframe.h"
 
-#include <stdlib.h>
-#include <string.h>
+#define REWIND_MAX_DEPTH 1000
+#define REWIND_SLOW_LIMIT 3
 
 static int rewind_interval;
 static int rewind_depth;
@@ -29,72 +30,72 @@ static int rewind_timeout;
 static boolean rewind_auto;
 
 static boolean disable_rewind;
-static int interval_tics;
+static int slow_keyframes;
+static boolean skip_timeout = true;
 
-typedef struct elem_s
-{
-    keyframe_t *keyframe;
-    struct elem_s *next;
-    struct elem_s *prev;
-} elem_t;
-
-typedef struct
-{
-    elem_t* top;
-    elem_t* tail;
-    int count;
-} queue_t;
-
-static queue_t queue;
+static keyframe_t *rewind_queue[REWIND_MAX_DEPTH];
+static int rewind_head;
+static int rewind_count;
 
 static boolean IsEmpty(void)
 {
-    return queue.top == NULL;
+    return rewind_count == 0;
 }
 
-// Add an element to the top of the queue
-static void Push(keyframe_t *keyframe)
+static int OldestIndex(void)
 {
-    // Remove oldest element if queue is full
-    if (queue.count == rewind_depth)
+    return (rewind_head - rewind_count + 1 + REWIND_MAX_DEPTH)
+           % REWIND_MAX_DEPTH;
+}
+
+static void DropOldest(void)
+{
+    if (IsEmpty())
     {
-        elem_t *oldtail = queue.tail;
-        if (oldtail)
-        {
-            queue.tail = oldtail->prev;
-            if (queue.tail)
-            {
-                queue.tail->next = NULL;
-            }
-            else
-            {
-                // Queue becomes empty after removal
-                queue.top = NULL;
-            }
-            P_DeleteKeyframe(oldtail->keyframe);
-            free(oldtail);
-            --queue.count;
-        }
+        return;
     }
 
-    elem_t *newelem = calloc(1, sizeof(*newelem));
-    newelem->keyframe = keyframe;
+    const int index = OldestIndex();
+    P_DeleteKeyframe(rewind_queue[index]);
+    rewind_queue[index] = NULL;
+    --rewind_count;
+}
+
+// Add a keyframe as the newest element, dropping the oldest ones when
+// the queue is over the configured depth.
+
+static void Push(keyframe_t *keyframe)
+{
+    int depth = rewind_depth;
+    if (depth < 1)
+    {
+        depth = 1;
+    }
+    if (depth > REWIND_MAX_DEPTH)
+    {
+        depth = REWIND_MAX_DEPTH;
+    }
+
+    while (rewind_count >= depth)
+    {
+        DropOldest();
+    }
 
     if (IsEmpty())
     {
-        queue.top = newelem;
-        queue.tail = newelem;
+        rewind_head = 0;
     }
     else
     {
-        newelem->next = queue.top;
-        queue.top->prev = newelem;
-        queue.top = newelem;
+        rewind_head = (rewind_head + 1) % REWIND_MAX_DEPTH;
     }
-    ++queue.count;
+
+    rewind_queue[rewind_head] = keyframe;
+    ++rewind_count;
 }
 
-// Remove and return element from top of queue
+// Remove and return the newest element.
+
 static keyframe_t *Pop(void)
 {
     if (IsEmpty())
@@ -102,21 +103,18 @@ static keyframe_t *Pop(void)
         return NULL;
     }
 
-    elem_t* temp = queue.top;
-    keyframe_t *keyframe = temp->keyframe;
-    queue.top = temp->next;
-    if (queue.top)
-    {
-        queue.top->prev = NULL;
-    }
-    else
-    {
-        queue.tail = NULL;
-    }
-    free(temp);
-    --queue.count;
+    keyframe_t *keyframe = rewind_queue[rewind_head];
+    rewind_queue[rewind_head] = NULL;
+    rewind_head = (rewind_head - 1 + REWIND_MAX_DEPTH) % REWIND_MAX_DEPTH;
+    --rewind_count;
 
     return keyframe;
+}
+
+static int RewindIntervalTics(void)
+{
+    const int tics = TICRATE * rewind_interval / 1000;
+    return tics > 0 ? tics : 1;
 }
 
 void G_SaveAutoKeyframe(void)
@@ -126,24 +124,37 @@ void G_SaveAutoKeyframe(void)
         return;
     }
 
-    interval_tics = TICRATE * rewind_interval / 1000;
-
-    int current_tic = gametic - true_basetic;
+    const int interval_tics = RewindIntervalTics();
+    const int current_tic = gametic - true_basetic;
 
     if (!disable_rewind && current_tic % interval_tics == 0)
     {
-        int time = I_GetTimeMS();
+        const uint64_t start = I_GetTimeUS();
 
         Push(P_SaveKeyframe(current_tic));
 
-        if (rewind_timeout)
+        if (rewind_timeout && !skip_timeout)
         {
-            disable_rewind = (I_GetTimeMS() - time > rewind_timeout);
+            const uint64_t elapsed = I_GetTimeUS() - start;
+
+            if (elapsed > (uint64_t)rewind_timeout * 1000)
+            {
+                if (++slow_keyframes >= REWIND_SLOW_LIMIT)
+                {
+                    disable_rewind = true;
+                    displaymsg("Slow key framing: rewind disabled");
+                }
+            }
+            else
+            {
+                slow_keyframes = 0;
+            }
         }
-        if (disable_rewind)
-        {
-            displaymsg("Slow key framing: rewind disabled");
-        }
+
+        // The first save after a reset or a level load includes cold
+        // allocations; do not use it for the timeout decision.
+
+        skip_timeout = false;
     }
 }
 
@@ -151,51 +162,59 @@ void G_LoadAutoKeyframe(void)
 {
     gameaction = ga_nothing;
 
-    if (IsEmpty())
+    const int current_tic = gametic - true_basetic;
+    const int interval_tics = RewindIntervalTics();
+
+    // Search for the newest keyframe at least one interval old.
+
+    int chosen = -1;
+    for (int i = 0; i < rewind_count; ++i)
     {
+        const int index =
+            (rewind_head - i + REWIND_MAX_DEPTH) % REWIND_MAX_DEPTH;
+        const keyframe_t *keyframe = rewind_queue[index];
+
+        if (keyframe->tic > 0
+            && current_tic - keyframe->tic < interval_tics)
+        {
+            continue;
+        }
+
+        chosen = index;
+        break;
+    }
+
+    if (chosen < 0)
+    {
+        // All stored keyframes are too recent (or there are none).
+        displaymsg("No keyframe available");
         return;
     }
 
-    int current_tic = gametic - true_basetic;
+    // Delete skipped keyframes.
 
-    // Search for the closest keyframe by interval.
-    elem_t* elem = queue.top;
-    while (elem)
+    while (rewind_head != chosen)
     {
-        int tic = elem->keyframe->tic;
-        if (tic > 0 && current_tic - tic < interval_tics)
-        {
-            elem = elem->next;
-        }
-        else
-        {
-            break;
-        }
-    }
-
-    if (!elem)
-    {
-        // No suitable keyframe found (all are too recent).
-        return;
-    }
-
-    // Delete from queue skipped keyframes.
-    while (queue.top != elem)
-    {
-        keyframe_t* skipped = Pop();
+        keyframe_t *skipped = Pop();
         if (skipped)
         {
             P_DeleteKeyframe(skipped);
         }
     }
 
-    keyframe_t* keyframe = Pop();
+    keyframe_t *keyframe = Pop();
     if (keyframe)
     {
         if (keyframe->episode != gameepisode || keyframe->map != gamemap)
         {
             G_SimplifiedInitNew(keyframe->episode, keyframe->map);
-            P_UnArchiveDirtyArrays(keyframe->episode, keyframe->map);
+
+            if (!P_UnArchiveDirtyArrays(keyframe->episode, keyframe->map))
+            {
+                I_Printf(VB_WARNING,
+                         "No dirty arrays for episode %d map %d",
+                         keyframe->episode, keyframe->map);
+            }
         }
         P_LoadKeyframe(keyframe);
         displaymsg("Restored key frame");
@@ -220,15 +239,16 @@ void G_LoadAutoKeyframe(void)
 
 static void FreeKeyframeQueue(void)
 {
-    elem_t* current = queue.top;
-    while (current)
+    for (int i = 0; i < rewind_count; ++i)
     {
-        elem_t* temp = current;
-        current = current->next;
-        P_DeleteKeyframe(temp->keyframe);
-        free(temp);
+        const int index =
+            (rewind_head - i + REWIND_MAX_DEPTH) % REWIND_MAX_DEPTH;
+        P_DeleteKeyframe(rewind_queue[index]);
+        rewind_queue[index] = NULL;
     }
-    memset(&queue, 0, sizeof(queue));
+
+    rewind_head = 0;
+    rewind_count = 0;
 }
 
 void G_ResetRewind(boolean force)
@@ -237,9 +257,14 @@ void G_ResetRewind(boolean force)
     {
         disable_rewind = false;
     }
+
+    slow_keyframes = 0;
+    skip_timeout = true;
+
     if (force)
     {
         FreeKeyframeQueue();
+        P_FreeKeyframePool();
     }
 }
 
@@ -247,7 +272,7 @@ void G_BindRewindVariables(void)
 {
     BIND_NUM(rewind_interval, 1000, 100, 10000,
         "Rewind interval in milliseconds");
-    BIND_NUM(rewind_depth, 60, 10, 1000,
+    BIND_NUM(rewind_depth, 60, 10, REWIND_MAX_DEPTH,
         "Number of rewind key frames to be stored");
     BIND_NUM(rewind_timeout, 10, 0, 25,
         "Time to store a key frame [ms]; if exceeded, storing "
