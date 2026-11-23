@@ -29,7 +29,9 @@
 
 #define JOB_QUEUE_SIZE 128
 #define JOB_QUEUE_MASK (JOB_QUEUE_SIZE - 1)
-#define MAX_JOB_THREADS 32
+
+// One worker per render context; context 0 renders on the calling thread.
+#define MAX_JOB_THREADS (MAX_RENDER_CONTEXTS - 1)
 
 typedef struct job_s
 {

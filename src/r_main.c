@@ -24,6 +24,8 @@
 #include <limits.h>
 #include <math.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "d_event.h"
 #include "d_loop.h"
@@ -34,6 +36,7 @@
 #include "doomstat.h"
 #include "g_input.h"
 #include "i_exit.h"
+#include "i_system.h"
 #include "i_thread.h"
 #include "i_timer.h"
 #include "i_video.h"
@@ -1011,7 +1014,7 @@ THREADLOCAL int r_worker_scratch_index = 0;
 
 static rendercontext_t rendercontexts[MAX_RENDER_CONTEXTS];
 
-#define MIN_SLAB_WIDTH 96
+#define MIN_SLAB_WIDTH 32
 
 // number of contexts usable this frame (pool size is fixed at init)
 static int ActiveContexts(void)
@@ -1312,6 +1315,40 @@ static void R_AggregateStats(int contexts)
     }
 }
 
+// [MT] Size the per-context render stamps before the contexts are dispatched:
+// the sector array is exactly numsectors (reallocated and cleared whenever the
+// level changes), the mobj array is grow-only because the thinkers arena grows
+// with every spawn. Called from the main thread.
+
+static void R_EnsureContextStamps(int contexts)
+{
+    const int sector_size = numsectors;
+    const int mobj_size = R_MobjStampSize();
+
+    for (int i = 0; i < contexts; i++)
+    {
+        rendercontext_t *context = &rendercontexts[i];
+
+        if (context->sector_stamp_size != sector_size)
+        {
+            context->sector_stamp =
+                I_Realloc(context->sector_stamp, sector_size);
+            memset(context->sector_stamp, 0, sector_size);
+            context->sector_stamp_size = sector_size;
+        }
+
+        if (context->mobj_stamp_size < mobj_size)
+        {
+            const int grow = MAX(mobj_size, context->mobj_stamp_size * 2);
+
+            context->mobj_stamp = I_Realloc(context->mobj_stamp, grow);
+            memset(context->mobj_stamp + context->mobj_stamp_size, 0,
+                   grow - context->mobj_stamp_size);
+            context->mobj_stamp_size = grow;
+        }
+    }
+}
+
 //
 // R_RenderView
 //
@@ -1400,6 +1437,8 @@ void R_RenderPlayerView (player_t* player)
 
   const int contexts = ActiveContexts();
 
+  R_EnsureContextStamps(contexts);
+
   if (contexts > 1)
   {
     if (render_loadbalancing)
@@ -1461,8 +1500,21 @@ void R_InitRenderThreads(void)
 
 void R_ShutdownRenderThreads(void)
 {
-    R_FrameScratchShutdown();
+    // Join the workers before the per-thread scratch goes away: a worker
+    // still running a job would allocate from a freed arena.
+
     R_JobsShutdown();
+    R_FrameScratchShutdown();
+
+    for (int i = 0; i < MAX_RENDER_CONTEXTS; i++)
+    {
+        free(rendercontexts[i].sector_stamp);
+        free(rendercontexts[i].mobj_stamp);
+        rendercontexts[i].sector_stamp = NULL;
+        rendercontexts[i].mobj_stamp = NULL;
+        rendercontexts[i].sector_stamp_size = 0;
+        rendercontexts[i].mobj_stamp_size = 0;
+    }
 }
 
 void R_InitAnyRes(void)

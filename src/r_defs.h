@@ -92,10 +92,6 @@ typedef struct sector_s
   int blockbox[4];       // mapblock bounding box for height changes
   degenmobj_t soundorg;  // origin for any sounds played by the sector
   int validcount;        // if == validcount, already checked
-  // [MT] per-render-thread sprite-dedup flag, see R_AddSprites(). Separate
-  // from validcount because each parallel render context needs its own flag
-  // while the gameplay code keeps using validcount.
-  uint8_t rendervalidcount[MAX_RENDER_CONTEXTS];
   struct mobj_s *thinglist; // list of mobjs in sector
 
   // TODO: convert from special, Eternity-style

@@ -126,6 +126,11 @@ typedef struct
 
     // exponentially smoothed frame time for stable load balancing
     double smoothed_time;
+
+    uint8_t *sector_stamp;
+    int sector_stamp_size;
+    uint8_t *mobj_stamp;
+    int mobj_stamp_size;
 } rendercontext_t;
 
 // TLS context currently being rendered by this thread.

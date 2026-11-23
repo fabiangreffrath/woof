@@ -1209,6 +1209,8 @@ void P_UnArchiveThinkers(void)
     {
         mobj_t *mobj = arena_alloc(thinkers_arena, mobj_t);
 
+        mobj->render_index = M_ArenaTableIndex(thinkers_arena, (uintptr_t)mobj);
+
         // killough 2/14/98 -- insert pointers to thinkers into table, in order:
         mobj_p[idx] = mobj;
 
