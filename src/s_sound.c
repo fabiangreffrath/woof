@@ -23,6 +23,7 @@
 #include <string.h>
 
 #include "deh_strings.h"
+#include "d_rollback.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "g_umapinfo.h"
@@ -439,6 +440,15 @@ static boolean StartSoundEx(const mobj_t *origin, int sfx_id,
     int o_priority, singularity, cnum, handle;
     sfxparams_t params;
     sfxinfo_t *sfx;
+
+    // Sound is a purely client-side effect. Replaying it while already
+    // run tics are being resimulated would duplicate every weapon,
+    // door, switch and ambient sound (and its rumble).
+
+    if (rollback_resim)
+    {
+        return false;
+    }
 
     // jff 1/22/98 return if sound is not enabled
     if (nosfxparm)

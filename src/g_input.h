@@ -26,6 +26,7 @@ void G_UpdateSideMove(void);
 
 // Error Accumulation
 
+boolean G_RawInputActive(void);
 void G_UpdateCarry(void);
 void G_ClearCarry(void);
 extern short (*G_CarryAngleTic)(double angle);

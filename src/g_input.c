@@ -19,6 +19,7 @@
 #include <string.h>
 
 #include "d_main.h"
+#include "d_rollback.h"
 #include "g_game.h"
 #include "i_gamepad.h"
 #include "i_timer.h"
@@ -128,6 +129,17 @@ static short CarryAngle_LowRes(double angle)
 short (*G_CarryAngleTic)(double angle);
 short (*G_CarryAngle)(double angle);
 
+// Raw input shows a turn before the tic that carries it has been simulated.
+// That is only sound when the simulation consumes every built tic, so a
+// multiplayer client keeps the interpolated camera unless rollback, which
+// compensates for the tics the simulation has not reached yet.
+
+boolean G_RawInputActive(void)
+{
+    return uncapped && raw_input
+           && (!netgame || solonet || RB_RawCameraAllowed());
+}
+
 void G_UpdateAngleFunctions(void)
 {
     G_CarryAngleTic = lowres_turn ? CarryAngleTic_LowRes : CarryAngleTic_Full;
@@ -137,7 +149,7 @@ void G_UpdateAngleFunctions(void)
     {
         G_CarryAngle = CarryAngle_FakeLongTics;
     }
-    else if (uncapped && raw_input)
+    else if (G_RawInputActive())
     {
         G_CarryAngle = lowres_turn ? CarryAngle_LowRes : CarryAngle_Full;
     }
@@ -174,7 +186,7 @@ static double joy_scale_pitch;
 
 void G_UpdateDeltaTics(uint64_t delta_time)
 {
-    if (uncapped && raw_input)
+    if (G_RawInputActive())
     {
         deltatics = (double)delta_time * TICRATE * 1.0e-6;
         deltatics = CLAMP(deltatics, 0.0, 1.0);

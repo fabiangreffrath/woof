@@ -36,6 +36,12 @@ uint64_t I_GetTimeUS(void);
 
 void I_SetTimeScale(int scale);
 
+// Retard the clock that I_GetTime() and I_GetFracTime() are derived from,
+// by the given number of milliseconds. Both functions stay in step with
+// each other, which is what the renderer's interpolation depends on.
+
+void I_SetTimeOffsetMS(int offset);
+
 void I_SetFastdemoTimer(boolean on);
 
 // [FG] toggle demo warp mode
