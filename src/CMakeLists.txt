@@ -110,6 +110,7 @@ set(WOOF_SOURCES
     m_io.c                 m_io.h
     m_json.c               m_json.h
     m_scanner.c            m_scanner.h
+                           m_profiler.h
     mn_container.c         mn_container.h
                            mn_common.h
     mn_csmenu.c            mn_csmenu.h
