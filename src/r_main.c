@@ -40,26 +40,26 @@
 #include "i_thread.h"
 #include "i_timer.h"
 #include "i_video.h"
+#include "m_config.h"
+#include "m_profiler.h"
 #include "p_mobj.h"
 #include "p_pspr.h"
 #include "p_tick.h"
 #include "r_bsp.h"
+#include "r_common.h"
 #include "r_data.h"
 #include "r_defs.h"
 #include "r_draw.h"
 #include "r_main.h"
-#include "r_common.h"
 #include "r_plane.h"
 #include "r_sky.h"
 #include "r_state.h"
 #include "r_swirl.h"
 #include "r_things.h"
 #include "r_voxel.h"
-#include "m_config.h"
-#include "m_profiler.h"
 #include "st_stuff.h"
-#include "v_palette.h"
 #include "v_flextran.h"
+#include "v_palette.h"
 #include "v_video.h"
 #include "z_zone.h"
 
@@ -101,7 +101,7 @@ angle_t vx_clipangle;
 // flattening the arc to a flat projection plane.
 // There will be many angles mapped to the same X.
 
-int viewangletox[FINEANGLES/2];
+int viewangletox[FINEANGLES / 2];
 
 // The xtoviewangleangle[] table maps a screen pixel
 // to the lowest viewangle that maps back to x ranges
@@ -119,8 +119,8 @@ int numcolormaps;
 lighttable_t *fullcolormap;
 lighttable_t **colormaps;
 
-int       ** scalelightoffset;
-int       ** zlightoffset;
+int **scalelightoffset;
+int **zlightoffset;
 
 // [RNR] per-column distance correction for the flat rasteriser.
 fixed_t *distscale = NULL;
@@ -146,7 +146,8 @@ THREADLOCAL void (*colfunc)(void);        // current column draw function
 //
 // killough 5/2/98: reformatted
 //
-int (*R_PointOnSide)(fixed_t x, fixed_t y, struct node_s *node) = R_PointOnSide_Classic;
+int (*R_PointOnSide)(fixed_t x, fixed_t y,
+                     struct node_s *node) = R_PointOnSide_Classic;
 
 int R_PointOnSide_Classic(fixed_t x, fixed_t y, node_t *node)
 {
@@ -201,24 +202,30 @@ int R_PointOnSide_Precise(fixed_t x, fixed_t y, node_t *node)
 // [Woof!] rewritten to use only higher precision version
 int R_PointOnSegSide(fixed_t x, fixed_t y, seg_t *line)
 {
-  fixed_t lx = line->v1->x;
-  fixed_t ly = line->v1->y;
-  const fixed_t ldx = FixedSub(line->v2->x, lx);
-  const fixed_t ldy = FixedSub(line->v2->y, ly);
+    fixed_t lx = line->v1->x;
+    fixed_t ly = line->v1->y;
+    const fixed_t ldx = FixedSub(line->v2->x, lx);
+    const fixed_t ldy = FixedSub(line->v2->y, ly);
 
-  if (!ldx)
-    return x <= lx ? ldy > 0 : ldy < 0;
+    if (!ldx)
+    {
+        return x <= lx ? ldy > 0 : ldy < 0;
+    }
 
-  if (!ldy)
-    return y <= ly ? ldx < 0 : ldx > 0;
+    if (!ldy)
+    {
+        return y <= ly ? ldx < 0 : ldx > 0;
+    }
 
-  x = FixedSub(x, lx);
-  y = FixedSub(y, ly);
+    x = FixedSub(x, lx);
+    y = FixedSub(y, ly);
 
-  // Try to quickly decide by looking at sign bits.
-  if ((ldy ^ ldx ^ x ^ y) < 0)
-    return (ldy ^ x) < 0;          // (left is negative)
-  return (int64_t) y * ldx >= (int64_t) x * ldy;
+    // Try to quickly decide by looking at sign bits.
+    if ((ldy ^ ldx ^ x ^ y) < 0)
+    {
+        return (ldy ^ x) < 0; // (left is negative)
+    }
+    return (int64_t)y * ldx >= (int64_t)x * ldy;
 }
 
 // Fold the view-relative vector into the first octant and look up its angle.
@@ -314,7 +321,6 @@ angle_t R_PointToAngleCrispy(fixed_t x, fixed_t y)
 // WiggleFix: move R_ScaleFromGlobalAngle to r_segs.c,
 // above R_StoreWallRange
 
-
 // [crispy] in widescreen mode, make sure the same number of horizontal
 // pixels shows the same part of the game scene as in regular rendering mode
 static int scaledviewwidth_nonwide, viewwidth_nonwide;
@@ -328,16 +334,16 @@ static fixed_t centerxfrac_nonwide;
 
 static void CalcMaxProjectSlope(int fov)
 {
-  max_project_slope = 16;
+    max_project_slope = 16;
 
-  for (int i = 1; i < 16; i++)
-  {
-    if (atan(i) * FINEANGLES / M_PI - fov >= FINEANGLES / 8)
+    for (int i = 1; i < 16; i++)
     {
-      max_project_slope = i;
-      break;
+        if (atan(i) * FINEANGLES / M_PI - fov >= FINEANGLES / 8)
+        {
+            max_project_slope = i;
+            break;
+        }
     }
-  }
 }
 
 //
@@ -347,136 +353,152 @@ static void CalcMaxProjectSlope(int fov)
 
 static void R_InitTextureMapping(void)
 {
-  register int i,x;
-  fixed_t slopefrac;
-  angle_t fov;
-  double linearskyfactor;
+    register int i, x;
+    fixed_t slopefrac;
+    angle_t fov;
+    double linearskyfactor;
 
-  // Use tangent table to generate viewangletox:
-  //  viewangletox will give the next greatest x
-  //  after the view angle.
-  //
-  // Calc focallength
-  //  so FIELDOFVIEW angles covers SCREENWIDTH.
+    // Use tangent table to generate viewangletox:
+    //  viewangletox will give the next greatest x
+    //  after the view angle.
+    //
+    // Calc focallength
+    //  so FIELDOFVIEW angles covers SCREENWIDTH.
 
-  if (custom_fov == FOV_DEFAULT && centerxfrac == centerxfrac_nonwide)
-  {
-    fov = FIELDOFVIEW;
-    slopefrac = finetangent[FINEANGLES / 4 + fov / 2];
-    focallength = FixedDiv(centerxfrac_nonwide, slopefrac);
-    lightfocallength = centerxfrac_nonwide;
-    projection = centerxfrac_nonwide;
-  }
-  else
-  {
-    const double slope = (tan(custom_fov * M_PI / 360.0) *
-                          centerxfrac / centerxfrac_nonwide);
-
-    // For correct light across FOV range. Calculated like R_InitTables().
-    const double lightangle = atan(slope) + M_PI / FINEANGLES;
-    const double lightslopefrac = tan(lightangle) * FRACUNIT;
-    lightfocallength = FixedDiv(centerxfrac, lightslopefrac);
-
-    fov = atan(slope) * FINEANGLES / M_PI;
-    slopefrac = finetangent[FINEANGLES / 4 + fov / 2];
-    focallength = FixedDiv(centerxfrac, slopefrac);
-    projection = centerxfrac / slope;
-  }
-
-  if (adjust_aspect)
-  {
-    yprojection = FixedMul(projection, video.aspect_v_factor);
-    lightfocallength = FixedMul(lightfocallength, video.aspect_v_factor);
-  }
-  else
-  {
-    yprojection = projection;
-  }
-
-  for (i=0 ; i<FINEANGLES/2 ; i++)
+    if (custom_fov == FOV_DEFAULT && centerxfrac == centerxfrac_nonwide)
     {
-      int t;
-      if (finetangent[i] > slopefrac)
-        t = -1;
-      else
-        if (finetangent[i] < -slopefrac)
-          t = viewwidth+1;
-      else
-        {
-          t = FixedMul(finetangent[i], focallength);
-          t = (centerxfrac - t + FRACMASK) >> FRACBITS;
-          if (t < -1)
-            t = -1;
-          else
-            if (t > viewwidth+1)
-              t = viewwidth+1;
-        }
-      viewangletox[i] = t;
+        fov = FIELDOFVIEW;
+        slopefrac = finetangent[FINEANGLES / 4 + fov / 2];
+        focallength = FixedDiv(centerxfrac_nonwide, slopefrac);
+        lightfocallength = centerxfrac_nonwide;
+        projection = centerxfrac_nonwide;
     }
-
-  // Scan viewangletox[] to generate xtoviewangle[]:
-  //  xtoviewangle will give the smallest view angle
-  //  that maps to x.
-
-  linearskyfactor = FixedToDouble(slopefrac) * ANG90;
-
-  for (x=0; x<=viewwidth; x++)
-    {
-      for (i=0; viewangletox[i] > x; i++)
-        ;
-      xtoviewangle[x] = (i<<ANGLETOFINESHIFT)-ANG90;
-      // [FG] linear horizontal sky scrolling
-      int angle = (0.5 - x / (double)viewwidth) * linearskyfactor;
-      linearskyangle[x] = (angle >= 0) ? angle : ANGLE_MAX + angle;
-    }
-
-  // Take out the fencepost cases from viewangletox.
-  for (i=0; i<FINEANGLES/2; i++)
-    if (viewangletox[i] == -1)
-      viewangletox[i] = 0;
     else
-      if (viewangletox[i] == viewwidth+1)
-        viewangletox[i] = viewwidth;
+    {
+        const double slope = (tan(custom_fov * M_PI / 360.0) * centerxfrac
+                              / centerxfrac_nonwide);
 
-  clipangle = xtoviewangle[0];
+        // For correct light across FOV range. Calculated like R_InitTables().
+        const double lightangle = atan(slope) + M_PI / FINEANGLES;
+        const double lightslopefrac = tan(lightangle) * FRACUNIT;
+        lightfocallength = FixedDiv(centerxfrac, lightslopefrac);
 
-  vx_clipangle = clipangle - ((fov << ANGLETOFINESHIFT) - ANG90);
-  CalcMaxProjectSlope(fov);
+        fov = atan(slope) * FINEANGLES / M_PI;
+        slopefrac = finetangent[FINEANGLES / 4 + fov / 2];
+        focallength = FixedDiv(centerxfrac, slopefrac);
+        projection = centerxfrac / slope;
+    }
 
-  // [RNR] distscale table for the per-column flat rasteriser.
+    if (adjust_aspect)
+    {
+        yprojection = FixedMul(projection, video.aspect_v_factor);
+        lightfocallength = FixedMul(lightfocallength, video.aspect_v_factor);
+    }
+    else
+    {
+        yprojection = projection;
+    }
 
-  if (distscale_size != viewwidth)
-  {
-    free(distscale);
-    distscale = malloc(viewwidth * sizeof(*distscale));
-    distscale_size = viewwidth;
-  }
+    for (i = 0; i < FINEANGLES / 2; i++)
+    {
+        int t;
+        if (finetangent[i] > slopefrac)
+        {
+            t = -1;
+        }
+        else if (finetangent[i] < -slopefrac)
+        {
+            t = viewwidth + 1;
+        }
+        else
+        {
+            t = FixedMul(finetangent[i], focallength);
+            t = (centerxfrac - t + FRACMASK) >> FRACBITS;
+            if (t < -1)
+            {
+                t = -1;
+            }
+            else if (t > viewwidth + 1)
+            {
+                t = viewwidth + 1;
+            }
+        }
+        viewangletox[i] = t;
+    }
 
-  for (i = 0; i < viewwidth; i++)
-  {
-    fixed_t cosadj = finecosine[xtoviewangle[i] >> ANGLETOFINESHIFT];
+    // Scan viewangletox[] to generate xtoviewangle[]:
+    //  xtoviewangle will give the smallest view angle
+    //  that maps to x.
 
-    if (cosadj < 0)
-      cosadj = -cosadj;
-    else if (!cosadj) // extreme FOV guard; RNR has the same division
-      cosadj = 1;
+    linearskyfactor = FixedToDouble(slopefrac) * ANG90;
 
-    distscale[i] = FixedDiv(FRACUNIT, cosadj);
-  }
+    for (x = 0; x <= viewwidth; x++)
+    {
+        for (i = 0; viewangletox[i] > x; i++)
+            ;
+        xtoviewangle[x] = (i << ANGLETOFINESHIFT) - ANG90;
+        // [FG] linear horizontal sky scrolling
+        int angle = (0.5 - x / (double)viewwidth) * linearskyfactor;
+        linearskyangle[x] = (angle >= 0) ? angle : ANGLE_MAX + angle;
+    }
 
-  if (custom_fov == FOV_DEFAULT)
-  {
-    skyiscale = FixedDiv(SCREENWIDTH, viewwidth_nonwide);
-  }
-  else
-  {
-    skyiscale = tan(custom_fov * M_PI / 360.0) * SCREENWIDTH / viewwidth_nonwide * FRACUNIT;
-  }
+    // Take out the fencepost cases from viewangletox.
+    for (i = 0; i < FINEANGLES / 2; i++)
+    {
+        if (viewangletox[i] == -1)
+        {
+            viewangletox[i] = 0;
+        }
+        else if (viewangletox[i] == viewwidth + 1)
+        {
+            viewangletox[i] = viewwidth;
+        }
+    }
 
-  if (adjust_aspect)
-  {
-    skyiscale = FixedDiv(skyiscale, video.aspect_v_factor);
-  }
+    clipangle = xtoviewangle[0];
+
+    vx_clipangle = clipangle - ((fov << ANGLETOFINESHIFT) - ANG90);
+    CalcMaxProjectSlope(fov);
+
+    // [RNR] distscale table for the per-column flat rasteriser.
+
+    if (distscale_size != viewwidth)
+    {
+        free(distscale);
+        distscale = malloc(viewwidth * sizeof(*distscale));
+        distscale_size = viewwidth;
+    }
+
+    for (i = 0; i < viewwidth; i++)
+    {
+        fixed_t cosadj = finecosine[xtoviewangle[i] >> ANGLETOFINESHIFT];
+
+        if (cosadj < 0)
+        {
+            cosadj = -cosadj;
+        }
+        else if (!cosadj) // extreme FOV guard; RNR has the same division
+        {
+            cosadj = 1;
+        }
+
+        distscale[i] = FixedDiv(FRACUNIT, cosadj);
+    }
+
+    if (custom_fov == FOV_DEFAULT)
+    {
+        skyiscale = FixedDiv(SCREENWIDTH, viewwidth_nonwide);
+    }
+    else
+    {
+        skyiscale = tan(custom_fov * M_PI / 360.0) * SCREENWIDTH
+                    / viewwidth_nonwide * FRACUNIT;
+    }
+
+    if (adjust_aspect)
+    {
+        skyiscale = FixedDiv(skyiscale, video.aspect_v_factor);
+    }
 }
 
 //
@@ -487,97 +509,101 @@ static void R_InitTextureMapping(void)
 
 #define DISTMAP 2
 
-void R_InitLightTables (void)
+void R_InitLightTables(void)
 {
-  // killough 4/4/98: dynamic colormaps
+    // killough 4/4/98: dynamic colormaps
 
-  zlightoffset = Z_Malloc(sizeof(*zlightoffset) * LIGHTLEVELS, PU_STATIC, NULL);
+    zlightoffset =
+        Z_Malloc(sizeof(*zlightoffset) * LIGHTLEVELS, PU_STATIC, NULL);
 
-  int *const all_zlightoffsets =
-    Z_Malloc(sizeof(**zlightoffset) * LIGHTLEVELS * MAXLIGHTZ, PU_STATIC, NULL);
+    int *const all_zlightoffsets = Z_Malloc(
+        sizeof(**zlightoffset) * LIGHTLEVELS * MAXLIGHTZ, PU_STATIC, NULL);
 
-  // Calculate the light levels to use
-  //  for each level / distance combination.
-  for (int lightlevel = 0; lightlevel < LIGHTLEVELS; lightlevel++)
-  {
-    zlightoffset[lightlevel] = all_zlightoffsets + MAXLIGHTZ * lightlevel;
-
-    const int startmap =
-      ((LIGHTLEVELS - 1 - lightlevel) * 2) * NUMCOLORMAPS / LIGHTLEVELS;
-
-    for (int lightz = 0; lightz < MAXLIGHTZ; lightz++)
+    // Calculate the light levels to use
+    //  for each level / distance combination.
+    for (int lightlevel = 0; lightlevel < LIGHTLEVELS; lightlevel++)
     {
-      const int scale =
-        FixedDiv((SCREENWIDTH / 2 * FRACUNIT), (lightz + 1) << LIGHTZSHIFT);
+        zlightoffset[lightlevel] = all_zlightoffsets + MAXLIGHTZ * lightlevel;
 
-      int level = startmap - (scale >> LIGHTSCALESHIFT) / DISTMAP;
-      level = CLAMP(level, 0, NUMCOLORMAPS - 1);
+        const int startmap =
+            ((LIGHTLEVELS - 1 - lightlevel) * 2) * NUMCOLORMAPS / LIGHTLEVELS;
 
-      zlightoffset[lightlevel][lightz] = level * 256;
+        for (int lightz = 0; lightz < MAXLIGHTZ; lightz++)
+        {
+            const int scale = FixedDiv((SCREENWIDTH / 2 * FRACUNIT),
+                                       (lightz + 1) << LIGHTZSHIFT);
+
+            int level = startmap - (scale >> LIGHTSCALESHIFT) / DISTMAP;
+            level = CLAMP(level, 0, NUMCOLORMAPS - 1);
+
+            zlightoffset[lightlevel][lightz] = level * 256;
+        }
     }
-  }
 
-  // [Woof!] scalelight has been made independent of view size,
-  // so we initialize it here
+    // [Woof!] scalelight has been made independent of view size,
+    // so we initialize it here
 
-  scalelightoffset = Z_Malloc(sizeof(*scalelightoffset) * LIGHTLEVELS, PU_STATIC, NULL);
+    scalelightoffset =
+        Z_Malloc(sizeof(*scalelightoffset) * LIGHTLEVELS, PU_STATIC, NULL);
 
-  int *const all_scalelightoffsets =
-    Z_Malloc(sizeof(**scalelightoffset) * LIGHTLEVELS * MAXLIGHTSCALE, PU_STATIC, NULL);
+    int *const all_scalelightoffsets =
+        Z_Malloc(sizeof(**scalelightoffset) * LIGHTLEVELS * MAXLIGHTSCALE,
+                 PU_STATIC, NULL);
 
-  // Calculate the light levels to use
-  //  for each level / scale combination.
-  for (int lightlevel = 0; lightlevel < LIGHTLEVELS; lightlevel++)
-  {
-    scalelightoffset[lightlevel] = all_scalelightoffsets + MAXLIGHTSCALE * lightlevel;
-
-    const int startmap =
-      ((LIGHTLEVELS - 1 - lightlevel) * 2) * NUMCOLORMAPS / LIGHTLEVELS;
-
-    for (int lightscale = 0; lightscale < MAXLIGHTSCALE; lightscale++)
+    // Calculate the light levels to use
+    //  for each level / scale combination.
+    for (int lightlevel = 0; lightlevel < LIGHTLEVELS; lightlevel++)
     {
-      int level = startmap - lightscale / DISTMAP;
-      level = CLAMP(level, 0, NUMCOLORMAPS - 1);
+        scalelightoffset[lightlevel] =
+            all_scalelightoffsets + MAXLIGHTSCALE * lightlevel;
 
-      scalelightoffset[lightlevel][lightscale] = level * 256;
+        const int startmap =
+            ((LIGHTLEVELS - 1 - lightlevel) * 2) * NUMCOLORMAPS / LIGHTLEVELS;
+
+        for (int lightscale = 0; lightscale < MAXLIGHTSCALE; lightscale++)
+        {
+            int level = startmap - lightscale / DISTMAP;
+            level = CLAMP(level, 0, NUMCOLORMAPS - 1);
+
+            scalelightoffset[lightlevel][lightscale] = level * 256;
+        }
     }
-  }
 }
 
 int R_GetLightIndex(fixed_t scale)
 {
-  const int index = ((int64_t)scale * (160 << FRACBITS) / lightfocallength) >> LIGHTSCALESHIFT;
-  return clampi(index, 0, MAXLIGHTSCALE - 1);
+    const int index = ((int64_t)scale * (160 << FRACBITS) / lightfocallength)
+                      >> LIGHTSCALESHIFT;
+    return clampi(index, 0, MAXLIGHTSCALE - 1);
 }
 
 static fixed_t viewpitch;
 
 static void R_SetupFreelook(void)
 {
-  fixed_t dy;
-  int i;
+    fixed_t dy;
 
-  if (viewpitch)
-  {
-    dy = FixedMul(yprojection, -finetangent[(ANG90 - viewpitch) >> ANGLETOFINESHIFT]);
-  }
-  else
-  {
-    dy = 0;
-  }
+    if (viewpitch)
+    {
+        dy = FixedMul(yprojection,
+                      -finetangent[(ANG90 - viewpitch) >> ANGLETOFINESHIFT]);
+    }
+    else
+    {
+        dy = 0;
+    }
 
-  centery = viewheight / 2 + (dy >> FRACBITS);
-  centeryfrac = centery << FRACBITS;
+    centery = viewheight / 2 + (dy >> FRACBITS);
+    centeryfrac = centery << FRACBITS;
 
-  bottomydeltafrac = (viewheight - centery) << FRACBITS;
+    bottomydeltafrac = (viewheight - centery) << FRACBITS;
 
-  for (i = 0; i < viewheight; i++)
-  {
-    dy = abs(IntToFixed(i - centery));
-    yslope[i] = FixedDiv(projection, dy);
-  }
+    for (int i = 0; i < viewheight; i++)
+    {
+        dy = abs(IntToFixed(i - centery));
+        yslope[i] = FixedDiv(projection, dy);
+    }
 }
-
 
 //
 // R_SetViewSize
@@ -587,139 +613,151 @@ static void R_SetupFreelook(void)
 //
 
 boolean setsizeneeded;
-int     setblocks;
+int setblocks;
 
 void R_SetViewSize(int blocks)
 {
-  setsizeneeded = true;
-  setblocks = MIN(blocks, 11);
+    setsizeneeded = true;
+    setblocks = MIN(blocks, 11);
 }
 
 //
 // R_ExecuteSetViewSize
 //
 
-void R_ExecuteSetViewSize (void)
+void R_ExecuteSetViewSize(void)
 {
-  int i;
-  vrect_t view;
+    setsizeneeded = false;
 
-  setsizeneeded = false;
-
-  if (setblocks >= 10)
+    if (setblocks >= 10)
     {
-      ST_UpdateStatusBar(); // let the new statusbar take effect
-      ST_SetSTHeight();
+        ST_UpdateStatusBar(); // let the new statusbar take effect
+        ST_SetSTHeight();
 
-      scaledviewwidth_nonwide = NONWIDEWIDTH;
-      scaledviewwidth = video.unscaledw;
-      scaledviewheight = SCREENHEIGHT - st_height; // killough 11/98
+        scaledviewwidth_nonwide = NONWIDEWIDTH;
+        scaledviewwidth = video.unscaledw;
+        scaledviewheight = SCREENHEIGHT - st_height; // killough 11/98
     }
-  else
+    else
     {
-      st_height = st_height_screenblocks10;
+        st_height = st_height_screenblocks10;
 
-      const int st_screen = SCREENHEIGHT - st_height;
+        const int st_screen = SCREENHEIGHT - st_height;
 
-      scaledviewwidth_nonwide = setblocks * 32;
-      scaledviewheight = (setblocks * st_screen / 10) & ~7; // killough 11/98
+        scaledviewwidth_nonwide = setblocks * 32;
+        scaledviewheight = (setblocks * st_screen / 10) & ~7; // killough 11/98
 
-      if (!scaledviewheight)
-        return;
+        if (!scaledviewheight)
+        {
+            return;
+        }
 
-      if (video.unscaledw > SCREENWIDTH)
-        scaledviewwidth = (scaledviewheight * video.unscaledw / st_screen) & ~7;
-      else
-        scaledviewwidth = scaledviewwidth_nonwide;
-    }
-
-  scaledviewx = (video.unscaledw - scaledviewwidth) / 2;
-
-  if (scaledviewwidth == video.unscaledw)
-    scaledviewy = 0;
-  else
-    scaledviewy = (SCREENHEIGHT - st_height - scaledviewheight) / 2;
-
-  view.x = scaledviewx;
-  view.y = scaledviewy;
-  view.w = scaledviewwidth;
-  view.h = scaledviewheight;
-
-  V_ScaleRect(&view);
-
-  viewwindowx = view.sx;
-  viewwindowy = view.sy;
-  viewwidth   = view.sw;
-  viewheight  = view.sh;
-
-  viewwidth_nonwide = V_ScaleX(scaledviewwidth_nonwide);
-
-  centerxfrac = (viewwidth << FRACBITS) / 2;
-  centerx = centerxfrac >> FRACBITS;
-  centerxfrac_nonwide = (viewwidth_nonwide << FRACBITS) / 2;
-
-  R_InitBuffer();       // killough 11/98
-
-  R_InitTextureMapping();
-
-  R_SetupFreelook();
-
-  // psprite scales
-  pspritescale = FixedDiv(viewwidth_nonwide, SCREENWIDTH);       // killough 11/98
-  pspriteiscale = FixedDiv(SCREENWIDTH, viewwidth_nonwide);      // killough 11/98
-
-  // [FG] make sure that the product of the weapon sprite scale factor
-  //      and its reciprocal is always at least FRACUNIT to
-  //      fix garbage lines at the top of weapon sprites
-  while (FixedMul(pspriteiscale, pspritescale) < FRACUNIT)
-    pspriteiscale++;
-
-  if (adjust_aspect)
-  {
-    pspriteyscale = FixedMul(pspritescale, video.aspect_v_factor);
-    pspriteyiscale = FixedDiv(pspriteiscale, video.aspect_v_factor);
-  }
-  else
-  {
-    pspriteyscale = pspritescale;
-    pspriteyiscale = pspriteiscale;
-  }
-
-  for (i=0 ; i<viewwidth ; i++)
-    {
-      // thing clipping
-      screenheightarray[i] = viewheight;
+        if (video.unscaledw > SCREENWIDTH)
+        {
+            scaledviewwidth =
+                (scaledviewheight * video.unscaledw / st_screen) & ~7;
+        }
+        else
+        {
+            scaledviewwidth = scaledviewwidth_nonwide;
+        }
     }
 
-  st_refresh_background = true;
+    scaledviewx = (video.unscaledw - scaledviewwidth) / 2;
+
+    if (scaledviewwidth == video.unscaledw)
+    {
+        scaledviewy = 0;
+    }
+    else
+    {
+        scaledviewy = (SCREENHEIGHT - st_height - scaledviewheight) / 2;
+    }
+
+    vrect_t view;
+
+    view.x = scaledviewx;
+    view.y = scaledviewy;
+    view.w = scaledviewwidth;
+    view.h = scaledviewheight;
+
+    V_ScaleRect(&view);
+
+    viewwindowx = view.sx;
+    viewwindowy = view.sy;
+    viewwidth = view.sw;
+    viewheight = view.sh;
+
+    viewwidth_nonwide = V_ScaleX(scaledviewwidth_nonwide);
+
+    centerxfrac = (viewwidth << FRACBITS) / 2;
+    centerx = centerxfrac >> FRACBITS;
+    centerxfrac_nonwide = (viewwidth_nonwide << FRACBITS) / 2;
+
+    R_InitBuffer(); // killough 11/98
+
+    R_InitTextureMapping();
+
+    R_SetupFreelook();
+
+    // psprite scales
+    pspritescale = FixedDiv(viewwidth_nonwide, SCREENWIDTH);  // killough 11/98
+    pspriteiscale = FixedDiv(SCREENWIDTH, viewwidth_nonwide); // killough 11/98
+
+    // [FG] make sure that the product of the weapon sprite scale factor
+    //      and its reciprocal is always at least FRACUNIT to
+    //      fix garbage lines at the top of weapon sprites
+    while (FixedMul(pspriteiscale, pspritescale) < FRACUNIT)
+    {
+        pspriteiscale++;
+    }
+
+    if (adjust_aspect)
+    {
+        pspriteyscale = FixedMul(pspritescale, video.aspect_v_factor);
+        pspriteyiscale = FixedDiv(pspriteiscale, video.aspect_v_factor);
+    }
+    else
+    {
+        pspriteyscale = pspritescale;
+        pspriteyiscale = pspriteiscale;
+    }
+
+    for (int i = 0; i < viewwidth; i++)
+    {
+        // thing clipping
+        screenheightarray[i] = viewheight;
+    }
+
+    st_refresh_background = true;
 }
 
 //
 // R_Init
 //
 
-void R_Init (void)
+void R_Init(void)
 {
-  R_InitData();
-  R_SetViewSize(screenblocks);
-  R_InitPlanes();
-  R_InitLightTables();
-  R_InitTranslationTables();
-  V_InitFlexTranTable();
+    R_InitData();
+    R_SetViewSize(screenblocks);
+    R_InitPlanes();
+    R_InitLightTables();
+    R_InitTranslationTables();
+    V_InitFlexTranTable();
 
-  // [MT] pre-create the missing-flat dummy on the main thread (PU_STATIC),
-  // so render workers never allocate it from the zone.
-  R_MissingFlat();
+    // [MT] pre-create the missing-flat dummy on the main thread (PU_STATIC),
+    // so render workers never allocate it from the zone.
+    R_MissingFlat();
 
-  // [FG] spectre drawing mode
-  R_SetFuzzColumnMode();
+    // [FG] spectre drawing mode
+    R_SetFuzzColumnMode();
 
-  colfunc = R_DrawColumn;
+    colfunc = R_DrawColumn;
 
-  // [MT] worker pool for parallel render contexts; context 0 renders on this
-  // (main) thread. Worker threads inherit nothing - their thread-local drawer
-  // state is re-established at the start of every R_RenderViewContext().
-  R_InitRenderThreads();
+    // [MT] worker pool for parallel render contexts; context 0 renders on this
+    // (main) thread. Worker threads inherit nothing - their thread-local drawer
+    // state is re-established at the start of every R_RenderViewContext().
+    R_InitRenderThreads();
 }
 
 //
@@ -729,247 +767,247 @@ void R_Init (void)
 
 subsector_t *R_PointInSubsector(fixed_t x, fixed_t y)
 {
-  int nodenum = numnodes-1;
+    int nodenum = numnodes - 1;
 
-  // [FG] fix crash when loading trivial single subsector maps
-  if (!numnodes)
-  {
-    return subsectors;
-  }
+    // [FG] fix crash when loading trivial single subsector maps
+    if (!numnodes)
+    {
+        return subsectors;
+    }
 
-  while (!(nodenum & NF_SUBSECTOR))
-    nodenum = nodes[nodenum].children[R_PointOnSide(x, y, nodes+nodenum)];
-  return &subsectors[nodenum & ~NF_SUBSECTOR];
+    while (!(nodenum & NF_SUBSECTOR))
+    {
+        nodenum = nodes[nodenum].children[R_PointOnSide(x, y, nodes + nodenum)];
+    }
+    return &subsectors[nodenum & ~NF_SUBSECTOR];
 }
 
 static inline boolean CheckLocalView(const player_t *player)
 {
-  return (
-    // Don't use localview if the player is spying.
-    player == &players[consoleplayer] &&
-    // Don't use localview if the player is dead.
-    player->playerstate != PST_DEAD &&
-    // Don't use localview if the player just teleported.
-    !player->mo->reactiontime &&
-    // Don't use localview if a demo is playing.
-    !demoplayback &&
-    // Don't use localview during a netgame, except when rollback can catch
-    // the simulation up with the input that is shown ahead of it. A
-    // transition stops the simulation short of the built tics, so fall
-    // back to interpolation while one is pending.
-    (!netgame || solonet
-     || (RB_RawCameraAllowed() && gameaction == ga_nothing))
-  );
+    return (
+        // Don't use localview if the player is spying.
+        player == &players[consoleplayer] &&
+        // Don't use localview if the player is dead.
+        player->playerstate != PST_DEAD &&
+        // Don't use localview if the player just teleported.
+        !player->mo->reactiontime &&
+        // Don't use localview if a demo is playing.
+        !demoplayback &&
+        // Don't use localview during a netgame, except when rollback can catch
+        // the simulation up with the input that is shown ahead of it. A
+        // transition stops the simulation short of the built tics, so fall
+        // back to interpolation while one is pending.
+        (!netgame || solonet
+         || (RB_RawCameraAllowed() && gameaction == ga_nothing)));
 }
 
 static angle_t CalcViewAngle_RawInput(const player_t *player)
 {
-  return (player->mo->angle + localview.angle - player->ticangle +
-          LerpAngle(player->oldticangle, player->ticangle));
+    return (player->mo->angle + localview.angle - player->ticangle
+            + LerpAngle(player->oldticangle, player->ticangle));
 }
 
 static angle_t CalcViewAngle_LerpFakeLongTics(const player_t *player)
 {
-  return LerpAngle(player->mo->oldangle + localview.oldlerpangle,
-                   player->mo->angle + localview.lerpangle);
+    return LerpAngle(player->mo->oldangle + localview.oldlerpangle,
+                     player->mo->angle + localview.lerpangle);
 }
 
 static angle_t (*CalcViewAngle)(const player_t *player);
 
 void R_UpdateViewAngleFunction(void)
 {
-  if (raw_input)
-  {
-    CalcViewAngle = CalcViewAngle_RawInput;
-  }
-  else if (lowres_turn && fake_longtics)
-  {
-    CalcViewAngle = CalcViewAngle_LerpFakeLongTics;
-  }
-  else
-  {
-    CalcViewAngle = NULL;
-  }
+    if (raw_input)
+    {
+        CalcViewAngle = CalcViewAngle_RawInput;
+    }
+    else if (lowres_turn && fake_longtics)
+    {
+        CalcViewAngle = CalcViewAngle_LerpFakeLongTics;
+    }
+    else
+    {
+        CalcViewAngle = NULL;
+    }
 }
 
 //
 // R_SetupFrame
 //
 
-void R_SetupFrame (player_t *player)
+void R_SetupFrame(player_t *player)
 {
-  int cm;
-  fixed_t pitch;
-  const boolean use_localview = CheckLocalView(player);
-  const boolean raw_camera = use_localview && G_RawInputActive();
-  const boolean camera_ready = (
-    // Don't interpolate on the first tic of a level,
-    // otherwise oldviewz might be garbage.
-    leveltime > 1 &&
-    // Don't interpolate if the player did something
-    // that would necessitate turning it off for a tic.
-    player->mo->interp == true &&
-    // Don't interpolate during a paused state
-    leveltime > oldleveltime
-  );
-  // The tic clock passes a tic even when the simulation cannot run one
-  // (confirmed input is missing). fractionaltic then wraps without gametic
-  // advancing, and interpolating old -> new again would oscillate.
-  static int last_gametic;
-  static fixed_t last_fractionaltic;
-  static boolean tic_stalled;
+    fixed_t pitch;
+    const boolean use_localview = CheckLocalView(player);
+    const boolean raw_camera = use_localview && G_RawInputActive();
+    const boolean camera_ready = (
+        // Don't interpolate on the first tic of a level,
+        // otherwise oldviewz might be garbage.
+        leveltime > 1 &&
+        // Don't interpolate if the player did something
+        // that would necessitate turning it off for a tic.
+        player->mo->interp == true &&
+        // Don't interpolate during a paused state
+        leveltime > oldleveltime);
+    // The tic clock passes a tic even when the simulation cannot run one
+    // (confirmed input is missing). fractionaltic then wraps without gametic
+    // advancing, and interpolating old -> new again would oscillate.
+    static int last_gametic;
+    static fixed_t last_fractionaltic;
+    static boolean tic_stalled;
 
-  if (gametic != last_gametic)
-  {
-    tic_stalled = false;
-  }
-  else if (fractionaltic < last_fractionaltic)
-  {
-    tic_stalled = true;
-  }
-
-  last_gametic = gametic;
-  last_fractionaltic = fractionaltic;
-
-  // Nothing to interpolate: stay where the simulation is, but keep showing
-  // the local input that is built and waiting.
-  const boolean raw_stall = (
-    uncapped && raw_camera && tic_stalled &&
-    // The input is not applied while the game is held.
-    !paused && !menuactive &&
-    leveltime > 1 && player->mo->interp == true
-  );
-  angle_t pending_angle = 0;
-  fixed_t pending_pitch = 0;
-
-  if (raw_camera && rollback_enabled)
-  {
-    D_GetUnrunLocalInput(&pending_angle, &pending_pitch);
-  }
-
-  viewplayer = player;
-  // [AM] Interpolate the player camera if the feature is enabled.
-  if (uncapped && camera_ready && !raw_stall)
-  {
-    // Interpolate player camera from their old position to their current one.
-    viewx = LerpFixed(player->mo->oldx, player->mo->x);
-    viewy = LerpFixed(player->mo->oldy, player->mo->y);
-    viewz = LerpFixed(player->oldviewz, player->viewz);
-
-    if (use_localview && CalcViewAngle)
+    if (gametic != last_gametic)
     {
-      viewangle = CalcViewAngle(player) + pending_angle;
+        tic_stalled = false;
+    }
+    else if (fractionaltic < last_fractionaltic)
+    {
+        tic_stalled = true;
+    }
+
+    last_gametic = gametic;
+    last_fractionaltic = fractionaltic;
+
+    // Nothing to interpolate: stay where the simulation is, but keep showing
+    // the local input that is built and waiting.
+    const boolean raw_stall =
+        (uncapped && raw_camera && tic_stalled &&
+         // The input is not applied while the game is held.
+         !paused && !menuactive && leveltime > 1 && player->mo->interp == true);
+    angle_t pending_angle = 0;
+    fixed_t pending_pitch = 0;
+
+    if (raw_camera && rollback_enabled)
+    {
+        D_GetUnrunLocalInput(&pending_angle, &pending_pitch);
+    }
+
+    viewplayer = player;
+    // [AM] Interpolate the player camera if the feature is enabled.
+    if (uncapped && camera_ready && !raw_stall)
+    {
+        // Interpolate player camera from their old position to their current
+        // one.
+        viewx = LerpFixed(player->mo->oldx, player->mo->x);
+        viewy = LerpFixed(player->mo->oldy, player->mo->y);
+        viewz = LerpFixed(player->oldviewz, player->viewz);
+
+        if (use_localview && CalcViewAngle)
+        {
+            viewangle = CalcViewAngle(player) + pending_angle;
+        }
+        else
+        {
+            viewangle = LerpAngle(player->mo->oldangle, player->mo->angle);
+        }
+
+        if (raw_camera && !player->centering)
+        {
+            pitch = player->pitch + localview.pitch + pending_pitch;
+            pitch = CLAMP(pitch, -max_pitch_angle, max_pitch_angle);
+        }
+        else
+        {
+            pitch = LerpFixed(player->oldpitch, player->pitch);
+        }
+
+        // [crispy] pitch is actual lookdir and weapon pitch
+        pitch += LerpFixed(player->oldrecoilpitch, player->recoilpitch);
+    }
+    else if (uncapped && raw_stall)
+    {
+        // fractionaltic keeps moving while no tic runs, so neither the position
+        // nor oldticangle -> ticangle can be interpolated here: both would
+        // oscillate. Show the last completed tic plus the input that is built.
+
+        viewx = player->mo->x;
+        viewy = player->mo->y;
+        viewz = player->viewz;
+        viewangle = player->mo->angle + localview.angle + pending_angle;
+
+        if (!player->centering)
+        {
+            pitch = player->pitch + localview.pitch + pending_pitch;
+            pitch = CLAMP(pitch, -max_pitch_angle, max_pitch_angle);
+        }
+        else
+        {
+            pitch = player->pitch;
+        }
+
+        // [crispy] pitch is actual lookdir and weapon pitch
+        pitch += player->recoilpitch;
     }
     else
     {
-      viewangle = LerpAngle(player->mo->oldangle, player->mo->angle);
+        viewx = player->mo->x;
+        viewy = player->mo->y;
+        viewz = player->viewz; // [FG] moved here
+        viewangle = player->mo->angle;
+        // [crispy] pitch is actual lookdir and weapon pitch
+        pitch = player->pitch + player->recoilpitch;
+
+        if (camera_ready && use_localview && lowres_turn && fake_longtics)
+        {
+            viewangle += localview.angle;
+        }
     }
 
-    if (raw_camera && !player->centering)
+    if (pitch != viewpitch)
     {
-      pitch = player->pitch + localview.pitch + pending_pitch;
-      pitch = CLAMP(pitch, -max_pitch_angle, max_pitch_angle);
+        viewpitch = pitch;
+        R_SetupFreelook();
+    }
+
+    // 3-screen display mode.
+    viewangle += viewangleoffset;
+
+    extralight = player->extralight;
+    extralight += STRICTMODE(extra_level_brightness);
+
+    viewsin = finesine[viewangle >> ANGLETOFINESHIFT];
+    viewcos = finecosine[viewangle >> ANGLETOFINESHIFT];
+
+    // killough 3/20/98, 4/4/98: select colormap based on player status
+    const sector_t *sec = player->mo->subsector->sector;
+
+    int cm;
+
+    if (sec->colormap)
+    {
+        cm = sec->colormap;
+    }
+    else if (sec->heightsec != -1)
+    {
+        const sector_t *const s = &sectors[sec->heightsec];
+        cm = viewz < s->interpfloorheight     ? s->bottommap
+             : viewz > s->interpceilingheight ? s->topmap
+                                              : s->midmap;
     }
     else
     {
-      pitch = LerpFixed(player->oldpitch, player->pitch);
+        cm = 0;
     }
 
-    // [crispy] pitch is actual lookdir and weapon pitch
-    pitch += LerpFixed(player->oldrecoilpitch, player->recoilpitch);
-  }
-  else if (uncapped && raw_stall)
-  {
-    // fractionaltic keeps moving while no tic runs, so neither the position
-    // nor oldticangle -> ticangle can be interpolated here: both would
-    // oscillate. Show the last completed tic plus the input that is built.
-
-    viewx = player->mo->x;
-    viewy = player->mo->y;
-    viewz = player->viewz;
-    viewangle = player->mo->angle + localview.angle + pending_angle;
-
-    if (!player->centering)
+    if (cm < 0 || cm > numcolormaps)
     {
-      pitch = player->pitch + localview.pitch + pending_pitch;
-      pitch = CLAMP(pitch, -max_pitch_angle, max_pitch_angle);
+        cm = 0;
+    }
+
+    fullcolormap = colormaps[cm];
+    fixedcolormapoffset = player->fixedcolormap * PLAYPAL_SIZE;
+
+    if (fixedcolormapoffset)
+    {
+        // killough 3/20/98: use fullcolormap
+        fixedcolormap = fullcolormap + fixedcolormapoffset;
     }
     else
     {
-      pitch = player->pitch;
+        fixedcolormap = NULL;
     }
 
-    // [crispy] pitch is actual lookdir and weapon pitch
-    pitch += player->recoilpitch;
-  }
-  else
-  {
-    viewx = player->mo->x;
-    viewy = player->mo->y;
-    viewz = player->viewz; // [FG] moved here
-    viewangle = player->mo->angle;
-    // [crispy] pitch is actual lookdir and weapon pitch
-    pitch = player->pitch + player->recoilpitch;
-
-    if (camera_ready && use_localview && lowres_turn && fake_longtics)
-    {
-      viewangle += localview.angle;
-    }
-  }
-
-  if (pitch != viewpitch)
-  {
-    viewpitch = pitch;
-    R_SetupFreelook();
-  }
-
-  // 3-screen display mode.
-  viewangle += viewangleoffset;
-
-  extralight = player->extralight;
-  extralight += STRICTMODE(extra_level_brightness);
-
-  viewsin = finesine[viewangle>>ANGLETOFINESHIFT];
-  viewcos = finecosine[viewangle>>ANGLETOFINESHIFT];
-
-  // killough 3/20/98, 4/4/98: select colormap based on player status
-  const sector_t * sec = player->mo->subsector->sector;
-
-  if (sec->colormap)
-  {
-    cm = sec->colormap;
-  }
-  else if (sec->heightsec != -1)
-  {
-    const sector_t * const s = &sectors[sec->heightsec];
-    cm = viewz < s->interpfloorheight   ? s->bottommap
-       : viewz > s->interpceilingheight ? s->topmap
-                                        : s->midmap;
-  }
-  else
-  {
-    cm = 0;
-  }
-
-  if (cm < 0 || cm > numcolormaps)
-  {
-    cm = 0;
-  }
-
-  fullcolormap = colormaps[cm];
-  fixedcolormapoffset = player->fixedcolormap * PLAYPAL_SIZE;
-
-  if (fixedcolormapoffset)
-  {
-    // killough 3/20/98: use fullcolormap
-    fixedcolormap = fullcolormap + fixedcolormapoffset;
-  }
-  else
-  {
-    fixedcolormap = NULL;
-  }
-
-  validcount++;
+    validcount++;
 }
 
 //
@@ -980,14 +1018,91 @@ int rendered_visplanes, rendered_segs, rendered_vissprites, rendered_voxels;
 
 static void R_ClearStats(void)
 {
-  rendered_visplanes = 0;
-  rendered_segs = 0;
-  rendered_vissprites = 0;
-  rendered_voxels = 0;
+    rendered_visplanes = 0;
+    rendered_segs = 0;
+    rendered_vissprites = 0;
+    rendered_voxels = 0;
 }
 
+//
+// HOM detection
+//
+
 static boolean flashing_hom;
-int autodetect_hom = 0;       // killough 2/7/98: HOM autodetection flag
+int autodetect_hom = 0; // killough 2/7/98: HOM autodetection flag
+
+// clang-format off
+void AutoDetectHOM(void)
+{
+  // killough 2/10/98: add flashing red HOM indicators
+  pixel_t c[47*47];
+  int i , color = !flashing_hom || (gametic % 20) < 9 ? 0xb0 : 0;
+  V_FillRect(scaledviewx, scaledviewy, scaledviewwidth, scaledviewheight, color);
+  for (i=0;i<47*47;i++)
+    {
+      char t =
+"/////////////////////////////////////////////////////////////////////////////"
+"/////////////////////////////////////////////////////////////////////////////"
+"///////jkkkkklk////////////////////////////////////hkllklklkklkj/////////////"
+"///////////////////jkkkkklklklkkkll//////////////////////////////kkkkkklklklk"
+"lkkkklk//////////////////////////jllkkkkklklklklklkkklk//////////////////////"
+"//klkkllklklklkllklklkkklh//////////////////////kkkkkjkjjkkj\3\205\214\3lllkk"
+"lkllh////////////////////kllkige\211\210\207\206\205\204\203\203\203\205`\206"
+"\234\234\234\234kkllg//////////////////klkkjhfe\210\206\203\203\203\202\202"
+"\202\202\202\202\203\205`\207\211eikkk//////////////////kkkk\3g\211\207\206"
+"\204\203\202\201\201\200\200\200\200\200\201\201\202\204b\210\211\3lkh///////"
+"//////////lklki\213\210b\206\203\201\201\200\200\200\200\200Z\200\200\200\202"
+"\203\204\205\210\211jll/////////////////lkkk\3\212\210b\205\202\201\200\200"
+"\200XW\200\200\200\200\200\200\202\203\204\206\207eklj////////////////lkkjg"
+"\211b\206\204\202\200\200\200YWWX\200Z\200\200\200\202\203\203\205bdjkk//////"
+"//////////llkig\211a\205\203\202\200\200\200YXWX\200\200\200\200\200\201\202"
+"\203\203\206\207ekk////////////////lkki\3\211\206\204\202\201\200\200XXWWWXX"
+"\200\200\200\200\202\202\204\206\207ekk////////////////lkkj\3e\206\206\204\\"
+"\200\200XWVVWWWXX\200\200\200\\\203\205\207\231kk////////////////lkkjjgcccfd"
+"\207\203WVUVW\200\200\202\202\204\204\205\204\206\210gkk////////////////kkkkj"
+"e``\210hjjgb\200W\200\205\206fhghcbdcdfkk////////////////jkkj\3\207ab\211e"
+"\213j\3g\204XX\207\213jii\212\207\203\204\210gfkj///////////////j\211lkjf\210"
+"\214\3\3kj\213\213\211\205X\200\205\212\210\213\213\213\211\210\203\205gelj//"
+"////////////hf\211\213kh\212\212i\212gkh\202\203\210\210\202\201\206\207\206"
+"\\kkhf\210aabkk//////////////je\210\210\3g\210\207\210e\210c\205\204\202\210"
+"\207\203\202\210\205\203\203fjbe\213\210bbieW/////////////ke\207\206ie\206"
+"\203\203\203\205\205\204\203\210\211\207\202\202\206\210\203\204\206\207\210"
+"\211\231\206\206`\206\206]/////////////kf\\\202ig\204\203\202\201\\\202\202"
+"\205\207\210\207\203\202\206\206\206\205\203\203\203\202\202\203\204b\206\204"
+"Z/////////////i\3\\\204j\212\204\202\201\200\202\202\202\203\206\211\210\203"
+"\203c\205\202\201\201\201\200\200\201\202\204a\204\201W/////////////j\3\207"
+"\210jh\206\202\200\200\200\200\200\202\206\211\205\202\202bb\201\200\200\200"
+"\200\200\200\202\203b\\WW/////////////jke\206jic\203\201\200\200\200\200\202"
+"\211\211\201\200\200\204\210\201\200\200W\200\200\200\201\204c\\\200]////////"
+"//////kd\210\3\3e\205\202\200\200W\200\202\211\210\210\201\202\207\210\203"
+"\200WWW\200\200\202\205d\\\202///////////////kkdhigb\203\201\200\200\200\202"
+"\206\210\210\205\210\211\206\203\200WWW\200\201\203ce\203\205////////////////"
+"ijkig\211\203\201\200\200\202\206\207\207\205\206\207\210\206\203\200\200WW"
+"\200\203\206ce\202_//////////////////jig\210\203\202\200\201\206\210\210\205"
+"\204\204\205\206\206\204\202\200\200\200\200\203bcd////////////////////hjgc"
+"\205\202\201\203\206\210\206\204\204\202\202\204\205\206\204\200\200\200\201"
+"\206\207c//////////////////////j\3\207\204\203\202\202\211c\204\201W\200\200"
+"\203\205\206\203\200\200\200\203\206b///////////////////////ihd\204\203\202"
+"\201\207f\205VTVTW\202\210\206Z\200\200\203aa////////////////////////jg\204"
+"\204\203\201\202\210\211\211c\206\205\210d\210\200\200\200\202\204ac/////////"
+"///////////////j\3b\203\203\202\202\205\207\206\205\207\207\206\206\202\200"
+"\201\202\203ac/////////////////////////iid\206\204\203\202\204\205\377\205"
+"\204\205\204\203\201\200\202\203\203bc//////////////////////////ej\207\205"
+"\203\201\202\202\203\207\204\203\202\202\201\201\203\203bd///////////////////"
+"////////ee\3a\204\201\200\201\202\205\203\201\200\200\201\202\204\205cc//////"
+"//////////////////////c\3ec\203\201\200\200\201\202\201\200\200\202\203\206cc"
+"//////////////////////////////c\3f\206\203\201\200\200\200\200\200\201\203bdc"
+"////////////////////////////////g\3\211\206\202\\\201\200\201\202\203dde/////"
+"/////////////////////////////\234\3db\203\203\203\203adec////////////////////"
+"/////////////////hffed\211de////////////////////"[i];
+      c[i] = t=='/' ? color : t;
+    }
+  if (gametic-lastshottic < TICRATE*2 && gametic-lastshottic > TICRATE/8)
+    V_DrawBlock(scaledviewx +  scaledviewwidth/2 - 24,
+                scaledviewy + scaledviewheight/2 - 24, 47, 47, c);
+  R_DrawViewBorder();
+}
+// clang-format on
 
 //
 // Port of the Rum and Raisin Doom multithreaded renderer design:
@@ -1003,7 +1118,7 @@ int autodetect_hom = 0;       // killough 2/7/98: HOM autodetection flag
 //    context draws its own slice.
 //
 
-static int num_render_contexts = 0;      // 0 = auto: one per logical CPU core
+static int num_render_contexts = 0; // 0 = auto: one per logical CPU core
 static boolean render_loadbalancing = true;
 
 THREADLOCAL rendercontext_t *r_context = NULL;
@@ -1052,9 +1167,9 @@ boolean R_IsMultiThreaded(void)
 // enough is better left alone.
 //
 
-#define LOADBALANCE_PERIOD  1     // frames between two plans
-#define LOADBALANCE_BUDGET  0.25  // share of the ideal slab shifted per plan
-#define LOADBALANCE_TRIGGER 0.10  // imbalance below this is ignored
+#define LOADBALANCE_PERIOD  1    // frames between two plans
+#define LOADBALANCE_BUDGET  0.25 // share of the ideal slab shifted per plan
+#define LOADBALANCE_TRIGGER 0.10 // imbalance below this is ignored
 
 static int loadbalance_frames;
 
@@ -1352,119 +1467,61 @@ static void R_EnsureContextStamps(int contexts)
 //
 // R_RenderView
 //
-void R_RenderPlayerView (player_t* player)
+
+void R_RenderPlayerView(player_t *player)
 {
-  R_FrameScratchReset();
+    R_FrameScratchReset();
 
-  R_ClearStats();
+    R_ClearStats();
 
-  R_SetupFrame (player);
+    R_SetupFrame(player);
 
-  if (autodetect_hom)
-    { // killough 2/10/98: add flashing red HOM indicators
-      pixel_t c[47*47];
-      int i , color = !flashing_hom || (gametic % 20) < 9 ? 0xb0 : 0;
-      V_FillRect(scaledviewx, scaledviewy, scaledviewwidth, scaledviewheight, color);
-      for (i=0;i<47*47;i++)
-        {
-          char t =
-"/////////////////////////////////////////////////////////////////////////////"
-"/////////////////////////////////////////////////////////////////////////////"
-"///////jkkkkklk////////////////////////////////////hkllklklkklkj/////////////"
-"///////////////////jkkkkklklklkkkll//////////////////////////////kkkkkklklklk"
-"lkkkklk//////////////////////////jllkkkkklklklklklkkklk//////////////////////"
-"//klkkllklklklkllklklkkklh//////////////////////kkkkkjkjjkkj\3\205\214\3lllkk"
-"lkllh////////////////////kllkige\211\210\207\206\205\204\203\203\203\205`\206"
-"\234\234\234\234kkllg//////////////////klkkjhfe\210\206\203\203\203\202\202"
-"\202\202\202\202\203\205`\207\211eikkk//////////////////kkkk\3g\211\207\206"
-"\204\203\202\201\201\200\200\200\200\200\201\201\202\204b\210\211\3lkh///////"
-"//////////lklki\213\210b\206\203\201\201\200\200\200\200\200Z\200\200\200\202"
-"\203\204\205\210\211jll/////////////////lkkk\3\212\210b\205\202\201\200\200"
-"\200XW\200\200\200\200\200\200\202\203\204\206\207eklj////////////////lkkjg"
-"\211b\206\204\202\200\200\200YWWX\200Z\200\200\200\202\203\203\205bdjkk//////"
-"//////////llkig\211a\205\203\202\200\200\200YXWX\200\200\200\200\200\201\202"
-"\203\203\206\207ekk////////////////lkki\3\211\206\204\202\201\200\200XXWWWXX"
-"\200\200\200\200\202\202\204\206\207ekk////////////////lkkj\3e\206\206\204\\"
-"\200\200XWVVWWWXX\200\200\200\\\203\205\207\231kk////////////////lkkjjgcccfd"
-"\207\203WVUVW\200\200\202\202\204\204\205\204\206\210gkk////////////////kkkkj"
-"e``\210hjjgb\200W\200\205\206fhghcbdcdfkk////////////////jkkj\3\207ab\211e"
-"\213j\3g\204XX\207\213jii\212\207\203\204\210gfkj///////////////j\211lkjf\210"
-"\214\3\3kj\213\213\211\205X\200\205\212\210\213\213\213\211\210\203\205gelj//"
-"////////////hf\211\213kh\212\212i\212gkh\202\203\210\210\202\201\206\207\206"
-"\\kkhf\210aabkk//////////////je\210\210\3g\210\207\210e\210c\205\204\202\210"
-"\207\203\202\210\205\203\203fjbe\213\210bbieW/////////////ke\207\206ie\206"
-"\203\203\203\205\205\204\203\210\211\207\202\202\206\210\203\204\206\207\210"
-"\211\231\206\206`\206\206]/////////////kf\\\202ig\204\203\202\201\\\202\202"
-"\205\207\210\207\203\202\206\206\206\205\203\203\203\202\202\203\204b\206\204"
-"Z/////////////i\3\\\204j\212\204\202\201\200\202\202\202\203\206\211\210\203"
-"\203c\205\202\201\201\201\200\200\201\202\204a\204\201W/////////////j\3\207"
-"\210jh\206\202\200\200\200\200\200\202\206\211\205\202\202bb\201\200\200\200"
-"\200\200\200\202\203b\\WW/////////////jke\206jic\203\201\200\200\200\200\202"
-"\211\211\201\200\200\204\210\201\200\200W\200\200\200\201\204c\\\200]////////"
-"//////kd\210\3\3e\205\202\200\200W\200\202\211\210\210\201\202\207\210\203"
-"\200WWW\200\200\202\205d\\\202///////////////kkdhigb\203\201\200\200\200\202"
-"\206\210\210\205\210\211\206\203\200WWW\200\201\203ce\203\205////////////////"
-"ijkig\211\203\201\200\200\202\206\207\207\205\206\207\210\206\203\200\200WW"
-"\200\203\206ce\202_//////////////////jig\210\203\202\200\201\206\210\210\205"
-"\204\204\205\206\206\204\202\200\200\200\200\203bcd////////////////////hjgc"
-"\205\202\201\203\206\210\206\204\204\202\202\204\205\206\204\200\200\200\201"
-"\206\207c//////////////////////j\3\207\204\203\202\202\211c\204\201W\200\200"
-"\203\205\206\203\200\200\200\203\206b///////////////////////ihd\204\203\202"
-"\201\207f\205VTVTW\202\210\206Z\200\200\203aa////////////////////////jg\204"
-"\204\203\201\202\210\211\211c\206\205\210d\210\200\200\200\202\204ac/////////"
-"///////////////j\3b\203\203\202\202\205\207\206\205\207\207\206\206\202\200"
-"\201\202\203ac/////////////////////////iid\206\204\203\202\204\205\377\205"
-"\204\205\204\203\201\200\202\203\203bc//////////////////////////ej\207\205"
-"\203\201\202\202\203\207\204\203\202\202\201\201\203\203bd///////////////////"
-"////////ee\3a\204\201\200\201\202\205\203\201\200\200\201\202\204\205cc//////"
-"//////////////////////c\3ec\203\201\200\200\201\202\201\200\200\202\203\206cc"
-"//////////////////////////////c\3f\206\203\201\200\200\200\200\200\201\203bdc"
-"////////////////////////////////g\3\211\206\202\\\201\200\201\202\203dde/////"
-"/////////////////////////////\234\3db\203\203\203\203adec////////////////////"
-"/////////////////hffed\211de////////////////////"[i];
-          c[i] = t=='/' ? color : t;
-        }
-      if (gametic-lastshottic < TICRATE*2 && gametic-lastshottic > TICRATE/8)
-        V_DrawBlock(scaledviewx +  scaledviewwidth/2 - 24,
-                    scaledviewy + scaledviewheight/2 - 24, 47, 47, c);
-      R_DrawViewBorder();
+    if (autodetect_hom)
+    {
+        AutoDetectHOM();
     }
 
-  // check for new console commands.
-  // [MT] kept before the parallel render starts; the NetUpdate() calls that
-  // used to sit between the render phases are gone.
-  NetUpdate ();
+    // check for new console commands.
+    // [MT] kept before the parallel render starts; the NetUpdate() calls that
+    // used to sit between the render phases are gone.
+    NetUpdate();
 
-  const int contexts = ActiveContexts();
+    const int contexts = ActiveContexts();
 
-  R_EnsureContextStamps(contexts);
+    R_EnsureContextStamps(contexts);
 
-  if (contexts > 1)
-  {
-    if (render_loadbalancing)
-      R_RenderLoadBalance(contexts);
+    if (contexts > 1)
+    {
+        if (render_loadbalancing)
+        {
+            R_RenderLoadBalance(contexts);
+        }
+        else
+        {
+            R_EvenContextSplit(contexts);
+        }
+
+        // Contexts 1..N-1 go to the worker threads, context 0 renders inline on
+        // the calling thread, then everything is flushed.
+        for (int i = 1; i < contexts; i++)
+        {
+            R_JobsAdd(R_RenderContextJob, &rendercontexts[i]);
+        }
+
+        R_RenderViewContext(&rendercontexts[0]);
+        R_JobsFlush();
+    }
     else
-      R_EvenContextSplit(contexts);
+    {
+        rendercontexts[0].startcol = 0;
+        rendercontexts[0].endcol = viewwidth;
+        R_RenderViewContext(&rendercontexts[0]);
+    }
 
-    // Contexts 1..N-1 go to the worker threads, context 0 renders inline on
-    // the calling thread, then everything is flushed.
-    for (int i = 1; i < contexts; i++)
-      R_JobsAdd(R_RenderContextJob, &rendercontexts[i]);
+    R_AggregateStats(contexts);
 
-    R_RenderViewContext(&rendercontexts[0]);
-    R_JobsFlush();
-  }
-  else
-  {
-    rendercontexts[0].startcol = 0;
-    rendercontexts[0].endcol = viewwidth;
-    R_RenderViewContext(&rendercontexts[0]);
-  }
-
-  R_AggregateStats(contexts);
-
-  // Check for new console commands.
-  NetUpdate ();
+    // Check for new console commands.
+    NetUpdate();
 }
 
 //
@@ -1527,31 +1584,33 @@ void R_InitAnyRes(void)
 
 void R_BindRenderVariables(void)
 {
-  BIND_NUM(extra_level_brightness, 0, 0, 4, "Level brightness");
-  BIND_NUM(fuzzmode, FUZZ_BLOCKY, FUZZ_BLOCKY, FUZZ_ORIGINAL,
-    "Partial Invisibility (0 = Blocky; 1 = Refraction; 2 = Shadow, 3 = Original)");
-  BIND_BOOL(stretchsky, false, "Stretch short skies");
-  BIND_NUM(sky_projection, SKYPROJ_VANILLA, SKYPROJ_VANILLA, NUM_SKYPROJS-1,
-    "Sky projection (0 = Vanilla; 1 = Linear; 2 = Cylindrical)");
-  BIND_BOOL(r_swirl, false, "Swirling animated flats");
-  M_BindBool("voxels_rendering", &default_voxels_rendering, &voxels_rendering,
-             true, wad_no, "Allow voxel models");
-  BIND_NUM(invul_mode, INVUL_MBF, INVUL_VANILLA, INVUL_GRAY,
-    "Invulnerability effect (0 = Vanilla; 1 = MBF; 2 = Gray)");
-  BIND_BOOL(flashing_hom, true, "Enable flashing of the HOM indicator");
-  BIND_NUM(screenblocks, 10, 3, UL, "Size of game-world screen");
-  BIND_NUM(default_max_pitch_angle, 32, 30, 60, "Maximum view pitch angle");
+    BIND_NUM(extra_level_brightness, 0, 0, 4, "Level brightness");
+    BIND_NUM(fuzzmode, FUZZ_BLOCKY, FUZZ_BLOCKY, FUZZ_ORIGINAL,
+             "Partial Invisibility (0 = Blocky; 1 = Refraction; 2 = Shadow, 3 "
+             "= Original)");
+    BIND_BOOL(stretchsky, false, "Stretch short skies");
+    BIND_NUM(sky_projection, SKYPROJ_VANILLA, SKYPROJ_VANILLA, NUM_SKYPROJS - 1,
+             "Sky projection (0 = Vanilla; 1 = Linear; 2 = Cylindrical)");
+    BIND_BOOL(r_swirl, false, "Swirling animated flats");
+    M_BindBool("voxels_rendering", &default_voxels_rendering, &voxels_rendering,
+               true, wad_no, "Allow voxel models");
+    BIND_NUM(invul_mode, INVUL_MBF, INVUL_VANILLA, INVUL_GRAY,
+             "Invulnerability effect (0 = Vanilla; 1 = MBF; 2 = Gray)");
+    BIND_BOOL(flashing_hom, true, "Enable flashing of the HOM indicator");
+    BIND_NUM(screenblocks, 10, 3, UL, "Size of game-world screen");
+    BIND_NUM(default_max_pitch_angle, 32, 30, 60, "Maximum view pitch angle");
 
-  M_BindBool("translucency", &translucency, NULL, true, wad_yes,
-             "Translucency for some things");
-  BIND_BOOL(flipcorpses, false, "Randomly mirrored death animations");
+    M_BindBool("translucency", &translucency, NULL, true, wad_yes,
+               "Translucency for some things");
+    BIND_BOOL(flipcorpses, false, "Randomly mirrored death animations");
 
-  // [MT] multithreaded rendering
-  M_BindNum("render_contexts", &num_render_contexts, NULL, 0, 0,
-            MAX_RENDER_CONTEXTS, wad_no,
-            "Parallel render contexts (0 = one per CPU core, 1 = single-threaded)");
-  BIND_BOOL(render_loadbalancing, true,
-            "Load-balance render contexts by previous frame times");
+    // [MT] multithreaded rendering
+    M_BindNum(
+        "render_contexts", &num_render_contexts, NULL, 0, 0,
+        MAX_RENDER_CONTEXTS, wad_no,
+        "Parallel render contexts (0 = one per CPU core, 1 = single-threaded)");
+    BIND_BOOL(render_loadbalancing, true,
+              "Load-balance render contexts by previous frame times");
 }
 
 //----------------------------------------------------------------------------
