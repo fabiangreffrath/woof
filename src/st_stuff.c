@@ -34,7 +34,9 @@
 #include "doomtype.h"
 #include "g_game.h"
 #include "g_umapinfo.h"
+#include "hu_chat.h"
 #include "hu_command.h"
+#include "hu_message.h"
 #include "hu_obituary.h"
 #include "i_video.h"
 #include "info.h"
@@ -2218,7 +2220,7 @@ boolean ST_Responder(event_t *ev)
         minimap = !minimap;
     }
 
-    if (ST_MessagesResponder(ev))
+    if (HU_MessagesResponder(ev))
     {
         return true;
     }
@@ -2311,15 +2313,14 @@ static void DoPaletteStuff(player_t *player)
 
 void ST_Ticker(void)
 {
+    // Release the messages and chat characters of the tics that can no
+    // longer be rolled back.
+
+    HU_DispatchEvents();
+
     if (!sbardef)
     {
         return;
-    }
-
-    // check for incoming chat characters
-    if (netgame)
-    {
-        ST_UpdateChatMessage();
     }
 
     player_t *player = &players[displayplayer];

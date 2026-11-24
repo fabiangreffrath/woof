@@ -23,6 +23,7 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
+#include "hu_message.h"
 #include "hu_obituary.h"
 #include "info.h"
 #include "m_misc.h"
@@ -215,16 +216,8 @@ void HU_Obituary(mobj_t *target, mobj_t *inflictor, mobj_t *source, method_t mod
 
     str = StrReplace(str, "%o", playerstr[target->player - players]);
 
-    for (int i = 0; i < MAXPLAYERS; i++)
-    {
-        if (!playeringame[i])
-        {
-            break;
-        }
-
-        doomprintf(&players[i], MESSAGES_OBITUARY, "\x1b%c%s" ORIG_S,
-                   '0' + hudcolor_obituary, str);
-    }
+    HU_Message(NULL, MESSAGES_OBITUARY, "\x1b%c%s" ORIG_S,
+               '0' + hudcolor_obituary, str);
 
     free(str);
 }

@@ -23,6 +23,7 @@
 #include "doomdata.h"
 #include "doomdef.h"
 #include "doomstat.h"
+#include "hu_message.h"
 #include "i_printf.h"
 #include "m_fixed.h"
 #include "p_dirty.h"
@@ -271,7 +272,7 @@ int EV_DoLockedDoor(line_t *line, vldoor_e type, mobj_t *thing)
     case 133:
       if (!p->cards[it_bluecard] && !p->cards[it_blueskull])
         {
-          doomprintf(p, MESSAGES_NONE, DEH_StringColorized(PD_BLUEO));
+          HU_Message(p, MESSAGES_NONE, DEH_StringColorized(PD_BLUEO));
           S_StartSound(p->mo,sfx_oof);                  // killough 3/20/98
           return 0;
         }
@@ -281,7 +282,7 @@ int EV_DoLockedDoor(line_t *line, vldoor_e type, mobj_t *thing)
     case 135:
       if (!p->cards[it_redcard] && !p->cards[it_redskull])
         {
-          doomprintf(p, MESSAGES_NONE, DEH_StringColorized(PD_REDO));
+          HU_Message(p, MESSAGES_NONE, DEH_StringColorized(PD_REDO));
           S_StartSound(p->mo,sfx_oof);                // killough 3/20/98
           return 0;
         }
@@ -291,7 +292,7 @@ int EV_DoLockedDoor(line_t *line, vldoor_e type, mobj_t *thing)
     case 137:
       if (!p->cards[it_yellowcard] && !p->cards[it_yellowskull])
         {
-          doomprintf(p, MESSAGES_NONE, DEH_StringColorized(PD_YELLOWO));
+          HU_Message(p, MESSAGES_NONE, DEH_StringColorized(PD_YELLOWO));
           S_StartSound(p->mo,sfx_oof);                    // killough 3/20/98
           return 0;
         }
@@ -418,7 +419,7 @@ int EV_VerticalDoor(line_t *line, mobj_t *thing)
         return 0;
       if (!player->cards[it_bluecard] && !player->cards[it_blueskull])
         {
-          doomprintf(player, MESSAGES_NONE, DEH_StringColorized(PD_BLUEK));
+          HU_Message(player, MESSAGES_NONE, DEH_StringColorized(PD_BLUEK));
           S_StartSound(player->mo,sfx_oof);             // killough 3/20/98
           return 0;
         }
@@ -430,7 +431,7 @@ int EV_VerticalDoor(line_t *line, mobj_t *thing)
         return 0;
       if (!player->cards[it_yellowcard] && !player->cards[it_yellowskull])
         {
-          doomprintf(player, MESSAGES_NONE, DEH_StringColorized(PD_YELLOWK));
+          HU_Message(player, MESSAGES_NONE, DEH_StringColorized(PD_YELLOWK));
           S_StartSound(player->mo,sfx_oof);               // killough 3/20/98
           return 0;
         }
@@ -442,7 +443,7 @@ int EV_VerticalDoor(line_t *line, mobj_t *thing)
         return 0;
       if (!player->cards[it_redcard] && !player->cards[it_redskull])
         {
-          doomprintf(player, MESSAGES_NONE, DEH_StringColorized(PD_REDK));
+          HU_Message(player, MESSAGES_NONE, DEH_StringColorized(PD_REDK));
           S_StartSound(player->mo,sfx_oof);           // killough 3/20/98
           return 0;
         }

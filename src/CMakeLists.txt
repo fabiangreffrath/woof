@@ -61,9 +61,11 @@ set(WOOF_SOURCES
     g_rewind.c             g_rewind.h
     g_skillinfo.c          g_skillinfo.h
     g_umapinfo.c           g_umapinfo.h
+    hu_chat.c              hu_chat.h
     hu_command.c           hu_command.h
     hu_coordinates.c       hu_coordinates.h
     hu_crosshair.c         hu_crosshair.h
+    hu_message.c           hu_message.h
     hu_obituary.c          hu_obituary.h
     i_3dsound.c
     i_clapmusic.c
