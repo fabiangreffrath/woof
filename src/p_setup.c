@@ -157,7 +157,7 @@ mapthing_t *deathmatchstarts;      // killough
 size_t     num_deathmatchstarts;   // killough
 
 mapthing_t *deathmatch_p;
-mapthing_t playerstarts[MAXPLAYERS];
+mapthing_t playerstarts[MAX_PLAYER_STARTS][MAXPLAYERS];
 
 // GetSectorAtNullAddress
 
@@ -629,7 +629,7 @@ void P_SetupLevel(int episode, int map_num, skill_t skill, boolean from_savegame
   R_InitSkyMap();
 
   // set up world state
-  P_SpawnSpecials();
+  P_SpawnSpecials(&map);
   P_MapEnd();
 
   // preload graphics

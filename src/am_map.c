@@ -1859,7 +1859,8 @@ typedef enum DoorType_e
     DoorType_Red,
     DoorType_Blue,
     DoorType_Yellow,
-    DoorType_Multiple
+    DoorType_Multiple,
+    DoorType_Unknown = DoorType_Multiple,
 } DoorType_t;
 
 static int DoorType(const line_t *line)
@@ -1869,7 +1870,35 @@ static int DoorType(const line_t *line)
         return DoorType_None;
     }
 
-    int special = line->special;
+    int16_t special = line->special;
+
+    if (map.param)
+    {
+        const int32_t lock = (special == 13) ? line->args[3] : line->lock;
+
+        switch (lock)
+        {
+            case Lock_None:
+                return DoorType_None;
+            case Lock_RedCard:
+            case Lock_RedSkull:
+            case Lock_Red:
+            case Lock_RedLax:
+                return DoorType_Red;
+            case Lock_BlueCard:
+            case Lock_BlueSkull:
+            case Lock_Blue:
+            case Lock_BlueLax:
+                return DoorType_Blue;
+            case Lock_YellowCard:
+            case Lock_YellowSkull:
+            case Lock_Yellow:
+            case Lock_YellowLax:
+                return DoorType_Yellow;
+            default:
+                return DoorType_Unknown;
+        }
+    }
 
     if (GenLockedBase <= special && special < GenDoorBase)
     {

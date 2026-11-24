@@ -239,6 +239,10 @@ typedef enum linedef_flags_e
     ML_BLOCKLANDMONSTERS = (1u << 12),
     // mbf21
     ML_BLOCKPLAYERS = (1u << 13),
+    // MBF2y
+    ML_RESERVED2 = (1u << 14),
+    // MBF2y
+    ML_RESERVED3 = (1u << 15),
 
     // special is repeatable
     ML_REPEATSPECIAL = (1u << 16),
@@ -246,6 +250,11 @@ typedef enum linedef_flags_e
     ML_MONSTERSCANACTIVATE = (1u << 17),
     // Blocks everything
     ML_BLOCKEVERYTHING = (1u << 18),
+
+    // Line special can only be activated from the front side
+    ML_FIRSTSIDEONLY = (1u << 19),
+    // Activating mobj must be within upper/middle/lower texture height bounds
+    ML_CHECKSWITCHRANGE = (1u << 20),
 
     // Masks
     ML_VANILLA = ML_BLOCKING | ML_BLOCKMONSTERS | ML_TWOSIDED | ML_DONTPEGTOP
@@ -292,7 +301,20 @@ typedef enum sector_flags_e
     // UDMF
     SECF_ABS_LIGHT_FLOOR = (1u << 9),
     SECF_ABS_LIGHT_CEIL = (1u << 10),
+    SECF_DMG_TERRAIN_FX  = (1u << 11),
+    SECF_HAZARD          = (1u << 12),
+    SECF_HURT_MONSTERS   = (1u << 13),
+    SECF_HARM_IN_AIR     = (1u << 14),
+    SECF_NOATTACK        = (1u << 15),
+    SECF_HIDDEN          = (1u << 16),
+    // Internal only
+    SECF_WAS_SECRET      = (1u << 17),
+    SECF_END_GODMODE     = (1u << 18),
+    SECF_END_LEVEL       = (1u << 19),
 } sector_flags_t;
+
+#define SECF_DAMAGE_FLAGS  (SECF_DMG_TERRAIN_FX|SECF_HAZARD|SECF_END_GODMODE|SECF_END_LEVEL)
+#define SECF_TRANSFER_MASK (SECF_SECRET|SECF_FRICTION|SECF_PUSH|SECF_DAMAGE_FLAGS|SECF_WAS_SECRET)
 
 #define NO_INDEX_SHORT ((unsigned short)-1)
 #define FIX_NO_INDEX(x)      \

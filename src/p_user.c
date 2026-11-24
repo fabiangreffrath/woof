@@ -66,10 +66,11 @@ int offgroundtics; // how many frames the player has been in the air
 // Moves the given origin along a given angle.
 //
 
-void P_Thrust(player_t* player,angle_t angle,fixed_t move)
+void P_Thrust(mobj_t *mo, angle_t angle, fixed_t move)
 {
-  player->mo->momx += FixedMul(move,finecosine[angle >>= ANGLETOFINESHIFT]);
-  player->mo->momy += FixedMul(move,finesine[angle]);
+    angle >>= ANGLETOFINESHIFT;
+    mo->momx += FixedMul(move, finecosine[angle]);
+    mo->momy += FixedMul(move, finesine[angle]);
 }
 
 //
@@ -235,16 +236,19 @@ void P_MovePlayer (player_t* player)
 	  int bobfactor =
 	    friction < ORIG_FRICTION ? movefactor : ORIG_FRICTION_FACTOR;
 
+    if (map.param && !movefactor)
+      bobfactor = movefactor;
+
 	  if (cmd->forwardmove)
 	    {
 	      P_Bob(player,mo->angle,cmd->forwardmove*bobfactor);
-	      P_Thrust(player,mo->angle,cmd->forwardmove*movefactor);
+	      P_Thrust(mo, mo->angle, cmd->forwardmove * movefactor);
 	    }
 
 	  if (cmd->sidemove)
 	    {
 	      P_Bob(player,mo->angle-ANG90,cmd->sidemove*bobfactor);
-	      P_Thrust(player,mo->angle-ANG90,cmd->sidemove*movefactor);
+	      P_Thrust(mo, mo->angle - ANG90, cmd->sidemove * movefactor);
 	    }
 	}
       // Add (cmd-> forwardmove || cmd-> sidemove) check to prevent the players
@@ -434,7 +438,7 @@ void P_PlayerThink (player_t* player)
   // Determine if there's anything about the sector you're in that's
   // going to affect you, like painful floors.
 
-  if (player->mo->subsector->sector->special)
+  if (P_IsSpecialSector(player->mo->subsector->sector))
     P_PlayerInSpecialSector (player);
 
   // Sprite Height problem...                                         // phares

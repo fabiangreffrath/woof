@@ -188,7 +188,7 @@ void P_SpawnFireFlicker (sector_t*  sector)
 
   // Note that we are resetting sector attributes.
   // Nothing special about it during gameplay.
-  sector->special &= ~31; //jff 3/14/98 clear non-generalized sector type
+  P_ClearNonGeneralizedSectorSpecial(sector);
 
   flick = arena_alloc(thinkers_arena, fireflicker_t);
 
@@ -214,7 +214,7 @@ void P_SpawnLightFlash (sector_t* sector)
   lightflash_t* flash;
 
   // nothing special about it during gameplay
-  sector->special &= ~31; //jff 3/14/98 clear non-generalized sector type
+  P_ClearNonGeneralizedSectorSpecial(sector);
 
   flash = arena_alloc(thinkers_arena, lightflash_t);
 
@@ -262,7 +262,7 @@ void P_SpawnStrobeFlash
     flash->minlight = 0;
 
   // nothing special about it during gameplay
-  sector->special &= ~31; //jff 3/14/98 clear non-generalized sector type
+  P_ClearNonGeneralizedSectorSpecial(sector);
 
   if (!inSync)
     flash->count = (P_Random(pr_lights)&7)+1;
@@ -292,7 +292,7 @@ void P_SpawnGlowingLight(sector_t*  sector)
   g->thinker.function.p1 = T_GlowAdapter;
   g->direction = -1;
 
-  sector->special &= ~31; //jff 3/14/98 clear non-generalized sector type
+  P_ClearNonGeneralizedSectorSpecial(sector);
 }
 
 //////////////////////////////////////////////////////////

@@ -22,6 +22,7 @@
 #include "d_items.h"
 #include "d_player.h"
 #include "deh_misc.h"
+#include "doomdef.h"
 #include "doomstat.h"
 #include "g_nextweapon.h"
 #include "i_printf.h"
@@ -669,8 +670,8 @@ static void A_FireSomething(player_t* player,int adder)
   // killough 3/27/98: prevent recoil in no-clipping mode
   if (!(player->mo->flags & MF_NOCLIP))
     if (weapon_recoil && (demo_version >= DV_MBF || !compatibility))
-      P_Thrust(player, ANG180 + player->mo->angle,
-               2048*recoil_values[player->readyweapon].thrust);          // phares
+      P_Thrust(player->mo, ANG180 + player->mo->angle,
+               ORIG_FRICTION_FACTOR * recoil_values[player->readyweapon].thrust);          // phares
 }
 
 //
@@ -844,7 +845,7 @@ void A_FireOldBFG(mobj_t *mo, player_t *player, pspdef_t *psp)
   int type = MT_PLASMA1;
 
   if (weapon_recoil && !(player->mo->flags & MF_NOCLIP))
-    P_Thrust(player, ANG180 + player->mo->angle,
+    P_Thrust(player->mo, ANG180 + player->mo->angle,
 	     512*recoil_values[wp_plasma].thrust);
 
   if (weapon_recoilpitch && (leveltime & 2))

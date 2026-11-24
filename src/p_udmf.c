@@ -195,7 +195,7 @@ static inline void SkipScan(scanner_t *s)
 }
 
 // UDMF namespace
-static void ParseNamespace(scanner_t *s)
+static void ParseNamespace(scanner_t *s, map_t *map)
 {
     SC_MustGetToken(s, '=');
     SC_MustGetToken(s, TK_StringConst);
@@ -204,10 +204,12 @@ static void ParseNamespace(scanner_t *s)
 
     if (!strcasecmp(name, "doom"))
     {
+        map->param = false;
         udmf_flags |= UDMF_LINE_PASSUSE | UDMF_THING_FRIEND;
     }
     else if (!strcasecmp(name, "woof"))
     {
+        map->param = false;
         // clang-format off
         udmf_flags |= UDMF_LINE_PASSUSE | UDMF_LINE_BLOCK | UDMF_LINE_ALPHA | UDMF_LINE_TRANMAP;
         udmf_flags |= UDMF_THING_FRIEND | UDMF_THING_PARAM | UDMF_THING_HEALTH | UDMF_THING_ALPHA | UDMF_THING_TRANMAP | UDMF_THING_TINT;
@@ -845,7 +847,7 @@ void P_ParseTextMap(map_t *map)
 
         if (!strcasecmp(toplevel, "namespace"))
         {
-            ParseNamespace(s);
+            ParseNamespace(s, map);
         }
         else if (!strcasecmp(toplevel, "vertex"))
         {

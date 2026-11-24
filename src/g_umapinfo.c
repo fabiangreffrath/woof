@@ -1129,7 +1129,7 @@ boolean MI_BossAction(mobj_t *mo)
                 // types.
                 if (!P_UseSpecialLine(mo, &junk, 0, true))
                 {
-                    P_CrossSpecialLine(&junk, 0, mo, true);
+                    P_CrossSpecialLine(mo, &junk, 0, true);
                 }
             }
         }
@@ -1318,7 +1318,7 @@ void MI_SpecHits(int *speciallines)
                         // problem types.
                         if (!P_UseSpecialLine(mo, &dummy, 0, true))
                         {
-                            P_CrossSpecialLine(&dummy, 0, mo, true);
+                            P_CrossSpecialLine(mo, &dummy, 0, true);
                         }
 
                         (*speciallines)++;
@@ -1601,6 +1601,14 @@ MI_Completion_t MI_PrepareIntermission(wbstartstruct_t *wminfo)
     }
 
     wminfo->partime = LegacyParTimes();
+
+    if (map.param)
+    {
+        if (Leave.map > 0)
+        {
+            wminfo->next = Leave.map - 1;
+        }
+    }
 
     return 0;
 }

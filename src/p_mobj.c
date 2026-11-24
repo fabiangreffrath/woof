@@ -41,6 +41,7 @@
 #include "p_setup.h"
 #include "p_spec.h"
 #include "p_tick.h"
+#include "p_user.h"
 #include "r_defs.h"
 #include "r_main.h"
 #include "r_state.h"
@@ -200,6 +201,47 @@ void P_ExplodeMissile (mobj_t* mo)
 //
 // killough 11/98: minor restructuring
 
+
+void (*P_ApplySectorMovement)(mobj_t* mo, int special) = P_ApplySectorMovement_Classic;
+void P_ApplySectorMovement_Classic(mobj_t* mo, int special)
+{
+    // Do nothing
+}
+
+void P_ApplySectorMovement_Param(mobj_t *mo, int special)
+{
+    const fixed_t wind_tab[] = {ORIG_FRICTION_FACTOR * 5,
+                                ORIG_FRICTION_FACTOR * 10,
+                                ORIG_FRICTION_FACTOR * 25};
+
+    if (mo->flags2 & MF2_WINDTHRUST)
+    {
+        switch (special)
+        {
+            case Wind_East_Weak:
+            case Wind_East_Medium:
+            case Wind_East_Strong:
+                P_Thrust(mo, ANGLE_EAST, wind_tab[special - Wind_East_Weak]);
+                break;
+            case Wind_North_Weak:
+            case Wind_North_Medium:
+            case Wind_North_Strong:
+                P_Thrust(mo, ANGLE_NORTH, wind_tab[special - Wind_North_Weak]);
+                break;
+            case Wind_South_Weak:
+            case Wind_South_Medium:
+            case Wind_South_Strong:
+                P_Thrust(mo, ANGLE_SOUTH, wind_tab[special - Wind_South_Weak]);
+                break;
+            case Wind_West_Weak:
+            case Wind_West_Medium:
+            case Wind_West_Strong:
+                P_Thrust(mo, ANGLE_WEST, wind_tab[special - Wind_West_Weak]);
+                break;
+        }
+    }
+}
+
 void P_XYMovement (mobj_t* mo)
 {
   player_t *player;
@@ -220,6 +262,9 @@ void P_XYMovement (mobj_t* mo)
 	}
       return;
     }
+
+  int16_t special = mo->subsector->sector->special;
+  P_ApplySectorMovement(mo, special);
 
   player = mo->player;
 
@@ -369,6 +414,7 @@ void P_XYMovement (mobj_t* mo)
 
   if (mo->momx > -STOPSPEED && mo->momx < STOPSPEED &&
       mo->momy > -STOPSPEED && mo->momy < STOPSPEED &&
+      !(map.param && mo->intflags & MIF_SCROLLING) &&
       (!player || !(player->cmd.forwardmove | player->cmd.sidemove) ||
        (player->mo != mo && demo_version >= DV_MBF &&
         (comp[comp_voodooscroller] || !(mo->intflags & MIF_SCROLLING)))))
@@ -447,8 +493,15 @@ void P_XYMovement (mobj_t* mo)
 //
 // Attempt vertical movement.
 
-static void P_ZMovement (mobj_t* mo)
+fixed_t P_MobjGravity(const mobj_t *const mo)
 {
+    return FixedMul(mo->subsector->sector->gravity, FRACUNIT /* mo->gravity */);
+}
+
+static void P_ZMovement (mobj_t* const mo)
+{
+  fixed_t gravity = P_MobjGravity(mo);
+
   // killough 7/11/98:
   // BFG fireballs bounced on floors and ceilings in Pre-Beta Doom
   // killough 8/9/98: added support for non-missile objects bouncing
@@ -472,7 +525,7 @@ static void P_ZMovement (mobj_t* mo)
 		    FixedMul(mo->momz, (fixed_t)(FRACUNIT*.45)) ;
 
 		  // Bring it to rest below a certain speed
-		  if (abs(mo->momz) <= mo->info->mass*(GRAVITY*4/256))
+		  if (abs(mo->momz) <= mo->info->mass * (gravity * 4 / 256))
 		    mo->momz = 0;
 		}
 
@@ -510,7 +563,7 @@ static void P_ZMovement (mobj_t* mo)
 	else
 	  {
 	    if (!(mo->flags & MF_NOGRAVITY))      // free-fall under gravity
-	      mo->momz -= mo->info->mass*(GRAVITY/256);
+	      mo->momz -= mo->info->mass * (gravity / 256);
 	    if (mo->flags & MF_FLOAT && sentient(mo))
 	      goto floater;
 	    return;
@@ -588,7 +641,7 @@ floater:
 		mo->player->mo == mo)
 	    {
 		int oof = 0;
-		if (mo->momz < -GRAVITY*8)
+		if (mo->momz < -gravity * 8)
 	      {
 		// Squat down.
 		// Decrease viewheight for a moment
@@ -621,16 +674,16 @@ floater:
   else if (mo->flags2 & MF2_LOGRAV)
     {
       if (mo->momz == 0)
-        mo->momz = -(GRAVITY >> 3) * 2;
+        mo->momz = -(gravity >> 3) * 2;
       else
-        mo->momz -= GRAVITY >> 3;
+        mo->momz -= gravity >> 3;
     }
   else // still above the floor
     if (!(mo->flags & MF_NOGRAVITY))
       {
 	if (!mo->momz)
-	  mo->momz = -GRAVITY;
-        mo->momz -= GRAVITY;
+	  mo->momz = -gravity;
+        mo->momz -= gravity;
       }
 
   if (mo->z + mo->height > mo->ceilingz)
@@ -826,24 +879,9 @@ void P_MobjThinker (mobj_t* mobj)
 	  mobj->intflags &= ~MIF_FALLING, mobj->gear = 0;  // Reset torque
       }
 
-  if (mbf21)
+  if (P_MObjInSector(mobj))
   {
-    sector_t* sector = mobj->subsector->sector;
-
-    if (
-      sector->special & KILL_MONSTERS_MASK &&
-      mobj->z == mobj->floorz &&
-      mobj->player == NULL &&
-      mobj->flags & MF_SHOOTABLE &&
-      !(mobj->flags & MF_FLOAT)
-    )
-    {
-      P_DamageMobj(mobj, NULL, NULL, 10000);
-
-      // must have been removed
-      if (mobj->thinker.function.p1 != P_MobjThinker)
-        return;
-    }
+    return;
   }
 
   // cycle through states,
@@ -1145,6 +1183,78 @@ void P_RespawnSpecials (void)
 //  between levels.
 //
 
+static boolean ShouldSpawnPlayer(const mapthing_t *mthing)
+{
+    return !deathmatch
+           && (map.param ? mthing->args[0] == Leave.position
+                         : !mthing->args[0]);
+}
+
+// save spots for respawning in network games
+static void TrySpawnPlayer(const mapthing_t *mthing, int player)
+{
+    mapthing_t *player_start = &playerstarts[mthing->args[0]][player];
+
+    *player_start = *mthing;
+    player_start->type = player + 1;
+
+    if (ShouldSpawnPlayer(mthing))
+    {
+        P_SpawnPlayer(player_start);
+    }
+}
+
+static int32_t ThingTypeToPlayerNum(int32_t type)
+{
+    if (type > 0 && type <= 4)
+    {
+        return type - 1;
+    }
+
+    if (map.param && type >= 9100 && type <= 9103)
+    {
+        return 4 + type - 9100;
+    }
+
+    return -1;
+}
+
+static boolean ShouldMapThingSpawn(int32_t options)
+{
+    // check for apropriate skill level
+
+    // jff "not single" thing flag
+    if (!(skill_info.flags & SI_SPAWN_MULTI) && !netgame && options & MTF_NOTSINGLE)
+    {
+        return false;
+    }
+
+    // jff 3/30/98 implement "not deathmatch" thing flag
+    if (netgame && deathmatch && options & MTF_NOTDM)
+    {
+        return false;
+    }
+
+    // jff 3/30/98 implement "not cooperative" thing flag
+    if ((skill_info.flags & SI_SPAWN_MULTI || netgame) && !deathmatch && options & MTF_NOTCOOP)
+    {
+        return false;
+    }
+
+    // killough 11/98: simplify
+    if ((gameskill == sk_none && demo_compatibility)
+        || (!(options & MTF_SKILL1) && skill_info.spawn_filter == 1)
+        || (!(options & MTF_SKILL2) && skill_info.spawn_filter == 2)
+        || (!(options & MTF_SKILL3) && skill_info.spawn_filter == 3)
+        || (!(options & MTF_SKILL4) && skill_info.spawn_filter == 4)
+        || (!(options & MTF_SKILL5) && skill_info.spawn_filter == 5))
+    {
+        return false;
+    }
+
+    return true;
+}
+
 void P_SpawnPlayer (mapthing_t* mthing)
 {
   player_t* p;
@@ -1167,12 +1277,19 @@ void P_SpawnPlayer (mapthing_t* mthing)
   z    = ONFLOORZ;
   mobj = P_SpawnMobj (x,y,z, MT_PLAYER);
 
+  if (map.param)
+  {
+    P_AdjustZLimits(mobj);
+  }
+
   // set color translations for player sprites
 
   if (mthing->type > 1)
     mobj->flags |= (mthing->type-1)<<MF_TRANSSHIFT;
 
-  mobj->angle      = (angle_t)ANG45 * (mthing->angle/45);
+  mobj->angle = (Leave.flags & LF_SET_ANGLE)
+              ? Leave.angle
+              : ANG45 * (mthing->angle / 45);
   mobj->player     = p;
   mobj->health     = p->health;
 
@@ -1259,54 +1376,30 @@ void P_SpawnMapThing (mapthing_t* mthing)
       return;
     }
 
-  // check for players specially
-
-  if (mthing->type <= 4 && mthing->type > 0) // killough 2/26/98 -- fix crashes
+    // check for players specially
+    int32_t playernum = ThingTypeToPlayerNum(mthing->type);
+    if (playernum >= 0) // killough 2/26/98 -- fix crashes
     {
-      // killough 7/19/98: Marine's best friend :)
-      if (!netgame && mthing->type > 1 && mthing->type <= dogs+1 &&
-	  !players[mthing->type-1].secretcount)
-	{  // use secretcount to avoid multiple dogs in case of multiple starts
-	  players[mthing->type-1].secretcount = 1;
+        // killough 7/19/98: Marine's best friend :)
+        if (!netgame
+            && playernum
+            && playernum <= dogs
+            && !players[playernum].secretcount)
+        {
+            // use secretcount to avoid multiple dogs in case of multiple starts
+            players[playernum].secretcount = 1;
 
-	  // killough 10/98: force it to be a friend
-	  mthing->options |= MTF_FRIEND;
-	  i = helper_type >= 0 ? helper_type : MT_DOGS;
-	  goto spawnit;
-	}
+            // killough 10/98: force it to be a friend
+            mthing->options |= MTF_FRIEND;
+            i = helper_type >= 0 ? helper_type : MT_DOGS;
+            goto spawnit;
+        }
 
-      // save spots for respawning in network games
-      playerstarts[mthing->type-1] = *mthing;
-      if (!deathmatch)
-	P_SpawnPlayer (mthing);
-
-      return;
+        TrySpawnPlayer(mthing, playernum);
+        return;
     }
 
-  // check for apropriate skill level
-
-  if (!(skill_info.flags & SI_SPAWN_MULTI) && !netgame
-      && mthing->options & MTF_NOTSINGLE) //jff "not single" thing flag
-    return;
-
-  //jff 3/30/98 implement "not deathmatch" thing flag
-
-  if (netgame && deathmatch && mthing->options & MTF_NOTDM)
-    return;
-
-  //jff 3/30/98 implement "not cooperative" thing flag
-
-  if ((skill_info.flags & SI_SPAWN_MULTI || netgame) && !deathmatch && mthing->options & MTF_NOTCOOP)
-    return;
-
-  // killough 11/98: simplify
-  if ((gameskill == sk_none && demo_compatibility)
-      || (!(mthing->options & MTF_SKILL1) && skill_info.spawn_filter == 1)
-      || (!(mthing->options & MTF_SKILL2) && skill_info.spawn_filter == 2)
-      || (!(mthing->options & MTF_SKILL3) && skill_info.spawn_filter == 3)
-      || (!(mthing->options & MTF_SKILL4) && skill_info.spawn_filter == 4)
-      || (!(mthing->options & MTF_SKILL5) && skill_info.spawn_filter == 5)
-    )
+  if (ShouldMapThingSpawn(mthing->options))
   {
     return;
   }
@@ -1408,6 +1501,11 @@ spawnit:
     mobj->z -= mthing->height;
   }
 
+  if (map.param)
+  {
+    P_AdjustZLimits(mobj);
+  }
+
   // haleyjd 10/03/05: Hexen-style TID
   P_AddThingTID(mobj, mthing->tid);
 
@@ -1423,6 +1521,22 @@ spawnit:
   // Translucency
   mobj->tranmap = mthing->tranmap;
 
+  if (mthing->options & MTF_TRANSLUCENT)
+    mobj->flags |= MF_TRANSLUCENT;
+
+  if (mthing->options & MTF_INVISIBLE)
+  {
+    P_UnsetThingPosition(mobj);
+    mobj->flags |= MF_NOSECTOR;
+    P_SetThingPosition(mobj);
+  }
+
+  if (mthing->options & MTF_COUNTSECRET)
+  {
+    totalsecret++;
+    mobj->flags2 |= MF2_COUNTSECRET;
+  }
+
   // killough 7/20/98: exclude friends
   if (!((mobj->flags ^ MF_COUNTKILL) & (MF_FRIEND | MF_COUNTKILL)))
     totalkills++;
@@ -1430,9 +1544,33 @@ spawnit:
   if (mobj->flags & MF_COUNTITEM)
     totalitems++;
 
-  mobj->angle = (angle_t)ANG45 * (mthing->angle/45);
+  if (map.param)
+  {
+    if (mobj->flags & MF_COUNTKILL)
+    {
+      // Quantize angle to 45 degree increments
+      mobj->angle = (angle_t)ANG45 * (mthing->angle / 45);
+    }
+    else
+    {
+      // Scale angle correctly (source is 0..359)
+      int shifted = shiftleft32(mthing->angle, 8);
+      mobj->angle = shiftleft32((shifted / 360), 24);
+    }
+  }
+  else
+  {
+    mobj->angle = (angle_t)ANG45 * (mthing->angle/45);
+  }
+
   if (mthing->options & MTF_AMBUSH)
     mobj->flags |= MF_AMBUSH;
+
+  if (map.param && mthing->options & MTF_DORMANT)
+  {
+      mobj->flags2 |= MF2_DORMANT;
+      mobj->tics = -1;
+  }
 
   if (i == zmt_ambientsound)
   {

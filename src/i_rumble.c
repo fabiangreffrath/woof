@@ -27,6 +27,7 @@
 #include "i_sound.h"
 #include "m_config.h"
 #include "p_mobj.h"
+#include "r_defs.h"
 #include "sounds.h"
 
 #define MAX_RUMBLE_COUNT 4
@@ -686,11 +687,12 @@ void I_UpdateRumbleParams(const mobj_t *listener, const mobj_t *origin,
 
 static float ScaleHitFloor(const mobj_t *listener)
 {
-    if (!listener || listener->momz >= -8 * GRAVITY)
+    fixed_t gravity = P_MobjGravity(listener);
+    if (!listener || listener->momz >= -8 * gravity)
     {
         return 0.25f;
     }
-    else if (listener->momz <= -40 * GRAVITY)
+    else if (listener->momz <= -40 * gravity)
     {
         return 1.0f;
     }

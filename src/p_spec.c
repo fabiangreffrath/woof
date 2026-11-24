@@ -50,6 +50,7 @@
 #include "p_setup.h"
 #include "p_spec.h"
 #include "p_tick.h"
+#include "p_user.h"
 #include "r_data.h"
 #include "r_defs.h"
 #include "r_draw.h" // R_SetFuzzPosTic
@@ -113,10 +114,33 @@ typedef PACKED_PREFIX struct
 static anim_t *lastanim, *anims;      // new structure w/o limits -- killough
 static size_t maxanims;
 
-// killough 3/7/98: Initialize generalized scrolling
-static void P_SpawnScrollers(void);
-static void P_SpawnFriction(void);    // phares 3/16/98
-static void P_SpawnPushers(void);     // phares 3/20/98
+// Amount (dx,dy) vector linedef is shifted right to get scroll amount
+#define SCROLL_SHIFT 5
+
+// Factor to scale scrolling effect into mobj-carrying properties = 3/32.
+// (This is so scrolling floors and objects on them can move at same speed.)
+#define CARRYFACTOR ((fixed_t)(FRACUNIT*.09375))
+
+// Eternity scrollers are weird...
+#define EE_SCROLLFACTOR 10
+
+static void Add_Pusher(int type, int x_mag, int y_mag, mobj_t *source, int affectee);
+static void Add_Friction(int friction, int movefactor, int affectee);
+static void Add_WallScroller(int64_t dx, int64_t dy, const line_t *l, int control, int accel);
+
+static void SpawnSectorSpecials_Classic(void);
+static void SpawnScrollers_Classic(void);
+static void SpawnFriction_Classic(void);
+static void SpawnPushers_Classic(void);
+static void SpawnExtras_Classic(void);
+
+static void SpawnSectorSpecials_Param(void);
+static void SpawnScrollers_Param(void);
+static void SpawnFriction_Param(void);
+static void SpawnPushers_Param(void);
+static void SpawnExtras_Param(void);
+
+static void SecretRevealed(player_t *player);
 
 //
 // P_InitPicAnims
@@ -1040,40 +1064,78 @@ int P_CheckTag(line_t *line)
   return 0;
 }
 
+void P_ClearNonGeneralizedSectorSpecial(sector_t *sector)
+{
+    // jff 3/14/98 clear non-generalized sector type
+    // Notes:
+    // * Boom uses sector specials up to 31, from Doom
+    // * ZDoom uses sector specials up to 255, from Hexen and further extended
+    // All higher bits are gen specials on either case
+    sector->special &= (map.param ? ~255 : ~31);
+}
+
+boolean P_IsSpecialSector(sector_t *sector)
+{
+    return sector->special || sector->flags & SECF_SECRET || sector->dmg_amount;
+}
+
+static void AddSectorSecret(sector_t *sector)
+{
+    totalsecret++;
+    sector->flags |= SECF_SECRET /* | SECF_WAS_SECRET */;
+}
+
+void P_PlayerCollectSecret(player_t *player)
+{
+    player->secretcount++;
+    SecretRevealed(player);
+}
+
+static void CollectSectorSecret(sector_t *sector, player_t *player)
+{
+    sector->flags &= ~SECF_SECRET;
+    P_PlayerCollectSecret(player);
+}
+
 boolean P_IsDeathExit(sector_t *sector)
 {
-  if (sector->special < 32)
-  {
-    return (sector->special == 11);
-  }
-  else if (mbf21 && sector->special & DEATH_MASK)
-  {
-    const int i = (sector->special & DAMAGE_MASK) >> DAMAGE_SHIFT;
+    if (!map.param)
+    {
+        if (sector->special < 32)
+        {
+            return (sector->special == 11);
+        }
+        else if (mbf21 && sector->special & DEATH_MASK)
+        {
+            const int i = (sector->special & DAMAGE_MASK) >> DAMAGE_SHIFT;
 
-    return (i == 2 || i == 3);
-  }
+            return (i == 2 || i == 3);
+        }
+    }
 
-  return false;
+    return false;
 }
 
 boolean P_IsExitLine(line_t *line)
 {
-  int special = line->special;
+    int16_t special = line->special;
 
-  return special == 11 || special == 51 ||
-         special == 52 || special == 124 ||
-         special == 197 || special == 198 ||
-         special == 2069 || special == 2070 ||
-         special == 2071 || special == 2072 ||
-         special == 2073 || special == 2074;
+    return (!map.param)
+               ? (special == 11 || special == 51 || special == 52
+                  || special == 124 || special == 197 || special == 198
+                  || special == 2069 || special == 2070 || special == 2071
+                  || special == 2072 || special == 2073 || special == 2074)
+               : (special == Teleport_NewMap || special == Teleport_EndGame
+                  || special == Exit_Normal || special == Exit_Secret);
 }
 
 boolean P_IsTeleportLine(line_t *line)
 {
-  int special = line->special;
+    int16_t special = line->special;
 
-  return special == 39 || special == 97 ||
-         special == 125 || special == 126;
+    return (!map.param) ? (special == 39 || special == 97 || special == 125
+                           || special == 126)
+                        : (special == 70 | special == 71);
 }
 
 //
@@ -1086,9 +1148,9 @@ boolean P_IsTeleportLine(line_t *line)
 //  in automap and other places
 //
 
-boolean P_IsSecret(sector_t *sec)
+boolean P_IsSecret(const sector_t *const sec)
 {
-  return sec->special == 9 || sec->special & SECRET_MASK;
+    return (sec->flags & SECF_SECRET) != 0;
 }
 
 //
@@ -1101,9 +1163,9 @@ boolean P_IsSecret(sector_t *sec)
 //  in automap and other places
 //
 
-boolean P_WasSecret(sector_t *sec)
+boolean P_WasSecret(const sector_t *const sec)
 {
-  return sec->oldspecial == 9 || sec->oldspecial & SECRET_MASK;
+    return (sec->flags & SECF_WAS_SECRET) != 0;
 }
 
 //
@@ -1203,7 +1265,34 @@ void EV_ChangeMusic(line_t *line, int side)
 //
 // killough 11/98: change linenum parameter to a line_t pointer
 
-void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossaction)
+void (*P_CrossSpecialLine)(mobj_t *thing, line_t *line, int side, boolean bossaction) = P_CrossSpecialLine_Classic;
+
+void P_CrossSpecialLine_Param(mobj_t *thing, line_t *line, int side, boolean bossaction)
+{
+    if (thing->player)
+    {
+        P_ActivateLine(line, thing, side, SPAC_Cross);
+    }
+    else if (thing->flags2 & MF2_MCROSS)
+    {
+        P_ActivateLine(line, thing, side, SPAC_MCross);
+    }
+    else if (thing->flags2 & MF2_PCROSS)
+    {
+        P_ActivateLine(line, thing, side, SPAC_PCross);
+    }
+    else if (line->special == Teleport || line->special == Teleport_NoFog || line->special == Teleport_Line)
+    {
+        // [RH] Just a little hack for BOOM compatibility
+        P_ActivateLine(line, thing, side, SPAC_MCross);
+    }
+    else
+    {
+        P_ActivateLine(line, thing, side, SPAC_AnyCross);
+    }
+}
+
+void P_CrossSpecialLine_Classic(mobj_t *thing, line_t *line, int side, boolean bossaction)
 {
   int ok;
 
@@ -1522,7 +1611,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
 
       // killough 10/98: prevent zombies from exiting levels
       if (bossaction || (!(thing->player && thing->player->health <= 0 && !comp[comp_zombie])))
-        G_ExitLevel ();
+        G_ExitLevel(0);
       break;
 
     case 53:
@@ -1615,7 +1704,7 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
 
       // killough 10/98: prevent zombies from exiting levels
       if (bossaction || (!(thing->player && thing->player->health <= 0 && !comp[comp_zombie])))
-        G_SecretExitLevel ();
+        G_SecretExitLevel(0);
       break;
 
     case 125:
@@ -2144,7 +2233,14 @@ void P_CrossSpecialLine(line_t *line, int side, mobj_t *thing, boolean bossactio
 // of the line, should the sector already be in motion when the line is
 // impacted. Change is qualified by demo_compatibility.
 //
-void P_ShootSpecialLine(mobj_t *thing, line_t *line, int side)
+void (*P_ShootSpecialLine)(mobj_t *thing, line_t *line, int side) = P_ShootSpecialLine_Classic;
+
+void P_ShootSpecialLine_Param(mobj_t *thing, line_t *line, int side)
+{
+  P_ActivateLine(line, thing, 0, SPAC_Impact);
+}
+
+void P_ShootSpecialLine_Classic(mobj_t *thing, line_t *line, int side)
 {
   //jff 02/04/98 add check here for generalized linedef
   if (!demo_compatibility)
@@ -2337,7 +2433,7 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line, int side)
             if(thing->player && thing->player->health<=0 && !comp[comp_zombie])
               break;
             P_ChangeSwitchTexture(line,0);
-            G_ExitLevel();
+            G_ExitLevel(0);
             break;
 
           // G1 - Exit to the secret map and reset inventory.
@@ -2354,7 +2450,7 @@ void P_ShootSpecialLine(mobj_t *thing, line_t *line, int side)
             if(thing->player && thing->player->health<=0 && !comp[comp_zombie])
               break;
             P_ChangeSwitchTexture(line,0);
-            G_SecretExitLevel();
+            G_SecretExitLevel(0);
             break;
             //jff end addition of new gun linedefs
           }
@@ -2373,7 +2469,7 @@ int disable_nuke;  // killough 12/98: nukage disabling cheat
 // Changed to ignore sector types the engine does not recognize
 //
 
-static void P_SecretRevealed(player_t *player)
+static void SecretRevealed(player_t *player)
 {
   if (player == &players[consoleplayer])
   {
@@ -2384,159 +2480,317 @@ static void P_SecretRevealed(player_t *player)
   }
 }
 
-void P_PlayerInSpecialSector (player_t *player)
+static void ApplySectorDamage(player_t *player, int damage, int leak, method_t mod)
 {
-  sector_t *sector = player->mo->subsector->sector;
-
-  // Falling, not all the way down yet?
-  // Sector specials don't apply in mid-air
-  if (player->mo->z != sector->floorheight)
-    return;
-
-  // Has hit ground.
-  //jff add if to handle old vs generalized types
-  if (sector->special<32) // regular sector specials
+    if (!player->powers[pw_ironfeet] || (leak && P_Random(pr_slimehurt) < leak))
     {
-      if (sector->special==9)     // killough 12/98
-	{
-          // Tally player in secret sector, clear secret special
-          player->secretcount++;
-          sector->special = 0;
-
-          P_SecretRevealed(player);
-	}
-      else
-	if (!disable_nuke)  // killough 12/98: nukage disabling cheat
-	{
-	  method_t mod = MOD_None;
-
-	  switch (flatterrain[sector->floorpic])
-	  {
-	      case terrain_lava:
-	          mod = MOD_Lava;
-	          break;
-	      case terrain_slime:
-	          mod = MOD_Slime;
-	          break;
-	      default:
-	          break;
-	  }
-
-	  switch (sector->special)
-	    {
-	    case 5:
-	      // 5/10 unit damage per 31 ticks
-	      if (!player->powers[pw_ironfeet])
-		if (!(leveltime&0x1f))
-		  P_DamageMobjBy (player->mo, NULL, NULL, 10, mod);
-	      break;
-
-	    case 7:
-	      // 2/5 unit damage per 31 ticks
-	      if (!player->powers[pw_ironfeet])
-		if (!(leveltime&0x1f))
-		  P_DamageMobjBy (player->mo, NULL, NULL, 5, mod);
-	      break;
-
-	    case 16:
-	      // 10/20 unit damage per 31 ticks
-	    case 4:
-	      // 10/20 unit damage plus blinking light (light already spawned)
-	      if (!player->powers[pw_ironfeet]
-		  || (P_Random(pr_slimehurt)<5) ) // even with suit, take damage
-		{
-		  if (!(leveltime&0x1f))
-		    P_DamageMobjBy (player->mo, NULL, NULL, 20, mod);
-		}
-	      break;
-
-	    case 11:
-	      // Exit on health < 11, take 10/20 damage per 31 ticks
-	      if (comp[comp_god])   // killough 2/21/98: add compatibility switch
-		player->cheats &= ~CF_GODMODE; // on godmode cheat clearing
-	      // does not affect invulnerability
-	      if (!(leveltime&0x1f))
-		P_DamageMobjBy (player->mo, NULL, NULL, 20, mod);
-
-	      if (player->health <= 10)
-		G_ExitLevel();
-	      break;
-
-	    default:
-	      //jff 1/24/98 Don't exit as DOOM2 did, just ignore
-	      break;
-	    }
-	}
-    }
-  else //jff 3/14/98 handle extended sector types for secrets and damage
-    {
-      if (mbf21 && sector->special & DEATH_MASK)
-      {
-        int i;
-
-        switch ((sector->special & DAMAGE_MASK) >> DAMAGE_SHIFT)
+        if (!(leveltime & 0x1f))
         {
-          case 0:
-            if (!player->powers[pw_invulnerability] && !player->powers[pw_ironfeet])
-              P_DamageMobj(player->mo, NULL, NULL, 10000);
+            P_DamageMobjBy(player->mo, NULL, NULL, damage, mod);
+        }
+    }
+}
+
+static void ApplySectorDamageEndLevel(player_t *player, method_t mod)
+{
+    if (comp[comp_god])
+    {
+        player->cheats &= ~CF_GODMODE;
+    }
+
+    if (!(leveltime & 0x1f))
+    {
+        P_DamageMobjBy(player->mo, NULL, NULL, 20, mod);
+    }
+
+    if (player->health <= 10)
+    {
+        G_ExitLevel(0);
+    }
+}
+
+static void ApplySectorBySpecial(player_t *player, sector_t *sector,
+                                 method_t mod)
+{
+    switch (sector->special)
+    {
+        case 5:
+            ApplySectorDamage(player, 10, 0, mod);
             break;
-          case 1:
+        case 7:
+            ApplySectorDamage(player, 5, 0, mod);
+            break;
+        case 16:
+        case 4:
+            ApplySectorDamage(player, 20, 5, mod);
+            break;
+        case 9:
+            sector->special = 0;
+            CollectSectorSecret(sector, player);
+            break;
+        case 11:
+            ApplySectorDamageEndLevel(player, mod);
+            break;
+        default:
+            // jff 1/24/98 Don't exit as DOOM2 did, just ignore
+            break;
+    }
+}
+
+static void ApplyGeneralizedSectorDamage_Boom(player_t *player, int bits, method_t mod)
+{
+    switch (bits & 3)
+    {
+        case 0:
+            break;
+        case 1:
+            ApplySectorDamage(player, 5, 0, mod);
+            break;
+        case 2:
+            ApplySectorDamage(player, 10, 0, mod);
+            break;
+        case 3:
+            ApplySectorDamage(player, 20, 5, mod);
+            break;
+    }
+}
+
+static void ApplyGeneralizedSectorDamage_MBF21(player_t *player, int bits, method_t mod)
+{
+    switch (bits & 3)
+    {
+        case 0:
+            if (!player->powers[pw_invulnerability]
+                && !player->powers[pw_ironfeet])
+            {
+                P_DamageMobj(player->mo, NULL, NULL, 10000);
+            }
+            break;
+        case 1:
             P_DamageMobj(player->mo, NULL, NULL, 10000);
             break;
-          case 2:
-            for (i = 0; i < MAXPLAYERS; i++)
-              if (playeringame[i])
-                P_DamageMobj(players[i].mo, NULL, NULL, 10000);
-            G_ExitLevel();
+        case 2:
+            for (int i = 0; i < MAXPLAYERS; i++)
+            {
+                if (playeringame[i])
+                {
+                    P_DamageMobj(players[i].mo, NULL, NULL, 10000);
+                }
+            }
+            G_ExitLevel(0);
             break;
-          case 3:
-            for (i = 0; i < MAXPLAYERS; i++)
-              if (playeringame[i])
-                P_DamageMobj(players[i].mo, NULL, NULL, 10000);
-            G_SecretExitLevel();
+        case 3:
+            for (int i = 0; i < MAXPLAYERS; i++)
+            {
+                if (playeringame[i])
+                {
+                    P_DamageMobj(players[i].mo, NULL, NULL, 10000);
+                }
+            }
+            G_SecretExitLevel(0);
             break;
-        }
-      }
-      else if (!disable_nuke)  // killough 12/98: nukage disabling cheat
-	switch ((sector->special&DAMAGE_MASK)>>DAMAGE_SHIFT)
-	  {
-	  case 0: // no damage
-	    break;
-	  case 1: // 2/5 damage per 31 ticks
-	    if (!player->powers[pw_ironfeet])
-	      if (!(leveltime&0x1f))
-		P_DamageMobj (player->mo, NULL, NULL, 5);
-	    break;
-	  case 2: // 5/10 damage per 31 ticks
-	    if (!player->powers[pw_ironfeet])
-	      if (!(leveltime&0x1f))
-		P_DamageMobj (player->mo, NULL, NULL, 10);
-	    break;
-	  case 3: // 10/20 damage per 31 ticks
-	    if (!player->powers[pw_ironfeet]
-		|| (P_Random(pr_slimehurt)<5))  // take damage even with suit
-	      {
-		if (!(leveltime&0x1f))
-		  P_DamageMobj (player->mo, NULL, NULL, 20);
-	      }
-	    break;
-	  }
-
-      if (sector->special&SECRET_MASK)
-        {
-          player->secretcount++;
-          sector->special &= ~SECRET_MASK;
-          if (sector->special<32) // if all extended bits clear,
-            sector->special=0;    // sector is not special anymore
-          P_SecretRevealed(player);
-        }
-
-      // phares 3/19/98:
-      //
-      // If FRICTION_MASK or PUSH_MASK is set, we don't care at this
-      // point, since the code to deal with those situations is
-      // handled by Thinkers.
     }
+}
+
+void P_PlayerInSpecialSector(player_t *player)
+{
+    sector_t *sector = player->mo->subsector->sector;
+
+    // Falling, not all the way down yet?
+    // Sector specials don't apply in mid-air
+    if (player->mo->z != sector->floorheight)
+    {
+        return;
+    }
+
+    P_PlayerInSector(player, sector);
+}
+
+void (*P_PlayerInSector)(player_t *player, sector_t *sector) = P_PlayerInSector_Classic;
+
+void P_PlayerInSector_Classic(player_t *player, sector_t *sector)
+{
+    method_t mod = MOD_None;
+    terrain_t terrain = flatterrain[sector->floorpic];
+    if (terrain == terrain_lava)
+    {
+        mod = MOD_Lava;
+    }
+    else if (terrain == terrain_slime)
+    {
+        mod = MOD_Slime;
+    }
+
+    // Has hit ground.
+    // jff add if to handle old vs generalized types
+    // regular sector specials
+    // killough 12/98: nukage disabling cheat
+    if (sector->special < 32 && !disable_nuke)
+    {
+        ApplySectorBySpecial(player, sector, mod);
+    }
+    else // jff 3/14/98 handle extended sector types for secrets and damage
+    {
+        int bits = (sector->special & DAMAGE_MASK) >> DAMAGE_SHIFT;
+
+        if (mbf21 && sector->special & DEATH_MASK)
+        {
+            ApplyGeneralizedSectorDamage_MBF21(player, bits, mod);
+        }
+        else if (!disable_nuke) // killough 12/98: nukage disabling cheat
+        {
+            ApplyGeneralizedSectorDamage_Boom(player, bits, mod);
+        }
+    }
+    if (sector->flags & SECF_SECRET)
+    {
+        sector->special &= ~SECRET_MASK;
+        // if all extended bits clear,
+        // sector is not special anymore
+        if (sector->special < 32)
+        {
+            sector->special = 0;
+        }
+        CollectSectorSecret(sector, player);
+    }
+}
+
+void P_PlayerInSector_Param(player_t *player, sector_t *sector)
+{
+    const fixed_t heretic_carry[5] = {
+        ORIG_FRICTION_FACTOR * 5, ORIG_FRICTION_FACTOR * 10,
+        ORIG_FRICTION_FACTOR * 25, ORIG_FRICTION_FACTOR * 30,
+        ORIG_FRICTION_FACTOR * 35};
+
+    const fixed_t hexen_carry[3] = {ORIG_FRICTION_FACTOR * 5,
+                                    ORIG_FRICTION_FACTOR * 10,
+                                    ORIG_FRICTION_FACTOR * 25};
+
+    const int16_t special = sector->special;
+    mobj_t *const mo = player->mo;
+
+    switch (special)
+    {
+        case dScroll_EastLavaDamage:
+            P_Thrust(mo, ANGLE_EAST, ORIG_FRICTION_FACTOR * 28);
+            break;
+        case Scroll_StrifeCurrent:
+            {
+                int32_t anglespeed = sector->tag - 100;
+                fixed_t carryspeed = (anglespeed % 10) * 4096;
+                angle_t angle = (anglespeed / 10) * ANG45;
+                P_Thrust(mo, angle, carryspeed);
+            }
+            break;
+        case Scroll_North_Slow:
+        case Scroll_North_Medium:
+        case Scroll_North_Fast:
+            P_Thrust(mo, ANGLE_NORTH, hexen_carry[special - Scroll_North_Slow]);
+            break;
+        case Scroll_East_Slow:
+        case Scroll_East_Medium:
+        case Scroll_East_Fast:
+            P_Thrust(mo, ANGLE_EAST, hexen_carry[special - Scroll_East_Slow]);
+            break;
+        case Scroll_South_Slow:
+        case Scroll_South_Medium:
+        case Scroll_South_Fast:
+            P_Thrust(mo, ANGLE_SOUTH, hexen_carry[special - Scroll_South_Slow]);
+            break;
+        case Scroll_West_Slow:
+        case Scroll_West_Medium:
+        case Scroll_West_Fast:
+            P_Thrust(mo, ANGLE_WEST, hexen_carry[special - Scroll_West_Slow]);
+            break;
+        case Scroll_NorthWest_Slow:
+        case Scroll_NorthWest_Medium:
+        case Scroll_NorthWest_Fast:
+            P_Thrust(mo, ANGLE_NORTH_WEST,
+                     hexen_carry[special - Scroll_NorthWest_Slow]);
+            break;
+        case Scroll_NorthEast_Slow:
+        case Scroll_NorthEast_Medium:
+        case Scroll_NorthEast_Fast:
+            P_Thrust(mo, ANGLE_NORTH_EAST,
+                     hexen_carry[special - Scroll_NorthEast_Slow]);
+            break;
+        case Scroll_SouthEast_Slow:
+        case Scroll_SouthEast_Medium:
+        case Scroll_SouthEast_Fast:
+            P_Thrust(mo, ANGLE_SOUTH_WEST,
+                     hexen_carry[special - Scroll_SouthEast_Slow]);
+            break;
+        case Scroll_SouthWest_Slow:
+        case Scroll_SouthWest_Medium:
+        case Scroll_SouthWest_Fast:
+            P_Thrust(mo, ANGLE_SOUTH_EAST,
+                     hexen_carry[special - Scroll_SouthWest_Slow]);
+            break;
+        case Carry_East5:
+        case Carry_East10:
+        case Carry_East25:
+        case Carry_East30:
+        case Carry_East35:
+            P_Thrust(mo, ANGLE_EAST, heretic_carry[special - Carry_East5]);
+            break;
+        case Carry_North5:
+        case Carry_North10:
+        case Carry_North25:
+        case Carry_North30:
+        case Carry_North35:
+            P_Thrust(mo, ANGLE_NORTH, heretic_carry[special - Carry_North5]);
+            break;
+        case Carry_South5:
+        case Carry_South10:
+        case Carry_South25:
+        case Carry_South30:
+        case Carry_South35:
+            P_Thrust(mo, ANGLE_SOUTH, heretic_carry[special - Carry_South5]);
+            break;
+        case Carry_West5:
+        case Carry_West10:
+        case Carry_West25:
+        case Carry_West30:
+        case Carry_West35:
+            P_Thrust(mo, ANGLE_WEST, heretic_carry[special - Carry_West5]);
+            break;
+    }
+
+    if (sector->flags & SECF_SECRET)
+    {
+        CollectSectorSecret(sector, player);
+    }
+};
+
+boolean (*P_MObjInSector)(mobj_t *mobj) = P_MObjInSector_Classic;
+
+boolean P_MObjInSector_Param(mobj_t *mobj)
+{
+    // Nothing to do here
+    return false;
+}
+
+boolean P_MObjInSector_Classic(mobj_t *mobj)
+{
+    if (mbf21)
+    {
+        sector_t *sector = mobj->subsector->sector;
+
+        if (sector->special & KILL_MONSTERS_MASK //
+            && mobj->z == mobj->floorz           //
+            && mobj->player == NULL              //
+            && mobj->flags & MF_SHOOTABLE        //
+            && !(mobj->flags & MF_FLOAT))
+        {
+            P_DamageMobj(mobj, NULL, NULL, 10000);
+            // must have been removed
+            if (mobj->thinker.function.p1 != P_MobjThinker)
+            {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 //
@@ -2567,7 +2821,7 @@ void P_UpdateSpecials (void)
   {
     levelTimeCount--;
     if (!levelTimeCount)
-      G_ExitLevel();
+      G_ExitLevel(0);
   }
 
   // Check frag counters, if frag limit reached, exit level // Ty 03/18/98
@@ -2589,7 +2843,7 @@ void P_UpdateSpecials (void)
           if (exitflag == true) break; // skip out of the loop--we're done
         }
       if (exitflag == true)
-        G_ExitLevel();
+        G_ExitLevel(0);
     }
 
   // Animate flats and textures globally
@@ -2738,6 +2992,527 @@ void EV_RotateOffsetFlat(line_t *line, sector_t *sector)
   }
 }
 
+static void SpawnSectorSpecials_Classic(void)
+{
+    //  Init special sectors.
+    sector_t *sector = sectors;
+    for (int i = 0; i < numsectors; i++, sector++)
+    {
+        if (!sector->special)
+        {
+            continue;
+        }
+
+        if (sector->special & SECRET_MASK) // jff 3/15/98 count extended
+        {
+            AddSectorSecret(sector); // secret sectors too
+        }
+
+        if (sector->special & FRICTION_MASK)
+        {
+            sector->flags |= SECF_FRICTION;
+        }
+
+        if (sector->special & PUSH_MASK)
+        {
+            sector->flags |= SECF_PUSH;
+        }
+
+        switch (sector->special & 31)
+        {
+            case 1:
+                // random off
+                P_SpawnLightFlash(sector);
+                break;
+            case 2:
+                // strobe fast
+                P_SpawnStrobeFlash(sector, FASTDARK, 0);
+                break;
+            case 3:
+                // strobe slow
+                P_SpawnStrobeFlash(sector, SLOWDARK, 0);
+                break;
+            case 4:
+                // strobe fast/death slime
+                P_SpawnStrobeFlash(sector, FASTDARK, 0);
+                // jff 3/14/98 put damage bits in
+                sector->special |= 3 << DAMAGE_SHIFT;
+                break;
+            case 8:
+                // glowing light
+                P_SpawnGlowingLight(sector);
+                break;
+            case 9:
+                // secret sector
+                // jff 3/14/98 bits don't count unless not
+                if (sector->special < 32)
+                {
+                    // a generalized sector type
+                    AddSectorSecret(sector);
+                }
+                break;
+            case 10:
+                // door close in 30 seconds
+                P_SpawnDoorCloseIn30(sector);
+                break;
+            case 12:
+                // sync strobe slow
+                P_SpawnStrobeFlash(sector, SLOWDARK, 1);
+                break;
+            case 13:
+                // sync strobe fast
+                P_SpawnStrobeFlash(sector, FASTDARK, 1);
+                break;
+            case 14:
+                // door raise in 5 minutes
+                P_SpawnDoorRaiseIn5Mins(sector);
+                break;
+            case 17:
+                // fire flickering
+                P_SpawnFireFlicker(sector);
+                break;
+        }
+    }
+}
+
+static void SetupSectorDamage_Param(sector_t *const sector, int16_t amount,
+                                    int16_t interval, int16_t leakrate,
+                                    uint32_t flags)
+{
+    // Only set if damage is not yet initialized.
+    if (sector->dmg_amount)
+    {
+        return;
+    }
+    sector->dmg_amount = amount;
+    sector->dmg_interval = MAX(1, interval);
+    sector->dmg_leakrate = leakrate;
+    sector->flags =
+        (sector->flags & ~SECF_DAMAGE_FLAGS) | (flags & SECF_DAMAGE_FLAGS);
+}
+
+static void SpawnGeneralizedSector_Param(sector_t *sector)
+{
+    int32_t bits = (sector->special & PARAM_DAMAGE_MASK) >> 8;
+
+    switch (bits & 3)
+    {
+        case 0:
+            break;
+        case 1:
+            SetupSectorDamage_Param(sector, 5, 32, 0, 0);
+            break;
+        case 2:
+            SetupSectorDamage_Param(sector, 10, 32, 0, 0);
+            break;
+        case 3:
+            SetupSectorDamage_Param(sector, 20, 32, 5, 0);
+            break;
+    }
+
+    if (sector->special & PARAM_SECRET_MASK)
+    {
+        AddSectorSecret(sector);
+    }
+
+    if (sector->special & PARAM_FRICTION_MASK)
+    {
+        sector->flags |= SECF_FRICTION;
+    }
+
+    if (sector->special & PARAM_PUSH_MASK)
+    {
+        sector->flags |= SECF_PUSH;
+    }
+}
+
+static void SpawnSectorLights_Param(sector_t *sector)
+{
+    switch (sector->special)
+    {
+        case Light_Phased:
+            // TODO: P_SpawnPhasedLight(sector, 80, -1);
+            break;
+        case LightSequenceStart:
+            // TODO: P_SpawnLightSequence(sector, 1);
+            break;
+        case dLight_Flicker:
+            P_SpawnLightFlash(sector);
+            break;
+        case dLight_StrobeFast:
+            P_SpawnStrobeFlash(sector, FASTDARK, false);
+            break;
+        case dLight_StrobeSlow:
+            P_SpawnStrobeFlash(sector, SLOWDARK, false);
+            break;
+        case dLight_Strobe_Hurt:
+            P_SpawnStrobeFlash(sector, FASTDARK, false);
+            sector->special |= dLight_Strobe_Hurt;
+            break;
+        case dLight_Glow:
+            P_SpawnGlowingLight(sector);
+            break;
+        case dLight_StrobeSlowSync:
+            P_SpawnStrobeFlash(sector, SLOWDARK, true);
+            break;
+        case dLight_StrobeFastSync:
+            P_SpawnStrobeFlash(sector, FASTDARK, true);
+            break;
+        case dLight_FireFlicker:
+            P_SpawnFireFlicker(sector);
+            break;
+        case dScroll_EastLavaDamage:
+            P_SpawnStrobeFlash(sector, FASTDARK, false);
+            sector->special |= dScroll_EastLavaDamage;
+            break;
+        case sLight_Strobe_Hurt:
+            P_SpawnStrobeFlash(sector, FASTDARK, false);
+            sector->special |= sLight_Strobe_Hurt;
+            break;
+        default:
+            break;
+    }
+}
+
+static void SpawnSector_Param(sector_t *sector, int i)
+{
+    switch (sector->special)
+    {
+        // Doom
+        case dLight_Strobe_Hurt:
+            SetupSectorDamage_Param(sector, 20, 32, 5, 0);
+            sector->special = 0;
+            break;
+        case dDamage_Hellslime:
+            SetupSectorDamage_Param(sector, 10, 32, 0, 0);
+            sector->special = 0;
+            break;
+        case dDamage_Nukage:
+            SetupSectorDamage_Param(sector, 5, 32, 0, 0);
+            sector->special = 0;
+            break;
+        case dSector_DoorCloseIn30:
+            P_SpawnDoorCloseIn30(sector);
+            sector->special = 0;
+            break;
+            SetupSectorDamage_Param(sector, 20, 32, 256,
+                                    SECF_END_GODMODE | SECF_END_LEVEL);
+            sector->special = 0;
+            break;
+        case dDamage_End:
+            SetupSectorDamage_Param(sector, 5, 32, 256, SECF_DMG_TERRAIN_FX);
+            sector->special = 0;
+            break;
+        case dSector_DoorRaiseIn5Mins:
+            P_SpawnDoorRaiseIn5Mins(sector);
+            sector->special = 0;
+            break;
+        case dFriction_Low:
+            sector->friction = FRICTION_LOW;
+            sector->movefactor = MOVE_FACTOR_LOW;
+            sector->flags |= SECF_FRICTION;
+            break;
+        case dDamage_SuperHellslime:
+            SetupSectorDamage_Param(sector, 20, 32, 5, 0);
+            sector->special = 0;
+            break;
+        case dDamage_LavaWimpy:
+            SetupSectorDamage_Param(sector, 5, 32, 256, SECF_DMG_TERRAIN_FX);
+            sector->special = 0;
+            break;
+        case dDamage_LavaHefty:
+            SetupSectorDamage_Param(sector, 8, 32, 256, SECF_DMG_TERRAIN_FX);
+            sector->special = 0;
+            break;
+        case dScroll_EastLavaDamage:
+            Add_SectorScroller_Param(sc_floor, i, false, -4, 0);
+            SetupSectorDamage_Param(sector, 5, 32, 256, SECF_DMG_TERRAIN_FX);
+            break;
+        // Heretic
+        case hDamage_Sludge:
+            SetupSectorDamage_Param(sector, 4, 32, 0, 0);
+            sector->special = 0;
+            break;
+        // Strife
+        case sLight_Strobe_Hurt:
+            SetupSectorDamage_Param(sector, 5, 32, 0, 0);
+            sector->special = 0;
+            break;
+        case sDamage_Hellslime:
+            SetupSectorDamage_Param(sector, 2, 32, 0, SECF_HAZARD);
+            sector->special = 0;
+            break;
+        case Damage_InstantDeath:
+            SetupSectorDamage_Param(sector, 10000, 1, 256, 0);
+            sector->special = 0;
+            break;
+        case sDamage_SuperHellslime:
+            SetupSectorDamage_Param(sector, 4, 32, 0, SECF_HAZARD);
+            sector->special = 0;
+            break;
+        // ZDoom-y
+        case Sector_Heal:
+            SetupSectorDamage_Param(sector, -1, 32, 0, 0);
+            sector->special = 0;
+            break;
+        case Sector_Hidden:
+            sector->flags |= SECF_HIDDEN;
+            sector->special = 0;
+            break;
+        default:
+            // Hexen scroll special
+            if (sector->special >= Scroll_North_Slow
+                && sector->special <= Scroll_SouthWest_Slow)
+            {
+                // clang-format off
+                static const fixed_t hexenScrollies[24][2] = {
+                    {0,  1 }, {0,  2 }, {0,  4 },
+                    {-1, 0 }, {-2, 0 }, {-4, 0 },
+                    {0,  -1}, {0,  -2}, {0,  -4},
+                    {1,  0 }, {2,  0 }, {4,  0 },
+                    {1,  1 }, {2,  2 }, {4,  4 },
+                    {-1, 1 }, {-2, 2 }, {-4, 4 },
+                    {-1, -1}, {-2, -2}, {-4, -4},
+                    {1,  -1}, {2,  -2}, {4,  -4},
+                };
+                // clang-format on
+
+                size_t k = sector->special - Scroll_North_Slow;
+                fixed_t dx = FixedDiv(hexenScrollies[k][0] << FRACBITS, 2);
+                fixed_t dy = FixedDiv(hexenScrollies[k][1] << FRACBITS, 2);
+                Add_SectorScroller_Param(sc_floor, i, false, dx, dy);
+            }
+            // Heretic scroll special
+            else if (sector->special >= Carry_East5
+                     && sector->special <= Carry_East35)
+            {
+                // Only east scrollers also scroll the texture
+                fixed_t sc = (1 << (sector->special - Carry_East5)) << FRACBITS;
+                fixed_t dx = FixedDiv(sc, 2);
+                Add_SectorScroller_Param(sc_floor, i, false, dx, 0);
+            }
+            break;
+    }
+}
+
+static void SpawnSectorSpecials_Param(void)
+{
+    sector_t *sector = sectors;
+    for (int i = 0; i < numsectors; i++, sector++)
+    {
+        SpawnGeneralizedSector_Param(sector);
+        sector->special &= 0xff;
+        SpawnSectorLights_Param(sector);
+        SpawnSector_Param(sector, i);
+    }
+}
+
+static void SpawnExtras_Classic(void)
+{
+    // COMPAT: Height transfer affects some LOS and physics checks
+    // but no known examples of issues from vanilla maps
+
+    for (int i = 0; i < numlines; i++)
+    {
+        switch (lines[i].special)
+        {
+            int s, sec;
+
+            // killough 3/7/98:
+            // support for drawn heights coming from different sector
+            case 242:
+                sec = sides[*lines[i].sidenum].sector - sectors;
+                for (s = -1; (s = P_FindSectorFromLineTag(lines + i, s)) >= 0;)
+                {
+                    sectors[s].heightsec = sec;
+                }
+                break;
+
+            // killough 3/16/98: Add support for setting
+            // floor lighting independently (e.g. lava)
+            case 213:
+                sec = sides[*lines[i].sidenum].sector - sectors;
+                for (s = -1; (s = P_FindSectorFromLineTag(lines + i, s)) >= 0;)
+                {
+                    sectors[s].floorlightsec = sec;
+                }
+                break;
+
+            // killough 4/11/98: Add support for setting
+            // ceiling lighting independently
+            case 261:
+                sec = sides[*lines[i].sidenum].sector - sectors;
+                for (s = -1; (s = P_FindSectorFromLineTag(lines + i, s)) >= 0;)
+                {
+                    sectors[s].ceilinglightsec = sec;
+                }
+                break;
+
+            // killough 10/98:
+            //
+            // Support for sky textures being transferred from sidedefs.
+            // Allows scrolling and other effects (but if scrolling is
+            // used, then the same sector tag needs to be used for the
+            // sky sector, the sky-transfer linedef, and the scroll-effect
+            // linedef). Still requires user to use F_SKY1 for the floor
+            // or ceiling texture, to distinguish floor and ceiling sky.
+            case 271: // Regular sky
+            case 272: // Same, only flipped
+                {
+                    // Pre-calculate sky color
+                    skyindex_t skyindex =
+                        R_AddLevelskyFromLine(&sides[lines[i].sidenum[0]]);
+                    for (s = -1;
+                         (s = P_FindSectorFromLineTag(lines + i, s)) >= 0;)
+                    {
+                        sectors[s].floorsky = sectors[s].ceilingsky =
+                            skyindex | PL_SKYFLAT;
+                    }
+                    break;
+                }
+
+            case 2048:
+            case 2049:
+            case 2050:
+            case 2051:
+            case 2052:
+            case 2053:
+            case 2054:
+            case 2055:
+            case 2056:
+                EV_RotateOffsetFlat(&lines[i], sectors);
+                break;
+
+            case 2075:
+                for (int s = -1;
+                     (s = P_FindSectorFromLineTag(&lines[i], s)) >= 0;)
+                {
+                    side_t *side = &sides[lines[i].sidenum[0]];
+                    sectors[s].tint = side->topindex;
+                }
+                break;
+        }
+    }
+}
+
+static void HandleStaticInitSpecial(line_t *l)
+{
+    enum init_type_e
+    {
+        Init_Gravity,
+        Init_Color,
+        Init_Damage,
+        Init_SectorLink,
+
+        Init_EDSector = 253,
+        Init_EDLine,
+        Init_TransferSky,
+    } init_type = l->args[1];
+
+    fixed_t grav = 0;
+    skyindex_t skyindex = 0;
+    short dmg_amount = 0;
+    byte dmg_leakrate = 0;
+    byte dmg_interval = 0;
+
+    switch (init_type)
+    {
+        case Init_Gravity:
+            grav = FixedDiv(P_AproxDistance(l->dx, l->dy), 100 * FRACUNIT);
+            for (int32_t s = -1; (s = P_FindSectorFromLineTag(l, s)) >= 0;)
+            {
+                sectors[s].gravity = grav;
+            }
+            break;
+        case Init_Color:
+            // Unsupported, requires true color (or hardware) renderer
+            break;
+        case Init_Damage:
+            dmg_amount = P_AproxDistance(l->dx, l->dy) >> FRACBITS;
+            if (dmg_amount < 20)
+            {
+                dmg_leakrate = 0;
+                dmg_interval = 32;
+            }
+            else if (dmg_amount < 50)
+            {
+                dmg_leakrate = 5;
+                dmg_interval = 32;
+            }
+            else
+            {
+                dmg_leakrate = 0;
+                dmg_interval = 1;
+            }
+
+            for (int s = -1; (s = P_FindSectorFromLineTag(l, s)) >= 0;)
+            {
+                sectors[s].dmg_amount = dmg_amount;
+                sectors[s].dmg_leakrate = dmg_leakrate;
+                sectors[s].dmg_interval = dmg_interval;
+            }
+            break;
+        case Init_SectorLink:
+        case Init_EDSector:
+        case Init_EDLine:
+            // Unsupported
+            break;
+
+        case Init_TransferSky:
+            skyindex = R_AddLevelskyFromLine(&sides[l->sidenum[0]]);
+            for (int s = -1; (s = P_FindSectorFromLineTag(l, s)) >= 0;)
+            {
+                sectors[s].floorsky = sectors[s].ceilingsky =
+                    skyindex | PL_SKYFLAT;
+            }
+            break;
+    }
+}
+
+static void SpawnExtras_Param(void)
+{
+    line_t *l = lines;
+    for (size_t i = 0; i < numlines; i++, l++)
+    {
+        size_t sec = l->frontsector - sectors;
+
+        switch (l->special)
+        {
+            // [RH] ZDoom Static_Init settings
+            case Static_Init:
+                HandleStaticInitSpecial(l);
+                break;
+
+            // killough 3/7/98:
+            // support for drawn heights coming from different sector
+            case Transfer_Heights:
+                for (int32_t s = -1; (s = P_FindSectorFromLineTag(l, s)) >= 0;)
+                {
+                    sectors[s].heightsec = sec;
+                }
+                break;
+
+            // killough 3/16/98: Add support for setting
+            // floor lighting independently (e.g. lava)
+            case Transfer_FloorLight:
+                for (int32_t s = -1; (s = P_FindSectorFromLineTag(l, s)) >= 0;)
+                {
+                    sectors[s].floorlightsec = sec;
+                }
+                break;
+
+            // killough 4/11/98: Add support for setting
+            // ceiling lighting independently
+            case Transfer_CeilingLight:
+                for (int32_t s = -1; (s = P_FindLineFromLineTag(l, s)) >= 0;)
+                {
+                    sectors[s].ceilinglightsec = sec;
+                }
+                break;
+        }
+    }
+}
+
 //
 // P_SpawnSpecials
 // After the map has been loaded,
@@ -2745,191 +3520,75 @@ void EV_RotateOffsetFlat(line_t *line, sector_t *sector)
 //
 
 // Parses command line parameters.
-void P_SpawnSpecials (void)
+void P_SpawnSpecials(map_t *map)
 {
-  sector_t*   sector;
-  int         i;
-
-  // See if -timer needs to be used.
-  levelTimer = false;
-
-  if (timelimit > 0 && deathmatch)
-  {
-    levelTimer = true;
-    levelTimeCount = timelimit * 60 * TICRATE;
-  }
-  else
-  {
+    // See if -timer needs to be used.
     levelTimer = false;
-  }
 
-  // See if -frags has been used
-  levelFragLimit = false;
-
-  i = M_CheckParm("-frags");  // Ty 03/18/98 Added -frags support
-  if (i && deathmatch)
+    if (timelimit > 0 && deathmatch)
     {
-      int frags;
-      frags = M_ParmArgToInt(i);
-      if (frags <= 0) frags = 10;  // default 10 if no count provided
-      levelFragLimit = true;
-      levelFragLimitCount = frags;
+        levelTimer = true;
+        levelTimeCount = timelimit * 60 * TICRATE;
+    }
+    else
+    {
+        levelTimer = false;
     }
 
+    // See if -frags has been used
+    levelFragLimit = false;
 
-  //  Init special sectors.
-  sector = sectors;
-  for (i=0 ; i<numsectors ; i++, sector++)
+    int32_t i = M_CheckParm("-frags"); // Ty 03/18/98 Added -frags support
+    if (i && deathmatch)
     {
-      if (!sector->special)
-        continue;
-
-      if (sector->special&SECRET_MASK) //jff 3/15/98 count extended
-        totalsecret++;                 // secret sectors too
-
-      switch (sector->special&31)
+        int frags;
+        frags = M_ParmArgToInt(i);
+        if (frags <= 0)
         {
-        case 1:
-          // random off
-          P_SpawnLightFlash (sector);
-          break;
-
-        case 2:
-          // strobe fast
-          P_SpawnStrobeFlash(sector,FASTDARK,0);
-          break;
-
-        case 3:
-          // strobe slow
-          P_SpawnStrobeFlash(sector,SLOWDARK,0);
-          break;
-
-        case 4:
-          // strobe fast/death slime
-          P_SpawnStrobeFlash(sector,FASTDARK,0);
-          sector->special |= 3<<DAMAGE_SHIFT; //jff 3/14/98 put damage bits in
-          break;
-
-        case 8:
-          // glowing light
-          P_SpawnGlowingLight(sector);
-          break;
-        case 9:
-          // secret sector
-          if (sector->special<32) //jff 3/14/98 bits don't count unless not
-            totalsecret++;        // a generalized sector type
-          break;
-
-        case 10:
-          // door close in 30 seconds
-          P_SpawnDoorCloseIn30 (sector);
-          break;
-
-        case 12:
-          // sync strobe slow
-          P_SpawnStrobeFlash (sector, SLOWDARK, 1);
-          break;
-
-        case 13:
-          // sync strobe fast
-          P_SpawnStrobeFlash (sector, FASTDARK, 1);
-          break;
-
-        case 14:
-          // door raise in 5 minutes
-          P_SpawnDoorRaiseIn5Mins (sector, i);
-          break;
-
-        case 17:
-          // fire flickering
-          P_SpawnFireFlicker(sector);
-          break;
+            frags = 10; // default 10 if no count provided
         }
+        levelFragLimit = true;
+        levelFragLimitCount = frags;
     }
 
-  P_RemoveAllActiveCeilings();  // jff 2/22/98 use killough's scheme
+    //  Init special sectors.
+    if (map->param)
+    {
+        SpawnSectorSpecials_Param();
+    }
+    else
+    {
+        SpawnSectorSpecials_Classic();
+    }
 
-  P_RemoveAllActivePlats();     // killough
+    P_RemoveAllActiveCeilings(); // jff 2/22/98 use killough's scheme
 
-  for (i = 0;i < MAXBUTTONS;i++)
-    memset(&buttonlist[i],0,sizeof(button_t));
+    P_RemoveAllActivePlats(); // killough
 
-  // P_InitTagLists() must be called before P_FindSectorFromLineTag()
-  // or P_FindLineFromLineTag() can be called.
+    for (i = 0; i < MAXBUTTONS; i++)
+    {
+        memset(&buttonlist[i], 0, sizeof(button_t));
+    }
 
-  P_InitTagLists();   // killough 1/30/98: Create xref tables for tags
+    // P_InitTagLists() must be called before P_FindSectorFromLineTag()
+    // or P_FindLineFromLineTag() can be called.
 
-  P_SpawnScrollers(); // killough 3/7/98: Add generalized scrollers
+    P_InitTagLists(); // killough 1/30/98: Create xref tables for tags
 
-  if (!demo_compatibility)
-  {
-  P_SpawnFriction();  // phares 3/12/98: New friction model using linedefs
-
-  P_SpawnPushers();   // phares 3/20/98: New pusher model using linedefs
-  }
-
-  for (i=0; i<numlines; i++)
-    switch (lines[i].special)
-      {
-        int s, sec;
-
-        // killough 3/7/98:
-        // support for drawn heights coming from different sector
-      case 242:
-        sec = sides[*lines[i].sidenum].sector-sectors;
-        for (s = -1; (s = P_FindSectorFromLineTag(lines+i,s)) >= 0;)
-          sectors[s].heightsec = sec;
-        break;
-
-        // killough 3/16/98: Add support for setting
-        // floor lighting independently (e.g. lava)
-      case 213:
-        sec = sides[*lines[i].sidenum].sector-sectors;
-        for (s = -1; (s = P_FindSectorFromLineTag(lines+i,s)) >= 0;)
-          sectors[s].floorlightsec = sec;
-        break;
-
-        // killough 4/11/98: Add support for setting
-        // ceiling lighting independently
-      case 261:
-        sec = sides[*lines[i].sidenum].sector-sectors;
-        for (s = -1; (s = P_FindSectorFromLineTag(lines+i,s)) >= 0;)
-          sectors[s].ceilinglightsec = sec;
-        break;
-
-        // killough 10/98:
-        //
-        // Support for sky textures being transferred from sidedefs.
-        // Allows scrolling and other effects (but if scrolling is
-        // used, then the same sector tag needs to be used for the
-        // sky sector, the sky-transfer linedef, and the scroll-effect
-        // linedef). Still requires user to use F_SKY1 for the floor
-        // or ceiling texture, to distinguish floor and ceiling sky.
-
-      case 271:   // Regular sky
-      case 272:   // Same, only flipped
-      {
-        // Pre-calculate sky color
-        skyindex_t skyindex = R_AddLevelskyFromLine(&sides[lines[i].sidenum[0]]);
-        for (s = -1; (s = P_FindSectorFromLineTag(lines+i,s)) >= 0;)
-          sectors[s].floorsky = sectors[s].ceilingsky = skyindex | PL_SKYFLAT;
-        break;
-      }
-
-      case 2048: case 2049: case 2050:
-      case 2051: case 2052: case 2053:
-      case 2054: case 2055: case 2056:
-        EV_RotateOffsetFlat(&lines[i], sectors);
-        break;
-
-      case 2075:
-        for (int s = -1; (s = P_FindSectorFromLineTag(&lines[i], s)) >= 0;)
-        {
-          side_t *side = &sides[lines[i].sidenum[0]];
-          sectors[s].tint = side->topindex;
-        }
-        break;
-      }
+    if (map->param)
+    {
+        SpawnScrollers_Param();
+        SpawnFriction_Param();
+        SpawnPushers_Param();
+        SpawnExtras_Param();
+    }
+    else
+    {
+        SpawnScrollers_Classic(); // killough 3/7/98: Add generalized scrollers
+        SpawnFriction_Classic();  // phares 3/12/98: New friction model using linedefs
+        SpawnPushers_Classic();   // phares 3/20/98: New pusher model using linedefs
+        SpawnExtras_Classic();
+    }
 }
 
 // killough 2/28/98:
@@ -3286,16 +3945,6 @@ static void Add_WallScroller(int64_t dx, int64_t dy, const line_t *l,
   Add_Scroller(sc_side, x, y, control, *l->sidenum, accel);
 }
 
-// Amount (dx,dy) vector linedef is shifted right to get scroll amount
-#define SCROLL_SHIFT 5
-
-// Factor to scale scrolling effect into mobj-carrying properties = 3/32.
-// (This is so scrolling floors and objects on them can move at same speed.)
-#define CARRYFACTOR ((fixed_t)(FRACUNIT*.09375))
-
-// Eternity scrollers are weird...
-#define EE_SCROLLFACTOR 10
-
 void Add_SectorScroller_EE(int32_t type, int32_t affectee, boolean isCeiling, double x, double y)
 {
   fixed_t dx = DoubleToFixed(x * EE_SCROLLFACTOR) >> SCROLL_SHIFT;
@@ -3311,156 +3960,390 @@ void Add_SectorScroller_EE(int32_t type, int32_t affectee, boolean isCeiling, do
 }
 
 // Initialize the scrollers
-static void P_SpawnScrollers(void)
+static void SpawnScrollers_Classic(void)
 {
-  int i;
-  line_t *l = lines;
+    line_t *l = lines;
 
-  for (i=0;i<numlines;i++,l++)
+    for (size_t i = 0; i < numlines; i++, l++)
     {
-      fixed_t dx = l->dx >> SCROLL_SHIFT;  // direction and speed of scrolling
-      fixed_t dy = l->dy >> SCROLL_SHIFT;
-      int control = -1, accel = 0;         // no control sector or acceleration
-      int special = l->special;
+        fixed_t dx = l->dx >> SCROLL_SHIFT; // direction and speed of scrolling
+        fixed_t dy = l->dy >> SCROLL_SHIFT;
+        int control = -1, accel = 0; // no control sector or acceleration
+        int special = l->special;
 
-      if (demo_compatibility)
-      {
-        // Allow all scrollers that do not break demo compatibility.
-        // The following are the original Boom scrollers that move Things
-        // across the floor, in their accelerative / displacement / normal
-        // variants.
-        // All other scrollers from Boom through ID24 retain compatibility.
+        if (demo_compatibility)
+        {
+            // Allow all scrollers that do not break demo compatibility.
+            // The following are the original Boom scrollers that move Things
+            // across the floor, in their accelerative / displacement / normal
+            // variants.
+            // All other scrollers from Boom through ID24 retain compatibility.
+            switch (special)
+            {
+                case 216:
+                case 217:
+                case 247:
+                case 248:
+                case 252:
+                case 253:
+                    continue;
+            }
+        }
+
+        // killough 3/7/98: Types 245-249 are same as 250-254 except that the
+        // first side's sector's heights cause scrolling when they change, and
+        // this linedef controls the direction and speed of the scrolling. The
+        // most complicated linedef since donuts, but powerful :)
+        //
+        // killough 3/15/98: Add acceleration. Types 214-218 are the same but
+        // are accelerative.
+
+        if (special >= 245 && special <= 249) // displacement scrollers
+        {
+            special += 250 - 245;
+            control = sides[*l->sidenum].sector - sectors;
+        }
+        else if (special >= 214 && special <= 218) // accelerative scrollers
+        {
+            accel = 1;
+            special += 250 - 214;
+            control = sides[*l->sidenum].sector - sectors;
+        }
+
         switch (special)
         {
-          case 216:
-          case 217:
-          case 247:
-          case 248:
-          case 252:
-          case 253:
-            continue;
-        }
-      }
+            register int s;
 
-      // killough 3/7/98: Types 245-249 are same as 250-254 except that the
-      // first side's sector's heights cause scrolling when they change, and
-      // this linedef controls the direction and speed of the scrolling. The
-      // most complicated linedef since donuts, but powerful :)
-      //
-      // killough 3/15/98: Add acceleration. Types 214-218 are the same but
-      // are accelerative.
+            case 250: // scroll effect ceiling
+                for (s = -1; (s = P_FindSectorFromLineTag(l, s)) >= 0;)
+                {
+                    Add_Scroller(sc_ceiling, -dx, dy, control, s, accel);
+                }
+                break;
 
-      if (special >= 245 && special <= 249)         // displacement scrollers
-        {
-          special += 250-245;
-          control = sides[*l->sidenum].sector - sectors;
-        }
-      else
-        if (special >= 214 && special <= 218)       // accelerative scrollers
-          {
-            accel = 1;
-            special += 250-214;
-            control = sides[*l->sidenum].sector - sectors;
-          }
+            case 251: // scroll effect floor
+            case 253: // scroll and carry objects on floor
+                for (s = -1; (s = P_FindSectorFromLineTag(l, s)) >= 0;)
+                {
+                    Add_Scroller(sc_floor, -dx, dy, control, s, accel);
+                }
+                if (special != 253)
+                {
+                    break;
+                }
 
-      switch (special)
-        {
-          register int s;
+            case 252: // carry objects on floor
+                dx = FixedMul(dx, CARRYFACTOR);
+                dy = FixedMul(dy, CARRYFACTOR);
+                for (s = -1; (s = P_FindSectorFromLineTag(l, s)) >= 0;)
+                {
+                    Add_Scroller(sc_carry, dx, dy, control, s, accel);
+                }
+                break;
 
-        case 250:   // scroll effect ceiling
-          for (s=-1; (s = P_FindSectorFromLineTag(l,s)) >= 0;)
-            Add_Scroller(sc_ceiling, -dx, dy, control, s, accel);
-          break;
+                // killough 3/1/98: scroll wall according to linedef
+                // (same direction and speed as scrolling floors)
+            case 254:
+                for (s = -1; (s = P_FindLineFromLineTag(l, s)) >= 0;)
+                {
+                    if (s != i)
+                    {
+                        Add_WallScroller(dx, dy, lines + s, control, accel);
+                    }
+                }
+                break;
 
-        case 251:   // scroll effect floor
-        case 253:   // scroll and carry objects on floor
-          for (s=-1; (s = P_FindSectorFromLineTag(l,s)) >= 0;)
-            Add_Scroller(sc_floor, -dx, dy, control, s, accel);
-          if (special != 253)
-            break;
+            case 255: // killough 3/2/98: scroll according to sidedef offsets
+                s = lines[i].sidenum[0];
+                Add_Scroller(sc_side, -sides[s].textureoffset,
+                             sides[s].rowoffset, -1, s, accel);
+                break;
 
-        case 252: // carry objects on floor
-          dx = FixedMul(dx,CARRYFACTOR);
-          dy = FixedMul(dy,CARRYFACTOR);
-          for (s=-1; (s = P_FindSectorFromLineTag(l,s)) >= 0;)
-            Add_Scroller(sc_carry, dx, dy, control, s, accel);
-          break;
+            // special 255 with tag control
 
-          // killough 3/1/98: scroll wall according to linedef
-          // (same direction and speed as scrolling floors)
-        case 254:
-          for (s=-1; (s = P_FindLineFromLineTag(l,s)) >= 0;)
-            if (s != i)
-              Add_WallScroller(dx, dy, lines+s, control, accel);
-          break;
+            // Always - Scroll both front and back sidedef's textures and
+            // accelerate the scroll value by the target sector's movement
+            // divided by 8.
+            case 2086:
+            case 1026:
+                accel = 1;
+                // fallthrough
 
-        case 255:    // killough 3/2/98: scroll according to sidedef offsets
-          s = lines[i].sidenum[0];
-          Add_Scroller(sc_side, -sides[s].textureoffset,
-                       sides[s].rowoffset, -1, s, accel);
-          break;
+            // Always - Scroll both front and back sidedef's textures
+            // according to the target sector's movement divided by 8.
+            case 2085:
+            case 1025:
+                control = sides[*l->sidenum].sector - sectors;
+                // fallthrough
 
-        // special 255 with tag control
+            // Always - Scroll both front and back sidedef's textures
+            // according to the target sector's scroll values divided by 8
+            case 2084:
+            case 1024:
+                if (l->args[0] == 0)
+                {
+                    I_Error("Line %d is missing a tag!", i);
+                }
 
-        // Always - Scroll both front and back sidedef's textures and
-        // accelerate the scroll value by the target sector's movement
-        // divided by 8.
-        case 2086:
-        case 1026:
-          accel = 1;
-          // fallthrough
+                s = lines[i].sidenum[0];
+                dx = -sides[s].textureoffset / 8;
+                dy = sides[s].rowoffset / 8;
+                for (s = -1; (s = P_FindLineFromLineTag(l, s)) >= 0;)
+                {
+                    if (s != i)
+                    {
+                        Add_Scroller(sc_side, dx, dy, control,
+                                     lines[s].sidenum[0], accel);
 
-        // Always - Scroll both front and back sidedef's textures
-        // according to the target sector's movement divided by 8.
-        case 2085:
-        case 1025:
-          control = sides[*l->sidenum].sector - sectors;
-          // fallthrough
+                        if (special >= 2084 && special <= 2086
+                            && lines[s].sidenum[1] != NO_INDEX)
+                        {
+                            Add_Scroller(sc_side, -dx, dy, control,
+                                         lines[s].sidenum[1], accel);
+                        }
+                    }
+                }
+                break;
 
-        // Always - Scroll both front and back sidedef's textures
-        // according to the target sector's scroll values divided by 8
-        case 2084:
-        case 1024:
-          if (l->args[0] == 0)
-            I_Error("Line %d is missing a tag!", i);
+            // Always - Scroll both front and back sidedef's textures
+            // according to the line's left direction.
+            case 2082:
+                if (lines[i].sidenum[1] != NO_INDEX)
+                {
+                    Add_Scroller(sc_side, -FRACUNIT, 0, -1, lines[i].sidenum[1],
+                                 accel);
+                }
+                // fallthrough
 
-          s = lines[i].sidenum[0];
-          dx = -sides[s].textureoffset / 8;
-          dy = sides[s].rowoffset / 8;
-          for (s = -1; (s = P_FindLineFromLineTag(l, s)) >= 0;)
-            if (s != i)
-            {
-              Add_Scroller(sc_side, dx, dy, control, lines[s].sidenum[0], accel);
+            case 48: // scroll first side
+                Add_Scroller(sc_side, FRACUNIT, 0, -1, lines[i].sidenum[0],
+                             accel);
+                break;
 
-              if (special >= 2084 && special <= 2086 && lines[s].sidenum[1] != NO_INDEX)
-                Add_Scroller(sc_side, -dx, dy, control, lines[s].sidenum[1], accel);
-            }
-          break;
+            // Always - Scroll both front and back sidedef's textures
+            // according to the line's right direction.
+            case 2083:
+                if (lines[i].sidenum[1] != NO_INDEX)
+                {
+                    Add_Scroller(sc_side, FRACUNIT, 0, -1, lines[i].sidenum[1],
+                                 accel);
+                }
+                // fallthrough
 
-        // Always - Scroll both front and back sidedef's textures
-        // according to the line's left direction.
-        case 2082:
-          if (lines[i].sidenum[1] != NO_INDEX)
-            Add_Scroller(sc_side, -FRACUNIT, 0, -1, lines[i].sidenum[1], accel);
-          // fallthrough
-
-        case 48:                  // scroll first side
-          Add_Scroller(sc_side,  FRACUNIT, 0, -1, lines[i].sidenum[0], accel);
-          break;
-
-        // Always - Scroll both front and back sidedef's textures
-        // according to the line's right direction.
-        case 2083:
-          if (lines[i].sidenum[1] != NO_INDEX)
-            Add_Scroller(sc_side, FRACUNIT, 0, -1, lines[i].sidenum[1], accel);
-          // fallthrough
-
-        case 85:                  // jff 1/30/98 2-way scroll
-          Add_Scroller(sc_side, -FRACUNIT, 0, -1, lines[i].sidenum[0], accel);
-          break;
+            case 85: // jff 1/30/98 2-way scroll
+                Add_Scroller(sc_side, -FRACUNIT, 0, -1, lines[i].sidenum[0],
+                             accel);
+                break;
         }
     }
 }
+
+#define COPY_SCROLLER_CEILING     1
+#define COPY_SCROLLER_FLOOR       2
+#define COPY_SCROLLER_FLOOR_CARRY 4
+
+static size_t copyscroller_count = 0;
+static size_t copyscroller_max = 0;
+static const line_t **copyscrollers;
+
+static void AddCopyScroller(const line_t * const l)
+{
+    while (copyscroller_count >= copyscroller_max)
+    {
+        copyscroller_max = copyscroller_max ? copyscroller_max * 2 : 8;
+        copyscrollers =
+            I_Realloc(copyscrollers, copyscroller_max * sizeof(*copyscrollers));
+    }
+
+    copyscrollers[copyscroller_count++] = l;
+}
+
+static void InitCopyScrollers(void)
+{
+    line_t *l = lines;
+
+    for (int32_t i = 0; i < numlines; i++, l++)
+    {
+        if (l->special == Sector_CopyScroller)
+        {
+            // don't allow copying the scroller if the sector has the same tag
+            //   as it would just duplicate it.
+            if (l->frontsector->tag == l->args[0])
+            {
+                AddCopyScroller(l);
+            }
+
+            l->special = 0;
+        }
+    }
+}
+
+static void FreeCopyScrollers(void)
+{
+    if (copyscrollers)
+    {
+        copyscroller_count = 0;
+        copyscroller_max = 0;
+        free(copyscrollers);
+    }
+}
+
+static void SpawnScrollers_Param(void)
+{
+    line_t *l = lines;
+
+    InitCopyScrollers();
+
+    for (size_t i = 0; i < numlines; i++, l++)
+    {
+        fixed_t dx = 0; // direction and speed of scrolling
+        fixed_t dy = 0;
+        int32_t control = -1, accel = 0; // no control sector or acceleration
+        int16_t special = l->special;
+        int32_t side_num = l->sidenum[0];
+        side_t *side = &sides[side_num];
+        fixed_t factor = 0;
+
+        if (special == Scroll_Ceiling           //
+            || special == Scroll_Floor          //
+            || special == Scroll_Texture_Model) //
+        {
+            if (l->args[1] & 3)
+            {
+                // if 1, then displacement
+                // if 2, then accelerative (also if 3)
+                control = side->sector - sectors;
+                if (l->args[1] & 2)
+                {
+                    accel = 1;
+                }
+            }
+
+            if (special == Scroll_Texture_Model || l->args[1] & 4)
+            {
+                // The line housing the special controls the
+                // direction and speed of scrolling.
+                dx = l->dx >> SCROLL_SHIFT;
+                dy = l->dy >> SCROLL_SHIFT;
+            }
+            else
+            {
+                // The speed and direction are parameters to the special.
+                dx = (fixed_t)(l->args[3] - 128) * FRACUNIT / 32;
+                dy = (fixed_t)(l->args[4] - 128) * FRACUNIT / 32;
+            }
+        }
+
+        if (special >= Scroll_Texture_Left && special <= Scroll_Texture_Up)
+        {
+            factor = FRACUNIT * l->args[0] / 64;
+        }
+
+        switch (special)
+        {
+            // TODO: need to refactor sc_side_top/sc_side_mid/sc_side_bottom to accept flags instead
+            case Scroll_Texture_Left:
+                Add_Scroller(sc_side, factor, 0, -1, side_num, 0);
+                break;
+            case Scroll_Texture_Down:
+                Add_Scroller(sc_side, 0, -factor, -1, side_num, 0);
+                break;
+            case Scroll_Texture_Right:
+                Add_Scroller(sc_side, -factor, 0, -1, side_num, 0);
+                break;
+            case Scroll_Texture_Up:
+                Add_Scroller(sc_side, 0, factor, -1, side_num, 0);
+                break;
+            case Scroll_Texture_Both:
+                if (l->args[0])
+                {
+                    dx = FRACUNIT * (l->args[1] - l->args[2]) / 64;
+                    dy = FRACUNIT * (l->args[4] - l->args[3]) / 64;
+                    Add_Scroller(sc_side, dx, dy, -1, side_num, 0);
+                }
+                l->special = 0;
+                break;
+            case Scroll_Texture_Model:
+                // killough 3/1/98: scroll wall according to linedef
+                // (same direction and speed as scrolling floors)
+                l->special = 0;
+                break;
+            case Scroll_Floor:
+                // scroll the floor texture
+                if (l->args[2] != 1)
+                {
+                    for (int32_t s = -1; (s = P_FindSectorFromLineTag(l, s)) >= 0;)
+                    {
+                        Add_Scroller(sc_floor, -dx, dy, control, s, accel);
+                    }
+
+                    for (size_t j = 0; j < copyscroller_count; ++j)
+                    {
+                        const line_t *cs = copyscrollers[j];
+
+                        if (cs->args[0] == l->args[0] && cs->args[1] & 2)
+                        {
+                            size_t sec = cs->frontsector - sectors;
+                            Add_Scroller(sc_floor, -dx, dy, control, sec,
+                                         accel);
+                        }
+                    }
+                }
+
+                // carry objects on the floor
+                if (l->args[2] > 0)
+                {
+                    for (int32_t s = -1; (s = P_FindSectorFromLineTag(l, s)) >= 0;)
+                    {
+                        Add_Scroller(sc_carry, -dx, dy, control, s, accel);
+                    }
+
+                    for (size_t j = 0; j < copyscroller_count; ++j)
+                    {
+                        const line_t *cs = copyscrollers[j];
+
+                        if (cs->args[0] == l->args[0] && cs->args[1] & 4)
+                        {
+                            size_t sec = cs->frontsector - sectors;
+                            Add_Scroller(sc_carry, -dx, dy, control, sec,
+                                         accel);
+                        }
+                    }
+                }
+                l->special = 0;
+                break;
+            case Scroll_Ceiling:
+                for (int32_t s = -1; (s = P_FindSectorFromLineTag(l, s)) >= 0;)
+                {
+                    Add_Scroller(sc_ceiling, -dx, dy, control, s, accel);
+                }
+
+                for (size_t j = 0; j < copyscroller_count; ++j)
+                {
+                    const line_t *cs = copyscrollers[j];
+
+                    if (cs->args[0] == l->args[0] && cs->args[1] & 1)
+                    {
+                        size_t sec = cs->frontsector - sectors;
+                        Add_Scroller(sc_ceiling, -dx, dy, control, sec, accel);
+                    }
+                }
+                l->special = 0;
+                break;
+            case Scroll_Texture_Offsets:
+                // killough 3/2/98: scroll according to sidedef offsets
+                Add_Scroller(sc_side, -side->textureoffset, side->rowoffset, -1, side_num, 0);
+                l->special = 0;
+                break;
+        }
+    }
+
+    FreeCopyScrollers();
+}
+
+#undef COPY_SCROLLER_CEILING
+#undef COPY_SCROLLER_FLOOR
+#undef COPY_SCROLLER_FLOOR_CARRY
 
 // Restored Boom's friction code
 
@@ -3591,57 +4474,98 @@ void T_FrictionAdapter(mobj_t *mobj)
 //
 // Initialize the sectors where friction is increased or decreased
 
-static void P_SpawnFriction(void)
+static void ApplySectorFriction(line_t *l, int value, boolean thinker)
 {
-  int i;
-  line_t *l = lines;
+    int32_t friction = (0x1EB8 * value) / 0x80 + 0xD000;
+    int32_t movefactor;
 
-  for (i = 0 ; i < numlines ; i++,l++)
-    if (l->special == 223)
-      {
-        int length = P_AproxDistance(l->dx,l->dy)>>FRACBITS;
-        int friction = (0x1EB8*length)/0x80 + 0xD000;
-        int movefactor, s;
+    // The following check might seem odd. At the time of movement,
+    // the move distance is multiplied by 'friction/0x10000', so a
+    // higher friction value actually means 'less friction'.
 
-        // The following check might seem odd. At the time of movement,
-        // the move distance is multiplied by 'friction/0x10000', so a
-        // higher friction value actually means 'less friction'.
+    if (friction > ORIG_FRICTION) // ice
+    {
+        movefactor = ((0x10092 - friction) * (0x70)) / 0x158;
+    }
+    else
+    {
+        movefactor = ((friction - 0xDB34) * (0xA)) / 0x80;
+    }
 
-        if (friction > ORIG_FRICTION)       // ice
-          movefactor = ((0x10092 - friction)*(0x70))/0x158;
-        else
-          movefactor = ((friction - 0xDB34)*(0xA))/0x80;
+    if (demo_version >= DV_MBF)
+    {
+        // killough 8/28/98: prevent odd situations
+        friction = CLAMP(friction, 0, FRACUNIT);
+        movefactor = MAX(movefactor, 32);
+    }
 
-        if (demo_version >= DV_MBF)
-          { // killough 8/28/98: prevent odd situations
-            if (friction > FRACUNIT)
-              friction = FRACUNIT;
-            if (friction < 0)
-              friction = 0;
-            if (movefactor < 32)
-              movefactor = 32;
-          }
+    for (int32_t s = -1; (s = P_FindSectorFromLineTag(l, s)) >= 0;)
+    {
+        // killough 8/28/98:
+        //
+        // Instead of spawning thinkers, which are slow and expensive,
+        // modify the sector's own friction values. Friction should be
+        // a property of sectors, not objects which reside inside them.
+        // Original code scanned every object in every friction sector
+        // on every tic, adjusting its friction, putting unnecessary
+        // drag on CPU. New code adjusts friction of sector only once
+        // at level startup, and then uses this friction value.
 
-        for (s = -1; (s = P_FindSectorFromLineTag(l,s)) >= 0 ; )
-          {
-            // killough 8/28/98:
-            //
-            // Instead of spawning thinkers, which are slow and expensive,
-            // modify the sector's own friction values. Friction should be
-            // a property of sectors, not objects which reside inside them.
-            // Original code scanned every object in every friction sector
-            // on every tic, adjusting its friction, putting unnecessary
-            // drag on CPU. New code adjusts friction of sector only once
-            // at level startup, and then uses this friction value.
+        // Boom's friction code for demo compatibility
+        if (thinker)
+        {
+            Add_Friction(friction, movefactor, s);
+        }
+        sectors[s].friction = friction;
+        sectors[s].movefactor = movefactor;
+    }
+}
 
-            // Boom's friction code for demo compatibility
-            if (!demo_compatibility && demo_version < DV_MBF)
-              Add_Friction(friction,movefactor,s);
+static void SpawnFriction_Classic(void)
+{
+    // COMPAT: All of these alter player movement, causes de-syncs
+    if (demo_compatibility)
+    {
+        return;
+    }
 
-            sectors[s].friction = friction;
-            sectors[s].movefactor = movefactor;
-          }
-      }
+    line_t *l = lines;
+
+    for (size_t i = 0; i < numlines; i++, l++)
+    {
+        if (l->special == 223)
+        {
+            int32_t length = P_AproxDistance(l->dx, l->dy) >> FRACBITS;
+            boolean thinker = (!demo_compatibility && demo_version < DV_MBF);
+            ApplySectorFriction(l, length, thinker);
+        }
+    }
+}
+
+static void SpawnFriction_Param(void)
+{
+    line_t *l = lines;
+
+    for (size_t i = 0; i < numlines; i++, l++)
+    {
+        if (l->special == Sector_SetFriction)
+        {
+            int32_t value;
+
+            if (l->args[1])
+            {
+                value = l->args[1] <= 200 ? l->args[1] : 200;
+            }
+            else
+            {
+                value = P_AproxDistance(l->dx, l->dy) >> FRACBITS;
+            }
+
+            ApplySectorFriction(l, value, false);
+
+            l->special = 0;
+        }
+    }
 }
 
 //
@@ -3803,7 +4727,7 @@ static void T_Pusher(pusher_t *p)
   // Be sure the special sector type is still turned on. If so, proceed.
   // Else, bail out; the sector type has been changed on us.
 
-  if (!(sec->special & PUSH_MASK))
+  if (!(sec->flags & SECF_PUSH))
     return;
 
   // For constant pushers (wind/current) there are 3 situations:
@@ -3944,33 +4868,125 @@ mobj_t* P_GetPushThing(int s)
 // Initialize the sectors where pushers are present
 //
 
-static void P_SpawnPushers(void)
+static void SpawnPushers_Classic(void)
 {
-  int i;
-  line_t *l = lines;
-  register int s;
-  mobj_t* thing;
+    // COMPAT: All of these alter player movement, causes de-syncs
+    if (demo_compatibility)
+    {
+        return;
+    }
 
-  for (i = 0 ; i < numlines ; i++,l++)
-    switch(l->special)
-      {
-      case 224: // wind
-        for (s = -1; (s = P_FindSectorFromLineTag(l,s)) >= 0 ; )
-          Add_Pusher(p_wind,l->dx,l->dy,NULL,s);
-        break;
-      case 225: // current
-        for (s = -1; (s = P_FindSectorFromLineTag(l,s)) >= 0 ; )
-          Add_Pusher(p_current,l->dx,l->dy,NULL,s);
-        break;
-      case 226: // push/pull
-        for (s = -1; (s = P_FindSectorFromLineTag(l,s)) >= 0 ; )
-          {
-            thing = P_GetPushThing(s);
-            if (thing) // No MT_P* means no effect
-              Add_Pusher(p_push,l->dx,l->dy,thing,s);
-          }
-        break;
-      }
+    line_t *l = lines;
+    mobj_t *thing;
+
+    for (size_t i = 0; i < numlines; i++, l++)
+    {
+        switch (l->special)
+        {
+            case 224: // wind
+                for (int32_t s = -1; (s = P_FindSectorFromLineTag(l, s)) >= 0;)
+                {
+                    Add_Pusher(p_wind, l->dx, l->dy, NULL, s);
+                }
+                break;
+            case 225: // current
+                for (int32_t s = -1; (s = P_FindSectorFromLineTag(l, s)) >= 0;)
+                {
+                    Add_Pusher(p_current, l->dx, l->dy, NULL, s);
+                }
+                break;
+            case 226: // push/pull
+                for (int32_t s = -1; (s = P_FindSectorFromLineTag(l, s)) >= 0;)
+                {
+                    thing = P_GetPushThing(s);
+                    if (thing) // No MT_P* means no effect
+                    {
+                        Add_Pusher(p_push, l->dx, l->dy, thing, s);
+                    }
+                }
+                break;
+        }
+    }
+}
+
+static void CalculatePushVector(line_t *l, int magnitude, int angle,
+                                fixed_t *dx, fixed_t *dy)
+{
+    if (l->args[3])
+    {
+        *dx = l->dx;
+        *dy = l->dy;
+        return;
+    }
+
+    angle = angle * (ANG180 >> 7); // 256 is 360
+    angle >>= ANGLETOFINESHIFT;
+    magnitude <<= FRACBITS;
+
+    *dx = FixedMul(magnitude, finecosine[angle]);
+    *dy = FixedMul(magnitude, finesine[angle]);
+}
+
+static void SpawnPushers_Param(void)
+{
+    line_t *l = lines;
+    mobj_t *thing;
+    fixed_t dx, dy;
+
+    for (size_t i = 0; i < numlines; i++, l++)
+    {
+        switch (l->special)
+        {
+            case Sector_SetWind:
+                CalculatePushVector(l, l->args[1], l->args[2], &dx, &dy);
+                for (int32_t k = -1; (k = P_FindSectorFromLineTag(l, k)) >= 0;)
+                {
+                    Add_Pusher(p_wind, dx, dy, NULL, k);
+                }
+                l->special = 0;
+                break;
+            case Sector_SetCurrent:
+                CalculatePushVector(l, l->args[1], l->args[2], &dx, &dy);
+                for (int32_t k = -1; (k = P_FindSectorFromLineTag(l, k)) >= 0;)
+                {
+                    Add_Pusher(p_current, dx, dy, NULL, k);
+                }
+                l->special = 0;
+                break;
+            case PointPush_SetForce:
+                CalculatePushVector(l, l->args[2], 0, &dx, &dy);
+                if (l->args[0])
+                {
+                    // [RH] Find thing by sector
+                    for (int32_t k = -1; (k = P_FindSectorFromLineTag(l, k)) >= 0;)
+                    {
+                        thing = P_GetPushThing(k);
+                        if (thing) // No MT_P* means no effect
+                        {
+                            // [RH] Allow narrowing it down by tid
+                            if (!l->args[1] || l->args[1] == thing->tid)
+                            {
+                                Add_Pusher(p_push, dx, dy, thing, k);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // [RH] Find thing by tid
+                    while ((thing = P_FindMobjFromTID(l->args[1], thing, NULL)))
+                    {
+                        if (thing->type == MT_PUSH || thing->type == MT_PULL)
+                        {
+                            size_t sec = thing->subsector->sector - sectors;
+                            Add_Pusher(p_push, dx, dy, thing, sec);
+                        }
+                    }
+                }
+                l->special = 0;
+                break;
+        }
+    }
 }
 
 //

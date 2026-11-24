@@ -38,6 +38,10 @@ void F_Ticker (void);
 // Called by main loop.
 void F_Drawer (void);
 
+boolean F_FinaleShortcut(void);
+
+boolean F_ShowCast(void);
+
 void F_StartFinale (void);
 
 #endif

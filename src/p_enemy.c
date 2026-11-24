@@ -403,6 +403,29 @@ static boolean P_Move(mobj_t *actor, int dropoff) // killough 9/12/98
 	}
     }
 
+  // [RH] If a walking monster is no longer on the floor, move it down
+  // to the floor if it is within MaxStepHeight, presuming that it is
+  // actually walking down a step.
+  if (
+      try_ok &&
+      map.param &&
+      actor->z > actor->floorz &&
+      actor->z <= actor->floorz + STEP_HEIGHT &&
+      !(actor->flags & MF_NOGRAVITY) /* &&
+      !(actor->flags2 & MF2_ONMOBJ) */)
+  {
+    fixed_t saved_z = actor->z;
+
+    actor->z = actor->floorz;
+
+    // Make sure that there isn't some other actor between us and
+    // the floor we could get stuck in. The old code did not do this.
+    if (!P_CheckPosition(actor, actor->x, actor->y))
+    {
+      actor->z = saved_z;
+    }
+  }
+
   if (!try_ok)
     {      // open any specials
       int good;
@@ -465,7 +488,7 @@ static boolean P_Move(mobj_t *actor, int dropoff) // killough 9/12/98
     actor->flags &= ~MF_INFLOAT;
 
   // killough 11/98: fall more slowly, under gravity, if felldown==true
-  if (!(actor->flags & MF_FLOAT) && (!felldown || demo_version < DV_MBF))
+  if (!map.param && !(actor->flags & MF_FLOAT) && (!felldown || demo_version < DV_MBF))
     actor->z = actor->floorz;
 
   return true;
@@ -2299,7 +2322,7 @@ void A_BossDeath(mobj_t *mo)
 {
   if (MI_BossAction(mo))
   {
-      G_ExitLevel();
+      G_ExitLevel(0);
   }
 
   return;
@@ -2418,7 +2441,7 @@ void A_BrainExplode(mobj_t *mo)
 
 void A_BrainDie(mobj_t *mo)
 {
-  G_ExitLevel();
+  G_ExitLevel(0);
 }
 
 void A_BrainSpit(mobj_t *mo)
@@ -2652,7 +2675,7 @@ void A_LineEffect(mobj_t *mo)
 	  player.health = 100;                       // Alive player
 	  junk.args[0] = (short)mo->state->misc2;    // Sector tag for linedef
 	  if (!P_UseSpecialLine(mo, &junk, 0, false))// Try using it
-	    P_CrossSpecialLine(&junk, 0, mo, false); // Try crossing it
+	    P_CrossSpecialLine(mo, &junk, 0, false); // Try crossing it
 	  if (!junk.special)                         // If type cleared,
 	    mo->intflags |= MIF_LINEDONE;            // no more for this thing
 	  mo->player = oldplayer;                    // Restore player status

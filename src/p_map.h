@@ -63,6 +63,8 @@ void    P_RadiusAttack(struct mobj_s *spot, struct mobj_s *source,
                        int damage, int distance);
 boolean P_CheckPosition(struct mobj_s *thing, fixed_t x, fixed_t y);
 
+void P_AdjustZLimits(struct mobj_s *thing);
+
 boolean P_ChangeSector(struct sector_s *sector,boolean crunch);
 
 //jff 3/19/98 P_CheckSector(): new routine to replace P_ChangeSector()
@@ -87,6 +89,9 @@ extern boolean felldown;   // killough 11/98: indicates object pushed off ledge
 extern fixed_t tmfloorz;
 extern fixed_t tmceilingz;
 extern fixed_t tmdropoffz;
+
+extern struct mobj_s *BlockingMobj;
+
 extern struct line_s *ceilingline;
 extern struct line_s *floorline;      // killough 8/23/98
 extern struct mobj_s *linetarget;     // who got hit (or NULL)

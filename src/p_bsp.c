@@ -461,7 +461,7 @@ void P_LoadNodes(map_t *map)
                 no->children[j] |= NF_SUBSECTOR;
             }
 
-            for (int k = 0; k < 4; k++)
+            for (size_t k = 0; k < 4; k++)
             {
                 no->bbox[j][k] = IntToFixed(SHORT(mn->bbox[j][k]));
             }
