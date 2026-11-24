@@ -1869,9 +1869,6 @@ static void PrepareUnArchiveThinkers(json_t *thinkers)
             case tc_mobj:
             case tc_mobj_del:
                 pointer.p.mobj = arena_alloc(thinkers_arena, mobj_t);
-                pointer.p.mobj->render_index =
-                    M_ArenaTableIndex(thinkers_arena,
-                                      (uintptr_t)pointer.p.mobj);
                 break;
             case tc_ceiling:
             case tc_ceiling_del:

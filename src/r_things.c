@@ -29,9 +29,9 @@
 #include "hu_crosshair.h" // [Alaux] Lock crosshair on target
 #include "i_printf.h"
 #include "i_system.h"
-#include "i_thread.h"
 #include "i_video.h"
 #include "info.h"
+#include "m_arena.h"
 #include "m_bbox.h"
 #include "m_swap.h"
 #include "p_map.h"
@@ -346,7 +346,7 @@ static THREADLOCAL size_t num_vissprite, num_vissprite_alloc, num_vissprite_ptrs
 static THREADLOCAL mobj_t **nearby_sprites = NULL;
 
 // [MT] Per-context render stamps are addressed by sector number and by
-// mobj->render_index, and live in the render context. Indices, not pointers.
+// thinkers arena index, and live in the render context. Indices, not pointers.
 static THREADLOCAL int *rendered_stamps = NULL;
 static THREADLOCAL int rendered_stamps_count;
 static THREADLOCAL int rendered_stamps_alloc;
@@ -1028,7 +1028,7 @@ void R_ResetOverlapCache(void)
 
 static mobj_overlap_t *OverlapOf(mobj_t *mobj)
 {
-    const int index = mobj->render_index;
+    const int index = M_ArenaTableIndex(thinkers_arena, (uintptr_t)mobj);
 
     if (index < 0)
     {
@@ -1295,7 +1295,7 @@ static void TrackVisitedStamp(int index)
 // walking the thinkers.
 boolean R_ThingRendered(const mobj_t *thing)
 {
-    const int index = thing->render_index;
+    const int index = M_ArenaTableIndex(thinkers_arena, (uintptr_t)thing);
 
     return index >= 0 && index < r_context->mobj_stamp_size
            && r_context->mobj_stamp[index] != 0;
@@ -1303,7 +1303,7 @@ boolean R_ThingRendered(const mobj_t *thing)
 
 void R_MarkThingRendered(mobj_t *thing)
 {
-    const int index = thing->render_index;
+    const int index = M_ArenaTableIndex(thinkers_arena, (uintptr_t)thing);
 
     if (index < 0 || index >= r_context->mobj_stamp_size
         || r_context->mobj_stamp[index] != 0)

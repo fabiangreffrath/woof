@@ -875,7 +875,6 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 
   mobj->type = type;
   mobj->info = info;
-  mobj->render_index = M_ArenaTableIndex(thinkers_arena, (uintptr_t)mobj);
   mobj->x = x;
   mobj->y = y;
   mobj->radius = info->radius;

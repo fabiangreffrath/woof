@@ -410,9 +410,6 @@ typedef struct mobj_s
 
     // [FG] height of the sprite in pixels
     int actualheight;
-
-    // [MT] Index of this mobj in the thinkers arena.
-    int render_index;
 } mobj_t;
 
 // External declarations (fomerly in p_local.h) -- killough 5/2/98
