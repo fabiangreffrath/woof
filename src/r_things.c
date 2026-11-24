@@ -43,6 +43,7 @@
 #include "r_bsp.h"
 #include "r_draw.h"
 #include "r_main.h"
+#include "r_jobs.h"
 #include "r_segs.h"
 #include "r_state.h"
 #include "r_things.h"

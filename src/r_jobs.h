@@ -11,16 +11,8 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
-#ifndef R_COMMON_H
-#define R_COMMON_H
-
-// [MT] Maximum number of parallel render contexts (column slabs).
-#define MAX_RENDER_CONTEXTS 128
-
-// [MT] Maximum number of sectors one mobj's sprite bounding box is recorded
-// as overlapping, for the wide-sprite sector association used by the
-// multithreaded renderer (see R_SortMobj). Same limit as RNR.
-#define MAX_SECTOR_OVERLAPS 32
+#ifndef R_JOBS_H
+#define R_JOBS_H
 
 // Job system for the multithreaded renderer.
 //

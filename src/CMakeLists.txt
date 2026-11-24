@@ -177,10 +177,10 @@ set(WOOF_SOURCES
     p_udmf.c               p_udmf.h
     p_user.c               p_user.h
     r_bsp.c                r_bsp.h
-    r_common.c             r_common.h
     r_data.c               r_data.h
                            r_defs.h
     r_draw.c               r_draw.h
+    r_jobs.c               r_jobs.h
     r_main.c               r_main.h
     r_plane.c              r_plane.h
     r_segs.c               r_segs.h

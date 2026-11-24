@@ -46,7 +46,7 @@
 #include "p_pspr.h"
 #include "p_tick.h"
 #include "r_bsp.h"
-#include "r_common.h"
+#include "r_jobs.h"
 #include "r_data.h"
 #include "r_defs.h"
 #include "r_draw.h"
