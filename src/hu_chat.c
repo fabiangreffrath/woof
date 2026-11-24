@@ -194,7 +194,6 @@ boolean HU_MessagesResponder(event_t *ev)
 
     boolean eatkey = false;
     static boolean shiftdown = false;
-    static boolean altdown = false;
     int ch;
     int numplayers;
 
@@ -211,12 +210,6 @@ boolean HU_MessagesResponder(event_t *ev)
     if (ev->data1.i == KEY_RSHIFT)
     {
         shiftdown = ev->type == ev_keydown;
-        return false;
-    }
-
-    if (ev->data1.i == KEY_RALT)
-    {
-        altdown = ev->type == ev_keydown;
         return false;
     }
 
