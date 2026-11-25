@@ -462,13 +462,11 @@ typedef struct
     int text_w;
     int text_h;
     int bar_x;
-    int bar_w;
     int seg_w;
     int seg_extra;
     int gap;
     int visible;
     int min;
-    int max;
     int num_choices;
 } choice_layout_t;
 
@@ -477,8 +475,7 @@ static choice_layout_t ChoiceLayout(const mn_item_t *item)
     choice_layout_t l;
 
     l.min = ItemMin(item);
-    l.max = ItemMax(item);
-    l.num_choices = l.max - l.min + 1;
+    l.num_choices = ItemMax(item) - l.min + 1;
 
     if (item->choice_size > 0)
     {
@@ -507,7 +504,6 @@ static choice_layout_t ChoiceLayout(const mn_item_t *item)
 
     l.seg_w = usable / l.visible;
     l.seg_extra = usable % l.visible;
-    l.bar_w = usable + (l.visible - 1) * l.gap;
     l.text_h = (item->flags & MN_ITEM_TWO_LINES) ? 2 * MN_SPC : MN_SPC;
 
     l.x = item->draw_value_x + item->draw_value_w
@@ -551,99 +547,36 @@ static void ChoiceApplyValue(mn_item_t *item, int value)
     }
 }
 
-// Locates the mouse inside the widget. Returns false when outside of it.
-static boolean ChoiceHitTest(const mn_item_t *item, int mouse_x, int *arrow,
-                             int *segment)
+// Returns the arrow under the mouse (0 for left, 1 for right), or -1.
+static int ChoiceArrowAt(const mn_item_t *item, int mouse_x)
 {
     const choice_layout_t l = ChoiceLayout(item);
     int rel_x = mouse_x - video.deltaw - l.x;
 
-    *arrow = -1;
-    *segment = -1;
+    if (rel_x >= 0 && rel_x < CHOICE_ARROW_W + CHOICE_PADDING)
+    {
+        return 0;
+    }
+
+    rel_x -= CHOICE_ARROW_W + CHOICE_PADDING + l.text_w + CHOICE_PADDING;
 
     if (rel_x >= 0 && rel_x < CHOICE_ARROW_W + CHOICE_PADDING)
     {
-        *arrow = 0;
-        return true;
+        return 1;
     }
 
-    rel_x -= CHOICE_ARROW_W + CHOICE_PADDING;
-
-    if (rel_x >= 0 && rel_x < l.text_w)
-    {
-        int seg_x = 0;
-
-        for (int i = 0; i < l.visible; ++i)
-        {
-            const int seg_w = l.seg_w + (i < l.seg_extra ? 1 : 0);
-
-            // Gaps belong to the preceding segment, so the mouse has no
-            // dead zones between segments.
-            if (rel_x < seg_x + seg_w + l.gap || i == l.visible - 1)
-            {
-                *segment = i;
-                break;
-            }
-
-            seg_x += seg_w + l.gap;
-        }
-
-        return true;
-    }
-
-    rel_x -= l.text_w + CHOICE_PADDING;
-
-    if (rel_x >= 0 && rel_x < CHOICE_ARROW_W + CHOICE_PADDING)
-    {
-        *arrow = 1;
-        return true;
-    }
-
-    return false;
+    return -1;
 }
 
-// Resolves the arrow/segment under the mouse, if any.
-static void ChoiceHoverTest(const mn_item_t *item, const mn_draw_ctx_t *ctx,
-                            int *arrow, int *segment)
+// The arrow under the mouse in mouse mode, or -1.
+static int ChoiceHoverArrow(const mn_item_t *item, const mn_draw_ctx_t *ctx)
 {
-    *arrow = -1;
-    *segment = -1;
-
     if (ctx->mouse_inside && menu_input == mouse_mode)
     {
-        ChoiceHitTest(item, ctx->mouse_x, arrow, segment);
-    }
-}
-
-// The choice value under a hovered segment, or -1 if it has no value.
-static int ChoiceHoveredValue(const mn_item_t *item, const choice_layout_t *l,
-                              int segment)
-{
-    const int index = l->min + segment;
-
-    if (segment < 0 || segment >= l->visible || !item->choices || index < 0
-        || index >= item->num_choices)
-    {
-        return -1;
+        return ChoiceArrowAt(item, ctx->mouse_x);
     }
 
-    return index;
-}
-
-static void ChoiceHover(mn_item_t *item, int mouse_x, int mouse_y)
-{
-    static int hover;
-
-    int arrow;
-    int segment;
-
-    ChoiceHitTest(item, mouse_x, &arrow, &segment);
-
-    if (hover != segment)
-    {
-        hover = segment;
-        M_StartSound(sfx_mnusel);
-    }
+    return -1;
 }
 
 static void ChoiceDrawText(const mn_item_t *item, const choice_layout_t *l,
@@ -701,19 +634,10 @@ static void ChoiceDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
     const choice_layout_t l = ChoiceLayout(item);
     const int y = ctx->y;
     const int arrow_y = y + (l.text_h - MN_SPC) / 2;
-    int arrow;
-    int segment;
-    ChoiceHoverTest(item, ctx, &arrow, &segment);
-
-    const int hover_value = ChoiceHoveredValue(item, &l, segment);
-    const boolean left_hover = (arrow == 0);
-    const boolean right_hover = (arrow == 1);
+    const int arrow = ChoiceHoverArrow(item, ctx);
     byte *cr = ValueColor(ctx);
-    const char *current_text = (hover_value >= 0)
-                                   ? item->choices[hover_value]
-                                   : ChoiceText(item, value);
 
-    if (left_hover)
+    if (arrow == 0)
     {
         MN_DrawStringCR(l.x, arrow_y, xlat[CR_GRAY].table, NULL, "<");
     }
@@ -722,7 +646,7 @@ static void ChoiceDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
         MN_DrawStringCR(l.x, arrow_y, xlat[CR_GREEN].table, cr, "<");
     }
 
-    ChoiceDrawText(item, &l, y, current_text, cr);
+    ChoiceDrawText(item, &l, y, ChoiceText(item, value), cr);
 
     const byte dark = cr_dark[playpal_global->white];
     const byte shade = cr_shaded[playpal_global->white];
@@ -735,11 +659,7 @@ static void ChoiceDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
 
         if (l.min + i == value)
         {
-            seg_color = xlat[CR_WHITE].table[shade];
-        }
-        else if (segment == i)
-        {
-            seg_color = xlat[CR_WHITE].table[playpal_global->white];
+            seg_color = xlat[CR_GREEN].table[playpal_global->white];
         }
         else if (ctx->disabled)
         {
@@ -747,7 +667,7 @@ static void ChoiceDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
         }
         else
         {
-            seg_color = xlat[CR_GREEN].table[shade];
+            seg_color = xlat[CR_GREEN].table[dark];
         }
 
         const int seg_w = l.seg_w + (i < l.seg_extra ? 1 : 0);
@@ -756,7 +676,7 @@ static void ChoiceDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
         seg_x += seg_w + l.gap;
     }
 
-    if (right_hover)
+    if (arrow == 1)
     {
         MN_DrawStringCR(l.text_x + l.text_w + CHOICE_PADDING, arrow_y,
                         xlat[CR_GRAY].table, NULL, ">");
@@ -772,35 +692,17 @@ static void ChoiceDrawCrosshair(const mn_item_t *item, const mn_draw_ctx_t *ctx)
 {
     ChoiceDraw(item, ctx);
 
-    if (!(item->flags & MN_ITEM_DRAW_CROSSHAIR))
+    if (!(item->flags & MN_ITEM_DRAW_CROSSHAIR) || !hud_crosshair)
     {
         return;
     }
 
-    const choice_layout_t l = ChoiceLayout(item);
-    int arrow;
-    int segment;
-    ChoiceHoverTest(item, ctx, &arrow, &segment);
+    patch_t *patch = V_CachePatchName(crosshair_lumps[hud_crosshair], PU_CACHE);
+    const mn_menu_t *menu = MN_ContainerGetCurrentMenu();
+    const int x =
+        menu->hint_rect.x + menu->hint_rect.w / 3 - SHORT(patch->width) / 2;
 
-    int current_idx = ChoiceHoveredValue(item, &l, segment);
-
-    if (current_idx < 0)
-    {
-        current_idx = hud_crosshair;
-    }
-
-    if (current_idx)
-    {
-        patch_t *patch =
-            V_CachePatchName(crosshair_lumps[current_idx], PU_CACHE);
-
-        const mn_menu_t *menu = MN_ContainerGetCurrentMenu();
-
-        int x = menu->hint_rect.x + menu->hint_rect.w / 3 - SHORT(patch->width) / 2;
-        int y = 50;
-
-        V_DrawPatchTranslated(x, y, patch, xlat[hud_crosshair_color].table);
-    }
+    V_DrawPatchTranslated(x, 50, patch, xlat[hud_crosshair_color].table);
 }
 
 static boolean ChoiceRespond(mn_item_t *item, menu_action_t action, int ch)
@@ -817,37 +719,20 @@ static boolean ChoiceRespond(mn_item_t *item, menu_action_t action, int ch)
         return false;
     }
 
-    const int value = ChoiceStep(item, action == MENU_RIGHT);
-
-    if (*item->def->location.i != value)
-    {
-        *item->def->location.i = value;
-        M_StartSound(sfx_mnusli);
-    }
-
-    MN_ContainerItemChanged(item);
+    ChoiceApplyValue(item, ChoiceStep(item, action == MENU_RIGHT));
     return true;
 }
 
 static boolean ChoiceClick(mn_item_t *item, int mouse_x, int mouse_y)
 {
-    int arrow;
-    int segment;
+    const int arrow = ChoiceArrowAt(item, mouse_x);
 
-    if (!ChoiceHitTest(item, mouse_x, &arrow, &segment))
+    if (arrow < 0)
     {
         return false;
     }
 
-    if (arrow >= 0)
-    {
-        ChoiceApplyValue(item, ChoiceStep(item, arrow == 1));
-    }
-    else if (segment >= 0)
-    {
-        ChoiceApplyValue(item, MIN(ItemMin(item) + segment, ItemMax(item)));
-    }
-
+    ChoiceApplyValue(item, ChoiceStep(item, arrow == 1));
     return true;
 }
 
@@ -1155,8 +1040,7 @@ static const mn_item_ops_t title_ops = {TitleDraw, TitleRespond};
 static const mn_item_ops_t toggle_ops = {ToggleDraw, ToggleRespond};
 static const mn_item_ops_t number_ops = {NumberDraw, NumberRespond};
 static const mn_item_ops_t choice_ops = {ChoiceDrawCrosshair, ChoiceRespond,
-    .click = ChoiceClick, .hover = ChoiceHover
-};
+                                         .click = ChoiceClick};
 static const mn_item_ops_t slider_ops = {SliderDraw, SliderRespond,
     .drag = SliderDrag
 };
