@@ -587,8 +587,6 @@ void M_InputPredefined(void)
         {INPUT_KEY,    KEY_RIGHTARROW             },
         {INPUT_JOYB,   GAMEPAD_DPAD_RIGHT         },
         {INPUT_JOYB,   GAMEPAD_LEFT_STICK_RIGHT   },
-        {INPUT_JOYB,   GAMEPAD_RIGHT_SHOULDER     },
-        {INPUT_MOUSEB, MOUSE_BUTTON_WHEELDOWN     }
     };
     InputSet(input_menu_right, right, arrlen(right));
 
@@ -596,10 +594,32 @@ void M_InputPredefined(void)
         {INPUT_KEY,    KEY_LEFTARROW             },
         {INPUT_JOYB,   GAMEPAD_DPAD_LEFT         },
         {INPUT_JOYB,   GAMEPAD_LEFT_STICK_LEFT   },
-        {INPUT_JOYB,   GAMEPAD_LEFT_SHOULDER     },
-        {INPUT_MOUSEB, MOUSE_BUTTON_WHEELUP      },
     };
     InputSet(input_menu_left, left, arrlen(left));
+
+    input_t right_tab[] = {
+        {INPUT_KEY,    'e'                        },
+        {INPUT_JOYB,   GAMEPAD_RIGHT_SHOULDER     },
+    };
+    InputSet(input_menu_tab_right, right_tab, arrlen(right_tab));
+
+    input_t left_tab[] = {
+        {INPUT_KEY,    'q'                       },
+        {INPUT_JOYB,   GAMEPAD_LEFT_SHOULDER     },
+    };
+    InputSet(input_menu_tab_left, left_tab, arrlen(left_tab));
+
+    input_t right_page[] = {
+        {INPUT_KEY,    'c'                        },
+        {INPUT_JOYB,   GAMEPAD_RIGHT_TRIGGER      },
+    };
+    InputSet(input_menu_page_right, right_page, arrlen(right_page));
+
+    input_t left_page[] = {
+        {INPUT_KEY,    'z'                       },
+        {INPUT_JOYB,   GAMEPAD_LEFT_TRIGGER      },
+    };
+    InputSet(input_menu_page_left, left_page, arrlen(left_page));
 
     input_t up[] = {
         {INPUT_KEY,  KEY_UPARROW             },

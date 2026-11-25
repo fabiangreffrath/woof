@@ -2052,6 +2052,22 @@ boolean M_Responder(event_t *ev)
     {
         action = MENU_RIGHT;
     }
+    else if (M_InputActivated(input_menu_tab_left))
+    {
+        action = MENU_TAB_LEFT;
+    }
+    else if (M_InputActivated(input_menu_tab_right))
+    {
+        action = MENU_TAB_RIGHT;
+    }
+    else if (M_InputActivated(input_menu_page_left))
+    {
+        action = MENU_PAGE_LEFT;
+    }
+    else if (M_InputActivated(input_menu_page_right))
+    {
+        action = MENU_PAGE_RIGHT;
+    }
     else if (M_InputActivated(input_menu_backspace))
     {
         action = MENU_BACKSPACE;

@@ -1042,13 +1042,13 @@ mn_container_result_t MN_ContainerResponder(menu_action_t action, int ch)
         return MN_CONTAINER_HANDLED;
     }
 
-    if (action == MENU_LEFT)
+    if (action == MENU_TAB_LEFT)
     {
         NextPage(menu, -1);
         return MN_CONTAINER_HANDLED;
     }
 
-    if (action == MENU_RIGHT)
+    if (action == MENU_TAB_RIGHT)
     {
         NextPage(menu, 1);
         return MN_CONTAINER_HANDLED;
