@@ -606,6 +606,20 @@ typedef struct
 
 } glow_t;
 
+// Parameterized actions
+
+typedef struct phase_s
+{
+    thinker_t thinker;
+    struct sector_s *sector;
+    int index;
+    int base;
+} phase_t;
+
+void T_PhaseAdapter(struct mobj_s *const phase);
+void P_SpawnPhasedLight(struct sector_s *const sector, int base, int index);
+void P_SpawnLightSequence(struct sector_s *const sector, int indexStep);
+
 // p_plats
 
 typedef struct plat_s

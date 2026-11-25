@@ -1082,7 +1082,7 @@ boolean P_IsSpecialSector(sector_t *const sector)
 static void AddSectorSecret(sector_t *const sector)
 {
     totalsecret++;
-    sector->flags |= SECF_SECRET /* | SECF_WAS_SECRET */;
+    sector->flags |= SECF_SECRET | SECF_WAS_SECRET;
 }
 
 void P_PlayerCollectSecret(player_t *const player)
@@ -1091,10 +1091,10 @@ void P_PlayerCollectSecret(player_t *const player)
     SecretRevealed(player);
 }
 
-static void CollectSectorSecret(sector_t *const sector, player_t *const player)
+static void CollectSectorSecret(sector_t *const s, player_t *const p)
 {
-    sector->flags &= ~SECF_SECRET;
-    P_PlayerCollectSecret(player);
+    s->flags &= ~SECF_SECRET;
+    P_PlayerCollectSecret(p);
 }
 
 boolean P_IsDeathExit(sector_t *const sector)
@@ -2480,56 +2480,55 @@ static void SecretRevealed(player_t *player)
   }
 }
 
-static void ApplySectorDamage(player_t *player, int damage, int leak, method_t mod)
+static void ApplySectorDamage(const player_t *const p, int32_t dmg, int32_t leak, method_t m)
 {
-    if (!player->powers[pw_ironfeet] || (leak && P_Random(pr_slimehurt) < leak))
+    if (!p->powers[pw_ironfeet] || (leak && P_Random(pr_slimehurt) < leak))
     {
         if (!(leveltime & 0x1f))
         {
-            P_DamageMobjBy(player->mo, NULL, NULL, damage, mod);
+            P_DamageMobjBy(p->mo, NULL, NULL, dmg, m);
         }
     }
 }
 
-static void ApplySectorDamageEndLevel(player_t *player, method_t mod)
+static void ApplySectorDamageEndLevel(player_t *const p, method_t m)
 {
     if (comp[comp_god])
     {
-        player->cheats &= ~CF_GODMODE;
+        p->cheats &= ~CF_GODMODE;
     }
 
     if (!(leveltime & 0x1f))
     {
-        P_DamageMobjBy(player->mo, NULL, NULL, 20, mod);
+        P_DamageMobjBy(p->mo, NULL, NULL, 20, m);
     }
 
-    if (player->health <= 10)
+    if (p->health <= 10)
     {
         G_ExitLevel(0);
     }
 }
 
-static void ApplySectorBySpecial(player_t *player, sector_t *sector,
-                                 method_t mod)
+static void ApplySectorBySpecial(player_t *const p, sector_t *const s, method_t m)
 {
-    switch (sector->special)
+    switch (s->special)
     {
         case 5:
-            ApplySectorDamage(player, 10, 0, mod);
+            ApplySectorDamage(p, 10, 0, m);
             break;
         case 7:
-            ApplySectorDamage(player, 5, 0, mod);
+            ApplySectorDamage(p, 5, 0, m);
             break;
         case 16:
         case 4:
-            ApplySectorDamage(player, 20, 5, mod);
+            ApplySectorDamage(p, 20, 5, m);
             break;
         case 9:
-            sector->special = 0;
-            CollectSectorSecret(sector, player);
+            s->special = 0;
+            CollectSectorSecret(s, p);
             break;
         case 11:
-            ApplySectorDamageEndLevel(player, mod);
+            ApplySectorDamageEndLevel(p, m);
             break;
         default:
             // jff 1/24/98 Don't exit as DOOM2 did, just ignore
@@ -2537,37 +2536,37 @@ static void ApplySectorBySpecial(player_t *player, sector_t *sector,
     }
 }
 
-static void ApplyGeneralizedSectorDamage_Boom(player_t *player, int bits, method_t mod)
+static void ApplyGeneralizedSectorDamage_Boom(const player_t *const p, int bits, method_t m)
 {
     switch (bits & 3)
     {
         case 0:
             break;
         case 1:
-            ApplySectorDamage(player, 5, 0, mod);
+            ApplySectorDamage(p, 5, 0, m);
             break;
         case 2:
-            ApplySectorDamage(player, 10, 0, mod);
+            ApplySectorDamage(p, 10, 0, m);
             break;
         case 3:
-            ApplySectorDamage(player, 20, 5, mod);
+            ApplySectorDamage(p, 20, 5, m);
             break;
     }
 }
 
-static void ApplyGeneralizedSectorDamage_MBF21(player_t *player, int bits, method_t mod)
+static void ApplyGeneralizedSectorDamage_MBF21(const player_t * const p, int32_t bits, method_t m)
 {
     switch (bits & 3)
     {
         case 0:
-            if (!player->powers[pw_invulnerability]
-                && !player->powers[pw_ironfeet])
+            if (!p->powers[pw_invulnerability]
+                && !p->powers[pw_ironfeet])
             {
-                P_DamageMobj(player->mo, NULL, NULL, 10000);
+                P_DamageMobj(p->mo, NULL, NULL, 10000);
             }
             break;
         case 1:
-            P_DamageMobj(player->mo, NULL, NULL, 10000);
+            P_DamageMobj(p->mo, NULL, NULL, 10000);
             break;
         case 2:
             for (int i = 0; i < MAXPLAYERS; i++)
@@ -2606,52 +2605,53 @@ void P_PlayerInSpecialSector(player_t *player)
     P_PlayerInSector(player, sector);
 }
 
-void (*P_PlayerInSector)(player_t *player, sector_t *sector) = P_PlayerInSector_Classic;
+void (*P_PlayerInSector)(player_t *const p, sector_t *const s) = P_PlayerInSector_Classic;
 
-void P_PlayerInSector_Classic(player_t *player, sector_t *sector)
+void P_PlayerInSector_Classic(player_t *const p, sector_t *const s)
 {
-    method_t mod = MOD_None;
-    terrain_t terrain = flatterrain[sector->floorpic];
+    method_t m = MOD_None;
+    terrain_t terrain = flatterrain[s->floorpic];
     if (terrain == terrain_lava)
     {
-        mod = MOD_Lava;
+        m = MOD_Lava;
     }
     else if (terrain == terrain_slime)
     {
-        mod = MOD_Slime;
+        m = MOD_Slime;
     }
 
     // Has hit ground.
     // jff add if to handle old vs generalized types
     // regular sector specials
     // killough 12/98: nukage disabling cheat
-    if (sector->special < 32 && !disable_nuke)
+    if (s->special < 32 && !disable_nuke)
     {
-        ApplySectorBySpecial(player, sector, mod);
+        ApplySectorBySpecial(p, s, m);
     }
     else // jff 3/14/98 handle extended sector types for secrets and damage
     {
-        int bits = (sector->special & DAMAGE_MASK) >> DAMAGE_SHIFT;
+        int bits = (s->special & DAMAGE_MASK) >> DAMAGE_SHIFT;
 
-        if (mbf21 && sector->special & DEATH_MASK)
+        if (mbf21 && s->special & DEATH_MASK)
         {
-            ApplyGeneralizedSectorDamage_MBF21(player, bits, mod);
+            ApplyGeneralizedSectorDamage_MBF21(p, bits, m);
         }
         else if (!disable_nuke) // killough 12/98: nukage disabling cheat
         {
-            ApplyGeneralizedSectorDamage_Boom(player, bits, mod);
+            ApplyGeneralizedSectorDamage_Boom(p, bits, m);
         }
     }
-    if (sector->flags & SECF_SECRET)
+
+    if (s->flags & SECF_SECRET)
     {
-        sector->special &= ~SECRET_MASK;
+        s->special &= ~SECRET_MASK;
         // if all extended bits clear,
         // sector is not special anymore
-        if (sector->special < 32)
+        if (s->special < 32)
         {
-            sector->special = 0;
+            s->special = 0;
         }
-        CollectSectorSecret(sector, player);
+        CollectSectorSecret(s, p);
     }
 }
 
@@ -2804,29 +2804,29 @@ void P_PlayerInSector_Param(player_t *const p, sector_t *const s)
     }
 };
 
-boolean (*P_MObjInSector)(mobj_t *mobj) = P_MObjInSector_Classic;
+boolean (*P_MObjInSector)(mobj_t *mo) = P_MObjInSector_Classic;
 
-boolean P_MObjInSector_Param(mobj_t *mobj)
+boolean P_MObjInSector_Param(mobj_t *mo)
 {
     // Nothing to do here
     return false;
 }
 
-boolean P_MObjInSector_Classic(mobj_t *mobj)
+boolean P_MObjInSector_Classic(mobj_t *mo)
 {
     if (mbf21)
     {
-        sector_t *sector = mobj->subsector->sector;
+        sector_t *sector = mo->subsector->sector;
 
         if (sector->special & KILL_MONSTERS_MASK //
-            && mobj->z == mobj->floorz           //
-            && mobj->player == NULL              //
-            && mobj->flags & MF_SHOOTABLE        //
-            && !(mobj->flags & MF_FLOAT))
+            && mo->z == mo->floorz               //
+            && mo->player == NULL                //
+            && mo->flags & MF_SHOOTABLE          //
+            && !(mo->flags & MF_FLOAT))
         {
-            P_DamageMobj(mobj, NULL, NULL, 10000);
+            P_DamageMobj(mo, NULL, NULL, 10000);
             // must have been removed
-            if (mobj->thinker.function.p1 != P_MobjThinker)
+            if (mo->thinker.function.p1 != P_MobjThinker)
             {
                 return true;
             }
@@ -3117,9 +3117,9 @@ static void SpawnSectorSpecials_Classic(void)
     }
 }
 
-static void SetupSectorDamage_Param(sector_t *const sector, int16_t amount,
-                                    int16_t interval, int16_t leakrate,
-                                    uint32_t flags)
+static void SetupSectorDamage(sector_t *const sector, int16_t amount,
+                              int16_t interval, int16_t leakrate,
+                              uint32_t flags)
 {
     // Only set if damage is not yet initialized.
     if (sector->dmg_amount)
@@ -3133,83 +3133,83 @@ static void SetupSectorDamage_Param(sector_t *const sector, int16_t amount,
         (sector->flags & ~SECF_DAMAGE_FLAGS) | (flags & SECF_DAMAGE_FLAGS);
 }
 
-static void SpawnGeneralizedSector_Param(sector_t *sector)
+static void SpawnGeneralizedSector_Param(sector_t *const s)
 {
-    int32_t bits = (sector->special & PARAM_DAMAGE_MASK) >> 8;
+    int32_t bits = (s->special & PARAM_DAMAGE_MASK) >> 8;
 
     switch (bits & 3)
     {
         case 0:
             break;
         case 1:
-            SetupSectorDamage_Param(sector, 5, 32, 0, 0);
+            SetupSectorDamage(s, 5, 32, 0, 0);
             break;
         case 2:
-            SetupSectorDamage_Param(sector, 10, 32, 0, 0);
+            SetupSectorDamage(s, 10, 32, 0, 0);
             break;
         case 3:
-            SetupSectorDamage_Param(sector, 20, 32, 5, 0);
+            SetupSectorDamage(s, 20, 32, 5, 0);
             break;
     }
 
-    if (sector->special & PARAM_SECRET_MASK)
+    if (s->special & PARAM_SECRET_MASK)
     {
-        AddSectorSecret(sector);
+        AddSectorSecret(s);
     }
 
-    if (sector->special & PARAM_FRICTION_MASK)
+    if (s->special & PARAM_FRICTION_MASK)
     {
-        sector->flags |= SECF_FRICTION;
+        s->flags |= SECF_FRICTION;
     }
 
-    if (sector->special & PARAM_PUSH_MASK)
+    if (s->special & PARAM_PUSH_MASK)
     {
-        sector->flags |= SECF_PUSH;
+        s->flags |= SECF_PUSH;
     }
 }
 
-static void SpawnSectorLights_Param(sector_t *sector)
+static void SpawnSectorLights_Param(sector_t *const s)
 {
-    switch (sector->special)
+    switch (s->special)
     {
         case Light_Phased:
-            // TODO: P_SpawnPhasedLight(sector, 80, -1);
+            P_SpawnPhasedLight(s, 80, -1);
             break;
         case LightSequenceStart:
-            // TODO: P_SpawnLightSequence(sector, 1);
+            P_SpawnLightSequence(s, 1);
             break;
         case dLight_Flicker:
-            P_SpawnLightFlash(sector);
+            P_SpawnLightFlash(s);
             break;
         case dLight_StrobeFast:
-            P_SpawnStrobeFlash(sector, FASTDARK, false);
+            P_SpawnStrobeFlash(s, FASTDARK, false);
             break;
         case dLight_StrobeSlow:
-            P_SpawnStrobeFlash(sector, SLOWDARK, false);
+            P_SpawnStrobeFlash(s, SLOWDARK, false);
             break;
         case dLight_Strobe_Hurt:
-            P_SpawnStrobeFlash(sector, FASTDARK, false);
-            sector->special |= dLight_Strobe_Hurt;
+            P_SpawnStrobeFlash(s, FASTDARK, false);
+            s->special |= dLight_Strobe_Hurt;
             break;
         case dLight_Glow:
-            P_SpawnGlowingLight(sector);
+            P_SpawnGlowingLight(s);
             break;
         case dLight_StrobeSlowSync:
-            P_SpawnStrobeFlash(sector, SLOWDARK, true);
+            P_SpawnStrobeFlash(s, SLOWDARK, true);
             break;
         case dLight_StrobeFastSync:
-            P_SpawnStrobeFlash(sector, FASTDARK, true);
+            P_SpawnStrobeFlash(s, FASTDARK, true);
             break;
         case dLight_FireFlicker:
-            P_SpawnFireFlicker(sector);
+            P_SpawnFireFlicker(s);
             break;
         case dScroll_EastLavaDamage:
-            P_SpawnStrobeFlash(sector, FASTDARK, false);
-            sector->special |= dScroll_EastLavaDamage;
+            P_SpawnStrobeFlash(s, FASTDARK, false);
+            s->special |= dScroll_EastLavaDamage;
             break;
         case sLight_Strobe_Hurt:
-            P_SpawnStrobeFlash(sector, FASTDARK, false);
-            sector->special |= sLight_Strobe_Hurt;
+            P_SpawnStrobeFlash(s, FASTDARK, false);
+            s->special |= sLight_Strobe_Hurt;
             break;
         default:
             break;
@@ -3222,27 +3222,27 @@ static void SpawnSector_Param(sector_t *sector, int i)
     {
         // Doom
         case dLight_Strobe_Hurt:
-            SetupSectorDamage_Param(sector, 20, 32, 5, 0);
+            SetupSectorDamage(sector, 20, 32, 5, 0);
             sector->special = 0;
             break;
         case dDamage_Hellslime:
-            SetupSectorDamage_Param(sector, 10, 32, 0, 0);
+            SetupSectorDamage(sector, 10, 32, 0, 0);
             sector->special = 0;
             break;
         case dDamage_Nukage:
-            SetupSectorDamage_Param(sector, 5, 32, 0, 0);
+            SetupSectorDamage(sector, 5, 32, 0, 0);
             sector->special = 0;
             break;
         case dSector_DoorCloseIn30:
             P_SpawnDoorCloseIn30(sector);
             sector->special = 0;
             break;
-            SetupSectorDamage_Param(sector, 20, 32, 256,
-                                    SECF_END_GODMODE | SECF_END_LEVEL);
+            SetupSectorDamage(sector, 20, 32, 256,
+                              SECF_END_GODMODE | SECF_END_LEVEL);
             sector->special = 0;
             break;
         case dDamage_End:
-            SetupSectorDamage_Param(sector, 5, 32, 256, SECF_DMG_TERRAIN_FX);
+            SetupSectorDamage(sector, 5, 32, 256, SECF_DMG_TERRAIN_FX);
             sector->special = 0;
             break;
         case dSector_DoorRaiseIn5Mins:
@@ -3255,46 +3255,46 @@ static void SpawnSector_Param(sector_t *sector, int i)
             sector->flags |= SECF_FRICTION;
             break;
         case dDamage_SuperHellslime:
-            SetupSectorDamage_Param(sector, 20, 32, 5, 0);
+            SetupSectorDamage(sector, 20, 32, 5, 0);
             sector->special = 0;
             break;
         case dDamage_LavaWimpy:
-            SetupSectorDamage_Param(sector, 5, 32, 256, SECF_DMG_TERRAIN_FX);
+            SetupSectorDamage(sector, 5, 32, 256, SECF_DMG_TERRAIN_FX);
             sector->special = 0;
             break;
         case dDamage_LavaHefty:
-            SetupSectorDamage_Param(sector, 8, 32, 256, SECF_DMG_TERRAIN_FX);
+            SetupSectorDamage(sector, 8, 32, 256, SECF_DMG_TERRAIN_FX);
             sector->special = 0;
             break;
         case dScroll_EastLavaDamage:
             Add_SectorScroller_Param(sc_floor, i, false, -4, 0);
-            SetupSectorDamage_Param(sector, 5, 32, 256, SECF_DMG_TERRAIN_FX);
+            SetupSectorDamage(sector, 5, 32, 256, SECF_DMG_TERRAIN_FX);
             break;
         // Heretic
         case hDamage_Sludge:
-            SetupSectorDamage_Param(sector, 4, 32, 0, 0);
+            SetupSectorDamage(sector, 4, 32, 0, 0);
             sector->special = 0;
             break;
         // Strife
         case sLight_Strobe_Hurt:
-            SetupSectorDamage_Param(sector, 5, 32, 0, 0);
+            SetupSectorDamage(sector, 5, 32, 0, 0);
             sector->special = 0;
             break;
         case sDamage_Hellslime:
-            SetupSectorDamage_Param(sector, 2, 32, 0, SECF_HAZARD);
+            SetupSectorDamage(sector, 2, 32, 0, SECF_HAZARD);
             sector->special = 0;
             break;
         case Damage_InstantDeath:
-            SetupSectorDamage_Param(sector, 10000, 1, 256, 0);
+            SetupSectorDamage(sector, 10000, 1, 256, 0);
             sector->special = 0;
             break;
         case sDamage_SuperHellslime:
-            SetupSectorDamage_Param(sector, 4, 32, 0, SECF_HAZARD);
+            SetupSectorDamage(sector, 4, 32, 0, SECF_HAZARD);
             sector->special = 0;
             break;
         // ZDoom-y
         case Sector_Heal:
-            SetupSectorDamage_Param(sector, -1, 32, 0, 0);
+            SetupSectorDamage(sector, -1, 32, 0, 0);
             sector->special = 0;
             break;
         case Sector_Hidden:
@@ -3453,8 +3453,8 @@ static void HandleStaticInitSpecial(line_t *l)
 
     fixed_t grav = 0;
     skyindex_t skyindex = 0;
-    short dmg_amount = 0;
-    byte dmg_leakrate = 0;
+    int16_t dmg_amount = 0;
+    int16_t dmg_leakrate = 0;
     byte dmg_interval = 0;
 
     switch (init_type)
@@ -3483,7 +3483,7 @@ static void HandleStaticInitSpecial(line_t *l)
             }
             else
             {
-                dmg_leakrate = 0;
+                dmg_leakrate = 256;
                 dmg_interval = 1;
             }
 
@@ -4428,7 +4428,7 @@ void T_Friction(friction_t *f)
     // Be sure the special sector type is still turned on. If so, proceed.
     // Else, bail out; the sector type has been changed on us.
 
-    if (!(sec->special & FRICTION_MASK))
+    if (!(sec->flags & SECF_FRICTION))
         return;
 
     // Assign the friction value to players on the floor, non-floating,
