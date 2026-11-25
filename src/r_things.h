@@ -65,17 +65,21 @@ void R_NearbySprites(void);
 void R_ClearSectMobjs(void);
 void R_SortMobj(mobj_t *mobj);
 
-// Track a rendered mobj for fast clearing of mobj->rendered[] without iterating all thinkers.
-void R_TrackRenderedThing(mobj_t *thing);
+boolean R_ThingRendered(const mobj_t *thing);
+void R_MarkThingRendered(mobj_t *thing);
 
-// Track a visited sector for fast clearing of sector->rendervalidcount[].
-void R_TrackVisitedSector(sector_t *sec);
+boolean R_SectorStamped(const sector_t *sec);
+void R_MarkSectorStamped(sector_t *sec);
 
-// Clear mobj->rendered[] for all tracked mobjs in this context.
 void R_ClearTrackedRendered(void);
-
-// Clear sector->rendervalidcount[] for all tracked sectors in this context.
 void R_ClearVisitedSectors(void);
+
+// Size of the per-context mobj stamp array (live slots of the thinkers arena).
+int R_MobjStampSize(void);
+
+// Drop the wide-sprite overlap cache; called when the level (and with it the
+// thinkers arena the indices belong to) is replaced.
+void R_ResetOverlapCache(void);
 
 extern const lighttable_t * const GetThingTint(const mobj_t *const mo,
                                                const sector_t *const sector);

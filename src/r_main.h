@@ -49,14 +49,6 @@ extern fixed_t  bottomydeltafrac;
 extern int      max_project_slope;
 
 //
-// Rendering stats
-//
-
-extern int rendered_visplanes, rendered_segs, rendered_vissprites, rendered_voxels;
-
-void R_BindRenderVariables(void);
-
-//
 // Lighting LUT.
 // Used for z-depth cuing per column/row,
 //  and other lighting effects (sector ambient, flash).
@@ -74,8 +66,8 @@ void R_BindRenderVariables(void);
 // killough 3/20/98: Allow colormaps to be dynamic (e.g. underwater)
 extern int numcolormaps;    // killough 4/4/98: dynamic number of maps
 
-extern int       ** scalelightoffset;
-extern int       ** zlightoffset;
+extern int **scalelightoffset;
+extern int **zlightoffset;
 
 // [RNR] per-column perspective correction for the flat rasteriser:
 // distscale[x] = 1/cos(xtoviewangle[x]). Built by R_ExecuteSetViewSize on
@@ -83,8 +75,8 @@ extern int       ** zlightoffset;
 extern fixed_t *distscale;
 // [MT] set while drawing walls / planes inside a render context, so both are
 // per-thread.
-extern THREADLOCAL int const *  planezlightoffset;
-extern THREADLOCAL int const *  walllightoffset;
+extern THREADLOCAL int const *planezlightoffset;
+extern THREADLOCAL int const *walllightoffset;
 
 // killough 3/20/98, 4/4/98: end dynamic colormaps
 
@@ -109,6 +101,14 @@ extern THREADLOCAL void (*colfunc)(void);
 // Multithreaded rendering.
 //
 
+// [MT] Maximum number of parallel render contexts (column slabs).
+#define MAX_RENDER_CONTEXTS 128
+
+// [MT] Maximum number of sectors one mobj's sprite bounding box is recorded
+// as overlapping, for the wide-sprite sector association used by the
+// multithreaded renderer (see R_SortMobj). Same limit as RNR.
+#define MAX_SECTOR_OVERLAPS 32
+
 typedef struct
 {
     int index;        // context index, 0 is the main render thread
@@ -127,9 +127,10 @@ typedef struct
     // exponentially smoothed frame time for stable load balancing
     double smoothed_time;
 
-    // exponentially smoothed vissprite count of the last
-    // frame (rendered_vissprites)
-    double smoothed_sprites;
+    uint8_t *sector_stamp;
+    int sector_stamp_size;
+    uint8_t *mobj_stamp;
+    int mobj_stamp_size;
 } rendercontext_t;
 
 // TLS context currently being rendered by this thread.
@@ -183,26 +184,44 @@ inline static fixed_t LerpFixed(fixed_t oldvalue, fixed_t newvalue)
 inline static angle_t LerpAngle(angle_t oangle, angle_t nangle)
 {
     if (nangle == oangle)
+    {
         return nangle;
+    }
     else if (nangle > oangle)
     {
         if (nangle - oangle < ANG270)
+        {
             return oangle + (angle_t)((nangle - oangle) * FixedToDouble(fractionaltic));
+        }
         else // Wrapped around
+        {
             return oangle - (angle_t)((oangle - nangle) * FixedToDouble(fractionaltic));
+        }
     }
     else // nangle < oangle
     {
         if (oangle - nangle < ANG270)
+        {
             return oangle - (angle_t)((oangle - nangle) * FixedToDouble(fractionaltic));
+        }
         else // Wrapped around
+        {
             return oangle + (angle_t)((nangle - oangle) * FixedToDouble(fractionaltic));
+        }
     }
 }
 
 extern boolean raw_input;
 
 extern int autodetect_hom;
+
+//
+// Rendering stats
+//
+
+extern int rendered_visplanes, rendered_segs, rendered_vissprites, rendered_voxels;
+
+void R_BindRenderVariables(void);
 
 #endif
 

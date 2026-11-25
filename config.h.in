@@ -15,3 +15,4 @@
 #cmakedefine HAVE_AL_BUFFER_CALLBACK
 #cmakedefine HAVE_DISCORD_RPC
 #cmakedefine HAVE_EXT_VECTOR_TYPE
+#cmakedefine HAVE_TRACY

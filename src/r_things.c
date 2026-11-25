@@ -29,9 +29,9 @@
 #include "hu_crosshair.h" // [Alaux] Lock crosshair on target
 #include "i_printf.h"
 #include "i_system.h"
-#include "i_thread.h"
 #include "i_video.h"
 #include "info.h"
+#include "m_arena.h"
 #include "m_bbox.h"
 #include "m_swap.h"
 #include "p_map.h"
@@ -43,6 +43,7 @@
 #include "r_bsp.h"
 #include "r_draw.h"
 #include "r_main.h"
+#include "r_jobs.h"
 #include "r_segs.h"
 #include "r_state.h"
 #include "r_things.h"
@@ -344,18 +345,15 @@ static THREADLOCAL size_t num_vissprite, num_vissprite_alloc, num_vissprite_ptrs
 // [MT] each render thread collects its own nearby sprites during traversal.
 static THREADLOCAL mobj_t **nearby_sprites = NULL;
 
-// [MT] per-context list of mobjs that were rendered, for fast clearing of
-// mobj->rendered[] without iterating all thinkers.
-static THREADLOCAL mobj_t **rendered_things = NULL;
-static THREADLOCAL int rendered_things_count ;
-static THREADLOCAL int rendered_things_alloc;
+// [MT] Per-context render stamps are addressed by sector number and by
+// thinkers arena index, and live in the render context. Indices, not pointers.
+static THREADLOCAL int *rendered_stamps = NULL;
+static THREADLOCAL int rendered_stamps_count;
+static THREADLOCAL int rendered_stamps_alloc;
 
-// [MT] per-context list of sectors visited during sprite collection, for
-// fast clearing of sector->rendervalidcount[] without iterating all sectors.
-// Frame scratch allocation like rendered_things; cleared at frame end.
-static THREADLOCAL sector_t **visited_sectors = NULL;
-static THREADLOCAL int visited_sectors_count;
-static THREADLOCAL int visited_sectors_alloc;
+static THREADLOCAL int *visited_stamps = NULL;
+static THREADLOCAL int visited_stamps_count;
+static THREADLOCAL int visited_stamps_alloc;
 
 //
 // R_InitSprites
@@ -869,8 +867,7 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
         return;
     }
 
-  thing->rendered[r_context->index] = 1;
-  R_TrackRenderedThing(thing);
+  R_MarkThingRendered(thing);
 
   // store information in a vissprite
   vis = R_NewVisSprite ();
@@ -993,38 +990,84 @@ static void R_ProjectSprite(mobj_t* thing, int lightlevel_override)
 // it too, because sec->touching_thinglist is built from the mobj's physical
 // radius (p_map.c: P_CreateSecNodeList), far smaller than the sprite itself.
 //
-// RNR handles this the same way: P_SortMobj() files each mobj under every
-// sector its sprite bounding box overlaps (radius = max(radius, sprite
-// maxradius)), and R_AddSprites() walks sec->sectormobjs. We cache the
-// overlapping sectors per mobj (mobj_t::overlapsec) and rebuild a per-frame
-// sector -> mobj index on the main thread before the contexts are dispatched.
+// RNR files each mobj under every sector its sprite bounding box overlaps
+// (radius = max(radius, sprite maxradius)) and walks that index in
+// R_AddSprites(). We cache the overlapping sectors per mobj and rebuild a
+// per-frame sector -> mobj index on the main thread before the contexts are
+// dispatched. The cache is keyed by (x, y, sprite) - a pure function of the
+// mobj's position, its sprite and the level's geometry.
 //
 
+typedef struct
+{
+    int count;
+    fixed_t box_x, box_y;
+    int box_sprite;
+    int secs[MAX_SECTOR_OVERLAPS];
+} mobj_overlap_t;
+
+static mobj_overlap_t *overlap_cache = NULL;
+static int overlap_cache_size;
+
+// Sector -> wide-mobj index, rebuilt once per tic from the thinker pass.
 static int *sectmobj_head = NULL;      // [numsectors], -1 = empty
 static int sectmobj_head_alloc;
 static mobj_t **sectmobj_thing = NULL; // link pool
 static int *sectmobj_next = NULL;
 static int sectmobj_count, sectmobj_alloc;
 
-static mobj_t *overlap_mobj;
+// The cache holds sector numbers of the current level; drop it whenever the
+// level (and with it the arena the indices belong to) is replaced.
+
+void R_ResetOverlapCache(void)
+{
+    free(overlap_cache);
+    overlap_cache = NULL;
+    overlap_cache_size = 0;
+}
+
+static mobj_overlap_t *OverlapOf(mobj_t *mobj)
+{
+    const int index = M_ArenaTableIndex(thinkers_arena, (uintptr_t)mobj);
+
+    if (index < 0)
+    {
+        return NULL;
+    }
+
+    if (index >= overlap_cache_size)
+    {
+        const int grow = MAX(index + 1, overlap_cache_size * 2);
+
+        overlap_cache = I_Realloc(overlap_cache,
+                                  grow * sizeof(*overlap_cache));
+        memset(overlap_cache + overlap_cache_size, 0,
+               (grow - overlap_cache_size) * sizeof(*overlap_cache));
+        overlap_cache_size = grow;
+    }
+
+    return &overlap_cache[index];
+}
+
+static mobj_overlap_t *overlap_entry;
 static fixed_t overlap_bbox[4];
 
 static void R_AddOverlap(sector_t *sec)
 {
-    mobj_t *mobj = overlap_mobj;
+    mobj_overlap_t *entry = overlap_entry;
     const int index = (int)(sec - sectors);
 
-    for (int i = 0; i < mobj->overlapcount; i++)
+    for (int i = 0; i < entry->count; i++)
     {
-        if (mobj->overlapsec[i] == index)
+        if (entry->secs[i] == index)
         {
             return;
         }
     }
 
-    if (mobj->overlapcount < MAX_SECTOR_OVERLAPS)
+    if (entry->count < MAX_SECTOR_OVERLAPS)
     {
-        mobj->overlapsec[mobj->overlapcount++] = index;
+        entry->secs[entry->count++] = index;
     }
 }
 
@@ -1050,12 +1093,12 @@ static boolean PIT_Overlap(line_t *ld)
     return true;
 }
 
-static void R_CollectOverlaps(mobj_t *mobj)
+static void R_CollectOverlaps(mobj_t *mobj, mobj_overlap_t *entry)
 {
     const fixed_t radius = sprites[mobj->sprite].maxradius;
 
-    mobj->overlapcount = 0;
-    overlap_mobj = mobj;
+    entry->count = 0;
+    overlap_entry = entry;
     R_AddOverlap(mobj->subsector->sector);
 
     overlap_bbox[BOXTOP] = mobj->y + radius;
@@ -1121,20 +1164,27 @@ void R_SortMobj(mobj_t *mobj)
         return;
     }
 
-    // Recollect only when the mobj moved or changed sprite (RNR keys this on
-    // prev/curr; we key on the last collected position/sprite).
-    if (mobj->overlapcount == 0 || mobj->overlapbox_sprite != mobj->sprite
-        || mobj->overlapbox_x != mobj->x || mobj->overlapbox_y != mobj->y)
+    // Recollect only when the mobj moved or changed sprite: the sector list
+    // is a pure function of (x, y, sprite) and the level's geometry.
+    mobj_overlap_t *entry = OverlapOf(mobj);
+
+    if (entry == NULL)
     {
-        R_CollectOverlaps(mobj);
-        mobj->overlapbox_sprite = mobj->sprite;
-        mobj->overlapbox_x = mobj->x;
-        mobj->overlapbox_y = mobj->y;
+        return;
     }
 
-    for (int k = 0; k < mobj->overlapcount; k++)
+    if (entry->count == 0 || entry->box_sprite != mobj->sprite
+        || entry->box_x != mobj->x || entry->box_y != mobj->y)
     {
-        const int sec = mobj->overlapsec[k];
+        R_CollectOverlaps(mobj, entry);
+        entry->box_sprite = mobj->sprite;
+        entry->box_x = mobj->x;
+        entry->box_y = mobj->y;
+    }
+
+    for (int k = 0; k < entry->count; k++)
+    {
+        const int sec = entry->secs[k];
 
         if (sectmobj_count >= sectmobj_alloc)
         {
@@ -1166,21 +1216,19 @@ void R_AddSprites(sector_t* sec, int lightlevel_override)
   //  subsectors during BSP building.
   // Thus we check whether its already added.
 
-  // [MT] per-context flag (see rendervalidcount in r_defs.h): every render
-  // context adds the sector's things once for itself. The gameplay code keeps
-  // using sec->validcount/validcount untouched.
-  if (sec->rendervalidcount[r_context->index])
+  // [MT] Per-context stamp: every render context adds the sector's things once
+  // for itself. The gameplay code keeps using sec->validcount untouched.
+  if (R_SectorStamped(sec))
     return;
 
   // Well, now it will be done.
-  sec->rendervalidcount[r_context->index] = 1;
-  R_TrackVisitedSector(sec);
+  R_MarkSectorStamped(sec);
 
   // Handle all things in sector.
 
   for (thing = sec->thinglist; thing; thing = thing->snext)
   {
-    if (!thing->rendered[r_context->index])
+    if (!R_ThingRendered(thing))
       R_ProjectSprite(thing, lightlevel_override);
   }
 
@@ -1189,12 +1237,12 @@ void R_AddSprites(sector_t* sec, int lightlevel_override)
     thing = n->m_thing;
 
     // [FG] sprites in sector have already been projected
-    if (!thing->subsector->sector->rendervalidcount[r_context->index])
+    if (!R_SectorStamped(thing->subsector->sector))
     {
       array_push(nearby_sprites, thing);
     }
   }
-  
+
   if (sectmobj_head)
   {
     for (int link = sectmobj_head[(int)(sec - sectors)]; link != -1;
@@ -1202,7 +1250,7 @@ void R_AddSprites(sector_t* sec, int lightlevel_override)
     {
       thing = sectmobj_thing[link];
 
-      if (!thing->subsector->sector->rendervalidcount[r_context->index])
+      if (!R_SectorStamped(thing->subsector->sector))
       {
         array_push(nearby_sprites, thing);
       }
@@ -1210,52 +1258,100 @@ void R_AddSprites(sector_t* sec, int lightlevel_override)
   }
 }
 
-// Track a rendered mobj for fast clearing of mobj->rendered[] without iterating
-// all thinkers.
-void R_TrackRenderedThing(mobj_t *thing)
+// Size of the per-context mobj stamp array: one byte per live slot of the
+// thinkers arena.
+int R_MobjStampSize(void)
 {
-    if (rendered_things_count >= rendered_things_alloc)
-    {
-        int new_alloc = rendered_things_alloc ? rendered_things_alloc * 2 : 1024;
-        rendered_things = I_Realloc(rendered_things,
-                                    new_alloc * sizeof(*rendered_things));
-        rendered_things_alloc = new_alloc;
-    }
-    rendered_things[rendered_things_count++] = thing;
+    return M_ArenaTableSize(thinkers_arena);
 }
 
-// Track a visited sector for fast clearing of sector->rendervalidcount[].
-void R_TrackVisitedSector(sector_t *sec)
+static void TrackRenderedStamp(int index)
 {
-    if (visited_sectors_count >= visited_sectors_alloc)
+    if (rendered_stamps_count >= rendered_stamps_alloc)
     {
-        int new_alloc = visited_sectors_alloc ? visited_sectors_alloc * 2 : 512;
-        sector_t **new_array =  I_Realloc(visited_sectors, new_alloc * sizeof(*new_array));
-        visited_sectors = new_array;
-        visited_sectors_alloc = new_alloc;
+        rendered_stamps_alloc = rendered_stamps_alloc
+                                    ? rendered_stamps_alloc * 2 : 1024;
+        rendered_stamps =
+            I_Realloc(rendered_stamps, rendered_stamps_alloc * sizeof(int));
     }
-    visited_sectors[visited_sectors_count++] = sec;
+    rendered_stamps[rendered_stamps_count++] = index;
 }
 
-// Clear sector->rendervalidcount[] for all tracked sectors in this context.
+static void TrackVisitedStamp(int index)
+{
+    if (visited_stamps_count >= visited_stamps_alloc)
+    {
+        visited_stamps_alloc =
+            visited_stamps_alloc ? visited_stamps_alloc * 2 : 512;
+        visited_stamps =
+            I_Realloc(visited_stamps, visited_stamps_alloc * sizeof(int));
+    }
+    visited_stamps[visited_stamps_count++] = index;
+}
+
+// [MT] Per-context sprite dedup: "this context has already projected this
+// mobj". The stamp lives in the render context, addressed by the mobj's arena
+// index (see r_main.h); the tracked list lets the next frame clear it without
+// walking the thinkers.
+boolean R_ThingRendered(const mobj_t *thing)
+{
+    const int index = M_ArenaTableIndex(thinkers_arena, (uintptr_t)thing);
+
+    return index >= 0 && index < r_context->mobj_stamp_size
+           && r_context->mobj_stamp[index] != 0;
+}
+
+void R_MarkThingRendered(mobj_t *thing)
+{
+    const int index = M_ArenaTableIndex(thinkers_arena, (uintptr_t)thing);
+
+    if (index < 0 || index >= r_context->mobj_stamp_size
+        || r_context->mobj_stamp[index] != 0)
+    {
+        return;
+    }
+
+    r_context->mobj_stamp[index] = 1;
+    TrackRenderedStamp(index);
+}
+
+// [MT] Per-context sector stamp: "this context has already been through this
+// sector's thing lists", plus the 'own sector visited' test used by the
+// lighting of nearby sprites.
+boolean R_SectorStamped(const sector_t *sec)
+{
+    return r_context->sector_stamp[(int)(sec - sectors)] != 0;
+}
+
+void R_MarkSectorStamped(sector_t *sec)
+{
+    const int index = (int)(sec - sectors);
+
+    r_context->sector_stamp[index] = 1;
+    TrackVisitedStamp(index);
+}
+
 void R_ClearVisitedSectors(void)
 {
-    for (int i = 0; i < visited_sectors_count; i++)
+    uint8_t *stamps = r_context->sector_stamp;
+
+    for (int i = 0; i < visited_stamps_count; i++)
     {
-        visited_sectors[i]->rendervalidcount[r_context->index] = 0;
+        stamps[visited_stamps[i]] = 0;
     }
-    visited_sectors_count = 0;
+    visited_stamps_count = 0;
 }
 
-// Clear mobj->rendered[] for all tracked mobjs in this context.
 // Called after R_NearbySprites() but before automap early-return.
 void R_ClearTrackedRendered(void)
 {
-    for (int i = 0; i < rendered_things_count; i++)
+    uint8_t *stamps = r_context->mobj_stamp;
+
+    for (int i = 0; i < rendered_stamps_count; i++)
     {
-        rendered_things[i]->rendered[r_context->index] = 0;
+        stamps[rendered_stamps[i]] = 0;
     }
-    rendered_things_count = 0;
+    rendered_stamps_count = 0;
 }
 
 void R_NearbySprites (void)
@@ -1271,10 +1367,9 @@ void R_NearbySprites (void)
 
     // [FG] sprites in sector have already been projected
     // [MT] the same mobj can be pushed from several touching sectors while its
-    // own sector stays unvisited, so the sector flag alone does not dedup it;
-    // also check the per-context mobj flag that R_ProjectSprite sets.
-    if (!sec->rendervalidcount[r_context->index]
-        && !thing->rendered[r_context->index]) // [MT]
+    // own sector stays unvisited, so the sector stamp alone does not dedup it;
+    // also check the per-context mobj stamp that R_ProjectSprite sets.
+    if (!R_SectorStamped(sec) && !R_ThingRendered(thing))
     {
       R_ProjectSprite(thing, (floorlightlevel + ceilinglightlevel) / 2);
     }

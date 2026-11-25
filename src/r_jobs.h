@@ -11,24 +11,16 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
-#ifndef R_COMMON_H
-#define R_COMMON_H
-
-// [MT] Maximum number of parallel render contexts (column slabs).
-#define MAX_RENDER_CONTEXTS 16
-
-// [MT] Maximum number of sectors one mobj's sprite bounding box is recorded
-// as overlapping, for the wide-sprite sector association used by the
-// multithreaded renderer (see R_SortMobj). Same limit as RNR.
-#define MAX_SECTOR_OVERLAPS 32
+#ifndef R_JOBS_H
+#define R_JOBS_H
 
 // Job system for the multithreaded renderer.
 //
 // A pool of persistent worker threads, each with its own job queue. Jobs are
-// { function pointer, userdata } pairs. I_JobsAdd() dispatches round-robin
+// { function pointer, userdata } pairs. R_JobsAdd() dispatches round-robin
 // over the active workers (or runs the job inline when no workers are
-// active), I_JobsFlush() blocks until every submitted job has finished.
-// Workers sleep on semaphores between jobs - no spin waiting.
+// active); R_JobsFlush() blocks until every submitted job has finished.
+// Workers sleep on their own semaphore between jobs.
 //
 // All calls must be made from the same (main) thread.
 //
