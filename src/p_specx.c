@@ -18,7 +18,7 @@
 
 #include "d_player.h"
 #include "deh_strings.h"
-#include "doomstat.h"
+#include "hu_message.h"
 #include "p_mobj.h"
 #include "p_spec.h"
 #include "r_defs.h"

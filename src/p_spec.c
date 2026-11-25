@@ -1133,9 +1133,15 @@ boolean P_IsTeleportLine(line_t *const line)
 {
     int16_t special = line->special;
 
-    return (!map.param) ? (special == 39 || special == 97 || special == 125
-                           || special == 126)
-                        : (special == 70 | special == 71);
+    return (!map.param)
+               ? (special == 39 || special == 97 || special == 125
+                  || special == 126)
+               : (special == Teleport || special == Teleport_NoFog
+                  || special == Teleport_NewMap || special == Teleport_EndGame
+                  || special == TeleportOther || special == TeleportGroup
+                  || special == TeleportInSector || special == Teleport_NoStop
+                  || special == Teleport_Line);
+    ;
 }
 
 //
@@ -4124,7 +4130,7 @@ static void SpawnScrollers_Classic(void)
             case 1024:
                 if (l->args[0] == 0)
                 {
-                    I_Error("Line %d is missing a tag!", i);
+                    I_Error("Line %zu is missing a tag!", i);
                 }
 
                 s = lines[i].sidenum[0];

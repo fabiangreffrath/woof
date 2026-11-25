@@ -140,6 +140,11 @@ typedef enum mapthing_options_hexen_e
     ZTF_COUNTSECRET = (1u << 15),
 } mapthing_options_hexen_t;
 
+// Shared between Doom and Hexen
+const uint32_t ML_VANILLA =
+    (ML_BLOCKING | ML_BLOCKMONSTERS | ML_TWOSIDED | ML_DONTPEGTOP
+     | ML_DONTPEGBOTTOM | ML_SECRET | ML_SOUNDBLOCK | ML_DONTDRAW | ML_MAPPED);
+
 //-----------------------------------------------------------------------------
 
 void P_DegenMobjThinker(mobj_t *const mobj)

@@ -255,16 +255,6 @@ typedef enum linedef_flags_e
     ML_FIRSTSIDEONLY = (1u << 19),
     // Activating mobj must be within upper/middle/lower texture height bounds
     ML_CHECKSWITCHRANGE = (1u << 20),
-
-    // Masks
-    ML_VANILLA = ML_BLOCKING | ML_BLOCKMONSTERS | ML_TWOSIDED | ML_DONTPEGTOP
-        | ML_DONTPEGBOTTOM | ML_SECRET | ML_SOUNDBLOCK | ML_DONTDRAW
-        | ML_MAPPED,
-    ML_BOOM = ML_PASSUSE | ML_VANILLA,
-    ML_MBF21 = ML_BLOCKPLAYERS | ML_BLOCKLANDMONSTERS | ML_RESERVED | ML_BOOM,
-
-    ML_HEXEN = ML_REPEATSPECIAL | ML_VANILLA,
-    ML_ZDOOM = ML_BLOCKEVERYTHING | ML_MONSTERSCANACTIVATE | ML_HEXEN,
 } linedef_flags_t;
 
 typedef enum spac_e
