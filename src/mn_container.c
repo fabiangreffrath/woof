@@ -210,15 +210,7 @@ static void LayoutPage(mn_menu_t *menu, mn_page_t *page)
 
         if (item->type != ItemType_Title && item->label)
         {
-            int w = 0;
-            if (item->flags & MN_ITEM_BIG_FONT)
-            {
-                w = MN_GetFon2PixelWidth(item->label);
-            }
-            if (!w)
-            {
-                w = MN_GetPixelWidth(item->label);
-            }
+            int w = MN_GetPixelWidth(item->label);
             label_width = MAX(label_width, w);
         }
 
@@ -226,7 +218,7 @@ static void LayoutPage(mn_menu_t *menu, mn_page_t *page)
 
         if (i + 1 != page->num_items)
         {
-            y += menu->item_spacing;
+            y += menu->layout.item_spacing;
         }
     }
 
@@ -257,33 +249,12 @@ static void LayoutPage(mn_menu_t *menu, mn_page_t *page)
 
 static void LayoutTabs(mn_menu_t *menu)
 {
-    int total = 0;
-
     if (!HasTabs(menu))
     {
-        menu->tabbar = (mrect_t){0};
-
-        for (int i = 0; i < MN_MAX_TABS; ++i)
-        {
-            menu->tab_rects[i] = (mrect_t){0};
-        }
-
         return;
     }
 
-    for (int i = 0; i < menu->num_pages && i < MN_MAX_TABS; ++i)
-    {
-        const int width = MN_GetPixelWidth(menu->pages[i].tab);
-
-        if (i)
-        {
-            total += 8;
-        }
-
-        total += width;
-    }
-
-    int x = menu->viewport.x + (menu->viewport.w - total) / 2;
+    int x = menu->viewport.x;
 
     for (int i = 0; i < menu->num_pages && i < MN_MAX_TABS; ++i)
     {
@@ -297,8 +268,6 @@ static void LayoutTabs(mn_menu_t *menu)
         menu->tab_rects[i] = (mrect_t){x, 22, width, MN_SPC};
         x += width;
     }
-
-    menu->tabbar = (mrect_t){menu->viewport.x, 22, menu->viewport.w, MN_SPC};
 }
 
 static void LayoutMenu(mn_menu_t *menu)
@@ -1315,24 +1284,47 @@ static void DrawTabs(const mn_menu_t *menu)
         return;
     }
 
+    int total = 0;
+
+    for (int i = 0; i < menu->num_pages && i < MN_MAX_TABS; ++i)
+    {
+        const mrect_t *rect = &menu->tab_rects[i];
+        if (i)
+        {
+            total += 8;
+        }
+        total += rect->w;
+    }
+
+    const mrect_t *rect = &menu->tab_rects[0];
+    V_ShadeRect(video.deltaw + rect->x, rect->y - MN_PAD,
+                total + 2 * MN_PAD, rect->h + MN_PAD, 60);
+
     for (int i = 0; i < menu->num_pages && i < MN_MAX_TABS; ++i)
     {
         const mrect_t *rect = &menu->tab_rects[i];
 
+        int y = rect->y;
+        int x = rect->x + MN_PAD;
+
         if (i == menu->page)
         {
-            MN_DrawString(rect->x, rect->y, CR_GOLD, menu->pages[i].tab);
-            V_FillRect(rect->x + video.deltaw, rect->y + MN_SPC, rect->w, 1,
-                       MenuColor(CR_GOLD, false));
+            V_ShadeRect(video.deltaw + rect->x, rect->y - MN_PAD,
+                        rect->w + 2 * MN_PAD, rect->h + MN_PAD, 90);
+
+            MN_DrawString(x, y, CR_GOLD, menu->pages[i].tab);
+
+            V_FillRect(video.deltaw + rect->x, y + MN_SPC,
+                       rect->w + 2 * MN_PAD, 1, MenuColor(CR_GOLD, false));
         }
         else if (i == menu->highlight_tab && menu_input == mouse_mode)
         {
-            MN_DrawStringCR(rect->x, rect->y, xlat[CR_GRAY].table,
-                            xlat[CR_BRIGHT].table,  menu->pages[i].tab);
+            MN_DrawStringCR(x, y, xlat[CR_GRAY].table, xlat[CR_BRIGHT].table,
+                            menu->pages[i].tab);
         }
         else
         {
-            MN_DrawString(rect->x, rect->y, CR_GRAY, menu->pages[i].tab);
+            MN_DrawString(x, y, CR_GRAY, menu->pages[i].tab);
         }
     }
 }
@@ -1346,6 +1338,8 @@ static void DrawItemLabel(const mn_item_t *item, const mn_draw_ctx_t *ctx,
         return;
     }
 
+    V_ShadeRect(ctx->x + video.deltaw, ctx->y, ctx->w, ctx->h, 60);
+
     byte *cr = ctx->disabled   ? cr_dark
                : ctx->active   ? xlat[CR_GRAY].table
                : ctx->selected ? xlat[CR_BRIGHT].table
@@ -1357,7 +1351,7 @@ static void DrawItemLabel(const mn_item_t *item, const mn_draw_ctx_t *ctx,
     // the border strip, so the cursor has to follow the text.
     if (item->height > MN_SPC && item->type != ItemType_SaveSlot)
     {
-        y += (item->height - MN_SPC) / 2;
+        y += (item->height - MN_FNT_H) / 2;
     }
 
     if (ctx->selected && whichSkull && menu_input != mouse_mode)
@@ -1365,15 +1359,7 @@ static void DrawItemLabel(const mn_item_t *item, const mn_draw_ctx_t *ctx,
         MN_DrawStringCR(label_x - 8, y, cr, NULL, ">");
     }
 
-    if (item->flags & MN_ITEM_BIG_FONT)
-    {
-        if (MN_DrawFon2String(label_x, y, cr, item->label))
-        {
-            return;
-        }
-    }
-
-    MN_DrawStringCR(label_x, y, cr, NULL, item->label);
+    MN_DrawStringCR(label_x + MN_PAD, y, cr, NULL, item->label);
 }
 
 static void DrawItems(const mn_menu_t *menu)

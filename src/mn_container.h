@@ -17,10 +17,13 @@
 #include "doomtype.h"
 #include "mn_common.h"
 
+#define MN_FNT_H 7
+#define MN_PAD   2
+
 #define MN_SPC        9
-#define MN_SPC_ITEM   (MN_SPC + 3)
-#define MN_SPC_SLIDER (MN_SPC + 5)
-#define MN_SPC_CHOICE (MN_SPC + 3)
+#define MN_SPC_ITEM   (MN_SPC + 4)
+#define MN_SPC_SLIDER (MN_SPC + 4)
+#define MN_SPC_CHOICE (MN_SPC + 4)
 #define MN_MAX_TABS   16
 
 struct event_s;
@@ -60,8 +63,7 @@ typedef enum
     MN_ITEM_DIRECT_COORDS = (1u << 5),
     MN_ITEM_DRAW_CROSSHAIR = (1u << 6),
     MN_ITEM_HIDE_VALUE = (1u << 7),
-    MN_ITEM_BIG_FONT = (1u << 8),
-    MN_ITEM_INVERTED = (1u << 9)
+    MN_ITEM_INVERTED = (1u << 8)
 } mn_item_flags_t;
 
 typedef struct mn_item_ops_s mn_item_ops_t;
@@ -190,6 +192,7 @@ typedef struct
     mn_length_t hint_max_width;
     mn_length_t items_min_width;
     int hint_gap;
+    int item_spacing;
 } mn_layout_t;
 
 struct mn_menu_s
@@ -198,7 +201,6 @@ struct mn_menu_s
     const char *title_text;
     const char *background;
     mn_menu_flags_t flags;
-    int item_spacing;
     mn_layout_t layout;
     boolean init;
 
@@ -211,7 +213,6 @@ struct mn_menu_s
     mn_item_t *active_item;
     mn_item_t *drag_item;
 
-    mrect_t tabbar;
     mrect_t viewport;
     mrect_t hint_rect;
     mrect_t tab_rects[MN_MAX_TABS];
@@ -230,43 +231,6 @@ struct mn_menu_s
 
     void (*ticker)(mn_menu_t *menu);
 };
-
-#define MN_GAP(gap)   {.type = ItemType_Skip, .height = (gap)}
-#define MN_TITLE(txt) {.label = (txt), .type = ItemType_Title}
-
-#define MN_TAB(tab_, items_) \
-    {.tab = (tab_), .items = (items_), .num_items = arrlen(items_)}
-
-#define MN_TOGGLE(lbl, key, desc) \
-    {.label = (lbl),              \
-     .cfg = (key),                \
-     .type = ItemType_Toggle,     \
-     .description = (desc)}
-
-#define MN_TEXT(lbl, key, size, desc) \
-    {.label = (lbl),                  \
-     .cfg = (key),                    \
-     .type = ItemType_Text,           \
-     .choice_size = (size),           \
-     .description = (desc)}
-
-#define MN_CHOICE(lbl, key, strs, size, desc) \
-    {.label = (lbl),                          \
-     .cfg = (key),                            \
-     .type = ItemType_Choice,                 \
-     .choices = (strs),                       \
-     .num_choices = arrlen(strs),             \
-     .choice_size = (size),                   \
-     .description = (desc)}
-#define MN_CHOICE_ACT(lbl, key, strs, size, act, desc) \
-    {.label = (lbl),                                   \
-     .cfg = (key),                                     \
-     .type = ItemType_Choice,                          \
-     .choices = (strs),                                \
-     .num_choices = arrlen(strs),                      \
-     .choice_size = (size),                            \
-     .action = (act),                                  \
-     .description = (desc)}
 
 typedef enum
 {
@@ -326,5 +290,56 @@ void MN_DisableItemInternal(boolean condition, const char *names[], int size);
                                / sizeof(const char *))
 
 void MN_BindMenuVariables(void);
+
+#define MN_LAYOUT                   \
+    {.max_width = MN_PX(500),       \
+     .items_min_width = MN_PX(246), \
+     .value_column = MN_PX(145),    \
+     .item_spacing = 1}
+
+#define MN_GAP(gap)   {.type = ItemType_Skip, .height = (gap)}
+#define MN_TITLE(txt) {.label = (txt), .type = ItemType_Title}
+
+#define MN_TAB(tab_, items_) \
+    {.tab = (tab_), .items = (items_), .num_items = arrlen(items_)}
+
+static const char *offon_strings[] = {"Off", "On"};
+
+#define MN_CHOICE_SIZE 10
+
+#define MN_TOGGLE(lbl, key, desc)          \
+    {.label = (lbl),                       \
+     .cfg = (key),                         \
+     .type = ItemType_Choice,              \
+     .choices = offon_strings,             \
+     .num_choices = arrlen(offon_strings), \
+     .choice_size = MN_CHOICE_SIZE,        \
+     .description = (desc)}
+
+#define MN_TEXT(lbl, key, size, desc) \
+    {.label = (lbl),                  \
+     .cfg = (key),                    \
+     .type = ItemType_Text,           \
+     .choice_size = (size),           \
+     .description = (desc)}
+
+#define MN_CHOICE(lbl, key, strs, desc) \
+    {.label = (lbl),                    \
+     .cfg = (key),                      \
+     .type = ItemType_Choice,           \
+     .choices = (strs),                 \
+     .num_choices = arrlen(strs),       \
+     .choice_size = MN_CHOICE_SIZE,     \
+     .description = (desc)}
+
+#define MN_CHOICE_ACT(lbl, key, strs, act, desc) \
+    {.label = (lbl),                             \
+     .cfg = (key),                               \
+     .type = ItemType_Choice,                    \
+     .choices = (strs),                          \
+     .num_choices = arrlen(strs),                \
+     .choice_size = MN_CHOICE_SIZE,              \
+     .action = (act),                            \
+     .description = (desc)}
 
 #endif

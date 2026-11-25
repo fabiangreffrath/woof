@@ -1794,7 +1794,7 @@ static void DrawMiniMap(int x1, int y1, int *x2, int *y2, boolean dry,
     }
     else if (mm->background == sbmm_background_dark && !MN_MenuIsShaded())
     {
-        V_ShadeRect(x1, y1, width, height);
+        V_ShadeRect(x1, y1, width, height, 65);
     }
 
     vrect_t rect = {.x = x1, .y = y1, .w = width, .h = height};

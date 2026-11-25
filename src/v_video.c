@@ -685,7 +685,7 @@ void V_FillRect(int x, int y, int width, int height, byte color)
     }
 }
 
-void V_ShadeRect(int x, int y, int width, int height)
+void V_ShadeRect(int x, int y, int width, int height, int opacity)
 {
     vrect_t dstrect;
 
@@ -706,7 +706,9 @@ void V_ShadeRect(int x, int y, int width, int height)
 
     pixel_t *col = V_ADDRESS(dest_screen, dstrect.sx, dstrect.sy);
 
-    const byte *darkcolormap = &colormaps[0][PLAYPAL_SIZE * 20];
+    int index = clampi(31 * opacity / 100, 1, 31);
+
+    const byte *darkcolormap = &colormaps[0][PLAYPAL_SIZE * index];
 
     while (dstrect.sw--)
     {
@@ -725,7 +727,7 @@ void V_ShadeRect(int x, int y, int width, int height)
 
 void V_ShadeScreen(void)
 {
-    V_ShadeRect(0, 0, video.unscaledw, SCREENHEIGHT);
+    V_ShadeRect(0, 0, video.unscaledw, SCREENHEIGHT, 65);
 }
 
 //

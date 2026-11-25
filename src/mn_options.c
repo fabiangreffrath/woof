@@ -150,13 +150,15 @@ static byte *ValueColor(const mn_draw_ctx_t *ctx)
 
 static void DrawValueString(const mn_draw_ctx_t *ctx, const char *text)
 {
-    MN_DrawStringCR(ctx->value_x, ctx->y, xlat[CR_GREEN].table, ValueColor(ctx),
-                    text);
+    int y = ctx->y + (ctx->h - MN_FNT_H) / 2;
+    MN_DrawStringCR(ctx->value_x, y, xlat[CR_GREEN].table, ValueColor(ctx), text);
 }
 
 static void TitleDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
 {
-    MN_DrawString(ctx->x, ctx->y, CR_GOLD, item->label);
+    int x = ctx->x + MN_PAD;
+    int y = ctx->y + (ctx->h - MN_FNT_H) / 2;
+    MN_DrawString(x, y, CR_GOLD, item->label);
 }
 
 static boolean TitleRespond(mn_item_t *item, menu_action_t action, int ch)
@@ -445,8 +447,10 @@ static boolean TextInput(mn_item_t *item, const struct event_s *ev,
 enum
 {
     CHOICE_ARROW_W = 8,
+    CHOICE_ARROW_BG = MN_SPC_CHOICE,
     CHOICE_PADDING = 2,
     CHOICE_SEG_W = 4,
+    CHOICE_SEG_MAX_W = 32,
     CHOICE_SEG_GAP = 2,
     CHOICE_MIN_VISIBLE = 2,
     CHOICE_MAX_VISIBLE = 32,
@@ -500,12 +504,14 @@ static choice_layout_t ChoiceLayout(const mn_item_t *item)
                            l.text_w - (l.visible - 1) * l.gap);
 
     l.seg_w = usable / l.visible;
+    l.seg_w = MIN(l.seg_w, CHOICE_SEG_MAX_W);
     l.seg_extra = usable % l.visible;
     l.text_h = (item->flags & MN_ITEM_TWO_LINES) ? 2 * MN_SPC : MN_SPC;
 
     l.x = item->draw_value_x;
-    l.text_x = l.x + CHOICE_ARROW_W + CHOICE_PADDING;
-    l.bar_x = l.text_x;
+    l.text_x = l.x + CHOICE_ARROW_BG + CHOICE_PADDING;
+    l.bar_x = l.text_x + l.text_w / 2
+              - (l.seg_w * l.visible + CHOICE_SEG_GAP * (l.visible - 1)) / 2;
 
     return l;
 }
@@ -549,14 +555,14 @@ static int ChoiceArrowAt(const mn_item_t *item, int mouse_x)
     const choice_layout_t l = ChoiceLayout(item);
     int rel_x = mouse_x - video.deltaw - l.x;
 
-    if (rel_x >= 0 && rel_x < CHOICE_ARROW_W + CHOICE_PADDING)
+    if (rel_x >= 0 && rel_x < CHOICE_ARROW_BG + CHOICE_PADDING)
     {
         return 0;
     }
 
-    rel_x -= CHOICE_ARROW_W + CHOICE_PADDING + l.text_w + CHOICE_PADDING;
+    rel_x -= CHOICE_ARROW_BG + CHOICE_PADDING + l.text_w + CHOICE_PADDING;
 
-    if (rel_x >= 0 && rel_x < CHOICE_ARROW_W + CHOICE_PADDING)
+    if (rel_x >= 0 && rel_x < CHOICE_ARROW_BG + CHOICE_PADDING)
     {
         return 1;
     }
@@ -585,6 +591,7 @@ static void ChoiceDrawText(const mn_item_t *item, const choice_layout_t *l,
     if (!(item->flags & MN_ITEM_TWO_LINES))
     {
         MN_TruncateText(buffer, l->text_w);
+        y += MAX(0, (item->height - MN_FNT_H) / 2);
         MN_DrawStringCR(
             l->text_x + (l->text_w - MN_GetPixelWidth(buffer)) / 2, y,
             xlat[CR_GREEN].table, cr, buffer);
@@ -595,7 +602,7 @@ static void ChoiceDrawText(const mn_item_t *item, const choice_layout_t *l,
     const int draw_lines = MIN(num_lines, 2);
     int start = 0;
 
-    y += MAX(0, (l->text_h - draw_lines * MN_SPC) / 2);
+    y += MAX(0, (item->height - draw_lines * MN_FNT_H) / 2);
 
     for (int i = 0; i < draw_lines && buffer[start]; ++i)
     {
@@ -629,24 +636,29 @@ static void ChoiceDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
     const int value = OptionValue(item);
     const choice_layout_t l = ChoiceLayout(item);
     const int y = ctx->y;
-    const int arrow_y = y + (l.text_h - MN_SPC) / 2;
+    const int arrow_y = y + (item->height - MN_FNT_H) / 2;
     const int arrow = ChoiceHoverArrow(item, ctx);
     byte *cr = ValueColor(ctx);
 
+    const int arrow_bg = CHOICE_ARROW_BG;
+
+    V_ShadeRect(video.deltaw + l.x, ctx->y, arrow_bg, arrow_bg, 90);
+
+    int arrow_x = l.x + (arrow_bg - 5) / 2;
+
     if (arrow == 0)
     {
-        MN_DrawStringCR(l.x, arrow_y, xlat[CR_GRAY].table, NULL, "<");
+        MN_DrawStringCR(arrow_x, arrow_y, xlat[CR_GRAY].table, NULL, "<");
     }
     else
     {
-        MN_DrawStringCR(l.x, arrow_y, xlat[CR_GREEN].table, cr, "<");
+        MN_DrawStringCR(arrow_x, arrow_y, xlat[CR_GREEN].table, cr, "<");
     }
 
     ChoiceDrawText(item, &l, y, ChoiceText(item, value), cr);
 
     const byte dark = cr_dark[playpal_global->white];
-    const byte shade = cr_shaded[playpal_global->white];
-    const int bar_y = y + l.text_h;
+    const int bar_y = y + item->height - 2;
     int seg_x = l.bar_x;
 
     for (int i = 0; i < l.visible; ++i)
@@ -672,15 +684,19 @@ static void ChoiceDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
         seg_x += seg_w + l.gap;
     }
 
+    arrow_x = l.text_x + l.text_w + 2 * CHOICE_PADDING;
+
+    V_ShadeRect(video.deltaw + arrow_x, ctx->y, arrow_bg, arrow_bg, 90);
+
+    arrow_x += (CHOICE_ARROW_BG - 5) / 2;
+
     if (arrow == 1)
     {
-        MN_DrawStringCR(l.text_x + l.text_w + CHOICE_PADDING, arrow_y,
-                        xlat[CR_GRAY].table, NULL, ">");
+        MN_DrawStringCR(arrow_x, arrow_y, xlat[CR_GRAY].table, NULL, ">");
     }
     else
     {
-        MN_DrawStringCR(l.text_x + l.text_w + CHOICE_PADDING, arrow_y,
-                        xlat[CR_GREEN].table, cr, ">");
+        MN_DrawStringCR(arrow_x, arrow_y, xlat[CR_GREEN].table, cr, ">");
     }
 }
 
@@ -785,7 +801,7 @@ static void SliderDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
 
     const int size = item->slider_size ? item->slider_size : 8;
     const int text_x = ctx->value_x + SliderPixelWidth(size);
-    const int text_y = ctx->y + (MN_SPC_SLIDER - MN_SPC) / 2;
+    const int text_y = ctx->y + (item->height - MN_FNT_H) / 2;
 
     MN_DrawStringCR(text_x, text_y, xlat[CR_GREEN].table, ValueColor(ctx), buffer);
 }

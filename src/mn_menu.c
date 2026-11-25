@@ -2463,7 +2463,7 @@ void M_Drawer(void)
 
     if (MN_MenuIsShaded())
     {
-        V_ShadeScreen();
+        V_ShadeRect(0, 0, video.unscaledw, SCREENHEIGHT, 30);
     }
 
     if (MN_ContainerActive())
