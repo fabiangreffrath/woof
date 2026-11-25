@@ -143,6 +143,8 @@ struct mn_page_s
     int selected;
     int scroll;
     int scroll_target;
+    int scroll_start;
+    int scroll_anim_start_ms;
     int content_h;
     int label_width;
 
@@ -217,6 +219,7 @@ struct mn_menu_s
 
     mrect_t scroll_track;
     mrect_t scroll_thumb;
+    mrect_t scroll_hit;
     boolean dragging_scroll;
     int drag_offset;
 

@@ -10,12 +10,7 @@
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //  GNU General Public License for more details.
-//
-// DESCRIPTION:
-//  Small tabbed/page container with smooth scrolling.
-//
 
-#include <stdlib.h>
 #include <string.h>
 
 #include "d_event.h"
@@ -24,6 +19,7 @@
 #include "doomtype.h"
 #include "i_gamepad.h"
 #include "i_system.h"
+#include "i_timer.h"
 #include "m_config.h"
 #include "m_input.h"
 #include "m_misc.h"
@@ -543,6 +539,8 @@ static void ResetMenuState(mn_menu_t *menu)
 
         page->scroll = 0;
         page->scroll_target = 0;
+        page->scroll_start = 0;
+        page->scroll_anim_start_ms = 0;
     }
 }
 
@@ -771,6 +769,12 @@ static void UpdateScrollbar(mn_menu_t *menu)
                                    4,
                                    menu->viewport.h};
 
+    // Wider hit area for easier mouse dragging (visual stays 4px)
+    menu->scroll_hit = (mrect_t){menu->viewport.x + menu->viewport.w + 2,
+                                  menu->viewport.y,
+                                  12,
+                                  menu->viewport.h};
+
     const int thumb_y = menu->scroll_track.y
                         + page->scroll * (menu->scroll_track.h - thumb_h) / max;
 
@@ -778,7 +782,7 @@ static void UpdateScrollbar(mn_menu_t *menu)
         (mrect_t){menu->scroll_track.x, thumb_y, menu->scroll_track.w, thumb_h};
 }
 
-static void ScrollToThumb(mn_menu_t *menu, int mouse_y)
+static void ScrollToThumb(mn_menu_t *menu, int mouse_y, boolean instant)
 {
     mn_page_t *page = &menu->pages[menu->page];
     const int max = MaxScroll(menu, page);
@@ -792,8 +796,16 @@ static void ScrollToThumb(mn_menu_t *menu, int mouse_y)
     int value =
         (mouse_y - menu->scroll_track.y - menu->drag_offset) * max / range;
 
-    page->scroll = CLAMP(value, 0, max);
-    page->scroll_target = page->scroll;
+    page->scroll_target = CLAMP(value, 0, max);
+    if (instant)
+    {
+        page->scroll = page->scroll_target;
+        page->scroll_anim_start_ms = 0;
+    }
+    else
+    {
+        page->scroll_anim_start_ms = 0; // restart animation
+    }
 }
 
 void MN_ContainerOpen(mn_menu_t *menu)
@@ -1088,7 +1100,7 @@ void MN_ContainerMouseMove(int x, int y)
 
     if (active_menu->dragging_scroll)
     {
-        ScrollToThumb(active_menu, y);
+        ScrollToThumb(active_menu, y, true);
     }
 
     int highlight_tab = -1;
@@ -1175,12 +1187,23 @@ mn_container_result_t MN_ContainerMouseButton(int button, boolean down)
         return MN_CONTAINER_HANDLED;
     }
 
-    if (MN_ContainerPointInside(&menu->scroll_track, last_mouse_x,
+    // Wider hit area for thumb
+    mrect_t thumb_hit = menu->scroll_thumb;
+    thumb_hit.x -= 4;
+    thumb_hit.w += 8;
+    if (MN_ContainerPointInside(&thumb_hit, last_mouse_x, last_mouse_y))
+    {
+        menu->dragging_scroll = true;
+        menu->drag_offset = last_mouse_y - menu->scroll_thumb.y;
+        return MN_CONTAINER_HANDLED;
+    }
+
+    if (MN_ContainerPointInside(&menu->scroll_hit, last_mouse_x,
                                 last_mouse_y))
     {
         menu->dragging_scroll = true;
         menu->drag_offset = menu->scroll_thumb.h / 2;
-        ScrollToThumb(menu, last_mouse_y);
+        ScrollToThumb(menu, last_mouse_y, true);
         return MN_CONTAINER_HANDLED;
     }
 
@@ -1268,30 +1291,6 @@ void MN_ContainerTicker(void)
     if (active_menu->ticker)
     {
         active_menu->ticker(active_menu);
-    }
-
-    mn_page_t *page = &active_menu->pages[active_menu->page];
-
-    if (page->scroll != page->scroll_target)
-    {
-        const int diff = page->scroll_target - page->scroll;
-        int step = diff / 3;
-
-        if (step == 0 && diff != 0)
-        {
-            step = diff > 0 ? 1 : -1;
-        }
-        else if (abs(step) < 2 && abs(diff) > 3)
-        {
-            step = diff > 0 ? 2 : -2;
-        }
-
-        page->scroll += step;
-
-        if (abs(page->scroll_target - page->scroll) <= 2)
-        {
-            page->scroll = page->scroll_target;
-        }
     }
 }
 
@@ -1773,6 +1772,11 @@ void MN_DrawNotification(const char *text, int color, boolean blink)
     }
 }
 
+static double EaseOutQuad(double x)
+{
+    return 1.0 - (1.0 - x) * (1.0 - x);
+}
+
 void MN_ContainerDrawer(void)
 {
     if (!active_menu)
@@ -1781,6 +1785,32 @@ void MN_ContainerDrawer(void)
     }
 
     mn_menu_t *menu = active_menu;
+
+    mn_page_t *page = &menu->pages[menu->page];
+    if (page->scroll != page->scroll_target)
+    {
+        if (page->scroll_anim_start_ms == 0)
+        {
+            page->scroll_start = page->scroll;
+            page->scroll_anim_start_ms = I_GetTimeMS();
+        }
+
+        const int elapsed = I_GetTimeMS() - page->scroll_anim_start_ms;
+        const double progress = MIN(1.0f, elapsed / 170.0f); // 170ms duration
+        const double eased = EaseOutQuad(progress);
+        page->scroll = page->scroll_start
+                       + (int)((page->scroll_target - page->scroll_start) * eased);
+
+        if (progress >= 1.0f)
+        {
+            page->scroll = page->scroll_target;
+            page->scroll_anim_start_ms = 0;
+        }
+    }
+    else
+    {
+        page->scroll_anim_start_ms = 0;
+    }
 
     if (menu_backdrop == MENU_BG_TEXTURE && menu->background)
     {
