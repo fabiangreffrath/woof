@@ -247,6 +247,101 @@ static void LayoutPage(mn_menu_t *menu, mn_page_t *page)
     ClampScroll(menu, page);
 }
 
+enum
+{
+    MN_TAB_GAP = 8
+};
+
+static int TabBarWidth(const char *const *labels, int count)
+{
+    int total = 0;
+
+    for (int i = 0; i < count; ++i)
+    {
+        total += MN_GetPixelWidth(labels[i]);
+
+        if (i)
+        {
+            total += MN_TAB_GAP;
+        }
+    }
+
+    return total;
+}
+
+static void LayoutTabBar(mn_tabbar_t *bar, const char *const *labels, int count,
+                         int x, int y)
+{
+    for (int i = 0; i < count; ++i)
+    {
+        const int width = MN_GetPixelWidth(labels[i]);
+
+        if (i)
+        {
+            x += MN_TAB_GAP;
+        }
+
+        bar->rects[i] = (mrect_t){x, y, width, MN_SPC};
+        x += width;
+    }
+}
+
+static void DrawTabBar(const mn_tabbar_t *bar, const char *const *labels,
+                       int count, int active)
+{
+    const mrect_t *first = &bar->rects[0];
+
+    V_ShadeRect(video.deltaw + first->x, first->y - MN_PAD,
+                TabBarWidth(labels, count) + 2 * MN_PAD,
+                first->h + MN_PAD, 60);
+
+    for (int i = 0; i < count; ++i)
+    {
+        const mrect_t *rect = &bar->rects[i];
+
+        const int y = rect->y;
+        const int x = rect->x + MN_PAD;
+
+        if (i == active)
+        {
+            V_ShadeRect(video.deltaw + rect->x, rect->y - MN_PAD,
+                        rect->w + 2 * MN_PAD, rect->h + MN_PAD, 90);
+
+            MN_DrawString(x, y, CR_GOLD, labels[i]);
+
+            V_FillRect(video.deltaw + rect->x, y + MN_SPC,
+                       rect->w + 2 * MN_PAD, 1, MenuColor(CR_GOLD, false));
+        }
+        else if (i == bar->highlight && menu_input == mouse_mode)
+        {
+            MN_DrawStringCR(x, y, xlat[CR_GRAY].table, xlat[CR_BRIGHT].table,
+                            labels[i]);
+        }
+        else
+        {
+            MN_DrawString(x, y, CR_GRAY, labels[i]);
+        }
+    }
+}
+
+static int TabBarHit(const mn_tabbar_t *bar, int count, int x, int y)
+{
+    for (int i = 0; i < count; ++i)
+    {
+        if (MN_ContainerPointInside(&bar->rects[i], x, y))
+        {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+static int PageTabCount(const mn_menu_t *menu)
+{
+    return MIN(menu->num_pages, MN_MAX_TABS);
+}
+
 static void LayoutTabs(mn_menu_t *menu)
 {
     if (!HasTabs(menu))
@@ -254,20 +349,52 @@ static void LayoutTabs(mn_menu_t *menu)
         return;
     }
 
-    int x = menu->viewport.x;
+    const char *labels[MN_MAX_TABS];
+    const int count = PageTabCount(menu);
 
-    for (int i = 0; i < menu->num_pages && i < MN_MAX_TABS; ++i)
+    for (int i = 0; i < count; ++i)
     {
-        const int width = MN_GetPixelWidth(menu->pages[i].tab);
-
-        if (i)
-        {
-            x += 8;
-        }
-
-        menu->tab_rects[i] = (mrect_t){x, 22, width, MN_SPC};
-        x += width;
+        labels[i] = menu->pages[i].tab;
     }
+
+    LayoutTabBar(&menu->page_tabs, labels, count, menu->viewport.x, 22);
+}
+
+static int MenuTabCount(const mn_menu_t *menu)
+{
+    return menu->group ? MIN(menu->group->num_menus, MN_MAX_TABS) : 0;
+}
+
+static int ActiveMenuTab(const mn_menu_t *menu)
+{
+    for (int i = 0; i < MenuTabCount(menu); ++i)
+    {
+        if (menu->group->menus[i] == menu)
+        {
+            return i;
+        }
+    }
+
+    return menu->group->current;
+}
+
+static void LayoutMenuTabs(mn_menu_t *menu)
+{
+    const int count = MenuTabCount(menu);
+
+    if (count <= 0)
+    {
+        return;
+    }
+
+    const char *labels[MN_MAX_TABS];
+
+    for (int i = 0; i < count; ++i)
+    {
+        labels[i] = menu->group->menus[i]->title_text;
+    }
+
+    LayoutTabBar(&menu->menu_tabs, labels, count, menu->viewport.x, 6);
 }
 
 static void LayoutMenu(mn_menu_t *menu)
@@ -353,6 +480,7 @@ static void LayoutMenu(mn_menu_t *menu)
 
     menu->viewport = (mrect_t){left, top, viewport_w, height};
 
+    LayoutMenuTabs(menu);
     LayoutTabs(menu);
 
     for (int i = 0; i < menu->num_pages; ++i)
@@ -506,7 +634,8 @@ static void ResetMenuState(mn_menu_t *menu)
     menu->drag_item = NULL;
     menu->dragging_scroll = false;
     menu->confirm = false;
-    menu->highlight_tab = -1;
+    menu->page_tabs.highlight = -1;
+    menu->menu_tabs.highlight = -1;
 
     for (int i = 0; i < menu->num_pages; ++i)
     {
@@ -556,7 +685,8 @@ static boolean PopMenu(void)
     active_menu->drag_item = NULL;
     active_menu->dragging_scroll = false;
     active_menu->confirm = false;
-    active_menu->highlight_tab = -1;
+    active_menu->page_tabs.highlight = -1;
+    active_menu->menu_tabs.highlight = -1;
 
     LayoutMenu(active_menu);
     EnsureValidSelection(active_menu, active_menu->page);
@@ -578,25 +708,76 @@ static mn_container_result_t ContainerBack(void)
     return MN_CONTAINER_HANDLED;
 }
 
-static boolean NextPage(mn_menu_t *menu, int direction)
+static void NextPage(mn_menu_t *menu, int direction)
 {
-    const int page = menu->page + direction;
-
-    if (page < 0 || page >= menu->num_pages)
+    if (menu->num_pages <= 1)
     {
-        return false;
+        return;
     }
 
     CancelActiveItem(menu);
 
-    menu->page = page;
+    menu->page =
+        (menu->page + direction + menu->num_pages) % menu->num_pages;
     menu->hover = -1;
     menu->help_hover = -1;
-    EnsureValidSelection(menu, page);
-    MN_ContainerEnsureVisible(
-        &menu->pages[page].items[menu->pages[page].selected]);
+    EnsureValidSelection(menu, menu->page);
+
+    mn_page_t *page = &menu->pages[menu->page];
+
+    if (page->num_items > 0)
+    {
+        MN_ContainerEnsureVisible(&page->items[page->selected]);
+    }
+
     M_StartSound(sfx_mnumov);
-    return true;
+}
+
+static void ShowMenuTab(mn_menu_t *menu, int index)
+{
+    const int count = MenuTabCount(menu);
+
+    if (index < 0 || index >= count)
+    {
+        return;
+    }
+
+    if (index == ActiveMenuTab(menu))
+    {
+        return;
+    }
+
+    FlushItemAction(menu->drag_item);
+    CancelActiveItem(menu);
+
+    menu->drag_item = NULL;
+    menu->dragging_scroll = false;
+    menu->hover = -1;
+    menu->help_hover = -1;
+    menu->page_tabs.highlight = -1;
+    menu->menu_tabs.highlight = -1;
+
+    menu->group->current = index;
+    active_menu = menu->group->menus[index];
+    FlushItemAction(active_menu->drag_item);
+    active_menu->hover = -1;
+    active_menu->help_hover = -1;
+    active_menu->drag_item = NULL;
+    active_menu->dragging_scroll = false;
+    active_menu->page_tabs.highlight = -1;
+    active_menu->menu_tabs.highlight = -1;
+
+    LayoutMenu(active_menu);
+    EnsureValidSelection(active_menu, active_menu->page);
+
+    mn_page_t *page = &active_menu->pages[active_menu->page];
+
+    if (page->num_items > 0)
+    {
+        MN_ContainerEnsureVisible(&page->items[page->selected]);
+    }
+
+    M_StartSound(sfx_mnumov);
 }
 
 static void ActivateItem(mn_menu_t *menu, int index)
@@ -783,6 +964,17 @@ void MN_ContainerOpen(mn_menu_t *menu)
 
     menu_depth = 0;
     EnterMenu(menu);
+}
+
+void MN_ContainerOpenGroup(mn_menugroup_t *group)
+{
+    if (!group || group->num_menus <= 0)
+    {
+        return;
+    }
+
+    group->current = CLAMP(group->current, 0, group->num_menus - 1);
+    MN_ContainerOpen(group->menus[group->current]);
 }
 
 void MN_ContainerClose(void)
@@ -991,6 +1183,21 @@ mn_container_result_t MN_ContainerResponder(menu_action_t action, int ch)
         return ContainerBack();
     }
 
+    if (action == MENU_TAB_LEFT || action == MENU_TAB_RIGHT)
+    {
+        const int count = MenuTabCount(menu);
+
+        if (count > 1)
+        {
+            const int step = (action == MENU_TAB_RIGHT) ? 1 : -1;
+            const int index = (ActiveMenuTab(menu) + step + count) % count;
+
+            ShowMenuTab(menu, index);
+        }
+
+        return MN_CONTAINER_HANDLED;
+    }
+
     if (page->num_items <= 0)
     {
         return MN_CONTAINER_HANDLED;
@@ -1025,13 +1232,13 @@ mn_container_result_t MN_ContainerResponder(menu_action_t action, int ch)
         return MN_CONTAINER_HANDLED;
     }
 
-    if (action == MENU_TAB_LEFT)
+    if (action == MENU_PAGE_LEFT)
     {
         NextPage(menu, -1);
         return MN_CONTAINER_HANDLED;
     }
 
-    if (action == MENU_TAB_RIGHT)
+    if (action == MENU_PAGE_RIGHT)
     {
         NextPage(menu, 1);
         return MN_CONTAINER_HANDLED;
@@ -1086,22 +1293,28 @@ void MN_ContainerMouseMove(int x, int y)
         ScrollToThumb(active_menu, y, true);
     }
 
-    int highlight_tab = -1;
-    for (int i = 0; i < active_menu->num_pages && i < MN_MAX_TABS; ++i)
+    const int page_tab =
+        TabBarHit(&active_menu->page_tabs, PageTabCount(active_menu), x, y);
+    const int menu_tab =
+        TabBarHit(&active_menu->menu_tabs, MenuTabCount(active_menu), x, y);
+
+    if (page_tab != active_menu->page
+        && page_tab != active_menu->page_tabs.highlight)
     {
-        mrect_t *rect = &active_menu->tab_rects[i];
-        if (MN_ContainerPointInside(rect, x, y))
+        active_menu->page_tabs.highlight = page_tab;
+
+        if (page_tab >= 0)
         {
-            highlight_tab = i;
-            break;
+            M_StartSound(sfx_mnusel);
         }
     }
 
-    if (highlight_tab != active_menu->page &&
-        highlight_tab != active_menu->highlight_tab)
+    if (menu_tab != ActiveMenuTab(active_menu)
+        && menu_tab != active_menu->menu_tabs.highlight)
     {
-        active_menu->highlight_tab = highlight_tab;
-        if (highlight_tab >= 0)
+        active_menu->menu_tabs.highlight = menu_tab;
+
+        if (menu_tab >= 0)
         {
             M_StartSound(sfx_mnusel);
         }
@@ -1190,22 +1403,36 @@ mn_container_result_t MN_ContainerMouseButton(int button, boolean down)
         return MN_CONTAINER_HANDLED;
     }
 
-    for (int i = 0; i < menu->num_pages && i < MN_MAX_TABS; ++i)
+    const int menu_tab = TabBarHit(&menu->menu_tabs, MenuTabCount(menu),
+                                   last_mouse_x, last_mouse_y);
+
+    if (menu_tab >= 0)
     {
-        if (MN_ContainerPointInside(&menu->tab_rects[i], last_mouse_x,
-                                    last_mouse_y))
+        ShowMenuTab(menu, menu_tab);
+        return MN_CONTAINER_HANDLED;
+    }
+
+    const int page_tab = TabBarHit(&menu->page_tabs, PageTabCount(menu),
+                                   last_mouse_x, last_mouse_y);
+
+    if (page_tab >= 0)
+    {
+        CancelActiveItem(menu);
+        menu->page = page_tab;
+        menu->hover = -1;
+        menu->help_hover = -1;
+        menu->page_tabs.highlight = -1;
+        EnsureValidSelection(menu, page_tab);
+
+        mn_page_t *tab_page = &menu->pages[page_tab];
+
+        if (tab_page->num_items > 0)
         {
-            CancelActiveItem(menu);
-            menu->page = i;
-            menu->hover = -1;
-            menu->help_hover = -1;
-            menu->highlight_tab = -1;
-            EnsureValidSelection(menu, i);
-            MN_ContainerEnsureVisible(
-                &menu->pages[i].items[menu->pages[i].selected]);
-            M_StartSound(sfx_mnumov);
-            return MN_CONTAINER_HANDLED;
+            MN_ContainerEnsureVisible(&tab_page->items[tab_page->selected]);
         }
+
+        M_StartSound(sfx_mnumov);
+        return MN_CONTAINER_HANDLED;
     }
 
     MouseSelect(menu, last_mouse_x, last_mouse_y);
@@ -1284,49 +1511,34 @@ static void DrawTabs(const mn_menu_t *menu)
         return;
     }
 
-    int total = 0;
+    const char *labels[MN_MAX_TABS];
+    const int count = PageTabCount(menu);
 
-    for (int i = 0; i < menu->num_pages && i < MN_MAX_TABS; ++i)
+    for (int i = 0; i < count; ++i)
     {
-        const mrect_t *rect = &menu->tab_rects[i];
-        if (i)
-        {
-            total += 8;
-        }
-        total += rect->w;
+        labels[i] = menu->pages[i].tab;
     }
 
-    const mrect_t *rect = &menu->tab_rects[0];
-    V_ShadeRect(video.deltaw + rect->x, rect->y - MN_PAD,
-                total + 2 * MN_PAD, rect->h + MN_PAD, 60);
+    DrawTabBar(&menu->page_tabs, labels, count, menu->page);
+}
 
-    for (int i = 0; i < menu->num_pages && i < MN_MAX_TABS; ++i)
+static void DrawMenuTabs(const mn_menu_t *menu)
+{
+    const int count = MenuTabCount(menu);
+
+    if (count <= 0)
     {
-        const mrect_t *rect = &menu->tab_rects[i];
-
-        int y = rect->y;
-        int x = rect->x + MN_PAD;
-
-        if (i == menu->page)
-        {
-            V_ShadeRect(video.deltaw + rect->x, rect->y - MN_PAD,
-                        rect->w + 2 * MN_PAD, rect->h + MN_PAD, 90);
-
-            MN_DrawString(x, y, CR_GOLD, menu->pages[i].tab);
-
-            V_FillRect(video.deltaw + rect->x, y + MN_SPC,
-                       rect->w + 2 * MN_PAD, 1, MenuColor(CR_GOLD, false));
-        }
-        else if (i == menu->highlight_tab && menu_input == mouse_mode)
-        {
-            MN_DrawStringCR(x, y, xlat[CR_GRAY].table, xlat[CR_BRIGHT].table,
-                            menu->pages[i].tab);
-        }
-        else
-        {
-            MN_DrawString(x, y, CR_GRAY, menu->pages[i].tab);
-        }
+        return;
     }
+
+    const char *labels[MN_MAX_TABS];
+
+    for (int i = 0; i < count; ++i)
+    {
+        labels[i] = menu->group->menus[i]->title_text;
+    }
+
+    DrawTabBar(&menu->menu_tabs, labels, count, ActiveMenuTab(menu));
 }
 
 static void DrawItemLabel(const mn_item_t *item, const mn_draw_ctx_t *ctx,
@@ -1438,7 +1650,6 @@ static mn_menu_t *all_menus[] = {
     &input_bindings_menu,
     &interface_menu,
     &gameplay_menu,
-    &options_menu,
     &multiplayer_menu,
 
     &csmenu_menu,
@@ -1792,7 +2003,15 @@ void MN_ContainerDrawer(void)
         V_DrawBackground(menu->background);
     }
 
-    MN_DrawTitle(M_X_CENTER, 2, menu->title_patch, menu->title_text);
+    if (MenuTabCount(menu) > 0)
+    {
+        DrawMenuTabs(menu);
+    }
+    else
+    {
+        MN_DrawTitle(M_X_CENTER, 2, menu->title_patch, menu->title_text);
+    }
+
     DrawTabs(menu);
 
     V_SetClipY(menu->viewport.y, menu->viewport.y + menu->viewport.h);

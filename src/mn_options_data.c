@@ -41,14 +41,22 @@
 #define MN_RESET \
     {.label = "", .type = ItemType_Reset, .flags = MN_ITEM_DIRECT_COORDS}
 
+// The tabs above the options pages; each one switches to a whole menu.
+static mn_menu_t *const options_menus[] = {
+    &video_menu,
+    &audio_menu,
+    &controls_menu,
+    &gameplay_menu,
+    &interface_menu,
+};
+
+mn_menugroup_t options_group = {
+    .menus = options_menus,
+    .num_menus = arrlen(options_menus)
+};
+
 #define MN_SUBMENU(lbl, menu) \
     {.label = (lbl), .type = ItemType_SubMenu, .submenu = (menu)}
-
-#define MN_MENU(lbl, menu)        \
-    {.label = (lbl),              \
-     .type = ItemType_SubMenu,    \
-     .submenu = (menu),           \
-     .flags = MN_ITEM_HIDE_VALUE}
 
 #define MN_INPUT(lbl, id, grp) \
     {.label = (lbl),           \
@@ -389,6 +397,7 @@ mn_menu_t video_menu = {
     .background = "FLOOR4_6",
     .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
     .layout = MN_LAYOUT,
+    .group = &options_group,
     .pages = video_pages,
     .num_pages = arrlen(video_pages),
 };
@@ -404,6 +413,7 @@ mn_menu_t audio_menu = {
     .background = "FLOOR4_6",
     .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
     .layout = MN_LAYOUT,
+    .group = &options_group,
     .pages = audio_pages,
     .num_pages = arrlen(audio_pages),
 };
@@ -807,6 +817,7 @@ mn_menu_t controls_menu = {
     .background = "FLOOR4_6",
     .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
     .layout = MN_LAYOUT,
+    .group = &options_group,
     .pages = controls_pages,
     .num_pages = arrlen(controls_pages),
 };
@@ -935,6 +946,7 @@ mn_menu_t interface_menu = {
     .background = "FLOOR4_6",
     .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
     .layout = MN_LAYOUT,
+    .group = &options_group,
     .pages = interface_pages,
     .num_pages = arrlen(interface_pages),
 };
@@ -1000,29 +1012,7 @@ mn_menu_t gameplay_menu = {
     .background = "FLOOR4_6",
     .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
     .layout = MN_LAYOUT,
+    .group = &options_group,
     .pages = gameplay_pages,
     .num_pages = arrlen(gameplay_pages),
-};
-
-static mn_item_t options_items[] = {
-    MN_MENU("Video", &video_menu),
-    MN_MENU("Audio", &audio_menu),
-    MN_MENU("Controls", &controls_menu),
-    MN_MENU("Gameplay", &gameplay_menu),
-    MN_MENU("Interface", &interface_menu),
-    MN_MENU("Multiplayer", &multiplayer_menu),
-};
-
-static mn_page_t options_pages[] = {
-    {.items = options_items, .num_items = arrlen(options_items)},
-};
-
-mn_menu_t options_menu = {
-    .title_patch = "",
-    .title_text = "",
-    .background = "FLOOR4_6",
-    .flags = MN_MENU_CENTER,
-    .layout = {.item_spacing = 3},
-    .pages = options_pages,
-    .num_pages = arrlen(options_pages),
 };

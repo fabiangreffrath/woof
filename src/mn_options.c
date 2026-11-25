@@ -1181,10 +1181,7 @@ static void OptionsResetPage(void)
 
 void MN_OptionsOpen(void)
 {
-    // A network game can be left from the menu, so Multiplayer stays
-    // available during one; only demo playback and recording block it.
-
-    MN_ContainerOpen(&options_menu);
+    MN_ContainerOpenGroup(&options_group);
 }
 
 void MN_OptionsUpdateSfxVolume(void)
@@ -1791,7 +1788,6 @@ static mn_menu_t *all_menus[] = {
     &input_bindings_menu,
     &interface_menu,
     &gameplay_menu,
-    &options_menu,
     &multiplayer_menu,
 };
 

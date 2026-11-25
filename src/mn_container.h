@@ -160,6 +160,20 @@ struct mn_page_s
     void (*draw)(const mn_menu_t *menu, const mn_page_t *page);
 };
 
+typedef struct
+{
+    mrect_t rects[MN_MAX_TABS];
+    int highlight;
+} mn_tabbar_t;
+
+// A row of tabs above the page tabs that switches between whole menus.
+typedef struct
+{
+    mn_menu_t *const *menus;
+    int num_menus;
+    int current;
+} mn_menugroup_t;
+
 typedef enum
 {
     MN_UNIT_AUTO,
@@ -215,9 +229,12 @@ struct mn_menu_s
 
     mrect_t viewport;
     mrect_t hint_rect;
-    mrect_t tab_rects[MN_MAX_TABS];
+    mn_tabbar_t page_tabs;
+    mn_tabbar_t menu_tabs;
 
-    int highlight_tab;
+    // When set, a row of tabs above the page tabs switches to the sibling
+    // menus instead of showing the title.
+    mn_menugroup_t *group;
 
     mrect_t scroll_track;
     mrect_t scroll_thumb;
@@ -240,6 +257,7 @@ typedef enum
 } mn_container_result_t;
 
 void MN_ContainerOpen(mn_menu_t *menu);
+void MN_ContainerOpenGroup(mn_menugroup_t *group);
 void MN_ContainerPushMenu(mn_menu_t *menu);
 void MN_ContainerPopMenu(void);
 void MN_ContainerClose(void);
