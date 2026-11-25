@@ -149,8 +149,7 @@ static mp_columns_t GetColumns(int left, int right)
 
 static void HeaderDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
 {
-    const mp_columns_t columns =
-        GetColumns(ctx->x, ctx->value_x + ctx->value_w);
+    const mp_columns_t columns = GetColumns(ctx->x, ctx->x + ctx->w);
 
     const char *lbl = "Server";
     MN_DrawString(columns.left, ctx->y, CR_GOLD, lbl);
@@ -247,8 +246,7 @@ static void ServerDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
 
     const mp_server_t *server = &servers[index];
 
-    const mp_columns_t columns =
-        GetColumns(ctx->x, ctx->value_x + ctx->value_w);
+    const mp_columns_t columns = GetColumns(ctx->x, ctx->x + ctx->w);
 
     char stats[16];
     char ping[16];

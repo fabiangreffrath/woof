@@ -38,7 +38,10 @@
 #include "r_plane.h"
 #include "r_sky.h"
 
-#define MN_LAYOUT {.max_width = MN_PX(500), .items_min_width = MN_PX(250)}
+#define MN_LAYOUT                   \
+    {.max_width = MN_PX(500),       \
+     .items_min_width = MN_PX(246), \
+     .value_column = MN_PX(145)}
 
 #define MN_RESET \
     {.label = "", .type = ItemType_Reset, .flags = MN_ITEM_DIRECT_COORDS}

@@ -154,6 +154,19 @@ static void ClampScroll(const mn_menu_t *menu, mn_page_t *page)
     page->scroll = CLAMP(page->scroll, 0, MaxScroll(menu, page));
 }
 
+static int ResolveLength(const mn_length_t *length, int base, int fallback)
+{
+    switch (length->unit)
+    {
+        case MN_UNIT_PX:
+            return length->value;
+        case MN_UNIT_PERCENT:
+            return base * length->value / 100;
+        default:
+            return fallback;
+    }
+}
+
 static void LayoutPage(mn_menu_t *menu, mn_page_t *page)
 {
     int y = page->pad_top;
@@ -220,6 +233,12 @@ static void LayoutPage(mn_menu_t *menu, mn_page_t *page)
     page->content_h = y + page->pad_bottom;
     page->label_width = label_width;
 
+    const int column = ResolveLength(&menu->layout.value_column,
+                                     menu->viewport.w, label_width + 12);
+
+    page->value_x = menu->viewport.x + CLAMP(column, 0,
+                                             MAX(0, menu->viewport.w - 48));
+
     if ((menu->flags & MN_MENU_CENTER) && y < menu->viewport.h)
     {
         const int offset = (menu->viewport.h - y) / 2;
@@ -280,19 +299,6 @@ static void LayoutTabs(mn_menu_t *menu)
     }
 
     menu->tabbar = (mrect_t){menu->viewport.x, 22, menu->viewport.w, MN_SPC};
-}
-
-static int ResolveLength(const mn_length_t *length, int base, int fallback)
-{
-    switch (length->unit)
-    {
-        case MN_UNIT_PX:
-            return length->value;
-        case MN_UNIT_PERCENT:
-            return base * length->value / 100;
-        default:
-            return fallback;
-    }
 }
 
 static void LayoutMenu(mn_menu_t *menu)
@@ -624,7 +630,7 @@ static boolean NextPage(mn_menu_t *menu, int direction)
     return true;
 }
 
-static void ActivateItem(mn_menu_t *menu, int index, boolean mouse)
+static void ActivateItem(mn_menu_t *menu, int index)
 {
     mn_page_t *page = &menu->pages[menu->page];
 
@@ -675,18 +681,9 @@ static void ActivateItem(mn_menu_t *menu, int index, boolean mouse)
 
     if (item->type == ItemType_Choice || item->type == ItemType_Slider)
     {
-        if (mouse)
+        if (item->ops && item->ops->respond)
         {
-            menu->active_item = NULL;
-
-            if (item->ops && item->ops->respond)
-            {
-                item->ops->respond(item, MENU_RIGHT, 0);
-            }
-        }
-        else
-        {
-            menu->active_item = item;
+            item->ops->respond(item, MENU_RIGHT, 0);
         }
         return;
     }
@@ -1042,6 +1039,23 @@ mn_container_result_t MN_ContainerResponder(menu_action_t action, int ch)
         return MN_CONTAINER_HANDLED;
     }
 
+    if (action == MENU_LEFT || action == MENU_RIGHT)
+    {
+        const int index = MN_ContainerHighlightedIndex(menu);
+
+        if (index >= 0 && IsSelectable(&page->items[index]))
+        {
+            mn_item_t *item = &page->items[index];
+
+            if (item->ops && item->ops->respond)
+            {
+                item->ops->respond(item, action, 0);
+            }
+        }
+
+        return MN_CONTAINER_HANDLED;
+    }
+
     if (action == MENU_TAB_LEFT)
     {
         NextPage(menu, -1);
@@ -1056,7 +1070,7 @@ mn_container_result_t MN_ContainerResponder(menu_action_t action, int ch)
 
     if (action == MENU_ENTER)
     {
-        ActivateItem(menu, page->selected, false);
+        ActivateItem(menu, page->selected);
         return MN_CONTAINER_HANDLED;
     }
 
@@ -1251,7 +1265,7 @@ mn_container_result_t MN_ContainerMouseButton(int button, boolean down)
             }
         }
 
-        ActivateItem(menu, menu->hover, true);
+        ActivateItem(menu, menu->hover);
     }
 
     return MN_CONTAINER_HANDLED;
@@ -1388,29 +1402,20 @@ static void DrawItems(const mn_menu_t *menu)
         }
 
         const int x = menu->viewport.x;
-        int label_w;
-        int label_x;
+        int label_x = x;
+
         if (menu->flags & MN_MENU_CENTER)
         {
-            label_w = page->label_width;
             label_x = x + (item->rect.w - page->label_width) / 2;
         }
-        else if(item->flags & MN_ITEM_CENTER)
+        else if (item->flags & MN_ITEM_CENTER)
         {
-            label_w = MN_GetPixelWidth(item->label);
-            label_x = x + (item->rect.w - label_w) / 2;
+            label_x = x + (item->rect.w - MN_GetPixelWidth(item->label)) / 2;
         }
-        else
-        {
-            label_w = MN_GetPixelWidth(item->label);
-            label_x = x;
-        }
-        const int value_x =
-            MIN(label_x + MAX(label_w + 12, 120), x + item->rect.w - 48);
-        const int value_w = x + item->rect.w - value_x;
+
+        const int value_x = page->value_x;
 
         item->draw_value_x = value_x;
-        item->draw_value_w = MAX(0, value_w);
 
         mn_draw_ctx_t ctx = {
             .x = x,
@@ -1418,7 +1423,6 @@ static void DrawItems(const mn_menu_t *menu)
             .w = item->rect.w,
             .h = item->rect.h,
             .value_x = value_x,
-            .value_w = MAX(0, value_w),
             .mouse_x = last_mouse_x,
             .color = highlighted ? CR_BRIGHT : CR_NONE,
             .selected = highlighted,
@@ -1632,12 +1636,6 @@ static const char *ConfirmKeyName(boolean pad)
                : M_GetNameForKey(KEY_ENTER);
 }
 
-static const char *CancelKeyName(boolean pad)
-{
-    return pad ? M_GetPlatformName(gamepad_cancel)
-               : M_GetNameForKey(KEY_ESCAPE);
-}
-
 static const char *BackKeyName(boolean pad)
 {
     return pad ? M_GetPlatformName(gamepad_cancel)
@@ -1688,26 +1686,17 @@ static void DrawInstructions(const mn_menu_t *menu)
     }
     else if (menu->active_item)
     {
-        switch (item->type)
+        if (item->type == ItemType_Number)
         {
-            case ItemType_Number:
-                text = "Enter value";
-                break;
-
-            case ItemType_Text:
-                text = "Enter text";
-                break;
-
-            case ItemType_Input:
-                text = "Press key or button to bind/unbind";
-                break;
-
-            default:
-                M_snprintf(buffer, sizeof(buffer),
-                           "[ Left/Right ] Choose, [ %s ] Cancel",
-                           CancelKeyName(pad));
-                text = buffer;
-                break;
+            text = "Enter value";
+        }
+        else if (item->type == ItemType_Text)
+        {
+            text = "Enter text";
+        }
+        else
+        {
+            text = "Press key or button to bind/unbind";
         }
     }
     else

@@ -76,7 +76,6 @@ typedef struct
     int w;
     int h;
     int value_x;
-    int value_w;
     int mouse_x;
     int color;
     boolean selected;
@@ -118,7 +117,6 @@ struct mn_item_s
     boolean action_pending;
 
     int draw_value_x;
-    int draw_value_w;
 };
 
 struct mn_item_ops_s
@@ -147,6 +145,7 @@ struct mn_page_s
     int scroll_anim_start_ms;
     int content_h;
     int label_width;
+    int value_x;
 
     // Empty space kept above the first row and below the last one, for
     // item graphics that overhang their rect and would otherwise be clipped
@@ -177,6 +176,7 @@ typedef struct
 
 // Margins and the layout width resolve percentages against the full logical
 // screen width, hint sizes resolve them against the resulting content box.
+// value_column is the x of the item values, relative to the items box.
 // MN_UNIT_AUTO fields keep the original hard-coded geometry.
 typedef struct
 {
@@ -184,6 +184,7 @@ typedef struct
     mn_length_t margin_right;
     mn_length_t min_width;
     mn_length_t max_width;
+    mn_length_t value_column;
     mn_length_t hint_width;
     mn_length_t hint_min_width;
     mn_length_t hint_max_width;

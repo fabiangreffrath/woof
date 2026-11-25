@@ -112,8 +112,7 @@ static int SliderPixelWidth(int size)
 static void OptionSliderSetFromMouse(mn_item_t *item, int mouse_x)
 {
     const int size = item->slider_size ? item->slider_size : 8;
-    const int thermo_w = SliderPixelWidth(size);
-    const int bar_x = item->draw_value_x + item->draw_value_w - thermo_w + 8;
+    const int bar_x = item->draw_value_x + 8;
     const int bar_w = size * 8;
     const int min = ItemMin(item);
     const int max = ItemMax(item);
@@ -151,10 +150,8 @@ static byte *ValueColor(const mn_draw_ctx_t *ctx)
 
 static void DrawValueString(const mn_draw_ctx_t *ctx, const char *text)
 {
-    const int width = MN_GetPixelWidth(text);
-
-    MN_DrawStringCR(ctx->value_x + ctx->value_w - width, ctx->y,
-                    xlat[CR_GREEN].table, ValueColor(ctx), text);
+    MN_DrawStringCR(ctx->value_x, ctx->y, xlat[CR_GREEN].table, ValueColor(ctx),
+                    text);
 }
 
 static void TitleDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
@@ -506,8 +503,7 @@ static choice_layout_t ChoiceLayout(const mn_item_t *item)
     l.seg_extra = usable % l.visible;
     l.text_h = (item->flags & MN_ITEM_TWO_LINES) ? 2 * MN_SPC : MN_SPC;
 
-    l.x = item->draw_value_x + item->draw_value_w
-          - (CHOICE_ARROW_W * 2 + CHOICE_PADDING * 2 + l.text_w);
+    l.x = item->draw_value_x;
     l.text_x = l.x + CHOICE_ARROW_W + CHOICE_PADDING;
     l.bar_x = l.text_x;
 
@@ -707,13 +703,6 @@ static void ChoiceDrawCrosshair(const mn_item_t *item, const mn_draw_ctx_t *ctx)
 
 static boolean ChoiceRespond(mn_item_t *item, menu_action_t action, int ch)
 {
-    if (action == MENU_ENTER || action == MENU_ESCAPE
-        || action == MENU_BACKSPACE)
-    {
-        MN_ContainerEndEdit();
-        return true;
-    }
-
     if (action != MENU_LEFT && action != MENU_RIGHT)
     {
         return false;
@@ -746,8 +735,7 @@ static void DrawThermo(const mn_item_t *item, const mn_draw_ctx_t *ctx)
                : (ctx->selected || ctx->active) ? xlat[CR_BRIGHT].table
                                                 : NULL;
 
-    const int thermo_w = SliderPixelWidth(size);
-    int x = ctx->value_x + ctx->value_w - thermo_w;
+    int x = ctx->value_x;
 
     V_DrawPatchTranslated(x, ctx->y, V_CachePatchName("M_THERML", PU_CACHE), cr);
     x += 8;
@@ -766,8 +754,8 @@ static void DrawThermo(const mn_item_t *item, const mn_draw_ctx_t *ctx)
     {
         const int dot = (value - min) * size * 8 / (max - min);
 
-        V_DrawPatchTranslated(ctx->value_x + ctx->value_w - thermo_w + 8 + dot,
-                              ctx->y, V_CachePatchName("M_THERMO", PU_CACHE), cr);
+        V_DrawPatchTranslated(ctx->value_x + 8 + dot, ctx->y,
+                              V_CachePatchName("M_THERMO", PU_CACHE), cr);
     }
 }
 
@@ -796,33 +784,20 @@ static void SliderDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
     }
 
     const int size = item->slider_size ? item->slider_size : 8;
-    const int thermo_w = SliderPixelWidth(size);
-    const int text_w = MN_GetPixelWidth(buffer);
-
-    int text_x = ctx->value_x + ctx->value_w - thermo_w - text_w;
-    int text_y = ctx->y + (MN_SPC_SLIDER - MN_SPC) / 2;
+    const int text_x = ctx->value_x + SliderPixelWidth(size);
+    const int text_y = ctx->y + (MN_SPC_SLIDER - MN_SPC) / 2;
 
     MN_DrawStringCR(text_x, text_y, xlat[CR_GREEN].table, ValueColor(ctx), buffer);
 }
 
 static boolean SliderRespond(mn_item_t *item, menu_action_t action, int ch)
 {
-    if (action == MENU_ENTER || action == MENU_ESCAPE
-        || action == MENU_BACKSPACE)
-    {
-        MN_ContainerEndEdit();
-        return true;
-    }
-
     if (action != MENU_LEFT && action != MENU_RIGHT)
     {
         return false;
     }
 
-    int value = OptionValue(item);
-
-    value += (action == MENU_RIGHT) ? 1 : -1;
-    OptionSetValue(item, value);
+    OptionSetValue(item, OptionValue(item) + (action == MENU_RIGHT ? 1 : -1));
     return true;
 }
 
