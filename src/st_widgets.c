@@ -90,19 +90,40 @@ static void UpdateMessage(sbe_widget_t *widget)
 
     static char string[HU_MAXLINELENGTH];
 
+    // A game message replaces the one on screen and restarts its time. Only
+    // feedback about the local player (chat echo, the message settings)
+    // holds the following game messages back until it expires.
+
+    static boolean overwrite = true;
+    static boolean messages_enabled = true;
+    char text[HU_MAXLINELENGTH];
+
+    if (HU_PopPostedMessage(text, sizeof(text)))
+    {
+        M_StringCopy(string, text, sizeof(string));
+        message_duration_left = widget->duration;
+        overwrite = false;
+    }
+    else if (messages_enabled && overwrite && HU_PopMessage(text, sizeof(text)))
+    {
+        M_StringCopy(string, text, sizeof(string));
+        message_duration_left = widget->duration;
+    }
+    else if (messages_enabled && message_review)
+    {
+        message_review = false;
+        message_duration_left = widget->duration;
+    }
+
+    if (messages_enabled != show_messages)
+    {
+        messages_enabled = show_messages;
+    }
+
     if (message_duration_left == 0)
     {
-        if (!HU_PopMessage(string, sizeof(string)))
-        {
-            if (!message_review)
-            {
-                return;
-            }
-
-            message_review = false;
-        }
-
-        message_duration_left = widget->duration;
+        overwrite = true;
+        return;
     }
 
     ST_AddLine(widget, string);

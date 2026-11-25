@@ -30,11 +30,6 @@ typedef enum
     MESSAGES_OBITUARY
 } msg_category_t;
 
-// A message is a one-shot presentation event. It is never stored in
-// simulated state, so it cannot leak into a keyframe or be replayed by a
-// rollback: the events of a tic are recorded for that tic and shown once,
-// when the tic can no longer be rolled back.
-
 void HU_Message(struct player_s *target, msg_category_t category,
                 const char *fmt, ...) PRINTF_ATTR(3, 4);
 
@@ -43,21 +38,20 @@ void HU_Message(struct player_s *target, msg_category_t category,
 
 void HU_PostMessage(const char *text);
 
-// Announce a revealed secret to the local view. Returns whether the
-// announcement was made, so that the caller can keep the sound tied to it.
-
 boolean HU_AnnounceSecret(struct player_s *target, int count, int total);
 
 // Record the character a remote player typed on the given tic.
 
 void HU_ChatChar(int tic, int player, char ch);
 
-// Prepare the event slot of a tic that is about to be simulated. A tic can
-// be resimulated, so its slot is replaced rather than appended to.
+// Prepare the chat slot of a tic that is about to be simulated and start
+// collecting its messages. A tic can be resimulated, so its slot is replaced
+// rather than appended to.
 
 void HU_BeginTic(int tic);
 
-// Release the events of the tics that can no longer change.
+// Show the messages of the tic that just ran and release the chat of the
+// tics that can no longer change.
 
 void HU_DispatchEvents(void);
 
@@ -66,6 +60,7 @@ void HU_DispatchEvents(void);
 void HU_ResetMessages(void);
 
 boolean HU_PopMessage(char *buffer, size_t size);
+boolean HU_PopPostedMessage(char *buffer, size_t size);
 boolean HU_PopAnnouncement(char *buffer, size_t size);
 
 #define displaymsg(...)        HU_Message(NULL, MESSAGES_NONE, __VA_ARGS__)
