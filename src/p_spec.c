@@ -1141,7 +1141,6 @@ boolean P_IsTeleportLine(line_t *const line)
                   || special == TeleportOther || special == TeleportGroup
                   || special == TeleportInSector || special == Teleport_NoStop
                   || special == Teleport_Line);
-    ;
 }
 
 //
