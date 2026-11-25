@@ -37,8 +37,8 @@
 #include "m_input.h"
 #include "m_misc.h"
 #include "mn_container.h"
+#include "mn_defs.h"
 #include "mn_font.h"
-#include "mn_common.h"
 #include "mn_menu.h"
 #include "mn_multiplayer.h"
 #include "mn_options.h"
@@ -154,6 +154,10 @@ static void DrawValueString(const mn_draw_ctx_t *ctx, const char *text)
     MN_DrawStringCR(ctx->value_x, y, xlat[CR_GREEN].table, ValueColor(ctx), text);
 }
 
+//---------------------------------------------------------------------------
+// Title Item
+//---------------------------------------------------------------------------
+
 static void TitleDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
 {
     int x = ctx->x + MN_PAD;
@@ -165,6 +169,10 @@ static boolean TitleRespond(mn_item_t *item, menu_action_t action, int ch)
 {
     return false;
 }
+
+//---------------------------------------------------------------------------
+// Toggle Item (old)
+//---------------------------------------------------------------------------
 
 static void ToggleDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
 {
@@ -190,6 +198,10 @@ static boolean ToggleRespond(mn_item_t *item, menu_action_t action, int ch)
     MN_ContainerEndEdit();
     return true;
 }
+
+//---------------------------------------------------------------------------
+// Number Item
+//---------------------------------------------------------------------------
 
 static void NumberDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
 {
@@ -290,6 +302,10 @@ static boolean NumberRespond(mn_item_t *item, menu_action_t action, int ch)
 
     return true;
 }
+
+//---------------------------------------------------------------------------
+// Text Edit Item
+//---------------------------------------------------------------------------
 
 enum
 {
@@ -444,13 +460,17 @@ static boolean TextInput(mn_item_t *item, const struct event_s *ev,
     return false;
 }
 
+//---------------------------------------------------------------------------
+// Choice Item
+//---------------------------------------------------------------------------
+
 enum
 {
     CHOICE_ARROW_W = 8,
     CHOICE_ARROW_BG = MN_SPC_CHOICE,
     CHOICE_PADDING = 2,
     CHOICE_SEG_W = 4,
-    CHOICE_SEG_MAX_W = 32,
+    CHOICE_SEG_MAX_W = 24,
     CHOICE_SEG_GAP = 2,
     CHOICE_MIN_VISIBLE = 2,
     CHOICE_MAX_VISIBLE = 32,
@@ -741,6 +761,10 @@ static boolean ChoiceClick(mn_item_t *item, int mouse_x, int mouse_y)
     return true;
 }
 
+//---------------------------------------------------------------------------
+// Slider Item
+//---------------------------------------------------------------------------
+
 static void DrawThermo(const mn_item_t *item, const mn_draw_ctx_t *ctx)
 {
     const int size = item->slider_size ? item->slider_size : 8;
@@ -822,6 +846,10 @@ static void SliderDrag(mn_item_t *item, int mouse_x)
     OptionSliderSetFromMouse(item, mouse_x);
 }
 
+//---------------------------------------------------------------------------
+// Action Item
+//---------------------------------------------------------------------------
+
 static void ActionDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
 {
     int x = ctx->x + MN_GetPixelWidth(item->label);
@@ -874,6 +902,10 @@ static boolean ResetRespond(mn_item_t *item, menu_action_t action, int ch)
 
     return false;
 }
+
+//---------------------------------------------------------------------------
+// Input Item
+//---------------------------------------------------------------------------
 
 static void AppendText(char *buffer, int size, int *offset, const char *text)
 {
@@ -1184,6 +1216,10 @@ void MN_OptionsOpen(void)
     MN_ContainerOpenGroup(&options_group);
 }
 
+//---------------------------------------------------------------------------
+// Actions
+//---------------------------------------------------------------------------
+
 void MN_OptionsUpdateSfxVolume(void)
 {
     S_SetSfxVolume(snd_SfxVolume);
@@ -1431,19 +1467,18 @@ static void UpdateGamepadItems(void)
     const boolean devices = (I_GamepadEnabled() && I_GamepadDevices());
     const boolean gamepad = (I_UseGamepad() && devices);
     const boolean sticks = I_UseStickLayout();
-    const boolean flick = (gamepad && sticks && !I_StandardLayout());
+    // const boolean flick = (gamepad && sticks && !I_StandardLayout());
     const boolean ramp = (gamepad && sticks && I_RampTimeEnabled());
     const boolean condition = (!gamepad || !sticks);
 
     MN_DisableItem(!devices, "joy_device");
-    MN_DisableItem(!gamepad, "Advanced Options");
     MN_DisableItem(!gamepad || !I_RumbleSupported(), "joy_rumble");
     MN_DisableItem(condition, "joy_invert_look",
         "joy_movement_inner_deadzone", "joy_camera_inner_deadzone",
         "joy_turn_speed", "joy_look_speed");
 
     MN_DisableItem(!gamepad, "joy_stick_layout");
-    MN_DisableItem(!flick, "joy_flick_time");
+    // !!! TODO? MN_DisableItem(!flick, "joy_flick_time");
     MN_DisableItem(condition, "joy_movement_type",
         "joy_forward_sensitivity", "joy_strafe_sensitivity",
         "joy_outer_turn_speed");
@@ -1504,11 +1539,10 @@ static void UpdateGyroItems(void)
     const boolean acceleration = (gamepad && gyro && I_GyroAcceleration());
     const boolean condition = (!gamepad || !gyro);
 
-    MN_DisableItem(!gamepad || !I_GyroSupported(), "gyro_enable",
-                   "Advanced Gyro Options");
+    MN_DisableItem(!gamepad || !I_GyroSupported(), "gyro_enable");
     MN_DisableItem(condition, "gyro_button_action", "gyro_stick_action",
                    "gyro_turn_sensitivity", "gyro_look_sensitivity",
-                   "Calibrate Gyro");
+                   "Calibrate...");
     MN_DisableItem(condition, "gyro_space", "gyro_acceleration",
                    "gyro_smooth_threshold");
     MN_DisableItem(!acceleration, "gyro_accel_min_threshold",
@@ -1777,6 +1811,10 @@ void MN_OptionsUpdateCenteredWeaponItem(void)
     MN_DisableItem(!weapon_bobbing_pct, "center_weapon");
 }
 
+//---------------------------------------------------------------------------
+// Init
+//---------------------------------------------------------------------------
+
 static mn_menu_t *all_menus[] = {
     &display_menu,
     &video_menu,
@@ -1784,7 +1822,6 @@ static mn_menu_t *all_menus[] = {
     &equalizer_menu,
     &controls_menu,
     &advanced_gamepad_menu,
-    &advanced_gyro_menu,
     &input_bindings_menu,
     &interface_menu,
     &gameplay_menu,

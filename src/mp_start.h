@@ -19,8 +19,8 @@
 #define MP_START_H
 
 #include "doomtype.h"
-#include "mn_common.h"
 #include "nw_defs.h"
+#include "mn_menu.h"
 
 typedef enum
 {

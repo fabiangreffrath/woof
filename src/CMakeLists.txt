@@ -111,9 +111,9 @@ set(WOOF_SOURCES
     m_json.c               m_json.h
     m_scanner.c            m_scanner.h
     mn_container.c         mn_container.h
-                           mn_common.h
     mn_csmenu.c            mn_csmenu.h
     mn_csmenu_data.c
+                           mn_defs.h
     mn_font.c              mn_font.h
     mn_menu.c              mn_menu.h
     mn_multiplayer.c       mn_multiplayer.h

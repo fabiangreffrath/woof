@@ -12,6 +12,7 @@
 //  GNU General Public License for more details.
 
 #include "mn_container.h"
+#include "mn_defs.h"
 #include "mn_csmenu.h"
 
 static const char *skill_strings[] = {

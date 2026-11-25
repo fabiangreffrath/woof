@@ -27,6 +27,7 @@
 #include "m_argv.h"
 #include "m_misc.h"
 #include "mn_container.h"
+#include "mn_defs.h"
 #include "mn_font.h"
 #include "mn_menu.h"
 #include "mn_multiplayer.h"

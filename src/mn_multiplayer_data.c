@@ -14,7 +14,7 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
-#include "mn_container.h"
+#include "mn_defs.h"
 #include "mn_multiplayer.h"
 #include "nw_defs.h"
 

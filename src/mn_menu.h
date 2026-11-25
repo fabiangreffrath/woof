@@ -83,6 +83,34 @@ void M_SaveAutoSave(void);
 
 void M_StartSound(int sound_id);
 
+typedef struct
+{
+    short x;
+    short y;
+    short w;
+    short h;
+} mrect_t;
+
+typedef enum
+{
+    MENU_NULL,
+    MENU_UP,
+    MENU_DOWN,
+    MENU_LEFT,
+    MENU_RIGHT,
+    MENU_TAB_LEFT,
+    MENU_TAB_RIGHT,
+    MENU_PAGE_LEFT,
+    MENU_PAGE_RIGHT,
+    MENU_BACKSPACE,
+    MENU_ENTER,
+    MENU_ESCAPE,
+    MENU_CLEAR
+} menu_action_t;
+
+#define M_X_CENTER (-1)
+void MN_DrawTitle(int x, int y, const char *patch, const char *alttext);
+
 #endif
 
 //----------------------------------------------------------------------------

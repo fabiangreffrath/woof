@@ -15,16 +15,7 @@
 #define MN_CONTAINER_H
 
 #include "doomtype.h"
-#include "mn_common.h"
-
-#define MN_FNT_H 7
-#define MN_PAD   2
-
-#define MN_SPC        9
-#define MN_SPC_ITEM   (MN_SPC + 4)
-#define MN_SPC_SLIDER (MN_SPC + 4)
-#define MN_SPC_CHOICE (MN_SPC + 4)
-#define MN_MAX_TABS   16
+#include "mn_menu.h"
 
 struct event_s;
 
@@ -158,6 +149,10 @@ struct mn_page_s
     // Draws page content that is not bound to a single item, e.g. a preview
     // panel next to the list.
     void (*draw)(const mn_menu_t *menu, const mn_page_t *page);
+};
+
+enum {
+    MN_MAX_TABS = 16,
 };
 
 typedef struct
@@ -308,56 +303,5 @@ void MN_DisableItemInternal(boolean condition, const char *names[], int size);
                                / sizeof(const char *))
 
 void MN_BindMenuVariables(void);
-
-#define MN_LAYOUT                   \
-    {.max_width = MN_PX(500),       \
-     .items_min_width = MN_PX(246), \
-     .value_column = MN_PX(145),    \
-     .item_spacing = 1}
-
-#define MN_GAP(gap)   {.type = ItemType_Skip, .height = (gap)}
-#define MN_TITLE(txt) {.label = (txt), .type = ItemType_Title}
-
-#define MN_TAB(tab_, items_) \
-    {.tab = (tab_), .items = (items_), .num_items = arrlen(items_)}
-
-static const char *offon_strings[] = {"Off", "On"};
-
-#define MN_CHOICE_SIZE 10
-
-#define MN_TOGGLE(lbl, key, desc)          \
-    {.label = (lbl),                       \
-     .cfg = (key),                         \
-     .type = ItemType_Choice,              \
-     .choices = offon_strings,             \
-     .num_choices = arrlen(offon_strings), \
-     .choice_size = MN_CHOICE_SIZE,        \
-     .description = (desc)}
-
-#define MN_TEXT(lbl, key, size, desc) \
-    {.label = (lbl),                  \
-     .cfg = (key),                    \
-     .type = ItemType_Text,           \
-     .choice_size = (size),           \
-     .description = (desc)}
-
-#define MN_CHOICE(lbl, key, strs, desc) \
-    {.label = (lbl),                    \
-     .cfg = (key),                      \
-     .type = ItemType_Choice,           \
-     .choices = (strs),                 \
-     .num_choices = arrlen(strs),       \
-     .choice_size = MN_CHOICE_SIZE,     \
-     .description = (desc)}
-
-#define MN_CHOICE_ACT(lbl, key, strs, act, desc) \
-    {.label = (lbl),                             \
-     .cfg = (key),                               \
-     .type = ItemType_Choice,                    \
-     .choices = (strs),                          \
-     .num_choices = arrlen(strs),                \
-     .choice_size = MN_CHOICE_SIZE,              \
-     .action = (act),                            \
-     .description = (desc)}
 
 #endif

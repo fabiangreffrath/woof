@@ -24,9 +24,9 @@
 #include "m_input.h"
 #include "m_misc.h"
 #include "mn_container.h"
+#include "mn_defs.h"
 #include "mn_csmenu.h"
 #include "mn_font.h"
-#include "mn_common.h"
 #include "mn_menu.h"
 #include "mn_multiplayer.h"
 #include "mn_options.h"
@@ -44,6 +44,14 @@ static int last_mouse_y;
 
 static mn_menu_t *menu_stack[MN_MAX_DEPTH];
 static int menu_depth;
+
+typedef enum
+{
+    MENU_HELP_OFF,
+    MENU_HELP_AUTO,
+    MENU_HELP_KEY,
+    MENU_HELP_PAD
+} menu_help_t;
 
 int warning_about_changes, print_warning_about_changes;
 
@@ -287,13 +295,20 @@ static void LayoutTabBar(mn_tabbar_t *bar, const char *const *labels, int count,
 }
 
 static void DrawTabBar(const mn_tabbar_t *bar, const char *const *labels,
-                       int count, int active)
+                       int count, int active, boolean top)
 {
     const mrect_t *first = &bar->rects[0];
 
-    V_ShadeRect(video.deltaw + first->x, first->y - MN_PAD,
-                TabBarWidth(labels, count) + 2 * MN_PAD,
-                first->h + MN_PAD, 60);
+    if (top)
+    {
+        V_ShadeRect(0, 0, video.unscaledw, first->y + first->h + MN_PAD, 60);
+    }
+    else
+    {
+        V_ShadeRect(video.deltaw + first->x, first->y - MN_PAD,
+                    TabBarWidth(labels, count) + 2 * MN_PAD,
+                    first->h + MN_PAD, 60);
+    }
 
     for (int i = 0; i < count; ++i)
     {
@@ -304,8 +319,10 @@ static void DrawTabBar(const mn_tabbar_t *bar, const char *const *labels,
 
         if (i == active)
         {
-            V_ShadeRect(video.deltaw + rect->x, rect->y - MN_PAD,
-                        rect->w + 2 * MN_PAD, rect->h + MN_PAD, 90);
+            V_ShadeRect(video.deltaw + rect->x,
+                        top ? 0 : rect->y - MN_PAD,
+                        rect->w + 2 * MN_PAD,
+                        top ? rect->y + rect->h + MN_PAD : rect->h + MN_PAD, 90);
 
             MN_DrawString(x, y, CR_GOLD, labels[i]);
 
@@ -357,7 +374,7 @@ static void LayoutTabs(mn_menu_t *menu)
         labels[i] = menu->pages[i].tab;
     }
 
-    LayoutTabBar(&menu->page_tabs, labels, count, menu->viewport.x, 22);
+    LayoutTabBar(&menu->page_tabs, labels, count, menu->viewport.x, 24);
 }
 
 static int MenuTabCount(const mn_menu_t *menu)
@@ -367,6 +384,11 @@ static int MenuTabCount(const mn_menu_t *menu)
 
 static int ActiveMenuTab(const mn_menu_t *menu)
 {
+    if (!MenuTabCount(menu))
+    {
+        return 0;
+    }
+
     for (int i = 0; i < MenuTabCount(menu); ++i)
     {
         if (menu->group->menus[i] == menu)
@@ -399,7 +421,7 @@ static void LayoutMenuTabs(mn_menu_t *menu)
 
 static void LayoutMenu(mn_menu_t *menu)
 {
-    const int top = HasTabs(menu) ? 40 : 30;
+    const int top = HasTabs(menu) ? 40 : 20;
     const int height = SCREENHEIGHT - top - 20;
 
     // Coordinates are logical: the whole widescreen width is available,
@@ -1519,7 +1541,7 @@ static void DrawTabs(const mn_menu_t *menu)
         labels[i] = menu->pages[i].tab;
     }
 
-    DrawTabBar(&menu->page_tabs, labels, count, menu->page);
+    DrawTabBar(&menu->page_tabs, labels, count, menu->page, false);
 }
 
 static void DrawMenuTabs(const mn_menu_t *menu)
@@ -1538,7 +1560,7 @@ static void DrawMenuTabs(const mn_menu_t *menu)
         labels[i] = menu->group->menus[i]->title_text;
     }
 
-    DrawTabBar(&menu->menu_tabs, labels, count, ActiveMenuTab(menu));
+    DrawTabBar(&menu->menu_tabs, labels, count, ActiveMenuTab(menu), true);
 }
 
 static void DrawItemLabel(const mn_item_t *item, const mn_draw_ctx_t *ctx,
@@ -1646,7 +1668,6 @@ static mn_menu_t *all_menus[] = {
     &equalizer_menu,
     &controls_menu,
     &advanced_gamepad_menu,
-    &advanced_gyro_menu,
     &input_bindings_menu,
     &interface_menu,
     &gameplay_menu,
@@ -1764,8 +1785,7 @@ static void DrawWrappedText(int x, int y, int width, int height,
 
     const int num_lines = MN_WrapText(buffer, width);
 
-    // Center the text block vertically; every line stays left-aligned.
-    y += MAX(0, (height - num_lines * line_h) / 2);
+    y += MN_PAD;
 
     for (int start = 0; buffer[start];)
     {
@@ -1793,10 +1813,15 @@ static void DrawWrappedText(int x, int y, int width, int height,
 
 static void DrawHints(const mn_menu_t *menu)
 {
-    if (menu->hint_rect.w <= 0)
+    const mrect_t *rect = &menu->hint_rect;
+
+    if (rect->w <= 0)
     {
         return;
     }
+
+    V_ShadeRect(video.deltaw + rect->x - MN_PAD, rect->y,
+                rect->w + 2 * MN_PAD, rect->h, 60);
 
     const mn_item_t *item = HighlightedItem(menu);
 

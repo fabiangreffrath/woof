@@ -45,10 +45,10 @@
 #include "m_input.h"
 #include "m_misc.h"
 #include "m_swap.h"
+#include "mn_defs.h"
 #include "mn_font.h"
 #include "mn_container.h"
 #include "mn_csmenu.h"
-#include "mn_common.h"
 #include "mn_menu.h"
 #include "mn_options.h"
 #include "mn_saveload.h"
@@ -2698,7 +2698,11 @@ static void WriteText(int x, int y, const char *string)
 
 void MN_DrawTitle(int x, int y, const char *patch, const char *alttext)
 {
-    int patch_lump = W_CheckNumForName(patch);
+    int patch_lump = -1;
+    if (patch && patch[0] != '\0')
+    {
+        patch_lump = W_CheckNumForName(patch);
+    }
     int patch_priority = -1;
 
     if (patch_lump >= 0)
