@@ -25,6 +25,7 @@
 #include "doomstat.h"
 #include "g_game.h"
 #include "g_skillinfo.h"
+#include "hu_message.h"
 #include "i_printf.h"
 #include "info.h"
 #include "m_fixed.h"
@@ -1178,8 +1179,6 @@ void P_SpawnPlayer (mapthing_t* mthing)
   p->mo            = mobj;
   p->playerstate   = PST_LIVE;
   p->refire        = 0;
-  p->message       = NULL;
-  p->secretmessage = NULL;
   p->damagecount   = 0;
   p->bonuscount    = 0;
   p->extralight    = 0;

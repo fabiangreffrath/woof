@@ -515,8 +515,8 @@ static void saveg_read_player_t(player_t *str)
     // int secretcount;
     str->secretcount = saveg_read32();
 
-    // char* message;
-    str->message = saveg_readp();
+    // char* message; (no longer stored: messages are presentation events)
+    saveg_readp();
 
     // int damagecount;
     str->damagecount = saveg_read32();
@@ -542,8 +542,7 @@ static void saveg_read_player_t(player_t *str)
         saveg_read_pspdef_t(&str->psprites[i]);
     }
 
-    // [Woof!] char* secretmessage;
-    str->secretmessage = NULL;
+    // [Woof!] char* secretmessage; (not saved)
 
     // boolean didsecret;
     str->didsecret = saveg_read32();
@@ -1045,7 +1044,6 @@ void P_UnArchivePlayers(void)
 
             // will be set when unarc thinker
             players[i].mo = NULL;
-            players[i].message = NULL;
             players[i].attacker = NULL;
         }
     }

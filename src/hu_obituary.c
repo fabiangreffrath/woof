@@ -15,14 +15,12 @@
 //
 //-----------------------------------------------------------------------------
 
-#include <stdlib.h>
-#include <string.h>
-
 #include "d_player.h"
 #include "deh_strings.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
+#include "hu_message.h"
 #include "hu_obituary.h"
 #include "info.h"
 #include "m_misc.h"
@@ -33,26 +31,147 @@
 boolean show_obituary_messages;
 int hudcolor_obituary;
 
-// [FG] gender-neutral pronouns
+// [FG] gender-neutral pronouns, expanded together with the player names so
+// that the template is scanned exactly once: a name that happens to contain
+// "%o" or a colour escape cannot change the rest of the line.
 
-struct
+static char player_names[MAXPLAYERS][MAXPLAYERNAME];
+
+static void CopyPlayerName(char *buffer, size_t size, const char *name)
 {
-    const char *const from;
-    const char *const to;
-} static const pronouns[] = {
-    {"%g", "they"   },
-    {"%h", "them"   },
-    {"%p", "their"  },
-    {"%s", "theirs" },
-    {"%r", "they're"},
-};
+    size_t length = 0;
 
-static const char *playerstr[] = {
-    "Player 1",
-    "Player 2",
-    "Player 3",
-    "Player 4",
-};
+    // Escape sequences and control characters in a name would leak into the
+    // message and its colouring, so only text is kept.
+
+    for (const char *p = name; *p && length + 1 < size; ++p)
+    {
+        if ((unsigned char)*p < 0x20 || *p == 0x7f)
+        {
+            continue;
+        }
+
+        buffer[length++] = *p;
+    }
+
+    buffer[length] = '\0';
+}
+
+static void SetPlayerName(int player, const char *name)
+{
+    CopyPlayerName(player_names[player], sizeof(player_names[player]), name);
+
+    // A player may connect under an empty name; the message still has to
+    // name somebody.
+
+    if (!player_names[player][0])
+    {
+        M_snprintf(player_names[player], sizeof(player_names[player]),
+                   "Player %d", player + 1);
+    }
+}
+
+static void UpdatePlayerNames(void)
+{
+    for (int i = 0; i < MAXPLAYERS; ++i)
+    {
+        M_snprintf(player_names[i], sizeof(player_names[i]), "Player %d",
+                   i + 1);
+    }
+
+    // The roster is not part of a recorded demo.
+
+    if (!demoplayback && nw_client_received_wait_data)
+    {
+        const int num_players = (nw_client_wait_data.num_players < MAXPLAYERS)
+                                    ? nw_client_wait_data.num_players
+                                    : MAXPLAYERS;
+
+        for (int i = 0; i < num_players; ++i)
+        {
+            SetPlayerName(i, nw_client_wait_data.player_names[i]);
+        }
+    }
+
+    // A single player demo shows the name of the player who recorded it,
+    // which is the local one; a recorded netgame carries no roster at all,
+    // so its players keep the generic names.
+
+    if (nw_player_name && consoleplayer >= 0 && consoleplayer < MAXPLAYERS
+        && !(demoplayback && netgame))
+    {
+        SetPlayerName(consoleplayer, nw_player_name);
+    }
+}
+
+static void AppendText(char *buffer, size_t size, size_t *length,
+                       const char *text)
+{
+    while (*text && *length + 1 < size)
+    {
+        buffer[(*length)++] = *text++;
+    }
+
+    buffer[*length] = '\0';
+}
+
+static void ExpandObituary(const char *ob_text, const char *victim,
+                           const char *killer, char *buffer, size_t size)
+{
+    size_t length = 0;
+
+    buffer[0] = '\0';
+
+    for (const char *p = ob_text; *p; ++p)
+    {
+        const char *text = NULL;
+
+        if (*p == '%')
+        {
+            switch (p[1])
+            {
+                case 'o':
+                    text = victim;
+                    break;
+                case 'k':
+                    text = killer;
+                    break;
+                case 'g':
+                    text = "they";
+                    break;
+                case 'h':
+                    text = "them";
+                    break;
+                case 'p':
+                    text = "their";
+                    break;
+                case 's':
+                    text = "theirs";
+                    break;
+                case 'r':
+                    text = "they're";
+                    break;
+                default:
+                    break;
+            }
+
+            if (text)
+            {
+                ++p;
+            }
+        }
+
+        if (text)
+        {
+            AppendText(buffer, size, &length, text);
+        }
+        else if (length + 1 < size)
+        {
+            buffer[length++] = *p;
+            buffer[length] = '\0';
+        }
+    }
+}
 
 static void AssignObituary(const int type, char *ob, char *ob_m)
 {
@@ -85,29 +204,10 @@ void HU_InitObituaries(void)
     AssignObituary(MT_BABY,      OB_BABY,     NULL);
     AssignObituary(MT_CYBORG,    OB_CYBORG,   NULL);
     AssignObituary(MT_WOLFSS,    OB_WOLFSS,   NULL);
-
-    // [FG] TODO only the server knows the names of all clients,
-    //           but at least we know ours...
-
-    playerstr[consoleplayer] = nw_player_name;
-}
-
-static inline char *StrReplace(char *str, const char *from, const char *to)
-{
-    if (strstr(str, from) != NULL)
-    {
-        char *newstr;
-        newstr = M_StringReplace(str, from, to);
-        free(str);
-        str = newstr;
-    }
-
-    return str;
 }
 
 void HU_Obituary(mobj_t *target, mobj_t *inflictor, mobj_t *source, method_t mod)
 {
-    char *str;
     const char *ob = OB_DEFAULT;
 
     if (target->player->mo != target)
@@ -201,30 +301,27 @@ void HU_Obituary(mobj_t *target, mobj_t *inflictor, mobj_t *source, method_t mod
         }
     }
 
-    str = M_StringDuplicate(DEH_String(ob));
+    UpdatePlayerNames();
 
-    for (int i = 0; i < arrlen(pronouns); i++)
-    {
-        str = StrReplace(str, pronouns[i].from, pronouns[i].to);
-    }
+    const char *killer = NULL;
 
     if (source && source->player)
     {
-        str = StrReplace(str, "%k", playerstr[source->player - players]);
+        killer = player_names[source->player - players];
     }
 
-    str = StrReplace(str, "%o", playerstr[target->player - players]);
+    char body[HU_MAXLINELENGTH];
+    char text[HU_MAXLINELENGTH];
 
-    for (int i = 0; i < MAXPLAYERS; i++)
-    {
-        if (!playeringame[i])
-        {
-            break;
-        }
+    // Keep room for the colour prefix and the reset sequence, so that a
+    // long name cannot cut them off and leak the colour into the rest of
+    // the line.
 
-        doomprintf(&players[i], MESSAGES_OBITUARY, "\x1b%c%s" ORIG_S,
-                   '0' + hudcolor_obituary, str);
-    }
+    ExpandObituary(DEH_String(ob), player_names[target->player - players],
+                   killer, body, sizeof(body) - sizeof("\x1b" ORIG_S));
 
-    free(str);
+    M_snprintf(text, sizeof(text), "\x1b%c%s" ORIG_S,
+               '0' + hudcolor_obituary, body);
+
+    HU_Message(NULL, MESSAGES_OBITUARY, "%s", text);
 }

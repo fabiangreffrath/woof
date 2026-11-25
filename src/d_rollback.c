@@ -21,6 +21,7 @@
 #include "d_rollback.h"
 #include "doomdef.h"
 #include "doomstat.h"
+#include "hu_message.h"
 #include "i_printf.h"
 #include "i_timer.h"
 #include "m_argv.h"
@@ -28,7 +29,6 @@
 #include "nw_common.h"
 #include "nw_defs.h"
 #include "p_keyframe.h"
-#include "st_widgets.h"
 
 // How many tics we are allowed to run ahead of the confirmed data.
 
@@ -284,13 +284,13 @@ void RB_ReceiveTic(int tic, ticcmd_t *ticcmds, boolean *players_mask)
 
         // Chat is a one-shot presentation event that TiccmdDiffers() ignores on
         // purpose. A tic that was already run as a prediction therefore never
-        // applies the real character, so hand it to the chat display here,
-        // exactly once. ST_UpdateChatMessage() skips the resim replays.
+        // applies the real character, so record it for that tic; the
+        // presentation layer shows it once the tic can no longer be rolled
+        // back.
 
-        if (i < MAXPLAYERS && used_tic[slot] == tic && used_predicted[slot][i]
-            && ticcmds[i].chatchar)
+        if (i < MAXPLAYERS && ticcmds[i].chatchar)
         {
-            ST_RemoteChatChar(i, ticcmds[i].chatchar);
+            HU_ChatChar(tic, i, ticcmds[i].chatchar);
         }
     }
 

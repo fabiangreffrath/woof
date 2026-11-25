@@ -14,6 +14,7 @@
 #include "d_event.h"
 #include "doomstat.h"
 #include "doomtype.h"
+#include "hu_message.h"
 #include "g_game.h"
 #include "i_printf.h"
 #include "i_timer.h"

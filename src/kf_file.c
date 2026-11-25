@@ -685,8 +685,6 @@ static void read_player_t(player_t *str, json_t *obj)
     str->killcount = JS_GetIntegerValue(obj, "killcount");
     str->itemcount = JS_GetIntegerValue(obj, "itemcount");
     str->secretcount = JS_GetIntegerValue(obj, "secretcount");
-    // TODO
-    str->message = NULL;
     str->damagecount = JS_GetIntegerValue(obj, "damagecount");
     str->bonuscount = JS_GetIntegerValue(obj, "bonuscount");
     str->attacker = getptr_mobj(JS_GetIntegerValue(obj, "attacker"));
@@ -702,7 +700,6 @@ static void read_player_t(player_t *str, json_t *obj)
     }
     JS_ArrayIteratorFree(psprites_iter);
 
-    str->secretmessage = NULL;
     str->didsecret = JS_GetIntegerValue(obj, "didsecret");
     str->oldviewz = JS_GetIntegerValue(obj, "oldviewz");
     str->pitch = JS_GetIntegerValue(obj, "pitch");
@@ -801,8 +798,6 @@ static json_mut_t *write_player_t(player_t *str, json_mut_doc_t *doc)
     JS_SetInt(doc, obj, "killcount", str->killcount);
     JS_SetInt(doc, obj, "itemcount", str->itemcount);
     JS_SetInt(doc, obj, "secretcount", str->secretcount);
-    // TODO
-    // str->message;
     JS_SetInt(doc, obj, "damagecount", str->damagecount);
     JS_SetInt(doc, obj, "bonuscount", str->bonuscount);
     JS_SetInt(doc, obj, "attacker", getidx_mobj(str->attacker));

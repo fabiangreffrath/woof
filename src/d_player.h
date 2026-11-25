@@ -153,9 +153,6 @@ typedef struct player_s
   int                 itemcount;
   int                 secretcount;
 
-  // Hint messages.
-  char*               message;
-
   // For screen flashing (red or bright).
   int                 damagecount;
   int                 bonuscount;
@@ -182,9 +179,6 @@ typedef struct player_s
   // [AM] Previous position of viewz before think.
   //      Used to interpolate between camera positions.
   fixed_t             oldviewz;
-
-  // [Woof!] show centered "A secret is revealed!" message
-  const char*         secretmessage;
 
   int                 btuse, btuse_tics;
 
