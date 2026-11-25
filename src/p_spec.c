@@ -1064,7 +1064,7 @@ int P_CheckTag(line_t *line)
   return 0;
 }
 
-void P_ClearNonGeneralizedSectorSpecial(sector_t *sector)
+void P_ClearNonGeneralizedSectorSpecial(sector_t *const sector)
 {
     // jff 3/14/98 clear non-generalized sector type
     // Notes:
@@ -1074,30 +1074,30 @@ void P_ClearNonGeneralizedSectorSpecial(sector_t *sector)
     sector->special &= (map.param ? ~255 : ~31);
 }
 
-boolean P_IsSpecialSector(sector_t *sector)
+boolean P_IsSpecialSector(sector_t *const sector)
 {
     return sector->special || sector->flags & SECF_SECRET || sector->dmg_amount;
 }
 
-static void AddSectorSecret(sector_t *sector)
+static void AddSectorSecret(sector_t *const sector)
 {
     totalsecret++;
     sector->flags |= SECF_SECRET /* | SECF_WAS_SECRET */;
 }
 
-void P_PlayerCollectSecret(player_t *player)
+void P_PlayerCollectSecret(player_t *const player)
 {
     player->secretcount++;
     SecretRevealed(player);
 }
 
-static void CollectSectorSecret(sector_t *sector, player_t *player)
+static void CollectSectorSecret(sector_t *const sector, player_t *const player)
 {
     sector->flags &= ~SECF_SECRET;
     P_PlayerCollectSecret(player);
 }
 
-boolean P_IsDeathExit(sector_t *sector)
+boolean P_IsDeathExit(sector_t *const sector)
 {
     if (!map.param)
     {
@@ -1116,7 +1116,7 @@ boolean P_IsDeathExit(sector_t *sector)
     return false;
 }
 
-boolean P_IsExitLine(line_t *line)
+boolean P_IsExitLine(line_t *const line)
 {
     int16_t special = line->special;
 
@@ -1129,7 +1129,7 @@ boolean P_IsExitLine(line_t *line)
                   || special == Exit_Normal || special == Exit_Secret);
 }
 
-boolean P_IsTeleportLine(line_t *line)
+boolean P_IsTeleportLine(line_t *const line)
 {
     int16_t special = line->special;
 
@@ -2655,7 +2655,7 @@ void P_PlayerInSector_Classic(player_t *player, sector_t *sector)
     }
 }
 
-void P_PlayerInSector_Param(player_t *player, sector_t *sector)
+void P_PlayerInSector_Param(player_t *const p, sector_t *const s)
 {
     const fixed_t heretic_carry[5] = {
         ORIG_FRICTION_FACTOR * 5, ORIG_FRICTION_FACTOR * 10,
@@ -2666,8 +2666,50 @@ void P_PlayerInSector_Param(player_t *player, sector_t *sector)
                                     ORIG_FRICTION_FACTOR * 10,
                                     ORIG_FRICTION_FACTOR * 25};
 
-    const int16_t special = sector->special;
-    mobj_t *const mo = player->mo;
+    const int16_t special = s->special;
+    mobj_t *const mo = p->mo;
+
+    if (s->dmg_amount > 0)
+    {
+        if (s->flags & SECF_END_GODMODE)
+        {
+            p->cheats &= ~CF_GODMODE;
+        }
+
+        if (!p->powers[pw_ironfeet]
+            || (s->dmg_leakrate && P_Random(pr_slimehurt) < s->dmg_leakrate))
+        {
+            if (s->flags & SECF_HAZARD)
+            {
+                p->hazardcount += s->dmg_amount;
+                p->hazardinterval = s->dmg_interval;
+            }
+            else
+            {
+                if (leveltime % s->dmg_interval == 0)
+                {
+                    P_DamageMobj(p->mo, NULL, NULL, s->dmg_amount);
+
+                    if (s->flags & SECF_END_LEVEL && p->health <= 10)
+                    {
+                        G_ExitLevel(0);
+                    }
+
+                    if (s->flags & SECF_DMG_TERRAIN_FX)
+                    {
+                        // TODO: damage special effects
+                    }
+                }
+            }
+        }
+    }
+    else if (s->dmg_amount < 0)
+    {
+        if (leveltime % s->dmg_interval == 0)
+        {
+            P_GiveBody(p, -s->dmg_amount);
+        }
+    }
 
     switch (special)
     {
@@ -2676,7 +2718,7 @@ void P_PlayerInSector_Param(player_t *player, sector_t *sector)
             break;
         case Scroll_StrifeCurrent:
             {
-                int32_t anglespeed = sector->tag - 100;
+                int32_t anglespeed = s->tag - 100;
                 fixed_t carryspeed = (anglespeed % 10) * 4096;
                 angle_t angle = (anglespeed / 10) * ANG45;
                 P_Thrust(mo, angle, carryspeed);
@@ -2756,9 +2798,9 @@ void P_PlayerInSector_Param(player_t *player, sector_t *sector)
             break;
     }
 
-    if (sector->flags & SECF_SECRET)
+    if (s->flags & SECF_SECRET)
     {
-        CollectSectorSecret(sector, player);
+        CollectSectorSecret(s, p);
     }
 };
 

@@ -157,6 +157,10 @@ typedef struct player_s
   int                 damagecount;
   int                 bonuscount;
 
+  // Sector hazard
+  int                 hazardcount;
+  byte                hazardinterval;
+
   // Who did damage (NULL for floors/ceilings).
   struct mobj_s       *attacker;
 

@@ -32,6 +32,7 @@ struct mobj_s;
 // follow a player exlusively for 3 seconds
 #define BASETHRESHOLD   (100)
 
+boolean P_GiveBody(struct player_s *player, int num);
 boolean P_GivePower(struct player_s *, int);
 void P_TouchSpecialThing(struct mobj_s *special, struct mobj_s *toucher);
 void P_DamageMobjBy(struct mobj_s *target, struct mobj_s *inflictor,
