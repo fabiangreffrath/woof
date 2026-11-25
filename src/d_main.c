@@ -1959,6 +1959,23 @@ void D_DoomMain(void)
 
     DEH_PostProcess();
 
+    // TODO: THIS FUCKING SUCKS
+    for (size_t i = 0; i < num_mobj_types; ++i)
+    {
+        if (mobjinfo[i].flags & MF_COUNTKILL)
+        {
+            mobjinfo[i].flags2 |= MF2_MCROSS | MF2_PUSHWALL | MF2_CANUSEWALLS;
+        }
+        if (mobjinfo[i].flags & MF_MISSILE)
+        {
+            mobjinfo[i].flags2 |= MF2_PCROSS | MF2_IMPACT;
+        }
+    }
+
+    mobjinfo[MT_SKULL].flags2 |= MF2_MCROSS | MF2_PUSHWALL | MF2_CANUSEWALLS;
+    mobjinfo[MT_PLAYER].flags2 |=
+        MF2_WINDTHRUST | MF2_PUSHWALL | MF2_CANUSEWALLS;
+
     //
     // End DeHackEd Loading
     //
