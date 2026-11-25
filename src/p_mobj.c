@@ -1219,7 +1219,7 @@ static int32_t ThingTypeToPlayerNum(int32_t type)
     return -1;
 }
 
-static boolean ShouldMapThingSpawn(int32_t options)
+static boolean ShouldSpawnMapThing(int32_t options)
 {
     // check for apropriate skill level
 
@@ -1399,7 +1399,7 @@ void P_SpawnMapThing (mapthing_t* mthing)
         return;
     }
 
-  if (ShouldMapThingSpawn(mthing->options))
+  if (!ShouldSpawnMapThing(mthing->options))
   {
     return;
   }
