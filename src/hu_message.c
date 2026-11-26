@@ -27,28 +27,37 @@
 #include "m_misc.h"
 #include "st_widgets.h"
 
-// The events of a tic are kept until that tic is safe to show. A rollback
-// resimulates tics that have already produced events, so a slot holds the
-// result of the last simulation of its tic, never a log of every attempt.
+// Chat characters are one-shot events: a tic's slot holds the result of the
+// last simulation of that tic, and is released once the tic can no longer be
+// resimulated. A rollback resimulates tics that already produced a character,
+// so the slot is replaced, never appended to.
 
 #define HU_EVENT_TICS 16
 
 typedef struct
 {
     int tic;
-    boolean has_message;
-    boolean has_announce;
-    char message[HU_MAXLINELENGTH];
-    char announce[HU_MAXLINELENGTH];
     char chat[MAXPLAYERS];
 } hu_event_t;
 
 static hu_event_t events[HU_EVENT_TICS];
 
-// The next tic whose events have not been shown yet, or -1 before the
-// first dispatch.
+// The next tic whose chat has not been shown yet, or -1 before the first
+// dispatch.
 
 static int present_tic = -1;
+
+// A message belongs to the tic that produced it and is posted at the end of
+// that tic. A tic that was already presented cannot post again: a rollback
+// resimulates tics that were shown before, and its findings must not repeat.
+
+static boolean in_tic;
+static int staged_tic = -1;
+static boolean staged_message;
+static char staged_text[HU_MAXLINELENGTH];
+static boolean staged_announce;
+static char staged_secret[HU_MAXLINELENGTH];
+static int presented_tic = -1;
 
 static char pending_message[HU_MAXLINELENGTH];
 static boolean message_pending;
@@ -74,9 +83,9 @@ static hu_event_t *EventFor(int tic)
     return event->tic == tic ? event : NULL;
 }
 
-// An event of a tic that is already confirmed cannot change anymore, so it
-// can be shown right away. Everything else is held back: a resimulation may
-// still replace it, or produce no event at all.
+// Chat of a tic that is already confirmed cannot change anymore, so it can
+// be shown right away. Everything else is held back: a resimulation may
+// still replace it, or produce no character at all.
 
 static boolean CanPresent(int tic)
 {
@@ -100,42 +109,44 @@ static void PostAnnouncement(const char *text)
     announce_pending = true;
 }
 
-static void FileMessage(int tic, const char *text)
-{
-    hu_event_t *event;
+// Messages outside a level tic (menus, console feedback, rewind) are posted
+// right away; the messages of a level tic are shown at its end.
 
-    if (CanPresent(tic))
+static void StageMessage(int tic, const char *text)
+{
+    if (!in_tic || gamestate != GS_LEVEL)
     {
         PostMessage(text);
         return;
     }
 
-    event = EventFor(tic);
-
-    if (event)
+    if (tic <= presented_tic)
     {
-        M_StringCopy(event->message, text, sizeof(event->message));
-        event->has_message = true;
-    }
-}
-
-static void FileAnnouncement(int tic, const char *text)
-{
-    hu_event_t *event;
-
-    if (CanPresent(tic))
-    {
-        PostAnnouncement(text);
         return;
     }
 
-    event = EventFor(tic);
+    staged_tic = tic;
+    M_StringCopy(staged_text, text, sizeof(staged_text));
+    staged_message = true;
+}
 
-    if (event)
+static boolean StageAnnouncement(int tic, const char *text)
+{
+    if (!in_tic || gamestate != GS_LEVEL)
     {
-        M_StringCopy(event->announce, text, sizeof(event->announce));
-        event->has_announce = true;
+        PostAnnouncement(text);
+        return true;
     }
+
+    if (tic <= presented_tic)
+    {
+        return false;
+    }
+
+    staged_tic = tic;
+    M_StringCopy(staged_secret, text, sizeof(staged_secret));
+    staged_announce = true;
+    return true;
 }
 
 void HU_PostMessage(const char *text)
@@ -151,11 +162,6 @@ void HU_Message(struct player_s *target, msg_category_t category,
     va_list args;
 
     if (target && target != &players[displayplayer])
-    {
-        return;
-    }
-
-    if (!show_messages)
     {
         return;
     }
@@ -191,7 +197,7 @@ void HU_Message(struct player_s *target, msg_category_t category,
     vsnprintf(text, sizeof(text), fmt, args);
     va_end(args);
 
-    FileMessage(CurrentTic(), text);
+    StageMessage(CurrentTic(), text);
 }
 
 boolean HU_AnnounceSecret(struct player_s *target, int count, int total)
@@ -213,9 +219,7 @@ boolean HU_AnnounceSecret(struct player_s *target, int count, int total)
         M_StringCopy(text, DEH_String(HUSTR_SECRETFOUND), sizeof(text));
     }
 
-    FileAnnouncement(CurrentTic(), text);
-
-    return true;
+    return StageAnnouncement(CurrentTic(), text);
 }
 
 void HU_ChatChar(int tic, int player, char ch)
@@ -246,16 +250,43 @@ void HU_BeginTic(int tic)
     hu_event_t *event = &events[tic % HU_EVENT_TICS];
 
     event->tic = tic;
-    event->has_message = false;
-    event->has_announce = false;
     memset(event->chat, 0, sizeof(event->chat));
+
+    in_tic = true;
+    staged_tic = tic;
+    staged_message = false;
+    staged_announce = false;
 }
 
 void HU_DispatchEvents(void)
 {
     const int curtic = CurrentTic();
 
-    // A resimulation is not a new tic: its events are released afterwards,
+    // The tic is over; its messages are shown now. A tic that has already
+    // been presented (a resimulated one) is skipped.
+
+    in_tic = false;
+
+    if (staged_tic > presented_tic)
+    {
+        if (staged_message)
+        {
+            PostMessage(staged_text);
+        }
+
+        if (staged_announce)
+        {
+            PostAnnouncement(staged_secret);
+        }
+
+        presented_tic = staged_tic;
+    }
+
+    staged_tic = -1;
+    staged_message = false;
+    staged_announce = false;
+
+    // A resimulation is not a new tic: its chat is released afterwards,
     // when the tics it replayed are final.
 
     if (rollback_resim)
@@ -277,16 +308,6 @@ void HU_DispatchEvents(void)
 
         if (event)
         {
-            if (event->has_message)
-            {
-                PostMessage(event->message);
-            }
-
-            if (event->has_announce)
-            {
-                PostAnnouncement(event->announce);
-            }
-
             for (int p = 0; p < MAXPLAYERS; ++p)
             {
                 if (event->chat[p])
@@ -307,12 +328,15 @@ void HU_ResetMessages(void)
     for (int i = 0; i < HU_EVENT_TICS; ++i)
     {
         events[i].tic = -1;
-        events[i].has_message = false;
-        events[i].has_announce = false;
         memset(events[i].chat, 0, sizeof(events[i].chat));
     }
 
     present_tic = -1;
+    in_tic = false;
+    staged_tic = -1;
+    staged_message = false;
+    staged_announce = false;
+    presented_tic = -1;
     message_pending = false;
     posted_pending = false;
     announce_pending = false;
@@ -323,13 +347,6 @@ void HU_ResetMessages(void)
 
 boolean HU_PopMessage(char *buffer, size_t size)
 {
-    if (posted_pending)
-    {
-        M_StringCopy(buffer, posted_message, size);
-        posted_pending = false;
-        return true;
-    }
-
     if (!message_pending)
     {
         return false;
@@ -337,6 +354,19 @@ boolean HU_PopMessage(char *buffer, size_t size)
 
     M_StringCopy(buffer, pending_message, size);
     message_pending = false;
+
+    return true;
+}
+
+boolean HU_PopPostedMessage(char *buffer, size_t size)
+{
+    if (!posted_pending)
+    {
+        return false;
+    }
+
+    M_StringCopy(buffer, posted_message, size);
+    posted_pending = false;
 
     return true;
 }
