@@ -231,7 +231,7 @@ boolean joybuttons[NUM_GAMEPAD_BUTTONS];
 
 static int   savegameslot = -1;
 static int   savegamepage;
-char  savedescription[32];
+char  savedescription[SAVESTRINGSIZE];
 
 static boolean save_autosave;
 static boolean autosave;
