@@ -27,7 +27,6 @@
 #include "d_think.h"
 #include "deh_strings.h"
 #include "deh_misc.h"
-#include "doomdata.h"
 #include "doomdef.h"
 #include "doomstat.h"
 #include "g_game.h"
@@ -840,7 +839,7 @@ static void cheat_spechits(void)
 
       // [crispy] special without tag --> DR linedef type
       // do not change door direction if it is already moving
-      if (lines[i].args[0] == 0 &&
+     if (lines[i].args[0] == 0 &&
           lines[i].sidenum[1] != NO_INDEX &&
          (sides[lines[i].sidenum[1]].sector->floordata ||
           sides[lines[i].sidenum[1]].sector->ceilingdata))

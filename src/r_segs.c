@@ -22,7 +22,6 @@
 #include <limits.h>
 #include <string.h>
 
-#include "doomdata.h"
 #include "doomstat.h"
 #include "doomtype.h"
 #include "i_system.h"

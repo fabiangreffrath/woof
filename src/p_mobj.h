@@ -31,7 +31,7 @@
 
 // We need the WAD data structure for Map things,
 // from the THINGS lump.
-#include "doomdata.h"
+#include "p_level.h"
 
 // States are tied to finite states are
 //  tied to animation frames.

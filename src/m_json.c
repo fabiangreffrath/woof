@@ -15,7 +15,6 @@
 #include "m_json.h"
 
 #include <string.h>
-#include "doomdata.h"
 #include "doomtype.h"
 #include "i_printf.h"
 #include "m_array.h"
