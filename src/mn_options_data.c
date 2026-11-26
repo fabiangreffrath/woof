@@ -63,14 +63,14 @@ mn_menugroup_t options_group = {
      .input_id = (id),         \
      .group = (grp)}
 
-#define MN_TOGGLE_ACT(lbl, key, act, desc) \
-    {.label = (lbl),                       \
-     .cfg = (key),                         \
-     .type = ItemType_Choice,              \
-     .choices = offon_strings,             \
-     .num_choices = arrlen(offon_strings), \
-     .choice_size = MN_CHOICE_SIZE,        \
-     .action = (act),                      \
+#define MN_TOGGLE_ACT(lbl, key, act, desc)    \
+    {.label = (lbl),                          \
+     .cfg = (key),                            \
+     .type = ItemType_Choice,                 \
+     .choices = MN_OFFON_STRINGS,             \
+     .num_choices = arrlen(MN_OFFON_STRINGS), \
+     .choice_size = MN_CHOICE_SIZE,           \
+     .action = (act),                         \
      .description = (desc)}
 
 #define MN_NUMBER_ACT(lbl, key, sfx, act, desc) \

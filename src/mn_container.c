@@ -1837,7 +1837,7 @@ static void DrawWrappedText(int x, int y, int width, int height,
 
     M_snprintf(buffer, sizeof(buffer), "%s", text);
 
-    const int num_lines = MN_WrapText(buffer, width);
+    MN_WrapText(buffer, width);
 
     y += MN_PAD;
 

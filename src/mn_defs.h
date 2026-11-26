@@ -58,15 +58,15 @@ enum
 #define MN_TAB(tab_, items_) \
     {.tab = (tab_), .items = (items_), .num_items = arrlen(items_)}
 
-static const char *offon_strings[] = {"Off", "On"};
+#define MN_OFFON_STRINGS (const char *[]){"Off", "On"}
 
-#define MN_TOGGLE(lbl, key, desc)          \
-    {.label = (lbl),                       \
-     .cfg = (key),                         \
-     .type = ItemType_Choice,              \
-     .choices = offon_strings,             \
-     .num_choices = arrlen(offon_strings), \
-     .choice_size = MN_CHOICE_SIZE,        \
+#define MN_TOGGLE(lbl, key, desc)             \
+    {.label = (lbl),                          \
+     .cfg = (key),                            \
+     .type = ItemType_Choice,                 \
+     .choices = MN_OFFON_STRINGS,             \
+     .num_choices = arrlen(MN_OFFON_STRINGS), \
+     .choice_size = MN_CHOICE_SIZE,           \
      .description = (desc)}
 
 #define MN_TEXT(lbl, key, size, desc) \
