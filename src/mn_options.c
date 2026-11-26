@@ -766,6 +766,11 @@ static boolean ChoiceClick(mn_item_t *item, int mouse_x, int mouse_y)
 // Slider Item
 //---------------------------------------------------------------------------
 
+enum
+{
+    SLIDER_VAL_W = 28,
+};
+
 static void DrawThermo(const mn_item_t *item, const mn_draw_ctx_t *ctx)
 {
     const int size = item->slider_size ? item->slider_size : 8;
@@ -776,7 +781,7 @@ static void DrawThermo(const mn_item_t *item, const mn_draw_ctx_t *ctx)
                : (ctx->selected || ctx->active) ? xlat[CR_BRIGHT].table
                                                 : NULL;
 
-    int x = ctx->value_x;
+    int x = ctx->value_x - MN_PAD;
 
     V_DrawPatchTranslated(x, ctx->y, V_CachePatchName("M_THERML", PU_CACHE), cr);
     x += 8;
@@ -825,8 +830,13 @@ static void SliderDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
     }
 
     const int size = item->slider_size ? item->slider_size : 8;
-    const int text_x = ctx->value_x + SliderPixelWidth(size);
-    const int text_y = ctx->y + (item->height - MN_FNT_H) / 2;
+    const int x = ctx->value_x + SliderPixelWidth(size) - 2 * MN_PAD;
+    const int y = ctx->y;
+
+    V_ShadeRect(video.deltaw + x, y, SLIDER_VAL_W, item->rect.h, 90);
+
+    const int text_x = x + (SLIDER_VAL_W - MN_GetPixelWidth(buffer)) / 2;
+    const int text_y = y + (item->height - MN_FNT_H) / 2;
 
     MN_DrawStringCR(text_x, text_y, xlat[CR_GREEN].table, ValueColor(ctx), buffer);
 }
@@ -1658,29 +1668,13 @@ void MN_GetWeaponSlotStrings(mn_item_t *item)
     item->num_choices = arrlen(full_doom2_strings);
 }
 
-void MN_GetScreenSizeStrings(mn_item_t *item)
+static int hud_layout;
+
+void MN_GetHudLayoutStrings(mn_item_t *item)
 {
-    const char **strings = NULL;
+    const char **strings = ST_StatusbarList();
 
-    for (int i = 0; i < 3; ++i)
-    {
-        array_push(strings, "");
-    }
-    for (int i = 3; i < 10; ++i)
-    {
-        char buf[8];
-        buf[0] = '\0';
-        M_snprintf(buf, sizeof(buf), "%d", i);
-        array_push(strings, M_StringDuplicate(buf));
-    }
-
-    const char **st_strings = ST_StatusbarList();
-    for (int i = 0; i < array_size(st_strings); ++i)
-    {
-        array_push(strings, st_strings[i]);
-    }
-
-    maxscreenblocks = array_size(strings) - 1;
+    maxscreenblocks = 10 + array_size(strings) - 1;
     screenblocks = MIN(screenblocks, maxscreenblocks);
 
     item->choices = strings;
@@ -1696,7 +1690,13 @@ void MN_OptionsUpdateAllGamepadItems(void)
 
 void MN_OptionsViewSize(void)
 {
+    screenblocks = 10 + hud_layout;
     R_SetViewSize(screenblocks);
+}
+
+void MN_OptionsUpdateSolidBackgroundItem(void)
+{
+    st_refresh_background = true;
 }
 
 void MN_OptionsUpdateStatsFormatItem(void)
@@ -1757,10 +1757,15 @@ void MN_OptionsInit(void)
     MN_SetHUFontKerning();
 }
 
+//---------------------------------------------------------------------------
+// Config
+//---------------------------------------------------------------------------
+
 void MN_BindOptionsVariables(void)
 {
     BIND_NUM_MENU(resolution_scale, 0, UL);
     BIND_NUM_MENU(freelook_mode, FREELOOK_OFF, FREELOOK_DIRECT_AIM);
+    BIND_NUM_MENU(hud_layout, 0, UL);
     BIND_BOOL(menu_pause_demos, false,
         "Pause demo loop while menu is open");
     BIND_NUM(menu_backdrop, MENU_BG_DARK, MENU_BG_OFF, MENU_BG_TEXTURE,

@@ -43,7 +43,7 @@ enum
     MN_SPC_CHOICE = (MN_SPC + 4),
 
     MN_CHOICE_SIZE = 9,
-    MN_SLIDER_SIZE = 8,
+    MN_SLIDER_SIZE = 7,
 };
 
 #define MN_LAYOUT                   \

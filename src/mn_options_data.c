@@ -784,11 +784,16 @@ static const char *stats_format_strings[] = {
 
 static mn_item_t hud_items[] = {
     MN_TITLE("HUD Appearance"),
-    MN_SLIDER_ACT_DYN(
-        "HUD Layout", "screenblocks",
-        MN_GetScreenSizeStrings, MN_OptionsViewSize,
-        "HUD Layout\n\nChoose alternative HUD."),
-    MN_TOGGLE("  Solid Background", "st_solidbackground", NULL),
+    {.label = "HUD Layout",
+     .cfg = "hud_layout",
+     .type = ItemType_Choice,
+     .get_choices = MN_GetHudLayoutStrings,
+     .choice_size = MN_CHOICE_SIZE,
+     .action = MN_OptionsViewSize,
+     .description = "HUD Layout\n\nChoose alternative HUD."},
+    MN_TOGGLE_ACT(
+        "  Solid Background", "st_solidbackground",
+        MN_OptionsUpdateSolidBackgroundItem, NULL),
     MN_TOGGLE("Colored Numbers", "sts_colored_numbers", NULL),
     MN_CHOICE_ACT(
         "HUD Anchoring", "hud_anchoring",
@@ -797,12 +802,11 @@ static mn_item_t hud_items[] = {
     MN_CHOICE("Use Doom Font", "hud_widget_font", show_widgets_strings, NULL),
     MN_TITLE("HUD Components"),
     MN_TOGGLE("Weapon Carousel", "weapon_carousel", NULL),
-    MN_CHOICE_ACT("Level Stats", "hud_level_stats", show_widgets_strings,
-                  MN_OptionsUpdateStatsFormatItem, NULL),
+    MN_CHOICE_ACT("Level Stats", "hud_level_stats",
+        show_widgets_strings, MN_OptionsUpdateStatsFormatItem, NULL),
     MN_CHOICE("  Stats Format", "hud_stats_format", stats_format_strings, NULL),
     MN_CHOICE("Level Time", "hud_level_time", show_widgets_strings, NULL),
-    MN_CHOICE("Player Coords", "hud_player_coords",
-              show_adv_widgets_strings, NULL),
+    MN_CHOICE("Player Coords", "hud_player_coords", show_adv_widgets_strings, NULL),
     MN_TOGGLE("Use-Button Timer", "hud_time_use", NULL),
     MN_TOGGLE_ACT(
         "Command History", "hud_command_history", HU_ResetCommandHistory,

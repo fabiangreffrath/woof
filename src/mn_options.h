@@ -94,8 +94,9 @@ void MN_OptionsUpdateWeaponSlotSelection(void);
 void MN_OptionsUpdateWeaponSlots(void);
 void MN_GetWeaponSlotStrings(mn_item_t *item);
 
-void MN_GetScreenSizeStrings(mn_item_t *item);
+void MN_GetHudLayoutStrings(mn_item_t *item);
 void MN_OptionsViewSize(void);
+void MN_OptionsUpdateSolidBackgroundItem(void);
 void MN_OptionsUpdateStatsFormatItem(void);
 void MN_OptionsUpdateCrosshairItems(void);
 
