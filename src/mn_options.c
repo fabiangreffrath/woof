@@ -332,7 +332,7 @@ static int TextMaxLength(const mn_item_t *item)
 
 static const char *TextValue(const mn_item_t *item)
 {
-    if (item->def && item->def->type == string && item->def->location.s)
+    if (item->def && item->def->type == cfg_string && item->def->location.s)
     {
         return *item->def->location.s;
     }
@@ -342,7 +342,7 @@ static const char *TextValue(const mn_item_t *item)
 
 static void TextSetValue(mn_item_t *item, const char *value)
 {
-    if (!item->def || item->def->type != string || !item->def->location.s)
+    if (!item->def || item->def->type != cfg_string || !item->def->location.s)
     {
         return;
     }
@@ -881,28 +881,6 @@ static boolean ActionRespond(mn_item_t *item, menu_action_t action, int ch)
     return false;
 }
 
-static void ResetDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
-{
-    static const char *const names[2] = {"M_BUTT1", "M_BUTT2"};
-    const int index = (ctx->selected || ctx->active) ? whichSkull : 0;
-    patch_t *patch = V_CachePatchName(names[index], PU_CACHE);
-    V_DrawPatchDirect(item->rect.x, item->rect.y, patch);
-}
-
-static void OptionsResetPage(void);
-
-static boolean ResetRespond(mn_item_t *item, menu_action_t action, int ch)
-{
-    if (action == MENU_ENTER)
-    {
-        MN_ContainerConfirm("Restore defaults? (Y/N)", OptionsResetPage);
-        MN_ContainerEndEdit();
-        return true;
-    }
-
-    return false;
-}
-
 //---------------------------------------------------------------------------
 // Input Item
 //---------------------------------------------------------------------------
@@ -1065,10 +1043,8 @@ static const mn_item_ops_t number_ops = {NumberDraw, NumberRespond};
 static const mn_item_ops_t choice_ops = {ChoiceDrawCrosshair, ChoiceRespond,
                                          .click = ChoiceClick};
 static const mn_item_ops_t slider_ops = {SliderDraw, SliderRespond,
-    .drag = SliderDrag
-};
+                                         .drag = SliderDrag};
 static const mn_item_ops_t action_ops = {ActionDraw, ActionRespond};
-static const mn_item_ops_t reset_ops = {ResetDraw, ResetRespond};
 static const mn_item_ops_t input_ops = {InputDraw, InputRespond,
                                         .click = InputClick};
 static const mn_item_ops_t text_ops = {TextDraw, TextRespond,
@@ -1102,9 +1078,6 @@ static void BindItem(mn_item_t *item)
         case ItemType_SubMenu:
             item->ops = &action_ops;
             break;
-        case ItemType_Reset:
-            item->ops = &reset_ops;
-            break;
         case ItemType_Input:
             item->ops = &input_ops;
             break;
@@ -1130,16 +1103,6 @@ static void BindItem(mn_item_t *item)
     {
         item->get_choices(item);
     }
-
-    // Initialize rect dimensions from patch for direct-coords reset button
-    if (item->type == ItemType_Reset)
-    {
-        patch_t *patch = V_CachePatchName("M_BUTT1", PU_CACHE);
-        item->rect.x = 301;
-        item->rect.y = (SCREENHEIGHT - 15 - 3);
-        item->rect.w = SHORT(patch->width);
-        item->rect.h = SHORT(patch->height);
-    }
 }
 
 void MN_BindMenu(mn_menu_t *menu)
@@ -1153,60 +1116,6 @@ void MN_BindMenu(mn_menu_t *menu)
             mn_item_t *item = &page->items[i];
 
             BindItem(item);
-        }
-    }
-}
-
-static void OptionsResetPage(void)
-{
-    mn_page_t *page = MN_ContainerCurrentPage();
-
-    if (!page)
-    {
-        return;
-    }
-
-    //for (mn_item_t *item = page->items; item->type != ItemType_End; ++item)
-    for (int i = 0; i < page->num_items; ++i)
-    {
-        mn_item_t *item = &page->items[i];
-
-        default_t *def = item->def;
-
-        if (def)
-        {
-            if (def->type == number || def->type == menu)
-            {
-                *def->location.i = def->defaultvalue.number;
-
-                if (def->current.i)
-                {
-                    *def->current.i = *def->location.i;
-                }
-            }
-            else if (def->type == string)
-            {
-                free(*def->location.s);
-                *def->location.s = strdup(def->defaultvalue.string);
-
-                if (def->current.s)
-                {
-                    *def->current.s = *def->location.s;
-                }
-            }
-            else if (def->type == input)
-            {
-                M_InputSetDefault(def->input_id);
-            }
-        }
-        else if (item->input_id)
-        {
-            M_InputSetDefault(item->input_id);
-        }
-
-        if (def && item->action)
-        {
-            item->action();
         }
     }
 }

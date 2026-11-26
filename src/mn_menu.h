@@ -105,7 +105,9 @@ typedef enum
     MENU_BACKSPACE,
     MENU_ENTER,
     MENU_ESCAPE,
-    MENU_CLEAR
+    MENU_CLEAR,
+    MENU_DEFAULTS,
+    MENU_APPLY,
 } menu_action_t;
 
 #define M_X_CENTER (-1)

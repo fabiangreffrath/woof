@@ -71,6 +71,8 @@ enum
     input_menu_enter,
     input_menu_escape,
     input_menu_clear,
+    input_menu_defaults,
+    input_menu_apply,
     input_menu_reloadlevel,
     input_menu_nextlevel,
     input_menu_prevlevel,

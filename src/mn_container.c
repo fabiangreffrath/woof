@@ -802,6 +802,56 @@ static void ShowMenuTab(mn_menu_t *menu, int index)
     M_StartSound(sfx_mnumov);
 }
 
+static void ResetItem(mn_menu_t *menu, int index)
+{
+    mn_page_t *page = &menu->pages[menu->page];
+
+    if (index < 0 || index >= page->num_items)
+    {
+        return;
+    }
+
+    mn_item_t *item = &page->items[index];
+
+    default_t *def = item->def;
+
+    if (def)
+    {
+        if (def->type == cfg_number || def->type == cfg_menu)
+        {
+            *def->location.i = def->defaultvalue.number;
+
+            if (def->current.i)
+            {
+                *def->current.i = *def->location.i;
+            }
+        }
+        else if (def->type == cfg_string)
+        {
+            free(*def->location.s);
+            *def->location.s = strdup(def->defaultvalue.string);
+
+            if (def->current.s)
+            {
+                *def->current.s = *def->location.s;
+            }
+        }
+        else if (def->type == cfg_input)
+        {
+            M_InputSetDefault(def->input_id);
+        }
+    }
+    else if (item->input_id)
+    {
+        M_InputSetDefault(item->input_id);
+    }
+
+    if (def && item->action)
+    {
+        item->action();
+    }
+}
+
 static void ActivateItem(mn_menu_t *menu, int index)
 {
     mn_page_t *page = &menu->pages[menu->page];
@@ -867,8 +917,7 @@ static void ActivateItem(mn_menu_t *menu, int index)
         item->ops->respond(item, MENU_ENTER, 0);
     }
 
-    if (item->type == ItemType_Action || item->type == ItemType_Reset
-        || item->type == ItemType_Toggle)
+    if (item->type == ItemType_Action || item->type == ItemType_Toggle)
     {
         M_StartSound(sfx_mnusel);
     }
@@ -1272,6 +1321,12 @@ mn_container_result_t MN_ContainerResponder(menu_action_t action, int ch)
         return MN_CONTAINER_HANDLED;
     }
 
+    if (action == MENU_DEFAULTS)
+    {
+        ResetItem(menu, page->selected);
+        return MN_CONTAINER_HANDLED;
+    }
+
     // Character actions (e.g. Delete) apply to the highlighted item, which
     // is the hovered one in mouse mode.
     const int index = MN_ContainerHighlightedIndex(menu);
@@ -1566,8 +1621,7 @@ static void DrawMenuTabs(const mn_menu_t *menu)
 static void DrawItemLabel(const mn_item_t *item, const mn_draw_ctx_t *ctx,
                           int label_x)
 {
-    if (item->type == ItemType_Title || item->type == ItemType_Skip
-        || item->type == ItemType_Reset)
+    if (item->type == ItemType_Title || item->type == ItemType_Skip)
     {
         return;
     }
@@ -1860,8 +1914,11 @@ static const char *ConfirmKeyName(boolean pad)
 
 static const char *BackKeyName(boolean pad)
 {
-    return pad ? M_GetPlatformName(gamepad_cancel)
-               : M_GetNameForKey(KEY_BACKSPACE);
+    if (pad)
+    {
+        return M_GetPlatformName(gamepad_cancel);
+    }
+    return "BKSP";
 }
 
 static void DrawInstructions(const mn_menu_t *menu)
@@ -1903,7 +1960,8 @@ static void DrawInstructions(const mn_menu_t *menu)
 
     if (item->disabled)
     {
-        M_snprintf(buffer, sizeof(buffer), "[ %s ] Back", BackKeyName(pad));
+        M_snprintf(buffer, sizeof(buffer), GOLD_S "%s:" GRAY_S " Back" ORIG_S,
+                   BackKeyName(pad));
         text = buffer;
     }
     else if (menu->active_item)
@@ -1927,14 +1985,12 @@ static void DrawInstructions(const mn_menu_t *menu)
         {
             case ItemType_Input:
                 M_snprintf(buffer, sizeof(buffer),
-                           "[ %s ] Change, [ %s ] Clear", ConfirmKeyName(pad),
+                           GOLD_S "%s:" GRAY_S " Change" ORIG_S
+                           GOLD_S "  %s:" GRAY_S " Clear" ORIG_S
+                           GOLD_S "  R:" GRAY_S " Defaults" ORIG_S,
+                           ConfirmKeyName(pad),
                            pad ? M_GetPlatformName(GAMEPAD_NORTH)
                                : M_GetNameForKey(KEY_DEL));
-                break;
-
-            case ItemType_Reset:
-                M_snprintf(buffer, sizeof(buffer), "[ %s ] Restore defaults",
-                           ConfirmKeyName(pad));
                 break;
 
             case ItemType_Toggle:
@@ -1943,29 +1999,39 @@ static void DrawInstructions(const mn_menu_t *menu)
                 break;
 
             case ItemType_Text:
-                M_snprintf(buffer, sizeof(buffer), "[ %s ] Edit",
+                M_snprintf(buffer, sizeof(buffer),
+                           GOLD_S "%s:" GRAY_S " Edit" ORIG_S
+                           GOLD_S "  R:" GRAY_S " Defaults" ORIG_S,
                            ConfirmKeyName(pad));
                 break;
 
             case ItemType_Action:
             case ItemType_SubMenu:
             case ItemType_SaveSlot:
-                M_snprintf(buffer, sizeof(buffer), "[ %s ] Select",
+                M_snprintf(buffer, sizeof(buffer),
+                           GOLD_S "%s:" GRAY_S " Select" ORIG_S,
                            ConfirmKeyName(pad));
                 break;
 
             default:
                 M_snprintf(buffer, sizeof(buffer),
-                           "[ %s ] Change, [ %s ] Back",
-                           ConfirmKeyName(pad), BackKeyName(pad));
+                           GOLD_S "%s:" GRAY_S " Back" ORIG_S
+                           GOLD_S "  R:" GRAY_S " Defaults" ORIG_S,
+                           BackKeyName(pad));
                 break;
         }
 
         text = buffer;
     }
 
-    MN_DrawStringCR((SCREENWIDTH - MN_GetPixelWidth(text)) / 2,
-                    SCREENHEIGHT - 15, cr_shaded, NULL, text);
+    const int x = menu->viewport.x;
+    const int y = SCREENHEIGHT - 15;
+
+    V_ShadeRect(video.deltaw + x - MN_PAD, y - MN_PAD,
+                MN_GetPixelWidth(text) + 2 * MN_PAD,
+                MN_FNT_H + 2 * MN_PAD, 60);
+
+    MN_DrawStringCR(x, y, NULL, NULL, text);
 }
 
 void MN_DrawNotification(const char *text, int color, boolean blink)

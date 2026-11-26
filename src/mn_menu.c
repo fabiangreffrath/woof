@@ -2084,6 +2084,10 @@ boolean M_Responder(event_t *ev)
     {
         action = MENU_CLEAR;
     }
+    else if (M_InputActivated(input_menu_defaults))
+    {
+        action = MENU_DEFAULTS;
+    }
 
     if (ev->type == ev_joyb_down && action >= MENU_UP && action <= MENU_RIGHT)
     {

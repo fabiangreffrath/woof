@@ -38,7 +38,6 @@ typedef enum
     ItemType_Input,
     ItemType_Text,
     ItemType_Action,
-    ItemType_Reset,
     ItemType_SubMenu,
     ItemType_Skip,
     ItemType_SaveSlot,

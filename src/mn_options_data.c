@@ -37,9 +37,6 @@
 #include "r_plane.h"
 #include "r_sky.h"
 
-#define MN_RESET \
-    {.label = "", .type = ItemType_Reset, .flags = MN_ITEM_DIRECT_COORDS}
-
 // The tabs above the options pages; each one switches to a whole menu.
 static mn_menu_t *const options_menus[] = {
     &controls_menu,
@@ -209,7 +206,6 @@ static mn_item_t video_general_items[] = {
         "Extra Lighting", "extra_level_brightness",
         "Extra Lighting\n\nAdds constant light level to all sectors.\n"
         "Useful for dark maps."),
-    MN_RESET
 };
 
 static const char *fuzzmode_strings[] = {
@@ -252,7 +248,6 @@ static mn_item_t video_graphics_items[] = {
         "Projection\n\nVanilla: Original flat sky.\n\n"
         "Linear: Perspective-corrected.\n\n"
         "Cylindrical: Panoramic cylindrical mapping."),
-    MN_RESET
 };
 
 static const char *sound_module_strings[] = {
@@ -297,7 +292,6 @@ static mn_item_t audio_general_items[] = {
      .choice_size = MN_CHOICE_SIZE,
      .action = MN_OptionsSetMidiPlayer,
      .flags = MN_ITEM_DEFER_ACTION | MN_ITEM_TWO_LINES},
-    MN_RESET
 };
 
 static mn_item_t equalizer_items[] = {
@@ -329,7 +323,6 @@ static mn_item_t equalizer_items[] = {
     MN_NUMBER_ACT("  High Cutoff", "snd_eq_high_cutoff", "Hz",
                   I_OAL_EqualizerPreset,
                   "High Cutoff\n\nFrequency boundary for high band."),
-    MN_RESET
 };
 
 static mn_page_t equalizer_pages[] = {
@@ -382,7 +375,6 @@ static mn_item_t audio_advanced_items[] = {
         MN_OptionsSetMidiPlayer,
         "MIDI Reset Type\n\nNo SysEx: No reset sent.\n\n"
         "GM: General MIDI reset.\n\nGS: Roland GS reset.\n\nXG: Yamaha XG reset."),
-    MN_RESET
 };
 
 static mn_page_t video_pages[] = {
@@ -434,7 +426,6 @@ static mn_item_t input_bindings_action_items[] = {
     MN_INPUT("Autorun", input_autorun, m_scrn),
     MN_INPUT("Free Look", input_freelook, m_scrn),
     MN_INPUT("Vertmouse", input_novert, m_scrn),
-    MN_RESET
 };
 
 static mn_item_t input_bindings_weapon_items[] = {
@@ -451,7 +442,6 @@ static mn_item_t input_bindings_weapon_items[] = {
     MN_INPUT("Last", input_lastweapon, m_scrn),
     MN_INPUT("Previous", input_prevweapon, m_scrn),
     MN_INPUT("Next", input_nextweapon, m_scrn),
-    MN_RESET
 };
 
 static mn_item_t input_bindings_misc_items[] = {
@@ -471,7 +461,6 @@ static mn_item_t input_bindings_misc_items[] = {
     MN_TITLE("Multiplayer"),
     MN_INPUT("Begin Chat", input_chat, m_scrn),
     MN_INPUT("Stats", input_netgame_stats, m_scrn),
-    MN_RESET
 };
 
 static mn_item_t input_bindings_func_items[] = {
@@ -491,7 +480,6 @@ static mn_item_t input_bindings_func_items[] = {
     MN_INPUT("Clean Screenshot", input_clean_screenshot, m_scrn),
     MN_INPUT("Larger View", input_zoomin, m_scrn),
     MN_INPUT("Smaller View", input_zoomout, m_scrn),
-    MN_RESET
 };
 
 static mn_item_t input_bindings_automap_items[] = {
@@ -510,7 +498,6 @@ static mn_item_t input_bindings_automap_items[] = {
     MN_INPUT("Clear Last Mark", input_map_clear, m_map),
     MN_INPUT("Full/Zoom", input_map_gobig, m_map),
     MN_INPUT("Grid", input_map_grid, m_map),
-    MN_RESET
 };
 
 static mn_item_t input_bindings_cheat_items[] = {
@@ -529,7 +516,6 @@ static mn_item_t input_bindings_cheat_items[] = {
     MN_INPUT("No Target", input_notarget, m_scrn),
     MN_INPUT("Freeze", input_freeze, m_scrn),
     MN_INPUT("Archvile Jump", input_avj, m_scrn),
-    MN_RESET
 };
 
 static mn_page_t input_bindings_pages[] = {
@@ -570,7 +556,6 @@ static mn_item_t mouse_items[] = {
         "Strafe Sensitivity", "mouse_sensitivity_strafe", G_UpdateMouseVariables,
         "Strafe Sensitivity\n\nHorizontal mouse strafing speed."),
     MN_TOGGLE("Double-Click to \"Use\"", "dclick_use", NULL),
-    MN_RESET
 };
 
 static const char *layout_strings[] = {
@@ -607,7 +592,6 @@ static mn_item_t advanced_gamepad_items[] = {
         "Strafe Sensitivity", "joy_strafe_sensitivity",
         MN_GetMovementSensitivityStrings, I_ResetGamepad,
         "Strafe Sensitivity\n\nLeft stick strafe movement sensitivity."),
-    MN_RESET
 };
 
 static mn_page_t advanced_gamepad_pages[] = {
@@ -665,7 +649,6 @@ static mn_item_t gamepad_items[] = {
         "Camera Deadzone\n\nInner deadzone for camera stick."),
     MN_SLIDER_ACT("Vibration", "joy_rumble", MN_OptionsUpdateRumble,
                   "Vibration\n\nController vibration intensity."),
-    MN_RESET
 };
 
 static const char *gyro_space_strings[] = {"Local", "Player"};
@@ -721,7 +704,6 @@ static mn_item_t gyro_items[] = {
         "Steadying", "gyro_smooth_threshold",
         MN_GetGyroSensitivityStrings, MN_OptionsUpdateGyroSteadying,
         "Gyro Steadying\n\nSmooths small gyro movements for stability."),
-    MN_RESET
 };
 
 #define MN_WEAPON_SLOT(i, key)               \
@@ -768,7 +750,6 @@ static mn_item_t slots_items[] = {
     MN_WEAPON_SLOT(9, "weapon_slots_4_1"),
     MN_WEAPON_SLOT(10, "weapon_slots_4_2"),
     MN_WEAPON_SLOT(11, "weapon_slots_4_3"),
-    MN_RESET
 };
 
 static mn_page_t controls_pages[] = {
@@ -827,7 +808,6 @@ static mn_item_t hud_items[] = {
         "Command History", "hud_command_history", HU_ResetCommandHistory,
         "Command History\n\nDisplays recent commands on screen."),
     // !!! TODO Demo progress, Speedometer, Render Stats, Framerate
-    MN_RESET
 };
 
 static const char *crosshair_target_strings[] = {"Off", "Highlight", "Health"};
@@ -858,7 +838,6 @@ static mn_item_t crosshair_items[] = {
         "Health: Colors by target health percentage."),
     MN_SLIDER_STR(
         "  Highlight Color", "hud_crosshair_target_color", hudcolor_strings, NULL),
-    MN_RESET
 };
 
 static const char *secretmessage_strings[] = {"Off", "On", "Count",};
@@ -871,7 +850,6 @@ static mn_item_t messages_items[] = {
     MN_TOGGLE("Show Obituaries", "show_obituary_messages", NULL),
     MN_TOGGLE("Center Messages", "message_centered", NULL),
     MN_TOGGLE("Colorize Messages", "message_colorized", NULL),
-    MN_RESET
 };
 
 static const char *automap_thickness_strings[] = {
@@ -898,7 +876,6 @@ static mn_item_t automap_items[] = {
         AM_ColorPreset, NULL),
     MN_CHOICE("Color Keyed Doors", "map_keyed_door", automap_keyed_door_strings, NULL),
     MN_TOGGLE("Found Secrets Only", "map_secret_after", NULL),
-    MN_RESET
 };
 
 static const char *endoom_strings[] = {"Off", "PWAD Only", "Always"};
@@ -961,7 +938,6 @@ static mn_item_t gameplay_items[] = {
     MN_TOGGLE("Fix Hit Detection", "blockmapfix", NULL),
     MN_TITLE("Overflow Emulation"),
     MN_TOGGLE("INTERCEPTS", "emu_intercepts", NULL),
-    MN_RESET
 };
 
 static const char *center_weapon_strings[] = {"Off", "Centered", "Bobbing"};
@@ -979,7 +955,6 @@ static mn_item_t weapons_items[] = {
     MN_TOGGLE("  Weapon Toggles", "doom_weapon_toggles", NULL),
     MN_TITLE("Extras"),
     MN_TOGGLE("Pre-Beta BFG", "classic_bfg", NULL),
-    MN_RESET
 };
 
 static mn_page_t gameplay_pages[] = {

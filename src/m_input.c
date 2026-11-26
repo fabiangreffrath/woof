@@ -647,6 +647,18 @@ void M_InputPredefined(void)
     };
     InputSet(input_menu_clear, clear, arrlen(clear));
 
+    input_t defaults[] = {
+        {INPUT_KEY,  'r'          },
+        {INPUT_JOYB, GAMEPAD_SOUTH}
+    };
+    InputSet(input_menu_defaults, defaults, arrlen(defaults));
+
+    input_t apply[] = {
+        {INPUT_KEY,  'f'          },
+        {INPUT_JOYB, GAMEPAD_NORTH}
+    };
+    InputSet(input_menu_apply, apply, arrlen(apply));
+
     UpdateConfirmCancel(false);
 
     M_InputAddKey(input_help, KEY_F1);

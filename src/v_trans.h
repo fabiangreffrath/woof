@@ -61,7 +61,16 @@ typedef struct
 
 extern xlat_t xlat[CR_LIMIT];
 
-#define ORIG_S "\x1b\x2f"
+#define ORIG_S  "\x1b\x2f"
+#define BRICK_S "\x1b\x30"
+#define TAN_S   "\x1b\x31"
+#define GRAY_S  "\x1b\x32"
+#define GREEN_S "\x1b\x33"
+#define BROWN_S "\x1b\x34"
+#define GOLD_S  "\x1b\x35"
+#define RED_S   "\x1b\x36"
+#define BLUE1_S "\x1b\x37"
+#define BLUE2_S "\x1b\x3a"
 
 xlat_index_t V_CRByName(const char *name);
 xlat_index_t V_BloodColor(int blood);
