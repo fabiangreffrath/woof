@@ -573,6 +573,7 @@ static void UpdateConfirmCancel(boolean swap_confirm)
 
     input_t enter[] = {
         {INPUT_KEY,    KEY_ENTER        },
+        {INPUT_KEY,    ' '              },
         {INPUT_JOYB,   gamepad_confirm  },
         {INPUT_MOUSEB, MOUSE_BUTTON_LEFT}
     };
@@ -585,6 +586,7 @@ void M_InputPredefined(void)
 {
     input_t right[] = {
         {INPUT_KEY,    KEY_RIGHTARROW             },
+        {INPUT_KEY,    'd'                        },
         {INPUT_JOYB,   GAMEPAD_DPAD_RIGHT         },
         {INPUT_JOYB,   GAMEPAD_LEFT_STICK_RIGHT   },
     };
@@ -592,6 +594,7 @@ void M_InputPredefined(void)
 
     input_t left[] = {
         {INPUT_KEY,    KEY_LEFTARROW             },
+        {INPUT_KEY,    'a'                       },
         {INPUT_JOYB,   GAMEPAD_DPAD_LEFT         },
         {INPUT_JOYB,   GAMEPAD_LEFT_STICK_LEFT   },
     };
@@ -623,6 +626,7 @@ void M_InputPredefined(void)
 
     input_t up[] = {
         {INPUT_KEY,  KEY_UPARROW             },
+        {INPUT_KEY,  'w'                     },
         {INPUT_JOYB, GAMEPAD_DPAD_UP         },
         {INPUT_JOYB, GAMEPAD_LEFT_STICK_UP   }
     };
@@ -630,6 +634,7 @@ void M_InputPredefined(void)
 
     input_t down[] = {
         {INPUT_KEY,  KEY_DOWNARROW             },
+        {INPUT_KEY,  's'                       },
         {INPUT_JOYB, GAMEPAD_DPAD_DOWN         },
         {INPUT_JOYB, GAMEPAD_LEFT_STICK_DOWN   }
     };

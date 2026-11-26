@@ -678,6 +678,7 @@ static void ChoiceDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
     ChoiceDrawText(item, &l, y, ChoiceText(item, value), cr);
 
     const byte dark = cr_dark[playpal_global->white];
+    const byte shade = cr_shaded[playpal_global->white];
     const int bar_y = y + item->height - 2;
     int seg_x = l.bar_x;
 
@@ -687,7 +688,9 @@ static void ChoiceDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
 
         if (l.min + i == value)
         {
-            seg_color = xlat[CR_GREEN].table[playpal_global->white];
+            seg_color = ctx->disabled
+                            ? xlat[CR_GREEN].table[shade]
+                            : xlat[CR_GREEN].table[playpal_global->white];
         }
         else if (ctx->disabled)
         {
@@ -730,11 +733,9 @@ static void ChoiceDrawCrosshair(const mn_item_t *item, const mn_draw_ctx_t *ctx)
     }
 
     patch_t *patch = V_CachePatchName(crosshair_lumps[hud_crosshair], PU_CACHE);
-    const mn_menu_t *menu = MN_ContainerGetCurrentMenu();
-    const int x =
-        menu->hint_rect.x + menu->hint_rect.w / 3 - SHORT(patch->width) / 2;
-
-    V_DrawPatchTranslated(x, 50, patch, xlat[hud_crosshair_color].table);
+    int x = item->draw_value_x - SHORT(patch->width) / 2 - 16;
+    int y = ctx->y + (item->height - SHORT(patch->height)) / 2;
+    V_DrawPatchTranslated(x, y, patch, xlat[hud_crosshair_color].table);
 }
 
 static boolean ChoiceRespond(mn_item_t *item, menu_action_t action, int ch)

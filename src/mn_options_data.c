@@ -836,7 +836,7 @@ static mn_item_t crosshair_items[] = {
         "Color By Target\n\nOff: No target coloring.\n\n"
         "Highlight: Colors crosshair on target.\n\n"
         "Health: Colors by target health percentage."),
-    MN_SLIDER_STR(
+    MN_CHOICE(
         "  Highlight Color", "hud_crosshair_target_color", hudcolor_strings, NULL),
 };
 
