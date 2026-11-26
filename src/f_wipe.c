@@ -180,8 +180,8 @@ static int wipe_renderMelt(int width, int height, int ticks)
     boolean done = true;
 
     // Scale up and then down to handle arbitrary dimensions with integer math
-    int vertblocksize = height * 100 / WIPE_ROWS;
-    int horizblocksize = width * 100 / wipe_columns;
+    int vertblocksize = DIV_ROUND_CLOSEST(height * 100, WIPE_ROWS);
+    int horizblocksize = DIV_ROUND_CLOSEST(width * 100, wipe_columns);
     int currcol;
     int currcolend;
     int currrow;
