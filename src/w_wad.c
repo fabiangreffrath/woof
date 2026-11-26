@@ -123,10 +123,16 @@ boolean W_OpenFile(const char *path)
     w_handle_t handle = {0};
     handle.priority = priority++;
 
-    if (w_file_module.Open(path, &handle) == W_FILE)
+    if (w_zip_module.Open(path, &handle) == W_DIR)
+    {
+        w_zip_module.AddDir(handle, ".");
+        return true;
+    }
+    else if (w_file_module.Open(path, &handle) == W_FILE)
     {
         return true;
     }
+
     return false;
 }
 
