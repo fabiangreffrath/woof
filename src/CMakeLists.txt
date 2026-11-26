@@ -61,9 +61,11 @@ set(WOOF_SOURCES
     g_rewind.c             g_rewind.h
     g_skillinfo.c          g_skillinfo.h
     g_umapinfo.c           g_umapinfo.h
+    hu_chat.c              hu_chat.h
     hu_command.c           hu_command.h
     hu_coordinates.c       hu_coordinates.h
     hu_crosshair.c         hu_crosshair.h
+    hu_message.c           hu_message.h
     hu_obituary.c          hu_obituary.h
     i_3dsound.c
     i_clapmusic.c
@@ -110,6 +112,7 @@ set(WOOF_SOURCES
     m_io.c                 m_io.h
     m_json.c               m_json.h
     m_scanner.c            m_scanner.h
+                           m_profiler.h
     mn_container.c         mn_container.h
     mn_csmenu.c            mn_csmenu.h
     mn_csmenu_data.c
@@ -176,10 +179,10 @@ set(WOOF_SOURCES
     p_udmf.c               p_udmf.h
     p_user.c               p_user.h
     r_bsp.c                r_bsp.h
-    r_common.c             r_common.h
     r_data.c               r_data.h
                            r_defs.h
     r_draw.c               r_draw.h
+    r_jobs.c               r_jobs.h
     r_main.c               r_main.h
     r_plane.c              r_plane.h
     r_segs.c               r_segs.h
@@ -315,6 +318,14 @@ endif()
 
 if(HAVE_DISCORD_RPC)
     target_link_libraries(woof PRIVATE DiscordRPC::discord-rpc)
+endif()
+
+if(HAVE_TRACY)
+    target_link_libraries(woof PRIVATE Tracy::TracyClient)
+    target_compile_definitions(woof PRIVATE TRACY_ENABLE)
+    if(WIN32)
+        target_compile_definitions(woof PRIVATE TRACY_IMPORTS)
+    endif()
 endif()
 
 target_compile_definitions(woof PRIVATE "THREADLOCAL=${WOOF_THREAD_LOCAL}")

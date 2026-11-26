@@ -441,21 +441,6 @@ extern int center_weapon;
 extern int view_bobbing_pct;
 extern int weapon_bobbing_pct;
 
-// Doom-style printf
-
-typedef enum {
-  MESSAGES_NONE,
-  MESSAGES_TOGGLE,
-  MESSAGES_PICKUP,
-  MESSAGES_OBITUARY
-} msg_category_t;
-
-void doomprintf(player_t *player, msg_category_t category,
-              const char *, ...) PRINTF_ATTR(3, 4);
-#define displaymsg(...) doomprintf(NULL, MESSAGES_NONE, __VA_ARGS__)
-#define pickupmsg(player, ...) doomprintf(player, MESSAGES_PICKUP, "%s", __VA_ARGS__)
-#define togglemsg(...) doomprintf(NULL, MESSAGES_TOGGLE, __VA_ARGS__)
-
 #endif
 
 //----------------------------------------------------------------------------

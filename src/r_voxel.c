@@ -691,8 +691,7 @@ boolean VX_ProjectVoxel(mobj_t *thing, int lightlevel_override)
 	vv->c    = c;
 	vv->s    = s;
 
-	thing->rendered[r_context->index] = 1;
-	R_TrackRenderedThing(thing);
+	R_MarkThingRendered(thing);
 
 	// create the vissprite...
 	vissprite_t * vis = R_NewVisSprite ();

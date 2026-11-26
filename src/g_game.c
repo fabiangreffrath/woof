@@ -49,8 +49,10 @@
 #include "g_nextweapon.h"
 #include "g_rewind.h"
 #include "g_umapinfo.h"
+#include "hu_chat.h"
 #include "hu_command.h"
 #include "hu_crosshair.h"
+#include "hu_message.h"
 #include "hu_obituary.h"
 #include "i_exit.h"
 #include "i_gamepad.h"
@@ -790,7 +792,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 
   // Buttons
 
-  cmd->chatchar = ST_DequeueChatChar();
+  cmd->chatchar = HU_DequeueChatChar();
 
   if (M_InputGameActive(input_fire))
     cmd->buttons |= BT_ATTACK;
@@ -3207,6 +3209,14 @@ void G_Ticker(void)
 	      if (demorecording && !demoplayback)
 		G_WriteDemoTiccmd(cmd);
 
+	      // Chat is a one-shot presentation event. The rollback code
+	      // compares ticcmds without it, so the character is handed over
+	      // to the presentation layer, which shows it once the tic
+	      // carrying it can no longer be rolled back.
+
+	      if (netgame && i != consoleplayer)
+		HU_ChatChar(gametic / ticdup, i, cmd->chatchar);
+
 	      // check for turbo cheats
 	      // killough 2/14/98, 2/20/98 -- only warn in netgames and demos
 
@@ -5102,34 +5112,6 @@ void G_CheckDemoRecordingStatus(void)
     {
         G_CheckDemoStatus();
     }
-}
-
-// killough 1/22/98: this is a "Doom printf" for messages. I've gotten
-// tired of using players->message=... and so I've added this dprintf.
-//
-// killough 3/6/98: Made limit static to allow z_zone functions to call
-// this function, without calling realloc(), which seems to cause problems.
-
-#define MAX_MESSAGE_SIZE 1024
-
-void doomprintf(player_t *player, msg_category_t category, const char *s, ...)
-{
-  static char msg[MAX_MESSAGE_SIZE];
-  va_list v;
-
-  if ((category == MESSAGES_TOGGLE && !show_toggle_messages) ||
-      (category == MESSAGES_PICKUP && !show_pickup_messages) ||
-      (category == MESSAGES_OBITUARY && !show_obituary_messages))
-    return;
-
-  va_start(v,s);
-  vsprintf(msg,s,v);                  // print message in buffer
-  va_end(v);
-
-  if (player)
-    player->message = msg;
-  else
-    players[displayplayer].message = msg;  // set new message
 }
 
 void G_BindGameInputVariables(void)

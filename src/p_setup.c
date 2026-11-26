@@ -1211,6 +1211,9 @@ void P_SetupLevel(int episode, int map_num, skill_t skill, boolean from_savegame
   M_ArenaClear(thinkers_arena);
   M_ArenaClear(msecnodes_arena);
 
+  // [MT] the wide-sprite overlap cache
+  R_ResetOverlapCache();
+
   Z_FreeTag(PU_CACHE);
 
   P_InitThinkers();

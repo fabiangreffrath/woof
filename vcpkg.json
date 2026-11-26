@@ -89,6 +89,15 @@
           "default-features": false
         }
       ]
+    },
+    "tracy": {
+      "description": "Build with Tracy support",
+      "dependencies": [
+        {
+          "name": "tracy",
+          "default-features": false
+        }
+      ]
     }
   }
 }

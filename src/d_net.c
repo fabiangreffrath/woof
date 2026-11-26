@@ -27,6 +27,7 @@
 #include "doomtype.h"
 #include "g_game.h"
 #include "g_input.h"
+#include "hu_message.h"
 #include "i_printf.h"
 #include "m_argv.h"
 #include "m_misc.h"
@@ -80,6 +81,11 @@ void D_DoAdvanceDemo(void);
 void D_RunTic(ticcmd_t *cmds, boolean *ingame)
 {
     unsigned int i;
+
+    // Every run of a tic, forward or resimulated, starts with an empty
+    // event slot: the last simulation of a tic decides what it produced.
+
+    HU_BeginTic(gametic / ticdup);
 
     // Check for player quits.
 

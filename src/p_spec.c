@@ -34,6 +34,7 @@
 #include "doomdata.h"
 #include "doomstat.h"
 #include "g_game.h"
+#include "hu_message.h"
 #include "hu_obituary.h"
 #include "i_system.h"
 #include "info.h"
@@ -822,7 +823,7 @@ boolean P_CanUnlockGenDoor(line_t *line, player_t *player)
           !player->cards[it_yellowcard] &&
           !player->cards[it_yellowskull])
         {
-          doomprintf(player, MESSAGES_NONE, DEH_String(PD_ANY));
+          HU_Message(player, MESSAGES_NONE, DEH_String(PD_ANY));
           S_StartSound(player->mo,sfx_oof);             // killough 3/20/98
           return false;
         }
@@ -831,7 +832,7 @@ boolean P_CanUnlockGenDoor(line_t *line, player_t *player)
       if (!player->cards[it_redcard] &&
           (!skulliscard || !player->cards[it_redskull]))
         {
-          doomprintf(player, MESSAGES_NONE, DEH_StringColorized(skulliscard ? PD_REDK : PD_REDC));
+          HU_Message(player, MESSAGES_NONE, DEH_StringColorized(skulliscard ? PD_REDK : PD_REDC));
           S_StartSound(player->mo,sfx_oof);             // killough 3/20/98
           return false;
         }
@@ -840,7 +841,7 @@ boolean P_CanUnlockGenDoor(line_t *line, player_t *player)
       if (!player->cards[it_bluecard] &&
           (!skulliscard || !player->cards[it_blueskull]))
         {
-          doomprintf(player, MESSAGES_NONE, DEH_StringColorized(skulliscard ? PD_BLUEK : PD_BLUEC));
+          HU_Message(player, MESSAGES_NONE, DEH_StringColorized(skulliscard ? PD_BLUEK : PD_BLUEC));
           S_StartSound(player->mo,sfx_oof);             // killough 3/20/98
           return false;
         }
@@ -849,7 +850,7 @@ boolean P_CanUnlockGenDoor(line_t *line, player_t *player)
       if (!player->cards[it_yellowcard] &&
           (!skulliscard || !player->cards[it_yellowskull]))
         {
-          doomprintf(player, MESSAGES_NONE, DEH_StringColorized(skulliscard ? PD_YELLOWK : PD_YELLOWC));
+          HU_Message(player, MESSAGES_NONE, DEH_StringColorized(skulliscard ? PD_YELLOWK : PD_YELLOWC));
           S_StartSound(player->mo,sfx_oof);             // killough 3/20/98
           return false;
         }
@@ -858,7 +859,7 @@ boolean P_CanUnlockGenDoor(line_t *line, player_t *player)
       if (!player->cards[it_redskull] &&
           (!skulliscard || !player->cards[it_redcard]))
         {
-          doomprintf(player, MESSAGES_NONE, DEH_StringColorized(skulliscard ? PD_REDK : PD_REDS));
+          HU_Message(player, MESSAGES_NONE, DEH_StringColorized(skulliscard ? PD_REDK : PD_REDS));
           S_StartSound(player->mo,sfx_oof);             // killough 3/20/98
           return false;
         }
@@ -867,7 +868,7 @@ boolean P_CanUnlockGenDoor(line_t *line, player_t *player)
       if (!player->cards[it_blueskull] &&
           (!skulliscard || !player->cards[it_bluecard]))
         {
-          doomprintf(player, MESSAGES_NONE, DEH_StringColorized(skulliscard ? PD_BLUEK : PD_BLUES));
+          HU_Message(player, MESSAGES_NONE, DEH_StringColorized(skulliscard ? PD_BLUEK : PD_BLUES));
           S_StartSound(player->mo,sfx_oof);             // killough 3/20/98
           return false;
         }
@@ -876,7 +877,7 @@ boolean P_CanUnlockGenDoor(line_t *line, player_t *player)
       if (!player->cards[it_yellowskull] &&
           (!skulliscard || !player->cards[it_yellowcard]))
         {
-          doomprintf(player, MESSAGES_NONE, DEH_StringColorized(skulliscard ? PD_YELLOWK : PD_YELLOWS));
+          HU_Message(player, MESSAGES_NONE, DEH_StringColorized(skulliscard ? PD_YELLOWK : PD_YELLOWS));
           S_StartSound(player->mo,sfx_oof);             // killough 3/20/98
           return false;
         }
@@ -890,7 +891,7 @@ boolean P_CanUnlockGenDoor(line_t *line, player_t *player)
            !player->cards[it_yellowcard] ||
            !player->cards[it_yellowskull]))
         {
-          doomprintf(player, MESSAGES_NONE, DEH_String(PD_ALL6));
+          HU_Message(player, MESSAGES_NONE, DEH_String(PD_ALL6));
           S_StartSound(player->mo,sfx_oof);             // killough 3/20/98
           return false;
         }
@@ -901,7 +902,7 @@ boolean P_CanUnlockGenDoor(line_t *line, player_t *player)
            // http://prboom.sourceforge.net/mbf-bugs.html
            !(player->cards[it_yellowcard] | (demo_version == DV_MBF ? !player->cards[it_yellowskull] : player->cards[it_yellowskull]))))
         {
-          doomprintf(player, MESSAGES_NONE, DEH_String(PD_ALL3));
+          HU_Message(player, MESSAGES_NONE, DEH_String(PD_ALL3));
           S_StartSound(player->mo,sfx_oof);             // killough 3/20/98
           return false;
         }
@@ -2375,23 +2376,12 @@ int disable_nuke;  // killough 12/98: nukage disabling cheat
 
 static void P_SecretRevealed(player_t *player)
 {
-  if (hud_secret_message && player == &players[consoleplayer])
+  if (player == &players[consoleplayer])
   {
-    if (hud_secret_message == SECRETMESSAGE_COUNT)
+    if (HU_AnnounceSecret(player, player->secretcount, totalsecret))
     {
-      static char str_count[32];
-
-      M_snprintf(str_count, sizeof(str_count), "Secret %d of %d revealed!",
-                 player->secretcount, totalsecret);
-
-      player->secretmessage = str_count;
+      S_StartSound(NULL, sfx_secret);
     }
-    else
-    {
-      player->secretmessage = DEH_String(HUSTR_SECRETFOUND);
-    }
-
-    S_StartSound(NULL, sfx_secret);
   }
 }
 

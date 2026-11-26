@@ -18,31 +18,28 @@
 
 #include "d_event.h"
 #include "d_player.h"
-#include "d_rollback.h"
 #include "deh_strings.h"
 #include "doomdef.h"
-#include "doomkeys.h"
 #include "doomstat.h"
 #include "doomtype.h"
 #include "g_game.h"
 #include "g_skillinfo.h"
 #include "g_umapinfo.h"
+#include "hu_chat.h"
 #include "hu_command.h"
 #include "hu_coordinates.h"
+#include "hu_message.h"
 #include "hu_obituary.h"
 #include "i_timer.h"
 #include "i_video.h"
 #include "m_array.h"
 #include "m_config.h"
-#include "m_input.h"
 #include "m_misc.h"
 #include "mn_menu.h"
 #include "p_mobj.h"
 #include "p_spec.h"
 #include "r_main.h"
 #include "r_voxel.h"
-#include "s_sound.h"
-#include "sounds.h"
 #include "st_sbardef.h"
 #include "st_stuff.h"
 #include "v_video.h"
@@ -65,8 +62,6 @@ boolean message_colorized;
 int hudcolor_titl;  // color range of automap level title
 int hudcolor_xyco;  // color range of new coords on automap
 
-boolean chat_on;
-
 void ST_ClearLines(sbe_widget_t *widget)
 {
     array_clear(widget->lines);
@@ -85,39 +80,39 @@ static void SetLine(sbe_widget_t *widget, const char *string)
     array_push(widget->lines, line);
 }
 
-static char message_string[HU_MAXLINELENGTH];
 static int message_duration_left;
 
 static boolean message_review;
 
-static void UpdateMessage(sbe_widget_t *widget, player_t *player)
+static void UpdateMessage(sbe_widget_t *widget)
 {
     ST_ClearLines(widget);
 
-    static char string[120];
+    static char string[HU_MAXLINELENGTH];
+
+    // A game message replaces the one on screen and restarts its time. Only
+    // feedback about the local player (chat echo, the message settings)
+    // holds the following game messages back until it expires.
+
     static boolean overwrite = true;
     static boolean messages_enabled = true;
+    char text[HU_MAXLINELENGTH];
 
-    if (messages_enabled || message_string[0])
+    if (HU_PopPostedMessage(text, sizeof(text)))
     {
-        if (message_string[0])
-        {
-            message_duration_left = widget->duration;
-            M_StringCopy(string, message_string, sizeof(string));
-            message_string[0] = '\0';
-            overwrite = false;
-        }
-        else if (player->message && player->message[0] && overwrite)
-        {
-            message_duration_left = widget->duration;
-            M_StringCopy(string, player->message, sizeof(string));
-            player->message[0] = '\0';
-        }
-        else if (message_review)
-        {
-            message_review = false;
-            message_duration_left = widget->duration;
-        }
+        M_StringCopy(string, text, sizeof(string));
+        message_duration_left = widget->duration;
+        overwrite = false;
+    }
+    else if (messages_enabled && overwrite && HU_PopMessage(text, sizeof(text)))
+    {
+        M_StringCopy(string, text, sizeof(string));
+        message_duration_left = widget->duration;
+    }
+    else if (messages_enabled && message_review)
+    {
+        message_review = false;
+        message_duration_left = widget->duration;
     }
 
     if (messages_enabled != show_messages)
@@ -128,427 +123,86 @@ static void UpdateMessage(sbe_widget_t *widget, player_t *player)
     if (message_duration_left == 0)
     {
         overwrite = true;
+        return;
     }
-    else
-    {
-        ST_AddLine(widget, string);
-        --message_duration_left;
-    }
+
+    ST_AddLine(widget, string);
+    --message_duration_left;
+}
+
+void ST_ReviewMessages(void)
+{
+    message_review = true;
 }
 
 static char announce_string[HU_MAXLINELENGTH], author_string[HU_MAXLINELENGTH];
 static int announce_duration_left;
+static boolean announce_secret;
 
-static void UpdateAnnounceMessage(sbe_widget_t *widget, player_t *player)
+static void UpdateAnnounceMessage(sbe_widget_t *widget)
 {
-    static enum
-    {
-        announce_none,
-        announce_map,
-        announce_secret
-    } state = announce_none;
-
     ST_ClearLines(widget);
 
-    if ((state == announce_secret && !hud_secret_message)
-        || (state == announce_map && !hud_map_announce))
+    static char string[HU_MAXLINELENGTH];
+    char text[HU_MAXLINELENGTH];
+
+    if (announce_string[0])
+    {
+        if (!hud_map_announce)
+        {
+            announce_string[0] = '\0';
+            author_string[0] = '\0';
+            return;
+        }
+
+        M_StringCopy(string, announce_string, sizeof(string));
+        announce_string[0] = '\0';
+        announce_secret = false;
+        announce_duration_left = widget->duration;
+    }
+    else if (HU_PopAnnouncement(text, sizeof(text)))
+    {
+        M_snprintf(string, sizeof(string), "%s%s%s", xlat[CR_GOLD].str, text,
+                   ORIG_S);
+        announce_secret = true;
+        announce_duration_left = widget->duration;
+    }
+    else if (announce_duration_left == 0)
     {
         return;
     }
 
-    static char string[HU_MAXLINELENGTH];
+    // Turning the setting off stops the announcement of a revealed secret,
+    // but not the level title.
 
-    if (announce_string[0])
+    if (announce_secret && !hud_secret_message)
     {
-        state = announce_map;
-        announce_duration_left = widget->duration;
-        M_StringCopy(string, announce_string, sizeof(string));
-        announce_string[0] = '\0';
-    }
-    else if (player->secretmessage)
-    {
-        author_string[0] = '\0';
-        state = announce_secret;
-        announce_duration_left = widget->duration;
-        M_snprintf(string, sizeof(string), "%s%s%s", xlat[CR_GOLD].str,
-                   player->secretmessage, ORIG_S);
-        player->secretmessage = NULL;
+        announce_duration_left = 0;
+        return;
     }
 
     if (announce_duration_left > 0)
     {
         ST_AddLine(widget, string);
-        if (author_string[0])
+        if (!announce_secret && author_string[0])
         {
             ST_AddLine(widget, author_string);
         }
         --announce_duration_left;
-    }
-    else
-    {
-        state = announce_none;
     }
 }
 
 void ST_ResetMessages(void)
 {
     message_duration_left = 0;
+    message_review = false;
     announce_duration_left = 0;
-}
+    announce_secret = false;
+    announce_string[0] = '\0';
+    author_string[0] = '\0';
 
-static const char shiftxform[] = SHIFTXFORM_ARRAY;
-
-typedef struct
-{
-    char string[HU_MAXLINELENGTH];
-    int pos;
-} chatline_t;
-
-static chatline_t lines[MAXPLAYERS];
-
-static void ClearChatLine(chatline_t *line)
-{
-    line->pos = 0;
-    line->string[0] = '\0';
-}
-
-static boolean AddKeyToChatLine(chatline_t *line, char ch)
-{
-    if (ch >= ' ' && ch <= '_')
-    {
-        if (line->pos == HU_MAXLINELENGTH - 1)
-        {
-            return false;
-        }
-        line->string[line->pos++] = ch;
-        line->string[line->pos] = '\0';
-    }
-    else if (ch == KEY_BACKSPACE) // phares
-    {
-        if (line->pos == 0)
-        {
-            return false;
-        }
-        else
-        {
-            line->string[--line->pos] = '\0';
-        }
-    }
-    else if (ch != KEY_ENTER) // phares
-    {
-        return false; // did not eat key
-    }
-
-    return true; // ate the key
-}
-
-#define HU_BROADCAST 5
-
-// A player's chat stream is a destination byte (HU_BROADCAST, or the
-// recipient's number + 1) followed by the message characters, so the
-// destination must survive between characters.
-
-static char chat_dest[MAXPLAYERS];
-
-static void ProcessChatChar(int p, char ch)
-{
-    if (ch <= HU_BROADCAST)
-    {
-        chat_dest[p] = ch;
-        return;
-    }
-
-    if (ch >= 'a' && ch <= 'z')
-    {
-        ch = (char)shiftxform[(unsigned char)ch];
-    }
-
-    if (AddKeyToChatLine(&lines[p], ch) && ch == KEY_ENTER)
-    {
-        if (lines[p].pos && (chat_dest[p] == consoleplayer + 1
-                             || chat_dest[p] == HU_BROADCAST))
-        {
-            M_snprintf(message_string, sizeof(message_string),
-                "%s%s", DEH_StringColorized(strings_players[p]), lines[p].string);
-
-            S_StartSoundPitch(0,
-                              gamemode == commercial ? sfx_radio
-                                                     : sfx_tink,
-                              PITCH_NONE);
-        }
-        ClearChatLine(&lines[p]);
-    }
-}
-
-void ST_UpdateChatMessage(void)
-{
-    // A rollback resim replays the ticcmds of tics that were already
-    // simulated with a prediction. Their real chatchars were handed over
-    // by ST_RemoteChatChar() when the confirmation arrived, and a tic can
-    // be resimulated more than once, so replaying them here would show
-    // each message again.
-
-    if (rollback_resim)
-    {
-        return;
-    }
-
-    for (int p = 0; p < MAXPLAYERS; p++)
-    {
-        if (!playeringame[p])
-        {
-            continue;
-        }
-
-        char ch = players[p].cmd.chatchar;
-        if (p != consoleplayer && ch)
-        {
-            ProcessChatChar(p, ch);
-            players[p].cmd.chatchar = 0;
-        }
-    }
-}
-
-// Chat is a one-shot event, so it cannot be delivered by the simulation:
-// a predicted ticcmd never carries it (Predict() zeroes chatchar) and the
-// rollback comparison ignores the field, so a tic that was already run as
-// a prediction would never show the real character. The rollback code
-// passes the confirmed character over as soon as it arrives instead.
-
-void ST_RemoteChatChar(int player, char ch)
-{
-    if (!ch || player < 0 || player >= MAXPLAYERS || player == consoleplayer)
-    {
-        return;
-    }
-
-    ProcessChatChar(player, ch);
-}
-
-static const char *chat_macros[] = {
-    HUSTR_CHATMACRO0, HUSTR_CHATMACRO1, HUSTR_CHATMACRO2, HUSTR_CHATMACRO3,
-    HUSTR_CHATMACRO4, HUSTR_CHATMACRO5, HUSTR_CHATMACRO6, HUSTR_CHATMACRO7,
-    HUSTR_CHATMACRO8, HUSTR_CHATMACRO9
-};
-
-#define QUEUESIZE   128
-
-static char chatchars[QUEUESIZE];
-static int  head = 0;
-static int  tail = 0;
-
-//
-// QueueChatChar()
-//
-// Add an incoming character to the circular chat queue
-//
-// Passed the character to queue, returns nothing
-//
-
-static void QueueChatChar(char ch)
-{
-    if (((head + 1) & (QUEUESIZE - 1)) == tail)
-    {
-        displaymsg("%s", HUSTR_MSGU);
-    }
-    else
-    {
-        chatchars[head++] = ch;
-        head &= QUEUESIZE - 1;
-    }
-}
-
-//
-// ST_DequeueChatChar()
-//
-// Remove the earliest added character from the circular chat queue
-//
-// Passed nothing, returns the character dequeued
-//
-
-char ST_DequeueChatChar(void)
-{
-    char ch;
-
-    if (head != tail)
-    {
-        ch = chatchars[tail++];
-        tail &= QUEUESIZE - 1;
-    }
-    else
-    {
-        ch = 0;
-    }
-
-    return ch;
-}
-
-static chatline_t chatline;
-
-boolean ST_MessagesResponder(event_t *ev)
-{
-    if (ev->type == ev_text)
-    {
-        return false;
-    }
-
-    boolean eatkey = false;
-    static boolean shiftdown = false;
-    static boolean altdown = false;
-    int ch;
-    int numplayers;
-
-    static int num_nobrainers = 0;
-
-    ch = (ev->type == ev_keydown) ? ev->data1.i : 0;
-
-    numplayers = 0;
-    for (int p = 0; p < MAXPLAYERS; p++)
-    {
-        numplayers += playeringame[p];
-    }
-
-    if (ev->data1.i == KEY_RSHIFT)
-    {
-        shiftdown = ev->type == ev_keydown;
-        return false;
-    }
-
-    if (ev->data1.i == KEY_RALT)
-    {
-        altdown = ev->type == ev_keydown;
-        return false;
-    }
-
-    if (M_InputActivated(input_chat_backspace))
-    {
-        ch = KEY_BACKSPACE;
-    }
-
-    if (!chat_on)
-    {
-        if (M_InputActivated(input_msgreview)) // phares
-        {
-            //jff 2/26/98 toggle list of messages
-            message_review = true;
-            eatkey = true;
-        }
-        else if (demoplayback) // killough 10/02/98: no chat if demo playback
-        {
-            eatkey = false;
-        }
-        else if (netgame && M_InputActivated(input_chat))
-        {
-            eatkey = chat_on = true;
-            ClearChatLine(&chatline);
-            QueueChatChar(HU_BROADCAST);
-        }
-        else if (netgame && numplayers > 2) // killough 11/98: simplify
-        {
-            for (int p = 0; p < MAXPLAYERS; p++)
-            {
-                if (M_InputActivated(input_chat_dest0 + p))
-                {
-                    if (p == consoleplayer)
-                    {
-                        M_StringCopy(message_string,
-                                     ++num_nobrainers < 3 ? HUSTR_TALKTOSELF1
-                                     : num_nobrainers < 6 ? HUSTR_TALKTOSELF2
-                                     : num_nobrainers < 9 ? HUSTR_TALKTOSELF3
-                                     : num_nobrainers < 32
-                                         ? HUSTR_TALKTOSELF4
-                                         : HUSTR_TALKTOSELF5,
-                                     sizeof(message_string));
-                    }
-                    else if (playeringame[p])
-                    {
-                        eatkey = chat_on = true;
-                        ClearChatLine(&chatline);
-                        QueueChatChar((char)(p + 1));
-                        break;
-                    }
-                }
-            }
-        }
-    } // jff 2/26/98 no chat functions if message review is displayed
-    else
-    {
-        if (M_InputActivated(input_chat_enter))
-        {
-            ch = KEY_ENTER;
-        }
-
-        // send a macro
-        if (altdown)
-        {
-            ch = ch - '0';
-            if (ch < 0 || ch > 9)
-            {
-                return false;
-            }
-            const char *macromessage = chat_macros[ch];
-
-            // kill last message with a '\n'
-            QueueChatChar(KEY_ENTER); // DEBUG!!!                // phares
-
-            // send the macro message
-            while (*macromessage)
-            {
-                QueueChatChar(*macromessage++);
-            }
-            QueueChatChar(KEY_ENTER); // phares
-
-            // leave chat mode and notify that it was sent
-            chat_on = false;
-            M_StringCopy(message_string, chat_macros[ch],
-                         sizeof(message_string));
-            eatkey = true;
-        }
-        else
-        {
-            if (shiftdown || (ch >= 'a' && ch <= 'z'))
-            {
-                ch = shiftxform[ch];
-            }
-            eatkey = AddKeyToChatLine(&chatline, ch);
-            if (eatkey)
-            {
-                QueueChatChar(ch);
-            }
-
-            if (ch == KEY_ENTER) // phares
-            {
-                chat_on = false;
-                if (chatline.pos)
-                {
-                    M_StringCopy(message_string, chatline.string,
-                                 sizeof(message_string));
-                }
-            }
-            else if (ch == KEY_ESCAPE) // phares
-            {
-                chat_on = false;
-            }
-        }
-    }
-    return eatkey;
-}
-
-static void UpdateChat(sbe_widget_t *widget)
-{
-    ST_ClearLines(widget);
-
-    static char string[HU_MAXLINELENGTH + 1];
-
-    string[0] = '\0';
-
-    if (chat_on)
-    {
-        M_StringCopy(string, chatline.string, sizeof(string));
-        // make sure active chat line is at least one char wide
-        M_StringConcat(string, (leveltime & 16) ? "_" : " ", sizeof(string));
-        ST_AddLine(widget, string);
-    }
+    HU_ResetMessages();
+    HU_ResetChat();
 }
 
 static char title_string[HU_MAXLINELENGTH];
@@ -1086,13 +740,13 @@ void ST_UpdateWidget(sbarelem_t *elem, player_t *player)
     {
         case sbw_message:
             ForceCenterMessage(elem);
-            UpdateMessage(widget, player);
+            UpdateMessage(widget);
             break;
         case sbw_chat:
-            UpdateChat(widget);
+            HU_UpdateChatWidget(widget);
             break;
         case sbw_announce:
-            UpdateAnnounceMessage(widget, player);
+            UpdateAnnounceMessage(widget);
             break;
         case sbw_title:
             UpdateTitle(widget);
@@ -1168,20 +822,4 @@ void ST_BindHUDVariables(void)
         "Color range used for obituaries");
     BIND_BOOL(message_centered, false, "Center messages horizontally");
     BIND_BOOL(message_colorized, false, "Colorize player messages");
-
-#define BIND_CHAT(num)                                                     \
-    M_BindStr("chatmacro" #num, &chat_macros[(num)], HUSTR_CHATMACRO##num, \
-              wad_yes, "Chat string associated with " #num " key")
-
-    BIND_CHAT(0);
-    BIND_CHAT(1);
-    BIND_CHAT(2);
-    BIND_CHAT(3);
-    BIND_CHAT(4);
-    BIND_CHAT(5);
-    BIND_CHAT(6);
-    BIND_CHAT(7);
-    BIND_CHAT(8);
-    BIND_CHAT(9);
-#undef BIND_CHAT
 }

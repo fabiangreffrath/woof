@@ -28,6 +28,7 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
+#include "hu_message.h"
 #include "i_system.h"
 #include "i_video.h"
 #include "m_io.h"
@@ -1088,7 +1089,6 @@ void V_ScreenShot(void)
     }
 
     // 1/18/98 killough: replace "SCREEN SHOT" acknowledgement with sfx
-    // players[consoleplayer].message = "screen shot"
 
     // killough 10/98: print error message and change sound effect if error
     S_StartSoundPitch(NULL,

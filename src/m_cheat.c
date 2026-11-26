@@ -683,8 +683,6 @@ static void cheat_clev(char *buf)
 static void cheat_mypos(void)
 {
   plyr->cheats ^= CF_MAPCOORDS;
-  if ((plyr->cheats & CF_MAPCOORDS) == 0)
-    plyr->message = "";
 }
 
 void cheat_mypos_print(void)

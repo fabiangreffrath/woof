@@ -36,6 +36,7 @@
 #include "g_game.h"
 #include "g_skillinfo.h"
 #include "g_umapinfo.h"
+#include "hu_chat.h"
 #include "i_exit.h"
 #include "i_input.h"
 #include "i_printf.h"
@@ -1093,14 +1094,7 @@ static void M_ChangeMessages(int choice)
 {
     show_messages = 1 - show_messages;
 
-    if (!show_messages)
-    {
-        displaymsg("%s", DEH_String(MSGOFF));
-    }
-    else
-    {
-        displaymsg("%s", DEH_String(MSGON));
-    }
+    HU_PostMessage(DEH_String(show_messages ? MSGON : MSGOFF));
 }
 
 /////////////////////////////

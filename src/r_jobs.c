@@ -15,7 +15,8 @@
 #include "i_thread.h"
 #include "i_system.h"
 #include "m_misc.h"
-#include "r_common.h"
+#include "r_jobs.h"
+#include "r_main.h"
 
 #include <stdlib.h>
 
@@ -29,7 +30,9 @@
 
 #define JOB_QUEUE_SIZE 128
 #define JOB_QUEUE_MASK (JOB_QUEUE_SIZE - 1)
-#define MAX_JOB_THREADS 32
+
+// One worker per render context; context 0 renders on the calling thread.
+#define MAX_JOB_THREADS (MAX_RENDER_CONTEXTS - 1)
 
 typedef struct job_s
 {
@@ -192,24 +195,25 @@ void R_JobsSetActive(int numactive)
     }
 }
 
+int R_JobsNumThreads(void)
+{
+    return numjobthreads;
+}
+
 //
 // Frame scratch allocator
 // Each thread (main + workers) gets its own bump-pointer arena.
 // All allocations are freed at once by I_FrameScratchReset() at frame start.
 //
 
-static struct {
+static struct
+{
     byte *base;
     int size;
     int offset;
-} framescratch[MAX_JOB_THREADS + 1];  // +1 for main thread
+} framescratch[MAX_JOB_THREADS + 1]; // +1 for main thread
 
 static int framescratch_initialized = 0;
-
-int R_JobsNumThreads(void)
-{
-    return numjobthreads;
-}
 
 void R_FrameScratchInit(int bytes_per_thread)
 {

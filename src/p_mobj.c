@@ -25,6 +25,7 @@
 #include "doomstat.h"
 #include "g_game.h"
 #include "g_skillinfo.h"
+#include "hu_message.h"
 #include "i_printf.h"
 #include "info.h"
 #include "m_fixed.h"
@@ -875,9 +876,6 @@ mobj_t *P_SpawnMobj(fixed_t x, fixed_t y, fixed_t z, mobjtype_t type)
 
   mobj->type = type;
   mobj->info = info;
-  // [MT] invalidate the wide-sprite overlap cache (see R_SortMobj).
-  mobj->overlapcount = 0;
-  mobj->overlapbox_sprite = -1;
   mobj->x = x;
   mobj->y = y;
   mobj->radius = info->radius;
@@ -1181,8 +1179,6 @@ void P_SpawnPlayer (mapthing_t* mthing)
   p->mo            = mobj;
   p->playerstate   = PST_LIVE;
   p->refire        = 0;
-  p->message       = NULL;
-  p->secretmessage = NULL;
   p->damagecount   = 0;
   p->bonuscount    = 0;
   p->extralight    = 0;

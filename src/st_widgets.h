@@ -15,14 +15,13 @@
 #define ST_WIDGETS_H
 
 #include "doomtype.h"
+#include "hu_message.h"
 
 struct sbarelem_s;
 struct sbe_widget_s;
 struct player_s;
-struct event_s;
 
 #define HU_MAXMESSAGES   20
-#define HU_MAXLINELENGTH 120
 
 typedef enum
 {
@@ -46,8 +45,6 @@ typedef enum
 
 extern secretmessage_t hud_secret_message; // "A secret is revealed!" message
 
-extern boolean chat_on;
-
 extern widgetstate_t hud_level_stats;
 extern widgetstate_t hud_level_time;
 extern widgetstate_t hud_player_coords;
@@ -63,20 +60,13 @@ extern boolean message_centered;
 void ST_ResetTitle(void);
 void ST_ResetMessages(void);
 
+// Show the message that is still on the screen again.
+
+void ST_ReviewMessages(void);
+
 void ST_ClearLines(struct sbe_widget_s *widget);
 void ST_AddLine(struct sbe_widget_s *widget, const char *string);
 void ST_UpdateWidget(struct sbarelem_s *elem, struct player_s *player);
-
-void ST_UpdateChatMessage(void);
-
-// Deliver a chat character of a remote player that the simulation will not
-// apply, because the tic carrying it was already run with a prediction.
-
-void ST_RemoteChatChar(int player, char ch);
-
-boolean ST_MessagesResponder(struct event_s *ev);
-
-char ST_DequeueChatChar(void);
 
 extern int speedometer;
 
