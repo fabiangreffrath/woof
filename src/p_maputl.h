@@ -58,9 +58,9 @@ typedef boolean (*traverser_t)(intercept_t *in);
 
 fixed_t P_AproxDistance(fixed_t dx, fixed_t dy);
 extern int (*P_PointOnLineSide)(fixed_t x, fixed_t y, struct line_s *line);
+extern int (*P_PointOnDivlineSide)(fixed_t x, fixed_t y, divline_t *line);
 int     P_PointOnLineSide_Classic(fixed_t x, fixed_t y, struct line_s *line);
 int     P_PointOnDivlineSide_Classic(fixed_t x, fixed_t y, divline_t *line);
-extern int (*P_PointOnDivlineSide)(fixed_t x, fixed_t y, divline_t *line);
 int     P_PointOnLineSide_Precise(fixed_t x, fixed_t y, struct line_s *line);
 int     P_PointOnDivlineSide_Precise(fixed_t x, fixed_t y, divline_t *line);
 void    P_MakeDivline(struct line_s *li, divline_t *dl);

@@ -130,7 +130,11 @@ inline static double clamp(double x, double min, double max)
 #endif
 
 #if defined(__GNUC__) || defined(__clang__)
-  #define PRINTF_ATTR(fmt, first) __attribute__((format(printf, fmt, first)))
+  #if defined(__MINGW32__) || defined(__MINGW64__)
+    #define PRINTF_ATTR(fmt_idx, arg_idx) __attribute__((format(gnu_printf, fmt_idx, arg_idx)))
+  #else
+    #define PRINTF_ATTR(fmt_idx, arg_idx) __attribute__((format(printf, fmt_idx, arg_idx)))
+  #endif
   #define PRINTF_ARG_ATTR(x)      __attribute__((format_arg(x)))
 #else
   #define PRINTF_ATTR(fmt, first)

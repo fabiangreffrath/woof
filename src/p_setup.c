@@ -540,7 +540,7 @@ void P_SetupLevel(int episode, int map_num, skill_t skill, boolean from_savegame
       P_LoadMap_Doom(&map);
       break;
     case MAP_HEXEN:
-      I_Error("Unsupported Hexen level format in %s", lumpname);
+      P_LoadMap_Hexen(&map);
       break;
     case MAP_UDMF:
       P_LoadMap_UDMF(&map);
@@ -584,7 +584,7 @@ void P_SetupLevel(int episode, int map_num, skill_t skill, boolean from_savegame
       P_LoadThings_Doom(&map);
       break;
     case MAP_HEXEN:
-      I_Error("Tried to spawn things on invalid map format");
+      P_LoadThings_Hexen(&map);
       break;
     case MAP_UDMF:
       P_LoadThings_UDMF(&map);
