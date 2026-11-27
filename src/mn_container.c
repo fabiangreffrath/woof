@@ -175,6 +175,24 @@ static int ResolveLength(const mn_length_t *length, int base, int fallback)
     }
 }
 
+// The value column is measured from the right edge of the items column, so
+// the values follow that edge when the aspect ratio changes. MN_UNIT_AUTO
+// keeps the label-width geometry.
+static int ResolveValueColumn(const mn_menu_t *menu, int label_width)
+{
+    const int width = menu->viewport.w;
+
+    switch (menu->layout.value_column.unit)
+    {
+        case MN_UNIT_PX:
+            return width - menu->layout.value_column.value;
+        case MN_UNIT_PERCENT:
+            return width - width * menu->layout.value_column.value / 100;
+        default:
+            return label_width + 12;
+    }
+}
+
 static void LayoutPage(mn_menu_t *menu, mn_page_t *page)
 {
     int y = page->pad_top;
@@ -223,11 +241,9 @@ static void LayoutPage(mn_menu_t *menu, mn_page_t *page)
     page->content_h = y + page->pad_bottom;
     page->label_width = label_width;
 
-    const int column = ResolveLength(&menu->layout.value_column,
-                                     menu->viewport.w, label_width + 12);
-
-    page->value_x = menu->viewport.x + CLAMP(column, 0,
-                                             MAX(0, menu->viewport.w - 48));
+    page->value_x = menu->viewport.x
+                    + CLAMP(ResolveValueColumn(menu, label_width), 0,
+                            MAX(0, menu->viewport.w - 48));
 
     if ((menu->flags & MN_MENU_CENTER_H) && y < menu->viewport.h)
     {

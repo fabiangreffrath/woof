@@ -45,9 +45,9 @@ enum
 };
 
 #define MN_LAYOUT                   \
-    {.max_width = MN_PX(500),       \
+    {.max_width = MN_PX(400),       \
      .items_min_width = MN_PX(246), \
-     .value_column = MN_PX(147),    \
+     .value_column = MN_PX(99),     \
      .item_spacing = 1}
 
 #define MN_GAP(gap)   {.type = ItemType_Skip, .height = (gap)}

@@ -612,18 +612,6 @@ void M_InputPredefined(void)
     };
     InputSet(input_menu_tab_left, left_tab, arrlen(left_tab));
 
-    input_t right_page[] = {
-        {INPUT_KEY,    'c'                        },
-        {INPUT_JOYB,   GAMEPAD_RIGHT_TRIGGER      },
-    };
-    InputSet(input_menu_page_right, right_page, arrlen(right_page));
-
-    input_t left_page[] = {
-        {INPUT_KEY,    'z'                       },
-        {INPUT_JOYB,   GAMEPAD_LEFT_TRIGGER      },
-    };
-    InputSet(input_menu_page_left, left_page, arrlen(left_page));
-
     input_t up[] = {
         {INPUT_KEY,  KEY_UPARROW             },
         {INPUT_KEY,  'w'                     },

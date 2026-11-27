@@ -212,8 +212,6 @@ static void M_ExtHelpNextScreen(int choice);
 static void M_ExtHelp(int choice);
 static void M_DrawExtHelp(void);
 
-static void M_CustomSkill(int choice);
-
 static void M_PauseSound(void)
 {
     if (!paused && gamestate == GS_LEVEL && !demoplayback && !netgame)
@@ -2060,14 +2058,6 @@ boolean M_Responder(event_t *ev)
     else if (M_InputActivated(input_menu_tab_right))
     {
         action = MENU_TAB_RIGHT;
-    }
-    else if (M_InputActivated(input_menu_page_left))
-    {
-        action = MENU_PAGE_LEFT;
-    }
-    else if (M_InputActivated(input_menu_page_right))
-    {
-        action = MENU_PAGE_RIGHT;
     }
     else if (M_InputActivated(input_menu_backspace))
     {

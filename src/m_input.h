@@ -65,8 +65,6 @@ enum
     input_menu_right,
     input_menu_tab_left,
     input_menu_tab_right,
-    input_menu_page_left,
-    input_menu_page_right,
     input_menu_backspace,
     input_menu_enter,
     input_menu_escape,

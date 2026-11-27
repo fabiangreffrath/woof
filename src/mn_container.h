@@ -179,8 +179,8 @@ typedef struct
 
 // Margins and the layout width resolve percentages against the full logical
 // screen width, hint sizes resolve them against the resulting content box.
-// value_column is the x of the item values, relative to the items box.
-// MN_UNIT_AUTO fields keep the original hard-coded geometry.
+// value_column is the distance from the right edge of the items box to the
+// item values. MN_UNIT_AUTO fields keep the original hard-coded geometry.
 typedef struct
 {
     mn_length_t margin_left;
