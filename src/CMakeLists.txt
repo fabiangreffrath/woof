@@ -121,6 +121,7 @@ set(WOOF_SOURCES
     mn_menu.c              mn_menu.h
     mn_multiplayer.c       mn_multiplayer.h
     mn_multiplayer_data.c
+    mn_newgame.c           mn_newgame.h
     mn_options.c           mn_options.h
     mn_options_data.c
     mn_saveload.c          mn_saveload.h

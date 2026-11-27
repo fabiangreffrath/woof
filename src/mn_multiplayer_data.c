@@ -14,21 +14,22 @@
 #include "doomdef.h"
 #include "doomstat.h"
 #include "doomtype.h"
+#include "mn_container.h"
 #include "mn_defs.h"
 #include "mn_multiplayer.h"
 #include "nw_defs.h"
+
+#define MN_ACTION(lbl, act, desc) \
+    {.label = (lbl),              \
+     .type = ItemType_Action,     \
+     .action = (act),             \
+     .description = (desc)}
 
 #define MN_NUM(lbl, key, sfx, desc)   \
     {.label = (lbl),                  \
      .cfg = (key),                    \
      .type = ItemType_Number,         \
      .suffix = (sfx),                 \
-     .description = (desc)}
-
-#define MN_ACTION(lbl, act, desc) \
-    {.label = (lbl),              \
-     .type = ItemType_Action,     \
-     .action = (act),             \
      .description = (desc)}
 
 #define MN_TOGGLE_INV(lbl, key, desc) \
@@ -149,7 +150,7 @@ mn_menu_t multiplayer_menu = {
     .title_patch = "",
     .title_text = "Multiplayer",
     .background = "FLOOR4_6",
-    .flags = MN_MENU_HINTS | MN_MENU_CENTER_W,
+    .flags = MN_MENU_HINTS | MN_MENU_CENTER_W | MN_MENU_BREAD_CRUMB_TITLE,
     .layout = MN_LAYOUT,
     .pages = multiplayer_pages,
     .num_pages = arrlen(multiplayer_pages),

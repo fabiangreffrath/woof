@@ -30,7 +30,6 @@
 #include "m_input.h"
 #include "mn_container.h"
 #include "mn_defs.h"
-#include "mn_multiplayer.h"
 #include "mn_options.h"
 #include "nw_defs.h"
 #include "r_data.h"
@@ -40,12 +39,6 @@
 
 #define MN_SUBMENU(lbl, menu) \
     {.label = (lbl), .type = ItemType_SubMenu, .submenu = (menu)}
-
-#define MN_MENU(lbl, menu)        \
-    {.label = (lbl),              \
-     .type = ItemType_SubMenu,    \
-     .submenu = (menu),           \
-     .flags = MN_ITEM_HIDE_VALUE}
 
 #define MN_INPUT(lbl, id, grp) \
     {.label = (lbl),           \
@@ -870,9 +863,11 @@ static mn_item_t automap_items[] = {
     MN_TOGGLE("Found Secrets Only", "map_secret_after", NULL),
 };
 
+static const char *newgame_stings[] = {"Classic", "Extended"};
 static const char *endoom_strings[] = {"Off", "PWAD Only", "Always"};
 
 static mn_item_t custom_menu_items[] = {
+    MN_CHOICE("New Game Menu", "menu_extended_newgame", newgame_stings, NULL),
     MN_TOGGLE("Menu Pauses Demos", "menu_pause_demos", NULL),
     MN_TITLE("Quit Game"),
     MN_TOGGLE("Show Quit Prompt", "quit_prompt", NULL),
@@ -971,7 +966,6 @@ static mn_item_t options_items[] = {
     MN_MENU("Interface", &interface_menu),
     MN_MENU("Video", &video_menu),
     MN_MENU("Audio", &audio_menu),
-    MN_MENU("Multiplayer", &multiplayer_menu),
 };
 
 static mn_page_t options_pages[] = {

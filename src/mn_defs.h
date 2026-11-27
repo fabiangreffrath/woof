@@ -95,6 +95,12 @@ enum
      .action = (act),                            \
      .description = (desc)}
 
+#define MN_MENU(lbl, menu)        \
+    {.label = (lbl),              \
+     .type = ItemType_SubMenu,    \
+     .submenu = (menu),           \
+     .flags = MN_ITEM_HIDE_VALUE}
+
 void M_ChooseSkill(int choice);
 
 #endif

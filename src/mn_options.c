@@ -1133,9 +1133,6 @@ void MN_BindMenu(mn_menu_t *menu)
 
 void MN_OptionsOpen(void)
 {
-    // A network game can be left from the menu, so Multiplayer stays
-    // available during one; only demo playback and recording block it.
-
     MN_ContainerOpen(&options_menu);
 }
 
@@ -1739,7 +1736,6 @@ static mn_menu_t *all_menus[] = {
     &interface_menu,
     &gameplay_menu,
     &options_menu,
-    &multiplayer_menu,
 };
 
 void MN_OptionsInit(void)
@@ -1770,6 +1766,7 @@ void MN_BindOptionsVariables(void)
     BIND_NUM_MENU(resolution_scale, 0, UL);
     BIND_NUM_MENU(freelook_mode, FREELOOK_OFF, FREELOOK_DIRECT_AIM);
     BIND_NUM_MENU(hud_layout, 0, UL);
+
     BIND_BOOL(menu_pause_demos, false,
         "Pause demo loop while menu is open");
     BIND_NUM(menu_backdrop, MENU_BG_DARK, MENU_BG_OFF, MENU_BG_TEXTURE,

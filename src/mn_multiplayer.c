@@ -449,7 +449,8 @@ void MN_MultiplayerInit(void)
     server_list_menu.background = "FLOOR4_6";
     server_list_menu.flags = MN_MENU_CENTER_W;
     server_list_menu.layout = (mn_layout_t){.max_width = MN_PX(500),
-                                            .items_min_width = MN_PX(250)};
+                                            .items_min_width = MN_PX(250),
+                                            .item_spacing = 1};
     server_list_menu.pages = &server_page;
     server_list_menu.num_pages = 1;
     server_list_menu.ticker = ServerListTicker;

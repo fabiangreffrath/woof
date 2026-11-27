@@ -62,6 +62,8 @@ void MN_ClearEpisodes(void);
 
 void MN_ForcedLoadGame(const char *msg); // killough 5/15/98: forced loadgames
 
+void MN_NewGame(void);
+
 typedef enum
 {
     MENU_BG_OFF,

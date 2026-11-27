@@ -51,6 +51,7 @@
 #include "mn_container.h"
 #include "mn_csmenu.h"
 #include "mn_menu.h"
+#include "mn_newgame.h"
 #include "mn_options.h"
 #include "mn_saveload.h"
 #include "mp_start.h"
@@ -586,8 +587,8 @@ static void InitializeSkillMenu(void)
     }
 
     NewDef.lastOn = default_skill - 1;
-    NewDef.numitems = num_skills;
-    NewDef.menuitems = calloc(num_skills, sizeof(*NewDef.menuitems));
+    NewDef.numitems = num_skills - 1;
+    NewDef.menuitems = calloc(num_skills - 1, sizeof(*NewDef.menuitems));
 
     for (int i = 0; i < num_og_skills; ++i)
     {
@@ -609,15 +610,6 @@ static void InitializeSkillMenu(void)
             NewDef.lastOn = i;
         }
     }
-    menuitem_t cskill_item = {.status = 1,
-                              .name = "M_CSTSKL",
-                              .routine = M_CustomSkill,
-                              .alphaKey = 'c',
-                              .alttext = "Custom Skill...",
-                              .rect = NEW_GAME_RECT(num_cskill),
-                              .flags = MF_OPTLUMP};
-
-    NewDef.menuitems[num_cskill] = cskill_item;
 
     if (NewDef.lastOn >= num_skills)
     {
@@ -647,6 +639,27 @@ static void M_NewGame(int choice)
                        NULL, false); // killough 5/26/98: not externalized
         return;
     }
+
+    if (MN_NewGameMenuOpen())
+    {
+        return;
+    }
+
+    if (((gamemode == commercial) && !EpiCustom) || EpiDef.numitems <= 1)
+    {
+        SetNextMenu(&NewDef);
+    }
+    else
+    {
+        epiChoice = 0;
+        SetNextMenu(&EpiDef);
+    }
+}
+
+void MN_NewGame(void)
+{
+    MN_ContainerClose();
+    M_StartSound(sfx_mnuopn);
 
     if (((gamemode == commercial) && !EpiCustom) || EpiDef.numitems <= 1)
     {
@@ -722,12 +735,6 @@ void M_ChooseSkill(int choice)
     }
 
     FinishGameSelection();
-}
-
-static void M_CustomSkill(int choice)
-{
-    customskill_active = true;
-    MN_CSMenuOpen();
 }
 
 /////////////////////////////
