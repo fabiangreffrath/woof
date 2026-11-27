@@ -38,9 +38,7 @@ enum
     MN_FNT_H = 7,
     MN_PAD = 2,
     MN_SPC = 9,
-    MN_SPC_ITEM =   (MN_SPC + 4),
-    MN_SPC_SLIDER = (MN_SPC + 4),
-    MN_SPC_CHOICE = (MN_SPC + 4),
+    MN_SPC_ITEM = (MN_SPC + 4),
 
     MN_CHOICE_SIZE = 9,
     MN_SLIDER_SIZE = 7,

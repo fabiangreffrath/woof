@@ -192,22 +192,12 @@ static void LayoutPage(mn_menu_t *menu, mn_page_t *page)
 
         if (item->height == 0)
         {
-            if (item->type == ItemType_Slider)
-            {
-                item->height = MN_SPC_SLIDER;
-            }
-            else if (item->type == ItemType_Choice)
-            {
-                item->height = MN_SPC_CHOICE;
+            item->height = MN_SPC_ITEM;
 
-                if (item->flags & MN_ITEM_TWO_LINES)
-                {
-                    item->height += MN_SPC;
-                }
-            }
-            else
+            if (item->type == ItemType_Choice
+                && (item->flags & MN_ITEM_TWO_LINES))
             {
-                item->height = MN_SPC_ITEM;
+                item->height += MN_SPC;
             }
         }
 
@@ -706,15 +696,6 @@ static void ActivateItem(mn_menu_t *menu, int index)
         return;
     }
 
-    if (item->type == ItemType_Choice || item->type == ItemType_Slider)
-    {
-        if (item->ops && item->ops->respond)
-        {
-            item->ops->respond(item, MENU_RIGHT, 0);
-        }
-        return;
-    }
-
     menu->active_item = NULL;
 
     if (item->ops && item->ops->respond)
@@ -722,7 +703,7 @@ static void ActivateItem(mn_menu_t *menu, int index)
         item->ops->respond(item, MENU_ENTER, 0);
     }
 
-    if (item->type == ItemType_Action || item->type == ItemType_Toggle)
+    if (item->type == ItemType_Action)
     {
         M_StartSound(sfx_mnusel);
     }
@@ -886,6 +867,21 @@ void MN_ContainerEndEdit(void)
     {
         print_warning_about_changes--;
     }
+}
+
+void MN_ContainerBeginEdit(mn_item_t *item)
+{
+    if (!active_menu || !item)
+    {
+        return;
+    }
+
+    if (active_menu->active_item && active_menu->active_item != item)
+    {
+        CancelActiveItem(active_menu);
+    }
+
+    active_menu->active_item = item;
 }
 
 void MN_ContainerConfirm(const char *text, void (*action)(void))
@@ -1282,19 +1278,19 @@ mn_container_result_t MN_ContainerMouseButton(int button, boolean down)
             return MN_CONTAINER_HANDLED;
         }
 
-        if (item->type == ItemType_Slider && item->ops && item->ops->drag)
-        {
-            menu->drag_item = item;
-            item->ops->drag(item, last_mouse_x);
-            return MN_CONTAINER_HANDLED;
-        }
-
         if (item->ops && item->ops->click)
         {
             if (item->ops->click(item, last_mouse_x, last_mouse_y))
             {
                 return MN_CONTAINER_HANDLED;
             }
+        }
+
+        if (item->type == ItemType_Slider && item->ops && item->ops->drag)
+        {
+            menu->drag_item = item;
+            item->ops->drag(item, last_mouse_x);
+            return MN_CONTAINER_HANDLED;
         }
 
         ActivateItem(menu, menu->hover);
@@ -1737,7 +1733,7 @@ static void DrawInstructions(const mn_menu_t *menu)
     }
     else if (menu->active_item)
     {
-        if (item->type == ItemType_Number)
+        if (item->type == ItemType_Number || item->type == ItemType_Slider)
         {
             text = "Enter value";
         }

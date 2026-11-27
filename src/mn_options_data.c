@@ -273,7 +273,8 @@ static mn_item_t audio_general_items[] = {
      .cfg = "midi_player_menu",
      .type = ItemType_Choice,
      .get_choices = MN_GetMidiPlayerStrings,
-     .choice_size = MN_CHOICE_SIZE,
+     .choice_size = 18,
+     .offset = 9 * 8,
      .action = MN_OptionsSetMidiPlayer,
      .flags = MN_ITEM_DEFER_ACTION | MN_ITEM_TWO_LINES},
 };

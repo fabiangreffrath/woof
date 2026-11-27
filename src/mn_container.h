@@ -87,8 +87,12 @@ struct mn_item_s
     void (*get_choices)(mn_item_t *item);
     const char **choices;
     int num_choices;
-    int slider_size;
-    int choice_size;
+    union
+    {
+        int slider_size;
+        int choice_size;
+    };
+    int offset;
     mn_item_flags_t flags;
     const char *description;
     const char *suffix;
@@ -111,6 +115,11 @@ struct mn_item_s
     boolean action_pending;
 
     int draw_value_x;
+
+    // Acceleration of repeated MENU_LEFT/RIGHT on sliders.
+    int step_dir;
+    int step_repeat;
+    int step_ms;
 };
 
 struct mn_item_ops_s
@@ -258,6 +267,7 @@ void MN_ContainerConfirm(const char *text, void (*action)(void));
 void MN_ContainerEnsureVisible(mn_item_t *item);
 void MN_ContainerRefresh(void);
 void MN_ContainerEndEdit(void);
+void MN_ContainerBeginEdit(mn_item_t *item);
 
 mn_menu_t *MN_ContainerGetCurrentMenu(void);
 

@@ -31,6 +31,7 @@
 #include "i_rumble.h"
 #include "i_sound.h"
 #include "i_system.h"
+#include "i_timer.h"
 #include "i_video.h"
 #include "m_array.h"
 #include "m_config.h"
@@ -95,25 +96,36 @@ static void OptionSetValue(mn_item_t *item, int value)
 
     value = CLAMP(value, ItemMin(item), ItemMax(item));
 
-    if (*item->def->location.i != value)
+    if (*item->def->location.i == value)
     {
-        *item->def->location.i = value;
-        M_StartSound(sfx_mnusli);
+        return;
     }
 
+    *item->def->location.i = value;
+    M_StartSound(sfx_mnusli);
     MN_ContainerItemChanged(item);
 }
 
-static int SliderPixelWidth(int size)
+enum
 {
-    return 8 + (size + 1) * 8 + 8;
+    SLIDER_PATCH_W = 8,
+    SLIDER_VAL_W = 28,
+};
+
+// The value box follows the thermometer and overlaps its right patch by
+// two pixels, as it always has.
+static int SliderValueX(const mn_item_t *item)
+{
+    const int size = item->slider_size ? item->slider_size : 8;
+
+    return item->draw_value_x + (size + 3) * SLIDER_PATCH_W - 2 * MN_PAD;
 }
 
 static void OptionSliderSetFromMouse(mn_item_t *item, int mouse_x)
 {
     const int size = item->slider_size ? item->slider_size : 8;
-    const int bar_x = item->draw_value_x + 8 + MN_PAD;
-    const int bar_w = size * 8;
+    const int bar_x = item->draw_value_x + SLIDER_PATCH_W + MN_PAD;
+    const int bar_w = size * SLIDER_PATCH_W;
     const int min = ItemMin(item);
     const int max = ItemMax(item);
 
@@ -200,35 +212,47 @@ static boolean ToggleRespond(mn_item_t *item, menu_action_t action, int ch)
 }
 
 //---------------------------------------------------------------------------
-// Number Item
+// Value Display and Numeric Editing
 //---------------------------------------------------------------------------
 
-static void NumberDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
+// Shared by the numeric items: shows what is being typed, or the value
+// mapped to a choice string, or the number with its suffix.
+static void ValueFormat(const mn_item_t *item, char *buffer, int size)
 {
-    char buffer[32];
-
     if (item->gathering)
     {
-        M_snprintf(buffer, sizeof(buffer), "%s", item->gather);
+        M_snprintf(buffer, size, "%s", item->gather);
+        return;
+    }
+
+    const int value = OptionValue(item);
+
+    if (item->choices && value >= 0 && value < item->num_choices)
+    {
+        M_snprintf(buffer, size, "%s", item->choices[value]);
     }
     else if (item->suffix && !strcmp(item->suffix, "%"))
     {
-        M_snprintf(buffer, sizeof(buffer), "%d%%", OptionValue(item));
+        M_snprintf(buffer, size, "%d%%", value);
     }
     else if (item->suffix)
     {
-        M_snprintf(buffer, sizeof(buffer), "%d %s", OptionValue(item),
-                   item->suffix);
+        M_snprintf(buffer, size, "%d %s", value, item->suffix);
     }
     else
     {
-        M_snprintf(buffer, sizeof(buffer), "%d", OptionValue(item));
+        M_snprintf(buffer, size, "%d", value);
     }
-
-    DrawValueString(ctx, buffer);
 }
 
-static void NumberCommit(mn_item_t *item)
+static void ValueEditBegin(mn_item_t *item)
+{
+    item->gathering = true;
+    item->gather_count = 0;
+    item->gather[0] = '\0';
+}
+
+static void ValueEditEnd(mn_item_t *item, boolean commit)
 {
     if (!item->gathering)
     {
@@ -237,7 +261,7 @@ static void NumberCommit(mn_item_t *item)
 
     item->gather[item->gather_count] = '\0';
 
-    if (item->gather_count)
+    if (commit && item->gather_count)
     {
         OptionSetValue(item, atoi(item->gather));
     }
@@ -247,37 +271,13 @@ static void NumberCommit(mn_item_t *item)
     MN_ContainerEndEdit();
 }
 
-static boolean NumberRespond(mn_item_t *item, menu_action_t action, int ch)
+static void ValueEditKey(mn_item_t *item, menu_action_t action, int ch)
 {
-    if (action == MENU_ENTER)
-    {
-        if (!item->gathering)
-        {
-            item->gathering = true;
-            item->gather_count = 0;
-            item->gather[0] = '\0';
-        }
-        else
-        {
-            NumberCommit(item);
-        }
-        return true;
-    }
-
-    if (!item->gathering)
-    {
-        return false;
-    }
-
     if (action == MENU_ESCAPE)
     {
-        item->gathering = false;
-        item->gather_count = 0;
-        MN_ContainerEndEdit();
-        return true;
+        ValueEditEnd(item, false);
     }
-
-    if (action == MENU_BACKSPACE)
+    else if (action == MENU_BACKSPACE)
     {
         if (item->gather_count)
         {
@@ -285,19 +285,51 @@ static boolean NumberRespond(mn_item_t *item, menu_action_t action, int ch)
         }
         else
         {
-            item->gathering = false;
-            MN_ContainerEndEdit();
+            ValueEditEnd(item, false);
         }
-        return true;
     }
-
-    if ((ch >= '0' && ch <= '9') || (ch == '-' && item->gather_count == 0))
+    else if ((ch >= '0' && ch <= '9') || (ch == '-' && item->gather_count == 0))
     {
         if (item->gather_count < (int)sizeof(item->gather) - 1)
         {
             item->gather[item->gather_count++] = ch;
             item->gather[item->gather_count] = '\0';
         }
+    }
+}
+
+//---------------------------------------------------------------------------
+// Number Item
+//---------------------------------------------------------------------------
+
+static void NumberDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
+{
+    char buffer[32];
+
+    ValueFormat(item, buffer, sizeof(buffer));
+    DrawValueString(ctx, buffer);
+}
+
+static boolean NumberRespond(mn_item_t *item, menu_action_t action, int ch)
+{
+    if (!item->gathering)
+    {
+        if (action != MENU_ENTER)
+        {
+            return false;
+        }
+
+        ValueEditBegin(item);
+        return true;
+    }
+
+    if (action == MENU_ENTER)
+    {
+        ValueEditEnd(item, true);
+    }
+    else
+    {
+        ValueEditKey(item, action, ch);
     }
 
     return true;
@@ -467,7 +499,7 @@ static boolean TextInput(mn_item_t *item, const struct event_s *ev,
 enum
 {
     CHOICE_ARROW_W = 8,
-    CHOICE_ARROW_BG = MN_SPC_CHOICE,
+    CHOICE_ARROW_BG = MN_SPC_ITEM,
     CHOICE_PADDING = 2,
     CHOICE_SEG_W = 4,
     CHOICE_SEG_MAX_W = 24,
@@ -481,7 +513,6 @@ typedef struct
     int x;
     int text_x;
     int text_w;
-    int text_h;
     int bar_x;
     int seg_w;
     int seg_extra;
@@ -526,9 +557,8 @@ static choice_layout_t ChoiceLayout(const mn_item_t *item)
     l.seg_w = usable / l.visible;
     l.seg_w = MIN(l.seg_w, CHOICE_SEG_MAX_W);
     l.seg_extra = usable % l.visible;
-    l.text_h = (item->flags & MN_ITEM_TWO_LINES) ? 2 * MN_SPC : MN_SPC;
 
-    l.x = item->draw_value_x;
+    l.x = item->draw_value_x - item->offset;
     l.text_x = l.x + CHOICE_ARROW_BG + CHOICE_PADDING;
     l.bar_x = l.text_x + l.text_w / 2
               - (l.seg_w * l.visible + CHOICE_SEG_GAP * (l.visible - 1)) / 2;
@@ -557,16 +587,6 @@ static int ChoiceStep(const mn_item_t *item, boolean right)
 
     return right ? (value >= max ? min : value + 1)
                  : (value <= min ? max : value - 1);
-}
-
-static void ChoiceApplyValue(mn_item_t *item, int value)
-{
-    if (*item->def->location.i != value)
-    {
-        *item->def->location.i = value;
-        M_StartSound(sfx_mnusli);
-        MN_ContainerItemChanged(item);
-    }
 }
 
 // Returns the arrow under the mouse (0 for left, 1 for right), or -1.
@@ -660,11 +680,14 @@ static void ChoiceDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
     const int arrow = ChoiceHoverArrow(item, ctx);
     byte *cr = ValueColor(ctx);
 
-    const int arrow_bg = CHOICE_ARROW_BG;
+    const int arrow_bg_w = CHOICE_ARROW_BG;
+    const int arrow_bg_h = (item->flags & MN_ITEM_TWO_LINES)
+                               ? CHOICE_ARROW_BG * 2 - MN_PAD * 2
+                               : CHOICE_ARROW_BG;
 
-    V_ShadeRect(video.deltaw + l.x, ctx->y, arrow_bg, arrow_bg, 90);
+    V_ShadeRect(video.deltaw + l.x, ctx->y, arrow_bg_w, arrow_bg_h, 90);
 
-    int arrow_x = l.x + (arrow_bg - 5) / 2;
+    int arrow_x = l.x + (arrow_bg_w - 5) / 2;
 
     if (arrow == 0)
     {
@@ -677,29 +700,16 @@ static void ChoiceDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
 
     ChoiceDrawText(item, &l, y, ChoiceText(item, value), cr);
 
-    const byte dark = cr_dark[playpal_global->white];
-    const byte shade = cr_shaded[playpal_global->white];
+    const byte white = playpal_global->white;
     const int bar_y = y + item->height - 2;
     int seg_x = l.bar_x;
 
     for (int i = 0; i < l.visible; ++i)
     {
-        byte seg_color;
-
-        if (l.min + i == value)
-        {
-            seg_color = ctx->disabled
-                            ? xlat[CR_GREEN].table[shade]
-                            : xlat[CR_GREEN].table[playpal_global->white];
-        }
-        else if (ctx->disabled)
-        {
-            seg_color = xlat[CR_GREEN].table[dark];
-        }
-        else
-        {
-            seg_color = xlat[CR_GREEN].table[dark];
-        }
+        const boolean current = (l.min + i == value);
+        const byte color = current ? (ctx->disabled ? cr_shaded[white] : white)
+                                   : cr_dark[white];
+        const byte seg_color = xlat[CR_GREEN].table[color];
 
         const int seg_w = l.seg_w + (i < l.seg_extra ? 1 : 0);
 
@@ -709,7 +719,7 @@ static void ChoiceDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
 
     arrow_x = l.text_x + l.text_w + 2 * CHOICE_PADDING;
 
-    V_ShadeRect(video.deltaw + arrow_x, ctx->y, arrow_bg, arrow_bg, 90);
+    V_ShadeRect(video.deltaw + arrow_x, ctx->y, arrow_bg_w, arrow_bg_h, 90);
 
     arrow_x += (CHOICE_ARROW_BG - 5) / 2;
 
@@ -745,7 +755,7 @@ static boolean ChoiceRespond(mn_item_t *item, menu_action_t action, int ch)
         return false;
     }
 
-    ChoiceApplyValue(item, ChoiceStep(item, action == MENU_RIGHT));
+    OptionSetValue(item, ChoiceStep(item, action == MENU_RIGHT));
     return true;
 }
 
@@ -758,7 +768,7 @@ static boolean ChoiceClick(mn_item_t *item, int mouse_x, int mouse_y)
         return false;
     }
 
-    ChoiceApplyValue(item, ChoiceStep(item, arrow == 1));
+    OptionSetValue(item, ChoiceStep(item, arrow == 1));
     return true;
 }
 
@@ -766,10 +776,46 @@ static boolean ChoiceClick(mn_item_t *item, int mouse_x, int mouse_y)
 // Slider Item
 //---------------------------------------------------------------------------
 
+// Repeated MENU_LEFT/RIGHT events double the step every few events, up to
+// a fraction of the range, so long sliders can be swept without giving up
+// single-notch precision. Sliders with few values always step by one.
 enum
 {
-    SLIDER_VAL_W = 28,
+    SLIDER_STEP_GAP_MS = 120,
+    SLIDER_STEP_LEVEL_REPEATS = 4,
+    SLIDER_STEP_RANGE_DIV = 32,
+    SLIDER_STEP_MAX_REPEAT = 60,
 };
+
+static int SliderStep(mn_item_t *item, boolean right)
+{
+    const int now = I_GetTimeMS();
+    const int dir = right ? 1 : -1;
+    const int cap = (ItemMax(item) - ItemMin(item)) / SLIDER_STEP_RANGE_DIV;
+
+    if (item->step_dir == dir && now - item->step_ms <= SLIDER_STEP_GAP_MS)
+    {
+        item->step_repeat =
+            MIN(item->step_repeat + 1, SLIDER_STEP_MAX_REPEAT);
+    }
+    else
+    {
+        item->step_repeat = 0;
+    }
+
+    item->step_dir = dir;
+    item->step_ms = now;
+
+    int step = 1;
+
+    for (int i = 0;
+         i < item->step_repeat / SLIDER_STEP_LEVEL_REPEATS && step < cap; ++i)
+    {
+        step *= 2;
+    }
+
+    return MIN(step, MAX(1, cap));
+}
 
 static void DrawThermo(const mn_item_t *item, const mn_draw_ctx_t *ctx)
 {
@@ -784,23 +830,23 @@ static void DrawThermo(const mn_item_t *item, const mn_draw_ctx_t *ctx)
     int x = ctx->value_x - MN_PAD;
 
     V_DrawPatchTranslated(x, ctx->y, V_CachePatchName("M_THERML", PU_CACHE), cr);
-    x += 8;
+    x += SLIDER_PATCH_W;
 
     patch_t *middle = V_CachePatchName("M_THERMM", PU_CACHE);
 
     for (int i = 0; i < size + 1; ++i)
     {
         V_DrawPatchTranslated(x, ctx->y, middle, cr);
-        x += 8;
+        x += SLIDER_PATCH_W;
     }
 
     V_DrawPatchTranslated(x, ctx->y, V_CachePatchName("M_THERMR", PU_CACHE), cr);
 
     if (max > min)
     {
-        const int dot = (value - min) * size * 8 / (max - min);
+        const int dot = (value - min) * size * SLIDER_PATCH_W / (max - min);
 
-        V_DrawPatchTranslated(ctx->value_x + 8 + dot, ctx->y,
+        V_DrawPatchTranslated(ctx->value_x + SLIDER_PATCH_W + dot, ctx->y,
                               V_CachePatchName("M_THERMO", PU_CACHE), cr);
     }
 }
@@ -810,51 +856,78 @@ static void SliderDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
     DrawThermo(item, ctx);
 
     char buffer[32];
-    const int value = OptionValue(item);
 
-    if (item->choices && value >= 0 && value < item->num_choices)
-    {
-        M_snprintf(buffer, sizeof(buffer), "%s", item->choices[value]);
-    }
-    else if (item->suffix && !strcmp(item->suffix, "%"))
-    {
-        M_snprintf(buffer, sizeof(buffer), "%d%%", value);
-    }
-    else if (item->suffix)
-    {
-        M_snprintf(buffer, sizeof(buffer), "%d %s", value, item->suffix);
-    }
-    else
-    {
-        M_snprintf(buffer, sizeof(buffer), "%d", value);
-    }
+    ValueFormat(item, buffer, sizeof(buffer));
 
-    const int size = item->slider_size ? item->slider_size : 8;
-    const int x = ctx->value_x + SliderPixelWidth(size) - 2 * MN_PAD;
+    const int x = SliderValueX(item);
     const int y = ctx->y;
+
+    const int cr = (ctx->mouse_inside && ctx->mouse_x >= x + video.deltaw
+                    && ctx->mouse_x <= x + SLIDER_VAL_W + video.deltaw)
+                       ? CR_GRAY
+                       : CR_GREEN;
 
     V_ShadeRect(video.deltaw + x, y, SLIDER_VAL_W, item->rect.h, 90);
 
     const int text_x = x + (SLIDER_VAL_W - MN_GetPixelWidth(buffer)) / 2;
     const int text_y = y + (item->height - MN_FNT_H) / 2;
 
-    MN_DrawStringCR(text_x, text_y, xlat[CR_GREEN].table, ValueColor(ctx), buffer);
+    MN_DrawStringCR(text_x, text_y, xlat[cr].table, ValueColor(ctx), buffer);
 }
 
 static boolean SliderRespond(mn_item_t *item, menu_action_t action, int ch)
 {
+    if (item->gathering)
+    {
+        if (action == MENU_ENTER)
+        {
+            ValueEditEnd(item, true);
+        }
+        else
+        {
+            ValueEditKey(item, action, ch);
+        }
+
+        return true;
+    }
+
     if (action != MENU_LEFT && action != MENU_RIGHT)
     {
         return false;
     }
 
-    OptionSetValue(item, OptionValue(item) + (action == MENU_RIGHT ? 1 : -1));
+    const boolean right = (action == MENU_RIGHT);
+    const int step = SliderStep(item, right);
+
+    OptionSetValue(item, OptionValue(item) + (right ? step : -step));
     return true;
 }
 
-static void SliderDrag(mn_item_t *item, int mouse_x)
+static boolean SliderClick(mn_item_t *item, int mouse_x, int mouse_y)
 {
-    OptionSliderSetFromMouse(item, mouse_x);
+    if (item->gathering)
+    {
+        return true;
+    }
+
+    // Typed digits set the raw config value, which for a slider backed by
+    // choice strings is the index, not the string the user sees.
+    if (item->num_choices > 0)
+    {
+        return false;
+    }
+
+    const int x = SliderValueX(item);
+    const int rel_x = mouse_x - video.deltaw;
+
+    if (rel_x < x || rel_x >= x + SLIDER_VAL_W)
+    {
+        return false;
+    }
+
+    ValueEditBegin(item);
+    MN_ContainerBeginEdit(item);
+    return true;
 }
 
 //---------------------------------------------------------------------------
@@ -1054,7 +1127,8 @@ static const mn_item_ops_t number_ops = {NumberDraw, NumberRespond};
 static const mn_item_ops_t choice_ops = {ChoiceDrawCrosshair, ChoiceRespond,
                                          .click = ChoiceClick};
 static const mn_item_ops_t slider_ops = {SliderDraw, SliderRespond,
-                                         .drag = SliderDrag};
+                                         .drag = OptionSliderSetFromMouse,
+                                         .click = SliderClick};
 static const mn_item_ops_t action_ops = {ActionDraw, ActionRespond};
 static const mn_item_ops_t input_ops = {InputDraw, InputRespond,
                                         .click = InputClick};
