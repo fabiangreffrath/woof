@@ -30,6 +30,7 @@
 #include "m_input.h"
 #include "mn_container.h"
 #include "mn_defs.h"
+#include "mn_multiplayer.h"
 #include "mn_options.h"
 #include "nw_defs.h"
 #include "r_data.h"
@@ -37,24 +38,14 @@
 #include "r_plane.h"
 #include "r_sky.h"
 
-// The tabs above the options pages; each one switches to a whole menu.
-static mn_menu_t *const options_menus[] = {
-    &controls_menu,
-    &input_bindings_menu,
-    &gameplay_menu,
-    &interface_menu,
-    &video_menu,
-    &audio_menu,
-//  &multiplayer_menu
-};
-
-mn_menugroup_t options_group = {
-    .menus = options_menus,
-    .num_menus = arrlen(options_menus)
-};
-
 #define MN_SUBMENU(lbl, menu) \
     {.label = (lbl), .type = ItemType_SubMenu, .submenu = (menu)}
+
+#define MN_MENU(lbl, menu)        \
+    {.label = (lbl),              \
+     .type = ItemType_SubMenu,    \
+     .submenu = (menu),           \
+     .flags = MN_ITEM_HIDE_VALUE}
 
 #define MN_INPUT(lbl, id, grp) \
     {.label = (lbl),           \
@@ -156,7 +147,7 @@ mn_menu_t display_menu = {
     .title_patch = "",
     .title_text = "Display",
     .background = "FLOOR4_6",
-    .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
+    .flags = MN_MENU_HINTS | MN_MENU_CENTER_W | MN_MENU_BREAD_CRUMB_TITLE,
     .layout = MN_LAYOUT,
     .pages = display_pages,
     .num_pages = arrlen(display_pages)
@@ -333,7 +324,7 @@ mn_menu_t equalizer_menu = {
     .title_patch = "",
     .title_text = "Equalizer",
     .background = "FLOOR4_6",
-    .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
+    .flags = MN_MENU_HINTS | MN_MENU_CENTER_W | MN_MENU_BREAD_CRUMB_TITLE,
     .layout = MN_LAYOUT,
     .pages = equalizer_pages,
     .num_pages = arrlen(equalizer_pages)
@@ -386,9 +377,8 @@ mn_menu_t video_menu = {
     .title_patch = "",
     .title_text = "Video",
     .background = "FLOOR4_6",
-    .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
+    .flags = MN_MENU_HINTS | MN_MENU_CENTER_W | MN_MENU_BREAD_CRUMB_TITLE,
     .layout = MN_LAYOUT,
-    .group = &options_group,
     .pages = video_pages,
     .num_pages = arrlen(video_pages),
 };
@@ -402,9 +392,8 @@ mn_menu_t audio_menu = {
     .title_patch = "",
     .title_text = "Audio",
     .background = "FLOOR4_6",
-    .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
+    .flags = MN_MENU_HINTS | MN_MENU_CENTER_W | MN_MENU_BREAD_CRUMB_TITLE,
     .layout = MN_LAYOUT,
-    .group = &options_group,
     .pages = audio_pages,
     .num_pages = arrlen(audio_pages),
 };
@@ -529,10 +518,10 @@ static mn_page_t input_bindings_pages[] = {
 
 mn_menu_t input_bindings_menu = {
     .title_patch = "",
-    .title_text = "Inputs",
+    .title_text = "Input Bindings",
     .background = "FLOOR4_6",
+    .flags = MN_MENU_CENTER_W | MN_MENU_BREAD_CRUMB_TITLE,
     .layout = MN_LAYOUT,
-    .group = &options_group,
     .pages = input_bindings_pages,
     .num_pages = arrlen(input_bindings_pages),
 };
@@ -602,7 +591,7 @@ mn_menu_t advanced_gamepad_menu = {
     .title_patch = "",
     .title_text = "Advanced Gamepad",
     .background = "FLOOR4_6",
-    .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
+    .flags = MN_MENU_HINTS | MN_MENU_CENTER_W | MN_MENU_BREAD_CRUMB_TITLE,
     .layout = MN_LAYOUT,
     .pages = advanced_gamepad_pages,
     .num_pages = arrlen(advanced_gamepad_pages)
@@ -764,9 +753,8 @@ mn_menu_t controls_menu = {
     .title_patch = "",
     .title_text = "Controls",
     .background = "FLOOR4_6",
-    .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
+    .flags = MN_MENU_HINTS | MN_MENU_CENTER_W | MN_MENU_BREAD_CRUMB_TITLE,
     .layout = MN_LAYOUT,
-    .group = &options_group,
     .pages = controls_pages,
     .num_pages = arrlen(controls_pages),
 };
@@ -902,11 +890,10 @@ static mn_page_t interface_pages[] = {
 
 mn_menu_t interface_menu = {
     .title_patch = "",
-    .title_text = "UI",
+    .title_text = "Interface",
     .background = "FLOOR4_6",
-    .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
+    .flags = MN_MENU_HINTS | MN_MENU_CENTER_W | MN_MENU_BREAD_CRUMB_TITLE,
     .layout = MN_LAYOUT,
-    .group = &options_group,
     .pages = interface_pages,
     .num_pages = arrlen(interface_pages),
 };
@@ -971,9 +958,32 @@ mn_menu_t gameplay_menu = {
     .title_patch = "",
     .title_text = "Game",
     .background = "FLOOR4_6",
-    .flags = MN_MENU_HINTS | MN_MENU_CENTER_LAYOUT,
+    .flags = MN_MENU_HINTS | MN_MENU_CENTER_W | MN_MENU_BREAD_CRUMB_TITLE,
     .layout = MN_LAYOUT,
-    .group = &options_group,
     .pages = gameplay_pages,
     .num_pages = arrlen(gameplay_pages),
+};
+
+static mn_item_t options_items[] = {
+    MN_MENU("Controls", &controls_menu),
+    MN_MENU("Gameplay", &gameplay_menu),
+    MN_MENU("Input Bindings", &input_bindings_menu),
+    MN_MENU("Interface", &interface_menu),
+    MN_MENU("Video", &video_menu),
+    MN_MENU("Audio", &audio_menu),
+    MN_MENU("Multiplayer", &multiplayer_menu),
+};
+
+static mn_page_t options_pages[] = {
+    {.items = options_items, .num_items = arrlen(options_items)},
+};
+
+mn_menu_t options_menu = {
+    .title_patch = "M_OPTTTL",
+    .title_text = "Options",
+    .background = "FLOOR4_6",
+    .flags = MN_MENU_CENTER_W | MN_MENU_CENTER_H,
+    .layout = {.max_width = MN_PX(100), .item_spacing = 1},
+    .pages = options_pages,
+    .num_pages = arrlen(options_pages),
 };

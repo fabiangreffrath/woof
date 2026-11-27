@@ -447,7 +447,7 @@ void MN_MultiplayerInit(void)
     server_list_menu.title_patch = "";
     server_list_menu.title_text = "Servers";
     server_list_menu.background = "FLOOR4_6";
-    server_list_menu.flags = MN_MENU_CENTER_LAYOUT;
+    server_list_menu.flags = MN_MENU_CENTER_W;
     server_list_menu.layout = (mn_layout_t){.max_width = MN_PX(500),
                                             .items_min_width = MN_PX(250)};
     server_list_menu.pages = &server_page;

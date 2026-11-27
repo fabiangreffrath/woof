@@ -21,11 +21,13 @@ struct event_s;
 
 typedef enum
 {
-    MN_MENU_CENTER = (1u << 0),
-    MN_MENU_HINTS = (1u << 1),
+    MN_MENU_HINTS = (1u << 0),
 
     // Centers the whole layout box.
-    MN_MENU_CENTER_LAYOUT = (1u << 2),
+    MN_MENU_CENTER_H = (1u << 1),
+    MN_MENU_CENTER_W = (1u << 2),
+
+    MN_MENU_BREAD_CRUMB_TITLE = (1u << 3),
 } mn_menu_flags_t;
 
 typedef enum
@@ -150,24 +152,6 @@ struct mn_page_s
     void (*draw)(const mn_menu_t *menu, const mn_page_t *page);
 };
 
-enum {
-    MN_MAX_TABS = 16,
-};
-
-typedef struct
-{
-    mrect_t rects[MN_MAX_TABS];
-    int highlight;
-} mn_tabbar_t;
-
-// A row of tabs above the page tabs that switches between whole menus.
-typedef struct
-{
-    mn_menu_t *const *menus;
-    int num_menus;
-    int current;
-} mn_menugroup_t;
-
 typedef enum
 {
     MN_UNIT_AUTO,
@@ -203,6 +187,11 @@ typedef struct
     int item_spacing;
 } mn_layout_t;
 
+enum
+{
+    MN_MAX_TABS = 8
+};
+
 struct mn_menu_s
 {
     const char *title_patch;
@@ -223,12 +212,9 @@ struct mn_menu_s
 
     mrect_t viewport;
     mrect_t hint_rect;
-    mn_tabbar_t page_tabs;
-    mn_tabbar_t menu_tabs;
+    mrect_t tab_rects[MN_MAX_TABS];
 
-    // When set, a row of tabs above the page tabs switches to the sibling
-    // menus instead of showing the title.
-    mn_menugroup_t *group;
+    int highlight_tab;
 
     mrect_t scroll_track;
     mrect_t scroll_thumb;
@@ -251,7 +237,6 @@ typedef enum
 } mn_container_result_t;
 
 void MN_ContainerOpen(mn_menu_t *menu);
-void MN_ContainerOpenGroup(mn_menugroup_t *group);
 void MN_ContainerPushMenu(mn_menu_t *menu);
 void MN_ContainerPopMenu(void);
 void MN_ContainerClose(void);

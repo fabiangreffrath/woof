@@ -112,7 +112,7 @@ static int SliderPixelWidth(int size)
 static void OptionSliderSetFromMouse(mn_item_t *item, int mouse_x)
 {
     const int size = item->slider_size ? item->slider_size : 8;
-    const int bar_x = item->draw_value_x + 8;
+    const int bar_x = item->draw_value_x + 8 + MN_PAD;
     const int bar_w = size * 8;
     const int min = ItemMin(item);
     const int max = ItemMax(item);
@@ -1133,7 +1133,10 @@ void MN_BindMenu(mn_menu_t *menu)
 
 void MN_OptionsOpen(void)
 {
-    MN_ContainerOpenGroup(&options_group);
+    // A network game can be left from the menu, so Multiplayer stays
+    // available during one; only demo playback and recording block it.
+
+    MN_ContainerOpen(&options_menu);
 }
 
 //---------------------------------------------------------------------------
@@ -1735,6 +1738,7 @@ static mn_menu_t *all_menus[] = {
     &input_bindings_menu,
     &interface_menu,
     &gameplay_menu,
+    &options_menu,
     &multiplayer_menu,
 };
 

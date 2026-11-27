@@ -41,7 +41,7 @@ extern mn_menu_t advanced_gyro_menu;
 extern mn_menu_t input_bindings_menu;
 extern mn_menu_t interface_menu;
 extern mn_menu_t gameplay_menu;
-extern mn_menugroup_t options_group;
+extern mn_menu_t options_menu;
 
 void MN_BindMenu(mn_menu_t *menu);
 

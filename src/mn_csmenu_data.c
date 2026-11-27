@@ -44,7 +44,7 @@ mn_menu_t csmenu_menu = {
     .title_patch = "",
     .title_text = "",
     .background = "FLOOR4_6",
-    .flags = MN_MENU_CENTER_LAYOUT,
+    .flags = MN_MENU_CENTER_W,
     .layout = {.max_width = MN_PX(250), .item_spacing = 1},
     .pages = csmenu_pages,
     .num_pages = arrlen(csmenu_pages),
