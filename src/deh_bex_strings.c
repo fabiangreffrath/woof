@@ -64,6 +64,7 @@ const bex_string_t bex_mnemonic_table[] =
     {"MSGON",                MSGON               },
     {"NETEND",               NETEND              },
     {"ENDGAME",              ENDGAME             },
+    {"DOSY",                 DOSY                },
     {"DETAILHI",             DETAILHI            },
     {"DETAILLO",             DETAILLO            },
     {"GAMMALVL0",            GAMMALVL0           },
@@ -73,7 +74,7 @@ const bex_string_t bex_mnemonic_table[] =
     {"GAMMALVL4",            GAMMALVL4           },
     {"EMPTYSTRING",          EMPTYSTRING         },
     {"GGSAVED",              GGSAVED             },
-    // part 2 - messages when the player gets things
+    // part 2 - item pickups
     {"GOTARMOR",             GOTARMOR            },
     {"GOTMEGA",              GOTMEGA             },
     {"GOTHTHBONUS",          GOTHTHBONUS         },
@@ -82,12 +83,6 @@ const bex_string_t bex_mnemonic_table[] =
     {"GOTMEDINEED",          GOTMEDINEED         },
     {"GOTMEDIKIT",           GOTMEDIKIT          },
     {"GOTSUPER",             GOTSUPER            },
-    {"GOTBLUECARD",          GOTBLUECARD         },
-    {"GOTYELWCARD",          GOTYELWCARD         },
-    {"GOTREDCARD",           GOTREDCARD          },
-    {"GOTBLUESKUL",          GOTBLUESKUL         },
-    {"GOTYELWSKUL",          GOTYELWSKUL         },
-    {"GOTREDSKULL",          GOTREDSKULL         },
     {"GOTINVUL",             GOTINVUL            },
     {"GOTBERSERK",           GOTBERSERK          },
     {"GOTINVIS",             GOTINVIS            },
@@ -95,6 +90,10 @@ const bex_string_t bex_mnemonic_table[] =
     {"GOTMAP",               GOTMAP              },
     {"GOTVISOR",             GOTVISOR            },
     {"GOTMSPHERE",           GOTMSPHERE          },
+    // part 2.1 - [NS] Beta pickups.
+    {"BETA_BONUS3",          BETA_BONUS3         },
+    {"BETA_BONUS4",          BETA_BONUS4         },
+    // part 2.2 - ammo pickups
     {"GOTCLIP",              GOTCLIP             },
     {"GOTCLIPBOX",           GOTCLIPBOX          },
     {"GOTROCKET",            GOTROCKET           },
@@ -111,9 +110,13 @@ const bex_string_t bex_mnemonic_table[] =
     {"GOTPLASMA",            GOTPLASMA           },
     {"GOTSHOTGUN",           GOTSHOTGUN          },
     {"GOTSHOTGUN2",          GOTSHOTGUN2         },
-    // [NS] Beta pickups.
-    {"BETA_BONUS3",          BETA_BONUS3         },
-    {"BETA_BONUS4",          BETA_BONUS4         },
+    // part 2.3 - key pickups
+    {"GOTBLUECARD",          GOTBLUECARD         },
+    {"GOTYELWCARD",          GOTYELWCARD         },
+    {"GOTREDCARD",           GOTREDCARD          },
+    {"GOTBLUESKUL",          GOTBLUESKUL         },
+    {"GOTYELWSKUL",          GOTYELWSKUL         },
+    {"GOTREDSKULL",          GOTREDSKULL         },
     // part 3 - messages when keys are needed
     {"PD_BLUEO",             PD_BLUEO            },
     {"PD_REDO",              PD_REDO             },
@@ -288,13 +291,21 @@ const bex_string_t bex_mnemonic_table[] =
     {"THUSTR_30",            THUSTR_30           },
     {"THUSTR_31",            THUSTR_31           },
     {"THUSTR_32",            THUSTR_32           },
-    // part 6 - messages as a result of toggling states
+    // part 6 - automap state toggle
     {"AMSTR_FOLLOWON",       AMSTR_FOLLOWON      },
     {"AMSTR_FOLLOWOFF",      AMSTR_FOLLOWOFF     },
     {"AMSTR_GRIDON",         AMSTR_GRIDON        },
     {"AMSTR_GRIDOFF",        AMSTR_GRIDOFF       },
     {"AMSTR_MARKEDSPOT",     AMSTR_MARKEDSPOT    },
     {"AMSTR_MARKSCLEARED",   AMSTR_MARKSCLEARED  },
+    // part 6.1 - additional extensions
+    {"AMSTR_OVERLAYON",      AMSTR_OVERLAYON     },
+    {"AMSTR_OVERLAYOFF",     AMSTR_OVERLAYOFF    },
+    {"AMSTR_ROTATEON",       AMSTR_ROTATEON      },
+    {"AMSTR_ROTATEOFF",      AMSTR_ROTATEOFF     },
+    {"STSTR_COMPON",         STSTR_COMPON        },
+    {"STSTR_COMPOFF",        STSTR_COMPOFF       },
+    // part 6.2 - cheat state toggle
     {"STSTR_MUS",            STSTR_MUS           },
     {"STSTR_NOMUS",          STSTR_NOMUS         },
     {"STSTR_DQDON",          STSTR_DQDON         },
@@ -307,13 +318,6 @@ const bex_string_t bex_mnemonic_table[] =
     {"STSTR_BEHOLDX",        STSTR_BEHOLDX       },
     {"STSTR_CHOPPERS",       STSTR_CHOPPERS      },
     {"STSTR_CLEV",           STSTR_CLEV          },
-    // part 6.1 - additional extensions
-    {"AMSTR_OVERLAYON",      AMSTR_OVERLAYON     },
-    {"AMSTR_OVERLAYOFF",     AMSTR_OVERLAYOFF    },
-    {"AMSTR_ROTATEON",       AMSTR_ROTATEON      },
-    {"AMSTR_ROTATEOFF",      AMSTR_ROTATEOFF     },
-    {"STSTR_COMPON",         STSTR_COMPON        },
-    {"STSTR_COMPOFF",        STSTR_COMPOFF       },
     // part 7 - episode intermission texts
     {"E1TEXT",               E1TEXT              },
     {"E2TEXT",               E2TEXT              },

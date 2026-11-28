@@ -86,6 +86,7 @@
 * Custom skill options no longer stay active on standard skills.
 * The `Enemies` > `Helper Dogs` menu option now works again.
 * Fixed data corruption when using WINUM font in SBARDEF.
+* Fixed `DOSY` BEX string missing from DeHackEd parser.
 
 ## Miscellaneous
 
