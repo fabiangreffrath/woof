@@ -1541,7 +1541,7 @@ static void G_WriteDemoTiccmd(ticcmd_t* cmd)
 }
 
 boolean secretexit;
-int32_t RebornPosition; // Position indicator for cooperative net-play reborn
+static int32_t RebornPosition; // Position indicator for cooperative net-play reborn
 leave_data_t Leave;
 
 static void UpdateLeaveData(int32_t m, int32_t p, int32_t f, angle_t a)

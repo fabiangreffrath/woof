@@ -1959,7 +1959,7 @@ void D_DoomMain(void)
 
     DEH_PostProcess();
 
-    // TODO: THIS FUCKING SUCKS
+    // TODO: this deserves a better implementation
     for (size_t i = 0; i < num_mobj_types; ++i)
     {
         if (mobjinfo[i].flags & MF_COUNTKILL)

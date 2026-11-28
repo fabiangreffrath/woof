@@ -1602,12 +1602,9 @@ MI_Completion_t MI_PrepareIntermission(wbstartstruct_t *wminfo)
 
     wminfo->partime = LegacyParTimes();
 
-    if (map.param)
+    if (map.param && Leave.map > 0)
     {
-        if (Leave.map > 0)
-        {
-            wminfo->next = Leave.map - 1;
-        }
+        wminfo->next = Leave.map - 1;
     }
 
     return 0;
