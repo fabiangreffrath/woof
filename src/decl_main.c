@@ -60,11 +60,14 @@ static void ParseActorBody(scanner_t *sc, actor_t *actor)
             if (strcasecmp(SC_GetString(sc), "MONSTER") == 0)
             {
                 actor->props.flags |= MF_SHOOTABLE | MF_SOLID | MF_COUNTKILL;
+                actor->props.flags2 |=
+                    MF2_MCROSS | MF2_PUSHWALL | MF2_CANUSEWALLS;
             }
             else if (strcasecmp(SC_GetString(sc), "PROJECTILE") == 0)
             {
                 actor->props.flags |=
                     MF_NOBLOCKMAP | MF_MISSILE | MF_DROPOFF | MF_NOGRAVITY;
+                actor->props.flags2 |= MF2_IMPACT | MF2_PCROSS;
             }
             else
             {

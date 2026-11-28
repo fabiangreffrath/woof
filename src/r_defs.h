@@ -96,8 +96,15 @@ typedef struct sector_s
   int validcount;        // if == validcount, already checked
   struct mobj_s *thinglist; // list of mobjs in sector
 
-  // TODO: convert from special, Eternity-style
   int32_t flags;
+
+  // Custom gravity factor, by default is set to 1 * FRACUNIT
+  fixed_t gravity;
+
+  // Parameterized damage system via UDMF
+  int16_t dmg_amount;
+  int16_t dmg_leakrate;
+  int16_t dmg_interval;
 
   // killough 8/28/98: friction is a sector property, not an mobj property.
   // these fields used to be in mobj_t, but presented performance problems
@@ -281,6 +288,7 @@ typedef struct line_s
   fixed_t dx, dy;        // Precalculated v2 - v1 for side checking.
   uint32_t flags;        // Animation related.
   spac_t spac;           // Parameterized actions
+  byte lock;             // Lock definitions
   int16_t special;       // Special action
   int16_t id;            // Tag -> id/arg0 split
   int32_t args[5];       // Hexen-style parameterized actions

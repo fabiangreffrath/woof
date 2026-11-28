@@ -658,7 +658,7 @@ void P_SpawnDoorCloseIn30 (sector_t* sec)
 // Returns nothing
 //
 
-void P_SpawnDoorRaiseIn5Mins(sector_t *sec, int secnum)
+void P_SpawnDoorRaiseIn5Mins(sector_t *sec)
 {
   vldoor_t* door;
 

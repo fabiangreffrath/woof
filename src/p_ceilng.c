@@ -121,6 +121,10 @@ static void T_MoveCeiling(ceiling_t* ceiling)
             break;
 
           default:
+            if (map.param)
+            {
+              P_RemoveActiveCeiling(ceiling);
+            }
             break;
         }
       }
@@ -197,6 +201,10 @@ static void T_MoveCeiling(ceiling_t* ceiling)
             break;
 
           default:
+            if (map.param)
+            {
+              P_RemoveActiveCeiling(ceiling);
+            }
             break;
         }
       }

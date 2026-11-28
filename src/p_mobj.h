@@ -223,6 +223,15 @@ typedef enum
     MF2_E4M8BOSS        = 0x00010000, // is an E4M8 boss
     MF2_RIP             = 0x00020000, // missile rips through solid
     MF2_FULLVOLSOUNDS   = 0x00040000, // full volume see / death sound
+
+    MF2_WINDTHRUST      = (1u << 19), // Mobj is thrustable by Heretic wind
+    MF2_DORMANT         = (1u << 20), // Mobj is dormant
+    MF2_PUSHWALL        = (1u << 21), // Mobj can push walls
+    MF2_MCROSS          = (1u << 22), // Can activate monster cross lines
+    MF2_PCROSS          = (1u << 23), // Can activate projectile cross lines
+    MF2_IMPACT          = (1u << 24), // An MF_MISSILE mobj can activate
+    MF2_CANUSEWALLS     = (1u << 25), // Mobj can "use" walls
+    MF2_COUNTSECRET     = (1u << 26), // Item pickup counts as a secret
 } mobjflag2_t;
 
 // Woof!-exclusive extension
@@ -417,7 +426,6 @@ typedef struct mobj_s
 #define VIEWHEIGHT      (41*FRACUNIT)
 #define PLAYERRADIUS    (16*FRACUNIT)
 
-#define GRAVITY         FRACUNIT
 #define MAXMOVE         (30*FRACUNIT)
 
 #define ONFLOORZ        INT_MIN
@@ -468,9 +476,22 @@ mobj_t  *P_SpawnPlayerMissile(mobj_t *source, mobjtype_t type);
 void    P_SpawnMapThing (mapthing_t*  mthing);
 boolean P_CheckMissileSpawn(mobj_t*);  // killough 8/2/98
 void    P_ExplodeMissile(mobj_t*);    // killough
+fixed_t P_MobjGravity(const mobj_t *const mo);
 
 boolean P_SeekerMissile(mobj_t *actor, mobj_t **seekTarget, angle_t thresh, angle_t turnMax, boolean seekcenter);
 int     P_FaceMobj(mobj_t *source, mobj_t *target, angle_t *delta);
+
+extern void (*P_ApplySectorMovement)(mobj_t *mo, int special);
+void P_ApplySectorMovement_Classic(mobj_t *mo, int special);
+void P_ApplySectorMovement_Param(mobj_t *mo, int special);
+
+extern void (*P_CheckImpact)(mobj_t *mo);
+void P_CheckImpact_Classic(mobj_t *mo);
+void P_CheckImpact_Param(mobj_t *mo);
+
+extern void (*P_IterateSpecHit)(mobj_t *mo, fixed_t x, fixed_t y);
+void P_IterateSpecHit_Classic(mobj_t *mo, fixed_t x, fixed_t y);
+void P_IterateSpecHit_Param(mobj_t *mo, fixed_t x, fixed_t y);
 
 // TIDs
 void P_InitTIDHash(void);

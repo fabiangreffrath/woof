@@ -87,6 +87,9 @@ typedef enum Game_e
 // The maximum number of players, multiplayer/networking.
 #define MAXPLAYERS       4
 
+// Maximum number of spawn spot positions
+#define MAX_PLAYER_STARTS 8
+
 // phares 5/14/98:
 // DOOM Editor Numbers (aka doomednum in mobj_t)
 
@@ -243,6 +246,8 @@ typedef enum {
 #define MORE_FRICTION_MOMENTUM 15000       // mud factor based on momentum
 #define ORIG_FRICTION          0xE800      // original value
 #define ORIG_FRICTION_FACTOR   2048        // original value
+#define FRICTION_LOW           0xF900
+#define MOVE_FACTOR_LOW        0x0269
 
 // Index of the special effects (INVUL inverse) map.
 

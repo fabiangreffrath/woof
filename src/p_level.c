@@ -140,6 +140,11 @@ typedef enum mapthing_options_hexen_e
     ZTF_COUNTSECRET = (1u << 15),
 } mapthing_options_hexen_t;
 
+// Shared between Doom and Hexen
+const uint32_t ML_VANILLA =
+    (ML_BLOCKING | ML_BLOCKMONSTERS | ML_TWOSIDED | ML_DONTPEGTOP
+     | ML_DONTPEGBOTTOM | ML_SECRET | ML_SOUNDBLOCK | ML_DONTDRAW | ML_MAPPED);
+
 //-----------------------------------------------------------------------------
 
 void P_DegenMobjThinker(mobj_t *const mobj)
@@ -269,6 +274,8 @@ static void SectorInitProperties(sector_t *const s)
     // killough 8/28/98: initialize all sectors to normal friction first
     s->friction = ORIG_FRICTION;
     s->movefactor = ORIG_FRICTION_FACTOR;
+
+    s->gravity = FRACUNIT;
 }
 
 static void SectorInitInterpolation(sector_t *const s)
@@ -791,6 +798,30 @@ void P_LoadThings_Doom(map_t *map)
 #define HML_SPAC_SHIFT        10
 #define GET_SPAC_INDEX(flags) ((flags & HML_SPAC_MASK) >> HML_SPAC_SHIFT)
 
+static void SetParamLineID(line_t *const ld)
+{
+    switch (ld->special)
+    {
+        // In the Hexen Map Format, args are always `byte`s, hence the need for
+        // extending `Line_SetIdentification` into int16_t by using another arg
+        case Line_SetIdentification:
+            ld->id = (int16_t)((256 * ld->args[4]) + ld->args[0]);
+            ld->special = 0;
+            break;
+        case TranslucentLine:
+        case Teleport_Line:
+        case Scroll_Texture_Model:
+            ld->id = ld->args[0];
+            break;
+        case Polyobj_StartLine:
+            ld->id = ld->args[3];
+            break;
+        case Polyobj_ExplicitLine:
+            ld->id = ld->args[4];
+            break;
+    }
+}
+
 static void LoadLinedefs_Hexen(map_t *map)
 {
     int32_t spac_lookup[] = {SPAC_Cross,
@@ -817,6 +848,7 @@ static void LoadLinedefs_Hexen(map_t *map)
         l->args[2] = ml->args[2];
         l->args[3] = ml->args[3];
         l->args[4] = ml->args[4];
+        SetParamLineID(l);
 
         uint16_t v1 = USHORT(ml->v1);
         uint16_t v2 = USHORT(ml->v2);
@@ -1298,6 +1330,16 @@ void P_LoadMap_Doom(map_t *map)
     P_PointOnLineSide = P_PointOnLineSide_Classic;
     P_PointOnDivlineSide = P_PointOnDivlineSide_Classic;
 
+    // Classic actions
+    P_UseSpecialLine = P_UseSpecialLine_Classic;
+    P_ShootSpecialLine = P_ShootSpecialLine_Classic;
+    P_CrossSpecialLine = P_CrossSpecialLine_Classic;
+    P_PlayerInSector = P_PlayerInSector_Classic;
+    P_MObjInSector = P_MObjInSector_Classic;
+    P_ApplySectorMovement = P_ApplySectorMovement_Classic;
+    P_CheckImpact = P_CheckImpact_Classic;
+    P_IterateSpecHit = P_IterateSpecHit_Classic;
+
     ProcessSidedefs = ProcessSidedefs_Classic;
     ProcessLinedefSpecial = ProcessLinedefSpecial_Classic;
 
@@ -1316,6 +1358,16 @@ void P_LoadMap_Hexen(map_t *map)
     // zdoom uses precise variant
     P_PointOnLineSide = P_PointOnLineSide_Precise;
     P_PointOnDivlineSide = P_PointOnDivlineSide_Precise;
+
+    // Parameterized actions
+    P_UseSpecialLine = P_UseSpecialLine_Param;
+    P_ShootSpecialLine = P_ShootSpecialLine_Param;
+    P_CrossSpecialLine = P_CrossSpecialLine_Param;
+    P_PlayerInSector = P_PlayerInSector_Param;
+    P_MObjInSector = P_MObjInSector_Param;
+    P_ApplySectorMovement = P_ApplySectorMovement_Param;
+    P_CheckImpact = P_CheckImpact_Param;
+    P_IterateSpecHit = P_IterateSpecHit_Param;
 
     ProcessSidedefs = ProcessSidedefs_Param;
     ProcessLinedefSpecial = ProcessLinedefSpecial_Param;
@@ -1338,6 +1390,16 @@ void P_LoadMap_UDMF(map_t *map)
 
     P_ClearMemory_UDMF(map);
     P_ParseTextMap(map);
+
+    // We only support namespaces with classic specials as of now
+    P_UseSpecialLine = P_UseSpecialLine_Classic;
+    P_ShootSpecialLine = P_ShootSpecialLine_Classic;
+    P_CrossSpecialLine = P_CrossSpecialLine_Classic;
+    P_PlayerInSector = P_PlayerInSector_Classic;
+    P_MObjInSector = P_MObjInSector_Classic;
+    P_ApplySectorMovement = P_ApplySectorMovement_Classic;
+    P_CheckImpact = P_CheckImpact_Classic;
+    P_IterateSpecHit = P_IterateSpecHit_Classic;
 
     ProcessSidedefs = ProcessSidedefs_Classic;
     ProcessLinedefSpecial = ProcessLinedefSpecial_Classic;

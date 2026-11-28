@@ -75,6 +75,8 @@ fixed_t   tmfloorz;   // floor you'd hit if free to fall
 fixed_t   tmceilingz; // ceiling of sector you're in
 fixed_t   tmdropoffz; // dropoff on other side of line you're crossing
 
+mobj_t *BlockingMobj;
+
 // keep track of the line that lowers the ceiling,
 // so missiles don't explode against sky hack walls
 
@@ -158,7 +160,7 @@ int P_GetFriction(const mobj_t *mo, int *frictionfactor)
       && (demo_version >= DV_MBF || (mo->player && !compatibility)) &&
       variable_friction)
     for (m = mo->touching_sectorlist; m; m = m->m_tnext)
-      if ((sec = m->m_sector)->special & FRICTION_MASK &&
+      if ((sec = m->m_sector)->flags & SECF_FRICTION &&
 	  (sec->friction < friction || friction == ORIG_FRICTION) &&
 	  (mo->z <= sec->floorheight ||
 	   (sec->heightsec != -1 &&
@@ -376,6 +378,31 @@ static int untouched(line_t *ld)
 // Adjusts tmfloorz and tmceilingz as lines are contacted
 //
 
+static void CheckForPushSpecial(line_t *const line, int32_t side,
+                                mobj_t *const mobj)
+{
+    if (line->special)
+    {
+        if (mobj->flags2 & MF2_PUSHWALL)
+        {
+            P_ActivateLine(line, mobj, side, SPAC_Push);
+        }
+        else if (mobj->flags2 & MF2_IMPACT)
+        {
+            // TODO: possible "missile activates impact lines" mapinfo flag
+            // By default, hexen always has this flag
+            if (!(mobj->flags & MF_MISSILE) || !mobj->target)
+            {
+                P_ActivateLine(line, mobj, side, SPAC_Impact);
+            }
+            else
+            {
+                P_ActivateLine(line, mobj->target, side, SPAC_Impact);
+            }
+        }
+    }
+}
+
 // [FG] SPECHITS overflow emulation from Chocolate Doom / PrBoom+
 
 #define MAXSPECIALCROSS_ORIGINAL 8
@@ -406,18 +433,28 @@ static boolean PIT_CheckLine(line_t *ld) // killough 3/26/98: make static
   // killough 7/24/98: allow player to move out of 1s wall, to prevent sticking
   if (!ld->backsector) // one sided line
     {
+      if (map.param)
+      {
+        CheckForPushSpecial(ld, 0, tmthing);
+      }
       blockline = ld;
       return tmunstuck && !untouched(ld) &&
 	FixedMul(tmx-tmthing->x,ld->dy) > FixedMul(tmy-tmthing->y,ld->dx);
     }
 
   // killough 8/10/98: allow bouncing objects to pass through as missiles
-  if (!(tmthing->flags & (MF_MISSILE | MF_BOUNCES)))
+  if (!(tmthing->flags & (MF_MISSILE | MF_BOUNCES)) || ld->flags & ML_BLOCKEVERYTHING)
     {
       // explicitly blocking everything
       // or blocking player
       if (ld->flags & ML_BLOCKING || (mbf21 && tmthing->player && ld->flags & ML_BLOCKPLAYERS))
+      {
+        if (map.param)
+        {
+          CheckForPushSpecial(ld, 0, tmthing);
+        }
 	return tmunstuck && !untouched(ld);  // killough 8/1/98: allow escape
+      }
 
       // killough 8/9/98: monster-blockers don't affect friends
       if (!(tmthing->flags & MF_FRIEND || tmthing->player)
@@ -538,6 +575,9 @@ static boolean PIT_CheckThing(mobj_t *thing) // killough 3/26/98: make static
 
   if (thing == tmthing)
     return true;
+
+  if (map.param)
+    BlockingMobj = thing;
 
   // killough 11/98:
   //
@@ -853,10 +893,14 @@ boolean P_CheckPosition(mobj_t *thing, fixed_t x, fixed_t y)
   yl = (tmbbox[BOXBOTTOM] - bmaporgy - MAXRADIUS)>>MAPBLOCKSHIFT;
   yh = (tmbbox[BOXTOP] - bmaporgy + MAXRADIUS)>>MAPBLOCKSHIFT;
 
+  BlockingMobj = NULL;
+
   for (bx=xl ; bx<=xh ; bx++)
     for (by=yl ; by<=yh ; by++)
       if (!P_BlockThingsIterator(bx, by, PIT_CheckThing, !(tmthing->flags2 & MF2_RIP)))
         return false;
+
+  BlockingMobj = NULL;
 
   // check lines
 
@@ -882,12 +926,155 @@ boolean P_CheckPosition(mobj_t *thing, fixed_t x, fixed_t y)
   return true;
 }
 
+void P_AdjustZLimits(mobj_t *thing)
+{
+    fixed_t bbox[] = {
+        [BOXTOP] = thing->y + thing->radius,
+        [BOXBOTTOM] = thing->y - thing->radius,
+        [BOXRIGHT] = thing->x + thing->radius,
+        [BOXLEFT] = thing->x - thing->radius,
+    };
+
+    validcount++;
+
+    int32_t xl = (bbox[BOXLEFT] - bmaporgx) >> MAPBLOCKSHIFT;
+    int32_t xh = (bbox[BOXRIGHT] - bmaporgx) >> MAPBLOCKSHIFT;
+    int32_t yl = (bbox[BOXBOTTOM] - bmaporgy) >> MAPBLOCKSHIFT;
+    int32_t yh = (bbox[BOXTOP] - bmaporgy) >> MAPBLOCKSHIFT;
+
+    for (int32_t bx = xl; bx <= xh; ++bx)
+    {
+        for (int32_t by = yl; by <= yh; ++by)
+        {
+            if (bx < 0 || by < 0 || bx >= bmapwidth || by >= bmapheight)
+            {
+                continue;
+            }
+
+            size_t offset = blockmap[by * bmapwidth + bx];
+            const int32_t *list = &blockmaplump[offset];
+
+            if (skipblstart)
+            {
+                list++;
+            }
+
+            for (; *list != -1; list++)
+            {
+                line_t *ld = &lines[*list];
+
+                if (ld->validcount == validcount)
+                {
+                    continue; // line has already been checked
+                }
+
+                ld->validcount = validcount;
+
+                if (bbox[BOXRIGHT] <= ld->bbox[BOXLEFT]
+                    || bbox[BOXLEFT] >= ld->bbox[BOXRIGHT]
+                    || bbox[BOXTOP] <= ld->bbox[BOXBOTTOM]
+                    || bbox[BOXBOTTOM] >= ld->bbox[BOXTOP])
+                {
+                    continue; // didn't hit it
+                }
+
+                if (P_BoxOnLineSide(bbox, ld) != -1)
+                {
+                    continue; // didn't hit it
+                }
+
+                if (!ld->backsector || !ld->frontsector
+                    || !(ld->flags & ML_3DMIDTEX))
+                {
+                    continue; // not relevant
+                }
+
+                /* TODO: add 3d midtex
+                P_LineOpening(ld, thing);
+
+                if (LineOpening.bottom > thing->floorz)
+                {
+                    thing->floorz = LineOpening.bottom;
+                }
+
+                if (LineOpening.top < thing->ceilingz)
+                {
+                    thing->ceilingz = LineOpening.top;
+                }
+                */
+            }
+        }
+    }
+}
+
 //
 // P_TryMove
 // Attempt to move to a new position,
 // crossing special lines unless MF_TELEPORT is set.
 //
 // killough 3/15/98: allow dropoff as option
+
+void (*P_CheckImpact)(mobj_t *mo) = P_CheckImpact_Classic;
+
+void P_CheckImpact_Classic(mobj_t *mo)
+{
+    (void)mo;
+}
+
+void P_CheckImpact_Param(mobj_t *mo)
+{
+  if (!(mo->flags & (MF_TELEPORT | MF_NOCLIP)))
+  {
+    for (int32_t i = numspechit - 1; i >= 0; i--)
+    {
+      // see if the line was crossed
+      line_t *ld = spechit[i];
+      int32_t side = P_PointOnLineSide(mo->x, mo->y, ld);
+      CheckForPushSpecial(ld, side, mo);
+    }
+  }
+}
+
+void (*P_IterateSpecHit)(mobj_t *mo, fixed_t x, fixed_t y) = P_IterateSpecHit_Classic;
+
+void P_IterateSpecHit_Classic(mobj_t *mo, fixed_t x, fixed_t y)
+{
+    while (numspechit--)
+    {
+        if (spechit[numspechit]->special) // see if the line was crossed
+        {
+            int32_t s = P_PointOnLineSide(x, y, spechit[numspechit]);
+            if (s != P_PointOnLineSide(mo->x, mo->y, spechit[numspechit]))
+            {
+                P_CrossSpecialLine(mo, spechit[numspechit], s, false);
+            }
+        }
+    }
+
+    // There are checks elsewhere for numspechit == 0, so we don't want to
+    // leave numspechit == -1.
+    numspechit = 0;
+}
+
+void P_IterateSpecHit_Param(mobj_t *mo, fixed_t x, fixed_t y)
+{
+    // In hexen format, crossing a special line can trigger a missile spawn,
+    //   which will trigger a check that resets numspechit.
+    // We must store the index separately in order to check everything
+    int32_t tmp = numspechit;
+
+    while (tmp--)
+    {
+        if (spechit[tmp]->special) // see if the line was crossed
+        {
+            int32_t s = P_PointOnLineSide(x, y, spechit[tmp]);
+            if (s != P_PointOnLineSide(mo->x, mo->y, spechit[tmp]))
+            {
+                P_CrossSpecialLine(mo, spechit[tmp], s, false);
+            }
+        }
+    }
+}
 
 boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, int dropoff)
 {
@@ -896,7 +1083,11 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, int dropoff)
   felldown = floatok = false;               // killough 11/98
 
   if (!P_CheckPosition(thing, x, y))
+  {
+    if (!BlockingMobj || BlockingMobj->player || !thing->player)
+      P_CheckImpact(thing);
     return false;   // solid wall or thing
+  }
 
   if (!(thing->flags & MF_NOCLIP))
     {
@@ -910,9 +1101,12 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, int dropoff)
 	  // too big a step up
 	  (!(thing->flags & MF_TELEPORT) &&
 	   tmfloorz - thing->z > STEP_HEIGHT))
+      {
+        P_CheckImpact(thing);
 	return tmunstuck
 	  && !(ceilingline && untouched(ceilingline))
 	  && !(  floorline && untouched(  floorline));
+      }
 
       // killough 3/15/98: Allow certain objects to drop off
       // killough 7/24/98, 8/1/98:
@@ -979,17 +1173,7 @@ boolean P_TryMove(mobj_t *thing, fixed_t x, fixed_t y, int dropoff)
 
   if (!(thing->flags & (MF_TELEPORT | MF_NOCLIP)))
   {
-    while (numspechit--)
-      if (spechit[numspechit]->special)  // see if the line was crossed
-	{
-	  int oldside;
-	  if ((oldside = P_PointOnLineSide(oldx, oldy, spechit[numspechit])) !=
-	      P_PointOnLineSide(thing->x, thing->y, spechit[numspechit]))
-	    P_CrossSpecialLine(spechit[numspechit], oldside, thing, false);
-	}
-    // There are checks elsewhere for numspechit == 0, so we don't want to
-    // leave numspechit == -1.
-    numspechit = 0;
+    P_IterateSpecHit(thing, oldx, oldy);
   }
 
   return true;
@@ -1309,7 +1493,7 @@ static boolean PTR_SlideTraverse(intercept_t *in)
 
   li = in->d.line;
 
-  if (!(li->flags & ML_TWOSIDED))
+  if (!(li->flags & ML_TWOSIDED && !(li->flags & ML_BLOCKEVERYTHING)))
     {
       if (P_PointOnLineSide (slidemo->x, slidemo->y, li))
 	return true; // don't hit the back side
@@ -1499,7 +1683,7 @@ static boolean PTR_AimTraverse (intercept_t *in)
     {
       li = in->d.line;
 
-      if (!(li->flags & ML_TWOSIDED))
+      if (!(li->flags & (ML_TWOSIDED|ML_BLOCKEVERYTHING)))
 	return false;   // stop
 
       // Crosses a two sided line.
@@ -1796,20 +1980,34 @@ static mobj_t *usething;
 
 static boolean PTR_UseTraverse(intercept_t *in)
 {
-  return in->d.line->special ?
-    P_UseSpecialLine(usething, in->d.line,
-		     P_PointOnLineSide(usething->x,usething->y,in->d.line)==1, false),
+    if (!in->d.line->special)
+    {
+        if (in->d.line->flags & ML_BLOCKEVERYTHING)
+        {
+            openrange = 0;
+        }
+        else
+        {
+            P_LineOpening(in->d.line);
+        }
+
+        if (openrange <= 0)
+        {
+            S_StartSound(usething, sfx_noway);
+            // can't use through a wall
+            return false;
+        }
+
+        return true;
+    }
+
+    boolean side =
+        (P_PointOnLineSide(usething->x, usething->y, in->d.line) == 1);
+    P_UseSpecialLine(usething, in->d.line, side, false);
 
     //WAS can't use for than one special line in a row
     //jff 3/21/98 NOW multiple use allowed with enabling line flag
-
-    !demo_compatibility && in->d.line->flags & ML_PASSUSE :
-
-    (P_LineOpening(in->d.line), openrange <= 0) ?
-
-    // can't use through a wall / not a special line, but keep checking
-
-    S_StartSound (usething, sfx_noway), false : true;
+    return (!demo_compatibility && in->d.line->flags & ML_PASSUSE);
 }
 
 // Returns false if a "oof" sound should be made because of a blocking

@@ -60,9 +60,10 @@ void G_ClearPendingSaveSlot(int slot);
 void G_RecordDemo(const char *name);              // Only called by startup code.
 void G_BeginRecording(void);
 void G_PlayDemo(char *name);
-void G_ExitLevel(void);
-void G_SecretExitLevel(void);
+void G_ExitLevel(int32_t position);
+void G_SecretExitLevel(int32_t position);
 void G_WorldDone(void);
+void G_Completed(int32_t map, int32_t position, int32_t flags, angle_t angle);
 void G_Ticker(void);
 void G_ScreenShot(void);
 void G_ReloadDefaults(boolean keep_demover); // killough 3/1/98: loads game defaults

@@ -594,6 +594,17 @@ static float Get_TextSpeed(void)
     acceleratestage=0, NEWTEXTSPEED : TEXTSPEED;
 }
 
+boolean F_FinaleShortcut(void)
+{
+    return map.param && Leave.map == LEAVE_VICTORY;
+}
+
+boolean F_ShowCast(void)
+{
+    return (gamemapinfo && gamemapinfo->finale == EG_CastRollCall)
+           || gamemap == 30 || F_FinaleShortcut();
+}
+
 //
 // F_Ticker
 //

@@ -27,12 +27,13 @@
 #include "tables.h"
 
 struct player_s;
+struct mobj_s;
 
 void P_PlayerThink(struct player_s *player);
 void P_CalcHeight(struct player_s *player);
 void P_DeathThink(struct player_s *player);
 void P_MovePlayer(struct player_s *player);
-void P_Thrust(struct player_s *player, angle_t angle, fixed_t move);
+void P_Thrust(struct mobj_s *mo, angle_t angle, fixed_t move);
 
 typedef enum
 {

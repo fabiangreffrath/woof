@@ -199,6 +199,20 @@ extern  int   gameepisode;
 extern  int   gamemap;
 extern  struct MI_Entry_s *gamemapinfo;
 
+typedef struct
+{
+    int32_t episode;
+    int32_t map;
+    int32_t position;
+    int32_t flags;
+    angle_t angle;
+} leave_data_t;
+
+extern leave_data_t Leave;
+
+#define LF_SET_ANGLE  (1u << 0)
+#define LEAVE_VICTORY -1
+
 // If non-zero, exit the level after this number of minutes
 extern  int             timelimit;
 
@@ -341,7 +355,7 @@ extern  int   gametic;
 extern  player_t  players[MAXPLAYERS];
 
 // Alive? Disconnected?
-extern  boolean    playeringame[];
+extern  boolean    playeringame[MAXPLAYERS];
 
 extern  mapthing_t *deathmatchstarts;     // killough
 extern  size_t     num_deathmatchstarts; // killough
@@ -349,7 +363,7 @@ extern  size_t     num_deathmatchstarts; // killough
 extern  mapthing_t *deathmatch_p;
 
 // Player spawn spots.
-extern  mapthing_t playerstarts[];
+extern  mapthing_t playerstarts[MAX_PLAYER_STARTS][MAXPLAYERS];
 
 // Intermission stats.
 // Parameters for world map / intermission.

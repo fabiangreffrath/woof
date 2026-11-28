@@ -1541,20 +1541,48 @@ static void G_WriteDemoTiccmd(ticcmd_t* cmd)
 }
 
 boolean secretexit;
+static int32_t RebornPosition; // Position indicator for cooperative net-play reborn
+leave_data_t Leave;
 
-void G_ExitLevel(void)
+static void UpdateLeaveData(int32_t m, int32_t p, int32_t f, angle_t a)
 {
-  secretexit = false;
-  gameaction = ga_completed;
+    Leave.map = m;
+    Leave.position = p;
+    Leave.flags = f;
+    Leave.angle = a;
+}
+
+void G_ExitLevel(int32_t position)
+{
+    secretexit = false;
+    gameaction = ga_completed;
+    UpdateLeaveData(0, position, 0, 0);
 }
 
 // Here's for the german edition.
 // IF NO WOLF3D LEVELS, NO SECRET EXIT!
 
-void G_SecretExitLevel(void)
+void G_SecretExitLevel(int32_t position)
 {
-  secretexit = gamemode != commercial || haswolflevels;
-  gameaction = ga_completed;
+    secretexit = gamemode != commercial || haswolflevels;
+    gameaction = ga_completed;
+    UpdateLeaveData(0, position, 0, 0);
+}
+
+void G_Completed(int32_t map, int32_t position, int32_t flags, angle_t angle)
+{
+    secretexit = false;
+    gameaction = ga_completed;
+    UpdateLeaveData(map, position, flags, angle);
+}
+
+void G_DoTeleportNewMap(void)
+{
+    // TODO: actually get hubs working
+    // SV_MapTeleport(Leave.map, Leave.position);
+    gamestate = GS_LEVEL;
+    gameaction = ga_nothing;
+    RebornPosition = Leave.position;
 }
 
 //
@@ -3547,13 +3575,13 @@ void G_DeathMatchSpawnPlayer(int playernum)
       if (G_CheckSpot(playernum, &deathmatchstarts[i]) )
         {
           deathmatchstarts[i].type = playernum+1;
-          P_SpawnPlayer (&deathmatchstarts[i]);
+          P_SpawnPlayer(&deathmatchstarts[i]);
           return;
         }
     }
 
   // no good spot, so the player will probably get stuck
-  P_SpawnPlayer (&playerstarts[playernum]);
+  P_SpawnPlayer(&playerstarts[0][playernum]);
 }
 
 //
@@ -3581,25 +3609,25 @@ void G_DoReborn(int playernum)
           return;
         }
 
-      if (G_CheckSpot (playernum, &playerstarts[playernum]) )
+      if (G_CheckSpot(playernum, &playerstarts[0][playernum]) )
         {
-          P_SpawnPlayer (&playerstarts[playernum]);
+          P_SpawnPlayer(&playerstarts[0][playernum]);
           return;
         }
 
       // try to spawn at one of the other players spots
       for (i=0 ; i<MAXPLAYERS ; i++)
         {
-          if (G_CheckSpot (playernum, &playerstarts[i]) )
+          if (G_CheckSpot(playernum, &playerstarts[0][i]) )
             {
-              playerstarts[i].type = playernum+1; // fake as other player
-              P_SpawnPlayer (&playerstarts[i]);
-              playerstarts[i].type = i+1;   // restore
+              playerstarts[0][i].type = playernum+1; // fake as other player
+              P_SpawnPlayer(&playerstarts[0][i]);
+              playerstarts[0][i].type = i+1;   // restore
               return;
             }
           // he's going to be inside something.  Too bad.
         }
-      P_SpawnPlayer (&playerstarts[playernum]);
+      P_SpawnPlayer(&playerstarts[0][playernum]);
     }
 }
 
@@ -4160,6 +4188,7 @@ void G_DoNewGame (void)
   deathmatch = false;
   boom_basetic = gametic;             // killough 9/29/98
   true_basetic = gametic;
+  memset(&Leave, 0, sizeof(Leave));
 
   G_InitNew(d_skill, d_episode, d_map, false);
   gameaction = ga_nothing;

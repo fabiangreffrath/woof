@@ -55,12 +55,12 @@ void P_PlayerJump(player_t *player, const boolean onground)
     {
         if (cmd->forwardmove)
         {
-            P_Thrust(player, mo->angle, cmd->forwardmove * AIR_THRUST);
+            P_Thrust(mo, mo->angle, cmd->forwardmove * AIR_THRUST);
         }
 
         if (cmd->sidemove)
         {
-            P_Thrust(player, mo->angle - ANG90, cmd->sidemove * AIR_THRUST);
+            P_Thrust(mo, mo->angle - ANG90, cmd->sidemove * AIR_THRUST);
         }
     }
 }

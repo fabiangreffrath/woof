@@ -188,7 +188,7 @@ void P_SpawnFireFlicker (sector_t*  sector)
 
   // Note that we are resetting sector attributes.
   // Nothing special about it during gameplay.
-  sector->special &= ~31; //jff 3/14/98 clear non-generalized sector type
+  P_ClearNonGeneralizedSectorSpecial(sector);
 
   flick = arena_alloc(thinkers_arena, fireflicker_t);
 
@@ -214,7 +214,7 @@ void P_SpawnLightFlash (sector_t* sector)
   lightflash_t* flash;
 
   // nothing special about it during gameplay
-  sector->special &= ~31; //jff 3/14/98 clear non-generalized sector type
+  P_ClearNonGeneralizedSectorSpecial(sector);
 
   flash = arena_alloc(thinkers_arena, lightflash_t);
 
@@ -262,7 +262,7 @@ void P_SpawnStrobeFlash
     flash->minlight = 0;
 
   // nothing special about it during gameplay
-  sector->special &= ~31; //jff 3/14/98 clear non-generalized sector type
+  P_ClearNonGeneralizedSectorSpecial(sector);
 
   if (!inSync)
     flash->count = (P_Random(pr_lights)&7)+1;
@@ -292,7 +292,7 @@ void P_SpawnGlowingLight(sector_t*  sector)
   g->thinker.function.p1 = T_GlowAdapter;
   g->direction = -1;
 
-  sector->special &= ~31; //jff 3/14/98 clear non-generalized sector type
+  P_ClearNonGeneralizedSectorSpecial(sector);
 }
 
 //////////////////////////////////////////////////////////
@@ -443,6 +443,113 @@ int EV_LightTurnOnPartway(line_t *line, fixed_t level)
 	(level * bright + (FRACUNIT-level) * min) >> FRACBITS;
     }
   return 1;
+}
+
+// Parameterized actions
+
+static int PhaseTable[64] = {
+    128, 112, 96, 80, 64, 48, 32, 32, 16, 16, 16, 0,  0,  0,  0,   0,
+    0,   0,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,   0,
+    0,   0,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,   0,
+    0,   0,   0,  0,  0,  16, 16, 16, 32, 32, 48, 64, 80, 96, 112, 128};
+
+void T_Phase(phase_t *const phase)
+{
+    phase->index = (phase->index + 1) & 63;
+    phase->sector->lightlevel = phase->base + PhaseTable[phase->index];
+}
+
+void T_PhaseAdapter(mobj_t *const phase)
+{
+    T_Phase((phase_t *)phase);
+}
+
+void P_SpawnPhasedLight(sector_t *const sector, int32_t base, int32_t index)
+{
+    phase_t *phase = arena_alloc(thinkers_arena, phase_t);
+    P_AddThinker(&phase->thinker);
+
+    phase->sector = sector;
+    sector->lightingdata = phase;
+    if (index == -1)
+    {
+        // sector->lightlevel as the index
+        phase->index = sector->lightlevel & 63;
+    }
+    else
+    {
+        phase->index = index & 63;
+    }
+    phase->base = base & 255;
+    sector->lightlevel = phase->base + PhaseTable[phase->index];
+    phase->thinker.function.p1 = T_PhaseAdapter;
+
+    P_ClearNonGeneralizedSectorSpecial(sector);
+}
+
+void P_SpawnLightSequence(sector_t *const sector, int indexStep)
+{
+    sector_t *sec = sector;
+    int32_t seqSpecial = LightSequenceSpecial1; // look for LightSequence, first
+    int32_t count = 1;
+    int32_t base = sector->lightlevel;
+
+    do
+    {
+        sector_t *nextSec = NULL;
+        // make sure that the search doesn't back up.
+        sec->special = LightSequenceStart;
+        for (size_t i = 0; i < sec->linecount; i++)
+        {
+            sector_t *const tempSec = getNextSector(sec->lines[i], sec);
+            if (!tempSec)
+            {
+                continue;
+            }
+            if (tempSec->special == seqSpecial)
+            {
+                if (seqSpecial == LightSequenceSpecial1)
+                {
+                    seqSpecial = LightSequenceSpecial2;
+                }
+                else
+                {
+                    seqSpecial = LightSequenceSpecial1;
+                }
+                nextSec = tempSec;
+                count++;
+            }
+        }
+        sec = nextSec;
+    } while (sec);
+
+    sec = sector;
+    count *= indexStep;
+    fixed_t indexDelta = FixedDiv(64 * FRACUNIT, count * FRACUNIT);
+    fixed_t index = 0;
+    do
+    {
+        sector_t *nextSec = NULL;
+        if (sec->lightlevel)
+        {
+            base = sec->lightlevel;
+        }
+        P_SpawnPhasedLight(sec, base, index >> FRACBITS);
+        index += indexDelta;
+        for (size_t i = 0; i < sec->linecount; i++)
+        {
+            sector_t *const tempSec = getNextSector(sec->lines[i], sec);
+            if (!tempSec)
+            {
+                continue;
+            }
+            if (tempSec->special == LightSequenceStart)
+            {
+                nextSec = tempSec;
+            }
+        }
+        sec = nextSec;
+    } while (sec);
 }
 
 //----------------------------------------------------------------------------
