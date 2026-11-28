@@ -2059,6 +2059,18 @@ boolean M_Responder(event_t *ev)
     {
         action = MENU_TAB_RIGHT;
     }
+    else if (M_InputActivated(input_menu_clear))
+    {
+        action = MENU_CLEAR;
+    }
+    else if (M_InputActivated(input_menu_apply))
+    {
+        action = MENU_APPLY;
+    }
+    else if (M_InputActivated(input_menu_defaults))
+    {
+        action = MENU_DEFAULTS;
+    }
     else if (M_InputActivated(input_menu_backspace))
     {
         action = MENU_BACKSPACE;
@@ -2071,14 +2083,6 @@ boolean M_Responder(event_t *ev)
     {
         action = MENU_ESCAPE;
     }
-    else if (M_InputActivated(input_menu_clear))
-    {
-        action = MENU_CLEAR;
-    }
-    else if (M_InputActivated(input_menu_defaults))
-    {
-        action = MENU_DEFAULTS;
-    }
 
     if (ev->type == ev_joyb_down && action >= MENU_UP && action <= MENU_RIGHT)
     {
@@ -2089,7 +2093,8 @@ boolean M_Responder(event_t *ev)
     // These keys act on the highlighted item and must not switch the input
     // mode, or the selection would jump to the keyboard cursor.
     if (ev->type == ev_keydown && action != MENU_CLEAR
-        && action != MENU_ESCAPE && action != MENU_BACKSPACE)
+        && action != MENU_ESCAPE && action != MENU_BACKSPACE
+        && action != MENU_DEFAULTS && action != MENU_APPLY)
     {
         help_input = key_mode;
         menu_input = key_mode;

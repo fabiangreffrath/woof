@@ -553,6 +553,20 @@ static void PushMenu(mn_menu_t *menu)
     EnterMenu(menu);
 }
 
+static void ApplyPendingActions(mn_page_t *page)
+{
+    for (int i = 0; i < page->num_items; ++i)
+    {
+        mn_item_t *item = &page->items[i];
+
+        if (item->action_pending)
+        {
+            item->action();
+            item->action_pending = false;
+        }
+    }
+}
+
 static boolean PopMenu(void)
 {
     if (menu_depth <= 0)
@@ -562,6 +576,10 @@ static boolean PopMenu(void)
 
     FlushItemAction(active_menu->active_item);
     FlushItemAction(active_menu->drag_item);
+
+    mn_page_t *page = &active_menu->pages[active_menu->page];
+
+    ApplyPendingActions(page);
 
     active_menu = menu_stack[--menu_depth];
     active_menu->hover = -1;
@@ -575,7 +593,6 @@ static boolean PopMenu(void)
     LayoutMenu(active_menu);
     EnsureValidSelection(active_menu, active_menu->page);
 
-    mn_page_t *page = &active_menu->pages[active_menu->page];
     MN_ContainerEnsureVisible(&page->items[page->selected]);
 
     return true;
@@ -660,6 +677,24 @@ static void ResetItem(mn_menu_t *menu, int index)
     if (def && item->action)
     {
         item->action();
+    }
+}
+
+static void ApplyItem(mn_menu_t *menu, int index)
+{
+    mn_page_t *page = &menu->pages[menu->page];
+
+    if (index < 0 || index >= page->num_items)
+    {
+        return;
+    }
+
+    mn_item_t *item = &page->items[index];
+
+    if (item->action_pending)
+    {
+        item->action();
+        item->action_pending = false;
     }
 }
 
@@ -845,6 +880,8 @@ void MN_ContainerClose(void)
     {
         FlushItemAction(active_menu->active_item);
         FlushItemAction(active_menu->drag_item);
+
+        ApplyPendingActions(&active_menu->pages[active_menu->page]);
     }
 
     active_menu = NULL;
@@ -934,12 +971,7 @@ void MN_ContainerItemChanged(mn_item_t *item)
 
     if (item->action)
     {
-        const boolean defer = (item->flags & MN_ITEM_DEFER_ACTION)
-                              && active_menu
-                              && (active_menu->active_item == item
-                                  || active_menu->drag_item == item);
-
-        if (defer)
+        if (item->flags & MN_ITEM_DEFER_ACTION)
         {
             item->action_pending = true;
         }
@@ -1112,9 +1144,15 @@ mn_container_result_t MN_ContainerResponder(menu_action_t action, int ch)
         return MN_CONTAINER_HANDLED;
     }
 
-    if (action == MENU_DEFAULTS)
+    if (action == MENU_APPLY)
     {
-        ResetItem(menu, page->selected);
+        ApplyItem(menu, MN_ContainerHighlightedIndex(menu));
+        return MN_CONTAINER_HANDLED;
+    }
+
+    if (action == MENU_DEFAULTS || action == MENU_CLEAR)
+    {
+        ResetItem(menu, MN_ContainerHighlightedIndex(menu));
         return MN_CONTAINER_HANDLED;
     }
 
@@ -1704,6 +1742,24 @@ static const char *BackKeyName(boolean pad)
     return "BKSP";
 }
 
+static const char *DefaultsKeyName(boolean pad)
+{
+    if (pad)
+    {
+        return M_GetPlatformName(GAMEPAD_SOUTH);
+    }
+    return "R";
+}
+
+static const char *ApplyKeyName(boolean pad)
+{
+    if (pad)
+    {
+        return M_GetPlatformName(GAMEPAD_NORTH);
+    }
+    return "F";
+}
+
 static void DrawInstructions(const mn_menu_t *menu)
 {
     const char *text;
@@ -1769,8 +1825,7 @@ static void DrawInstructions(const mn_menu_t *menu)
             case ItemType_Input:
                 M_snprintf(buffer, sizeof(buffer),
                            GOLD_S "%s:" GRAY_S " Change" ORIG_S
-                           GOLD_S "  %s:" GRAY_S " Clear" ORIG_S
-                           GOLD_S "  R:" GRAY_S " Defaults" ORIG_S,
+                           GOLD_S "  %s:" GRAY_S " Clear" ORIG_S,
                            ConfirmKeyName(pad),
                            pad ? M_GetPlatformName(GAMEPAD_NORTH)
                                : M_GetNameForKey(KEY_DEL));
@@ -1784,8 +1839,9 @@ static void DrawInstructions(const mn_menu_t *menu)
             case ItemType_Text:
                 M_snprintf(buffer, sizeof(buffer),
                            GOLD_S "%s:" GRAY_S " Edit" ORIG_S
-                           GOLD_S "  R:" GRAY_S " Defaults" ORIG_S,
-                           ConfirmKeyName(pad));
+                           GOLD_S "  %s:" GRAY_S " Defaults" ORIG_S,
+                           ConfirmKeyName(pad),
+                           DefaultsKeyName(pad));
                 break;
 
             case ItemType_Action:
@@ -1796,11 +1852,27 @@ static void DrawInstructions(const mn_menu_t *menu)
                            ConfirmKeyName(pad));
                 break;
 
+            case ItemType_Choice:
+            case ItemType_Slider:
+                if (item->flags & MN_ITEM_DEFER_ACTION)
+                {
+                    M_snprintf(buffer, sizeof(buffer),
+                           GOLD_S "%s:" GRAY_S " Back" ORIG_S
+                           GOLD_S "  %s:" GRAY_S " Defaults" ORIG_S
+                           GOLD_S "  %s:" GRAY_S " Apply" ORIG_S,
+                           BackKeyName(pad),
+                           DefaultsKeyName(pad),
+                           ApplyKeyName(pad));
+                    break;
+                }
+                // fall trough
+
             default:
                 M_snprintf(buffer, sizeof(buffer),
                            GOLD_S "%s:" GRAY_S " Back" ORIG_S
-                           GOLD_S "  R:" GRAY_S " Defaults" ORIG_S,
-                           BackKeyName(pad));
+                           GOLD_S "  %s:" GRAY_S " Defaults" ORIG_S,
+                           BackKeyName(pad),
+                           DefaultsKeyName(pad));
                 break;
         }
 

@@ -636,13 +636,13 @@ void M_InputPredefined(void)
 
     input_t clear[] = {
         {INPUT_KEY,  KEY_DEL      },
-        {INPUT_JOYB, GAMEPAD_NORTH}
+        {INPUT_JOYB, GAMEPAD_WEST}
     };
     InputSet(input_menu_clear, clear, arrlen(clear));
 
     input_t defaults[] = {
         {INPUT_KEY,  'r'          },
-        {INPUT_JOYB, GAMEPAD_SOUTH}
+        {INPUT_JOYB, GAMEPAD_WEST}
     };
     InputSet(input_menu_defaults, defaults, arrlen(defaults));
 
