@@ -36,6 +36,7 @@ typedef enum MI_Finale_e
     EG_ArtScreen,
     EG_CastRollCall,
     EG_BunnyScroll,
+    EG_DemonScroll,
     EG_CustomFinale,
 } MI_Finale_t;
 
@@ -70,6 +71,7 @@ typedef struct MI_Entry_s
     char music[9];
     char skytexture[9];
     char endpic[9];
+    char endpalette[9];
     char endfinale[9];
     char exitpic[9];
     char enterpic[9];

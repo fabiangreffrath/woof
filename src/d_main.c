@@ -209,13 +209,29 @@ void D_PostEvent(event_t *ev)
 
 void D_ProcessEvents(void)
 {
-    for (; eventtail != eventhead;
-         eventtail = (eventtail + 1) & (MAXEVENTS - 1))
+    for (; eventtail != eventhead; eventtail = (eventtail+1) & (MAXEVENTS-1))
     {
-        M_InputTrackEvent(events + eventtail);
-        if (!M_Responder(events + eventtail))
+        event_t *ev = &events[eventtail];
+        M_InputTrackEvent(ev);
+
+        // Endpalette ate event?
+        if (gamestate == GS_FINALE && !F_ShowCast() && F_Responder(ev))
         {
-            G_Responder(events + eventtail);
+            continue;
+        }
+        // Menu used event?
+        else if (M_Responder(ev))
+        {
+            continue;
+        }
+        // Cast call ate event?
+        else if (gamestate == GS_FINALE && F_ShowCast() && F_Responder(ev))
+        {
+            continue;
+        }
+        else
+        {
+            G_Responder(ev);
         }
     }
 }
