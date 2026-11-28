@@ -400,13 +400,6 @@ static void ParseStandardProperty(scanner_t *s, MI_Entry_t *mape)
     else if (!strcasecmp(prop, "jumping"))
     {
         mape->jumping = ParsePlayerMovement(s);
-        if (mape->jumping == PM_Require)
-        {
-            I_Printf(VB_WARNING,
-                     "UMAPINFO: found 'jumping = required' on map %s, but "
-                     "jumping is not supported",
-                     mape->lumpname);
-        }
     }
     else if (!strcasecmp(prop, "crouching"))
     {
@@ -1109,7 +1102,20 @@ void MI_ChangeMusic(void)
 // Playsim
 boolean MI_Jumping(void)
 {
-    return false;
+    // Jumping is not part of the demo format, so it must never be active in
+    // demos or netgames.
+
+    if (critical || strictmode)
+    {
+        return false;
+    }
+
+    if (gamemapinfo)
+    {
+        return (gamemapinfo->freeaim != PM_Disallow);
+    }
+
+    return true;
 }
 
 boolean MI_Crouching(void)

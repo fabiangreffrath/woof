@@ -805,9 +805,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
       dclick = false;
     }
 
-    // Jumping is not part of the demo format, so it must never be active in
-    // demos or netgames.
-    if (CRITICAL(M_InputGameActive(input_jump)))
+    if (M_InputGameActive(input_jump) && MI_Jumping())
     {
         cmd->jump = 1;
     }
