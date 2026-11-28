@@ -82,6 +82,7 @@
 * Fixed visual glitches when passing far above/below voxel models
 * Fixed voxel models sometimes disappearing near edges of the screen
 * Fixed support for large voxel models and models with negative pivots
+* Fixed columns on the right edge of the screen turning black during the screen melt at certain resolutions
 * Fixed SDL3 MacOSX compile directive. (CMD+Enter for fullscreen, Linux Steam folder search, 'Woof! Setup' help URL)
 * Custom skill options no longer stay active on standard skills.
 * The `Enemies` > `Helper Dogs` menu option now works again.
