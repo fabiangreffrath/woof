@@ -114,13 +114,14 @@ set(WOOF_SOURCES
     m_scanner.c            m_scanner.h
                            m_profiler.h
     mn_container.c         mn_container.h
-                           mn_common.h
     mn_csmenu.c            mn_csmenu.h
     mn_csmenu_data.c
+                           mn_defs.h
     mn_font.c              mn_font.h
     mn_menu.c              mn_menu.h
     mn_multiplayer.c       mn_multiplayer.h
     mn_multiplayer_data.c
+    mn_newgame.c           mn_newgame.h
     mn_options.c           mn_options.h
     mn_options_data.c
     mn_saveload.c          mn_saveload.h

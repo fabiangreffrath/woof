@@ -27,10 +27,11 @@
 #include "m_argv.h"
 #include "m_misc.h"
 #include "mn_container.h"
+#include "mn_defs.h"
 #include "mn_font.h"
 #include "mn_menu.h"
 #include "mn_multiplayer.h"
-#include "mn_options.h"
+#include "mn_newgame.h"
 #include "mp_start.h"
 #include "nw_client.h"
 #include "nw_defs.h"
@@ -147,7 +148,7 @@ static void MP_BackToWaitScreen(void)
 static void MP_ReopenMenu(void)
 {
     MN_StartControlPanel();
-    MN_OptionsOpen();
+    MN_NewGameMenuOpen();
     MN_ContainerPushMenu(&multiplayer_menu);
 }
 

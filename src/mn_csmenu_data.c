@@ -12,6 +12,7 @@
 //  GNU General Public License for more details.
 
 #include "mn_container.h"
+#include "mn_defs.h"
 #include "mn_csmenu.h"
 
 static const char *skill_strings[] = {
@@ -20,20 +21,25 @@ static const char *skill_strings[] = {
 };
 
 static mn_item_t csmenu_items[] = {
-    MN_GAP(10),
-    MN_CHOICE_ACT("Skill Level", "csmenu_skill", skill_strings, 16,
-                  MN_CSmenuSelectSkillLevel, NULL),
+    {.label = ("Skill Level"),
+     .cfg = ("csmenu_skill"),
+     .type = ItemType_Choice,
+     .choices = (skill_strings),
+     .num_choices = (sizeof(skill_strings) / sizeof(*skill_strings)),
+     .choice_size = 16,
+     .offset = 7 * 8,
+     .action = (MN_CSmenuSelectSkillLevel),
+     .description = (((void *)0))},
     MN_TOGGLE("Half damage", "csmenu.halfplayerdamage", NULL),
     MN_TOGGLE("Double ammo", "csmenu.doubleammo", NULL),
     MN_TOGGLE("Fast monsters", "csmenu.fastparm", NULL),
     MN_TOGGLE("Aggressive monsters", "csmenu.aggromonsters", NULL),
     MN_TOGGLE("Respawn monsters", "csmenu.respawnparm", NULL),
-    MN_GAP(6),
     MN_TOGGLE("No monsters", "csmenu.nomonsters", NULL),
     MN_TOGGLE("Co-op spawns", "csmenu.coopspawns", NULL),
     MN_TOGGLE("Pistol start", "csmenu.pistolstart", NULL),
-    MN_GAP(6),
-    {.label = "Start Game", .type = ItemType_Action,
+    {.label = "Start Game",
+     .type = ItemType_Action,
      .flags = MN_ITEM_CENTER | MN_ITEM_HIDE_VALUE,
      .action = MN_CSMenuStartGame},
 };
@@ -46,8 +52,10 @@ mn_menu_t csmenu_menu = {
     .title_patch = "",
     .title_text = "",
     .background = "FLOOR4_6",
-    .flags = MN_MENU_CENTER_LAYOUT,
-    .layout = {.max_width = MN_PX(250)},
+    .flags = MN_MENU_CENTER_W,
+    .layout = {.max_width = MN_PX(250),
+               .value_column = MN_PX(99),
+               .item_spacing = 1},
     .pages = csmenu_pages,
     .num_pages = arrlen(csmenu_pages),
 };

@@ -10,12 +10,7 @@
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //  GNU General Public License for more details.
-//
-// DESCRIPTION:
-//  Small tabbed/page container with smooth scrolling.
-//
 
-#include <stdlib.h>
 #include <string.h>
 
 #include "d_event.h"
@@ -24,13 +19,14 @@
 #include "doomtype.h"
 #include "i_gamepad.h"
 #include "i_system.h"
+#include "i_timer.h"
 #include "m_config.h"
 #include "m_input.h"
 #include "m_misc.h"
 #include "mn_container.h"
+#include "mn_defs.h"
 #include "mn_csmenu.h"
 #include "mn_font.h"
-#include "mn_common.h"
 #include "mn_menu.h"
 #include "mn_multiplayer.h"
 #include "mn_options.h"
@@ -48,6 +44,14 @@ static int last_mouse_y;
 
 static mn_menu_t *menu_stack[MN_MAX_DEPTH];
 static int menu_depth;
+
+typedef enum
+{
+    MENU_HELP_OFF,
+    MENU_HELP_AUTO,
+    MENU_HELP_KEY,
+    MENU_HELP_PAD
+} menu_help_t;
 
 int warning_about_changes, print_warning_about_changes;
 
@@ -158,6 +162,37 @@ static void ClampScroll(const mn_menu_t *menu, mn_page_t *page)
     page->scroll = CLAMP(page->scroll, 0, MaxScroll(menu, page));
 }
 
+static int ResolveLength(const mn_length_t *length, int base, int fallback)
+{
+    switch (length->unit)
+    {
+        case MN_UNIT_PX:
+            return length->value;
+        case MN_UNIT_PERCENT:
+            return base * length->value / 100;
+        default:
+            return fallback;
+    }
+}
+
+// The value column is measured from the right edge of the items column, so
+// the values follow that edge when the aspect ratio changes. MN_UNIT_AUTO
+// keeps the label-width geometry.
+static int ResolveValueColumn(const mn_menu_t *menu, int label_width)
+{
+    const int width = menu->viewport.w;
+
+    switch (menu->layout.value_column.unit)
+    {
+        case MN_UNIT_PX:
+            return width - menu->layout.value_column.value;
+        case MN_UNIT_PERCENT:
+            return width - width * menu->layout.value_column.value / 100;
+        default:
+            return label_width + 12;
+    }
+}
+
 static void LayoutPage(mn_menu_t *menu, mn_page_t *page)
 {
     int y = page->pad_top;
@@ -175,22 +210,12 @@ static void LayoutPage(mn_menu_t *menu, mn_page_t *page)
 
         if (item->height == 0)
         {
-            if (item->type == ItemType_Slider)
-            {
-                item->height = MN_SPC_SLIDER;
-            }
-            else if (item->type == ItemType_Choice)
-            {
-                item->height = MN_SPC_CHOICE;
+            item->height = MN_SPC_ITEM;
 
-                if (item->flags & MN_ITEM_TWO_LINES)
-                {
-                    item->height += MN_SPC;
-                }
-            }
-            else
+            if (item->type == ItemType_Choice
+                && (item->flags & MN_ITEM_TWO_LINES))
             {
-                item->height = MN_SPC_ITEM;
+                item->height += MN_SPC;
             }
         }
 
@@ -201,15 +226,7 @@ static void LayoutPage(mn_menu_t *menu, mn_page_t *page)
 
         if (item->type != ItemType_Title && item->label)
         {
-            int w = 0;
-            if (item->flags & MN_ITEM_BIG_FONT)
-            {
-                w = MN_GetFon2PixelWidth(item->label);
-            }
-            if (!w)
-            {
-                w = MN_GetPixelWidth(item->label);
-            }
+            int w = MN_GetPixelWidth(item->label);
             label_width = MAX(label_width, w);
         }
 
@@ -217,14 +234,18 @@ static void LayoutPage(mn_menu_t *menu, mn_page_t *page)
 
         if (i + 1 != page->num_items)
         {
-            y += menu->item_spacing;
+            y += menu->layout.item_spacing;
         }
     }
 
     page->content_h = y + page->pad_bottom;
     page->label_width = label_width;
 
-    if ((menu->flags & MN_MENU_CENTER) && y < menu->viewport.h)
+    page->value_x = menu->viewport.x
+                    + CLAMP(ResolveValueColumn(menu, label_width), 0,
+                            MAX(0, menu->viewport.w - 48));
+
+    if ((menu->flags & MN_MENU_CENTER_H) && y < menu->viewport.h)
     {
         const int offset = (menu->viewport.h - y) / 2;
 
@@ -242,33 +263,12 @@ static void LayoutPage(mn_menu_t *menu, mn_page_t *page)
 
 static void LayoutTabs(mn_menu_t *menu)
 {
-    int total = 0;
-
     if (!HasTabs(menu))
     {
-        menu->tabbar = (mrect_t){0};
-
-        for (int i = 0; i < MN_MAX_TABS; ++i)
-        {
-            menu->tab_rects[i] = (mrect_t){0};
-        }
-
         return;
     }
 
-    for (int i = 0; i < menu->num_pages && i < MN_MAX_TABS; ++i)
-    {
-        const int width = MN_GetPixelWidth(menu->pages[i].tab);
-
-        if (i)
-        {
-            total += 8;
-        }
-
-        total += width;
-    }
-
-    int x = menu->viewport.x + (menu->viewport.w - total) / 2;
+    int x = menu->viewport.x;
 
     for (int i = 0; i < menu->num_pages && i < MN_MAX_TABS; ++i)
     {
@@ -279,29 +279,14 @@ static void LayoutTabs(mn_menu_t *menu)
             x += 8;
         }
 
-        menu->tab_rects[i] = (mrect_t){x, 22, width, MN_SPC};
+        menu->tab_rects[i] = (mrect_t){x, 26, width, MN_SPC};
         x += width;
-    }
-
-    menu->tabbar = (mrect_t){menu->viewport.x, 22, menu->viewport.w, MN_SPC};
-}
-
-static int ResolveLength(const mn_length_t *length, int base, int fallback)
-{
-    switch (length->unit)
-    {
-        case MN_UNIT_PX:
-            return length->value;
-        case MN_UNIT_PERCENT:
-            return base * length->value / 100;
-        default:
-            return fallback;
     }
 }
 
 static void LayoutMenu(mn_menu_t *menu)
 {
-    const int top = HasTabs(menu) ? 40 : 30;
+    const int top = HasTabs(menu) ? 40 : 20;
     const int height = SCREENHEIGHT - top - 20;
 
     // Coordinates are logical: the whole widescreen width is available,
@@ -335,7 +320,7 @@ static void LayoutMenu(mn_menu_t *menu)
     // it all on the right.
     int x = margin_left;
 
-    if (menu->flags & MN_MENU_CENTER_LAYOUT)
+    if (menu->flags & MN_MENU_CENTER_W)
     {
         x = (avail - width) / 2;
     }
@@ -543,6 +528,8 @@ static void ResetMenuState(mn_menu_t *menu)
 
         page->scroll = 0;
         page->scroll_target = 0;
+        page->scroll_start = 0;
+        page->scroll_anim_start_ms = 0;
     }
 }
 
@@ -566,6 +553,20 @@ static void PushMenu(mn_menu_t *menu)
     EnterMenu(menu);
 }
 
+static void ApplyPendingActions(mn_page_t *page)
+{
+    for (int i = 0; i < page->num_items; ++i)
+    {
+        mn_item_t *item = &page->items[i];
+
+        if (item->action_pending)
+        {
+            item->action();
+            item->action_pending = false;
+        }
+    }
+}
+
 static boolean PopMenu(void)
 {
     if (menu_depth <= 0)
@@ -575,6 +576,10 @@ static boolean PopMenu(void)
 
     FlushItemAction(active_menu->active_item);
     FlushItemAction(active_menu->drag_item);
+
+    mn_page_t *page = &active_menu->pages[active_menu->page];
+
+    ApplyPendingActions(page);
 
     active_menu = menu_stack[--menu_depth];
     active_menu->hover = -1;
@@ -588,7 +593,6 @@ static boolean PopMenu(void)
     LayoutMenu(active_menu);
     EnsureValidSelection(active_menu, active_menu->page);
 
-    mn_page_t *page = &active_menu->pages[active_menu->page];
     MN_ContainerEnsureVisible(&page->items[page->selected]);
 
     return true;
@@ -626,7 +630,75 @@ static boolean NextPage(mn_menu_t *menu, int direction)
     return true;
 }
 
-static void ActivateItem(mn_menu_t *menu, int index, boolean mouse)
+static void ResetItem(mn_menu_t *menu, int index)
+{
+    mn_page_t *page = &menu->pages[menu->page];
+
+    if (index < 0 || index >= page->num_items)
+    {
+        return;
+    }
+
+    mn_item_t *item = &page->items[index];
+
+    default_t *def = item->def;
+
+    if (def)
+    {
+        if (def->type == cfg_number || def->type == cfg_menu)
+        {
+            *def->location.i = def->defaultvalue.number;
+
+            if (def->current.i)
+            {
+                *def->current.i = *def->location.i;
+            }
+        }
+        else if (def->type == cfg_string)
+        {
+            free(*def->location.s);
+            *def->location.s = strdup(def->defaultvalue.string);
+
+            if (def->current.s)
+            {
+                *def->current.s = *def->location.s;
+            }
+        }
+        else if (def->type == cfg_input)
+        {
+            M_InputSetDefault(def->input_id);
+        }
+    }
+    else if (item->input_id)
+    {
+        M_InputSetDefault(item->input_id);
+    }
+
+    if (def && item->action)
+    {
+        item->action();
+    }
+}
+
+static void ApplyItem(mn_menu_t *menu, int index)
+{
+    mn_page_t *page = &menu->pages[menu->page];
+
+    if (index < 0 || index >= page->num_items)
+    {
+        return;
+    }
+
+    mn_item_t *item = &page->items[index];
+
+    if (item->action_pending)
+    {
+        item->action();
+        item->action_pending = false;
+    }
+}
+
+static void ActivateItem(mn_menu_t *menu, int index)
 {
     mn_page_t *page = &menu->pages[menu->page];
 
@@ -675,24 +747,6 @@ static void ActivateItem(mn_menu_t *menu, int index, boolean mouse)
         return;
     }
 
-    if (item->type == ItemType_Choice || item->type == ItemType_Slider)
-    {
-        if (mouse)
-        {
-            menu->active_item = NULL;
-
-            if (item->ops && item->ops->respond)
-            {
-                item->ops->respond(item, MENU_RIGHT, 0);
-            }
-        }
-        else
-        {
-            menu->active_item = item;
-        }
-        return;
-    }
-
     menu->active_item = NULL;
 
     if (item->ops && item->ops->respond)
@@ -700,8 +754,7 @@ static void ActivateItem(mn_menu_t *menu, int index, boolean mouse)
         item->ops->respond(item, MENU_ENTER, 0);
     }
 
-    if (item->type == ItemType_Action || item->type == ItemType_Reset
-        || item->type == ItemType_Toggle)
+    if (item->type == ItemType_Action)
     {
         M_StartSound(sfx_mnusel);
     }
@@ -771,6 +824,12 @@ static void UpdateScrollbar(mn_menu_t *menu)
                                    4,
                                    menu->viewport.h};
 
+    // Wider hit area for easier mouse dragging (visual stays 4px)
+    menu->scroll_hit = (mrect_t){menu->viewport.x + menu->viewport.w + 2,
+                                  menu->viewport.y,
+                                  12,
+                                  menu->viewport.h};
+
     const int thumb_y = menu->scroll_track.y
                         + page->scroll * (menu->scroll_track.h - thumb_h) / max;
 
@@ -778,7 +837,7 @@ static void UpdateScrollbar(mn_menu_t *menu)
         (mrect_t){menu->scroll_track.x, thumb_y, menu->scroll_track.w, thumb_h};
 }
 
-static void ScrollToThumb(mn_menu_t *menu, int mouse_y)
+static void ScrollToThumb(mn_menu_t *menu, int mouse_y, boolean instant)
 {
     mn_page_t *page = &menu->pages[menu->page];
     const int max = MaxScroll(menu, page);
@@ -792,8 +851,16 @@ static void ScrollToThumb(mn_menu_t *menu, int mouse_y)
     int value =
         (mouse_y - menu->scroll_track.y - menu->drag_offset) * max / range;
 
-    page->scroll = CLAMP(value, 0, max);
-    page->scroll_target = page->scroll;
+    page->scroll_target = CLAMP(value, 0, max);
+    if (instant)
+    {
+        page->scroll = page->scroll_target;
+        page->scroll_anim_start_ms = 0;
+    }
+    else
+    {
+        page->scroll_anim_start_ms = 0; // restart animation
+    }
 }
 
 void MN_ContainerOpen(mn_menu_t *menu)
@@ -813,6 +880,8 @@ void MN_ContainerClose(void)
     {
         FlushItemAction(active_menu->active_item);
         FlushItemAction(active_menu->drag_item);
+
+        ApplyPendingActions(&active_menu->pages[active_menu->page]);
     }
 
     active_menu = NULL;
@@ -853,6 +922,21 @@ void MN_ContainerEndEdit(void)
     }
 }
 
+void MN_ContainerBeginEdit(mn_item_t *item)
+{
+    if (!active_menu || !item)
+    {
+        return;
+    }
+
+    if (active_menu->active_item && active_menu->active_item != item)
+    {
+        CancelActiveItem(active_menu);
+    }
+
+    active_menu->active_item = item;
+}
+
 void MN_ContainerConfirm(const char *text, void (*action)(void))
 {
     if (!active_menu)
@@ -887,12 +971,7 @@ void MN_ContainerItemChanged(mn_item_t *item)
 
     if (item->action)
     {
-        const boolean defer = (item->flags & MN_ITEM_DEFER_ACTION)
-                              && active_menu
-                              && (active_menu->active_item == item
-                                  || active_menu->drag_item == item);
-
-        if (defer)
+        if (item->flags & MN_ITEM_DEFER_ACTION)
         {
             item->action_pending = true;
         }
@@ -1030,13 +1109,30 @@ mn_container_result_t MN_ContainerResponder(menu_action_t action, int ch)
         return MN_CONTAINER_HANDLED;
     }
 
-    if (action == MENU_LEFT)
+    if (action == MENU_LEFT || action == MENU_RIGHT)
+    {
+        const int index = MN_ContainerHighlightedIndex(menu);
+
+        if (index >= 0 && IsSelectable(&page->items[index]))
+        {
+            mn_item_t *item = &page->items[index];
+
+            if (item->ops && item->ops->respond)
+            {
+                item->ops->respond(item, action, 0);
+            }
+        }
+
+        return MN_CONTAINER_HANDLED;
+    }
+
+    if (action == MENU_TAB_LEFT)
     {
         NextPage(menu, -1);
         return MN_CONTAINER_HANDLED;
     }
 
-    if (action == MENU_RIGHT)
+    if (action == MENU_TAB_RIGHT)
     {
         NextPage(menu, 1);
         return MN_CONTAINER_HANDLED;
@@ -1044,7 +1140,19 @@ mn_container_result_t MN_ContainerResponder(menu_action_t action, int ch)
 
     if (action == MENU_ENTER)
     {
-        ActivateItem(menu, page->selected, false);
+        ActivateItem(menu, page->selected);
+        return MN_CONTAINER_HANDLED;
+    }
+
+    if (action == MENU_APPLY)
+    {
+        ApplyItem(menu, MN_ContainerHighlightedIndex(menu));
+        return MN_CONTAINER_HANDLED;
+    }
+
+    if (action == MENU_DEFAULTS || action == MENU_CLEAR)
+    {
+        ResetItem(menu, MN_ContainerHighlightedIndex(menu));
         return MN_CONTAINER_HANDLED;
     }
 
@@ -1088,7 +1196,7 @@ void MN_ContainerMouseMove(int x, int y)
 
     if (active_menu->dragging_scroll)
     {
-        ScrollToThumb(active_menu, y);
+        ScrollToThumb(active_menu, y, true);
     }
 
     int highlight_tab = -1;
@@ -1175,12 +1283,23 @@ mn_container_result_t MN_ContainerMouseButton(int button, boolean down)
         return MN_CONTAINER_HANDLED;
     }
 
-    if (MN_ContainerPointInside(&menu->scroll_track, last_mouse_x,
+    // Wider hit area for thumb
+    mrect_t thumb_hit = menu->scroll_thumb;
+    thumb_hit.x -= 4;
+    thumb_hit.w += 8;
+    if (MN_ContainerPointInside(&thumb_hit, last_mouse_x, last_mouse_y))
+    {
+        menu->dragging_scroll = true;
+        menu->drag_offset = last_mouse_y - menu->scroll_thumb.y;
+        return MN_CONTAINER_HANDLED;
+    }
+
+    if (MN_ContainerPointInside(&menu->scroll_hit, last_mouse_x,
                                 last_mouse_y))
     {
         menu->dragging_scroll = true;
         menu->drag_offset = menu->scroll_thumb.h / 2;
-        ScrollToThumb(menu, last_mouse_y);
+        ScrollToThumb(menu, last_mouse_y, true);
         return MN_CONTAINER_HANDLED;
     }
 
@@ -1213,13 +1332,6 @@ mn_container_result_t MN_ContainerMouseButton(int button, boolean down)
             return MN_CONTAINER_HANDLED;
         }
 
-        if (item->type == ItemType_Slider && item->ops && item->ops->drag)
-        {
-            menu->drag_item = item;
-            item->ops->drag(item, last_mouse_x);
-            return MN_CONTAINER_HANDLED;
-        }
-
         if (item->ops && item->ops->click)
         {
             if (item->ops->click(item, last_mouse_x, last_mouse_y))
@@ -1228,7 +1340,14 @@ mn_container_result_t MN_ContainerMouseButton(int button, boolean down)
             }
         }
 
-        ActivateItem(menu, menu->hover, true);
+        if (item->type == ItemType_Slider && item->ops && item->ops->drag)
+        {
+            menu->drag_item = item;
+            item->ops->drag(item, last_mouse_x);
+            return MN_CONTAINER_HANDLED;
+        }
+
+        ActivateItem(menu, menu->hover);
     }
 
     return MN_CONTAINER_HANDLED;
@@ -1269,30 +1388,6 @@ void MN_ContainerTicker(void)
     {
         active_menu->ticker(active_menu);
     }
-
-    mn_page_t *page = &active_menu->pages[active_menu->page];
-
-    if (page->scroll != page->scroll_target)
-    {
-        const int diff = page->scroll_target - page->scroll;
-        int step = diff / 3;
-
-        if (step == 0 && diff != 0)
-        {
-            step = diff > 0 ? 1 : -1;
-        }
-        else if (abs(step) < 2 && abs(diff) > 3)
-        {
-            step = diff > 0 ? 2 : -2;
-        }
-
-        page->scroll += step;
-
-        if (abs(page->scroll_target - page->scroll) <= 2)
-        {
-            page->scroll = page->scroll_target;
-        }
-    }
 }
 
 static void DrawTabs(const mn_menu_t *menu)
@@ -1302,24 +1397,47 @@ static void DrawTabs(const mn_menu_t *menu)
         return;
     }
 
+    int total = 0;
+
+    for (int i = 0; i < menu->num_pages && i < MN_MAX_TABS; ++i)
+    {
+        const mrect_t *rect = &menu->tab_rects[i];
+        if (i)
+        {
+            total += 8;
+        }
+        total += rect->w;
+    }
+
+    const mrect_t *rect = &menu->tab_rects[0];
+    V_ShadeRect(video.deltaw + rect->x, rect->y - MN_PAD,
+                total + 2 * MN_PAD, rect->h + MN_PAD, 60);
+
     for (int i = 0; i < menu->num_pages && i < MN_MAX_TABS; ++i)
     {
         const mrect_t *rect = &menu->tab_rects[i];
 
+        int y = rect->y;
+        int x = rect->x + MN_PAD;
+
         if (i == menu->page)
         {
-            MN_DrawString(rect->x, rect->y, CR_GOLD, menu->pages[i].tab);
-            V_FillRect(rect->x + video.deltaw, rect->y + MN_SPC, rect->w, 1,
-                       MenuColor(CR_GOLD, false));
+            V_ShadeRect(video.deltaw + rect->x, rect->y - MN_PAD,
+                        rect->w + 2 * MN_PAD, rect->h + MN_PAD, 90);
+
+            MN_DrawString(x, y, CR_GOLD, menu->pages[i].tab);
+
+            V_FillRect(video.deltaw + rect->x, y + MN_SPC,
+                       rect->w + 2 * MN_PAD, 1, MenuColor(CR_GOLD, false));
         }
         else if (i == menu->highlight_tab && menu_input == mouse_mode)
         {
-            MN_DrawStringCR(rect->x, rect->y, xlat[CR_GRAY].table,
-                            xlat[CR_BRIGHT].table,  menu->pages[i].tab);
+            MN_DrawStringCR(x, y, xlat[CR_GRAY].table, xlat[CR_BRIGHT].table,
+                            menu->pages[i].tab);
         }
         else
         {
-            MN_DrawString(rect->x, rect->y, CR_GRAY, menu->pages[i].tab);
+            MN_DrawString(x, y, CR_GRAY, menu->pages[i].tab);
         }
     }
 }
@@ -1327,11 +1445,12 @@ static void DrawTabs(const mn_menu_t *menu)
 static void DrawItemLabel(const mn_item_t *item, const mn_draw_ctx_t *ctx,
                           int label_x)
 {
-    if (item->type == ItemType_Title || item->type == ItemType_Skip
-        || item->type == ItemType_Reset)
+    if (item->type == ItemType_Title || item->type == ItemType_Skip)
     {
         return;
     }
+
+    V_ShadeRect(ctx->x + video.deltaw, ctx->y, ctx->w, ctx->h, 60);
 
     byte *cr = ctx->disabled   ? cr_dark
                : ctx->active   ? xlat[CR_GRAY].table
@@ -1344,7 +1463,7 @@ static void DrawItemLabel(const mn_item_t *item, const mn_draw_ctx_t *ctx,
     // the border strip, so the cursor has to follow the text.
     if (item->height > MN_SPC && item->type != ItemType_SaveSlot)
     {
-        y += (item->height - MN_SPC) / 2;
+        y += (item->height - MN_FNT_H) / 2;
     }
 
     if (ctx->selected && whichSkull && menu_input != mouse_mode)
@@ -1352,15 +1471,7 @@ static void DrawItemLabel(const mn_item_t *item, const mn_draw_ctx_t *ctx,
         MN_DrawStringCR(label_x - 8, y, cr, NULL, ">");
     }
 
-    if (item->flags & MN_ITEM_BIG_FONT)
-    {
-        if (MN_DrawFon2String(label_x, y, cr, item->label))
-        {
-            return;
-        }
-    }
-
-    MN_DrawStringCR(label_x, y, cr, NULL, item->label);
+    MN_DrawStringCR(label_x + MN_PAD, y, cr, NULL, item->label);
 }
 
 static void DrawItems(const mn_menu_t *menu)
@@ -1389,29 +1500,16 @@ static void DrawItems(const mn_menu_t *menu)
         }
 
         const int x = menu->viewport.x;
-        int label_w;
-        int label_x;
-        if (menu->flags & MN_MENU_CENTER)
+        int label_x = x;
+
+        if (item->flags & MN_ITEM_CENTER)
         {
-            label_w = page->label_width;
-            label_x = x + (item->rect.w - page->label_width) / 2;
+            label_x = x + (item->rect.w - MN_GetPixelWidth(item->label)) / 2;
         }
-        else if(item->flags & MN_ITEM_CENTER)
-        {
-            label_w = MN_GetPixelWidth(item->label);
-            label_x = x + (item->rect.w - label_w) / 2;
-        }
-        else
-        {
-            label_w = MN_GetPixelWidth(item->label);
-            label_x = x;
-        }
-        const int value_x =
-            MIN(label_x + MAX(label_w + 12, 120), x + item->rect.w - 48);
-        const int value_w = x + item->rect.w - value_x;
+
+        const int value_x = page->value_x;
 
         item->draw_value_x = value_x;
-        item->draw_value_w = MAX(0, value_w);
 
         mn_draw_ctx_t ctx = {
             .x = x,
@@ -1419,7 +1517,6 @@ static void DrawItems(const mn_menu_t *menu)
             .w = item->rect.w,
             .h = item->rect.h,
             .value_x = value_x,
-            .value_w = MAX(0, value_w),
             .mouse_x = last_mouse_x,
             .color = highlighted ? CR_BRIGHT : CR_NONE,
             .selected = highlighted,
@@ -1445,7 +1542,6 @@ static mn_menu_t *all_menus[] = {
     &equalizer_menu,
     &controls_menu,
     &advanced_gamepad_menu,
-    &advanced_gyro_menu,
     &input_bindings_menu,
     &interface_menu,
     &gameplay_menu,
@@ -1562,10 +1658,9 @@ static void DrawWrappedText(int x, int y, int width, int height,
 
     M_snprintf(buffer, sizeof(buffer), "%s", text);
 
-    const int num_lines = MN_WrapText(buffer, width);
+    MN_WrapText(buffer, width);
 
-    // Center the text block vertically; every line stays left-aligned.
-    y += MAX(0, (height - num_lines * line_h) / 2);
+    y += MN_PAD;
 
     for (int start = 0; buffer[start];)
     {
@@ -1593,10 +1688,15 @@ static void DrawWrappedText(int x, int y, int width, int height,
 
 static void DrawHints(const mn_menu_t *menu)
 {
-    if (menu->hint_rect.w <= 0)
+    const mrect_t *rect = &menu->hint_rect;
+
+    if (rect->w <= 0)
     {
         return;
     }
+
+    V_ShadeRect(video.deltaw + rect->x - MN_PAD, rect->y,
+                rect->w + 2 * MN_PAD, rect->h, 60);
 
     const mn_item_t *item = HighlightedItem(menu);
 
@@ -1633,16 +1733,31 @@ static const char *ConfirmKeyName(boolean pad)
                : M_GetNameForKey(KEY_ENTER);
 }
 
-static const char *CancelKeyName(boolean pad)
-{
-    return pad ? M_GetPlatformName(gamepad_cancel)
-               : M_GetNameForKey(KEY_ESCAPE);
-}
-
 static const char *BackKeyName(boolean pad)
 {
-    return pad ? M_GetPlatformName(gamepad_cancel)
-               : M_GetNameForKey(KEY_BACKSPACE);
+    if (pad)
+    {
+        return M_GetPlatformName(gamepad_cancel);
+    }
+    return "BKSP";
+}
+
+static const char *DefaultsKeyName(boolean pad)
+{
+    if (pad)
+    {
+        return M_GetPlatformName(GAMEPAD_SOUTH);
+    }
+    return "R";
+}
+
+static const char *ApplyKeyName(boolean pad)
+{
+    if (pad)
+    {
+        return M_GetPlatformName(GAMEPAD_NORTH);
+    }
+    return "F";
 }
 
 static void DrawInstructions(const mn_menu_t *menu)
@@ -1684,31 +1799,23 @@ static void DrawInstructions(const mn_menu_t *menu)
 
     if (item->disabled)
     {
-        M_snprintf(buffer, sizeof(buffer), "[ %s ] Back", BackKeyName(pad));
+        M_snprintf(buffer, sizeof(buffer), GOLD_S "%s:" GRAY_S " Back" ORIG_S,
+                   BackKeyName(pad));
         text = buffer;
     }
     else if (menu->active_item)
     {
-        switch (item->type)
+        if (item->type == ItemType_Number || item->type == ItemType_Slider)
         {
-            case ItemType_Number:
-                text = "Enter value";
-                break;
-
-            case ItemType_Text:
-                text = "Enter text";
-                break;
-
-            case ItemType_Input:
-                text = "Press key or button to bind/unbind";
-                break;
-
-            default:
-                M_snprintf(buffer, sizeof(buffer),
-                           "[ Left/Right ] Choose, [ %s ] Cancel",
-                           CancelKeyName(pad));
-                text = buffer;
-                break;
+            text = "Enter value";
+        }
+        else if (item->type == ItemType_Text)
+        {
+            text = "Enter text";
+        }
+        else
+        {
+            text = "Press key or button to bind/unbind";
         }
     }
     else
@@ -1717,14 +1824,11 @@ static void DrawInstructions(const mn_menu_t *menu)
         {
             case ItemType_Input:
                 M_snprintf(buffer, sizeof(buffer),
-                           "[ %s ] Change, [ %s ] Clear", ConfirmKeyName(pad),
+                           GOLD_S "%s:" GRAY_S " Change" ORIG_S
+                           GOLD_S "  %s:" GRAY_S " Clear" ORIG_S,
+                           ConfirmKeyName(pad),
                            pad ? M_GetPlatformName(GAMEPAD_NORTH)
                                : M_GetNameForKey(KEY_DEL));
-                break;
-
-            case ItemType_Reset:
-                M_snprintf(buffer, sizeof(buffer), "[ %s ] Restore defaults",
-                           ConfirmKeyName(pad));
                 break;
 
             case ItemType_Toggle:
@@ -1733,29 +1837,56 @@ static void DrawInstructions(const mn_menu_t *menu)
                 break;
 
             case ItemType_Text:
-                M_snprintf(buffer, sizeof(buffer), "[ %s ] Edit",
-                           ConfirmKeyName(pad));
+                M_snprintf(buffer, sizeof(buffer),
+                           GOLD_S "%s:" GRAY_S " Edit" ORIG_S
+                           GOLD_S "  %s:" GRAY_S " Defaults" ORIG_S,
+                           ConfirmKeyName(pad),
+                           DefaultsKeyName(pad));
                 break;
 
             case ItemType_Action:
             case ItemType_SubMenu:
             case ItemType_SaveSlot:
-                M_snprintf(buffer, sizeof(buffer), "[ %s ] Select",
+                M_snprintf(buffer, sizeof(buffer),
+                           GOLD_S "%s:" GRAY_S " Select" ORIG_S,
                            ConfirmKeyName(pad));
                 break;
 
+            case ItemType_Choice:
+            case ItemType_Slider:
+                if (item->flags & MN_ITEM_DEFER_ACTION)
+                {
+                    M_snprintf(buffer, sizeof(buffer),
+                           GOLD_S "%s:" GRAY_S " Back" ORIG_S
+                           GOLD_S "  %s:" GRAY_S " Defaults" ORIG_S
+                           GOLD_S "  %s:" GRAY_S " Apply" ORIG_S,
+                           BackKeyName(pad),
+                           DefaultsKeyName(pad),
+                           ApplyKeyName(pad));
+                    break;
+                }
+                // fall trough
+
             default:
                 M_snprintf(buffer, sizeof(buffer),
-                           "[ %s ] Change, [ %s ] Back",
-                           ConfirmKeyName(pad), BackKeyName(pad));
+                           GOLD_S "%s:" GRAY_S " Back" ORIG_S
+                           GOLD_S "  %s:" GRAY_S " Defaults" ORIG_S,
+                           BackKeyName(pad),
+                           DefaultsKeyName(pad));
                 break;
         }
 
         text = buffer;
     }
 
-    MN_DrawStringCR((SCREENWIDTH - MN_GetPixelWidth(text)) / 2,
-                    SCREENHEIGHT - 15, cr_shaded, NULL, text);
+    const int x = menu->viewport.x;
+    const int y = SCREENHEIGHT - 15;
+
+    V_ShadeRect(video.deltaw + x - MN_PAD, y - MN_PAD,
+                MN_GetPixelWidth(text) + 2 * MN_PAD,
+                MN_FNT_H + 2 * MN_PAD, 60);
+
+    MN_DrawStringCR(x, y, NULL, NULL, text);
 }
 
 void MN_DrawNotification(const char *text, int color, boolean blink)
@@ -1773,6 +1904,40 @@ void MN_DrawNotification(const char *text, int color, boolean blink)
     }
 }
 
+static void DrawTitle(mn_menu_t *menu)
+{
+    if (menu->flags & MN_MENU_BREAD_CRUMB_TITLE)
+    {
+        V_ShadeRect(0, 0, video.unscaledw, 18, 60);
+
+        if (menu_depth <= 0)
+        {
+            I_Error("No parent menu.");
+        }
+
+        mn_menu_t *parent = menu_stack[menu_depth - 1];
+        char *title = M_StringJoin(parent->title_text, " > ", menu->title_text);
+
+        MN_DrawString(menu->viewport.x, 6, CR_NONE, title);
+
+        free(title);
+        return;
+    }
+
+    int y = 2;
+    if (menu->flags & MN_MENU_CENTER_H)
+    {
+        y = menu->pages[0].items[0].rect.y;
+    }
+
+    MN_DrawTitle(M_X_CENTER, y, menu->title_patch, menu->title_text);
+}
+
+static double EaseOutQuad(double x)
+{
+    return 1.0 - (1.0 - x) * (1.0 - x);
+}
+
 void MN_ContainerDrawer(void)
 {
     if (!active_menu)
@@ -1782,12 +1947,38 @@ void MN_ContainerDrawer(void)
 
     mn_menu_t *menu = active_menu;
 
+    mn_page_t *page = &menu->pages[menu->page];
+    if (page->scroll != page->scroll_target)
+    {
+        if (page->scroll_anim_start_ms == 0)
+        {
+            page->scroll_start = page->scroll;
+            page->scroll_anim_start_ms = I_GetTimeMS();
+        }
+
+        const int elapsed = I_GetTimeMS() - page->scroll_anim_start_ms;
+        const double progress = MIN(1.0f, elapsed / 170.0f); // 170ms duration
+        const double eased = EaseOutQuad(progress);
+        page->scroll = page->scroll_start
+                       + (int)((page->scroll_target - page->scroll_start) * eased);
+
+        if (progress >= 1.0f)
+        {
+            page->scroll = page->scroll_target;
+            page->scroll_anim_start_ms = 0;
+        }
+    }
+    else
+    {
+        page->scroll_anim_start_ms = 0;
+    }
+
     if (menu_backdrop == MENU_BG_TEXTURE && menu->background)
     {
         V_DrawBackground(menu->background);
     }
 
-    MN_DrawTitle(M_X_CENTER, 2, menu->title_patch, menu->title_text);
+    DrawTitle(menu);
     DrawTabs(menu);
 
     V_SetClipY(menu->viewport.y, menu->viewport.y + menu->viewport.h);

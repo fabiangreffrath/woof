@@ -573,6 +573,7 @@ static void UpdateConfirmCancel(boolean swap_confirm)
 
     input_t enter[] = {
         {INPUT_KEY,    KEY_ENTER        },
+        {INPUT_KEY,    ' '              },
         {INPUT_JOYB,   gamepad_confirm  },
         {INPUT_MOUSEB, MOUSE_BUTTON_LEFT}
     };
@@ -585,24 +586,35 @@ void M_InputPredefined(void)
 {
     input_t right[] = {
         {INPUT_KEY,    KEY_RIGHTARROW             },
+        {INPUT_KEY,    'd'                        },
         {INPUT_JOYB,   GAMEPAD_DPAD_RIGHT         },
         {INPUT_JOYB,   GAMEPAD_LEFT_STICK_RIGHT   },
-        {INPUT_JOYB,   GAMEPAD_RIGHT_SHOULDER     },
-        {INPUT_MOUSEB, MOUSE_BUTTON_WHEELDOWN     }
     };
     InputSet(input_menu_right, right, arrlen(right));
 
     input_t left[] = {
         {INPUT_KEY,    KEY_LEFTARROW             },
+        {INPUT_KEY,    'a'                       },
         {INPUT_JOYB,   GAMEPAD_DPAD_LEFT         },
         {INPUT_JOYB,   GAMEPAD_LEFT_STICK_LEFT   },
-        {INPUT_JOYB,   GAMEPAD_LEFT_SHOULDER     },
-        {INPUT_MOUSEB, MOUSE_BUTTON_WHEELUP      },
     };
     InputSet(input_menu_left, left, arrlen(left));
 
+    input_t right_tab[] = {
+        {INPUT_KEY,    'e'                        },
+        {INPUT_JOYB,   GAMEPAD_RIGHT_SHOULDER     },
+    };
+    InputSet(input_menu_tab_right, right_tab, arrlen(right_tab));
+
+    input_t left_tab[] = {
+        {INPUT_KEY,    'q'                       },
+        {INPUT_JOYB,   GAMEPAD_LEFT_SHOULDER     },
+    };
+    InputSet(input_menu_tab_left, left_tab, arrlen(left_tab));
+
     input_t up[] = {
         {INPUT_KEY,  KEY_UPARROW             },
+        {INPUT_KEY,  'w'                     },
         {INPUT_JOYB, GAMEPAD_DPAD_UP         },
         {INPUT_JOYB, GAMEPAD_LEFT_STICK_UP   }
     };
@@ -610,6 +622,7 @@ void M_InputPredefined(void)
 
     input_t down[] = {
         {INPUT_KEY,  KEY_DOWNARROW             },
+        {INPUT_KEY,  's'                       },
         {INPUT_JOYB, GAMEPAD_DPAD_DOWN         },
         {INPUT_JOYB, GAMEPAD_LEFT_STICK_DOWN   }
     };
@@ -623,9 +636,21 @@ void M_InputPredefined(void)
 
     input_t clear[] = {
         {INPUT_KEY,  KEY_DEL      },
-        {INPUT_JOYB, GAMEPAD_NORTH}
+        {INPUT_JOYB, GAMEPAD_WEST}
     };
     InputSet(input_menu_clear, clear, arrlen(clear));
+
+    input_t defaults[] = {
+        {INPUT_KEY,  'r'          },
+        {INPUT_JOYB, GAMEPAD_WEST}
+    };
+    InputSet(input_menu_defaults, defaults, arrlen(defaults));
+
+    input_t apply[] = {
+        {INPUT_KEY,  'f'          },
+        {INPUT_JOYB, GAMEPAD_NORTH}
+    };
+    InputSet(input_menu_apply, apply, arrlen(apply));
 
     UpdateConfirmCancel(false);
 

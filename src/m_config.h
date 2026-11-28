@@ -54,10 +54,10 @@ typedef struct default_s
 
     enum
     {
-        number,
-        string,
-        input,
-        menu // menu only
+        cfg_number,
+        cfg_string,
+        cfg_input,
+        cfg_menu // menu only
     } type; // type
 
     wad_allowed_t wad_allowed; // whether it's allowed in wads

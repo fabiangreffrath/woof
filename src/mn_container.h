@@ -15,23 +15,19 @@
 #define MN_CONTAINER_H
 
 #include "doomtype.h"
-#include "mn_common.h"
-
-#define MN_SPC        9
-#define MN_SPC_ITEM   (MN_SPC + 3)
-#define MN_SPC_SLIDER (MN_SPC + 5)
-#define MN_SPC_CHOICE (MN_SPC + 3)
-#define MN_MAX_TABS   16
+#include "mn_menu.h"
 
 struct event_s;
 
 typedef enum
 {
-    MN_MENU_CENTER = (1u << 0),
-    MN_MENU_HINTS = (1u << 1),
+    MN_MENU_HINTS = (1u << 0),
 
     // Centers the whole layout box.
-    MN_MENU_CENTER_LAYOUT = (1u << 2),
+    MN_MENU_CENTER_H = (1u << 1),
+    MN_MENU_CENTER_W = (1u << 2),
+
+    MN_MENU_BREAD_CRUMB_TITLE = (1u << 3),
 } mn_menu_flags_t;
 
 typedef enum
@@ -44,7 +40,6 @@ typedef enum
     ItemType_Input,
     ItemType_Text,
     ItemType_Action,
-    ItemType_Reset,
     ItemType_SubMenu,
     ItemType_Skip,
     ItemType_SaveSlot,
@@ -60,8 +55,7 @@ typedef enum
     MN_ITEM_DIRECT_COORDS = (1u << 5),
     MN_ITEM_DRAW_CROSSHAIR = (1u << 6),
     MN_ITEM_HIDE_VALUE = (1u << 7),
-    MN_ITEM_BIG_FONT = (1u << 8),
-    MN_ITEM_INVERTED = (1u << 9)
+    MN_ITEM_INVERTED = (1u << 8)
 } mn_item_flags_t;
 
 typedef struct mn_item_ops_s mn_item_ops_t;
@@ -76,7 +70,6 @@ typedef struct
     int w;
     int h;
     int value_x;
-    int value_w;
     int mouse_x;
     int color;
     boolean selected;
@@ -94,8 +87,12 @@ struct mn_item_s
     void (*get_choices)(mn_item_t *item);
     const char **choices;
     int num_choices;
-    int slider_size;
-    int choice_size;
+    union
+    {
+        int slider_size;
+        int choice_size;
+    };
+    int offset;
     mn_item_flags_t flags;
     const char *description;
     const char *suffix;
@@ -118,7 +115,11 @@ struct mn_item_s
     boolean action_pending;
 
     int draw_value_x;
-    int draw_value_w;
+
+    // Acceleration of repeated MENU_LEFT/RIGHT on sliders.
+    int step_dir;
+    int step_repeat;
+    int step_ms;
 };
 
 struct mn_item_ops_s
@@ -143,8 +144,11 @@ struct mn_page_s
     int selected;
     int scroll;
     int scroll_target;
+    int scroll_start;
+    int scroll_anim_start_ms;
     int content_h;
     int label_width;
+    int value_x;
 
     // Empty space kept above the first row and below the last one, for
     // item graphics that overhang their rect and would otherwise be clipped
@@ -175,19 +179,27 @@ typedef struct
 
 // Margins and the layout width resolve percentages against the full logical
 // screen width, hint sizes resolve them against the resulting content box.
-// MN_UNIT_AUTO fields keep the original hard-coded geometry.
+// value_column is the distance from the right edge of the items box to the
+// item values. MN_UNIT_AUTO fields keep the original hard-coded geometry.
 typedef struct
 {
     mn_length_t margin_left;
     mn_length_t margin_right;
     mn_length_t min_width;
     mn_length_t max_width;
+    mn_length_t value_column;
     mn_length_t hint_width;
     mn_length_t hint_min_width;
     mn_length_t hint_max_width;
     mn_length_t items_min_width;
     int hint_gap;
+    int item_spacing;
 } mn_layout_t;
+
+enum
+{
+    MN_MAX_TABS = 8
+};
 
 struct mn_menu_s
 {
@@ -195,7 +207,6 @@ struct mn_menu_s
     const char *title_text;
     const char *background;
     mn_menu_flags_t flags;
-    int item_spacing;
     mn_layout_t layout;
     boolean init;
 
@@ -208,7 +219,6 @@ struct mn_menu_s
     mn_item_t *active_item;
     mn_item_t *drag_item;
 
-    mrect_t tabbar;
     mrect_t viewport;
     mrect_t hint_rect;
     mrect_t tab_rects[MN_MAX_TABS];
@@ -217,6 +227,7 @@ struct mn_menu_s
 
     mrect_t scroll_track;
     mrect_t scroll_thumb;
+    mrect_t scroll_hit;
     boolean dragging_scroll;
     int drag_offset;
 
@@ -226,43 +237,6 @@ struct mn_menu_s
 
     void (*ticker)(mn_menu_t *menu);
 };
-
-#define MN_GAP(gap)   {.type = ItemType_Skip, .height = (gap)}
-#define MN_TITLE(txt) {.label = (txt), .type = ItemType_Title}
-
-#define MN_TAB(tab_, items_) \
-    {.tab = (tab_), .items = (items_), .num_items = arrlen(items_)}
-
-#define MN_TOGGLE(lbl, key, desc) \
-    {.label = (lbl),              \
-     .cfg = (key),                \
-     .type = ItemType_Toggle,     \
-     .description = (desc)}
-
-#define MN_TEXT(lbl, key, size, desc) \
-    {.label = (lbl),                  \
-     .cfg = (key),                    \
-     .type = ItemType_Text,           \
-     .choice_size = (size),           \
-     .description = (desc)}
-
-#define MN_CHOICE(lbl, key, strs, size, desc) \
-    {.label = (lbl),                          \
-     .cfg = (key),                            \
-     .type = ItemType_Choice,                 \
-     .choices = (strs),                       \
-     .num_choices = arrlen(strs),             \
-     .choice_size = (size),                   \
-     .description = (desc)}
-#define MN_CHOICE_ACT(lbl, key, strs, size, act, desc) \
-    {.label = (lbl),                                   \
-     .cfg = (key),                                     \
-     .type = ItemType_Choice,                          \
-     .choices = (strs),                                \
-     .num_choices = arrlen(strs),                      \
-     .choice_size = (size),                            \
-     .action = (act),                                  \
-     .description = (desc)}
 
 typedef enum
 {
@@ -293,6 +267,7 @@ void MN_ContainerConfirm(const char *text, void (*action)(void));
 void MN_ContainerEnsureVisible(mn_item_t *item);
 void MN_ContainerRefresh(void);
 void MN_ContainerEndEdit(void);
+void MN_ContainerBeginEdit(mn_item_t *item);
 
 mn_menu_t *MN_ContainerGetCurrentMenu(void);
 

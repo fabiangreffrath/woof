@@ -15,6 +15,7 @@
 #include "g_skillinfo.h"
 #include "m_config.h"
 #include "mn_container.h"
+#include "mn_defs.h"
 #include "mn_options.h"
 #include "mn_csmenu.h"
 

@@ -55,6 +55,7 @@
 #include "mn_container.h"
 #include "mn_csmenu.h"
 #include "mn_multiplayer.h"
+#include "mn_newgame.h"
 #include "mn_options.h"
 #include "r_main.h"
 #include "s_sound.h"
@@ -84,14 +85,14 @@ void M_BindNum(const char *name, void *location, void *current,
 {
     default_t item = { name, {.i = location}, {.i = current},
                        {.number = default_val}, {min_val, max_val},
-                       number, wad, help };
+                       cfg_number, wad, help };
     array_push(defaults, item);
 }
 
 void M_BindMenuNum(const char *name, void *location, int min_val, int max_val)
 {
     default_t item = { name, {.i = location}, {0}, {0}, {min_val, max_val},
-                       menu, wad_no, NULL };
+                      cfg_menu, wad_no, NULL };
     array_push(defaults, item);
 }
 
@@ -110,13 +111,13 @@ void M_BindStr(char *name, const char **location, const char *default_val,
                wad_allowed_t wad, const char *help)
 {
     default_t item = { name, {.s = (char **)location}, {0},
-                       {.string = default_val}, {0}, string, wad, help };
+                       {.string = default_val}, {0}, cfg_string, wad, help };
     array_push(defaults, item);
 }
 
 void M_BindInput(const char *name, int input_id, const char *help)
 {
-    default_t item = { name, {0}, {0}, {0}, {UL,UL}, input, wad_no, help,
+    default_t item = { name, {0}, {0}, {0}, {UL,UL}, cfg_input, wad_no, help,
                        input_id };
     array_push(defaults, item);
 }
@@ -137,6 +138,7 @@ void M_InitConfig(void)
     MN_BindOptionsVariables();
     MN_BindMultiplayerVariables();
     MN_BindCSMenuVariables();
+    MN_BindNewGameVariables();
     D_BindMiscVariables();
     G_BindGameVariables();
     G_BindRewindVariables();
@@ -270,7 +272,7 @@ void M_SaveDefaults(void)
     {
         config_t value = {0};
 
-        if (dp->type == menu)
+        if (dp->type == cfg_menu)
         {
             continue;
         }
@@ -299,7 +301,7 @@ void M_SaveDefaults(void)
 
         if (config_help)
         {
-            if ((dp->type == string
+            if ((dp->type == cfg_string
                      ? fprintf(f, "[(\"%s\")]", (char *)dp->defaultvalue.string)
                      : dp->limit.min == UL
                         ? dp->limit.max == UL
@@ -322,11 +324,11 @@ void M_SaveDefaults(void)
         // killough 11/98:
         // Write out original default if .wad file has modified the default
 
-        if (dp->type == string)
+        if (dp->type == cfg_string)
         {
             value.string = dp->modified ? dp->orig_default.string : *dp->location.s;
         }
-        else if (dp->type == number)
+        else if (dp->type == cfg_number)
         {
             if (dp->modified)
             {
@@ -342,9 +344,9 @@ void M_SaveDefaults(void)
         //  killough 3/6/98:
         //  use spaces instead of tabs for uniform justification
 
-        if (dp->type != input)
+        if (dp->type != cfg_input)
         {
-            if (dp->type == number
+            if (dp->type == cfg_number
                     ? fprintf(f, "%-*s %i\n", maxlen, dp->name, value.number) == EOF
                     : fprintf(f, "%-*s \"%s\"\n", maxlen, dp->name, value.string)
                           == EOF)
@@ -353,7 +355,7 @@ void M_SaveDefaults(void)
             }
         }
 
-        if (dp->type == input)
+        if (dp->type == cfg_input)
         {
             int i;
             const input_t *inputs = M_Input(dp->input_id);
@@ -478,7 +480,7 @@ boolean M_ParseOption(const char *p, boolean wad)
 
     if (sscanf(p, "%79s %1023[^\n]", name, strparm) != 2 || !isalnum(*name)
         || !(dp = M_LookupDefault(name))
-        || (*strparm == '"') == (dp->type != string)
+        || (*strparm == '"') == (dp->type != cfg_string)
         || (wad && !dp->wad_allowed))
     {
         return 1;
@@ -495,7 +497,7 @@ boolean M_ParseOption(const char *p, boolean wad)
     }
 #endif
 
-    if (dp->type == string) // get a string default
+    if (dp->type == cfg_string) // get a string default
     {
         int len = strlen(strparm) - 1;
 
@@ -529,7 +531,7 @@ boolean M_ParseOption(const char *p, boolean wad)
             *dp->current.s = strdup(strparm + 1); // Change current value
         }
     }
-    else if (dp->type == number)
+    else if (dp->type == cfg_number)
     {
         if (sscanf(strparm, "%i", &parm) != 1)
         {
@@ -556,7 +558,7 @@ boolean M_ParseOption(const char *p, boolean wad)
             *dp->location.i = parm; // Change default
         }
     }
-    else if (dp->type == input)
+    else if (dp->type == cfg_input)
     {
         char buffer[80];
         char *scan;
@@ -682,15 +684,15 @@ void M_LoadDefaults(void)
 
     for (dp = defaults; dp->name; dp++)
     {
-        if (dp->type == string)
+        if (dp->type == cfg_string)
         {
             *dp->location.s = strdup(dp->defaultvalue.string);
         }
-        else if (dp->type == number)
+        else if (dp->type == cfg_number)
         {
             *dp->location.i = dp->defaultvalue.number;
         }
-        else if (dp->type == input)
+        else if (dp->type == cfg_input)
         {
             M_InputSetDefault(dp->input_id);
         }

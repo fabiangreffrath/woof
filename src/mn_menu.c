@@ -46,11 +46,12 @@
 #include "m_input.h"
 #include "m_misc.h"
 #include "m_swap.h"
+#include "mn_defs.h"
 #include "mn_font.h"
 #include "mn_container.h"
 #include "mn_csmenu.h"
-#include "mn_common.h"
 #include "mn_menu.h"
+#include "mn_newgame.h"
 #include "mn_options.h"
 #include "mn_saveload.h"
 #include "mp_start.h"
@@ -210,8 +211,6 @@ static void M_InitExtendedHelp(void);
 static void M_ExtHelpNextScreen(int choice);
 static void M_ExtHelp(int choice);
 static void M_DrawExtHelp(void);
-
-static void M_CustomSkill(int choice);
 
 static void M_PauseSound(void)
 {
@@ -586,8 +585,8 @@ static void InitializeSkillMenu(void)
     }
 
     NewDef.lastOn = default_skill - 1;
-    NewDef.numitems = num_skills;
-    NewDef.menuitems = calloc(num_skills, sizeof(*NewDef.menuitems));
+    NewDef.numitems = num_skills - 1;
+    NewDef.menuitems = calloc(num_skills - 1, sizeof(*NewDef.menuitems));
 
     for (int i = 0; i < num_og_skills; ++i)
     {
@@ -609,15 +608,6 @@ static void InitializeSkillMenu(void)
             NewDef.lastOn = i;
         }
     }
-    menuitem_t cskill_item = {.status = 1,
-                              .name = "M_CSTSKL",
-                              .routine = M_CustomSkill,
-                              .alphaKey = 'c',
-                              .alttext = "Custom Skill...",
-                              .rect = NEW_GAME_RECT(num_cskill),
-                              .flags = MF_OPTLUMP};
-
-    NewDef.menuitems[num_cskill] = cskill_item;
 
     if (NewDef.lastOn >= num_skills)
     {
@@ -647,6 +637,27 @@ static void M_NewGame(int choice)
                        NULL, false); // killough 5/26/98: not externalized
         return;
     }
+
+    if (MN_NewGameMenuOpen())
+    {
+        return;
+    }
+
+    if (((gamemode == commercial) && !EpiCustom) || EpiDef.numitems <= 1)
+    {
+        SetNextMenu(&NewDef);
+    }
+    else
+    {
+        epiChoice = 0;
+        SetNextMenu(&EpiDef);
+    }
+}
+
+void MN_NewGame(void)
+{
+    MN_ContainerClose();
+    M_StartSound(sfx_mnuopn);
 
     if (((gamemode == commercial) && !EpiCustom) || EpiDef.numitems <= 1)
     {
@@ -722,12 +733,6 @@ void M_ChooseSkill(int choice)
     }
 
     FinishGameSelection();
-}
-
-static void M_CustomSkill(int choice)
-{
-    customskill_active = true;
-    MN_CSMenuOpen();
 }
 
 /////////////////////////////
@@ -2046,6 +2051,26 @@ boolean M_Responder(event_t *ev)
     {
         action = MENU_RIGHT;
     }
+    else if (M_InputActivated(input_menu_tab_left))
+    {
+        action = MENU_TAB_LEFT;
+    }
+    else if (M_InputActivated(input_menu_tab_right))
+    {
+        action = MENU_TAB_RIGHT;
+    }
+    else if (M_InputActivated(input_menu_clear))
+    {
+        action = MENU_CLEAR;
+    }
+    else if (M_InputActivated(input_menu_apply))
+    {
+        action = MENU_APPLY;
+    }
+    else if (M_InputActivated(input_menu_defaults))
+    {
+        action = MENU_DEFAULTS;
+    }
     else if (M_InputActivated(input_menu_backspace))
     {
         action = MENU_BACKSPACE;
@@ -2058,10 +2083,6 @@ boolean M_Responder(event_t *ev)
     {
         action = MENU_ESCAPE;
     }
-    else if (M_InputActivated(input_menu_clear))
-    {
-        action = MENU_CLEAR;
-    }
 
     if (ev->type == ev_joyb_down && action >= MENU_UP && action <= MENU_RIGHT)
     {
@@ -2072,7 +2093,8 @@ boolean M_Responder(event_t *ev)
     // These keys act on the highlighted item and must not switch the input
     // mode, or the selection would jump to the keyboard cursor.
     if (ev->type == ev_keydown && action != MENU_CLEAR
-        && action != MENU_ESCAPE && action != MENU_BACKSPACE)
+        && action != MENU_ESCAPE && action != MENU_BACKSPACE
+        && action != MENU_DEFAULTS && action != MENU_APPLY)
     {
         help_input = key_mode;
         menu_input = key_mode;
@@ -2441,7 +2463,7 @@ void M_Drawer(void)
 
     if (MN_MenuIsShaded())
     {
-        V_ShadeScreen();
+        V_ShadeRect(0, 0, video.unscaledw, SCREENHEIGHT, 30);
     }
 
     if (MN_ContainerActive())
@@ -2676,7 +2698,11 @@ static void WriteText(int x, int y, const char *string)
 
 void MN_DrawTitle(int x, int y, const char *patch, const char *alttext)
 {
-    int patch_lump = W_CheckNumForName(patch);
+    int patch_lump = -1;
+    if (patch && patch[0] != '\0')
+    {
+        patch_lump = W_CheckNumForName(patch);
+    }
     int patch_priority = -1;
 
     if (patch_lump >= 0)

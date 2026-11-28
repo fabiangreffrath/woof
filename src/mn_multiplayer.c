@@ -17,8 +17,8 @@
 #include "m_array.h"
 #include "m_config.h"
 #include "m_misc.h"
-#include "mn_common.h"
 #include "mn_container.h"
+#include "mn_defs.h"
 #include "mn_font.h"
 #include "mn_menu.h"
 #include "mn_multiplayer.h"
@@ -149,8 +149,7 @@ static mp_columns_t GetColumns(int left, int right)
 
 static void HeaderDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
 {
-    const mp_columns_t columns =
-        GetColumns(ctx->x, ctx->value_x + ctx->value_w);
+    const mp_columns_t columns = GetColumns(ctx->x, ctx->x + ctx->w);
 
     const char *lbl = "Server";
     MN_DrawString(columns.left, ctx->y, CR_GOLD, lbl);
@@ -247,8 +246,7 @@ static void ServerDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
 
     const mp_server_t *server = &servers[index];
 
-    const mp_columns_t columns =
-        GetColumns(ctx->x, ctx->value_x + ctx->value_w);
+    const mp_columns_t columns = GetColumns(ctx->x, ctx->x + ctx->w);
 
     char stats[16];
     char ping[16];
@@ -449,9 +447,10 @@ void MN_MultiplayerInit(void)
     server_list_menu.title_patch = "";
     server_list_menu.title_text = "Servers";
     server_list_menu.background = "FLOOR4_6";
-    server_list_menu.flags = MN_MENU_CENTER_LAYOUT;
+    server_list_menu.flags = MN_MENU_CENTER_W;
     server_list_menu.layout = (mn_layout_t){.max_width = MN_PX(500),
-                                            .items_min_width = MN_PX(250)};
+                                            .items_min_width = MN_PX(250),
+                                            .item_spacing = 1};
     server_list_menu.pages = &server_page;
     server_list_menu.num_pages = 1;
     server_list_menu.ticker = ServerListTicker;

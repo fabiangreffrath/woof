@@ -174,7 +174,7 @@ void V_DrawBackground(const char *patchname);
 
 void V_ShadeScreen(void);
 
-void V_ShadeRect(int x, int y, int width, int height);
+void V_ShadeRect(int x, int y, int width, int height, int opacity);
 
 void V_ScreenShot(void);
 

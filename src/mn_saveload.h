@@ -15,7 +15,7 @@
 #define MN_SAVELOAD_H
 
 #include "doomtype.h"
-#include "mn_common.h"
+#include "mn_menu.h"
 
 #define SAVE_STRING_SIZE 24
 
