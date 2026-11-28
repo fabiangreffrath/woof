@@ -3609,25 +3609,25 @@ void G_DoReborn(int playernum)
           return;
         }
 
-      if (G_CheckSpot(playernum, &playerstarts[RebornPosition][playernum]) )
+      if (G_CheckSpot(playernum, &playerstarts[0][playernum]) )
         {
-          P_SpawnPlayer(&playerstarts[RebornPosition][playernum]);
+          P_SpawnPlayer(&playerstarts[0][playernum]);
           return;
         }
 
       // try to spawn at one of the other players spots
       for (i=0 ; i<MAXPLAYERS ; i++)
         {
-          if (G_CheckSpot(playernum, &playerstarts[RebornPosition][i]) )
+          if (G_CheckSpot(playernum, &playerstarts[0][i]) )
             {
-              playerstarts[RebornPosition][i].type = playernum+1; // fake as other player
-              P_SpawnPlayer(&playerstarts[RebornPosition][i]);
-              playerstarts[RebornPosition][i].type = i+1;   // restore
+              playerstarts[0][i].type = playernum+1; // fake as other player
+              P_SpawnPlayer(&playerstarts[0][i]);
+              playerstarts[0][i].type = i+1;   // restore
               return;
             }
           // he's going to be inside something.  Too bad.
         }
-      P_SpawnPlayer(&playerstarts[RebornPosition][playernum]);
+      P_SpawnPlayer(&playerstarts[0][playernum]);
     }
 }
 
