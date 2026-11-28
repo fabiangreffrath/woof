@@ -515,7 +515,10 @@ mn_menu_t input_bindings_menu = {
     .title_text = "Input Bindings",
     .background = "FLOOR4_6",
     .flags = MN_MENU_CENTER_W | MN_MENU_BREAD_CRUMB_TITLE,
-    .layout = MN_LAYOUT,
+    .layout = {.max_width = MN_PX(400),
+               .items_min_width = MN_PX(300),
+               .value_column = MN_PX(200),
+               .item_spacing = 1},
     .pages = input_bindings_pages,
     .num_pages = arrlen(input_bindings_pages),
 };

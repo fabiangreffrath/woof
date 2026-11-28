@@ -938,10 +938,8 @@ static void ActionDraw(const mn_item_t *item, const mn_draw_ctx_t *ctx)
 {
     int x = ctx->x + MN_GetPixelWidth(item->label);
     int y = ctx->y;
-    if (item->height > MN_SPC)
-    {
-        y += (item->height - MN_SPC) / 2;
-    }
+    
+    y += (item->height - MN_FNT_H) / 2;
 
     byte *cr = ctx->disabled   ? cr_dark
                : ctx->selected ? xlat[CR_BRIGHT].table

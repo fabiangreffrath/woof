@@ -32,10 +32,15 @@
      .suffix = (sfx),                 \
      .description = (desc)}
 
+static const char *onoff_strings[] = {"On", "Off"};
+
 #define MN_TOGGLE_INV(lbl, key, desc) \
     {.label = (lbl),                  \
      .cfg = (key),                    \
-     .type = ItemType_Toggle,         \
+     .type = ItemType_Choice,         \
+     .choices = onoff_strings,        \
+     .num_choices = arrlen(onoff_strings), \
+     .choice_size = MN_CHOICE_SIZE,   \
      .flags = MN_ITEM_INVERTED,       \
      .description = (desc)}
 
@@ -101,17 +106,25 @@ static const char *game_type_strings[] = {
 };
 
 static mn_item_t create_items[] = {
-    MN_CHOICE("Game Type", "deathmatch", game_type_strings,
-              "Game Type:\n\nCo-operative: Play the level together.\n\n"
-              "Deathmatch: Fight other players.\n\n"
-              "Deathmatch 2.0: Weapons stay, items respawn.\n\n"
-              "Deathmatch 3.0: Weapons stay, items respawn, no ammo pickups."),
+    {.label = "Game Type",
+     .cfg = "deathmatch",
+     .type = ItemType_Choice,
+     .choices = game_type_strings,
+     .num_choices = arrlen(game_type_strings),
+     .choice_size = 16,
+     .offset = 7 * 8,
+     .description =
+          "Game Type\n\nCo-operative: Play the level together.\n\n"
+          "Deathmatch: Fight other players.\n\n"
+          "Deathmatch 2.0: Weapons stay, items respawn.\n\n"
+          "Deathmatch 3.0: Weapons stay, items respawn, no ammo pickups."},
     {.label = "Skill",
      .cfg = "skill",
      .type = ItemType_Choice,
      .get_choices = MP_GetSkillStrings,
-     .choice_size = MN_CHOICE_SIZE,
-     .description = "Skill level for the new game."},
+     .choice_size = 16,
+     .offset = 7 * 8,
+     .description = "Skill level for the new game."                       },
     MN_NUM("Episode", "episode", NULL,
            "Episode to start on (ignored for DOOM II and its add-ons)."),
     MN_NUM("Level Warp", "map", NULL, "Map to start on."),
@@ -119,17 +132,17 @@ static mn_item_t create_items[] = {
     MN_NUM("Time Limit", "timelimit", "min",
            "Levels will end after this many minutes (0 = No limit)."),
     MN_TOGGLE_INV("Monsters Enabled", "nomonsters",
-                  "Monsters Enabled:\n\nSpawn monsters in the level."),
+                  "Monsters Enabled\n\nSpawn monsters in the level."),
     MN_TOGGLE("  Fast Monsters", "fastparm",
-              "Fast Monsters:\n\nMonsters move and attack faster."),
+              "Fast Monsters\n\nMonsters move and attack faster."),
     MN_TOGGLE("  Respawning Monsters", "respawnparm",
-              "Respawning Monsters:\n\nKilled monsters come back to life."),
+              "Respawning Monsters\n\nKilled monsters come back to life."),
     MN_TITLE("Server"),
     MN_TEXT("Server Name", "servername", MAXPLAYERNAME - 1,
-            "Server Name:\n\nName shown in server lists."),
-    MN_TOGGLE_INV("Register with Master Server", "privateserver",
-                  "Register with Master Server:\n\n"
-                  "Make the server publicly visible on the Internet."),
+            "Server Name\n\nName shown in server lists."),
+    MN_TOGGLE("Register", "privateserver",
+              "Register with Master Server\n\n"
+              "Make the server publicly visible on the Internet."),
     MN_ACTION("Start Game", MP_CreateGame,
               "Start a server with the currently loaded WADs."),
 };
