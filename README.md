@@ -35,15 +35,17 @@ If you turn the [Doom logo upside down](https://www.reddit.com/r/Doom/comments/8
 
 # Key features
 
- * Arbitrary resolutions up to native display resolution with dynamic resolution scaling (DRS) to automatically change the internal resolution to maintain a target framerate.
- * Widescreen rendering with proper support for widescreen assets.
+ * Arbitrary resolutions up to native display resolution
+ * Dynamic resolution scaling (DRS) option to automatically change the internal resolution to maintain a target framerate.
  * Rendering with uncapped frame rate and frame interpolation.
- * Adjustable field of view (FOV).
+ * High performance multithreaded software renderer, with significant improvements over the vanilla renderer, while maintaining the classic Doom look and feel.
+ * Widescreen rendering, with proper support for widescreen assets, with aspect ratio up to 32:9.
+ * Adjustable field of view, with horizontal FOV values from 60-120.
  * Support for voxels in KVX format.
  * 3D audio, supporting stereo and up to 7.1 surround sound with an optional HRTF mode, as well as PC speaker emulation.
  * Several music backends: native MIDI, FluidSynth with a bundled soundfont, built-in OPL3 emulator. Digital music and sound formats supported by libsndfile, module music supported by libxmp.
  * [Modern gamepad support](https://github.com/fabiangreffrath/woof/wiki/Gamepad) featuring rumble, gyro, flick stick, custom weapon slots, and full control of sensitivities, response curves, and deadzones.
- * Mouselook.
+ * Mouselook, including support for both classic "Vertical Autoaim" and modern "Direct Vertical Aim".
  * Autoload directories.
  * Savegame backward compatibility up to `MBF.EXE`.
  * Integration of the Chocolate Doom network code.
@@ -51,14 +53,15 @@ If you turn the [Doom logo upside down](https://www.reddit.com/r/Doom/comments/8
 
 ## Capabilities
 
- * Support for additional node types, including DeePBSP and ZDoom's XNOD/ZNOD, XGLN/ZGLN, XGL2/ZGL2 & XGL3/ZGL3 extended formats.
+ * Support for additional node types, including [DeePBSPV4](https://doomwiki.org/wiki/DeePBSPV4_nodes) and [ZDBSP](https://doomwiki.org/wiki/ZDBSP_nodes) extended formats.
  * Integration of the NanoBSP node builder (enforce with `-bsp`) for maps without nodes or with unsupported nodes (not demo compatible).
  * Tall textures and sprites in DeePsea format.
- * Support for UDMF maps, in the "Doom" namespace, compliant with version 1.1 of the [spec](https://github.com/fabiangreffrath/woof/blob/master/docs/udmf11.txt).
+ * Support for cross-port UDMF maps, in the "Doom" namespace, compliant with version 1.2 of the [spec](https://github.com/doom-cross-port-collab/udmf).
+ * Support for exclusive UDMF maps, in the "Woof" namespace, as per the [spec](https://github.com/fabiangreffrath/woof/blob/master/docs/udmf_woof.txt).
  * Unlimited extra states, sprites, mobjtypes and sounds for use in Dehacked patches (supporting the "DEHEXTRA" and "DSDHacked" specs).
  * Ambient sounds using SNDINFO and DoomEdNums 14001 to 14064.
- * In-game music changing using MUSINFO and DoomEdNums 14101 to 14164.
- * UMAPINFO support, compliant to Rev 2.2 of the [spec](https://github.com/kraflab/umapinfo).
+ * In-game music changing using MUSINFO and DoomEdNums 14100 to 14164.
+ * UMAPINFO support, compliant to Rev 2.2 of the [spec](https://github.com/doom-cross-port-collab/umapinfo).
  * MBF21 compatibility level, compliant to Rev 1.4 of the [spec](https://github.com/doom-cross-port-collab/mbf21).
  * Support for PNG graphics.
  * SMMU-style swirling animated flats.
