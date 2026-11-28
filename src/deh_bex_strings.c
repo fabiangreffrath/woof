@@ -64,6 +64,7 @@ const bex_string_t bex_mnemonic_table[] =
     {"MSGON",                MSGON               },
     {"NETEND",               NETEND              },
     {"ENDGAME",              ENDGAME             },
+    {"DOSY",                 DOSY                },
     {"DETAILHI",             DETAILHI            },
     {"DETAILLO",             DETAILLO            },
     {"GAMMALVL0",            GAMMALVL0           },
