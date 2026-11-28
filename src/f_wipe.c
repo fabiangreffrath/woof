@@ -203,10 +203,17 @@ static int wipe_renderMelt(int width, int height, int ticks)
             current = curry[col];
         }
 
+        // If this is the last wipe column,
+        // melt the screen columns otherwise excluded from the block
+        const int extra_cols = (col == wipe_columns - 1)
+                             ? width - wipe_columns * horizblocksize / 100
+                             : 0;
+
+        currcol = col * horizblocksize / 100;
+        currcolend = (col + 1) * horizblocksize / 100 + extra_cols;
+
         if (current < 0)
         {
-            currcol = col * horizblocksize / 100;
-            currcolend = (col + 1) * horizblocksize / 100;
             for (; currcol < currcolend; ++currcol)
             {
                 pixel_t *source = wipe_scr_start + (currcol * height);
@@ -217,9 +224,6 @@ static int wipe_renderMelt(int width, int height, int ticks)
         }
         else if (current < WIPE_ROWS)
         {
-            currcol = col * horizblocksize / 100;
-            currcolend = (col + 1) * horizblocksize / 100;
-
             currrow = current * vertblocksize / 100;
 
             for (; currcol < currcolend; ++currcol)
@@ -232,13 +236,6 @@ static int wipe_renderMelt(int width, int height, int ticks)
 
             done = false;
         }
-    }
-
-    for (currcol = wipe_columns * horizblocksize / 100; currcol < width; ++currcol)
-    {
-        pixel_t *dest = wipe_scr + (currcol * height);
-
-        memset(dest, playpal_global->black, height);
     }
 
     return done;
